@@ -2415,7 +2415,7 @@ function IdlePage() {
 
   function spawnEnemies(): Enemy[] {
     const leaderLv = team[0]?.level ?? 10;
-    const count = 10 + Math.floor(Math.random() * 4); // 10-13 pokemons no mundo
+    const count = 16 + Math.floor(Math.random() * 5); // 16-20 pokemons no mundo
     const placed: { x: number; y: number }[] = [];
     const MIN_DIST = 220; // px entre inimigos (nao ficam colados)
     const arr: Enemy[] = [];
