@@ -632,6 +632,7 @@ const ITEM_IMG: Record<string, string> = {
   revive: reviveIconImg, berry: berryIconImg, key: keyIconImg,
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
+  premium_box: premiumBoxImg,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
