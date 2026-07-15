@@ -2943,7 +2943,6 @@ function IdlePage() {
       pushChat(msg, "cap");
       pushFxAt(trainerPos.x, trainerPos.y - 60, fullRecovery ? "+HP / +⚡" : "+HP", "gold");
     }, Math.max(0, remaining));
-    }, Math.max(0, remaining));
     return () => clearTimeout(t);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
   // Tick de UI para atualizar barra de progresso do descanso
