@@ -701,7 +701,7 @@ function freshIdle(): IdleState {
     collection: [],
     craftPoints: 0,
     items: {},
-    bank: { gold: 0, crystals: 0 },
+    bank: { gold: 5000, crystals: 0 },
     buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0 },
     autoHeal: { enabled: false, threshold: 0.5 },
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
@@ -2798,8 +2798,10 @@ function IdlePage() {
     if (eggId === "egg_aura") {
       sp = (Math.random() < 0.5 ? "lucario" : "mew") as Species;
     } else {
-      const unlocked = speciesUnlockedFor(leaderLv);
-      sp = unlocked[Math.floor(Math.random() * unlocked.length)] as Species;
+      const unlocked = speciesUnlockedFor(leaderLv).filter((x) => !!GIF[x]);
+      const fallback = (Object.keys(GIF) as Species[]);
+      const pickFrom = unlocked.length ? unlocked : fallback;
+      sp = pickFrom[Math.floor(Math.random() * pickFrom.length)] as Species;
     }
     const rarity = rollEggRarity(eggId);
     const pet = makePet(sp, Math.max(1, leaderLv), rarity as Rarity);
@@ -2843,10 +2845,8 @@ function IdlePage() {
   };
 
   // Loja — apenas 1 ovo místico (500 cristais), raridade totalmente aleatória
-  const SHOP_EGGS: { id: EggId; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[] = [
-    { id: "egg_mystic", name: "Ovo Místico", price: 1000, currency: "crystals", desc: "Raridade aleatória: comum → mítico ✦ (item raro)", color: "#ff97e1" },
-    { id: "egg_aura",   name: "Ovo da Aura", price: 10,   currency: "gold",     desc: "Choca Lucario ou Mew (com aura mítica) ✨", color: "#6bd4ff" },
-  ];
+  // Loja — ovos temporariamente removidos da venda
+  const SHOP_EGGS: { id: EggId; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[] = [];
 
   const buyEgg = (e: typeof SHOP_EGGS[number]) => {
     setIdle((s) => {
@@ -2886,7 +2886,9 @@ function IdlePage() {
 
   // Vale Verdejante: tabela com pesos e raridade forçada.
   // Peso alto = aparece muito; peso baixo = raro ★ (mais forte, aura colorida)
-  const ARENA_SPAWN_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = [
+  // Só permite spawn de espécies com GIF disponível.
+  const hasGif = (sp: Species) => !!GIF[sp];
+  const ARENA_SPAWN_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = ([
     // Comuns (frequentes)
     { sp: "caterpie" as Species,   w: 14 },
     { sp: "weedle" as Species,     w: 14 },
@@ -2916,7 +2918,7 @@ function IdlePage() {
     { sp: "gloom" as Species,      w: 2, forcedRarity: "rare" },
     { sp: "parasect" as Species,   w: 2, forcedRarity: "rare" },
     // (Épico só é liberado quando o líder chega ao nível 50 — em outros mapas)
-  ];
+  ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
 
   function pickArenaSpawn(): { sp: Species; forcedRarity?: Rarity } {
     const total = ARENA_SPAWN_TABLE.reduce((s, e) => s + e.w, 0);
@@ -2961,7 +2963,7 @@ function IdlePage() {
       } else if (idle.currentMap === "pedreira") {
         // Pedreira Antiga — Pokémon de Pedra/Terra, níveis 30-55.
         // (onix, sandslash, nidoking, aerodactyl, kabutops removidos — sem sprite/GIF disponível.)
-        const STONE_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = [
+        const STONE_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = ([
           { sp: "sandshrew" as Species, w: 14, forcedRarity: "uncommon" },
           { sp: "diglett"   as Species, w: 14, forcedRarity: "uncommon" },
           { sp: "cubone"    as Species, w: 12, forcedRarity: "uncommon" },
@@ -2969,7 +2971,7 @@ function IdlePage() {
           { sp: "mankey"    as Species, w: 10, forcedRarity: "rare" },
           { sp: "magnemite" as Species, w:  8, forcedRarity: "rare" },
           { sp: "golem"     as Species, w:  5, forcedRarity: "epic" },
-        ];
+        ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
         const total = STONE_TABLE.reduce((s, e) => s + e.w, 0);
         let r = Math.random() * total;
         let chosen = STONE_TABLE[0];
@@ -2985,6 +2987,8 @@ function IdlePage() {
           pool = ["blaziken", "charmander", "charmeleon", "charizard", "magmar", "arcanine", "growlithe",
                   "ekans", "arbok", "zubat", "venonat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
         }
+        pool = pool.filter(hasGif);
+        if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
 
@@ -5539,8 +5543,9 @@ function IdlePage() {
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
-            { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
-            { id: "market",   label: "Mercado",  img: navMarket,    color: "#ff9d3d" },
+            // Carteira e Mercado bloqueados temporariamente
+            // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
+            // { id: "market",   label: "Mercado",  img: navMarket,    color: "#ff9d3d" },
           ] as const).map((t) => {
 
             const active = tab === t.id;
