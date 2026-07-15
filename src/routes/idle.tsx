@@ -1602,18 +1602,26 @@ function IdlePage() {
         const tx = trainerPos.x;
         const ty = trainerPos.y;
         const next = prev.map((e) => {
-          if (!e.aggressive || e.hp <= 0) return e;
-          const dx = tx - e.x;
-          const dy = ty - e.y;
+          if (e.hp <= 0) return e;
+          let ne = e;
+          // Oddish/Gloom se curam lentamente enquanto vivos (~3%/s)
+          if ((e.sp === "oddish" || e.sp === "gloom") && e.hp < e.maxHp) {
+            const heal = Math.max(1, Math.round(e.maxHp * 0.004));
+            ne = { ...ne, hp: Math.min(e.maxHp, e.hp + heal) };
+            changed = true;
+          }
+          if (!ne.aggressive) return ne;
+          const dx = tx - ne.x;
+          const dy = ty - ne.y;
           const dist = Math.hypot(dx, dy);
-          const aggroR = e.aggroR ?? 180;
-          if (dist < 50 || dist > aggroR) return e;
+          const aggroR = ne.aggroR ?? 180;
+          if (dist < 50 || dist > aggroR) return ne;
           const speed = 6;
-          const nx = e.x + (dx / dist) * speed;
-          const ny = e.y + (dy / dist) * speed;
-          if (collidesWithAny(nx, ny)) return e;
+          const nx = ne.x + (dx / dist) * speed;
+          const ny = ne.y + (dy / dist) * speed;
+          if (collidesWithAny(nx, ny)) return ne;
           changed = true;
-          return { ...e, x: nx, y: ny, face: (dx >= 0 ? "right" : "left") as "left" | "right" };
+          return { ...ne, x: nx, y: ny, face: (dx >= 0 ? "right" : "left") as "left" | "right" };
         });
         return changed ? next : prev;
       });
