@@ -665,18 +665,21 @@ const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
 const ENERGY_MAX = 100;
 const ENERGY_DRAIN_PER_KILL = 8;
 const AZUL_REST_MS = 5 * 60 * 1000;
+const AZUL_REST_FREE_MS = 60 * 60 * 1000; // 1h grátis quando não há cristais
 const AZUL_REST_COST = 5; // diamantes
-type PetEnergyExt = PetInstance & { energy?: number; energyRegenAt?: number; azulRestUntil?: number; azulRestFromEnergy?: number };
+type PetEnergyExt = PetInstance & { energy?: number; energyRegenAt?: number; azulRestUntil?: number; azulRestFromEnergy?: number; azulRestTotalMs?: number };
 function petCurrentEnergy(pet: PetInstance, now: number = Date.now()): number {
   const p = pet as PetEnergyExt;
   const regen = ENERGY_REGEN_MS[pet.rarity] ?? 20 * 60 * 1000;
   if (regen === 0) return ENERGY_MAX;
   if (p.azulRestUntil && p.azulRestUntil > now) {
-    const start = p.azulRestUntil - AZUL_REST_MS;
-    const t = Math.max(0, Math.min(1, (now - start) / AZUL_REST_MS));
+    const total = p.azulRestTotalMs ?? AZUL_REST_MS;
+    const start = p.azulRestUntil - total;
+    const t = Math.max(0, Math.min(1, (now - start) / total));
     const base = p.azulRestFromEnergy ?? p.energy ?? ENERGY_MAX;
     return Math.round(base + (ENERGY_MAX - base) * t);
   }
+
   const stored = p.energy ?? ENERGY_MAX;
   const regenAt = p.energyRegenAt ?? now;
   const gain = ((now - regenAt) / regen) * ENERGY_MAX;
@@ -900,22 +903,22 @@ function IdlePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [energyTick, idle.currentMap]);
-  // Se o líder ficar sem energia: promove o próximo pokémon com energia.
-  // Se nenhum tiver, o personagem PARA (guardas nos ticks de movimento e batalha).
+  // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
+  // para a Casa Azul (5💎 = 5min; sem cristais = 1h grátis). Assim ele sai
+  // do time e o próximo assume — o treinador não fica preso.
   useEffect(() => {
-    setTeam((tm) => {
-      if (tm.length < 2) return tm;
-      const now = Date.now();
-      if (!petIsExhausted(tm[0], now)) return tm;
-      const idx = tm.findIndex((p) => !petIsExhausted(p, now));
-      if (idx <= 0) return tm;
-      const next = [tm[idx], ...tm.filter((_, i) => i !== idx)];
-      pushChat(`⚡ ${tm[0].species.replace(/_/g, " ")} sem energia. ${next[0].species.replace(/_/g, " ")} assumiu o comando.`, "info");
-      setLeaderHp(calcIdleMaxHp(next[0]));
-      return next;
+    const now = Date.now();
+    const exhausted = team.find((p) => {
+      const pe = p as PetEnergyExt;
+      if (pe.azulRestUntil && pe.azulRestUntil > now) return false;
+      return petIsExhausted(p, now);
     });
+    if (!exhausted) return;
+    pushChat(`⚡ ${exhausted.species.replace(/_/g, " ").toUpperCase()} sem energia — indo para a Casa Azul.`, "info");
+    restPetInAzul(exhausted.uid, { auto: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [energyTick]);
+
   // Bônus único: +1.000.000 ouro e +100 💎 (aplica 1x por conta local)
   useEffect(() => {
     try {
@@ -1493,17 +1496,18 @@ function IdlePage() {
       }
 
       if (!autoRef.current) { if (moving) setMoving(false); return; }
-      // Time inviável (vazio, todos KO ou todos sem energia): vai até o Lar sozinho pra descansar
+      // Time inviável: se todos estão desmaiados (HP=0) → vai ao Lar curar (5s).
+      // Se time está vazio mas há pokémon prontos na Coleção → não trava, só
+      // pausa o auto e avisa pra escolher outro. Sem energia é resolvido
+      // automaticamente enviando o pokémon à Casa Azul.
       {
         const nowE = Date.now();
         const noTeam = team.length === 0;
         const allFainted = !noTeam && team.every((p) => (p.uid === team[0].uid ? leaderHp : (p.hp ?? calcIdleMaxHp(p))) <= 0);
-        const allExhausted = !noTeam && team.every((p) => petIsExhausted(p, nowE));
-        if ((noTeam || allFainted || allExhausted) && !restingRef.current && !walkTargetRef.current) {
+        if (allFainted && !restingRef.current && !walkTargetRef.current) {
           const lar = BUILDINGS.find((b) => b.key === "lar");
           if (lar) {
-            const reason = noTeam ? "Sem Pokémon no time" : allFainted ? "Todos desmaiados" : "Todos sem energia";
-            pushChat(`🏠 ${reason} — indo até o Lar (${AZUL_REST_COST}💎 = 10s, ou 1h grátis).`, "info");
+            pushChat(`🏠 Time desmaiado — indo até o Lar recuperar HP (5s).`, "info");
             walkTargetRef.current = {
               x: lar.x, y: lar.y + 20, label: "Lar",
               resumeAuto: true,
@@ -1514,11 +1518,17 @@ function IdlePage() {
           if (moving) setMoving(false);
           return;
         }
-        if (noTeam || allFainted || allExhausted) {
+        if (noTeam) {
+          // Sem pokémon no time — não força ida ao Lar; deixa o jogador escolher outro da Coleção.
+          if (autoRef.current) {
+            setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
+            pushChat(`🎒 Sem Pokémon no time. Abra a Coleção e escolha outro para batalhar.`, "info");
+          }
           if (moving) setMoving(false);
           return;
         }
       }
+
       setTrainerPos((tp) => {
         const nowT = Date.now();
         // limpa blacklist expirada
@@ -3021,29 +3031,18 @@ function IdlePage() {
   };
 
   // ===== Descansar em casa =====
+  // Lar: cura HP do time em 5s (grátis).
+  // Casa Azul (rest coletivo): mantém 5 min curando HP+energia.
   const restAtHome = (kind: "lar" | "azul" = "lar") => {
     const l = team[0];
     if (!l) return;
     if (restingUntil) return;
     const now = Date.now();
-    const anyExhausted = kind === "lar" && team.some((p) => petCurrentEnergy(p, now) <= 0);
-    // Lar: HP-only = 10s grátis; energia esgotada = 5💎 (10s) OU 1h grátis
-    let dur = 10_000;
+    let dur = 5_000;
     let fullRecovery = false;
-    let paid = false;
     if (kind === "azul") {
       dur = REST_DURATION_BLUE_MS;
       fullRecovery = true;
-    } else if (anyExhausted) {
-      if (idle.bank.crystals >= AZUL_REST_COST) {
-        setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - AZUL_REST_COST } }));
-        dur = 10_000;
-        fullRecovery = true;
-        paid = true;
-      } else {
-        dur = REST_DURATION_LAR_MS;
-        fullRecovery = true;
-      }
     }
     setRestingStart(now);
     setRestingUntil(now + dur);
@@ -3053,69 +3052,74 @@ function IdlePage() {
     setNearBuilding(null);
     const label = kind === "azul"
       ? "🏡 Casa Azul (5 min)"
-      : anyExhausted
-        ? (paid ? `🏠 Lar (10s — energia via ${AZUL_REST_COST}💎)` : "🏠 Lar (1 hora — energia grátis)")
-        : "🏠 Lar (10s — recuperando HP)";
+      : "🏠 Lar (5s — recuperando HP)";
     pushChat(`${label} — descansando... todo o time será curado.`, "info");
   };
 
-  // ===== Casa Azul: colocar 1 Pokémon para restaurar energia em 5 min por 5💎 =====
-  const restPetInAzul = (uid: string) => {
+
+  // ===== Casa Azul: coloca 1 Pokémon para restaurar energia =====
+  // Modo pago: 5💎 -> 5 min. Modo grátis (auto): 1h.
+  const restPetInAzul = (uid: string, opts?: { auto?: boolean }) => {
     const now = Date.now();
-    if (idle.bank.crystals < AZUL_REST_COST) {
+    const auto = !!opts?.auto;
+    const usePaid = idle.bank.crystals >= AZUL_REST_COST;
+    if (!auto && !usePaid) {
       pushChat(`Cristais insuficientes (precisa ${AZUL_REST_COST}💎).`, "info");
       return;
     }
+    const dur = usePaid ? AZUL_REST_MS : AZUL_REST_FREE_MS;
     const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
     const party = save.party ?? team;
     const pet = party.find((p) => p.uid === uid);
     if (!pet) return;
     const p = pet as PetEnergyExt;
     if (p.azulRestUntil && p.azulRestUntil > now) {
-      pushChat(`${pet.species.toUpperCase()} já está descansando.`, "info");
+      if (!auto) pushChat(`${pet.species.toUpperCase()} já está descansando.`, "info");
       return;
     }
     const curE = petCurrentEnergy(pet, now);
     if (curE >= ENERGY_MAX) {
-      pushChat(`${pet.species.toUpperCase()} já está com energia cheia.`, "info");
+      if (!auto) pushChat(`${pet.species.toUpperCase()} já está com energia cheia.`, "info");
       return;
     }
-    const restingPet: PetInstance = { ...pet, energy: curE, energyRegenAt: now, azulRestUntil: now + AZUL_REST_MS, azulRestFromEnergy: curE } as PetInstance;
-    // Salva o pet descansando na party (preserva) mas remove do time ativo
+    const restingPet: PetInstance = { ...pet, energy: curE, energyRegenAt: now, azulRestUntil: now + dur, azulRestFromEnergy: curE, azulRestTotalMs: dur } as PetInstance;
     const newParty = party.map((x) => x.uid === uid ? restingPet : x);
     saveNow({ ...save, party: newParty });
     setTeam((tm) => {
       const filtered = tm.filter((x) => x.uid !== uid);
-      // Ajusta HP do novo líder se o líder saiu
       if (tm[0]?.uid === uid && filtered[0]) {
         setLeaderHp(calcIdleMaxHp(filtered[0]));
       }
       return filtered;
     });
     setRestingBench((b) => [...b.filter((x) => x.uid !== uid), restingPet]);
-    setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - AZUL_REST_COST } }));
-    pushChat(`🏡 ${pet.species.toUpperCase()} saiu do time para descansar (5 min) · -${AZUL_REST_COST}💎`, "info");
-    pushEvent("🏡", "DESCANSO INICIADO", `${pet.species.toUpperCase()} · 5 min`, "#4a9eff");
+    if (usePaid) {
+      setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - AZUL_REST_COST } }));
+    }
+    const durLabel = usePaid ? "5 min" : "1 hora (grátis)";
+    const costLabel = usePaid ? ` · -${AZUL_REST_COST}💎` : "";
+    pushChat(`🏡 ${pet.species.toUpperCase()} entrou na Casa Azul (${durLabel})${costLabel}`, "info");
+    pushEvent("🏡", "DESCANSO INICIADO", `${pet.species.toUpperCase()} · ${durLabel}`, "#4a9eff");
     setAzulPickerOpen(false);
     setAzulPreselectUid(null);
-    // Ao terminar: energia cheia + volta pro time
     setTimeout(() => {
       const s2 = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
-      const refreshed = { ...restingPet, energy: ENERGY_MAX, energyRegenAt: Date.now(), azulRestUntil: undefined, azulRestFromEnergy: undefined } as PetInstance;
+      const refreshed = { ...restingPet, energy: ENERGY_MAX, energyRegenAt: Date.now(), azulRestUntil: undefined, azulRestFromEnergy: undefined, azulRestTotalMs: undefined } as PetInstance;
       const p2 = (s2.party ?? []).map((x) => x.uid === uid ? refreshed : x);
       saveNow({ ...s2, party: p2 });
       setRestingBench((b) => b.filter((x) => x.uid !== uid));
       setTeam((tm) => {
         if (tm.some((x) => x.uid === uid)) return tm;
-        if (tm.length >= 5) return tm; // se time está cheio, fica só na party
+        if (tm.length >= 5) return tm;
         const next = [...tm, refreshed];
         if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
         return next;
       });
       pushChat(`⚡ ${refreshed.species.toUpperCase()} voltou ao time com energia cheia!`, "cap");
       pushEvent("⚡", "ENERGIA CHEIA", "Pokémon pronto para a batalha", "#7fc4ff");
-    }, AZUL_REST_MS + 250);
+    }, dur + 250);
   };
+
 
   // Completa o descanso
   useEffect(() => {
