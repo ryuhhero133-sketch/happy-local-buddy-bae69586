@@ -3160,36 +3160,73 @@ function IdlePage() {
           <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
             <Panel title="REGISTRO DE BATALHA" accent="#1e3a5f">
               <div style={{
-                height: "calc(100vh - 400px)", minHeight: 180,
+                height: 200, minHeight: 160, maxHeight: 240,
                 overflowY: "auto", display: "flex", flexDirection: "column-reverse",
                 gap: 4, fontSize: 11, lineHeight: 1.35,
                 background: "#0e0818", borderRadius: 6, padding: 6,
                 border: "1px solid rgba(107,212,255,0.15)",
               }}>
-                {[...chat].reverse().map((m) => {
-                  const color =
-                    m.kind === "chest" ? "#ffa64a" :
-                    m.kind === "capture" ? "#ff97e1" :
-                    m.kind === "cap" ? "#ffd94d" :
-                    m.kind === "lv" ? "#6bd4ff" :
-                    m.kind === "hit" ? "#ff6b6b" :
-                    m.kind === "dmg" ? "#f5cf6b" : "#c8b8d0";
-                  const prefix =
-                    m.kind === "chest" ? "🎁" :
-                    m.kind === "capture" ? "✦" :
-                    m.kind === "cap" ? "★" :
-                    m.kind === "lv" ? "⬆" :
-                    m.kind === "hit" ? "✖" :
-                    m.kind === "dmg" ? "⚔" : "•";
+                {(() => {
+                  const classify = (m: typeof chat[number]): "system" | "world" | "captures" => {
+                    if (m.kind === "capture" || m.kind === "cap") return "captures";
+                    if (m.text.startsWith("💬") || m.text.startsWith("🌍")) return "world";
+                    return "system";
+                  };
+                  const filtered = chat.filter((m) => chatFilter === "all" ? true : classify(m) === chatFilter);
                   return (
-                    <div key={m.id} style={{ color, textShadow: "1px 1px 0 #000", fontWeight: m.kind === "chest" ? 800 : 400 }}>
-                      <span style={{ opacity: 0.7, marginRight: 4 }}>{prefix}</span>{m.text}
-                    </div>
+                    <>
+                      {[...filtered].reverse().map((m) => {
+                        const color =
+                          m.kind === "chest" ? "#ffa64a" :
+                          m.kind === "capture" ? "#ff97e1" :
+                          m.kind === "cap" ? "#ffd94d" :
+                          m.kind === "lv" ? "#6bd4ff" :
+                          m.kind === "hit" ? "#ff6b6b" :
+                          m.kind === "dmg" ? "#f5cf6b" : "#c8b8d0";
+                        const prefix =
+                          m.kind === "chest" ? "🎁" :
+                          m.kind === "capture" ? "✦" :
+                          m.kind === "cap" ? "★" :
+                          m.kind === "lv" ? "⬆" :
+                          m.kind === "hit" ? "✖" :
+                          m.kind === "dmg" ? "⚔" : "•";
+                        return (
+                          <div key={m.id} style={{ color, textShadow: "1px 1px 0 #000", fontWeight: m.kind === "chest" ? 800 : 400 }}>
+                            <span style={{ opacity: 0.7, marginRight: 4 }}>{prefix}</span>{m.text}
+                          </div>
+                        );
+                      })}
+                      {filtered.length === 0 && (
+                        <div style={{ color: "#6a5a7c", fontStyle: "italic" }}>Nenhum evento neste filtro...</div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+              {/* Filtros do chat */}
+              <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+                {([
+                  { k: "all", l: "Tudo" },
+                  { k: "system", l: "Sistema" },
+                  { k: "world", l: "Mundo" },
+                  { k: "captures", l: "Capturas" },
+                ] as const).map((t) => {
+                  const active = chatFilter === t.k;
+                  return (
+                    <button
+                      key={t.k}
+                      onClick={() => setChatFilter(t.k)}
+                      style={{
+                        flex: 1,
+                        background: active ? "#1e3a5f" : "#0e0818",
+                        color: active ? "#fff" : "#8fa5c0",
+                        border: `1px solid ${active ? "#6bd4ff" : "rgba(107,212,255,0.2)"}`,
+                        borderRadius: 4, padding: "3px 4px", fontSize: 10, fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >{t.l}</button>
                   );
                 })}
-                {chat.length === 0 && (
-                  <div style={{ color: "#6a5a7c", fontStyle: "italic" }}>Nenhum evento ainda...</div>
-                )}
               </div>
               {/* Composer do chat global — cooldown 10 min por jogador */}
               {(() => {
