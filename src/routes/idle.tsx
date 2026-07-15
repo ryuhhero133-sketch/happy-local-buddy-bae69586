@@ -2832,13 +2832,22 @@ function IdlePage() {
     if (restingUntil === null) return;
     const remaining = restingUntil - Date.now();
     const t = setTimeout(() => {
+      const kind = restingKind;
+      // Restaura HP líder + energia cheia em todo o time (Lar recupera tudo)
+      setTeam((tm) => tm.map((p) => ({
+        ...p,
+        energy: ENERGY_MAX,
+        energyRegenAt: Date.now(),
+        hp: calcIdleMaxHp(p),
+      } as PetInstance)));
       const l = team[0];
       if (l) setLeaderHp(calcIdleMaxHp(l));
       setRestingUntil(null);
       setRestingStart(null);
       setRestingKind(null);
-      pushChat("💤 Descanso concluído! HP totalmente restaurado.", "cap");
-      pushFxAt(trainerPos.x, trainerPos.y - 60, "+HP MÁX", "gold");
+      const msg = kind === "lar" ? "🏠 Descanso concluído! Time totalmente recuperado (HP + energia)." : "💤 Descanso concluído! HP totalmente restaurado.";
+      pushChat(msg, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 60, "+HP / +⚡", "gold");
     }, Math.max(0, remaining));
     return () => clearTimeout(t);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
