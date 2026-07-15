@@ -732,7 +732,7 @@ function IdlePage() {
   const starterChosenRef = useRef(starterChosen);
   useEffect(() => { starterChosenRef.current = starterChosen; }, [starterChosen]);
   // ===== Descanso nas casas (Lar demora 1h, Casa Azul restaura em 5 min) =====
-  const REST_DURATION_LAR_MS = 5 * 1000;            // 5 segundos (cura HP)
+  const REST_DURATION_LAR_MS = 60 * 60 * 1000;      // 1 hora (Lar — restaura HP + energia grátis)
   const REST_DURATION_BLUE_MS = 5 * 60 * 1000;      // 5 minutos (Casa Azul — energia)
   const [restingUntil, setRestingUntil] = useState<number | null>(null);
   const [restingStart, setRestingStart] = useState<number | null>(null);
@@ -1397,10 +1397,28 @@ function IdlePage() {
       }
 
       if (!autoRef.current) { if (moving) setMoving(false); return; }
-      // Sem energia em NENHUM pokémon: personagem para (não farm/duela)
+      // Time inviável (vazio, todos KO ou todos sem energia): vai até o Lar sozinho pra descansar
       {
         const nowE = Date.now();
-        if (team.length === 0 || team.every((p) => petIsExhausted(p, nowE))) {
+        const noTeam = team.length === 0;
+        const allFainted = !noTeam && team.every((p) => (p.uid === team[0].uid ? leaderHp : (p.hp ?? calcIdleMaxHp(p))) <= 0);
+        const allExhausted = !noTeam && team.every((p) => petIsExhausted(p, nowE));
+        if ((noTeam || allFainted || allExhausted) && !restingRef.current && !walkTargetRef.current) {
+          const lar = BUILDINGS.find((b) => b.key === "lar");
+          if (lar) {
+            const reason = noTeam ? "Sem Pokémon no time" : allFainted ? "Todos desmaiados" : "Todos sem energia";
+            pushChat(`🏠 ${reason} — indo até o Lar para descansar (1h grátis).`, "info");
+            walkTargetRef.current = {
+              x: lar.x, y: lar.y + 20, label: "Lar",
+              resumeAuto: true,
+              onArrive: () => { restAtHome("lar"); },
+            };
+            setWalkingTo("Lar");
+          }
+          if (moving) setMoving(false);
+          return;
+        }
+        if (noTeam || allFainted || allExhausted) {
           if (moving) setMoving(false);
           return;
         }
@@ -2832,13 +2850,22 @@ function IdlePage() {
     if (restingUntil === null) return;
     const remaining = restingUntil - Date.now();
     const t = setTimeout(() => {
+      const kind = restingKind;
+      // Restaura HP líder + energia cheia em todo o time (Lar recupera tudo)
+      setTeam((tm) => tm.map((p) => ({
+        ...p,
+        energy: ENERGY_MAX,
+        energyRegenAt: Date.now(),
+        hp: calcIdleMaxHp(p),
+      } as PetInstance)));
       const l = team[0];
       if (l) setLeaderHp(calcIdleMaxHp(l));
       setRestingUntil(null);
       setRestingStart(null);
       setRestingKind(null);
-      pushChat("💤 Descanso concluído! HP totalmente restaurado.", "cap");
-      pushFxAt(trainerPos.x, trainerPos.y - 60, "+HP MÁX", "gold");
+      const msg = kind === "lar" ? "🏠 Descanso concluído! Time totalmente recuperado (HP + energia)." : "💤 Descanso concluído! HP totalmente restaurado.";
+      pushChat(msg, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 60, "+HP / +⚡", "gold");
     }, Math.max(0, remaining));
     return () => clearTimeout(t);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
