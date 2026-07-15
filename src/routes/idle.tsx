@@ -2370,37 +2370,40 @@ function IdlePage() {
     } else if (id === "book_exp" || id === "book_exp_big" || id === "book_exp_max") {
       const add = id === "book_exp" ? 0.30 : id === "book_exp_big" ? 0.50 : 1.00;
       const pct = Math.round(add * 100);
-      setIdle((s) => {
-        const active = !!(s.buffs.expMultUntil && Date.now() < s.buffs.expMultUntil);
-        const base = active ? s.buffs.expMult : 0;
-        return {
-          ...s,
-          items: { ...s.items, [id]: have - 1 },
-          buffs: { ...s.buffs, expMult: base + add, expMultUntil: Date.now() + 3600_000 },
-        };
-      });
+      const nowT = Date.now();
+      if ((idle.buffs.expMultUntil ?? 0) > nowT) {
+        pushChat(`Já há um Livro de EXP ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, [id]: have - 1 },
+        buffs: { ...s.buffs, expMult: add, expMultUntil: Date.now() + 3600_000 },
+      }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `EXP +${pct}% · 1h`, "capture");
       pushChat(`Livro de EXP usado (+${pct}% EXP por 1 hora).`, "cap");
-    } else if (id === "book_vip") {
-      const add = 0.20;
-      setIdle((s) => {
-        const now = Date.now();
-        const expActive = !!(s.buffs.expMultUntil && now < s.buffs.expMultUntil);
-        const goldActive = !!(s.buffs.goldMultUntil && now < s.buffs.goldMultUntil);
-        const baseExp = expActive ? s.buffs.expMult : 0;
-        const baseGold = goldActive ? (s.buffs.goldMult ?? 0) : 0;
-        return {
-          ...s,
-          items: { ...s.items, [id]: have - 1 },
-          buffs: {
-            ...s.buffs,
-            expMult: baseExp + add, expMultUntil: now + 3600_000,
-            goldMult: baseGold + add, goldMultUntil: now + 3600_000,
-          },
-        };
-      });
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "VIP +20% OURO/EXP · 1h", "capture");
-      pushChat(`Livro VIP ✦ usado (+20% ouro e +20% EXP por 1 hora).`, "cap");
+    } else if (id === "book_vip" || id === "book_vip_30" || id === "book_vip_60") {
+      const cfg = id === "book_vip_60"
+        ? { add: 0.40, ms: 60 * 24 * 3600_000, label: "60 dias" }
+        : id === "book_vip_30"
+          ? { add: 0.30, ms: 30 * 24 * 3600_000, label: "30 dias" }
+          : { add: 0.20, ms: 3600_000, label: "1 hora" };
+      const nowT = Date.now();
+      if ((idle.buffs.expMultUntil ?? 0) > nowT || (idle.buffs.goldMultUntil ?? 0) > nowT) {
+        pushChat(`Já há um bônus VIP/EXP ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, [id]: have - 1 },
+        buffs: {
+          ...s.buffs,
+          expMult: cfg.add, expMultUntil: nowT + cfg.ms,
+          goldMult: cfg.add, goldMultUntil: nowT + cfg.ms,
+        },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `VIP +${Math.round(cfg.add*100)}% · ${cfg.label}`, "capture");
+      pushChat(`Livro VIP usado (+${Math.round(cfg.add*100)}% ouro e EXP por ${cfg.label}).`, "cap");
     } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura") {
       openEgg(id as EggId);
     }
@@ -2830,53 +2833,51 @@ function IdlePage() {
         pushChat(`Cristais insuficientes para ${bk.name}.`, "info");
         return s;
       }
-      // Aplica o efeito direto (aparece em Melhorias na hora, sem passar pela mochila)
-      let newBuffs = {
-        atk: s.buffs?.atk ?? 0,
-        def: s.buffs?.def ?? 0,
-        expMult: s.buffs?.expMult ?? 0,
-        expMultUntil: s.buffs?.expMultUntil ?? 0,
-        goldMult: s.buffs?.goldMult ?? 0,
-        goldMultUntil: s.buffs?.goldMultUntil ?? 0,
-      };
-      let msg = "";
-      const now = Date.now();
-      if (bk.id === "book_atk") {
-        newBuffs.atk = newBuffs.atk + 0.10;
-        msg = `+10% ATK permanente`;
-      } else if (bk.id === "book_def") {
-        newBuffs.def = newBuffs.def + 0.10;
-        msg = `-10% dano recebido permanente`;
-      } else if (bk.id === "book_vip" || bk.id === "book_vip_30" || bk.id === "book_vip_60") {
-        const cfg = bk.id === "book_vip_60"
-          ? { add: 0.40, ms: 60 * 24 * 3600_000, label: "60 dias" }
-          : bk.id === "book_vip_30"
-            ? { add: 0.30, ms: 30 * 24 * 3600_000, label: "30 dias" }
-            : { add: 0.20, ms: 3600_000, label: "1 hora" };
-        const expStill = (newBuffs.expMultUntil ?? 0) > now;
-        const goldStill = (newBuffs.goldMultUntil ?? 0) > now;
-        newBuffs.expMult = Math.max(expStill ? newBuffs.expMult : 0, cfg.add);
-        newBuffs.expMultUntil = Math.max(newBuffs.expMultUntil ?? 0, now + cfg.ms);
-        newBuffs.goldMult = Math.max(goldStill ? newBuffs.goldMult : 0, cfg.add);
-        newBuffs.goldMultUntil = Math.max(newBuffs.goldMultUntil ?? 0, now + cfg.ms);
-        msg = `+${Math.round(cfg.add * 100)}% ouro e EXP por ${cfg.label}`;
-      } else {
-        const add = bk.id === "book_exp" ? 0.30 : bk.id === "book_exp_big" ? 0.50 : 1.00;
-        const stillActive = (newBuffs.expMultUntil ?? 0) > now;
-        const base = stillActive ? newBuffs.expMult : 0;
-        newBuffs.expMult = base + add;
-        newBuffs.expMultUntil = now + 3600_000;
-        msg = `+${Math.round(add * 100)}% EXP por 1h`;
-      }
-      pushFxAt(trainerPos.x, trainerPos.y - 40, msg, "capture");
-      pushChat(`Comprou e aplicou ${bk.name} (${msg}).`, "cap");
+      const curQty = s.items[bk.id] ?? 0;
+      pushChat(`Comprou ${bk.name}. Use pela Mochila quando quiser.`, "cap");
       return {
         ...s,
         bank: { ...s.bank, crystals: s.bank.crystals - bk.price },
-        buffs: newBuffs,
+        items: { ...s.items, [bk.id]: curQty + 1 },
       };
     });
   };
+
+  // ===== UPGRADE de Livros =====
+  // Regras: junta livros iguais para forjar o próximo nível. Exige nível de treinador.
+  const BOOK_UPGRADES: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+    book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "Livro EXP Raro" },
+    book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "Livro EXP Lendário" },
+    book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "Livro VIP 30d" },
+    book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "Livro VIP 60d" },
+  };
+  const upgradeBook = (id: string) => {
+    const rule = BOOK_UPGRADES[id];
+    if (!rule) { pushChat(`Este livro não pode ser melhorado.`, "info"); return; }
+    setIdle((s) => {
+      const trLv = s.trainerLevel ?? 1;
+      if (trLv < rule.trainerLv) {
+        pushChat(`Precisa ser Treinador Lv.${rule.trainerLv} para forjar ${rule.label}.`, "info");
+        return s;
+      }
+      const have = s.items[id] ?? 0;
+      if (have < rule.cost) {
+        pushChat(`Precisa de ${rule.cost}× para forjar ${rule.label}.`, "info");
+        return s;
+      }
+      pushChat(`⚒️ Forjou ${rule.label}! (-${rule.cost} usados)`, "cap");
+      pushEvent("⚒️", "FORJA DE LIVRO", `${rule.label}`, "#8bffb0");
+      return {
+        ...s,
+        items: {
+          ...s.items,
+          [id]: have - rule.cost,
+          [rule.to]: (s.items[rule.to] ?? 0) + 1,
+        },
+      };
+    });
+  };
+
 
   const CHEST_AMULET_PRICE = 2500;
   const buyChestAmulet = () => {
@@ -4693,10 +4694,12 @@ function IdlePage() {
               isVip={isVip()}
               skinId={skinId}
               setSkinId={setSkinId}
-
+              trainerLevel={idle.trainerLevel ?? 1}
+              onUpgradeBook={upgradeBook}
 
 
             />
+
           )}
         </div>
 
@@ -5988,7 +5991,7 @@ const zoomBtn: React.CSSProperties = {
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
-  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId,
+  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, trainerLevel, onUpgradeBook,
 
 }: {
   tab: string;
@@ -6035,6 +6038,8 @@ function TabOverlay({
   isVip: boolean;
   skinId: string;
   setSkinId: (id: string) => void;
+  trainerLevel: number;
+  onUpgradeBook: (id: string) => void;
 
 
 }) {
@@ -6352,6 +6357,38 @@ function TabOverlay({
                           >💰 {sellPrice}</button>
                         )}
                       </div>
+                      {(() => {
+                        const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+                          book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
+                          book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
+                          book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
+                          book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "VIP 60d" },
+                        };
+                        const rule = UP[id];
+                        if (!rule) return null;
+                        const okLv = trainerLevel >= rule.trainerLv;
+                        const okQty = n >= rule.cost;
+                        const enabled = okLv && okQty;
+                        const title = !okLv
+                          ? `Requer Treinador Lv.${rule.trainerLv}`
+                          : !okQty
+                            ? `Precisa de ${rule.cost}× (você tem ${n})`
+                            : `Forjar ${rule.label} usando ${rule.cost}×`;
+                        return (
+                          <button
+                            onClick={() => onUpgradeBook(id)}
+                            disabled={!enabled}
+                            title={title}
+                            style={{
+                              marginTop: 4, width: "100%", padding: "6px 4px", fontSize: 10, fontWeight: 800,
+                              background: enabled ? "linear-gradient(180deg, #8bffb0, #3a8a5a)" : "rgba(60,50,80,0.6)",
+                              color: enabled ? "#0b0510" : "#7a6a8c",
+                              border: "1px solid rgba(255,255,255,0.2)",
+                              borderRadius: 6, cursor: enabled ? "pointer" : "not-allowed", letterSpacing: 0.3,
+                            }}
+                          >⚒️ Forjar {rule.label} ({rule.cost}× · Lv.{rule.trainerLv})</button>
+                        );
+                      })()}
                     </div>
                   );
                 })}
