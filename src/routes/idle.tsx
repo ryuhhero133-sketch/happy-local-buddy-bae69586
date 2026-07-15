@@ -4988,83 +4988,8 @@ function IdlePage() {
         );
       })()}
 
-      {/* ===== HUD do Treinador (canto superior esquerdo) ===== */}
-      {(() => {
-        const leader = team[0];
-        if (!leader) return null;
-        const maxHp = calcIdleMaxHp(leader);
-        const hpPct = Math.max(0, Math.min(1, leaderHp / Math.max(1, maxHp)));
-        const hpColor = hpPct > 0.5 ? "#5ec26a" : hpPct > 0.25 ? "#f5cf6b" : "#e56b6b";
-        const name = identity?.name ?? "Treinador";
-        const leaderSp = leader.species;
-        const gif = GIF[leaderSp];
-        return (
-          <div style={{
-            position: "fixed", top: 12, left: 12, zIndex: 9997, pointerEvents: "none",
-            display: "flex", alignItems: "center", gap: 10,
-            background: "linear-gradient(180deg, rgba(24,14,38,0.92) 0%, rgba(14,8,24,0.92) 100%)",
-            border: "2px solid #d4af37",
-            borderRadius: 14,
-            padding: "8px 14px 8px 8px",
-            boxShadow: "0 8px 22px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,215,0,0.25) inset, 0 0 14px rgba(212,175,55,0.35)",
-            minWidth: 240,
-          }}>
-            <div style={{
-              width: 54, height: 54, flexShrink: 0, borderRadius: "50%",
-              background: "radial-gradient(circle at 40% 35%, #f5cf6b 0%, #8b6a30 70%, #3a2410 100%)",
-              border: "2px solid #f5cf6b",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
-              boxShadow: "inset 0 0 6px rgba(0,0,0,0.5), 0 0 8px rgba(245,207,107,0.4)",
-            }}>
-              {gif ? (
-                <img src={gif} alt={leaderSp} style={{ width: "115%", height: "115%", objectFit: "contain", imageRendering: "pixelated" }} />
-              ) : (
-                <span style={{ fontSize: 26 }}>🎮</span>
-              )}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                <span style={{
-                  fontSize: 9, fontWeight: 900, color: "#1a0f26",
-                  background: "linear-gradient(180deg,#f5cf6b,#d4af37)",
-                  padding: "2px 6px", borderRadius: 4, letterSpacing: 1,
-                }}>Lv {leader.level}</span>
-                <span style={{
-                  fontSize: 12, fontWeight: 900, color: "#f5e5a8",
-                  textShadow: "1px 1px 0 #000", letterSpacing: 0.5,
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>{name}</span>
-              </div>
-              <div style={{
-                position: "relative", height: 12, background: "#0a0410",
-                border: "1px solid #4a3a1a", borderRadius: 6, overflow: "hidden",
-                boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)",
-              }}>
-                <div style={{
-                  position: "absolute", inset: 0, width: `${hpPct * 100}%`,
-                  background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
-                  transition: "width 220ms ease, background 220ms ease",
-                  boxShadow: `0 0 8px ${hpColor}88`,
-                }} />
-                <div style={{
-                  position: "absolute", inset: 0, display: "flex",
-                  alignItems: "center", justifyContent: "center",
-                  fontSize: 9, fontWeight: 900, color: "#fff",
-                  textShadow: "1px 1px 0 #000, -1px -1px 0 #000",
-                  letterSpacing: 0.5,
-                }}>{Math.max(0, Math.round(leaderHp))} / {maxHp}</div>
-              </div>
-              <div style={{
-                fontSize: 8, color: "#c9a76a", marginTop: 2, letterSpacing: 1,
-                textTransform: "uppercase", fontWeight: 700,
-              }}>
-                {leaderSp.replace(/_/g, " ")} · {leader.rarity}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+
+
 
       {/* ===== HUD do Alvo (target — centro-topo) ===== */}
       {(() => {
