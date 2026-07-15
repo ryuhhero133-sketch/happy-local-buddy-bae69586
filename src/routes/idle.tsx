@@ -6357,6 +6357,38 @@ function TabOverlay({
                           >💰 {sellPrice}</button>
                         )}
                       </div>
+                      {(() => {
+                        const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+                          book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
+                          book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
+                          book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
+                          book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "VIP 60d" },
+                        };
+                        const rule = UP[id];
+                        if (!rule) return null;
+                        const okLv = trainerLevel >= rule.trainerLv;
+                        const okQty = n >= rule.cost;
+                        const enabled = okLv && okQty;
+                        const title = !okLv
+                          ? `Requer Treinador Lv.${rule.trainerLv}`
+                          : !okQty
+                            ? `Precisa de ${rule.cost}× (você tem ${n})`
+                            : `Forjar ${rule.label} usando ${rule.cost}×`;
+                        return (
+                          <button
+                            onClick={() => onUpgradeBook(id)}
+                            disabled={!enabled}
+                            title={title}
+                            style={{
+                              marginTop: 4, width: "100%", padding: "6px 4px", fontSize: 10, fontWeight: 800,
+                              background: enabled ? "linear-gradient(180deg, #8bffb0, #3a8a5a)" : "rgba(60,50,80,0.6)",
+                              color: enabled ? "#0b0510" : "#7a6a8c",
+                              border: "1px solid rgba(255,255,255,0.2)",
+                              borderRadius: 6, cursor: enabled ? "pointer" : "not-allowed", letterSpacing: 0.3,
+                            }}
+                          >⚒️ Forjar {rule.label} ({rule.cost}× · Lv.{rule.trainerLv})</button>
+                        );
+                      })()}
                     </div>
                   );
                 })}
