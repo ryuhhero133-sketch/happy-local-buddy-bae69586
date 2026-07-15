@@ -1,14 +1,16 @@
 // Sincroniza o estado do jogo com o Supabase.
 // - No primeiro login com progresso local: envia snapshot pra nuvem (preserva).
 // - Nos logins seguintes: puxa server state e chama onHydrate() com o snapshot.
-// - Cliente NUNCA soma recurso: mutações vão passar por reportKill/attemptCapture/etc.
+// - Push contínuo debounced (a cada ~6s) espelha o estado no banco com
+//   clamp de ganhos server-side (anti-cheat leve).
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   bootstrapGameState,
   getFullGameState,
   pushInitialState,
+  syncClientState,
   type FullStateDTO,
 } from "@/lib/game.functions";
 
@@ -19,6 +21,7 @@ export type LocalSnapshotForPush = {
   trainer_level: number;
   trainer_xp: number;
   kill_count: number;
+  active_map?: string;
   pokeballs: Record<string, number>;
   collection: Array<{
     species: string;
@@ -35,10 +38,16 @@ export function useServerSync(opts: {
   const bootstrap = useServerFn(bootstrapGameState);
   const fetchFull = useServerFn(getFullGameState);
   const pushInit = useServerFn(pushInitialState);
+  const syncFn = useServerFn(syncClientState);
 
   const [status, setStatus] = useState<"idle" | "syncing" | "ready" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const ran = useRef(false);
+  const readyRef = useRef(false);
+  const inFlightRef = useRef(false);
+  const pendingRef = useRef(false);
+  const buildRef = useRef(opts.buildLocalSnapshot);
+  buildRef.current = opts.buildLocalSnapshot;
 
   useEffect(() => {
     if (ran.current) return;
@@ -60,7 +69,7 @@ export function useServerSync(opts: {
           full.collection.length === 0;
 
         if (serverEmpty) {
-          const snap = opts.buildLocalSnapshot();
+          const snap = buildRef.current();
           const hasLocal =
             snap.gold > 0 || snap.crystal > 0 || snap.trainer_level > 1 ||
             snap.trainer_xp > 0 || snap.collection.length > 0;
@@ -72,6 +81,7 @@ export function useServerSync(opts: {
 
         if (cancelled) return;
         opts.onHydrate(full);
+        readyRef.current = true;
         setStatus("ready");
       } catch (e: any) {
         if (cancelled) return;
@@ -85,5 +95,31 @@ export function useServerSync(opts: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { status, error };
+  const doPush = useCallback(async () => {
+    if (!readyRef.current) return;
+    if (inFlightRef.current) { pendingRef.current = true; return; }
+    inFlightRef.current = true;
+    try {
+      const snap = buildRef.current();
+      await syncFn({ data: snap } as any);
+    } catch (e) {
+      console.warn("[useServerSync] push falhou:", e);
+    } finally {
+      inFlightRef.current = false;
+      if (pendingRef.current) { pendingRef.current = false; doPush(); }
+    }
+  }, [syncFn]);
+
+  // Loop de push a cada 6s enquanto a aba estiver ativa.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (document.visibilityState === "visible") doPush();
+    }, 6000);
+    const onHide = () => { if (document.visibilityState === "hidden") doPush(); };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("beforeunload", () => { doPush(); });
+    return () => { clearInterval(iv); document.removeEventListener("visibilitychange", onHide); };
+  }, [doPush]);
+
+  return { status, error, pushNow: doPush };
 }
