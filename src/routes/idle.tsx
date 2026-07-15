@@ -895,6 +895,12 @@ function IdlePage() {
     const kd = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
       if (["w", "a", "s", "d", "arrowup", "arrowleft", "arrowdown", "arrowright"].includes(k)) {
+        // ao andar manualmente, marca o alvo atual como "evitado" por um tempo,
+        // para que o auto procure outro pokémon quando reativado
+        const cur = attackTargetIdRef.current;
+        if (cur != null) {
+          blacklistRef.current.set(cur, Date.now() + 25000);
+        }
         keysRef.current.add(k);
       }
     };
