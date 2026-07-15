@@ -895,8 +895,9 @@ function IdlePage() {
     const iv = setInterval(() => setEnergyTick((n) => n + 1), 1000);
     return () => clearInterval(iv);
   }, []);
-  // Dreno de energia em tempo real do líder enquanto o treinador está em atividade
-  // (auto ativo). ~1 ponto a cada 4s.
+  // Dreno de energia em tempo real do LÍDER enquanto auto-battle está ativo.
+  // Escala por raridade: comum ~5min, uncommon ~8min, raro ~15min, épico ~25min,
+  // lendário ~35min, mítico não cansa. Tick a cada 1s para display suave.
   useEffect(() => {
     const iv = setInterval(() => {
       if (!(autoBattleRef.current?.enabled)) return;
@@ -904,16 +905,16 @@ function IdlePage() {
         if (tm.length === 0) return tm;
         const now = Date.now();
         const leader = tm[0] as PetEnergyExt;
-        const regen = ENERGY_REGEN_MS[leader.rarity] ?? 0;
-        if (regen === 0) return tm; // míticos não cansam
+        const drain = energyDrainPerSec(leader.rarity);
+        if (drain <= 0) return tm; // míticos não cansam
         if (leader.azulRestUntil && leader.azulRestUntil > now) return tm;
-        const cur = petCurrentEnergy(leader, now);
+        const cur = petCurrentEnergy(leader, now, { active: true });
         if (cur <= 0) return tm;
-        const next = Math.max(0, cur - 1);
+        const next = Math.max(0, cur - drain);
         const updated = { ...leader, energy: next, energyRegenAt: now } as PetInstance;
         return [updated, ...tm.slice(1)];
       });
-    }, 4000);
+    }, 1000);
     return () => clearInterval(iv);
   }, []);
   // Fecha a caverna: expulsa o treinador quando o ciclo terminar
