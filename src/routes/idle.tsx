@@ -258,7 +258,7 @@ const GIF: Partial<Record<Species, string>> = {
   suicune: assetUrl(suicuneAsset.url), suicune_shiny: assetUrl(suicuneShinyAsset.url),
   luxray_f: assetUrl(luxrayFAsset.url),
   oddish: oddishUrl, bellsprout: bellsproutUrl, weedle: weedleUrl, kakuna: kakunaUrl,
-  caterpie: caterpieGif, metapod: metapodGif, vulpix: vulpixGif, geodude: geodudeGif,
+  caterpie: caterpieGif, metapod: metapodGif, vulpix: vulpixGif,
   paras: parasUrl, parasect: parasectUrl, venonat: venonatUrl, gloom: gloomUrl,
   clefairy: clefairyUrl, eevee: eeveeUrl, sandshrew: sandshrewUrl, mankey: mankeyUrl,
   poliwag: poliwagUrl, magikarp: magikarpUrl, growlithe: growlitheUrl, abra: abraUrl,
