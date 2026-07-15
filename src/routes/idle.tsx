@@ -3387,10 +3387,8 @@ function IdlePage() {
   // (map único: Vale Verdejante)
 
 
-  const followerOffsetX = walkDir === "right" ? -78 : walkDir === "left" ? 78 : 0;
-  const followerOffsetY = walkDir === "up" ? 72 : walkDir === "down" ? -58 : 46;
-  const followerX = trainerPos.x + followerOffsetX;
-  const followerY = trainerPos.y + followerOffsetY;
+  const followerX = followerState.x;
+  const followerY = followerState.y;
   const transparentObstacleIds = new Set(
     [getCoveringObstacle(trainerPos.x, trainerPos.y), getCoveringObstacle(followerX, followerY)]
       .filter((id): id is number => id !== null)
