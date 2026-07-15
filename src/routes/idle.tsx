@@ -1244,6 +1244,73 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, [moving]);
 
+  // ===== Follower (pokémon líder) segue o treinador com trilha suave =====
+  const trailRef = useRef<Array<{ x: number; y: number }>>([{ x: WORLD_W / 2, y: WORLD_H / 2 }]);
+  const [followerState, setFollowerState] = useState<{ x: number; y: number; dir: Dir; moving: boolean }>({
+    x: WORLD_W / 2 - 40, y: WORLD_H / 2 + 30, dir: "right", moving: false,
+  });
+  const followerStateRef = useRef(followerState);
+  useEffect(() => { followerStateRef.current = followerState; }, [followerState]);
+
+  // Adiciona posição do treinador na trilha sempre que ele muda
+  useEffect(() => {
+    const trail = trailRef.current;
+    const last = trail[trail.length - 1];
+    if (!last || Math.hypot(last.x - trainerPos.x, last.y - trainerPos.y) > 2) {
+      trail.push({ x: trainerPos.x, y: trainerPos.y });
+      if (trail.length > 240) trail.shift();
+    }
+  }, [trainerPos]);
+
+  // Loop de animação: follower persegue ponto ~46px atrás do treinador na trilha
+  useEffect(() => {
+    let raf = 0;
+    const FOLLOW_DIST = 48;
+    const MAX_SPEED = 5.2; // px por frame
+    const loop = () => {
+      const trail = trailRef.current;
+      if (trail.length > 0) {
+        // Encontra ponto na trilha ~FOLLOW_DIST atrás do topo
+        let acc = 0;
+        let tx = trail[0].x, ty = trail[0].y;
+        for (let i = trail.length - 1; i > 0; i--) {
+          const a = trail[i], b = trail[i - 1];
+          const seg = Math.hypot(a.x - b.x, a.y - b.y);
+          if (acc + seg >= FOLLOW_DIST) {
+            const t = (FOLLOW_DIST - acc) / seg;
+            tx = a.x + (b.x - a.x) * t;
+            ty = a.y + (b.y - a.y) * t;
+            break;
+          }
+          acc += seg;
+          tx = b.x; ty = b.y;
+        }
+        const prev = followerStateRef.current;
+        const dx = tx - prev.x;
+        const dy = ty - prev.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 0.4) {
+          const step = Math.min(dist, MAX_SPEED);
+          const nx = prev.x + (dx / dist) * step;
+          const ny = prev.y + (dy / dist) * step;
+          let dir: Dir = prev.dir;
+          if (Math.abs(dx) > Math.abs(dy)) dir = dx > 0 ? "right" : "left";
+          else dir = dy > 0 ? "down" : "up";
+          const next = { x: nx, y: ny, dir, moving: true };
+          followerStateRef.current = next;
+          setFollowerState(next);
+        } else if (prev.moving) {
+          const next = { ...prev, moving: false };
+          followerStateRef.current = next;
+          setFollowerState(next);
+        }
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
   type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number };
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
