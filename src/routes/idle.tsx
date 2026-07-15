@@ -2760,6 +2760,26 @@ function IdlePage() {
         sp = pick.sp;
         forcedRarity = pick.forcedRarity;
         mapLvRange = [1, 30];
+      } else if (idle.currentMap === "pedreira") {
+        // Pedreira Antiga — Pokémon de Pedra/Terra, níveis 30-55
+        const STONE_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = [
+          { sp: "sandshrew" as Species, w: 12, forcedRarity: "uncommon" },
+          { sp: "diglett"   as Species, w: 12, forcedRarity: "uncommon" },
+          { sp: "cubone"    as Species, w: 10, forcedRarity: "uncommon" },
+          { sp: "onix"      as Species, w: 8,  forcedRarity: "rare" },
+          { sp: "sandslash" as Species, w: 7,  forcedRarity: "rare" },
+          { sp: "golem"     as Species, w: 4,  forcedRarity: "epic" },
+          { sp: "nidoking"  as Species, w: 3,  forcedRarity: "epic" },
+          { sp: "aerodactyl"as Species, w: 2,  forcedRarity: "epic" },
+          { sp: "kabutops"  as Species, w: 2,  forcedRarity: "epic" },
+        ];
+        const total = STONE_TABLE.reduce((s, e) => s + e.w, 0);
+        let r = Math.random() * total;
+        let chosen = STONE_TABLE[0];
+        for (const e of STONE_TABLE) { r -= e.w; if (r <= 0) { chosen = e; break; } }
+        sp = chosen.sp;
+        forcedRarity = chosen.forcedRarity;
+        mapLvRange = [30, 55];
       } else {
         if (idle.currentMap === "terra" && maxTeamLv >= 30) {
           pool = ["beedrill", "butterfree", "blaziken", "pinsir", "golem", "jolteon", "lapras"] as Species[];
