@@ -46,8 +46,7 @@ import houseLabImg from "@/assets/house-lab.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 
-import { GuestGate } from "@/components/GuestGate";
-import { loadIdentity, type LocalIdentity } from "@/components/AuthGate";
+import { AuthGate, loadIdentity, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
