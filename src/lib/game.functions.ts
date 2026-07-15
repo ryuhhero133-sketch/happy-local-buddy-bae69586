@@ -1,5 +1,9 @@
 // Server functions com validação anti-cheat.
 // Cliente NUNCA soma recurso — sempre chama uma dessas funções e recebe o novo estado.
+//
+// NOTA: usamos `supabase as any` porque as tabelas novas (trainer_state, etc.)
+// só existem depois que o SQL de SUPABASE_ANTICHEAT_SETUP.md for rodado.
+// Os types.ts do Supabase são regenerados só quando o schema muda.
 
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -44,14 +48,13 @@ export type FullStateDTO = {
 export const bootstrapGameState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<{ ok: true }> => {
-    const { supabase, userId } = context;
+    const supabase = context.supabase as any;
+    const userId = context.userId;
 
-    // Insere trainer_state se não existir.
     await supabase
       .from("trainer_state")
       .upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
 
-    // 5 pokébolas iniciais.
     await supabase
       .from("pokeballs")
       .upsert(
@@ -67,7 +70,8 @@ export const bootstrapGameState = createServerFn({ method: "POST" })
 export const getFullGameState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<FullStateDTO> => {
-    const { supabase, userId } = context;
+    const supabase = context.supabase as any;
+    const userId = context.userId;
     const { xpForTrainerLevel } = await import("./game.balance.server");
 
     const [trainerRes, pokemonsRes, invRes, ballsRes] = await Promise.all([
@@ -83,7 +87,8 @@ export const getFullGameState = createServerFn({ method: "GET" })
     };
 
     const pokemons = (pokemonsRes.data ?? []) as PokemonDTO[];
-    const team = pokemons.filter((p) => p.team_slot != null).sort((a, b) => (a.team_slot ?? 0) - (b.team_slot ?? 0));
+    const team = pokemons.filter((p) => p.team_slot != null)
+      .sort((a, b) => (a.team_slot ?? 0) - (b.team_slot ?? 0));
     const collection = pokemons.filter((p) => p.team_slot == null);
 
     return {
@@ -118,14 +123,15 @@ export const reportKill = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => KillSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const supabase = context.supabase as any;
+    const userId = context.userId;
     const {
       RARITY_REWARDS, MAP_LEVEL_CAP, levelGapMultiplier,
       ULTRA_BALL_DROP_CHANCE, xpForTrainerLevel,
       KILL_MILESTONE, KILL_MILESTONE_REWARD_BALLS,
     } = await import("./game.balance.server");
 
-    // Anti-flood: máx 6 kills/segundo do mesmo user.
+    // Anti-flood: máx 6 kills/segundo.
     const { count } = await supabase
       .from("kill_log")
       .select("id", { count: "exact", head: true })
@@ -135,7 +141,6 @@ export const reportKill = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "rate_limit" };
     }
 
-    // Cálculo server-side de gold/xp.
     const base = RARITY_REWARDS[data.rarity];
     const cap = MAP_LEVEL_CAP[data.map_id];
     const levelMult = 1 + data.target_level * 0.03;
@@ -145,7 +150,6 @@ export const reportKill = createServerFn({ method: "POST" })
     const gold = Math.max(0, Math.floor(base.gold * levelMult * gapMult * mapPenalty));
     const xp   = Math.max(0, Math.floor(base.xp   * levelMult * gapMult * mapPenalty));
 
-    // Grava log.
     await supabase.from("kill_log").insert({
       user_id: userId,
       species: data.species,
@@ -156,7 +160,6 @@ export const reportKill = createServerFn({ method: "POST" })
       xp_awarded: xp,
     });
 
-    // Ultra ball drop.
     let ultraBallDrop = 0;
     const dropChance = ULTRA_BALL_DROP_CHANCE[data.rarity] ?? 0;
     if (dropChance > 0 && Math.random() < dropChance) {
@@ -169,7 +172,6 @@ export const reportKill = createServerFn({ method: "POST" })
       );
     }
 
-    // Atualiza trainer_state.
     const { data: state } = await supabase.from("trainer_state")
       .select("*").eq("user_id", userId).maybeSingle();
     if (!state) return { ok: false as const, reason: "no_state" };
@@ -177,15 +179,13 @@ export const reportKill = createServerFn({ method: "POST" })
     let newGold = Number(state.gold) + gold;
     let newXp = Number(state.trainer_xp) + xp;
     let newLevel = state.trainer_level;
-    let newKills = Number(state.kill_count) + 1;
+    const newKills = Number(state.kill_count) + 1;
 
-    // Level up loop.
     while (newXp >= xpForTrainerLevel(newLevel + 1) && newLevel < 100) {
       newXp -= xpForTrainerLevel(newLevel + 1);
       newLevel += 1;
     }
 
-    // Milestone: a cada 100 kills, +10 pokébolas.
     let ballBonus = 0;
     if (Math.floor(newKills / KILL_MILESTONE) > Math.floor(Number(state.kill_count) / KILL_MILESTONE)) {
       ballBonus = KILL_MILESTONE_REWARD_BALLS;
@@ -205,10 +205,10 @@ export const reportKill = createServerFn({ method: "POST" })
       updated_at: new Date().toISOString(),
     }).eq("user_id", userId);
 
-    // Atualiza ranked.
+    const username = (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador";
     await supabase.from("ranked_scores").upsert({
       user_id: userId,
-      username: (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador",
+      username,
       trainer_level: newLevel,
       total_kills: newKills,
       updated_at: new Date().toISOString(),
@@ -230,7 +230,7 @@ export const reportKill = createServerFn({ method: "POST" })
     };
   });
 
-// ---- Tentar captura: servidor decide sucesso --------------------------------
+// ---- Tentar captura ---------------------------------------------------------
 
 const CaptureSchema = z.object({
   species: z.string().min(1).max(64),
@@ -243,10 +243,10 @@ export const attemptCapture = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => CaptureSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const supabase = context.supabase as any;
+    const userId = context.userId;
     const { CAPTURE_RATES } = await import("./game.balance.server");
 
-    // Confere e decrementa bola.
     const { data: ball } = await supabase
       .from("pokeballs").select("qty").eq("user_id", userId).eq("ball_type", data.ball_type).maybeSingle();
     if (!ball || ball.qty < 1) {
@@ -256,7 +256,6 @@ export const attemptCapture = createServerFn({ method: "POST" })
       .update({ qty: ball.qty - 1 })
       .eq("user_id", userId).eq("ball_type", data.ball_type);
 
-    // Rolar captura.
     const rate = CAPTURE_RATES[data.rarity][data.ball_type] ?? 0.1;
     const success = Math.random() < rate;
 
@@ -264,7 +263,6 @@ export const attemptCapture = createServerFn({ method: "POST" })
       return { ok: true as const, captured: false, ball_used: data.ball_type };
     }
 
-    // Adicionar à coleção (fora do time).
     const hpMax = 20 + data.target_level * 4;
     const { data: inserted } = await supabase.from("pokemon_collection").insert({
       user_id: userId,
@@ -277,13 +275,13 @@ export const attemptCapture = createServerFn({ method: "POST" })
       team_slot: null,
     }).select().single();
 
-    // Atualiza pokedex_count no ranked.
     const { count } = await supabase.from("pokemon_collection")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId);
+    const username = (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador";
     await supabase.from("ranked_scores").upsert({
       user_id: userId,
-      username: (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador",
+      username,
       pokedex_count: count ?? 0,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
@@ -291,7 +289,7 @@ export const attemptCapture = createServerFn({ method: "POST" })
     return { ok: true as const, captured: true, pokemon: inserted as PokemonDTO };
   });
 
-// ---- Abrir baú: anti-replay + loot server-side ------------------------------
+// ---- Abrir baú --------------------------------------------------------------
 
 const ChestSchema = z.object({
   chest_id: z.string().min(1).max(64),
@@ -302,17 +300,16 @@ export const openChest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => ChestSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const supabase = context.supabase as any;
+    const userId = context.userId;
     const { CHEST_LOOT, pickWeighted } = await import("./game.balance.server");
 
-    // Anti-replay: se já existe claim, rejeita.
     const { data: existing } = await supabase.from("chest_claims")
       .select("id").eq("user_id", userId).eq("chest_id", data.chest_id).maybeSingle();
     if (existing) {
       return { ok: false as const, reason: "already_opened" };
     }
 
-    // Sorteia loot.
     const entry = pickWeighted(CHEST_LOOT);
     let loot: Record<string, unknown> = { kind: entry.kind };
 
@@ -340,7 +337,6 @@ export const openChest = createServerFn({ method: "POST" })
       loot = { kind: "ball", ball_type: entry.ball_type, qty: entry.qty };
     }
 
-    // Marca como aberto.
     await supabase.from("chest_claims").insert({
       user_id: userId,
       chest_id: data.chest_id,
@@ -351,7 +347,7 @@ export const openChest = createServerFn({ method: "POST" })
     return { ok: true as const, loot };
   });
 
-// ---- Trocar mapa: valida level cap ------------------------------------------
+// ---- Trocar mapa ------------------------------------------------------------
 
 const MoveMapSchema = z.object({ map_id: z.string().min(1).max(32) });
 
@@ -359,7 +355,8 @@ export const setActiveMap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => MoveMapSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const supabase = context.supabase as any;
+    const userId = context.userId;
     const { MAP_LEVEL_CAP } = await import("./game.balance.server");
 
     const { data: state } = await supabase.from("trainer_state")
