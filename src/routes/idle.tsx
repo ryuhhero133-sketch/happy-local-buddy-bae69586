@@ -248,7 +248,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   
   caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 1,  element: "Pedra",
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
-  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapPedreiraCavernaUrl, rate: 2.4, minLevel: 25, maxLevel: 55, element: "Pedra/Terra" },
+  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapPedreiraCavernaUrl, rate: 2.4, minLevel: 1,  maxLevel: 55, element: "Pedra/Terra" },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
