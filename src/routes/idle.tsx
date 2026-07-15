@@ -153,6 +153,12 @@ import gloomAsset from "@/assets/gloom.gif.asset.json";
 import caterpieGif from "@/assets/caterpie.gif";
 import metapodGif from "@/assets/metapod.gif";
 import vulpixGif from "@/assets/vulpix.gif";
+import pidgeottoAsset from "@/assets/pidgeotto.gif.asset.json";
+import raticateFAsset from "@/assets/raticate-f.gif.asset.json";
+import fearowAsset from "@/assets/fearow.gif.asset.json";
+const pidgeottoUrl = assetUrl(pidgeottoAsset.url);
+const raticateFUrl = assetUrl(raticateFAsset.url);
+const fearowUrl = assetUrl(fearowAsset.url);
 
 
 const IDLE_KEY = "rubym.idle.v1";
@@ -221,13 +227,13 @@ type IdleMapDef = {
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  element: "Grama"    },
-  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 20, element: "Terra"    },
-  venofogo: { name: "Pântano em Chamas",       diff: "Médio",     bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 20, element: "Veneno/Fogo" },
-  praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, element: "Água"     },
-  neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 30, element: "Gelo"     },
-  deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, element: "Fogo"     },
-  floresta: { name: "Floresta Sombria",        diff: "Difícil",   bg: mapFlorestaUrl,  rate: 2.6, minLevel: 70, element: "Sombrio"  },
-  caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 90, element: "Pedra",
+  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 1,  element: "Terra"    },
+  venofogo: { name: "Pântano em Chamas",       diff: "Médio",     bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 1,  element: "Veneno/Fogo" },
+  praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 1,  element: "Água"     },
+  neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 1,  element: "Gelo"     },
+  deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 1,  element: "Fogo"     },
+  floresta: { name: "Floresta Sombria",        diff: "Difícil",   bg: mapFlorestaUrl,  rate: 2.6, minLevel: 1,  element: "Sombrio"  },
+  caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 1,  element: "Pedra",
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
 };
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
@@ -258,6 +264,7 @@ const GIF: Partial<Record<Species, string>> = {
   clefairy: clefairyUrl, sandshrew: sandshrewUrl, mankey: mankeyUrl,
   poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
+  pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
 };
 
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
@@ -859,6 +866,27 @@ function IdlePage() {
   const [energyTick, setEnergyTick] = useState(0);
   useEffect(() => {
     const iv = setInterval(() => setEnergyTick((n) => n + 1), 1000);
+    return () => clearInterval(iv);
+  }, []);
+  // Dreno de energia em tempo real do líder enquanto o treinador está em atividade
+  // (auto ativo). ~1 ponto a cada 4s.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (!(autoBattleRef.current?.enabled)) return;
+      setTeam((tm) => {
+        if (tm.length === 0) return tm;
+        const now = Date.now();
+        const leader = tm[0] as PetEnergyExt;
+        const regen = ENERGY_REGEN_MS[leader.rarity] ?? 0;
+        if (regen === 0) return tm; // míticos não cansam
+        if (leader.azulRestUntil && leader.azulRestUntil > now) return tm;
+        const cur = petCurrentEnergy(leader, now);
+        if (cur <= 0) return tm;
+        const next = Math.max(0, cur - 1);
+        const updated = { ...leader, energy: next, energyRegenAt: now } as PetInstance;
+        return [updated, ...tm.slice(1)];
+      });
+    }, 4000);
     return () => clearInterval(iv);
   }, []);
   // Fecha a caverna: expulsa o treinador quando o ciclo terminar
@@ -1501,7 +1529,11 @@ function IdlePage() {
         const leaderLvNow = team[0]?.level ?? 1;
         const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
         // Só considera alvos dentro de ±10 níveis do líder pra não morrer / não perder tempo
-        const alive = aliveAll.filter((e) => Math.abs((e.level ?? leaderLvNow) - leaderLvNow) <= 10);
+        // Só considera inimigos até +10 níveis acima e até -5 abaixo do líder
+        const alive = aliveAll.filter((e) => {
+          const el = e.level ?? leaderLvNow;
+          return el <= leaderLvNow + 10 && el >= leaderLvNow - 5;
+        });
         const enemyPool = alive.length > 0 ? alive : [];
 
         type Tgt = { x: number; y: number; kind: "enemy" | "chest"; id: number; range: number };
@@ -1893,8 +1925,14 @@ function IdlePage() {
             const trLv = s.trainerLevel ?? 1;
             const lvDiff = trLv - target.level;
             const lvScale = lvDiff <= 0 ? 1 : Math.max(0.1, 1 - lvDiff * 0.08);
-            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * lvScale * (1 + (expActive ? idle.buffs.expMult : 0))));
-            const captureTrainerXp = captured ? Math.max(5, Math.round((25 + target.level * 6) * rMult * lvScale)) : 0;
+            // Penalidade extra: se o treinador ultrapassou o teto do mapa, XP colapsa
+            // (força migrar de mapa). Vale Verdejante tem teto 30.
+            const mapCap = idle.currentMap === "arena" ? 30 : Infinity;
+            const overCap = Math.max(0, trLv - mapCap);
+            const capPenalty = overCap > 0 ? Math.max(0.05, 1 - overCap * 0.2) : 1;
+            const finalScale = lvScale * capPenalty;
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0))));
+            const captureTrainerXp = captured ? Math.max(5, Math.round((25 + target.level * 6) * rMult * finalScale)) : 0;
             const totalTrainerXp = killTrainerXp + captureTrainerXp;
             const applied = applyTrainerXp(s, totalTrainerXp);
             if (applied.leveledTo != null) {
@@ -2062,8 +2100,12 @@ function IdlePage() {
   ];
   const legendIdxRef = useRef(0);
   const [legendUntil, setLegendUntil] = useState<{ until: number; weather?: "snow" | "rain" } | null>(null);
+  const currentMapRef = useRef(idle.currentMap);
+  useEffect(() => { currentMapRef.current = idle.currentMap; }, [idle.currentMap]);
   useEffect(() => {
     const trigger = () => {
+      // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial)
+      if (currentMapRef.current === "arena") return;
       const pick = LEGEND_ROSTER[Math.floor(Math.random() * LEGEND_ROSTER.length)];
       legendIdxRef.current++;
       const until = Date.now() + LEGEND_DURATION_MS;
@@ -2098,6 +2140,14 @@ function IdlePage() {
   useEffect(() => {
     setWeather("clear");
   }, [legendUntil]);
+
+  // Ao entrar no Vale Verdejante, remove qualquer lendário do evento remanescente
+  useEffect(() => {
+    if (idle.currentMap === "arena") {
+      setEnemies((prev) => prev.filter((e) => !e.eventLegendary));
+      setLegendUntil(null);
+    }
+  }, [idle.currentMap]);
 
 
 
@@ -2437,10 +2487,10 @@ function IdlePage() {
       if (idle.currentMap === "arena") {
         pool = [
           "bulbasaur", "oddish", "bellsprout", "caterpie", "metapod", "weedle", "kakuna",
-          "pidgey", "pidgeotto", "rattata_f", "raticate_f", "spearow",
+          "pidgey", "pidgeotto", "rattata_f", "raticate_f", "fearow",
           "paras", "parasect", "venonat", "gloom",
           "clefairy", "sandshrew", "mankey", "poliwag", "growlithe",
-          "abra", "cubone", "magnemite", "nidoran_f", "vulpix", "snorlax",
+          "abra", "cubone", "magnemite", "nidoran_f", "vulpix",
         ] as Species[];
         mapLvRange = [1, 30];
       }
@@ -2457,20 +2507,16 @@ function IdlePage() {
       // Pokémons selvagens pareados com o nível do líder (±1) pra não ter desvantagem.
       // Elites levam +1 nível e, raramente (5%), aparece um "forte" com +2/+4.
       const rareStrong = Math.random() < 0.05;
-      const jitter = Math.floor(Math.random() * 3) - 1; // -1, 0 ou +1
-      let baseLv = rareStrong
-        ? leaderLv + 2 + Math.floor(Math.random() * 3)
-        : Math.max(1, leaderLv + jitter);
+      // Faixa em torno do líder: -5 até +10 (extremos raros)
+      const offset = rareStrong
+        ? 5 + Math.floor(Math.random() * 6)   // +5..+10 raro forte
+        : -5 + Math.floor(Math.random() * 16); // -5..+10
+      let baseLv = Math.max(1, leaderLv + offset);
       let lv = elite ? baseLv + 1 : baseLv;
-      // Aplica faixa do mapa (se houver)
+      // Aplica faixa do mapa (se houver): clampa para os limites do mapa
       if (mapLvRange) {
         const [lo, hi] = mapLvRange;
-        // Se líder for baixo, spawn perto do líder mas dentro da faixa; senão, pega aleatório na faixa
-        if (leaderLv <= hi) {
-          lv = Math.max(lo, Math.min(hi, lv));
-        } else {
-          lv = lo + Math.floor(Math.random() * (hi - lo + 1));
-        }
+        lv = Math.max(lo, Math.min(hi, lv));
       }
       const pet = makePet(sp, lv);
       const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
