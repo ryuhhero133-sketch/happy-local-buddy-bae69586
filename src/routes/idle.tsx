@@ -2370,37 +2370,40 @@ function IdlePage() {
     } else if (id === "book_exp" || id === "book_exp_big" || id === "book_exp_max") {
       const add = id === "book_exp" ? 0.30 : id === "book_exp_big" ? 0.50 : 1.00;
       const pct = Math.round(add * 100);
-      setIdle((s) => {
-        const active = !!(s.buffs.expMultUntil && Date.now() < s.buffs.expMultUntil);
-        const base = active ? s.buffs.expMult : 0;
-        return {
-          ...s,
-          items: { ...s.items, [id]: have - 1 },
-          buffs: { ...s.buffs, expMult: base + add, expMultUntil: Date.now() + 3600_000 },
-        };
-      });
+      const nowT = Date.now();
+      if ((idle.buffs.expMultUntil ?? 0) > nowT) {
+        pushChat(`Já há um Livro de EXP ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, [id]: have - 1 },
+        buffs: { ...s.buffs, expMult: add, expMultUntil: Date.now() + 3600_000 },
+      }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `EXP +${pct}% · 1h`, "capture");
       pushChat(`Livro de EXP usado (+${pct}% EXP por 1 hora).`, "cap");
-    } else if (id === "book_vip") {
-      const add = 0.20;
-      setIdle((s) => {
-        const now = Date.now();
-        const expActive = !!(s.buffs.expMultUntil && now < s.buffs.expMultUntil);
-        const goldActive = !!(s.buffs.goldMultUntil && now < s.buffs.goldMultUntil);
-        const baseExp = expActive ? s.buffs.expMult : 0;
-        const baseGold = goldActive ? (s.buffs.goldMult ?? 0) : 0;
-        return {
-          ...s,
-          items: { ...s.items, [id]: have - 1 },
-          buffs: {
-            ...s.buffs,
-            expMult: baseExp + add, expMultUntil: now + 3600_000,
-            goldMult: baseGold + add, goldMultUntil: now + 3600_000,
-          },
-        };
-      });
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "VIP +20% OURO/EXP · 1h", "capture");
-      pushChat(`Livro VIP ✦ usado (+20% ouro e +20% EXP por 1 hora).`, "cap");
+    } else if (id === "book_vip" || id === "book_vip_30" || id === "book_vip_60") {
+      const cfg = id === "book_vip_60"
+        ? { add: 0.40, ms: 60 * 24 * 3600_000, label: "60 dias" }
+        : id === "book_vip_30"
+          ? { add: 0.30, ms: 30 * 24 * 3600_000, label: "30 dias" }
+          : { add: 0.20, ms: 3600_000, label: "1 hora" };
+      const nowT = Date.now();
+      if ((idle.buffs.expMultUntil ?? 0) > nowT || (idle.buffs.goldMultUntil ?? 0) > nowT) {
+        pushChat(`Já há um bônus VIP/EXP ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, [id]: have - 1 },
+        buffs: {
+          ...s.buffs,
+          expMult: cfg.add, expMultUntil: nowT + cfg.ms,
+          goldMult: cfg.add, goldMultUntil: nowT + cfg.ms,
+        },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `VIP +${Math.round(cfg.add*100)}% · ${cfg.label}`, "capture");
+      pushChat(`Livro VIP usado (+${Math.round(cfg.add*100)}% ouro e EXP por ${cfg.label}).`, "cap");
     } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura") {
       openEgg(id as EggId);
     }
