@@ -33,6 +33,7 @@ import potionIconAsset from "@/assets/potion-icon.png.asset.json";
 import houseLarImg from "@/assets/house-lar.png";
 import houseLabImg from "@/assets/house-lab.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
+import npcOakSprite from "@/assets/npc-oak.png";
 
 import { GuestGate } from "@/components/GuestGate";
 import { loadIdentity, type LocalIdentity } from "@/components/AuthGate";
