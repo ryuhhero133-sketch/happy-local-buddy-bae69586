@@ -2456,18 +2456,60 @@ function IdlePage() {
 
 
 
-  function spawnEnemies(): Enemy[] {
+  // Vale Verdejante: tabela com pesos e raridade forçada.
+  // Peso alto = aparece muito; peso baixo = raro ★ (mais forte, aura colorida)
+  const ARENA_SPAWN_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = [
+    // Comuns (frequentes)
+    { sp: "caterpie" as Species,   w: 14 },
+    { sp: "weedle" as Species,     w: 14 },
+    { sp: "pidgey" as Species,     w: 12 },
+    { sp: "rattata_f" as Species,  w: 12 },
+    { sp: "oddish" as Species,     w: 10 },
+    { sp: "bellsprout" as Species, w: 10 },
+    { sp: "metapod" as Species,    w: 6 },
+    { sp: "kakuna" as Species,     w: 6 },
+    // Incomuns
+    { sp: "sandshrew" as Species,  w: 7, forcedRarity: "uncommon" },
+    { sp: "mankey" as Species,     w: 7, forcedRarity: "uncommon" },
+    { sp: "venonat" as Species,    w: 7, forcedRarity: "uncommon" },
+    { sp: "paras" as Species,      w: 7, forcedRarity: "uncommon" },
+    { sp: "poliwag" as Species,    w: 7, forcedRarity: "uncommon" },
+    { sp: "nidoran_f" as Species,  w: 6, forcedRarity: "uncommon" },
+    { sp: "pidgeotto" as Species,  w: 4, forcedRarity: "uncommon" },
+    { sp: "raticate_f" as Species, w: 4, forcedRarity: "uncommon" },
+    // Raros ★ (mais fortes)
+    { sp: "bulbasaur" as Species,  w: 3, forcedRarity: "rare" },
+    { sp: "growlithe" as Species,  w: 3, forcedRarity: "rare" },
+    { sp: "vulpix" as Species,     w: 3, forcedRarity: "rare" },
+    { sp: "abra" as Species,       w: 3, forcedRarity: "rare" },
+    { sp: "clefairy" as Species,   w: 3, forcedRarity: "rare" },
+    { sp: "cubone" as Species,     w: 3, forcedRarity: "rare" },
+    { sp: "magnemite" as Species,  w: 3, forcedRarity: "rare" },
+    { sp: "gloom" as Species,      w: 2, forcedRarity: "rare" },
+    { sp: "parasect" as Species,   w: 2, forcedRarity: "rare" },
+    // Épico ★★ (super raro)
+    { sp: "fearow" as Species,     w: 1, forcedRarity: "epic" },
+  ];
+
+  function pickArenaSpawn(): { sp: Species; forcedRarity?: Rarity } {
+    const total = ARENA_SPAWN_TABLE.reduce((s, e) => s + e.w, 0);
+    let r = Math.random() * total;
+    for (const e of ARENA_SPAWN_TABLE) {
+      r -= e.w;
+      if (r <= 0) return { sp: e.sp, forcedRarity: e.forcedRarity };
+    }
+    return { sp: ARENA_SPAWN_TABLE[0].sp, forcedRarity: ARENA_SPAWN_TABLE[0].forcedRarity };
+  }
+
+  // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
+  // Retorna null se não achou posição válida em 40 tentativas.
+  function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
     const leaderLv = team[0]?.level ?? 10;
-    const count = 16 + Math.floor(Math.random() * 5); // 16-20 pokemons no mundo
-    const placed: { x: number; y: number }[] = [];
-    const MIN_DIST = 220; // px entre inimigos (nao ficam colados)
-    const arr: Enemy[] = [];
-    let attempts = 0;
-    while (arr.length < count && attempts < count * 30) {
-      attempts++;
+    const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
+    const MIN_DIST = 220;
+    for (let attempts = 0; attempts < 40; attempts++) {
       const x = 120 + Math.random() * (WORLD_W - 240);
       const y = 120 + Math.random() * (WORLD_H - 240);
-      // distancia minima do treinador (300px) para não spawnar em cima
       const dt = Math.hypot(x - WORLD_W / 2, y - WORLD_H / 2);
       if (dt < 300) continue;
       let ok = true;
@@ -2475,59 +2517,65 @@ function IdlePage() {
         if (Math.hypot(x - p.x, y - p.y) < MIN_DIST) { ok = false; break; }
       }
       if (!ok) continue;
-      // evita spawn em cima de obstáculos
       if (collidesWithAny(x, y)) continue;
       placed.push({ x, y });
-      const elite = Math.random() < 0.40; // 40% dos inimigos são "elites" perigosos
-      const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
+
+      const elite = Math.random() < 0.40;
       let pool = speciesUnlockedFor(leaderLv);
-      // Faixa de nível do mapa (min/max). Se definida, sobrepõe o pareamento com líder.
       let mapLvRange: [number, number] | null = null;
-      // Vale Verdejante: pool amplo temático grama/bicho/normal, nível 1-30, raridades variadas
+      let sp: Species;
+      let forcedRarity: Rarity | undefined;
+
       if (idle.currentMap === "arena") {
-        pool = [
-          "bulbasaur", "oddish", "bellsprout", "caterpie", "metapod", "weedle", "kakuna",
-          "pidgey", "pidgeotto", "rattata_f", "raticate_f", "fearow",
-          "paras", "parasect", "venonat", "gloom",
-          "clefairy", "sandshrew", "mankey", "poliwag", "growlithe",
-          "abra", "cubone", "magnemite", "nidoran_f", "vulpix",
-        ] as Species[];
+        const pick = pickArenaSpawn();
+        sp = pick.sp;
+        forcedRarity = pick.forcedRarity;
         mapLvRange = [1, 30];
+      } else {
+        if (idle.currentMap === "terra" && maxTeamLv >= 30) {
+          pool = ["beedrill", "butterfree", "blaziken", "pinsir", "golem", "jolteon", "lapras"] as Species[];
+        }
+        if (idle.currentMap === "venofogo") {
+          pool = ["blaziken", "charmander", "charmeleon", "charizard", "magmar", "arcanine", "growlithe",
+                  "ekans", "arbok", "zubat", "venonat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
+        }
+        sp = pool[Math.floor(Math.random() * pool.length)];
       }
-      // No Ninho de Marimbondo, com um Pokémon nv 30+ no time, aparecem Beedrill/Butterfree selvagens capturáveis
-      if (idle.currentMap === "terra" && maxTeamLv >= 30) {
-        pool = ["beedrill", "butterfree", "blaziken", "pinsir", "golem", "jolteon", "lapras"] as Species[];
-      }
-      // Pântano em Chamas: pool temático veneno + fogo
-      if (idle.currentMap === "venofogo") {
-        pool = ["blaziken", "charmander", "charmeleon", "charizard", "magmar", "arcanine", "growlithe",
-                "ekans", "arbok", "zubat", "venonat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
-      }
-      const sp = pool[Math.floor(Math.random() * pool.length)];
-      // Pokémons selvagens pareados com o nível do líder (±1) pra não ter desvantagem.
-      // Elites levam +1 nível e, raramente (5%), aparece um "forte" com +2/+4.
+
       const rareStrong = Math.random() < 0.05;
-      // Faixa em torno do líder: -5 até +10 (extremos raros)
       const offset = rareStrong
-        ? 5 + Math.floor(Math.random() * 6)   // +5..+10 raro forte
-        : -5 + Math.floor(Math.random() * 16); // -5..+10
+        ? 5 + Math.floor(Math.random() * 6)
+        : -5 + Math.floor(Math.random() * 16);
       let baseLv = Math.max(1, leaderLv + offset);
       let lv = elite ? baseLv + 1 : baseLv;
-      // Aplica faixa do mapa (se houver): clampa para os limites do mapa
       if (mapLvRange) {
         const [lo, hi] = mapLvRange;
         lv = Math.max(lo, Math.min(hi, lv));
       }
-      // Teto rígido do mapa (independente do nível do líder)
       const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
       if (hardCap != null) lv = Math.min(lv, hardCap);
-      const pet = makePet(sp, lv);
+      const pet = makePet(sp, lv, forcedRarity);
       const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
       const isAggro = elite || Math.random() < 0.18;
-      const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60); // 170-230
-      arr.push({ sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity });
+      const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60);
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity };
     }
-    // Aviso de aparição rara (épico+)
+    return null;
+  }
+
+  // Alvo total de inimigos no mapa (top-up lento cuida do resto)
+  const ENEMY_TARGET = 16;
+
+  function spawnEnemies(): Enemy[] {
+    // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
+    const initial = 6 + Math.floor(Math.random() * 3); // 6-8
+    const placed: { x: number; y: number }[] = [];
+    const arr: Enemy[] = [];
+    while (arr.length < initial) {
+      const e = spawnOneEnemy(placed);
+      if (!e) break;
+      arr.push(e);
+    }
     const rareOnes = arr.filter((e) => e.rarity === "epic" || e.rarity === "legendary" || e.rarity === "mythic" || e.rarity === "mythic_shiny");
     for (const r of rareOnes) {
       const label = r.rarity === "mythic_shiny" ? "MÍTICO SHINY" : r.rarity.toUpperCase();
