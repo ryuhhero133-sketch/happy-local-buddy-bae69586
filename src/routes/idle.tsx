@@ -1783,6 +1783,7 @@ function IdlePage() {
       pushChat(`⬆ Nível ${lv}! Atributos ganhos: ${randomSummary.join(", ")}`, "lv");
       setLevelToast({ level: lv, gains: randomSummary, bonus: statLabel[bonusStat], ts: Date.now() });
       playLevelUp();
+      pushEvent("⬆", `NÍVEL ${lv} ALCANÇADO`, `+${statLabel[bonusStat]} bônus · ${randomSummary.join(", ")}`, "#ffd66b");
 
     } else {
       prevLevelRef.current = lv;
