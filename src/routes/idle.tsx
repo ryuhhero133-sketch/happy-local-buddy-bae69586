@@ -5638,16 +5638,24 @@ function IdlePage() {
                         <div style={{ fontSize: 10, color: "#c8b8d0" }}>Lv.{p.level} · {p.rarity}</div>
                         <div style={{ fontSize: 10, color: resting ? "#7fc4ff" : (energy < 30 ? "#ff7a3d" : "#8fd0ff") }}>⚡ {label}</div>
                       </div>
-                      <button
-                        disabled={!canPick}
-                        onClick={() => restPetInAzul(p.uid)}
-                        style={{
-                          background: canPick ? "#4a9eff" : "#2a3a4a",
-                          color: canPick ? "#0b0510" : "#5a6a7a",
-                          border: "none", borderRadius: 6, padding: "6px 10px",
-                          fontWeight: 900, fontSize: 11, cursor: canPick ? "pointer" : "not-allowed",
-                        }}
-                      >{resting ? "Ativo" : `Deixar (${AZUL_REST_COST}💎)`}</button>
+                      {(() => {
+                        const canSpeed = resting && idle.bank.crystals >= AZUL_REST_COST;
+                        const canPickNow = canPick;
+                        const enabled = resting ? canSpeed : canPickNow;
+                        const label = resting ? `Adiantar (${AZUL_REST_COST}💎)` : `Deixar (${AZUL_REST_COST}💎)`;
+                        return (
+                          <button
+                            disabled={!enabled}
+                            onClick={() => resting ? speedUpAzulRest(p.uid) : restPetInAzul(p.uid)}
+                            style={{
+                              background: enabled ? "#4a9eff" : "#2a3a4a",
+                              color: enabled ? "#0b0510" : "#5a6a7a",
+                              border: "none", borderRadius: 6, padding: "6px 10px",
+                              fontWeight: 900, fontSize: 11, cursor: enabled ? "pointer" : "not-allowed",
+                            }}
+                          >{infinite ? "—" : label}</button>
+                        );
+                      })()}
                     </div>
                   );
                 })}
