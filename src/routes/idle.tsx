@@ -2804,16 +2804,23 @@ function IdlePage() {
     const rarity = rollEggRarity(eggId);
     const pet = makePet(sp, Math.max(1, leaderLv), rarity as Rarity);
 
-    setIdle((s) => ({
-      ...s,
-      items: { ...s.items, [eggId]: (s.items[eggId] ?? 0) - 1 },
-      caughtSpecies: s.caughtSpecies.includes(sp as Species) ? s.caughtSpecies : [...s.caughtSpecies, sp as Species],
-      seenSpecies: s.seenSpecies.includes(sp as Species) ? s.seenSpecies : [...s.seenSpecies, sp as Species],
-      collection: [
-        ...(s.collection ?? []),
-        { uid: pet.uid, species: pet.species, level: pet.level, rarity: pet.rarity, capturedAt: Date.now() },
-      ],
-    }));
+    setIdle((s) => {
+      const prev = s.collection ?? [];
+      if (prev.length >= MAX_COLLECTION) {
+        queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Ovo não pôde ser guardado.`, "info"));
+        return { ...s, items: { ...s.items, [eggId]: (s.items[eggId] ?? 0) - 1 } };
+      }
+      return {
+        ...s,
+        items: { ...s.items, [eggId]: (s.items[eggId] ?? 0) - 1 },
+        caughtSpecies: s.caughtSpecies.includes(sp as Species) ? s.caughtSpecies : [...s.caughtSpecies, sp as Species],
+        seenSpecies: s.seenSpecies.includes(sp as Species) ? s.seenSpecies : [...s.seenSpecies, sp as Species],
+        collection: [
+          ...prev,
+          { uid: pet.uid, species: pet.species, level: pet.level, rarity: pet.rarity, capturedAt: Date.now() },
+        ],
+      };
+    });
     // Adiciona ao time se houver vaga (mesma regra da captura)
     setTeam((tm) => {
       if (tm.length >= 5) {
