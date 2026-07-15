@@ -1139,15 +1139,8 @@ function IdlePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [energyTick]);
 
-  // Bônus único: +1.000.000 ouro e +100 💎 (aplica 1x por conta local)
-  useEffect(() => {
-    try {
-      if (localStorage.getItem("rubym.bonus.mkt.v1") === "1") return;
-      setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + 1_000_000, crystals: s.bank.crystals + 100 } }));
-      localStorage.setItem("rubym.bonus.mkt.v1", "1");
-      pushChat("🎁 Bônus recebido: +1.000.000 ouro e +100 💎", "cap");
-    } catch { /* ignore */ }
-  }, []); // eslint-disable-line
+  // (removido) bônus inicial de ouro/cristal — jogador começa com 0 ouro e 30 💎
+
 
 
 
