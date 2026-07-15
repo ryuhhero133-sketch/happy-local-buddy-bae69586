@@ -5976,11 +5976,30 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
   const ePct = Math.max(0, Math.min(100, energy));
   const exhausted = !infinite && energy <= 0;
+  const rarityColorMap: Record<string, string> = {
+    common: "#9aa0a6", uncommon: "#5ec26a", rare: "#6bd4ff",
+    epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
+  };
+  const rColor = rarityColorMap[pet.rarity] ?? "#c8b8d0";
+  const hexToRgba = (h: string, a: number) => {
+    const n = parseInt(h.replace("#", ""), 16);
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+  };
   return (
-    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{ display: "flex", gap: 6, alignItems: "center", background: exhausted ? "#1a1a1a" : "#2a1a3a", padding: 4, borderRadius: 6, cursor: onClick ? "pointer" : undefined, border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #555" : "1px solid rgba(107,74,138,0.4)"), opacity: exhausted ? 0.65 : 1 }}>
+    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
+      display: "flex", gap: 6, alignItems: "center",
+      background: exhausted
+        ? "linear-gradient(135deg, #1a1a1a 0%, #241d24 100%)"
+        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.28)} 0%, ${hexToRgba(rColor, 0.10)} 100%)`,
+      padding: 4, borderRadius: 6, cursor: onClick ? "pointer" : undefined,
+      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #555" : `1px solid ${hexToRgba(rColor, 0.65)}`),
+      boxShadow: exhausted ? "none" : `0 0 0 1px ${hexToRgba(rColor, 0.15)} inset, 0 0 8px ${hexToRgba(rColor, 0.18)}`,
+      opacity: exhausted ? 0.65 : 1,
+    }}>
       <div style={{
-        width: 38, height: 38, background: "#0b0510", borderRadius: 6,
+        width: 38, height: 38, background: `radial-gradient(circle at 50% 55%, ${hexToRgba(rColor, 0.55)} 0%, #0b0510 75%)`, borderRadius: 6,
         display: "grid", placeItems: "center", overflow: "hidden", position: "relative", flexShrink: 0,
+        border: `1px solid ${hexToRgba(rColor, 0.5)}`,
       }}>
         <img src={src} alt="" style={{ width: "92%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.7)" : undefined }} />
         {resting && <span style={{ position: "absolute", top: 0, right: 1, fontSize: 9 }}>🏡</span>}
