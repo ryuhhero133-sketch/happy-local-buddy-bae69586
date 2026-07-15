@@ -479,18 +479,23 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     return list;
   }
 
-  // Pedreira Antiga: só pedras/rochas espalhadas. Sem árvores, sem bushes.
+  // Pedreira Antiga: caverna com densidade similar ao Vale (mais coisas espalhadas).
+  // Estalagmites (decor), rochas (colisão) e cristais azuis (decor brilhante).
   if (mapId === "pedreira") {
     const kinds = [
-      { src: rockBoulderUrl, w: 86, h: 76, collideR: 12, blocks: true },
-      { src: rockBoulderUrl, w: 60, h: 54, collideR: 8,  blocks: true },
+      { src: stalagmiteUrl,  w:  78, h: 110, collideR: 12, blocks: true  },
+      { src: stalagmiteUrl,  w:  56, h:  82, collideR:  8, blocks: true  },
+      { src: rockBoulderUrl, w:  86, h:  76, collideR: 12, blocks: true  },
+      { src: rockBoulderUrl, w:  60, h:  54, collideR:  8, blocks: true  },
+      { src: caveCrystalUrl, w:  70, h:  74, collideR:  0, blocks: false },
+      { src: caveCrystalUrl, w:  52, h:  56, collideR:  0, blocks: false },
     ];
     const list: Obstacle[] = [];
-    const MIN_GAP = 90;
-    const CENTER_CLEAR = 160;
+    const MIN_GAP = 62;
+    const CENTER_CLEAR = 180;
     let id = 1;
     let tries = 0;
-    while (list.length < 55 && tries < 3500) {
+    while (list.length < 95 && tries < 4200) {
       tries++;
       const k = kinds[Math.floor(rand() * kinds.length)];
       const x = 60 + rand() * (worldW - 120);
