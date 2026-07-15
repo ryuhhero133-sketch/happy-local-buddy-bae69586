@@ -3912,7 +3912,7 @@ function IdlePage() {
                 borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
               }}>
                 <button
-                  onClick={() => setAB({ enabled: !on })}
+                  onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
                   title={on ? "Auto-batalha ATIVA (clique para desativar)" : "Auto-batalha desativada (clique para ativar)"}
                   style={{
                     background: "transparent", border: "none", padding: 0, cursor: "pointer",
