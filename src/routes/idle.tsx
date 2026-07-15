@@ -860,9 +860,9 @@ export const Route = createFileRoute("/idle")({
     ],
   }),
   component: () => (
-    <GuestGate>
+    <AuthGate>
       <IdlePage />
-    </GuestGate>
+    </AuthGate>
   ),
 });
 
