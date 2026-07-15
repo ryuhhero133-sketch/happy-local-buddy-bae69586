@@ -549,7 +549,7 @@ function InfoBox({ message }: { message: string | null }) {
 
 /* ───────────────────────────── Login / Signup / Reset ─────────────── */
 
-function AuthScreen() {
+function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
