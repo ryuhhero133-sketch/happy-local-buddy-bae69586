@@ -5823,7 +5823,7 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   void energyTick; // força re-render por segundo p/ atualizar barra de energia
   const src = GIF[pet.species];
   const now = Date.now();
-  const energy = petCurrentEnergy(pet, now);
+  const energy = petCurrentEnergy(pet, now, { active: true });
   const msFull = petMsToFull(pet, now);
   const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
   const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
