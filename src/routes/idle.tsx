@@ -6176,84 +6176,147 @@ function TabOverlay({
                       arr.splice(to, 0, x);
                       onReorderTeam(arr);
                     };
+                    // Stats RPG derivados de nível + raridade (visual)
+                    const rarityBaseMap: Record<string, number> = {
+                      common: 42, uncommon: 58, rare: 78, epic: 100, legendary: 130, mythic: 160, mythic_shiny: 200,
+                    };
+                    const base = rarityBaseMap[p.rarity] ?? 42;
+                    const lvl = p.level;
+                    const stats = {
+                      atk: Math.round(base + lvl * 2.1),
+                      def: Math.round(base * 0.85 + lvl * 1.6),
+                      spa: Math.round(base + lvl * 1.9),
+                      spd: Math.round(base * 0.9 + lvl * 1.7),
+                      spe: Math.round(base * 0.8 + lvl * 2.2),
+                    };
+                    const maxStat = Math.max(stats.atk, stats.def, stats.spa, stats.spd, stats.spe, 1);
+                    const statRow = (icon: string, label: string, val: number, col: string) => (
+                      <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <div style={{
+                          width: 22, height: 22, borderRadius: 6,
+                          background: `radial-gradient(circle at 30% 25%, ${col}66, ${col}22 70%, rgba(0,0,0,0.4))`,
+                          border: `1px solid ${col}aa`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 12, flexShrink: 0,
+                          boxShadow: `0 0 6px ${col}55, inset 0 1px 0 rgba(255,255,255,0.15)`,
+                        }}>{icon}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "#c8b8d0", marginBottom: 2 }}>
+                            <span>{label}</span>
+                            <span style={{ color: col, fontFamily: "monospace", fontSize: 9 }}>{val}</span>
+                          </div>
+                          <div style={{ height: 4, background: "rgba(0,0,0,0.55)", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(0,0,0,0.7)" }}>
+                            <div style={{
+                              width: `${(val / maxStat) * 100}%`, height: "100%",
+                              background: `linear-gradient(90deg, ${col}, ${col}dd)`,
+                              boxShadow: `0 0 4px ${col}88`,
+                            }} />
+                          </div>
+                        </div>
+                      </div>
+                    );
                     return (
                       <div key={p.uid} style={{
-                        display: "flex", alignItems: "stretch", gap: 10, padding: 10,
+                        display: "flex", alignItems: "stretch", gap: 12, padding: 12,
                         background: isLeader
-                          ? `linear-gradient(90deg, ${rc}22 0%, #1a0f26 55%, #1a0f26 100%)`
-                          : "linear-gradient(90deg, rgba(20,10,35,0.85), rgba(30,20,50,0.85))",
-                        border: `2px solid ${isLeader ? rc : rc + "55"}`,
-                        borderRadius: 12,
+                          ? `linear-gradient(135deg, ${rc}2a 0%, #1a0f26 45%, #251638 100%)`
+                          : "linear-gradient(135deg, rgba(28,16,45,0.92), rgba(38,22,60,0.9))",
+                        border: `2.5px solid ${isLeader ? rc : rc + "66"}`,
+                        borderRadius: 14,
                         boxShadow: isLeader
-                          ? `0 4px 14px rgba(0,0,0,0.5), inset 0 1px 0 ${rc}55, 0 0 18px ${rc}33`
-                          : `0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 ${rc}22`,
-                        position: "relative",
+                          ? `0 6px 18px rgba(0,0,0,0.55), inset 0 1px 0 ${rc}66, 0 0 22px ${rc}44`
+                          : `0 3px 10px rgba(0,0,0,0.5), inset 0 1px 0 ${rc}33`,
+                        position: "relative", overflow: "hidden",
                       }}>
-                        {/* Slot number */}
-                        <div style={{
-                          width: 28, display: "flex", flexDirection: "column",
-                          alignItems: "center", justifyContent: "center", flexShrink: 0,
-                        }}>
+                        {/* sparkle overlay */}
+                        <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 85% 15%, ${rc}22, transparent 55%)`, pointerEvents: "none" }} />
+
+                        {/* Portrait + Level badge */}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0, position: "relative" }}>
                           <div style={{
-                            fontSize: isLeader ? 16 : 14, fontWeight: 900,
-                            color: isLeader ? rc : "#8a7a9c",
-                            textShadow: isLeader ? `0 0 10px ${rc}` : "none",
-                            lineHeight: 1,
-                          }}>{isLeader ? "★" : i + 1}</div>
+                            width: 82, height: 82, borderRadius: 14,
+                            background: `radial-gradient(circle at 30% 25%, ${rc}55, ${rc}15 60%, rgba(0,0,0,0.45))`,
+                            border: `2px solid ${rc}`,
+                            boxShadow: `inset 0 0 14px ${rc}44, 0 3px 10px rgba(0,0,0,0.55), 0 0 12px ${rc}55`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            position: "relative", overflow: "hidden",
+                          }}>
+                            {src && <img src={src} alt="" width={70} height={70} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))" }} />}
+                            {/* Slot number top-left */}
+                            <div style={{
+                              position: "absolute", top: 2, left: 4,
+                              fontSize: 10, fontWeight: 900,
+                              color: isLeader ? rc : "#8a7a9c",
+                              textShadow: "0 1px 2px #000",
+                            }}>{isLeader ? "★" : `#${i + 1}`}</div>
+                            {/* Level bottom-right badge */}
+                            <div style={{
+                              position: "absolute", bottom: -4, right: -4,
+                              minWidth: 28, height: 22, padding: "0 6px",
+                              background: "linear-gradient(180deg, #ffd66b, #b8862a)",
+                              color: "#0b0510", border: "2px solid #0b0510",
+                              borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center",
+                              fontSize: 10, fontWeight: 900, letterSpacing: 0.5,
+                              boxShadow: "0 2px 4px rgba(0,0,0,0.6)",
+                            }}>Lv{p.level}</div>
+                          </div>
                           {isLeader && (
-                            <div style={{ fontSize: 8, color: rc, fontWeight: 900, letterSpacing: 1, marginTop: 2 }}>LÍDER</div>
+                            <div style={{
+                              padding: "2px 8px", borderRadius: 999,
+                              background: `linear-gradient(180deg, ${rc}, ${rc}bb)`,
+                              color: "#0b0510", fontSize: 8, fontWeight: 900, letterSpacing: 1.5,
+                              boxShadow: `0 2px 6px ${rc}88`, border: "1px solid #fff4d0",
+                            }}>LÍDER</div>
                           )}
                         </div>
 
-                        {/* Portrait */}
-                        <div style={{
-                          width: 62, height: 62, flexShrink: 0, borderRadius: 10,
-                          background: `radial-gradient(circle at 30% 25%, ${rc}44, ${rc}11 60%, rgba(0,0,0,0.4))`,
-                          border: `1.5px solid ${rc}88`,
-                          boxShadow: `inset 0 0 10px ${rc}33, 0 2px 6px rgba(0,0,0,0.5)`,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          position: "relative", overflow: "hidden",
-                        }}>
-                          {src && <img src={src} alt="" width={52} height={52} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }} />}
-                        </div>
-
-                        {/* Info */}
-                        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 4 }}>
+                        {/* Info + Stats */}
+                        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6, position: "relative" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                            <div style={{ color: "#eadfe8", fontWeight: 900, fontSize: 13, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                            <div style={{ color: "#f7ecf7", fontWeight: 900, fontSize: 14, textTransform: "uppercase", letterSpacing: 1, textShadow: "0 1px 0 #000" }}>
                               {p.species.replace(/_/g, " ")}
                             </div>
                             <div style={{
-                              background: rc, color: "#0b0510",
+                              background: `linear-gradient(180deg, ${rc}, ${rc}aa)`, color: "#0b0510",
                               fontSize: 8, fontWeight: 900, letterSpacing: 1,
-                              padding: "2px 6px", borderRadius: 4,
-                              boxShadow: `0 0 6px ${rc}88`,
+                              padding: "2px 7px", borderRadius: 4,
+                              boxShadow: `0 0 8px ${rc}88`, border: "1px solid rgba(0,0,0,0.4)",
                             }}>{rarityInfo.label}</div>
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, color: "#b8a8c8", fontWeight: 700 }}>
-                            <span style={{ color: "#f5cf6b" }}>Lv.{p.level}</span>
-                            <span style={{ opacity: 0.4 }}>•</span>
-                            <span style={{ color: hpColor, fontFamily: "monospace" }}>{Math.floor(petHp)}/{petMax} HP</span>
-                          </div>
-                          {/* HP bar */}
-                          <div style={{
-                            height: 8, background: "rgba(0,0,0,0.55)",
-                            border: "1px solid rgba(0,0,0,0.7)",
-                            borderRadius: 4, overflow: "hidden",
-                            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)",
-                            position: "relative",
-                          }}>
+
+                          {/* HP */}
+                          <div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 900, letterSpacing: 1, marginBottom: 2 }}>
+                              <span style={{ color: "#ff9ea1" }}>❤ HP</span>
+                              <span style={{ color: hpColor, fontFamily: "monospace" }}>{Math.floor(petHp)}/{petMax}</span>
+                            </div>
                             <div style={{
-                              width: `${hpPct}%`, height: "100%",
-                              background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
-                              boxShadow: `0 0 6px ${hpColor}88, inset 0 1px 0 rgba(255,255,255,0.4)`,
-                              transition: "width 200ms",
-                            }} />
+                              height: 9, background: "rgba(0,0,0,0.6)",
+                              border: "1px solid rgba(0,0,0,0.75)",
+                              borderRadius: 4, overflow: "hidden",
+                              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)",
+                            }}>
+                              <div style={{
+                                width: `${hpPct}%`, height: "100%",
+                                background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
+                                boxShadow: `0 0 6px ${hpColor}88, inset 0 1px 0 rgba(255,255,255,0.4)`,
+                                transition: "width 200ms",
+                              }} />
+                            </div>
+                          </div>
+
+                          {/* Stats grid */}
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 2 }}>
+                            {statRow("⚔", "ATK", stats.atk, "#ff7a7a")}
+                            {statRow("🛡", "DEF", stats.def, "#7ec4ff")}
+                            {statRow("✨", "S.ATK", stats.spa, "#c084fc")}
+                            {statRow("🌀", "S.DEF", stats.spd, "#7ef2a2")}
+                            {statRow("💨", "VEL", stats.spe, "#f5cf6b")}
                           </div>
                         </div>
 
                         {/* Actions */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: 4, justifyContent: "center", flexShrink: 0 }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, justifyContent: "center", flexShrink: 0, position: "relative" }}>
                           <div style={{ display: "flex", gap: 4 }}>
                             <button onClick={() => move(i, i - 1)} disabled={i === 0}
                               title="Subir"
