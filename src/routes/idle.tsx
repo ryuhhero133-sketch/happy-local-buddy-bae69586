@@ -4130,8 +4130,8 @@ function IdlePage() {
             {/* Portais no mundo — pontos de viagem visíveis */}
             {(() => {
               const worldPortals: { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string }[] = [
-                { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 1200,          y: 1080,          arriveX: WORLD_W / 2, arriveY: WORLD_H - 140, color: "#ff5ea8", label: "Pedreira Antiga" },
-                { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: WORLD_W / 2,   y: WORLD_H - 140, arriveX: 1200,        arriveY: 1080,          color: "#7ef27a", label: "Vale Verdejante" },
+                { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 560,           y: 620,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 140, color: "#ff5ea8", label: "Pedreira Antiga" },
+                { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: WORLD_W / 2,   y: WORLD_H - 140, arriveX: 560,         arriveY: 620,           color: "#7ef27a", label: "Vale Verdejante" },
               ];
               return worldPortals.filter(p => p.from === idle.currentMap).map((p) => (
                 <div
