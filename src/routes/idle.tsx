@@ -46,8 +46,7 @@ import houseLabImg from "@/assets/house-lab.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 
-import { GuestGate } from "@/components/GuestGate";
-import { loadIdentity, type LocalIdentity } from "@/components/AuthGate";
+import { AuthGate, loadIdentity, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
@@ -240,15 +239,14 @@ type IdleMapDef = {
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama"    },
-  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 1,  element: "Terra"    },
-  venofogo: { name: "Pântano em Chamas",       diff: "Médio",     bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 1,  element: "Veneno/Fogo" },
-  praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 1,  element: "Água"     },
-  neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 1,  element: "Gelo"     },
-  deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 1,  element: "Fogo"     },
-  
-  caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 1,  element: "Pedra",
+  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra"    },
+  praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água"     },
+  venofogo: { name: "Pântano em Chamas",       diff: "Médio",     bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 50, element: "Veneno/Fogo" },
+  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapPedreiraCavernaUrl, rate: 2.4, minLevel: 30, maxLevel: 55, element: "Pedra/Terra" },
+  neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 40, maxLevel: 65, element: "Gelo"     },
+  deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo"     },
+  caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra",
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
-  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapPedreiraCavernaUrl, rate: 2.4, minLevel: 1,  maxLevel: 55, element: "Pedra/Terra" },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
@@ -862,9 +860,9 @@ export const Route = createFileRoute("/idle")({
     ],
   }),
   component: () => (
-    <GuestGate>
+    <AuthGate>
       <IdlePage />
-    </GuestGate>
+    </AuthGate>
   ),
 });
 
