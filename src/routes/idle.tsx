@@ -2758,33 +2758,23 @@ function IdlePage() {
   }
 
   // alvo de baús no mapa (2 base + 1 por Amuleto do Baú comprado, máx 6)
-  const chestTarget = Math.min(3, 1 + (idle.items?.chest_amulet ?? 0));
+  const chestTarget = Math.min(6, 5 + (idle.items?.chest_amulet ?? 0));
 
-  // spawna baús no início e mantém sempre `chestTarget` no mapa (respawn mais lento)
+  // spawna baús no início; respawna a cada 10 min mantendo até `chestTarget` no mapa
   useEffect(() => {
-    const initial = spawnChests(chestTarget);
+    const initial = spawnChests(Math.min(chestTarget, 2));
     setChests(initial);
     const iv = setInterval(() => {
       setChests((prev) => {
         const remaining = prev.filter((c) => !c.opened || (Date.now() - (c.openedAt ?? 0) < 4000));
         const active = remaining.filter((c) => !c.opened);
         if (active.length >= chestTarget) return remaining;
-        const needed = Math.max(1, chestTarget - active.length);
-        const news = spawnChests(needed);
-        return [...remaining, ...news];
-      });
-    }, 45000);
-    // Spawn EXTRA garantido a cada 10 min: um baú COMUM novo (até o teto máx=6)
-    const ivExtra = setInterval(() => {
-      setChests((prev) => {
-        const active = prev.filter((c) => !c.opened);
-        if (active.length >= 6) return prev;
         const news = spawnChests(1);
         if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
-        return [...prev, ...news];
+        return [...remaining, ...news];
       });
     }, 10 * 60 * 1000);
-    return () => { clearInterval(iv); clearInterval(ivExtra); };
+    return () => { clearInterval(iv); };
   }, [chestTarget]); // eslint-disable-line
 
 
