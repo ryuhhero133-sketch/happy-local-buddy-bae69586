@@ -732,7 +732,7 @@ function IdlePage() {
   const starterChosenRef = useRef(starterChosen);
   useEffect(() => { starterChosenRef.current = starterChosen; }, [starterChosen]);
   // ===== Descanso nas casas (Lar demora 1h, Casa Azul restaura em 5 min) =====
-  const REST_DURATION_LAR_MS = 5 * 1000;            // 5 segundos (cura HP)
+  const REST_DURATION_LAR_MS = 60 * 60 * 1000;      // 1 hora (Lar — restaura HP + energia grátis)
   const REST_DURATION_BLUE_MS = 5 * 60 * 1000;      // 5 minutos (Casa Azul — energia)
   const [restingUntil, setRestingUntil] = useState<number | null>(null);
   const [restingStart, setRestingStart] = useState<number | null>(null);
