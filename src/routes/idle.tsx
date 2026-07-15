@@ -467,6 +467,31 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     return list;
   }
 
+  // Pedreira Antiga: só pedras/rochas espalhadas. Sem árvores, sem bushes.
+  if (mapId === "pedreira") {
+    const kinds = [
+      { src: rockBoulderUrl, w: 86, h: 76, collideR: 12, blocks: true },
+      { src: rockBoulderUrl, w: 60, h: 54, collideR: 8,  blocks: true },
+    ];
+    const list: Obstacle[] = [];
+    const MIN_GAP = 90;
+    const CENTER_CLEAR = 160;
+    let id = 1;
+    let tries = 0;
+    while (list.length < 55 && tries < 3500) {
+      tries++;
+      const k = kinds[Math.floor(rand() * kinds.length)];
+      const x = 60 + rand() * (worldW - 120);
+      const y = 80 + rand() * (worldH - 160);
+      if (Math.hypot(x - worldW / 2, y - worldH / 2) < CENTER_CLEAR) continue;
+      let ok = true;
+      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < MIN_GAP) { ok = false; break; }
+      if (!ok) continue;
+      list.push({ id: id++, x, y, w: k.w, h: k.h, src: k.src, blocks: k.blocks, collideR: k.collideR });
+    }
+    return list;
+  }
+
   const kinds = [
     { src: treeOakUrl,     w: 110, h: 124, collideR: 0,  blocks: false },
     { src: treePineUrl,    w:  90, h: 132, collideR: 0,  blocks: false },
