@@ -257,6 +257,12 @@ const GIF: Partial<Record<Species, string>> = {
   virizion: assetUrl(virizionAsset.url), raikou: assetUrl(raikouAsset.url),
   suicune: assetUrl(suicuneAsset.url), suicune_shiny: assetUrl(suicuneShinyAsset.url),
   luxray_f: assetUrl(luxrayFAsset.url),
+  oddish: oddishUrl, bellsprout: bellsproutUrl, weedle: weedleUrl, kakuna: kakunaUrl,
+  caterpie: caterpieGif, metapod: metapodGif, vulpix: vulpixGif, geodude: geodudeGif,
+  paras: parasUrl, parasect: parasectUrl, venonat: venonatUrl, gloom: gloomUrl,
+  clefairy: clefairyUrl, eevee: eeveeUrl, sandshrew: sandshrewUrl, mankey: mankeyUrl,
+  poliwag: poliwagUrl, magikarp: magikarpUrl, growlithe: growlitheUrl, abra: abraUrl,
+  cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
 };
 
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
