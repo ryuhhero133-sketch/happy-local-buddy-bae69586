@@ -171,6 +171,7 @@ const mapFlorestaUrl = assetUrl(mapFlorestaAsset.url);
 const mapSnowUrl = assetUrl(mapSnowAsset.url);
 const mapDesertUrl = assetUrl(mapDesertAsset.url);
 const mapCaveUrl = assetUrl(mapCaveAsset.url);
+const mapStoneUrl = assetUrl(mapStoneAsset.url);
 const mapTerraUrl = assetUrl(mapTerraAsset.url);
 const hornetCocoonUrl = assetUrl(hornetCocoonAsset.url);
 const fireLakeUrl = assetUrl(fireLakeAsset.url);
