@@ -83,7 +83,7 @@ type Dir = keyof typeof DIR_ROW;
 // ============ assets ============
 import idleArenaAsset from "@/assets/idle-arena.jpg.asset.json";
 import trophyIconAsset from "@/assets/trophy-icon.png.asset.json";
-import mapFlorestaAsset from "@/assets/map-floresta-secreta.png.asset.json";
+
 import mapSnowAsset from "@/assets/map-snow-valley.png.asset.json";
 import mapDesertAsset from "@/assets/map-desert.png.asset.json";
 import mapCaveAsset from "@/assets/map-cave1.png.asset.json";
@@ -177,7 +177,7 @@ const IDLE_KEY = "rubym.idle.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
 const idleArenaUrl = assetUrl(idleArenaAsset.url);
-const mapFlorestaUrl = assetUrl(mapFlorestaAsset.url);
+
 const mapSnowUrl = assetUrl(mapSnowAsset.url);
 const mapDesertUrl = assetUrl(mapDesertAsset.url);
 const mapCaveUrl = assetUrl(mapCaveAsset.url);
@@ -231,7 +231,7 @@ const sfxClickUrl = assetUrl(sfxClickAsset.url);
 const sfxBonusUrl = assetUrl(sfxBonusAsset.url);
 const sfxChestOpenUrl = assetUrl(sfxChestOpenAsset.url);
 
-type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "floresta" | "caverna" | "pedreira";
+type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "pedreira";
 // element: só descritivo; cycle: quando presente, mapa abre a cada `cycleMs` por `openMs`
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
@@ -245,7 +245,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 1,  element: "Água"     },
   neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 1,  element: "Gelo"     },
   deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 1,  element: "Fogo"     },
-  floresta: { name: "Floresta Sombria",        diff: "Difícil",   bg: mapFlorestaUrl,  rate: 2.6, minLevel: 1,  element: "Sombrio"  },
+  
   caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 1,  element: "Pedra",
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
   pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapPedreiraCavernaUrl, rate: 2.4, minLevel: 25, maxLevel: 55, element: "Pedra/Terra" },
@@ -5060,12 +5060,11 @@ function IdlePage() {
                 arriveX: number; arriveY: number;
                 color: string;
               };
-              // Fluxo: arena → praia → neve → deserto → floresta → caverna
+              // Fluxo: arena → praia → neve → deserto → caverna
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 arena: [
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
-                  { key: "to-flor",  target: "floresta", x: WORLD_W - 60, y: WORLD_H / 2,  arriveX: 100,          arriveY: WORLD_H / 2,   color: "#7ef27a" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
                   { key: "to-pedreira", target: "pedreira", x: 377,      y: 330,          arriveX: WORLD_W / 2,  arriveY: WORLD_H - 240, color: "#ff5ea8" },
                 ],
@@ -5086,11 +5085,6 @@ function IdlePage() {
                 ],
                 deserto: [
                   { key: "to-praia",    target: "praia",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#5cd3ff" },
-                  { key: "to-floresta", target: "floresta", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ef27a" },
-                ],
-                floresta: [
-                  { key: "to-arena",   target: "arena",   x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ef27a" },
-                  { key: "to-deserto", target: "deserto", x: WORLD_W - 60, y: WORLD_H / 2,  arriveX: 100,           arriveY: WORLD_H / 2, color: "#f5b25c" },
                 ],
                 caverna: [
                   { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
