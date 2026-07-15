@@ -2660,12 +2660,19 @@ function IdlePage() {
       pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
       playBonus();
       setEnemies((prev) => prev.filter((e) => e.id !== enemyId));
-      setIdle((s) => ({
-        ...s,
-        totals: { ...s.totals, captured: s.totals.captured + 1 },
-        caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
-        collection: [...(s.collection ?? []), { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now() }],
-      }));
+      setIdle((s) => {
+        const prev = s.collection ?? [];
+        if (prev.length >= MAX_COLLECTION) {
+          queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
+          return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
+        }
+        return {
+          ...s,
+          totals: { ...s.totals, captured: s.totals.captured + 1 },
+          caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
+          collection: [...prev, { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now() }],
+        };
+      });
     } else {
       pushFxAt(target.x, target.y - 70, `${ballName} falhou`, "enemyDmg");
       pushChat(`✗ ${ballName} falhou (HP ${Math.round(hpPct * 100)}%).`, "hit");
