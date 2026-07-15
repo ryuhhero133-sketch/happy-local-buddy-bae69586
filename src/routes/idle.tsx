@@ -4431,7 +4431,7 @@ function IdlePage() {
                       width: "100%", height: "100%",
                       backgroundImage: `url(${SPRITE_SHEET[leaderSp]})`,
                       backgroundSize: "400% 400%",
-                      backgroundPosition: `${(moving ? walkStep : 0) * 33.333}% ${DIR_ROW[walkDir] * 33.333}%`,
+                      backgroundPosition: `${(followerState.moving ? walkStep : 0) * 33.333}% ${DIR_ROW[followerState.dir] * 33.333}%`,
                       imageRendering: "pixelated",
                       filter: fainted ? "grayscale(1) brightness(0.6)" : undefined,
                     }} />
