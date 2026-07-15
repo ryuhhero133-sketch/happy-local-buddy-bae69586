@@ -106,6 +106,12 @@ import treePineAsset from "@/assets/tree-pine.png.asset.json";
 import rockBoulderAsset from "@/assets/rock-boulder.png.asset.json";
 import bushBerryAsset from "@/assets/bush-berry.png.asset.json";
 import rockLavaAsset from "@/assets/rock-lava.png.asset.json";
+import caveFloorAsset from "@/assets/cave-floor.jpg.asset.json";
+import stalagmiteAsset from "@/assets/stalagmite.png.asset.json";
+import caveCrystalAsset from "@/assets/cave-crystal.png.asset.json";
+const caveFloorUrl = assetUrl(caveFloorAsset.url);
+const stalagmiteUrl = assetUrl(stalagmiteAsset.url);
+const caveCrystalUrl = assetUrl(caveCrystalAsset.url);
 
 // Pokemon GIFs (reusa os que já existem no projeto)
 import charizardGif from "@/assets/charizard.gif";
