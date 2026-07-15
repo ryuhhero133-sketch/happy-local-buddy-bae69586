@@ -1629,6 +1629,32 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, [enemies, moving, obstacles, chests]);
 
+  // ---- Top-up lento de inimigos (spawn escalonado, mantém o jogador atento) ----
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (!starterChosenRef.current) return;
+      if (restingRef.current) return;
+      setEnemies((prev) => {
+        const alive = prev.filter((e) => e.hp > 0);
+        if (alive.length >= ENEMY_TARGET) return prev;
+        const placed = alive.map((e) => ({ x: e.x, y: e.y }));
+        const ne = spawnOneEnemy(placed);
+        if (!ne) return prev;
+        // Anúncio quando um raro+ aparece via top-up
+        if (ne.rarity === "epic" || ne.rarity === "legendary" || ne.rarity === "mythic" || ne.rarity === "mythic_shiny") {
+          const label = ne.rarity === "mythic_shiny" ? "MÍTICO SHINY" : ne.rarity.toUpperCase();
+          const color = ne.rarity === "mythic_shiny" ? "#ffd94d" : ne.rarity === "mythic" ? "#ff5252" : ne.rarity === "legendary" ? "#ff8b3d" : "#c084fc";
+          pushEvent("★", `${label} À VISTA!`, `${ne.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
+          pushChat(`★ ${label}: ${ne.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa!`, "cap");
+        }
+        return [...prev, ne];
+      });
+    }, 9000 + Math.floor(Math.random() * 4000)); // 9-13s entre spawns
+    return () => clearInterval(iv);
+  }, [idle.currentMap, team, obstacles]);
+
+
+
   // ---- Tick de batalha (só ataca quando estiver perto do alvo) ----
   useEffect(() => {
     const iv = setInterval(() => {
