@@ -4611,6 +4611,9 @@ function IdlePage() {
                 goTo(targetMap.name, g.x, g.y, () => {
                   setIdle((s) => ({ ...s, currentMap: g.target }));
                   setTrainerPos({ x: g.arriveX, y: g.arriveY });
+                  // Remove inimigos que excedem o teto do novo mapa
+                  const cap = IDLE_MAPS[g.target].maxLevel;
+                  if (cap != null) setEnemies((prev) => prev.filter((e) => (e.level ?? 1) <= cap));
                   pushChat(`Chegou em ${targetMap.name}!`, "cap");
                 });
               };
