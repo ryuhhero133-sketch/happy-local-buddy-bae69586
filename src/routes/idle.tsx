@@ -2936,12 +2936,21 @@ function IdlePage() {
               }}>
                 <div style={{
                   width: 46, height: 46, borderRadius: "50%",
-                  background: "radial-gradient(circle,#3a2a5a,#0b0510)",
+                  background: "radial-gradient(circle,#5a3a8a,#1a0f2a)",
                   border: "2px solid #ffd94d",
-                  display: "grid", placeItems: "center", overflow: "hidden",
-                  boxShadow: "0 0 8px rgba(255,217,77,0.4)",
+                  display: "grid", placeItems: "center",
+                  boxShadow: "0 0 10px rgba(255,217,77,0.5), inset 0 0 8px rgba(0,0,0,0.4)",
+                  position: "relative",
                 }}>
-                  {av && <img src={av} alt="" style={{ width: "88%", imageRendering: "pixelated" }} />}
+                  <div style={{ fontSize: 20, lineHeight: 1 }}>🎓</div>
+                  <div style={{
+                    position: "absolute", bottom: -4, right: -4,
+                    background: "linear-gradient(135deg,#ffd94d,#ff9d2e)",
+                    color: "#2a1a0a", fontWeight: 900, fontSize: 10,
+                    borderRadius: 8, padding: "1px 5px",
+                    border: "1px solid #2a1a0a",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                  }}>{trainerLv}</div>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 800, color: "#ffe89a" }}>
