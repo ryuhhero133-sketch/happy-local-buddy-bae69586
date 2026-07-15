@@ -685,7 +685,16 @@ function loadIdle(): IdleState {
   if (typeof window === "undefined") return freshIdle();
   try {
     const raw = localStorage.getItem(IDLE_KEY);
-    if (raw) return { ...freshIdle(), ...JSON.parse(raw) };
+    if (raw) {
+      const s: IdleState = { ...freshIdle(), ...JSON.parse(raw) };
+      // Presente de boas-vindas (evento): 1x Caixa Premium
+      const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
+      if (!flags.giftPremiumBoxV1) {
+        s.items = { ...(s.items ?? {}), premium_box: (s.items?.premium_box ?? 0) + 1 };
+        (s as unknown as { flags: Record<string, boolean> }).flags = { ...flags, giftPremiumBoxV1: true };
+      }
+      return s;
+    }
   } catch { /* ignore */ }
   return freshIdle();
 }
