@@ -1404,10 +1404,10 @@ function IdlePage() {
       const leader = team[0];
       if (!leader) return;
       // Se o meu pokémon está desmaiado: não faz nada (precisa reviver)
-      if (leaderHp <= 0) return;
+      if (leaderHp <= 0) { setAttackTargetId((c) => c !== null ? null : c); return; }
       // Líder sem energia (e nenhum reserva usável): não ataca nem farma
-      if (petIsExhausted(leader)) return;
-      if (!autoBattleRef.current?.enabled) return;
+      if (petIsExhausted(leader)) { setAttackTargetId((c) => c !== null ? null : c); return; }
+      if (!autoBattleRef.current?.enabled) { setAttackTargetId((c) => c !== null ? null : c); return; }
 
       setEnemies((prev) => {
         if (prev.length === 0) return spawnEnemies();
