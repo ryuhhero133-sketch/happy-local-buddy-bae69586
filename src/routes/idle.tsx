@@ -1856,16 +1856,11 @@ function IdlePage() {
     return () => { clearTimeout(firstTo); clearInterval(iv); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Enquanto o evento estiver ativo, força o clima escolhido
+  // Enquanto o evento estiver ativo, força o clima escolhido — DESABILITADO
   useEffect(() => {
-    if (!legendUntil || legendUntil.until <= Date.now() || !legendUntil.weather) return;
-    setWeather(legendUntil.weather);
-    const iv = setInterval(() => {
-      if (!legendUntil || Date.now() >= legendUntil.until) { clearInterval(iv); return; }
-      if (legendUntil.weather) setWeather(legendUntil.weather);
-    }, 1500);
-    return () => clearInterval(iv);
+    setWeather("clear");
   }, [legendUntil]);
+
 
 
 
