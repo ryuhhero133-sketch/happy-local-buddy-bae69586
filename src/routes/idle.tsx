@@ -668,7 +668,7 @@ const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
 const ENERGY_ACTIVE_DURATION_S: Partial<Record<Rarity, number>> = {
   common: 25 * 60,       // 25 min
   uncommon: 35 * 60,     // 35 min
-  rare: 12 * 3600,       // 12 h
+  rare: 1 * 3600,        // 1 h
   epic: 2 * 3600,        // 2 h
   legendary: 5 * 3600,   // 5 h
   mythic: 0, mythic_shiny: 0,
