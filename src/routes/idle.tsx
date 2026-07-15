@@ -3889,6 +3889,18 @@ function IdlePage() {
                 : e.rarity === "legendary" ? 18
                 : e.rarity === "epic" ? 14
                 : e.rarity === "rare" ? 10 : 6;
+              // Estrelas por raridade (só aparecem para raro+)
+              const rarityStars: Record<Rarity, string> = {
+                common: "", uncommon: "",
+                rare: "★", epic: "★★",
+                legendary: "★★★", mythic: "★★★★", mythic_shiny: "✦★★★★",
+              };
+              const stars = rarityStars[e.rarity];
+              const starColor = e.rarity === "mythic_shiny" ? "#ff97e1"
+                : e.rarity === "mythic" ? "#ff6b3d"
+                : e.rarity === "legendary" ? "#f5cf6b"
+                : e.rarity === "epic" ? "#c084fc"
+                : "#6bd4ff";
               return (
                 <div key={e.id}
                   onClick={(ev) => { ev.stopPropagation(); if (!dead) throwBallAt(e.id); }}
@@ -3906,6 +3918,17 @@ function IdlePage() {
                   cursor: dead ? "default" : "pointer",
                 }}>
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
+                  {stars && (
+                    <div style={{
+                      position: "absolute", top: -26, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      color: starColor,
+                      fontSize: 10, fontWeight: 800, lineHeight: 1,
+                      textShadow: "1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000",
+                      whiteSpace: "nowrap", pointerEvents: "none",
+                      filter: `drop-shadow(0 0 4px ${starColor})`,
+                    }}>{stars}</div>
+                  )}
                   {/* Nível + cristal de raridade */}
                   <div style={{
                     position: "absolute", top: -14, left: "50%",
