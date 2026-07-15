@@ -2916,7 +2916,7 @@ function IdlePage() {
     { sp: "gloom" as Species,      w: 2, forcedRarity: "rare" },
     { sp: "parasect" as Species,   w: 2, forcedRarity: "rare" },
     // (Épico só é liberado quando o líder chega ao nível 50 — em outros mapas)
-  ];
+  ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
 
   function pickArenaSpawn(): { sp: Species; forcedRarity?: Rarity } {
     const total = ARENA_SPAWN_TABLE.reduce((s, e) => s + e.w, 0);
