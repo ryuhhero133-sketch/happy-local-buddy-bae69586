@@ -3031,29 +3031,18 @@ function IdlePage() {
   };
 
   // ===== Descansar em casa =====
+  // Lar: cura HP do time em 5s (grátis).
+  // Casa Azul (rest coletivo): mantém 5 min curando HP+energia.
   const restAtHome = (kind: "lar" | "azul" = "lar") => {
     const l = team[0];
     if (!l) return;
     if (restingUntil) return;
     const now = Date.now();
-    const anyExhausted = kind === "lar" && team.some((p) => petCurrentEnergy(p, now) <= 0);
-    // Lar: HP-only = 10s grátis; energia esgotada = 5💎 (10s) OU 1h grátis
-    let dur = 10_000;
+    let dur = 5_000;
     let fullRecovery = false;
-    let paid = false;
     if (kind === "azul") {
       dur = REST_DURATION_BLUE_MS;
       fullRecovery = true;
-    } else if (anyExhausted) {
-      if (idle.bank.crystals >= AZUL_REST_COST) {
-        setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - AZUL_REST_COST } }));
-        dur = 10_000;
-        fullRecovery = true;
-        paid = true;
-      } else {
-        dur = REST_DURATION_LAR_MS;
-        fullRecovery = true;
-      }
     }
     setRestingStart(now);
     setRestingUntil(now + dur);
@@ -3063,11 +3052,10 @@ function IdlePage() {
     setNearBuilding(null);
     const label = kind === "azul"
       ? "🏡 Casa Azul (5 min)"
-      : anyExhausted
-        ? (paid ? `🏠 Lar (10s — energia via ${AZUL_REST_COST}💎)` : "🏠 Lar (1 hora — energia grátis)")
-        : "🏠 Lar (10s — recuperando HP)";
+      : "🏠 Lar (5s — recuperando HP)";
     pushChat(`${label} — descansando... todo o time será curado.`, "info");
   };
+
 
   // ===== Casa Azul: coloca 1 Pokémon para restaurar energia =====
   // Modo pago: 5💎 -> 5 min. Modo grátis (auto): 1h.
