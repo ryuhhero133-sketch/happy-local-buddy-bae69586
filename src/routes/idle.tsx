@@ -1856,14 +1856,8 @@ function IdlePage() {
                   });
                 } catch { /* ignore */ }
                 playBonus();
-                // Adiciona ao time
-                setTeam((tm) => {
-                  if (tm.length >= 5) {
-                    pushChat(`Time cheio (5/5). ${target.sp.replace(/_/g, " ").toUpperCase()} foi para a Coleção.`, "info");
-                    return tm;
-                  }
-                  return [...tm, np];
-                });
+                // Vai direto para a Coleção (não entra no time automaticamente)
+                pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
 
               } else {
                 pushFxAt(target.x, target.y - 70, `${usedBall.name} falhou`, "enemyDmg");
