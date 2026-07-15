@@ -243,8 +243,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
 const WORLD_PORTALS: WorldPortalDef[] = [
-  { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 377, y: 330,  arriveX: 960, arriveY: 1780, color: "#ff5ea8", label: "Pedreira Antiga" },
-  { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: 960, y: 1780, arriveX: 377, arriveY: 330,  color: "#7ef27a", label: "Vale Verdejante" },
+  { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 377, y: 330,  arriveX: 960, arriveY: 1680, color: "#ff5ea8", label: "Pedreira Antiga" },
+  { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: 960, y: 1780, arriveX: 377, arriveY: 430,  color: "#7ef27a", label: "Vale Verdejante" },
 ];
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
