@@ -5271,6 +5271,7 @@ function TabOverlay({
     tab === "config"    ? "CONFIGURAÇÕES" :
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
+  const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
   return (
     <div style={{
       position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
