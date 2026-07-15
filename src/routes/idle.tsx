@@ -49,7 +49,7 @@ import npcOakSprite from "@/assets/npc-oak.png";
 import { GuestGate } from "@/components/GuestGate";
 import { loadIdentity, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
-import { assetUrl } from "@/lib/assetUrl";
+import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
