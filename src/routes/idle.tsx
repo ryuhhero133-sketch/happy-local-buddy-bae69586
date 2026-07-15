@@ -4130,8 +4130,8 @@ function IdlePage() {
             {/* Portais no mundo — pontos de viagem visíveis */}
             {(() => {
               const worldPortals: { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string }[] = [
-                { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 1200,          y: 1080,          arriveX: WORLD_W / 2, arriveY: WORLD_H - 140, color: "#ff5ea8", label: "Pedreira Antiga" },
-                { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: WORLD_W / 2,   y: WORLD_H - 140, arriveX: 1200,        arriveY: 1080,          color: "#7ef27a", label: "Vale Verdejante" },
+                { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 560,           y: 620,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 140, color: "#ff5ea8", label: "Pedreira Antiga" },
+                { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: WORLD_W / 2,   y: WORLD_H - 140, arriveX: 560,         arriveY: 620,           color: "#7ef27a", label: "Vale Verdejante" },
               ];
               return worldPortals.filter(p => p.from === idle.currentMap).map((p) => (
                 <div
@@ -4970,7 +4970,7 @@ function IdlePage() {
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-flor",  target: "floresta", x: WORLD_W - 60, y: WORLD_H / 2,  arriveX: 100,          arriveY: WORLD_H / 2,   color: "#7ef27a" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
-                  { key: "to-pedreira", target: "pedreira", x: 1200,     y: 1080,         arriveX: WORLD_W / 2,  arriveY: WORLD_H - 140, color: "#ff5ea8" },
+                  { key: "to-pedreira", target: "pedreira", x: 560,      y: 620,          arriveX: WORLD_W / 2,  arriveY: WORLD_H - 140, color: "#ff5ea8" },
                 ],
                 terra: [
                   { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
