@@ -6464,7 +6464,7 @@ function TabOverlay({
       {tab === "tarefas" && (
         <div>
           <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 12 }}>
-            Complete as tarefas para ganhar <img src={rubyGemUrl} alt="" style={{ width: 12, verticalAlign: "middle" }} /> rubis.
+            Complete as tarefas para ganhar <img src={crystalGreenImg} alt="" style={{ width: 12, verticalAlign: "middle" }} /> cristais.
           </div>
           {tasks.length === 0 ? (
             <div style={{ color: "#8a7a9c", fontSize: 13, padding: 20, textAlign: "center" }}>
