@@ -2803,10 +2803,11 @@ function IdlePage() {
       }
       const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
       if (hardCap != null) lv = Math.min(lv, hardCap);
-      // Épico só aparece quando o líder chega ao nível 50.
-      if (forcedRarity === "epic" && leaderLv < 50) forcedRarity = "rare";
+      // Épico só aparece quando o líder chega ao nível 50 (exceto na Pedreira Antiga, gated pelo mapa).
+      const allowEpic = leaderLv >= 50 || idle.currentMap === "pedreira";
+      if (forcedRarity === "epic" && !allowEpic) forcedRarity = "rare";
       let pet = makePet(sp, lv, forcedRarity);
-      if ((pet.rarity === "epic" || pet.rarity === "legendary") && leaderLv < 50) {
+      if ((pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
         pet = makePet(sp, lv, "rare");
       }
       const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
