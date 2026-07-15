@@ -1674,21 +1674,8 @@ function IdlePage() {
         }
       }
 
-      // Líder acima do cap de nível do mapa → treinador para e avisa no chat.
-      {
-        const cap = IDLE_MAPS[idle.currentMap].maxLevel;
-        const leadLv = team[0]?.level ?? 1;
-        if (cap != null && leadLv > cap) {
-          const nowE = Date.now();
-          if (nowE - overCapMsgRef.current > 15000) {
-            overCapMsgRef.current = nowE;
-            pushChat(`⚠ Pokémon acima do nível para esta área (cap ${cap}). Troque de mapa ou de líder.`, "info");
-          }
-          setAttackTargetId((c) => (c !== null ? null : c));
-          if (moving) setMoving(false);
-          return;
-        }
-      }
+      // Líder acima do cap: pode atacar normalmente, mas XP/ouro serão nerfados no cálculo abaixo.
+
 
       setTrainerPos((tp) => {
 
