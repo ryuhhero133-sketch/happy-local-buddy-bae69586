@@ -111,11 +111,11 @@ import stalagmiteAsset from "@/assets/stalagmite.png.asset.json";
 import caveCrystalAsset from "@/assets/cave-crystal.png.asset.json";
 import mapPedreiraCavernaAsset from "@/assets/map-pedreira-caverna.jpg.asset.json";
 import crystalClusterAsset from "@/assets/crystal-cluster.png.asset.json";
-const caveFloorUrl = assetUrl(caveFloorAsset.url);
-const stalagmiteUrl = assetUrl(stalagmiteAsset.url);
-const caveCrystalUrl = assetUrl(caveCrystalAsset.url);
-const mapPedreiraCavernaUrl = assetUrl(mapPedreiraCavernaAsset.url);
-const crystalClusterUrl = assetUrl(crystalClusterAsset.url);
+const caveFloorUrl = caveFloorAsset.url;
+const stalagmiteUrl = stalagmiteAsset.url;
+const caveCrystalUrl = caveCrystalAsset.url;
+const mapPedreiraCavernaUrl = mapPedreiraCavernaAsset.url;
+const crystalClusterUrl = crystalClusterAsset.url;
 
 // Pokemon GIFs (reusa os que já existem no projeto)
 import charizardGif from "@/assets/charizard.gif";
