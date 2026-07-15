@@ -3750,6 +3750,24 @@ function IdlePage() {
               filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
               zIndex: Math.round(trainerPos.y),
             }}>
+              {/* Nickname acima da cabeça */}
+              {identity?.name && (
+                <div style={{
+                  position: "absolute", left: "50%", top: -20,
+                  transform: "translateX(-50%)",
+                  fontSize: 10, fontWeight: 800,
+                  color: "#fff",
+                  textShadow: "0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000",
+                  whiteSpace: "nowrap",
+                  fontFamily: "monospace",
+                  background: isVip() ? "rgba(140,60,0,0.7)" : "rgba(20,50,110,0.7)",
+                  padding: "1px 6px", borderRadius: 5,
+                  border: `1px solid ${isVip() ? "#ffb347" : "#6bd4ff"}`,
+                  pointerEvents: "none",
+                }}>
+                  {isVip() ? "✦ " : ""}{identity.name}
+                </div>
+              )}
               <div style={{
                 width: "100%", height: "100%",
                 backgroundImage: `url(${skinUrl ?? trainerSheet})`,
@@ -3758,6 +3776,28 @@ function IdlePage() {
                 imageRendering: "pixelated",
               }} />
             </div>
+
+            {/* Animação da pokébola sendo lançada */}
+            {captureAnim && (() => {
+              const now = performance.now();
+              const dt = Math.min(1, (now - captureAnim.ts) / 700);
+              const arcY = Math.sin(dt * Math.PI) * 60;
+              const x = captureAnim.fromX + (captureAnim.toX - captureAnim.fromX) * dt;
+              const y = captureAnim.fromY + (captureAnim.toY - captureAnim.fromY) * dt - arcY;
+              return (
+                <div style={{
+                  position: "absolute", left: x, top: y,
+                  width: 26, height: 26,
+                  transform: `translate(-50%, -50%) rotate(${dt * 720}deg)`,
+                  zIndex: 9999,
+                  pointerEvents: "none",
+                  filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.7))",
+                }}>
+                  <img src={captureAnim.ballImg} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated" }} />
+                </div>
+              );
+            })()}
+
 
             {/* Outros jogadores no mesmo mapa */}
             {remotePlayers.map((rp) => {
