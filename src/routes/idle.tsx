@@ -2808,17 +2808,16 @@ function IdlePage() {
         forcedRarity = pick.forcedRarity;
         mapLvRange = [1, 30];
       } else if (idle.currentMap === "pedreira") {
-        // Pedreira Antiga — Pokémon de Pedra/Terra, níveis 30-55
+        // Pedreira Antiga — Pokémon de Pedra/Terra, níveis 30-55.
+        // (onix, sandslash, nidoking, aerodactyl, kabutops removidos — sem sprite/GIF disponível.)
         const STONE_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = [
-          { sp: "sandshrew" as Species, w: 12, forcedRarity: "uncommon" },
-          { sp: "diglett"   as Species, w: 12, forcedRarity: "uncommon" },
-          { sp: "cubone"    as Species, w: 10, forcedRarity: "uncommon" },
-          { sp: "onix"      as Species, w: 8,  forcedRarity: "rare" },
-          { sp: "sandslash" as Species, w: 7,  forcedRarity: "rare" },
-          { sp: "golem"     as Species, w: 4,  forcedRarity: "epic" },
-          { sp: "nidoking"  as Species, w: 3,  forcedRarity: "epic" },
-          { sp: "aerodactyl"as Species, w: 2,  forcedRarity: "epic" },
-          { sp: "kabutops"  as Species, w: 2,  forcedRarity: "epic" },
+          { sp: "sandshrew" as Species, w: 14, forcedRarity: "uncommon" },
+          { sp: "diglett"   as Species, w: 14, forcedRarity: "uncommon" },
+          { sp: "cubone"    as Species, w: 12, forcedRarity: "uncommon" },
+          { sp: "machop"    as Species, w: 10, forcedRarity: "rare" },
+          { sp: "mankey"    as Species, w: 10, forcedRarity: "rare" },
+          { sp: "magnemite" as Species, w:  8, forcedRarity: "rare" },
+          { sp: "golem"     as Species, w:  5, forcedRarity: "epic" },
         ];
         const total = STONE_TABLE.reduce((s, e) => s + e.w, 0);
         let r = Math.random() * total;
