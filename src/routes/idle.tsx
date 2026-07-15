@@ -2518,6 +2518,9 @@ function IdlePage() {
         const [lo, hi] = mapLvRange;
         lv = Math.max(lo, Math.min(hi, lv));
       }
+      // Teto rígido do mapa (independente do nível do líder)
+      const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
+      if (hardCap != null) lv = Math.min(lv, hardCap);
       const pet = makePet(sp, lv);
       const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
       const isAggro = elite || Math.random() < 0.18;
