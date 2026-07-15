@@ -7403,8 +7403,9 @@ function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) 
     </div>
   );
 }
-function ActiveBonuses({ leaderRarity, buffs }: {
+function ActiveBonuses({ leaderRarity, team, buffs }: {
   leaderRarity: Rarity;
+  team: { rarity: Rarity }[];
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
 }) {
   const now = Date.now();
@@ -7414,8 +7415,17 @@ function ActiveBonuses({ leaderRarity, buffs }: {
     rare: 0.03, epic: 0.07, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
   };
   const rarityBonus = rarityDropBonus[leaderRarity] ?? 0;
-  const totalXpPct = Math.round(((expActive ? buffs.expMult : 0) + rarityBonus) * 100);
-  const totalGoldPct = Math.round(((goldActive ? (buffs.goldMult ?? 0) : 0) + rarityBonus) * 100);
+  const teamSynergyMap: Partial<Record<Rarity, number>> = {
+    rare: 0.02, epic: 0.05, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
+  };
+  const synergyRarity = team.length >= 2 && team.every((p) => p.rarity === leaderRarity) ? leaderRarity : null;
+  const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
+  const rarityLabel: Record<Rarity, string> = {
+    common: "Comum", uncommon: "Incomum", rare: "Raro", epic: "Épico",
+    legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
+  } as Record<Rarity, string>;
+  const totalXpPct = Math.round(((expActive ? buffs.expMult : 0) + rarityBonus + synergyBonus) * 100);
+  const totalGoldPct = Math.round(((goldActive ? (buffs.goldMult ?? 0) : 0) + rarityBonus + synergyBonus) * 100);
   const fmt = (ms: number) => {
     const s = Math.max(0, Math.floor(ms / 1000));
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
@@ -7432,6 +7442,11 @@ function ActiveBonuses({ leaderRarity, buffs }: {
       {sub && <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 2 }}>{sub}</div>}
     </div>
   );
+  // Preview de sinergia por tier
+  const synergyRow = (["rare","epic","legendary","mythic"] as Rarity[]).map((r) => ({
+    r, pct: Math.round((teamSynergyMap[r] ?? 0) * 100),
+    active: synergyRarity === r,
+  }));
   return (
     <div style={{
       marginTop: 14,
@@ -7441,13 +7456,35 @@ function ActiveBonuses({ leaderRarity, buffs }: {
       <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 900, letterSpacing: 2, marginBottom: 8 }}>✨ BÔNUS ATIVOS</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         <Chip label="EXP TOTAL" value={`+${totalXpPct}%`} color="#6bd4ff"
-          sub={`${expActive ? `Livro +${Math.round(buffs.expMult * 100)}% (${fmt(buffs.expMultUntil! - now)})` : "Sem livro"} · Líder +${Math.round(rarityBonus * 100)}%`} />
+          sub={`${expActive ? `Livro +${Math.round(buffs.expMult * 100)}% (${fmt(buffs.expMultUntil! - now)})` : "Sem livro"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
         <Chip label="OURO TOTAL" value={`+${totalGoldPct}%`} color="#ffd94d"
-          sub={`${goldActive ? `VIP +${Math.round((buffs.goldMult ?? 0) * 100)}% (${fmt(buffs.goldMultUntil! - now)})` : "Sem VIP"} · Líder +${Math.round(rarityBonus * 100)}%`} />
-        <Chip label="DROP ITENS" value={`+${Math.round(rarityBonus * 100)}%`} color="#c084fc"
-          sub={`Vem da raridade do líder (${leaderRarity})`} />
+          sub={`${goldActive ? `VIP +${Math.round((buffs.goldMult ?? 0) * 100)}% (${fmt(buffs.goldMultUntil! - now)})` : "Sem VIP"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
+        <Chip label="DROP ITENS" value={`+${Math.round((rarityBonus + synergyBonus) * 100)}%`} color="#c084fc"
+          sub={`Líder ${leaderRarity} +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
         <Chip label="ATK / DEF" value={`+${Math.round(buffs.atk * 100)}% / -${Math.round(buffs.def * 100)}%`} color="#ff7a3d"
           sub={`Livros permanentes de ATK / DEF`} />
+      </div>
+      <div style={{
+        marginTop: 10, padding: "8px 10px",
+        background: synergyBonus > 0 ? "linear-gradient(180deg,#2a1a3a,#180d24)" : "#150a1e",
+        border: `1px solid ${synergyBonus > 0 ? "#c084fc66" : "rgba(255,255,255,0.06)"}`,
+        borderRadius: 8,
+      }}>
+        <div style={{ fontSize: 10, letterSpacing: 1, color: "#c8b8d0", marginBottom: 6 }}>
+          🤝 SINERGIA DE TIME {synergyRarity ? `— ativo: ${rarityLabel[synergyRarity]} +${Math.round(synergyBonus * 100)}%` : "— monte um time todo da mesma tier"}
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {synergyRow.map(({ r, pct, active }) => (
+            <div key={r} style={{
+              padding: "4px 8px", borderRadius: 6,
+              background: active ? "#c084fc22" : "#0f0818",
+              border: `1px solid ${active ? "#c084fc" : "rgba(255,255,255,0.08)"}`,
+              fontSize: 10, color: active ? "#e9d5ff" : "#8a7a9c", fontWeight: 700,
+            }}>
+              {rarityLabel[r]} · +{pct}%
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
