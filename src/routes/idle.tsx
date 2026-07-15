@@ -4403,41 +4403,56 @@ function IdlePage() {
           </div>
 
           {/* ============ UI FIXA (não rola com o mapa) ============ */}
-          {/* Header do mapa */}
+          {/* Header do mapa — barra horizontal compacta */}
           <div style={{
-            position: "absolute", top: 10, left: 10,
-            background: "rgba(11,5,16,0.75)", padding: "8px 12px",
-            borderRadius: 8, border: "1px solid rgba(245,207,107,0.3)",
+            position: "absolute", top: 8, left: 8,
+            display: "inline-flex", alignItems: "center", gap: 10,
+            background: "linear-gradient(90deg, rgba(11,5,16,0.9), rgba(20,10,30,0.78))",
+            padding: "6px 12px",
+            borderRadius: 10,
+            border: "1px solid rgba(245,207,107,0.3)",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.45)",
             zIndex: 10,
+            fontSize: 12,
+            maxWidth: "calc(100% - 16px)",
           }}>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>{map.name}</div>
-            <div style={{ fontSize: 11, color: "#c8b8d0" }}>Dificuldade: {map.diff} · Lv {team[0]?.level ?? 1}</div>
-            <div style={{ fontSize: 11, color: "#c8b8d0" }}>Tempo ativo: <span style={{ color: "#f5cf6b" }}>{fmtHMS(activeTime)}</span></div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6, fontSize: 12, fontWeight: 700 }}>
-              <span title="Ouro no banco" style={{ color: "#f4c430" }}>● {fmtK(idle.bank.gold)}</span>
-              <span title="Cristais" style={{ color: "#5eead4", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                <img src={crystalGreenImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
+            <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+              <div style={{ fontWeight: 800, fontSize: 14, color: "#f5cf6b", lineHeight: 1.1, whiteSpace: "nowrap" }}>
+                {map.name}
+              </div>
+              <div style={{ fontSize: 10, color: "#c8b8d0", lineHeight: 1.1, whiteSpace: "nowrap" }}>
+                {map.diff} · Lv {team[0]?.level ?? 1} · <span style={{ color: "#f5cf6b" }}>{fmtHMS(activeTime)}</span>
+              </div>
+            </div>
+
+            <div style={{ width: 1, height: 26, background: "rgba(245,207,107,0.25)" }} />
+
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, fontWeight: 700 }}>
+              <span title="Ouro" style={{ color: "#f4c430", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                ●{fmtK(idle.bank.gold)}
+              </span>
+              <span title="Cristais" style={{ color: "#5eead4", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                <img src={crystalGreenImg} alt="" width={14} height={14} style={{ imageRendering: "pixelated" }} />
                 {Math.floor(idle.bank.crystals)}
               </span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-              <span title="Pokébola" style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11 }}>
-                <img src={ballPokeImg} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+
+            <div style={{ width: 1, height: 26, background: "rgba(245,207,107,0.25)" }} />
+
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <span title="Pokébola" style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 700 }}>
+                <img src={ballPokeImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
                 {idle.items.pokeball ?? 0}
               </span>
-              <span title="Great Ball" style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11 }}>
-                <img src={ballGreatImg} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+              <span title="Great Ball" style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 700 }}>
+                <img src={ballGreatImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
                 {idle.items.greatball ?? 0}
               </span>
-              <span title="Ultra Ball" style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11 }}>
-                <img src={ballUltraImg} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+              <span title="Ultra Ball" style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 700 }}>
+                <img src={ballUltraImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
                 {idle.items.ultraball ?? 0}
               </span>
             </div>
-            <div style={{ fontSize: 10, color: "#8a7a9c", marginTop: 6, fontStyle: "italic" }}>
-              🔬 Laboratório · 🏠 Lar aparecem no mapa. Ande até eles.
-            </div>
-
           </div>
 
 
