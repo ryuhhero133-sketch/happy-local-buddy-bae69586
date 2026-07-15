@@ -4507,7 +4507,7 @@ function IdlePage() {
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 const targetMap = IDLE_MAPS[g.target];
-                const unlocked = idle.trainerLevel >= targetMap.minLevel;
+                const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                 if (!unlocked) {
                   pushChat(`Precisa nível ${targetMap.minLevel} para ir a ${targetMap.name}.`, "info");
                   return;
@@ -4557,7 +4557,7 @@ function IdlePage() {
                   {/* Portais para outros mapas */}
                   {currentGates.map((g) => {
                     const targetMap = IDLE_MAPS[g.target];
-                    const unlocked = idle.trainerLevel >= targetMap.minLevel;
+                    const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                     const label = unlocked ? targetMap.name : `${targetMap.name} (Lv ${targetMap.minLevel})`;
                     return (
                       <button
@@ -4681,7 +4681,7 @@ function IdlePage() {
                         <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
                           🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
                             const tm = IDLE_MAPS[g.target];
-                            const ok = idle.trainerLevel >= tm.minLevel;
+                            const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
                             return (
                               <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
                                 ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
