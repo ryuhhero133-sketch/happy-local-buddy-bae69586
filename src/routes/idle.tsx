@@ -772,15 +772,16 @@ function IdlePage() {
   const [showAutoSettings, setShowAutoSettings] = useState(false);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
+  const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
   const [, setAnimTick] = useState(0);
   const attackAnimIdRef = useRef(1);
   useEffect(() => {
-    if (!attackAnim && !enemyAttackAnim) return;
+    if (!attackAnim && !enemyAttackAnim && !captureAnim) return;
     let raf: number;
     const loop = () => { setAnimTick((n) => n + 1); raf = requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [attackAnim, enemyAttackAnim]);
+  }, [attackAnim, enemyAttackAnim, captureAnim]);
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
   const onPickTeamFromColecao = (entry: CollectionEntry) => {
@@ -968,7 +969,7 @@ function IdlePage() {
   }, []);
 
 
-  type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" };
+  type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture" };
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const chatIdRef = useRef(1);
   const pushChat = (text: string, kind: ChatMsg["kind"] = "info") => {
@@ -1751,6 +1752,18 @@ function IdlePage() {
               usedBall = null;
             }
             if (usedBall) {
+              // ► Animação da pokébola voando
+              const ballAnimId = Date.now();
+              setCaptureAnim({
+                id: ballAnimId,
+                fromX: trainerPosRef.current.x,
+                fromY: trainerPosRef.current.y,
+                toX: target.x, toY: target.y,
+                ts: performance.now(),
+                ballImg: usedBall.img,
+                success: false,
+              });
+              setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
               newItems[usedBall.id] = (newItems[usedBall.id] ?? 0) - 1;
               const baseChance = 0.05; // difícil: 5% base (com bola comum)
               if (isEventLeg && usedBall.id === "greatball") {
@@ -1778,7 +1791,7 @@ function IdlePage() {
                 const rColor = rarityColorMap[np.rarity] ?? "#f5cf6b";
                 pushFxAt(target.x, target.y - 70, `★ ${usedBall.name.toUpperCase()} ★`, "capture");
                 pushFxAt(target.x, target.y - 100, `${rLabel.toUpperCase()}!`, "capture");
-                pushChat(`★ Capturado (${rLabel}) com ${usedBall.name}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "cap");
+                pushChat(`★ Capturado (${rLabel}) com ${usedBall.name}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
                 // fx visual: contorna a chat com a cor da raridade (via console info)
                 void rColor;
                 // Broadcast global da captura
@@ -2115,6 +2128,17 @@ function IdlePage() {
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
+    // ► Animação da pokébola voando (manual)
+    const ballAnimId = Date.now();
+    setCaptureAnim({
+      id: ballAnimId,
+      fromX: trainerPosRef.current.x, fromY: trainerPosRef.current.y,
+      toX: target.x, toY: target.y,
+      ts: performance.now(),
+      ballImg: usedBall.img,
+      success,
+    });
+    setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
     const ballName = usedBall.name;
     setIdle((s) => ({ ...s, items: { ...s.items, [ballId]: Math.max(0, (s.items[ballId] ?? 0) - 1) } }));
     pushFxAt(target.x, target.y - 40, `${ballName}!`, "capture");
@@ -2126,7 +2150,7 @@ function IdlePage() {
       };
       const rLabel = rarityLabelMap[np.rarity] ?? String(np.rarity);
       pushFxAt(target.x, target.y - 70, `★ CAPTUROU! ★`, "capture");
-      pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "cap");
+      pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
       playBonus();
       setEnemies((prev) => prev.filter((e) => e.id !== enemyId));
       setTeam((tm) => {
@@ -2817,13 +2841,18 @@ function IdlePage() {
     if (!l) return;
     if (restingUntil) return;
     const now = Date.now();
-    const dur = kind === "azul" ? REST_DURATION_BLUE_MS : REST_DURATION_LAR_MS;
+    // Lar: 10s se apenas HP (algum pet com energia); 1h se energia esgotada
+    const anyExhausted = kind === "lar" && team.some((p) => petCurrentEnergy(p, now) <= 0);
+    const larDur = anyExhausted ? REST_DURATION_LAR_MS : 10_000;
+    const dur = kind === "azul" ? REST_DURATION_BLUE_MS : larDur;
     setRestingStart(now);
     setRestingUntil(now + dur);
     setRestingKind(kind);
     setMoving(false);
     setNearBuilding(null);
-    const label = kind === "azul" ? "🏡 Casa Azul (5 min)" : "🏠 Lar (1 hora)";
+    const label = kind === "azul"
+      ? "🏡 Casa Azul (5 min)"
+      : anyExhausted ? "🏠 Lar (1 hora — recuperando energia)" : "🏠 Lar (10s — recuperando HP)";
     pushChat(`${label} — descansando... todo o time será curado.`, "info");
   };
 
@@ -2891,11 +2920,14 @@ function IdlePage() {
     const remaining = restingUntil - Date.now();
     const t = setTimeout(() => {
       const kind = restingKind;
-      // Restaura HP líder + energia cheia em todo o time (Lar recupera tudo)
+      const start = restingStart ?? Date.now();
+      const total = (restingUntil ?? Date.now()) - start;
+      const fullRecovery = kind !== "lar" || total >= 60 * 60 * 1000; // 10s Lar = só HP; 1h Lar = HP + energia
+      // Restaura HP em todo o time; energia só se descanso completo
       setTeam((tm) => tm.map((p) => ({
         ...p,
-        energy: ENERGY_MAX,
-        energyRegenAt: Date.now(),
+        energy: fullRecovery ? ENERGY_MAX : (p as PetEnergyExt).energy ?? petCurrentEnergy(p),
+        energyRegenAt: fullRecovery ? Date.now() : (p as PetEnergyExt).energyRegenAt ?? Date.now(),
         hp: calcIdleMaxHp(p),
       } as PetInstance)));
       const l = team[0];
@@ -2903,9 +2935,13 @@ function IdlePage() {
       setRestingUntil(null);
       setRestingStart(null);
       setRestingKind(null);
-      const msg = kind === "lar" ? "🏠 Descanso concluído! Time totalmente recuperado (HP + energia)." : "💤 Descanso concluído! HP totalmente restaurado.";
+      const msg = kind === "lar"
+        ? (fullRecovery
+            ? "🏠 Descanso concluído! HP + energia totalmente recuperados."
+            : "🏠 HP restaurado! (energia continua regenerando naturalmente).")
+        : "💤 Descanso concluído! HP totalmente restaurado.";
       pushChat(msg, "cap");
-      pushFxAt(trainerPos.x, trainerPos.y - 60, "+HP / +⚡", "gold");
+      pushFxAt(trainerPos.x, trainerPos.y - 60, fullRecovery ? "+HP / +⚡" : "+HP", "gold");
     }, Math.max(0, remaining));
     return () => clearTimeout(t);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -3062,12 +3098,14 @@ function IdlePage() {
                 {[...chat].reverse().map((m) => {
                   const color =
                     m.kind === "chest" ? "#ffa64a" :
+                    m.kind === "capture" ? "#ff97e1" :
                     m.kind === "cap" ? "#ffd94d" :
                     m.kind === "lv" ? "#6bd4ff" :
                     m.kind === "hit" ? "#ff6b6b" :
                     m.kind === "dmg" ? "#f5cf6b" : "#c8b8d0";
                   const prefix =
                     m.kind === "chest" ? "🎁" :
+                    m.kind === "capture" ? "✦" :
                     m.kind === "cap" ? "★" :
                     m.kind === "lv" ? "⬆" :
                     m.kind === "hit" ? "✖" :
@@ -3724,6 +3762,24 @@ function IdlePage() {
               filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
               zIndex: Math.round(trainerPos.y),
             }}>
+              {/* Nickname acima da cabeça */}
+              {identity?.name && (
+                <div style={{
+                  position: "absolute", left: "50%", top: -20,
+                  transform: "translateX(-50%)",
+                  fontSize: 10, fontWeight: 800,
+                  color: "#fff",
+                  textShadow: "0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000",
+                  whiteSpace: "nowrap",
+                  fontFamily: "monospace",
+                  background: isVip() ? "rgba(140,60,0,0.7)" : "rgba(20,50,110,0.7)",
+                  padding: "1px 6px", borderRadius: 5,
+                  border: `1px solid ${isVip() ? "#ffb347" : "#6bd4ff"}`,
+                  pointerEvents: "none",
+                }}>
+                  {isVip() ? "✦ " : ""}{identity.name}
+                </div>
+              )}
               <div style={{
                 width: "100%", height: "100%",
                 backgroundImage: `url(${skinUrl ?? trainerSheet})`,
@@ -3732,6 +3788,28 @@ function IdlePage() {
                 imageRendering: "pixelated",
               }} />
             </div>
+
+            {/* Animação da pokébola sendo lançada */}
+            {captureAnim && (() => {
+              const now = performance.now();
+              const dt = Math.min(1, (now - captureAnim.ts) / 700);
+              const arcY = Math.sin(dt * Math.PI) * 60;
+              const x = captureAnim.fromX + (captureAnim.toX - captureAnim.fromX) * dt;
+              const y = captureAnim.fromY + (captureAnim.toY - captureAnim.fromY) * dt - arcY;
+              return (
+                <div style={{
+                  position: "absolute", left: x, top: y,
+                  width: 26, height: 26,
+                  transform: `translate(-50%, -50%) rotate(${dt * 720}deg)`,
+                  zIndex: 9999,
+                  pointerEvents: "none",
+                  filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.7))",
+                }}>
+                  <img src={captureAnim.ballImg} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated" }} />
+                </div>
+              );
+            })()}
+
 
             {/* Outros jogadores no mesmo mapa */}
             {remotePlayers.map((rp) => {
@@ -4634,7 +4712,56 @@ function IdlePage() {
               flexShrink: 0,
             }} />
           </div>
+
+          {/* ===== Guia Inteligente (Prof. Carvalho) — inline, abaixo do MODO IDLE ===== */}
+          {eventToast && (
+            <div key={eventToast.id} style={{
+              position: "relative",
+              background: "linear-gradient(180deg, #f8f4e8 0%, #ecdfc2 100%)",
+              border: `3px solid ${eventToast.color}`,
+              borderRadius: 12, padding: "8px 10px 8px 8px",
+              display: "flex", alignItems: "center", gap: 8,
+              boxShadow: `0 4px 14px rgba(0,0,0,0.4), 0 0 12px ${eventToast.color}55, inset 0 1px 0 rgba(255,255,255,0.6)`,
+              animation: "evt-slide 320ms cubic-bezier(.2,.9,.3,1.2)",
+            }}>
+              <div style={{
+                width: 44, height: 44, flexShrink: 0,
+                borderRadius: 10,
+                background: `radial-gradient(circle at 40% 35%, ${eventToast.color}55, #fff4d0 70%)`,
+                border: `2px solid ${eventToast.color}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                overflow: "hidden",
+                boxShadow: `inset 0 0 6px ${eventToast.color}44`,
+              }}>
+                <img src={npcOakSprite} alt="Guia" style={{ width: "110%", height: "110%", objectFit: "cover", imageRendering: "pixelated" }} />
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 8, fontWeight: 900, color: "#8b6a30", letterSpacing: 1.5 }}>
+                  PROF. CARVALHO · {eventToast.icon}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 900, color: "#3a1f0d", letterSpacing: 0.3, lineHeight: 1.1, marginTop: 2 }}>
+                  {eventToast.title}
+                </div>
+                {eventToast.sub && (
+                  <div style={{ fontSize: 10, color: "#5a3f1d", marginTop: 2, lineHeight: 1.2 }}>
+                    {eventToast.sub}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setEventToast(null)}
+                title="Fechar"
+                style={{
+                  position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%",
+                  background: eventToast.color, color: "#1a0f26", border: "2px solid #f8f4e8",
+                  fontWeight: 900, fontSize: 11, cursor: "pointer", lineHeight: 1, padding: 0,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+                }}
+              >✕</button>
+            </div>
+          )}
         </div>
+
 
 
         {/* ============ NAV INFERIOR ============ */}
@@ -5376,58 +5503,6 @@ function IdlePage() {
       })()}
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
-      {eventToast && (
-        <div key={eventToast.id} style={{
-          position: "fixed", top: 16, right: 16,
-          zIndex: 9998, pointerEvents: "auto",
-          animation: "evt-slide 320ms cubic-bezier(.2,.9,.3,1.2)",
-          maxWidth: 340,
-        }}>
-          <div style={{
-            position: "relative",
-            background: "linear-gradient(180deg, #f8f4e8 0%, #ecdfc2 100%)",
-            border: `3px solid ${eventToast.color}`,
-            borderRadius: 14, padding: "10px 12px 10px 10px",
-            display: "flex", alignItems: "center", gap: 10,
-            boxShadow: `0 8px 26px rgba(0,0,0,0.55), 0 0 18px ${eventToast.color}66, inset 0 1px 0 rgba(255,255,255,0.6)`,
-          }}>
-            <div style={{
-              width: 56, height: 56, flexShrink: 0,
-              borderRadius: 12,
-              background: `radial-gradient(circle at 40% 35%, ${eventToast.color}55, #fff4d0 70%)`,
-              border: `2px solid ${eventToast.color}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
-              boxShadow: `inset 0 0 8px ${eventToast.color}44`,
-            }}>
-              <img src={npcOakSprite} alt="Guia" style={{ width: "110%", height: "110%", objectFit: "cover", imageRendering: "pixelated" }} />
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1.5 }}>
-                PROF. CARVALHO · {eventToast.icon}
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#3a1f0d", letterSpacing: 0.5, lineHeight: 1.1, marginTop: 2 }}>
-                {eventToast.title}
-              </div>
-              {eventToast.sub && (
-                <div style={{ fontSize: 11, color: "#5a3f1d", marginTop: 3, lineHeight: 1.25 }}>
-                  {eventToast.sub}
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => setEventToast(null)}
-              title="Fechar"
-              style={{
-                position: "absolute", top: -8, right: -8, width: 22, height: 22, borderRadius: "50%",
-                background: eventToast.color, color: "#1a0f26", border: "2px solid #f8f4e8",
-                fontWeight: 900, fontSize: 12, cursor: "pointer", lineHeight: 1, padding: 0,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-              }}
-            >✕</button>
-          </div>
-        </div>
-      )}
     </div>
 
   );
