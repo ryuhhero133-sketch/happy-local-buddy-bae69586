@@ -661,8 +661,6 @@ function AuthScreen() {
           )}
         </div>
       </form>
-
-      <GuestEntry />
     </PanelShell>
   );
 }
