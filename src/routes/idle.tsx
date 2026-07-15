@@ -456,6 +456,8 @@ type IdleState = {
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 10min
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
+  trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
+  trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number };
@@ -571,10 +573,28 @@ function freshIdle(): IdleState {
     buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0 },
     autoHeal: { enabled: false, threshold: 0.5 },
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
+    trainerLevel: 1,
+    trainerXp: 0,
   };
 }
 function saveIdle(s: IdleState) {
   try { localStorage.setItem(IDLE_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+}
+
+// XP-para-o-próximo-nível do TREINADOR (curva um pouco mais dura que a do pokémon)
+function trainerXpToNext(lv: number): number {
+  return 150 + lv * 80;
+}
+// Aplica ganho de XP ao treinador e resolve level-ups em cadeia
+function applyTrainerXp(s: IdleState, gained: number): { state: IdleState; leveledTo: number | null } {
+  const startLv = s.trainerLevel ?? 1;
+  let lv = startLv;
+  let xp = (s.trainerXp ?? 0) + Math.max(0, Math.floor(gained));
+  while (lv < 999 && xp >= trainerXpToNext(lv)) { xp -= trainerXpToNext(lv); lv += 1; }
+  return {
+    state: { ...s, trainerLevel: lv, trainerXp: xp },
+    leveledTo: lv > startLv ? lv : null,
+  };
 }
 
 const IDLE_HP_MULT = 6;
@@ -1134,7 +1154,7 @@ function IdlePage() {
           leader_species: payload.leaderSp ?? null,
           leader_rarity: null,
           level: team[0]?.level ?? 1,
-          trainer_level: team[0]?.level ?? 1,
+          trainer_level: idle.trainerLevel ?? 1,
           craft_points: idle.craftPoints ?? 0,
           updated_at: new Date().toISOString(),
         });
@@ -1809,8 +1829,28 @@ function IdlePage() {
             const newCollection = capturedPet
               ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now() }]
               : prevCol;
+            // === XP DO TREINADOR (separado do XP do pokémon) ===
+            // Base: ~40% do xp do pokémon, escalado pelo nível do inimigo e raridade.
+            const rarityTrainerMult: Record<Rarity, number> = {
+              common: 1, uncommon: 1.2, rare: 1.5, epic: 2, legendary: 3, mythic: 4.5, mythic_shiny: 6,
+            };
+            const rMult = rarityTrainerMult[target.rarity] ?? 1;
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * (1 + (expActive ? idle.buffs.expMult : 0))));
+            const captureTrainerXp = captured ? Math.max(5, Math.round((25 + target.level * 6) * rMult)) : 0;
+            const totalTrainerXp = killTrainerXp + captureTrainerXp;
+            const applied = applyTrainerXp(s, totalTrainerXp);
+            if (applied.leveledTo != null) {
+              // level up de treinador — chat + fx (fora do setState via microtask)
+              queueMicrotask(() => {
+                pushChat(`🎓 TREINADOR subiu para o nível ${applied.leveledTo}!`, "lv");
+                pushFxAt(trainerPos.x, trainerPos.y - 130, `TREINADOR LV ${applied.leveledTo}!`, "capture");
+              });
+            }
+            queueMicrotask(() => {
+              pushFxAt(target.x, target.y - 80, `+${totalTrainerXp} XP Tr`, "xp");
+            });
             return {
-              ...s,
+              ...applied.state,
               pending: { ...s.pending, gold: s.pending.gold + gold },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc },
               tasks: nt2,
@@ -2946,10 +2986,9 @@ function IdlePage() {
           {/* --- PERFIL DE TREINADOR --- */}
           {(() => {
             const leaderP = team[0];
-            const trainerLv = team.reduce((m, p) => Math.max(m, p.level), 1);
-            const totalXp = team.reduce((s, p) => s + (p.xp ?? 0) + (p.level - 1) * 120, 0);
-            const nextAt = 100 + trainerLv * 20;
-            const curXp = leaderP?.xp ?? 0;
+            const trainerLv = idle.trainerLevel ?? 1;
+            const nextAt = trainerXpToNext(trainerLv);
+            const curXp = idle.trainerXp ?? 0;
             const xpPct = Math.max(0, Math.min(100, (curXp / nextAt) * 100));
             const av = leaderP ? GIF[leaderP.species] : null;
             const name = (identity?.name || "Treinador").slice(0, 16);
@@ -2993,7 +3032,7 @@ function IdlePage() {
                   <div style={{ fontSize: 9, color: "#8fd0ff", marginTop: 2, display: "flex", gap: 8 }}>
                     <span>💰 {idle.totals.gold}</span>
                     <span>★ {idle.totals.captured}/151</span>
-                    <span style={{ marginLeft: "auto", color: "#c8b8d0" }}>XP tot {totalXp}</span>
+                    <span style={{ marginLeft: "auto", color: "#c8b8d0" }}>Pokémons: {team.length}/5</span>
                   </div>
                 </div>
               </div>
