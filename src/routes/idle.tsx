@@ -2758,9 +2758,9 @@ function IdlePage() {
   }
 
   // alvo de baús no mapa (2 base + 1 por Amuleto do Baú comprado, máx 6)
-  const chestTarget = Math.min(6, 2 + (idle.items?.chest_amulet ?? 0));
+  const chestTarget = Math.min(3, 1 + (idle.items?.chest_amulet ?? 0));
 
-  // spawna baús no início e mantém sempre `chestTarget` no mapa
+  // spawna baús no início e mantém sempre `chestTarget` no mapa (respawn mais lento)
   useEffect(() => {
     const initial = spawnChests(chestTarget);
     setChests(initial);
@@ -2773,7 +2773,7 @@ function IdlePage() {
         const news = spawnChests(needed);
         return [...remaining, ...news];
       });
-    }, 8000);
+    }, 45000);
     // Spawn EXTRA garantido a cada 10 min: um baú COMUM novo (até o teto máx=6)
     const ivExtra = setInterval(() => {
       setChests((prev) => {
