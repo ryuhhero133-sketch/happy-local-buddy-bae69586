@@ -636,6 +636,8 @@ function IdlePage() {
   }, [levelToast]);
   // alvo atual (para virar o pokémon) — id do inimigo que estamos atacando
   const [attackTargetId, setAttackTargetId] = useState<number | null>(null);
+  const attackTargetIdRef = useRef<number | null>(null);
+  useEffect(() => { attackTargetIdRef.current = attackTargetId; }, [attackTargetId]);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [now, setNow] = useState(() => Date.now());
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
