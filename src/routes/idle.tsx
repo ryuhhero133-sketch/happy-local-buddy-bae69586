@@ -1857,12 +1857,11 @@ function IdlePage() {
           setPokemonFace(attackFace);
         }
 
-        // Calcula posição atual do pokémon líder (mesmo cálculo do render)
+        // Posição atual do pokémon líder (trilha suave)
         const dir = walkDirRef.current;
-        const fOffX = dir === "right" ? -78 : dir === "left" ? 78 : 0;
-        const fOffY = dir === "up" ? 72 : dir === "down" ? -58 : 46;
-        const followerAtX = trainerPos.x + fOffX;
-        const followerAtY = trainerPos.y + fOffY;
+        void dir;
+        const followerAtX = followerStateRef.current.x;
+        const followerAtY = followerStateRef.current.y;
 
         const base = SPECIES_BASE[leader.species];
         // CRIT: base 5% + 0.3%/nível + 0.5% por ponto de crit ascension, cap 60%
