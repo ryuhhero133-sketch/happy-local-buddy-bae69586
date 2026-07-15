@@ -3082,6 +3082,36 @@ function IdlePage() {
 
   // ===== Casa Azul: coloca 1 Pokémon para restaurar energia =====
   // Modo pago: 5💎 -> 5 min. Modo grátis (auto): 1h.
+  // Adianta um descanso em andamento gastando cristais
+  const speedUpAzulRest = (uid: string) => {
+    const now = Date.now();
+    const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+    const party = save.party ?? team;
+    const pet = party.find((p) => p.uid === uid) as PetEnergyExt | undefined;
+    if (!pet || !pet.azulRestUntil || pet.azulRestUntil <= now) {
+      pushChat(`Nada para adiantar.`, "info");
+      return;
+    }
+    if (idle.bank.crystals < AZUL_REST_COST) {
+      pushChat(`Cristais insuficientes (precisa ${AZUL_REST_COST}💎).`, "info");
+      return;
+    }
+    const refreshed = { ...pet, energy: ENERGY_MAX, energyRegenAt: now, azulRestUntil: undefined, azulRestFromEnergy: undefined, azulRestTotalMs: undefined } as PetInstance;
+    const newParty = (save.party ?? []).map((x) => x.uid === uid ? refreshed : x);
+    saveNow({ ...save, party: newParty });
+    setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - AZUL_REST_COST } }));
+    setRestingBench((b) => b.filter((x) => x.uid !== uid));
+    setTeam((tm) => {
+      if (tm.some((x) => x.uid === uid)) return tm.map((x) => x.uid === uid ? refreshed : x);
+      if (tm.length >= 5) return tm;
+      const next = [...tm, refreshed];
+      if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
+      return next;
+    });
+    pushChat(`⚡ ${pet.species.toUpperCase()} descansou instantaneamente (-${AZUL_REST_COST}💎)`, "info");
+    pushEvent("⚡", "ADIANTADO", `${pet.species.toUpperCase()} pronto!`, "#4a9eff");
+  };
+
   const restPetInAzul = (uid: string, opts?: { auto?: boolean }) => {
     const now = Date.now();
     const auto = !!opts?.auto;
