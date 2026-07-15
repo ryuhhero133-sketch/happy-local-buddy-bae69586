@@ -2440,10 +2440,16 @@ function IdlePage() {
       let pool = speciesUnlockedFor(leaderLv);
       // Faixa de nível do mapa (min/max). Se definida, sobrepõe o pareamento com líder.
       let mapLvRange: [number, number] | null = null;
-      // Vale Verdejante: pool temático grama/bicho/normal iniciais, nível 1-20
+      // Vale Verdejante: pool amplo temático grama/bicho/normal, nível 1-30, raridades variadas
       if (idle.currentMap === "arena") {
-        pool = ["bulbasaur", "oddish", "bellsprout", "caterpie", "weedle", "pidgey", "rattata_f"] as Species[];
-        mapLvRange = [1, 20];
+        pool = [
+          "bulbasaur", "oddish", "bellsprout", "caterpie", "metapod", "weedle", "kakuna",
+          "pidgey", "pidgeotto", "rattata_f", "raticate_f", "spearow",
+          "paras", "parasect", "venonat", "gloom",
+          "clefairy", "sandshrew", "mankey", "poliwag", "growlithe",
+          "abra", "cubone", "magnemite", "nidoran_f", "vulpix", "snorlax",
+        ] as Species[];
+        mapLvRange = [1, 30];
       }
       // No Ninho de Marimbondo, com um Pokémon nv 30+ no time, aparecem Beedrill/Butterfree selvagens capturáveis
       if (idle.currentMap === "terra" && maxTeamLv >= 30) {
