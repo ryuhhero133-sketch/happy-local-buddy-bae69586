@@ -776,12 +776,12 @@ function IdlePage() {
   const [, setAnimTick] = useState(0);
   const attackAnimIdRef = useRef(1);
   useEffect(() => {
-    if (!attackAnim && !enemyAttackAnim) return;
+    if (!attackAnim && !enemyAttackAnim && !captureAnim) return;
     let raf: number;
     const loop = () => { setAnimTick((n) => n + 1); raf = requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [attackAnim, enemyAttackAnim]);
+  }, [attackAnim, enemyAttackAnim, captureAnim]);
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
   const onPickTeamFromColecao = (entry: CollectionEntry) => {
