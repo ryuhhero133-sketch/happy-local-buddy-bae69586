@@ -5402,47 +5402,35 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   const ePct = Math.max(0, Math.min(100, energy));
   const exhausted = !infinite && energy <= 0;
   return (
-    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{ display: "flex", gap: 8, alignItems: "center", background: exhausted ? "#1a1a1a" : "#2a1a3a", padding: 6, borderRadius: 6, cursor: onClick ? "pointer" : undefined, border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #555" : undefined), opacity: exhausted ? 0.65 : 1 }}>
+    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{ display: "flex", gap: 6, alignItems: "center", background: exhausted ? "#1a1a1a" : "#2a1a3a", padding: 4, borderRadius: 6, cursor: onClick ? "pointer" : undefined, border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #555" : "1px solid rgba(107,74,138,0.4)"), opacity: exhausted ? 0.65 : 1 }}>
       <div style={{
-        width: 48, height: 48, background: "#0b0510", borderRadius: 6,
-        display: "grid", placeItems: "center", overflow: "hidden", position: "relative",
+        width: 38, height: 38, background: "#0b0510", borderRadius: 6,
+        display: "grid", placeItems: "center", overflow: "hidden", position: "relative", flexShrink: 0,
       }}>
-        <img src={src} alt="" style={{ width: "90%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.7)" : undefined }} />
-        {resting && <span style={{ position: "absolute", top: 1, right: 2, fontSize: 10 }}>🏡</span>}
-        {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 18, textShadow: "0 0 4px #000" }}>🔒</span>}
+        <img src={src} alt="" style={{ width: "92%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.7)" : undefined }} />
+        {resting && <span style={{ position: "absolute", top: 0, right: 1, fontSize: 9 }}>🏡</span>}
+        {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 16, textShadow: "0 0 4px #000" }}>🔒</span>}
       </div>
 
-      <div style={{ flex: 1 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600 }}>
-          <span>{pet.species.replace(/_/g, " ").toUpperCase()}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, lineHeight: 1.15 }}>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pet.species.replace(/_/g, " ").toUpperCase()}</span>
+          <span style={{ color: "#ffd94d", marginLeft: 4 }}>Lv{pet.level}</span>
         </div>
-        <div style={{ fontSize: 10, color: "#b8a8c8" }}>Lv.{pet.level} <span style={{ float: "right" }}>{hp}/{maxHp}</span></div>
-        <div style={{ height: 4, background: "#3a1010", borderRadius: 2, marginTop: 2 }}>
-          <div style={{ width: `${pct}%`, height: "100%", background: pct > 40 ? "#5ec26a" : "#e34a4a", borderRadius: 2 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+          <div style={{ flex: 1, height: 4, background: "#3a1010", borderRadius: 2 }}>
+            <div style={{ width: `${pct}%`, height: "100%", background: pct > 40 ? "#5ec26a" : "#e34a4a", borderRadius: 2 }} />
+          </div>
+          <span style={{ fontSize: 8, color: "#b8a8c8", minWidth: 42, textAlign: "right" }}>{hp}/{maxHp}</span>
         </div>
-        {(() => {
-          const xpNeeded = 100 + pet.level * 20;
-          const xp = pet.xp ?? 0;
-          const xpPct = Math.max(0, Math.min(100, (xp / xpNeeded) * 100));
-          return (
-            <>
-              <div style={{ fontSize: 9, color: "#ffd94d", marginTop: 2, display: "flex", justifyContent: "space-between" }}>
-                <span>EXP</span><span>{xp}/{xpNeeded}</span>
-              </div>
-              <div style={{ height: 3, background: "#3a2a10", borderRadius: 2, marginTop: 1 }}>
-                <div style={{ width: `${xpPct}%`, height: "100%", background: "#ffd94d", borderRadius: 2 }} />
-              </div>
-            </>
-          );
-        })()}
-        <div style={{ fontSize: 9, color: "#8fd0ff", marginTop: 2, display: "flex", justifyContent: "space-between" }}>
-          <span>⚡ {infinite ? "∞" : `${energy}/100`}</span>
-          <span style={{ color: "#c8b8d0" }}>{infinite ? "MÍTICO" : (msFull > 0 ? fmtMS(msFull) : "cheia")}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 1 }}>
+          <div style={{ flex: 1, height: 3, background: "#0e2438", borderRadius: 2 }}>
+            <div style={{ width: `${infinite ? 100 : ePct}%`, height: "100%", background: resting ? "#7fc4ff" : (energy > 30 ? "#4a9eff" : "#ff7a3d"), borderRadius: 2 }} />
+          </div>
+          <span style={{ fontSize: 8, color: "#8fd0ff", minWidth: 42, textAlign: "right" }}>
+            ⚡{infinite ? "∞" : `${energy}`}
+          </span>
         </div>
-        <div style={{ height: 3, background: "#0e2438", borderRadius: 2, marginTop: 1 }}>
-          <div style={{ width: `${infinite ? 100 : ePct}%`, height: "100%", background: resting ? "#7fc4ff" : (energy > 30 ? "#4a9eff" : "#ff7a3d"), borderRadius: 2 }} />
-        </div>
-
       </div>
     </div>
   );
