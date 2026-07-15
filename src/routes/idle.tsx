@@ -1687,13 +1687,10 @@ function IdlePage() {
         const openChests = chests.filter((c) => !c.opened);
         const leaderLvNow = team[0]?.level ?? 1;
         const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
-        // Só considera alvos dentro de ±10 níveis do líder pra não morrer / não perder tempo
-        // Só considera inimigos até +10 níveis acima e até -5 abaixo do líder
-        const alive = aliveAll.filter((e) => {
-          const el = e.level ?? leaderLvNow;
-          return el <= leaderLvNow + 10 && el >= leaderLvNow - 5;
-        });
+        // Líder pode atacar qualquer Pokémon do mapa — ganhos serão nerfados se muito acima.
+        const alive = aliveAll;
         const enemyPool = alive.length > 0 ? alive : [];
+
 
         type Tgt = { x: number; y: number; kind: "enemy" | "chest"; id: number; range: number };
         const candidates: Tgt[] = [
