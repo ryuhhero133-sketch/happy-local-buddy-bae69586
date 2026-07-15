@@ -12,6 +12,7 @@ import navColecao from "@/assets/icons/nav-colecao.png";
 import navLoja from "@/assets/icons/nav-loja.png";
 import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
+import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
 import chestOpenImg from "@/assets/icons/chest-open.png";
