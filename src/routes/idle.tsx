@@ -2978,7 +2978,7 @@ function IdlePage() {
           <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
             <Panel title="REGISTRO DE BATALHA" accent="#1e3a5f">
               <div style={{
-                height: "calc(100vh - 380px)", minHeight: 160,
+                height: "calc(100vh - 400px)", minHeight: 180,
                 overflowY: "auto", display: "flex", flexDirection: "column-reverse",
                 gap: 4, fontSize: 11, lineHeight: 1.35,
                 background: "#0e0818", borderRadius: 6, padding: 6,
