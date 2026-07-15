@@ -1569,6 +1569,16 @@ function IdlePage() {
   const wanderRef = useRef<{ x: number; y: number; until: number } | null>(null);
   const overCapMsgRef = useRef<number>(0);
 
+  const enterWorldPortal = (p: WorldPortalDef) => {
+    setIdle((s) => ({ ...s, currentMap: p.to }));
+    setTrainerPos({ x: p.arriveX, y: p.arriveY });
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    setAttackTargetId(null);
+    setEnemies([]);
+    pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
+  };
+
   useEffect(() => {
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
@@ -2230,6 +2240,12 @@ function IdlePage() {
     }, 900);
     return () => clearInterval(iv);
   }, [team, trainerPos, leaderHp]);
+
+  useEffect(() => {
+    const portal = WORLD_PORTALS.find((p) => p.from === idle.currentMap && Math.hypot(trainerPos.x - p.x, trainerPos.y - p.y) <= 58);
+    if (portal) enterWorldPortal(portal);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trainerPos.x, trainerPos.y, idle.currentMap]);
 
 
   useEffect(() => { saveIdle(idle); }, [idle]);
