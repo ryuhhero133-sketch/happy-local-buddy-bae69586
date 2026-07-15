@@ -2299,7 +2299,11 @@ function IdlePage() {
               ? s.seenSpecies
               : [...s.seenSpecies, target.sp];
             const prevCol = s.collection ?? [];
-            const newCollection = capturedPet
+            const colFull = prevCol.length >= MAX_COLLECTION;
+            if (capturedPet && colFull) {
+              queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
+            }
+            const newCollection = capturedPet && !colFull
               ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now() }]
               : prevCol;
             // === XP DO TREINADOR (separado do XP do pokémon) ===
