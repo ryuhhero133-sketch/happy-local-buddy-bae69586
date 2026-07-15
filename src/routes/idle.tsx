@@ -4400,7 +4400,7 @@ function IdlePage() {
                   left: leaderX, top: leaderY,
                   width: 54, height: 54,
                   transform: "translate(-50%, -50%)",
-                  transition: attackAnim ? "none" : "left 160ms linear, top 160ms linear",
+                  transition: attackAnim ? "none" : undefined,
                   filter: `drop-shadow(0 3px 3px rgba(0,0,0,0.55)) ${fainted ? "grayscale(1) brightness(0.6)" : ""}`,
                   opacity: fainted ? 0.5 : 1,
                   zIndex: Math.round(leaderY),
