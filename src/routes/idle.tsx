@@ -3793,17 +3793,23 @@ function IdlePage() {
               const dt = Math.min(1, (Date.now() - attackAnim.ts) / 380);
               const opacity = dt < 0.6 ? 1 : 1 - (dt - 0.6) / 0.4;
               const scale = 0.6 + dt * 0.8;
-              const size = attackAnim.crit ? 88 : 64;
+              const size = attackAnim.crit ? 104 : 78;
+              const el = attackAnim.element;
+              const src = ELEMENT_FX_IMG[el];
+              const glow = ELEMENT_FX_GLOW[el];
+              const rot = attackAnim.crit ? dt * 180 : dt * 60;
               return (
-                <img key={attackAnim.id} src={fxSlashImg} alt="" style={{
+                <img key={attackAnim.id} src={src} alt="" style={{
                   position: "absolute",
                   left: attackAnim.toX, top: attackAnim.toY,
                   width: size, height: size,
-                  transform: `translate(-50%, -50%) scale(${scale}) rotate(${attackAnim.crit ? dt * 90 : 0}deg)`,
+                  transform: `translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`,
                   opacity,
                   pointerEvents: "none",
-                  filter: attackAnim.crit ? "drop-shadow(0 0 12px #ffd94d) drop-shadow(0 0 6px #ff3b3b)" : "drop-shadow(0 0 6px #ffb84d)",
-                  imageRendering: "pixelated",
+                  filter: attackAnim.crit
+                    ? `drop-shadow(0 0 14px ${glow}) drop-shadow(0 0 8px #ffd94d)`
+                    : `drop-shadow(0 0 10px ${glow})`,
+                  mixBlendMode: "screen",
                   zIndex: 7,
                 }} />
               );
