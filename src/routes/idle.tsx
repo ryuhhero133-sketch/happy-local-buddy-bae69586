@@ -594,6 +594,8 @@ type IdleState = {
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number };
 
+export const MAX_COLLECTION = 500;
+
 export const CRAFT_BY_RARITY: Record<Rarity, number> = {
   common: 1,
   uncommon: 3,
@@ -2297,7 +2299,11 @@ function IdlePage() {
               ? s.seenSpecies
               : [...s.seenSpecies, target.sp];
             const prevCol = s.collection ?? [];
-            const newCollection = capturedPet
+            const colFull = prevCol.length >= MAX_COLLECTION;
+            if (capturedPet && colFull) {
+              queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
+            }
+            const newCollection = capturedPet && !colFull
               ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now() }]
               : prevCol;
             // === XP DO TREINADOR (separado do XP do pokémon) ===
@@ -2654,12 +2660,19 @@ function IdlePage() {
       pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
       playBonus();
       setEnemies((prev) => prev.filter((e) => e.id !== enemyId));
-      setIdle((s) => ({
-        ...s,
-        totals: { ...s.totals, captured: s.totals.captured + 1 },
-        caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
-        collection: [...(s.collection ?? []), { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now() }],
-      }));
+      setIdle((s) => {
+        const prev = s.collection ?? [];
+        if (prev.length >= MAX_COLLECTION) {
+          queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
+          return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
+        }
+        return {
+          ...s,
+          totals: { ...s.totals, captured: s.totals.captured + 1 },
+          caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
+          collection: [...prev, { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now() }],
+        };
+      });
     } else {
       pushFxAt(target.x, target.y - 70, `${ballName} falhou`, "enemyDmg");
       pushChat(`✗ ${ballName} falhou (HP ${Math.round(hpPct * 100)}%).`, "hit");
@@ -2791,16 +2804,23 @@ function IdlePage() {
     const rarity = rollEggRarity(eggId);
     const pet = makePet(sp, Math.max(1, leaderLv), rarity as Rarity);
 
-    setIdle((s) => ({
-      ...s,
-      items: { ...s.items, [eggId]: (s.items[eggId] ?? 0) - 1 },
-      caughtSpecies: s.caughtSpecies.includes(sp as Species) ? s.caughtSpecies : [...s.caughtSpecies, sp as Species],
-      seenSpecies: s.seenSpecies.includes(sp as Species) ? s.seenSpecies : [...s.seenSpecies, sp as Species],
-      collection: [
-        ...(s.collection ?? []),
-        { uid: pet.uid, species: pet.species, level: pet.level, rarity: pet.rarity, capturedAt: Date.now() },
-      ],
-    }));
+    setIdle((s) => {
+      const prev = s.collection ?? [];
+      if (prev.length >= MAX_COLLECTION) {
+        queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Ovo não pôde ser guardado.`, "info"));
+        return { ...s, items: { ...s.items, [eggId]: (s.items[eggId] ?? 0) - 1 } };
+      }
+      return {
+        ...s,
+        items: { ...s.items, [eggId]: (s.items[eggId] ?? 0) - 1 },
+        caughtSpecies: s.caughtSpecies.includes(sp as Species) ? s.caughtSpecies : [...s.caughtSpecies, sp as Species],
+        seenSpecies: s.seenSpecies.includes(sp as Species) ? s.seenSpecies : [...s.seenSpecies, sp as Species],
+        collection: [
+          ...prev,
+          { uid: pet.uid, species: pet.species, level: pet.level, rarity: pet.rarity, capturedAt: Date.now() },
+        ],
+      };
+    });
     // Adiciona ao time se houver vaga (mesma regra da captura)
     setTeam((tm) => {
       if (tm.length >= 5) {
@@ -7108,8 +7128,8 @@ function TabOverlay({
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <div style={{ background: "#b8862a", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.5)" }}>
-                {collection.length} NA COLEÇÃO
+              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "#b8862a", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.5)" }}>
+                {collection.length} / {MAX_COLLECTION} NA COLEÇÃO
               </div>
               <div style={{ background: "#8b6a30", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
                 {caughtSpecies.length} ESPÉCIES
