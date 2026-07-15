@@ -1779,7 +1779,7 @@ function IdlePage() {
                 const rColor = rarityColorMap[np.rarity] ?? "#f5cf6b";
                 pushFxAt(target.x, target.y - 70, `★ ${usedBall.name.toUpperCase()} ★`, "capture");
                 pushFxAt(target.x, target.y - 100, `${rLabel.toUpperCase()}!`, "capture");
-                pushChat(`★ Capturado (${rLabel}) com ${usedBall.name}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "cap");
+                pushChat(`★ Capturado (${rLabel}) com ${usedBall.name}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
                 // fx visual: contorna a chat com a cor da raridade (via console info)
                 void rColor;
                 // Broadcast global da captura
