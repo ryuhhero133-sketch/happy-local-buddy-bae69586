@@ -1776,6 +1776,19 @@ function IdlePage() {
           const wd = Math.hypot(wdx, wdy) || 1;
           if (!moving) setMoving(true);
           const spd = 14 * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+          // Atualiza direção do sprite ao vagar (senão fica andando "de costas")
+          const wnd: Dir = Math.abs(wdx) > Math.abs(wdy)
+            ? (wdx > 0 ? "right" : "left")
+            : (wdy > 0 ? "down" : "up");
+          if (wnd !== walkDirRef.current) {
+            walkDirRef.current = wnd;
+            setWalkDir(wnd);
+          }
+          const wFace = wdx >= 0 ? "right" : "left";
+          if (wFace !== pokemonFaceRef.current) {
+            pokemonFaceRef.current = wFace;
+            setPokemonFace(wFace);
+          }
           return { x: tp.x + (wdx / wd) * spd, y: tp.y + (wdy / wd) * spd };
         }
         candidates.sort((a, b) =>
