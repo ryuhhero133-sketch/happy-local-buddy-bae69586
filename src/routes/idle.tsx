@@ -2884,7 +2884,9 @@ function IdlePage() {
 
   // Vale Verdejante: tabela com pesos e raridade forçada.
   // Peso alto = aparece muito; peso baixo = raro ★ (mais forte, aura colorida)
-  const ARENA_SPAWN_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = [
+  // Só permite spawn de espécies com GIF disponível.
+  const hasGif = (sp: Species) => !!GIF[sp];
+  const ARENA_SPAWN_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = ([
     // Comuns (frequentes)
     { sp: "caterpie" as Species,   w: 14 },
     { sp: "weedle" as Species,     w: 14 },
