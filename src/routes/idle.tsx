@@ -221,12 +221,12 @@ const sfxChestOpenUrl = assetUrl(sfxChestOpenAsset.url);
 type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "floresta" | "caverna";
 // element: só descritivo; cycle: quando presente, mapa abre a cada `cycleMs` por `openMs`
 type IdleMapDef = {
-  name: string; diff: string; bg: string; rate: number; minLevel: number;
+  name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
   element: string;
   cycle?: { cycleMs: number; openMs: number };
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
-  arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  element: "Grama"    },
+  arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama"    },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 1,  element: "Terra"    },
   venofogo: { name: "Pântano em Chamas",       diff: "Médio",     bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 1,  element: "Veneno/Fogo" },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 1,  element: "Água"     },
@@ -2518,6 +2518,9 @@ function IdlePage() {
         const [lo, hi] = mapLvRange;
         lv = Math.max(lo, Math.min(hi, lv));
       }
+      // Teto rígido do mapa (independente do nível do líder)
+      const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
+      if (hardCap != null) lv = Math.min(lv, hardCap);
       const pet = makePet(sp, lv);
       const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
       const isAggro = elite || Math.random() < 0.18;
@@ -4608,6 +4611,9 @@ function IdlePage() {
                 goTo(targetMap.name, g.x, g.y, () => {
                   setIdle((s) => ({ ...s, currentMap: g.target }));
                   setTrainerPos({ x: g.arriveX, y: g.arriveY });
+                  // Remove inimigos que excedem o teto do novo mapa
+                  const cap = IDLE_MAPS[g.target].maxLevel;
+                  if (cap != null) setEnemies((prev) => prev.filter((e) => (e.level ?? 1) <= cap));
                   pushChat(`Chegou em ${targetMap.name}!`, "cap");
                 });
               };
