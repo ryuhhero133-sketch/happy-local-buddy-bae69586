@@ -751,15 +751,16 @@ function IdlePage() {
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
+  const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [, setAnimTick] = useState(0);
   const attackAnimIdRef = useRef(1);
   useEffect(() => {
-    if (!attackAnim) return;
+    if (!attackAnim && !enemyAttackAnim) return;
     let raf: number;
     const loop = () => { setAnimTick((n) => n + 1); raf = requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [attackAnim]);
+  }, [attackAnim, enemyAttackAnim]);
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
   const onPickTeamFromColecao = (entry: CollectionEntry) => {
@@ -1576,6 +1577,13 @@ function IdlePage() {
         const eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
         // Dano recebido → aparece EM CIMA DO MEU POKÉMON, com um respiro após o meu golpe
         setTimeout(() => {
+          setEnemyAttackAnim({
+            id: attackAnimIdRef.current++,
+            fromX: target.x, fromY: target.y,
+            toX: followerAtX, toY: followerAtY,
+            ts: Date.now(),
+            element: elementOf(target.sp),
+          });
           pushFxAt(followerAtX, followerAtY - 34, `-${eDmg}`, "enemyDmg");
         }, 480);
         setLeaderHp((h) => {
@@ -2907,21 +2915,70 @@ function IdlePage() {
 
 
         {/* ============ COLUNA ESQUERDA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, minHeight: 0, overflow: "hidden" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+          {/* --- PERFIL DE TREINADOR --- */}
+          {(() => {
+            const leaderP = team[0];
+            const trainerLv = team.reduce((m, p) => Math.max(m, p.level), 1);
+            const totalXp = team.reduce((s, p) => s + (p.xp ?? 0) + (p.level - 1) * 120, 0);
+            const nextAt = 100 + trainerLv * 20;
+            const curXp = leaderP?.xp ?? 0;
+            const xpPct = Math.max(0, Math.min(100, (curXp / nextAt) * 100));
+            const av = leaderP ? GIF[leaderP.species] : null;
+            const name = (identity?.name || "Treinador").slice(0, 16);
+            return (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "6px 8px",
+                background: "linear-gradient(180deg,#2a1a3a,#1a0f2a)",
+                border: "1px solid #6b4a8a", borderRadius: 8,
+                boxShadow: "inset 0 0 12px rgba(255,217,77,0.08)",
+              }}>
+                <div style={{
+                  width: 46, height: 46, borderRadius: "50%",
+                  background: "radial-gradient(circle,#3a2a5a,#0b0510)",
+                  border: "2px solid #ffd94d",
+                  display: "grid", placeItems: "center", overflow: "hidden",
+                  boxShadow: "0 0 8px rgba(255,217,77,0.4)",
+                }}>
+                  {av && <img src={av} alt="" style={{ width: "88%", imageRendering: "pixelated" }} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 800, color: "#ffe89a" }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>🎓 {name}</span>
+                    <span style={{ color: "#ffd94d" }}>Lv.{trainerLv}</span>
+                  </div>
+                  <div style={{ fontSize: 9, color: "#b8a8c8", marginTop: 1, display: "flex", justifyContent: "space-between" }}>
+                    <span>XP</span><span>{curXp}/{nextAt}</span>
+                  </div>
+                  <div style={{ height: 4, background: "#1a0f2a", borderRadius: 2, marginTop: 1, border: "1px solid #3a2a5a" }}>
+                    <div style={{ width: `${xpPct}%`, height: "100%", background: "linear-gradient(90deg,#ffd94d,#ffb84d)", borderRadius: 2 }} />
+                  </div>
+                  <div style={{ fontSize: 9, color: "#8fd0ff", marginTop: 2, display: "flex", gap: 8 }}>
+                    <span>💰 {idle.totals.gold}</span>
+                    <span>★ {idle.totals.captured}/151</span>
+                    <span style={{ marginLeft: "auto", color: "#c8b8d0" }}>XP tot {totalXp}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           <Panel title="SUA EQUIPE" accent="#c92a2a">
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {team.map((p) => (
                 <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
               ))}
-              <button style={smallBtn} onClick={() => setTab("pokemon")}>Ver todos</button>
+              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
             </div>
           </Panel>
+
 
           {/* Chat ocupa todo o espaço restante — sem rolagem externa */}
           <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
             <Panel title="REGISTRO DE BATALHA" accent="#1e3a5f">
               <div style={{
-                height: "calc(100vh - 380px)", minHeight: 160,
+                height: "calc(100vh - 400px)", minHeight: 180,
                 overflowY: "auto", display: "flex", flexDirection: "column-reverse",
                 gap: 4, fontSize: 11, lineHeight: 1.35,
                 background: "#0e0818", borderRadius: 6, padding: 6,
@@ -3814,6 +3871,31 @@ function IdlePage() {
                 }} />
               );
             })()}
+
+            {/* FX de contra-ataque do inimigo (elemento do alvo → em cima do meu poke) */}
+            {enemyAttackAnim && (() => {
+              const dt = Math.min(1, (Date.now() - enemyAttackAnim.ts) / 380);
+              const opacity = dt < 0.6 ? 1 : 1 - (dt - 0.6) / 0.4;
+              const scale = 0.55 + dt * 0.7;
+              const el = enemyAttackAnim.element;
+              const src = ELEMENT_FX_IMG[el];
+              const glow = ELEMENT_FX_GLOW[el];
+              const rot = -dt * 60;
+              return (
+                <img key={enemyAttackAnim.id} src={src} alt="" style={{
+                  position: "absolute",
+                  left: enemyAttackAnim.toX, top: enemyAttackAnim.toY,
+                  width: 72, height: 72,
+                  transform: `translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`,
+                  opacity,
+                  pointerEvents: "none",
+                  filter: `drop-shadow(0 0 10px ${glow}) drop-shadow(0 0 4px #ff3b3b)`,
+                  mixBlendMode: "screen",
+                  zIndex: 7,
+                }} />
+              );
+            })()}
+
 
             {/* Efeitos flutuantes (coords do mundo) */}
             {fx.map((f) => {
@@ -5320,47 +5402,35 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   const ePct = Math.max(0, Math.min(100, energy));
   const exhausted = !infinite && energy <= 0;
   return (
-    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{ display: "flex", gap: 8, alignItems: "center", background: exhausted ? "#1a1a1a" : "#2a1a3a", padding: 6, borderRadius: 6, cursor: onClick ? "pointer" : undefined, border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #555" : undefined), opacity: exhausted ? 0.65 : 1 }}>
+    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{ display: "flex", gap: 6, alignItems: "center", background: exhausted ? "#1a1a1a" : "#2a1a3a", padding: 4, borderRadius: 6, cursor: onClick ? "pointer" : undefined, border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #555" : "1px solid rgba(107,74,138,0.4)"), opacity: exhausted ? 0.65 : 1 }}>
       <div style={{
-        width: 48, height: 48, background: "#0b0510", borderRadius: 6,
-        display: "grid", placeItems: "center", overflow: "hidden", position: "relative",
+        width: 38, height: 38, background: "#0b0510", borderRadius: 6,
+        display: "grid", placeItems: "center", overflow: "hidden", position: "relative", flexShrink: 0,
       }}>
-        <img src={src} alt="" style={{ width: "90%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.7)" : undefined }} />
-        {resting && <span style={{ position: "absolute", top: 1, right: 2, fontSize: 10 }}>🏡</span>}
-        {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 18, textShadow: "0 0 4px #000" }}>🔒</span>}
+        <img src={src} alt="" style={{ width: "92%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.7)" : undefined }} />
+        {resting && <span style={{ position: "absolute", top: 0, right: 1, fontSize: 9 }}>🏡</span>}
+        {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 16, textShadow: "0 0 4px #000" }}>🔒</span>}
       </div>
 
-      <div style={{ flex: 1 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600 }}>
-          <span>{pet.species.replace(/_/g, " ").toUpperCase()}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, lineHeight: 1.15 }}>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pet.species.replace(/_/g, " ").toUpperCase()}</span>
+          <span style={{ color: "#ffd94d", marginLeft: 4 }}>Lv{pet.level}</span>
         </div>
-        <div style={{ fontSize: 10, color: "#b8a8c8" }}>Lv.{pet.level} <span style={{ float: "right" }}>{hp}/{maxHp}</span></div>
-        <div style={{ height: 4, background: "#3a1010", borderRadius: 2, marginTop: 2 }}>
-          <div style={{ width: `${pct}%`, height: "100%", background: pct > 40 ? "#5ec26a" : "#e34a4a", borderRadius: 2 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+          <div style={{ flex: 1, height: 4, background: "#3a1010", borderRadius: 2 }}>
+            <div style={{ width: `${pct}%`, height: "100%", background: pct > 40 ? "#5ec26a" : "#e34a4a", borderRadius: 2 }} />
+          </div>
+          <span style={{ fontSize: 8, color: "#b8a8c8", minWidth: 42, textAlign: "right" }}>{hp}/{maxHp}</span>
         </div>
-        {(() => {
-          const xpNeeded = 100 + pet.level * 20;
-          const xp = pet.xp ?? 0;
-          const xpPct = Math.max(0, Math.min(100, (xp / xpNeeded) * 100));
-          return (
-            <>
-              <div style={{ fontSize: 9, color: "#ffd94d", marginTop: 2, display: "flex", justifyContent: "space-between" }}>
-                <span>EXP</span><span>{xp}/{xpNeeded}</span>
-              </div>
-              <div style={{ height: 3, background: "#3a2a10", borderRadius: 2, marginTop: 1 }}>
-                <div style={{ width: `${xpPct}%`, height: "100%", background: "#ffd94d", borderRadius: 2 }} />
-              </div>
-            </>
-          );
-        })()}
-        <div style={{ fontSize: 9, color: "#8fd0ff", marginTop: 2, display: "flex", justifyContent: "space-between" }}>
-          <span>⚡ {infinite ? "∞" : `${energy}/100`}</span>
-          <span style={{ color: "#c8b8d0" }}>{infinite ? "MÍTICO" : (msFull > 0 ? fmtMS(msFull) : "cheia")}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 1 }}>
+          <div style={{ flex: 1, height: 3, background: "#0e2438", borderRadius: 2 }}>
+            <div style={{ width: `${infinite ? 100 : ePct}%`, height: "100%", background: resting ? "#7fc4ff" : (energy > 30 ? "#4a9eff" : "#ff7a3d"), borderRadius: 2 }} />
+          </div>
+          <span style={{ fontSize: 8, color: "#8fd0ff", minWidth: 42, textAlign: "right" }}>
+            ⚡{infinite ? "∞" : `${energy}`}
+          </span>
         </div>
-        <div style={{ height: 3, background: "#0e2438", borderRadius: 2, marginTop: 1 }}>
-          <div style={{ width: `${infinite ? 100 : ePct}%`, height: "100%", background: resting ? "#7fc4ff" : (energy > 30 ? "#4a9eff" : "#ff7a3d"), borderRadius: 2 }} />
-        </div>
-
       </div>
     </div>
   );
