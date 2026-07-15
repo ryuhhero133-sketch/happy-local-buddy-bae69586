@@ -1154,7 +1154,7 @@ function IdlePage() {
           leader_species: payload.leaderSp ?? null,
           leader_rarity: null,
           level: team[0]?.level ?? 1,
-          trainer_level: team[0]?.level ?? 1,
+          trainer_level: idle.trainerLevel ?? 1,
           craft_points: idle.craftPoints ?? 0,
           updated_at: new Date().toISOString(),
         });
