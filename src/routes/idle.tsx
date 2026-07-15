@@ -612,7 +612,7 @@ function freshIdle(): IdleState {
   return {
     startedAt: now, lastTickAt: now,
     pending: { gold: 0, rubies: 0, crystals: 0 },
-    totals: { gold: 0, captured: 0 },
+    totals: { gold: 0, captured: 0, kills: 0 },
     currentMap: "arena",
     tasks: DEFAULT_TASKS(),
     mapsUnlocked: 3,
