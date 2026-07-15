@@ -1559,7 +1559,7 @@ function IdlePage() {
 
         // Lunge: pokémon avança em direção ao inimigo
         const animId = attackAnimIdRef.current++;
-        setAttackAnim({ id: animId, fromX: followerAtX, fromY: followerAtY, toX: target.x, toY: target.y, ts: Date.now(), crit: isCrit });
+        setAttackAnim({ id: animId, fromX: followerAtX, fromY: followerAtY, toX: target.x, toY: target.y, ts: Date.now(), crit: isCrit, element: elementOf(leader.species) });
         setTimeout(() => setAttackAnim((a) => (a && a.id === animId ? null : a)), 420);
 
         // Dano do meu pokémon → aparece EM CIMA DO INIMIGO (com pequeno delay = impacto do lunge)
