@@ -635,7 +635,7 @@ function IdlePage() {
     return () => clearTimeout(t);
   }, [levelToast]);
   // alvo atual (para virar o pokémon) — id do inimigo que estamos atacando
-  const [, setAttackTargetId] = useState<number | null>(null);
+  const [attackTargetId, setAttackTargetId] = useState<number | null>(null);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [now, setNow] = useState(() => Date.now());
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
@@ -4983,6 +4983,176 @@ function IdlePage() {
               {isCurrent && (
                 <div style={{ marginTop: 14, textAlign: "center", color: "#3d7a4a", fontWeight: 900 }}>★ Este está no seu time</div>
               )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ===== HUD do Treinador (canto superior esquerdo) ===== */}
+      {(() => {
+        const leader = team[0];
+        if (!leader) return null;
+        const maxHp = calcIdleMaxHp(leader);
+        const hpPct = Math.max(0, Math.min(1, leaderHp / Math.max(1, maxHp)));
+        const hpColor = hpPct > 0.5 ? "#5ec26a" : hpPct > 0.25 ? "#f5cf6b" : "#e56b6b";
+        const name = identity?.name ?? "Treinador";
+        const leaderSp = leader.species;
+        const gif = GIF[leaderSp];
+        return (
+          <div style={{
+            position: "fixed", top: 12, left: 12, zIndex: 9997, pointerEvents: "none",
+            display: "flex", alignItems: "center", gap: 10,
+            background: "linear-gradient(180deg, rgba(24,14,38,0.92) 0%, rgba(14,8,24,0.92) 100%)",
+            border: "2px solid #d4af37",
+            borderRadius: 14,
+            padding: "8px 14px 8px 8px",
+            boxShadow: "0 8px 22px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,215,0,0.25) inset, 0 0 14px rgba(212,175,55,0.35)",
+            minWidth: 240,
+          }}>
+            <div style={{
+              width: 54, height: 54, flexShrink: 0, borderRadius: "50%",
+              background: "radial-gradient(circle at 40% 35%, #f5cf6b 0%, #8b6a30 70%, #3a2410 100%)",
+              border: "2px solid #f5cf6b",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+              boxShadow: "inset 0 0 6px rgba(0,0,0,0.5), 0 0 8px rgba(245,207,107,0.4)",
+            }}>
+              {gif ? (
+                <img src={gif} alt={leaderSp} style={{ width: "115%", height: "115%", objectFit: "contain", imageRendering: "pixelated" }} />
+              ) : (
+                <span style={{ fontSize: 26 }}>🎮</span>
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                <span style={{
+                  fontSize: 9, fontWeight: 900, color: "#1a0f26",
+                  background: "linear-gradient(180deg,#f5cf6b,#d4af37)",
+                  padding: "2px 6px", borderRadius: 4, letterSpacing: 1,
+                }}>Lv {leader.level}</span>
+                <span style={{
+                  fontSize: 12, fontWeight: 900, color: "#f5e5a8",
+                  textShadow: "1px 1px 0 #000", letterSpacing: 0.5,
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>{name}</span>
+              </div>
+              <div style={{
+                position: "relative", height: 12, background: "#0a0410",
+                border: "1px solid #4a3a1a", borderRadius: 6, overflow: "hidden",
+                boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)",
+              }}>
+                <div style={{
+                  position: "absolute", inset: 0, width: `${hpPct * 100}%`,
+                  background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
+                  transition: "width 220ms ease, background 220ms ease",
+                  boxShadow: `0 0 8px ${hpColor}88`,
+                }} />
+                <div style={{
+                  position: "absolute", inset: 0, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  fontSize: 9, fontWeight: 900, color: "#fff",
+                  textShadow: "1px 1px 0 #000, -1px -1px 0 #000",
+                  letterSpacing: 0.5,
+                }}>{Math.max(0, Math.round(leaderHp))} / {maxHp}</div>
+              </div>
+              <div style={{
+                fontSize: 8, color: "#c9a76a", marginTop: 2, letterSpacing: 1,
+                textTransform: "uppercase", fontWeight: 700,
+              }}>
+                {leaderSp.replace(/_/g, " ")} · {leader.rarity}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ===== HUD do Alvo (target — centro-topo) ===== */}
+      {(() => {
+        const tgt = attackTargetId != null ? enemies.find((e) => e.id === attackTargetId && e.hp > 0) : null;
+        if (!tgt) return null;
+        const hpPct = Math.max(0, Math.min(1, tgt.hp / Math.max(1, tgt.maxHp)));
+        const hpColor = hpPct > 0.5 ? "#e56b6b" : hpPct > 0.25 ? "#f5cf6b" : "#a83232";
+        const rarityColorMap: Record<string, string> = {
+          common: "#c8c8c8", uncommon: "#7ef2a2", rare: "#6bd4ff",
+          epic: "#c78bff", legendary: "#f5cf6b", mythic: "#ff97e1", mythic_shiny: "#ffd6ff",
+        };
+        const rColor = rarityColorMap[tgt.rarity] ?? "#c8c8c8";
+        const gif = GIF[tgt.sp];
+        return (
+          <div key={tgt.id} style={{
+            position: "fixed", top: 14, left: "50%", transform: "translateX(-50%)",
+            zIndex: 9997, pointerEvents: "none",
+            display: "flex", alignItems: "center", gap: 10,
+            background: "linear-gradient(180deg, rgba(38,14,14,0.94) 0%, rgba(20,6,6,0.94) 100%)",
+            border: `2px solid ${rColor}`,
+            borderRadius: 14,
+            padding: "8px 14px 8px 8px",
+            boxShadow: `0 8px 22px rgba(0,0,0,0.6), 0 0 0 1px ${rColor}44 inset, 0 0 16px ${rColor}66`,
+            minWidth: 260,
+            animation: "evt-slide 220ms cubic-bezier(.2,.9,.3,1.2)",
+          }}>
+            <div style={{
+              width: 54, height: 54, flexShrink: 0, borderRadius: "50%",
+              background: `radial-gradient(circle at 40% 35%, ${rColor}66 0%, #2a0a0a 75%)`,
+              border: `2px solid ${rColor}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+              boxShadow: `inset 0 0 6px rgba(0,0,0,0.6), 0 0 10px ${rColor}88`,
+            }}>
+              {gif ? (
+                <img src={gif} alt={tgt.sp} style={{
+                  width: "120%", height: "120%", objectFit: "contain",
+                  imageRendering: "pixelated",
+                  transform: tgt.face === "right" ? "scaleX(-1)" : "none",
+                }} />
+              ) : <span style={{ fontSize: 26 }}>❓</span>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                <span style={{
+                  fontSize: 9, fontWeight: 900, color: "#1a0f26",
+                  background: `linear-gradient(180deg,${rColor},${rColor}aa)`,
+                  padding: "2px 6px", borderRadius: 4, letterSpacing: 1,
+                }}>Lv {tgt.level}</span>
+                {tgt.elite && (
+                  <span style={{
+                    fontSize: 8, fontWeight: 900, color: "#fff",
+                    background: "linear-gradient(180deg,#c72525,#7a1010)",
+                    padding: "2px 5px", borderRadius: 4, letterSpacing: 1,
+                    border: "1px solid #f5cf6b",
+                  }}>★ ELITE</span>
+                )}
+                <span style={{
+                  fontSize: 13, fontWeight: 900, color: "#ffe5c5",
+                  textShadow: "1px 1px 0 #000", letterSpacing: 0.5,
+                  textTransform: "uppercase",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>{tgt.sp.replace(/_/g, " ")}</span>
+              </div>
+              <div style={{
+                position: "relative", height: 12, background: "#0a0410",
+                border: "1px solid #4a1a1a", borderRadius: 6, overflow: "hidden",
+                boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)",
+              }}>
+                <div style={{
+                  position: "absolute", inset: 0, width: `${hpPct * 100}%`,
+                  background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
+                  transition: "width 260ms ease, background 260ms ease",
+                  boxShadow: `0 0 8px ${hpColor}99`,
+                }} />
+                <div style={{
+                  position: "absolute", inset: 0, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  fontSize: 9, fontWeight: 900, color: "#fff",
+                  textShadow: "1px 1px 0 #000, -1px -1px 0 #000",
+                  letterSpacing: 0.5,
+                }}>{Math.max(0, Math.round(tgt.hp))} / {tgt.maxHp}</div>
+              </div>
+              <div style={{
+                fontSize: 8, color: rColor, marginTop: 2, letterSpacing: 1.5,
+                textTransform: "uppercase", fontWeight: 800,
+                textShadow: "1px 1px 0 #000",
+              }}>◆ {tgt.rarity} ◆ ALVO</div>
             </div>
           </div>
         );
