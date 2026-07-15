@@ -573,6 +573,8 @@ function freshIdle(): IdleState {
     buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0 },
     autoHeal: { enabled: false, threshold: 0.5 },
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
+    trainerLevel: 1,
+    trainerXp: 0,
   };
 }
 function saveIdle(s: IdleState) {
