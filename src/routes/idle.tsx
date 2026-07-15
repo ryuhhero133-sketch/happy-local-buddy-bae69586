@@ -7128,8 +7128,8 @@ function TabOverlay({
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <div style={{ background: "#b8862a", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.5)" }}>
-                {collection.length} NA COLEÇÃO
+              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "#b8862a", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.5)" }}>
+                {collection.length} / {MAX_COLLECTION} NA COLEÇÃO
               </div>
               <div style={{ background: "#8b6a30", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
                 {caughtSpecies.length} ESPÉCIES
