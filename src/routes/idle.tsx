@@ -757,6 +757,7 @@ function IdlePage() {
   const [restingUntil, setRestingUntil] = useState<number | null>(null);
   const [restingStart, setRestingStart] = useState<number | null>(null);
   const [restingKind, setRestingKind] = useState<"lar" | "azul" | null>(null);
+  const [restFullRecovery, setRestFullRecovery] = useState<boolean>(false);
   const restingRef = useRef<boolean>(false);
   useEffect(() => { restingRef.current = restingUntil !== null; }, [restingUntil]);
   // ===== Interação com prédios do mundo =====
