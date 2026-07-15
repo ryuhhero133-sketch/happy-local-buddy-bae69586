@@ -481,3 +481,131 @@ export const pushInitialState = createServerFn({ method: "POST" })
 
     return { ok: true, applied: true };
   });
+
+// ---- Sync client state (throttled, delta-clamped anti-cheat) ---------------
+// Client empurra o snapshot local; servidor CLAMPA ganhos e persiste.
+// Perdas (gastar ouro na loja etc.) são aceitas — cheat local só arma valores altos,
+// e o servidor descarta o excesso silenciosamente.
+
+const SyncSchema = z.object({
+  gold: z.number().int().min(0).max(1_000_000_000),
+  crystal: z.number().int().min(0).max(10_000_000),
+  ruby: z.number().int().min(0).max(10_000_000).optional().default(0),
+  trainer_level: z.number().int().min(1).max(100),
+  trainer_xp: z.number().int().min(0).max(1_000_000_000),
+  kill_count: z.number().int().min(0).max(10_000_000),
+  active_map: z.string().min(1).max(32).optional(),
+  pokeballs: z.record(z.string(), z.number().int().min(0).max(9999)),
+  collection: z.array(z.object({
+    species: z.string().min(1).max(64),
+    level: z.number().int().min(1).max(100),
+    rarity: RarityEnum,
+    team_slot: z.number().int().min(0).max(4).nullable().optional(),
+  })).max(2000),
+});
+
+// Ganhos máximos permitidos por push (~a cada 5-10s).
+const CAP_GAIN = {
+  gold: 250_000,
+  crystal: 500,
+  trainer_xp: 80_000,
+  trainer_level: 3,
+  kill_count: 60,
+  ball_per_type: 120,
+  new_pokemons: 15,
+};
+
+export const syncClientState = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => SyncSchema.parse(data))
+  .handler(async ({ data, context }): Promise<{ ok: boolean; clamped: boolean }> => {
+    const supabase = context.supabase as any;
+    const userId = context.userId;
+
+    const { data: cur } = await supabase.from("trainer_state")
+      .select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count")
+      .eq("user_id", userId).maybeSingle();
+
+    if (!cur) {
+      // Sem estado ainda: cai no pushInitialState.
+      return { ok: false, clamped: false };
+    }
+
+    let clamped = false;
+    const clamp = (prev: number, next: number, maxGain: number) => {
+      if (next <= prev) return next; // gastos ok
+      const gain = Math.min(next - prev, maxGain);
+      if (gain < next - prev) clamped = true;
+      return prev + gain;
+    };
+
+    const newGold  = clamp(Number(cur.gold),  data.gold,  CAP_GAIN.gold);
+    const newCry   = clamp(Number(cur.crystal), data.crystal, CAP_GAIN.crystal);
+    const newRuby  = clamp(Number(cur.ruby ?? 0), data.ruby, 1000);
+    const newLevel = clamp(cur.trainer_level, data.trainer_level, CAP_GAIN.trainer_level);
+    const newXp    = clamp(Number(cur.trainer_xp), data.trainer_xp, CAP_GAIN.trainer_xp);
+    const newKills = clamp(Number(cur.kill_count), data.kill_count, CAP_GAIN.kill_count);
+
+    await supabase.from("trainer_state").update({
+      gold: newGold, crystal: newCry, ruby: newRuby,
+      trainer_level: newLevel, trainer_xp: newXp, kill_count: newKills,
+      active_map: data.active_map ?? undefined,
+      updated_at: new Date().toISOString(),
+    }).eq("user_id", userId);
+
+    // Pokébolas: clamp ganho por tipo
+    const { data: curBalls } = await supabase.from("pokeballs")
+      .select("ball_type, qty").eq("user_id", userId);
+    const curMap: Record<string, number> = {};
+    for (const b of curBalls ?? []) curMap[b.ball_type] = Number(b.qty);
+
+    for (const [bt, qty] of Object.entries(data.pokeballs)) {
+      const prev = curMap[bt] ?? 0;
+      const nxt = clamp(prev, qty, CAP_GAIN.ball_per_type);
+      if (nxt !== prev) {
+        await supabase.from("pokeballs").upsert(
+          { user_id: userId, ball_type: bt, qty: nxt },
+          { onConflict: "user_id,ball_type" },
+        );
+      }
+    }
+
+    // Coleção: só INSERE novos (por species+level combo que ainda não existe pro user).
+    // Não deleta nem atualiza — evita perda de progresso por cheat inverso.
+    if (data.collection.length > 0) {
+      const { data: existing } = await supabase.from("pokemon_collection")
+        .select("species, level").eq("user_id", userId);
+      const key = (s: string, l: number) => `${s}:${l}`;
+      const have = new Set((existing ?? []).map((r: any) => key(r.species, r.level)));
+      const news = data.collection
+        .filter((p) => !have.has(key(p.species, p.level)))
+        .slice(0, CAP_GAIN.new_pokemons);
+      if (news.length < data.collection.filter((p) => !have.has(key(p.species, p.level))).length) {
+        clamped = true;
+      }
+      if (news.length > 0) {
+        const rows = news.map((p) => {
+          const hp = 20 + p.level * 4;
+          return {
+            user_id: userId, species: p.species, level: p.level, rarity: p.rarity,
+            hp_current: hp, hp_max: hp, energy: 100, team_slot: p.team_slot ?? null,
+          };
+        });
+        await supabase.from("pokemon_collection").insert(rows);
+      }
+    }
+
+    // Espelha ranking
+    const username = (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador";
+    const { count: pokedexCount } = await supabase.from("pokemon_collection")
+      .select("id", { count: "exact", head: true }).eq("user_id", userId);
+    await supabase.from("ranked_scores").upsert({
+      user_id: userId, username,
+      trainer_level: newLevel,
+      pokedex_count: pokedexCount ?? 0,
+      total_kills: newKills,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+
+    return { ok: true, clamped };
+  });
