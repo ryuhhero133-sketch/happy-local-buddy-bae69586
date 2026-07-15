@@ -2915,15 +2915,64 @@ function IdlePage() {
 
 
         {/* ============ COLUNA ESQUERDA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, minHeight: 0, overflow: "hidden" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+          {/* --- PERFIL DE TREINADOR --- */}
+          {(() => {
+            const leaderP = team[0];
+            const trainerLv = team.reduce((m, p) => Math.max(m, p.level), 1);
+            const totalXp = team.reduce((s, p) => s + (p.xp ?? 0) + (p.level - 1) * 120, 0);
+            const nextAt = 100 + trainerLv * 20;
+            const curXp = leaderP?.xp ?? 0;
+            const xpPct = Math.max(0, Math.min(100, (curXp / nextAt) * 100));
+            const av = leaderP ? GIF[leaderP.species] : null;
+            const name = (identity?.name || "Treinador").slice(0, 16);
+            return (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "6px 8px",
+                background: "linear-gradient(180deg,#2a1a3a,#1a0f2a)",
+                border: "1px solid #6b4a8a", borderRadius: 8,
+                boxShadow: "inset 0 0 12px rgba(255,217,77,0.08)",
+              }}>
+                <div style={{
+                  width: 46, height: 46, borderRadius: "50%",
+                  background: "radial-gradient(circle,#3a2a5a,#0b0510)",
+                  border: "2px solid #ffd94d",
+                  display: "grid", placeItems: "center", overflow: "hidden",
+                  boxShadow: "0 0 8px rgba(255,217,77,0.4)",
+                }}>
+                  {av && <img src={av} alt="" style={{ width: "88%", imageRendering: "pixelated" }} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 800, color: "#ffe89a" }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>🎓 {name}</span>
+                    <span style={{ color: "#ffd94d" }}>Lv.{trainerLv}</span>
+                  </div>
+                  <div style={{ fontSize: 9, color: "#b8a8c8", marginTop: 1, display: "flex", justifyContent: "space-between" }}>
+                    <span>XP</span><span>{curXp}/{nextAt}</span>
+                  </div>
+                  <div style={{ height: 4, background: "#1a0f2a", borderRadius: 2, marginTop: 1, border: "1px solid #3a2a5a" }}>
+                    <div style={{ width: `${xpPct}%`, height: "100%", background: "linear-gradient(90deg,#ffd94d,#ffb84d)", borderRadius: 2 }} />
+                  </div>
+                  <div style={{ fontSize: 9, color: "#8fd0ff", marginTop: 2, display: "flex", gap: 8 }}>
+                    <span>💰 {idle.totals.gold}</span>
+                    <span>★ {idle.totals.captured}/151</span>
+                    <span style={{ marginLeft: "auto", color: "#c8b8d0" }}>XP tot {totalXp}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           <Panel title="SUA EQUIPE" accent="#c92a2a">
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {team.map((p) => (
                 <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
               ))}
-              <button style={smallBtn} onClick={() => setTab("pokemon")}>Ver todos</button>
+              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
             </div>
           </Panel>
+
 
           {/* Chat ocupa todo o espaço restante — sem rolagem externa */}
           <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
