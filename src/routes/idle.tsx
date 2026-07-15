@@ -1894,8 +1894,12 @@ function IdlePage() {
               common: 1, uncommon: 1.2, rare: 1.5, epic: 2, legendary: 3, mythic: 4.5, mythic_shiny: 6,
             };
             const rMult = rarityTrainerMult[target.rarity] ?? 1;
-            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * (1 + (expActive ? idle.buffs.expMult : 0))));
-            const captureTrainerXp = captured ? Math.max(5, Math.round((25 + target.level * 6) * rMult)) : 0;
+            // Escala por diferença de nível: cada nv acima do inimigo reduz 8% (mín 10%).
+            const trLv = s.trainerLevel ?? 1;
+            const lvDiff = trLv - target.level;
+            const lvScale = lvDiff <= 0 ? 1 : Math.max(0.1, 1 - lvDiff * 0.08);
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * lvScale * (1 + (expActive ? idle.buffs.expMult : 0))));
+            const captureTrainerXp = captured ? Math.max(5, Math.round((25 + target.level * 6) * rMult * lvScale)) : 0;
             const totalTrainerXp = killTrainerXp + captureTrainerXp;
             const applied = applyTrainerXp(s, totalTrainerXp);
             if (applied.leveledTo != null) {
