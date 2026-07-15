@@ -187,6 +187,26 @@ const meowthUrl = assetUrl(meowthAsset.url);
 const psyduckUrl = assetUrl(psyduckAsset.url);
 const lucarioAuraUrl = assetUrl(lucarioAuraAsset.url);
 const mewAuraUrl = assetUrl(mewAuraAsset.url);
+const oddishUrl = assetUrl(oddishAsset.url);
+const bellsproutUrl = assetUrl(bellsproutAsset.url);
+const weedleUrl = assetUrl(weedleAsset.url);
+const kakunaUrl = assetUrl(kakunaAsset.url);
+const parasUrl = assetUrl(parasAsset.url);
+const parasectUrl = assetUrl(parasectAsset.url);
+const venonatUrl = assetUrl(venonatAsset.url);
+const clefairyUrl = assetUrl(clefairyAsset.url);
+const eeveeUrl = assetUrl(eeveeAsset.url);
+const sandshrewUrl = assetUrl(sandshrewAsset.url);
+const mankeyUrl = assetUrl(mankeyAsset.url);
+const poliwagUrl = assetUrl(poliwagAsset.url);
+const magikarpUrl = assetUrl(magikarpAsset.url);
+const growlitheUrl = assetUrl(growlitheAsset.url);
+const abraUrl = assetUrl(abraAsset.url);
+const cuboneUrl = assetUrl(cuboneAsset.url);
+const magnemiteUrl = assetUrl(magnemiteAsset.url);
+const nidoranFUrl = assetUrl(nidoranFAsset.url);
+const snorlaxUrl = assetUrl(snorlaxAsset.url);
+const gloomUrl = assetUrl(gloomAsset.url);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const gameDb = supabase as any;
 
