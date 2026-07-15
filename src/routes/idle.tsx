@@ -5012,7 +5012,7 @@ function IdlePage() {
               overflow: "hidden",
               boxShadow: `inset 0 0 8px ${eventToast.color}44`,
             }}>
-              <img src="/src/assets/npc-oak.png" alt="Guia" style={{ width: "110%", height: "110%", objectFit: "cover", imageRendering: "pixelated" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+              <img src={npcOakSprite} alt="Guia" style={{ width: "110%", height: "110%", objectFit: "cover", imageRendering: "pixelated" }} />
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1.5 }}>
