@@ -2830,53 +2830,51 @@ function IdlePage() {
         pushChat(`Cristais insuficientes para ${bk.name}.`, "info");
         return s;
       }
-      // Aplica o efeito direto (aparece em Melhorias na hora, sem passar pela mochila)
-      let newBuffs = {
-        atk: s.buffs?.atk ?? 0,
-        def: s.buffs?.def ?? 0,
-        expMult: s.buffs?.expMult ?? 0,
-        expMultUntil: s.buffs?.expMultUntil ?? 0,
-        goldMult: s.buffs?.goldMult ?? 0,
-        goldMultUntil: s.buffs?.goldMultUntil ?? 0,
-      };
-      let msg = "";
-      const now = Date.now();
-      if (bk.id === "book_atk") {
-        newBuffs.atk = newBuffs.atk + 0.10;
-        msg = `+10% ATK permanente`;
-      } else if (bk.id === "book_def") {
-        newBuffs.def = newBuffs.def + 0.10;
-        msg = `-10% dano recebido permanente`;
-      } else if (bk.id === "book_vip" || bk.id === "book_vip_30" || bk.id === "book_vip_60") {
-        const cfg = bk.id === "book_vip_60"
-          ? { add: 0.40, ms: 60 * 24 * 3600_000, label: "60 dias" }
-          : bk.id === "book_vip_30"
-            ? { add: 0.30, ms: 30 * 24 * 3600_000, label: "30 dias" }
-            : { add: 0.20, ms: 3600_000, label: "1 hora" };
-        const expStill = (newBuffs.expMultUntil ?? 0) > now;
-        const goldStill = (newBuffs.goldMultUntil ?? 0) > now;
-        newBuffs.expMult = Math.max(expStill ? newBuffs.expMult : 0, cfg.add);
-        newBuffs.expMultUntil = Math.max(newBuffs.expMultUntil ?? 0, now + cfg.ms);
-        newBuffs.goldMult = Math.max(goldStill ? newBuffs.goldMult : 0, cfg.add);
-        newBuffs.goldMultUntil = Math.max(newBuffs.goldMultUntil ?? 0, now + cfg.ms);
-        msg = `+${Math.round(cfg.add * 100)}% ouro e EXP por ${cfg.label}`;
-      } else {
-        const add = bk.id === "book_exp" ? 0.30 : bk.id === "book_exp_big" ? 0.50 : 1.00;
-        const stillActive = (newBuffs.expMultUntil ?? 0) > now;
-        const base = stillActive ? newBuffs.expMult : 0;
-        newBuffs.expMult = base + add;
-        newBuffs.expMultUntil = now + 3600_000;
-        msg = `+${Math.round(add * 100)}% EXP por 1h`;
-      }
-      pushFxAt(trainerPos.x, trainerPos.y - 40, msg, "capture");
-      pushChat(`Comprou e aplicou ${bk.name} (${msg}).`, "cap");
+      const curQty = s.items[bk.id] ?? 0;
+      pushChat(`Comprou ${bk.name}. Use pela Mochila quando quiser.`, "cap");
       return {
         ...s,
         bank: { ...s.bank, crystals: s.bank.crystals - bk.price },
-        buffs: newBuffs,
+        items: { ...s.items, [bk.id]: curQty + 1 },
       };
     });
   };
+
+  // ===== UPGRADE de Livros =====
+  // Regras: junta livros iguais para forjar o próximo nível. Exige nível de treinador.
+  const BOOK_UPGRADES: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+    book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "Livro EXP Raro" },
+    book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "Livro EXP Lendário" },
+    book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "Livro VIP 30d" },
+    book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "Livro VIP 60d" },
+  };
+  const upgradeBook = (id: string) => {
+    const rule = BOOK_UPGRADES[id];
+    if (!rule) { pushChat(`Este livro não pode ser melhorado.`, "info"); return; }
+    setIdle((s) => {
+      const trLv = s.trainerLevel ?? 1;
+      if (trLv < rule.trainerLv) {
+        pushChat(`Precisa ser Treinador Lv.${rule.trainerLv} para forjar ${rule.label}.`, "info");
+        return s;
+      }
+      const have = s.items[id] ?? 0;
+      if (have < rule.cost) {
+        pushChat(`Precisa de ${rule.cost}× para forjar ${rule.label}.`, "info");
+        return s;
+      }
+      pushChat(`⚒️ Forjou ${rule.label}! (-${rule.cost} usados)`, "cap");
+      pushEvent("⚒️", "FORJA DE LIVRO", `${rule.label}`, "#8bffb0");
+      return {
+        ...s,
+        items: {
+          ...s.items,
+          [id]: have - rule.cost,
+          [rule.to]: (s.items[rule.to] ?? 0) + 1,
+        },
+      };
+    });
+  };
+
 
   const CHEST_AMULET_PRICE = 2500;
   const buyChestAmulet = () => {
