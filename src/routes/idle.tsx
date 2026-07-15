@@ -3865,11 +3865,11 @@ function IdlePage() {
             transition: "transform 120ms linear",
             backgroundColor: viewportBg,
             backgroundImage: isPedreira
-              ? `url(${map.bg}), repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 32px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 3px, transparent 3px 42px)`
+              ? `radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%), url(${caveFloorUrl})`
               : `url(${map.bg})`,
-            backgroundSize: isPedreira ? `${WORLD_W}px ${WORLD_H}px, 64px 64px, 84px 84px` : `${WORLD_W}px ${WORLD_H}px`,
-            backgroundBlendMode: isPedreira ? "luminosity, screen, multiply" : undefined,
-            backgroundRepeat: isPedreira ? "repeat, repeat, repeat" : "no-repeat",
+            backgroundSize: isPedreira ? `${WORLD_W}px ${WORLD_H}px, 256px 256px` : `${WORLD_W}px ${WORLD_H}px`,
+            backgroundBlendMode: isPedreira ? "multiply, normal" : undefined,
+            backgroundRepeat: isPedreira ? "no-repeat, repeat" : "no-repeat",
             imageRendering: "pixelated",
           }}>
 
