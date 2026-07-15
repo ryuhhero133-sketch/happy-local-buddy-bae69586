@@ -1829,8 +1829,28 @@ function IdlePage() {
             const newCollection = capturedPet
               ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now() }]
               : prevCol;
+            // === XP DO TREINADOR (separado do XP do pokémon) ===
+            // Base: ~40% do xp do pokémon, escalado pelo nível do inimigo e raridade.
+            const rarityTrainerMult: Record<Rarity, number> = {
+              common: 1, uncommon: 1.2, rare: 1.5, epic: 2, legendary: 3, mythic: 4.5, mythic_shiny: 6,
+            };
+            const rMult = rarityTrainerMult[target.rarity] ?? 1;
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * (1 + (expActive ? idle.buffs.expMult : 0))));
+            const captureTrainerXp = captured ? Math.max(5, Math.round((25 + target.level * 6) * rMult)) : 0;
+            const totalTrainerXp = killTrainerXp + captureTrainerXp;
+            const applied = applyTrainerXp(s, totalTrainerXp);
+            if (applied.leveledTo != null) {
+              // level up de treinador — chat + fx (fora do setState via microtask)
+              queueMicrotask(() => {
+                pushChat(`🎓 TREINADOR subiu para o nível ${applied.leveledTo}!`, "lv");
+                pushFxAt(trainerPos.x, trainerPos.y - 130, `TREINADOR LV ${applied.leveledTo}!`, "capture");
+              });
+            }
+            queueMicrotask(() => {
+              pushFxAt(target.x, target.y - 80, `+${totalTrainerXp} XP Tr`, "xp");
+            });
             return {
-              ...s,
+              ...applied.state,
               pending: { ...s.pending, gold: s.pending.gold + gold },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc },
               tasks: nt2,
