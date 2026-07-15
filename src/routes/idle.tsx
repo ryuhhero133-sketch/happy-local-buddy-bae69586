@@ -140,11 +140,9 @@ import parasAsset from "@/assets/paras.gif.asset.json";
 import parasectAsset from "@/assets/parasect.gif.asset.json";
 import venonatAsset from "@/assets/venonat.gif.asset.json";
 import clefairyAsset from "@/assets/clefairy.gif.asset.json";
-import eeveeAsset from "@/assets/eevee.gif.asset.json";
 import sandshrewAsset from "@/assets/sandshrew.gif.asset.json";
 import mankeyAsset from "@/assets/mankey.gif.asset.json";
 import poliwagAsset from "@/assets/poliwag.gif.asset.json";
-import magikarpAsset from "@/assets/magikarp.gif.asset.json";
 import growlitheAsset from "@/assets/growlithe.gif.asset.json";
 import abraAsset from "@/assets/abra.gif.asset.json";
 import cuboneAsset from "@/assets/cubone.gif.asset.json";
@@ -155,7 +153,6 @@ import gloomAsset from "@/assets/gloom.gif.asset.json";
 import caterpieGif from "@/assets/caterpie.gif";
 import metapodGif from "@/assets/metapod.gif";
 import vulpixGif from "@/assets/vulpix.gif";
-import geodudeGif from "@/assets/geodude.gif";
 
 
 const IDLE_KEY = "rubym.idle.v1";
