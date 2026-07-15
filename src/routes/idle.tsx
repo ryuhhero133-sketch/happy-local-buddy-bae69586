@@ -2985,6 +2985,8 @@ function IdlePage() {
           pool = ["blaziken", "charmander", "charmeleon", "charizard", "magmar", "arcanine", "growlithe",
                   "ekans", "arbok", "zubat", "venonat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
         }
+        pool = pool.filter(hasGif);
+        if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
 
