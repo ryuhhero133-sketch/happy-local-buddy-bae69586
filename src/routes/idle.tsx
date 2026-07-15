@@ -2798,8 +2798,10 @@ function IdlePage() {
     if (eggId === "egg_aura") {
       sp = (Math.random() < 0.5 ? "lucario" : "mew") as Species;
     } else {
-      const unlocked = speciesUnlockedFor(leaderLv);
-      sp = unlocked[Math.floor(Math.random() * unlocked.length)] as Species;
+      const unlocked = speciesUnlockedFor(leaderLv).filter((x) => !!GIF[x]);
+      const fallback = (Object.keys(GIF) as Species[]);
+      const pickFrom = unlocked.length ? unlocked : fallback;
+      sp = pickFrom[Math.floor(Math.random() * pickFrom.length)] as Species;
     }
     const rarity = rollEggRarity(eggId);
     const pet = makePet(sp, Math.max(1, leaderLv), rarity as Rarity);
