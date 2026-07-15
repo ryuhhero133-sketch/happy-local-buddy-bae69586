@@ -2939,9 +2939,7 @@ function IdlePage() {
     const remaining = restingUntil - Date.now();
     const t = setTimeout(() => {
       const kind = restingKind;
-      const start = restingStart ?? Date.now();
-      const total = (restingUntil ?? Date.now()) - start;
-      const fullRecovery = kind !== "lar" || total >= 60 * 60 * 1000; // 10s Lar = só HP; 1h Lar = HP + energia
+      const fullRecovery = kind !== "lar" || restFullRecovery;
       // Restaura HP em todo o time; energia só se descanso completo
       setTeam((tm) => tm.map((p) => ({
         ...p,
