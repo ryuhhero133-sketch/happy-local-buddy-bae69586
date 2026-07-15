@@ -1839,22 +1839,20 @@ function IdlePage() {
             if (tm.length === 0) return tm;
             const now = Date.now();
             return tm.map((p, idx) => {
-              const curE = petCurrentEnergy(p, now);
-              const regen = ENERGY_REGEN_MS[p.rarity] ?? 20 * 60 * 1000;
-              const newE = regen === 0 ? ENERGY_MAX : Math.max(0, curE - ENERGY_DRAIN_PER_KILL);
-              if (idx === 0) {
-                const newXp = (p.xp ?? 0) + xp;
-                let lv = p.level;
-                let remaining = newXp;
-                while (lv < 3000 && remaining >= 100 + lv * 20) { remaining -= 100 + lv * 20; lv += 1; }
-                if (lv >= 3000) remaining = 0;
-                return {
-                  ...p, level: lv, xp: remaining,
-                  hp: Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })),
-                  energy: newE, energyRegenAt: now,
-                } as PetInstance;
-              }
-              return { ...p, energy: newE, energyRegenAt: now } as PetInstance;
+              if (idx !== 0) return p; // apenas o líder drena por kill
+              const curE = petCurrentEnergy(p, now, { active: true });
+              const drainKill = energyDrainPerKill(p.rarity);
+              const newE = drainKill === 0 ? ENERGY_MAX : Math.max(0, curE - drainKill);
+              const newXp = (p.xp ?? 0) + xp;
+              let lv = p.level;
+              let remaining = newXp;
+              while (lv < 3000 && remaining >= 100 + lv * 20) { remaining -= 100 + lv * 20; lv += 1; }
+              if (lv >= 3000) remaining = 0;
+              return {
+                ...p, level: lv, xp: remaining,
+                hp: Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })),
+                energy: newE, energyRegenAt: now,
+              } as PetInstance;
             });
           });
 
