@@ -264,6 +264,7 @@ const GIF: Partial<Record<Species, string>> = {
   clefairy: clefairyUrl, sandshrew: sandshrewUrl, mankey: mankeyUrl,
   poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
+  pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
 };
 
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
