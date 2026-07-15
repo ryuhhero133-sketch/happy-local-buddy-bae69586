@@ -456,6 +456,8 @@ type IdleState = {
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 10min
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
+  trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
+  trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number };
