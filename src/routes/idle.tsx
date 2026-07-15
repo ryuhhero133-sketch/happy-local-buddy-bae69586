@@ -5507,8 +5507,9 @@ function IdlePage() {
         const now = Date.now();
         const maxHp = calcIdleMaxHp(pet);
         const hp = pet.uid === team[0]?.uid ? leaderHp : (pet.hp ?? maxHp);
-        const energy = petCurrentEnergy(pet, now);
-        const msFull = petMsToFull(pet, now);
+        const inTeam = team.some((p) => p.uid === pet.uid);
+        const energy = petCurrentEnergy(pet, now, { active: inTeam });
+        const msFull = inTeam ? 0 : petMsToFull(pet, now);
         const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
         const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
         const src = GIF[pet.species];
