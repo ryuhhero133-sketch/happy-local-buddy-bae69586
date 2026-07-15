@@ -2073,10 +2073,12 @@ function IdlePage() {
   ];
   const legendIdxRef = useRef(0);
   const [legendUntil, setLegendUntil] = useState<{ until: number; weather?: "snow" | "rain" } | null>(null);
+  const currentMapRef = useRef(idle.currentMap);
+  useEffect(() => { currentMapRef.current = idle.currentMap; }, [idle.currentMap]);
   useEffect(() => {
     const trigger = () => {
       // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial)
-      if (idle.currentMap === "arena") return;
+      if (currentMapRef.current === "arena") return;
       const pick = LEGEND_ROSTER[Math.floor(Math.random() * LEGEND_ROSTER.length)];
       legendIdxRef.current++;
       const until = Date.now() + LEGEND_DURATION_MS;
