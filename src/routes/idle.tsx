@@ -665,18 +665,21 @@ const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
 const ENERGY_MAX = 100;
 const ENERGY_DRAIN_PER_KILL = 8;
 const AZUL_REST_MS = 5 * 60 * 1000;
+const AZUL_REST_FREE_MS = 60 * 60 * 1000; // 1h grátis quando não há cristais
 const AZUL_REST_COST = 5; // diamantes
-type PetEnergyExt = PetInstance & { energy?: number; energyRegenAt?: number; azulRestUntil?: number; azulRestFromEnergy?: number };
+type PetEnergyExt = PetInstance & { energy?: number; energyRegenAt?: number; azulRestUntil?: number; azulRestFromEnergy?: number; azulRestTotalMs?: number };
 function petCurrentEnergy(pet: PetInstance, now: number = Date.now()): number {
   const p = pet as PetEnergyExt;
   const regen = ENERGY_REGEN_MS[pet.rarity] ?? 20 * 60 * 1000;
   if (regen === 0) return ENERGY_MAX;
   if (p.azulRestUntil && p.azulRestUntil > now) {
-    const start = p.azulRestUntil - AZUL_REST_MS;
-    const t = Math.max(0, Math.min(1, (now - start) / AZUL_REST_MS));
+    const total = p.azulRestTotalMs ?? AZUL_REST_MS;
+    const start = p.azulRestUntil - total;
+    const t = Math.max(0, Math.min(1, (now - start) / total));
     const base = p.azulRestFromEnergy ?? p.energy ?? ENERGY_MAX;
     return Math.round(base + (ENERGY_MAX - base) * t);
   }
+
   const stored = p.energy ?? ENERGY_MAX;
   const regenAt = p.energyRegenAt ?? now;
   const gain = ((now - regenAt) / regen) * ENERGY_MAX;
