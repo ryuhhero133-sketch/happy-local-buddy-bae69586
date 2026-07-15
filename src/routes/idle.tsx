@@ -526,9 +526,9 @@ export const CRAFT_BY_RARITY: Record<Rarity, number> = {
 };
 
 const DEFAULT_TASKS = (): Task[] => [
-  { id: "t1", title: "Derrote 30 Pokémon selvagens", reward: 200, progress: 0, target: 30, done: false },
-  { id: "t2", title: "Colete 5000 de ouro offline",   reward: 150, progress: 0, target: 5000, done: false },
-  { id: "t3", title: "Capture 10 Pokémon",            reward: 100, progress: 0, target: 10, done: false },
+  { id: "t1", title: "Derrote 30 Pokémon selvagens", reward: 3, progress: 0, target: 30, done: false },
+  { id: "t2", title: "Colete 5000 de ouro offline",   reward: 2, progress: 0, target: 5000, done: false },
+  { id: "t3", title: "Capture 10 Pokémon",            reward: 4, progress: 0, target: 10, done: false },
 ];
 
 // Itens farmáveis (drop aleatório dos inimigos derrotados)
