@@ -349,168 +349,111 @@ function StarField() {
 }
 
 function PanelShell({ children, title }: { children: ReactNode; title?: string }) {
-  const gemSize = 42;
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4 font-mono relative overflow-hidden"
       style={{ background: "#05010a" }}
     >
-      {/* Mew background (subtle, floating) */}
+      {/* Background art */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
-          backgroundImage: `url(${mewBgAsset.url})`,
+          backgroundImage: `url(${loginBgAsset.url})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          imageRendering: "pixelated",
-          filter: "brightness(0.32) saturate(1.1) contrast(1.05) blur(1px)",
-          animation: "mewFloat 14s ease-in-out infinite",
-          willChange: "transform",
+          filter: "brightness(0.55) saturate(1.05)",
         }}
       />
-      <style>{`
-        @keyframes mewFloat {
-          0%, 100% { transform: translate3d(0, 0, 0) scale(1.04); }
-          25%      { transform: translate3d(-1.2%, -1.5%, 0) scale(1.06); }
-          50%      { transform: translate3d(1.5%, -0.8%, 0) scale(1.05); }
-          75%      { transform: translate3d(-0.8%, 1.2%, 0) scale(1.06); }
-        }
-      `}</style>
-      {/* Dark vignette */}
+      {/* Vignette */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(5,1,10,0.55) 0%, rgba(5,1,10,0.88) 70%, rgba(0,0,0,0.96) 100%)",
+            "radial-gradient(ellipse at center, rgba(5,1,10,0.35) 0%, rgba(5,1,10,0.75) 65%, rgba(0,0,0,0.95) 100%)",
         }}
       />
-      {/* Pixel scanlines */}
+      {/* Subtle scanlines */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(0deg, rgba(0,0,0,0.22) 0px, rgba(0,0,0,0.22) 1px, transparent 1px, transparent 3px)",
+            "repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px)",
           mixBlendMode: "multiply",
         }}
       />
-      <StarField />
 
-      {/* Pixel-art ruby moldura */}
+      {/* Panel */}
       <div className="relative w-full" style={{ maxWidth: 380 }}>
-        {/* outer glow */}
         <div
           aria-hidden
-          className="absolute -inset-2 pointer-events-none"
+          className="absolute -inset-3 pointer-events-none"
           style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(239,68,68,0.35), transparent 70%)",
-            filter: "blur(14px)",
+            background: "radial-gradient(ellipse at center, rgba(239,68,68,0.30), transparent 70%)",
+            filter: "blur(18px)",
           }}
         />
-
-        {/* Frame: layered borders to look like an inset metallic moldura */}
         <div
           className="relative"
           style={{
-            padding: 4,
-            background: "linear-gradient(180deg, #fca5a5 0%, #b91c1c 40%, #450a0a 100%)",
-            border: "2px solid #000",
-            boxShadow:
-              "0 0 0 2px #2a0508, 0 0 24px rgba(239,68,68,0.45), 0 12px 40px rgba(0,0,0,0.8)",
-            borderRadius: 4,
+            padding: 2,
+            background: "linear-gradient(180deg, #fca5a5 0%, #b91c1c 45%, #450a0a 100%)",
+            borderRadius: 10,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.85), 0 0 22px rgba(239,68,68,0.35)",
           }}
         >
           <div
+            className="relative"
             style={{
-              padding: 3,
-              background: "linear-gradient(180deg, #7f1d1d, #3b0a0d)",
-              border: "1px solid #1a0306",
-              borderRadius: 2,
+              padding: "26px 22px 22px",
+              background:
+                "linear-gradient(180deg, rgba(15,3,8,0.94), rgba(35,6,14,0.94))",
+              borderRadius: 8,
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
             }}
           >
-            <div
-              className="relative"
-              style={{
-                padding: "20px 18px 18px",
-                background:
-                  "linear-gradient(180deg, rgba(20,4,10,0.96), rgba(40,6,14,0.96))",
-                border: "1px solid #ef4444",
-                boxShadow:
-                  "inset 0 0 22px rgba(0,0,0,0.85), inset 0 0 4px rgba(239,68,68,0.25)",
-                borderRadius: 2,
-              }}
-            >
-              {/* Corner gems */}
-              {([
-                { top: -gemSize / 2, left: -gemSize / 2 },
-                { top: -gemSize / 2, right: -gemSize / 2 },
-                { bottom: -gemSize / 2, left: -gemSize / 2 },
-                { bottom: -gemSize / 2, right: -gemSize / 2 },
-              ] as const).map((pos, i) => (
-                <img
-                  key={i}
-                  src={rubyGemAsset.url}
-                  alt=""
-                  width={gemSize}
-                  height={gemSize}
-                  style={{
-                    position: "absolute",
-                    ...pos,
-                    imageRendering: "pixelated",
-                    zIndex: 5,
-                    filter: "drop-shadow(0 0 2px rgba(239,68,68,0.6))",
-                  }}
-                />
-              ))}
-
-              {/* Title bar */}
-              <div className="text-center mb-3 flex items-center justify-center gap-2">
-                <span style={{ color: "#ef4444" }}>◆</span>
-                <div
-                  className="text-base font-bold"
-                  style={{
-                    color: "#fef2f2",
-                    textShadow:
-                      "2px 2px 0 #7f1d1d, 3px 3px 0 #000, 0 0 12px rgba(239,68,68,0.7)",
-                    fontFamily: '"Press Start 2P", ui-monospace, monospace',
-                    letterSpacing: "3px",
-                  }}
-                >
-                  IDLE MON
-                </div>
-                <span style={{ color: "#ef4444" }}>◆</span>
-              </div>
-
-              {/* Subtítulo do jogo — sempre visível, bem organizado */}
+            <div className="text-center mb-1">
               <div
-                className="text-center mb-2"
+                className="text-lg font-bold"
                 style={{
-                  color: "#fca5a5",
-                  fontSize: 9,
-                  letterSpacing: "3px",
-                  textShadow: "1px 1px 0 #000",
+                  color: "#fef2f2",
+                  textShadow:
+                    "2px 2px 0 #7f1d1d, 3px 3px 0 #000, 0 0 14px rgba(239,68,68,0.7)",
+                  fontFamily: '"Press Start 2P", ui-monospace, monospace',
+                  letterSpacing: "4px",
                 }}
               >
-                AVENTURA · IDLE · MONSTRINHOS
+                IDLE MON
               </div>
-
-              {title && (
-                <div
-                  className="text-center text-[10px] tracking-[4px] mb-3 pb-2"
-                  style={{
-                    color: "#fca5a5",
-                    textShadow: "1px 1px 0 #000",
-                    borderBottom: "1px dashed rgba(239,68,68,0.35)",
-                  }}
-                >
-                  ◆ {title} ◆
-                </div>
-              )}
-              {children}
             </div>
+            <div
+              className="text-center mb-4"
+              style={{
+                color: "#fca5a5",
+                fontSize: 9,
+                letterSpacing: "3px",
+                textShadow: "1px 1px 0 #000",
+              }}
+            >
+              AVENTURA · IDLE · MONSTRINHOS
+            </div>
+
+            {title && (
+              <div
+                className="text-center text-[10px] tracking-[4px] mb-3 pb-2"
+                style={{
+                  color: "#fca5a5",
+                  textShadow: "1px 1px 0 #000",
+                  borderBottom: "1px dashed rgba(239,68,68,0.35)",
+                }}
+              >
+                ◆ {title} ◆
+              </div>
+            )}
+            {children}
           </div>
         </div>
       </div>
