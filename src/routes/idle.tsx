@@ -226,7 +226,7 @@ type IdleMapDef = {
   cycle?: { cycleMs: number; openMs: number };
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
-  arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  element: "Grama"    },
+  arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama"    },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 1,  element: "Terra"    },
   venofogo: { name: "Pântano em Chamas",       diff: "Médio",     bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 1,  element: "Veneno/Fogo" },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 1,  element: "Água"     },
