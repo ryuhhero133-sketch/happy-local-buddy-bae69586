@@ -969,7 +969,7 @@ function IdlePage() {
   }, []);
 
 
-  type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" };
+  type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture" };
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const chatIdRef = useRef(1);
   const pushChat = (text: string, kind: ChatMsg["kind"] = "info") => {
