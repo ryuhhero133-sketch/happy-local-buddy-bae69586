@@ -1496,17 +1496,18 @@ function IdlePage() {
       }
 
       if (!autoRef.current) { if (moving) setMoving(false); return; }
-      // Time inviável (vazio, todos KO ou todos sem energia): vai até o Lar sozinho pra descansar
+      // Time inviável: se todos estão desmaiados (HP=0) → vai ao Lar curar (5s).
+      // Se time está vazio mas há pokémon prontos na Coleção → não trava, só
+      // pausa o auto e avisa pra escolher outro. Sem energia é resolvido
+      // automaticamente enviando o pokémon à Casa Azul.
       {
         const nowE = Date.now();
         const noTeam = team.length === 0;
         const allFainted = !noTeam && team.every((p) => (p.uid === team[0].uid ? leaderHp : (p.hp ?? calcIdleMaxHp(p))) <= 0);
-        const allExhausted = !noTeam && team.every((p) => petIsExhausted(p, nowE));
-        if ((noTeam || allFainted || allExhausted) && !restingRef.current && !walkTargetRef.current) {
+        if (allFainted && !restingRef.current && !walkTargetRef.current) {
           const lar = BUILDINGS.find((b) => b.key === "lar");
           if (lar) {
-            const reason = noTeam ? "Sem Pokémon no time" : allFainted ? "Todos desmaiados" : "Todos sem energia";
-            pushChat(`🏠 ${reason} — indo até o Lar (${AZUL_REST_COST}💎 = 10s, ou 1h grátis).`, "info");
+            pushChat(`🏠 Time desmaiado — indo até o Lar recuperar HP (5s).`, "info");
             walkTargetRef.current = {
               x: lar.x, y: lar.y + 20, label: "Lar",
               resumeAuto: true,
@@ -1517,11 +1518,17 @@ function IdlePage() {
           if (moving) setMoving(false);
           return;
         }
-        if (noTeam || allFainted || allExhausted) {
+        if (noTeam) {
+          // Sem pokémon no time — não força ida ao Lar; deixa o jogador escolher outro da Coleção.
+          if (autoRef.current) {
+            setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
+            pushChat(`🎒 Sem Pokémon no time. Abra a Coleção e escolha outro para batalhar.`, "info");
+          }
           if (moving) setMoving(false);
           return;
         }
       }
+
       setTrainerPos((tp) => {
         const nowT = Date.now();
         // limpa blacklist expirada
