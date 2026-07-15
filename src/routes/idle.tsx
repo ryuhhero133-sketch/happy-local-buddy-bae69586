@@ -240,6 +240,12 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
   pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapStoneUrl,     rate: 2.4, minLevel: 25, maxLevel: 55, element: "Pedra/Terra" },
 };
+
+type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
+const WORLD_PORTALS: WorldPortalDef[] = [
+  { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 377, y: 330,  arriveX: 960, arriveY: 1680, color: "#ff5ea8", label: "Pedreira Antiga" },
+  { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: 960, y: 1780, arriveX: 377, arriveY: 430,  color: "#7ef27a", label: "Vale Verdejante" },
+];
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
   const c = IDLE_MAPS.caverna.cycle!;
@@ -1563,6 +1569,16 @@ function IdlePage() {
   const wanderRef = useRef<{ x: number; y: number; until: number } | null>(null);
   const overCapMsgRef = useRef<number>(0);
 
+  const enterWorldPortal = (p: WorldPortalDef) => {
+    setIdle((s) => ({ ...s, currentMap: p.to }));
+    setTrainerPos({ x: p.arriveX, y: p.arriveY });
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    setAttackTargetId(null);
+    setEnemies([]);
+    pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
+  };
+
   useEffect(() => {
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
@@ -2225,6 +2241,12 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, [team, trainerPos, leaderHp]);
 
+  useEffect(() => {
+    const portal = WORLD_PORTALS.find((p) => p.from === idle.currentMap && Math.hypot(trainerPos.x - p.x, trainerPos.y - p.y) <= 58);
+    if (portal) enterWorldPortal(portal);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trainerPos.x, trainerPos.y, idle.currentMap]);
+
 
   useEffect(() => { saveIdle(idle); }, [idle]);
 
@@ -2866,6 +2888,13 @@ function IdlePage() {
 
   const activeTime = now - idle.startedAt;
   const map = IDLE_MAPS[idle.currentMap];
+  const isPedreira = idle.currentMap === "pedreira";
+  const visibleBuildings = isPedreira ? [] : BUILDINGS;
+  const viewportBg = isPedreira
+    ? "#2e333b"
+    : idle.currentMap === "caverna"
+      ? "#1f2028"
+      : "#1a3d1a";
 
   const collect = () => {
     setIdle((s) => {
@@ -3694,7 +3723,7 @@ function IdlePage() {
             position: "relative",
             borderRadius: 12,
             overflow: "hidden",
-            background: "#1a3d1a",
+            background: viewportBg,
             minHeight: 520,
             height: "calc(100vh - 110px)",
             boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)",
@@ -3823,9 +3852,13 @@ function IdlePage() {
             transform: `scale(${zoom}) translate3d(${-camX}px, ${-camY}px, 0)`,
             transformOrigin: "0 0",
             transition: "transform 120ms linear",
-            backgroundImage: `url(${map.bg})`,
-            backgroundSize: `${WORLD_W}px ${WORLD_H}px`,
-            backgroundRepeat: "no-repeat",
+            backgroundColor: viewportBg,
+            backgroundImage: isPedreira
+              ? `url(${map.bg}), repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 32px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 3px, transparent 3px 42px)`
+              : `url(${map.bg})`,
+            backgroundSize: isPedreira ? `${WORLD_W}px ${WORLD_H}px, 64px 64px, 84px 84px` : `${WORLD_W}px ${WORLD_H}px`,
+            backgroundBlendMode: isPedreira ? "luminosity, screen, multiply" : undefined,
+            backgroundRepeat: isPedreira ? "repeat, repeat, repeat" : "no-repeat",
             imageRendering: "pixelated",
           }}>
 
@@ -4091,7 +4124,7 @@ function IdlePage() {
 
 
             {/* Prédios do mundo — Laboratório e Lar (SVG estilizado) */}
-            {BUILDINGS.map((b) => {
+            {visibleBuildings.map((b) => {
               const active = nearBuilding === b.key;
               return (
                 <div
@@ -4146,20 +4179,12 @@ function IdlePage() {
 
             {/* Portais no mundo — pontos de viagem visíveis */}
             {(() => {
-              const worldPortals: { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string }[] = [
-                { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 450,           y: 420,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 140, color: "#ff5ea8", label: "Pedreira Antiga" },
-                { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: WORLD_W / 2,   y: WORLD_H - 140, arriveX: 450,         arriveY: 420,           color: "#7ef27a", label: "Vale Verdejante" },
-              ];
-              return worldPortals.filter(p => p.from === idle.currentMap).map((p) => (
+              return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => (
                 <div
                   key={p.key}
                   onClick={() => {
                     playClick();
-                    setIdle((s) => ({ ...s, currentMap: p.to }));
-                    setTrainerPos({ x: p.arriveX, y: p.arriveY });
-                    const cap = IDLE_MAPS[p.to].maxLevel;
-                    if (cap != null) setEnemies((prev) => prev.filter((e) => (e.level ?? 1) <= cap));
-                    pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
+                    enterWorldPortal(p);
                   }}
                   style={{
                     position: "absolute",
@@ -4987,7 +5012,7 @@ function IdlePage() {
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-flor",  target: "floresta", x: WORLD_W - 60, y: WORLD_H / 2,  arriveX: 100,          arriveY: WORLD_H / 2,   color: "#7ef27a" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
-                  { key: "to-pedreira", target: "pedreira", x: 450,      y: 420,          arriveX: WORLD_W / 2,  arriveY: WORLD_H - 140, color: "#ff5ea8" },
+                  { key: "to-pedreira", target: "pedreira", x: 377,      y: 330,          arriveX: WORLD_W / 2,  arriveY: WORLD_H - 240, color: "#ff5ea8" },
                 ],
                 terra: [
                   { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
@@ -5016,7 +5041,7 @@ function IdlePage() {
                   { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
                 ],
                 pedreira: [
-                  { key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: 1200, arriveY: 1080, color: "#ff5ea8" },
+                  { key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: 377, arriveY: 430, color: "#ff5ea8" },
                 ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
@@ -5054,7 +5079,7 @@ function IdlePage() {
                   margin: "0 auto",
                 }}>
                   {/* Prédios (clicáveis) */}
-                  {BUILDINGS.map((b) => (
+                  {visibleBuildings.map((b) => (
                     <button
                       key={b.key}
                       title={`Ir ao ${b.label}`}
