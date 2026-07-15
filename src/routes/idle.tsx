@@ -6481,7 +6481,7 @@ function TabOverlay({
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6 }}>
                     <span style={{ color: "#eadfe8", fontWeight: 700, fontSize: 13 }}>{t.title}</span>
                     <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#f5cf6b", fontWeight: 800 }}>
-                      <img src={rubyGemUrl} alt="" style={{ width: 14 }} />
+                      <img src={crystalGreenImg} alt="" style={{ width: 14, imageRendering: "pixelated" }} />
                       {t.reward}
                     </span>
                   </div>
