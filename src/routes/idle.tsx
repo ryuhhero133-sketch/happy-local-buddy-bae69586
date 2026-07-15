@@ -829,22 +829,12 @@ function IdlePage() {
   const playBonus = () => playSfx(sfxBonusUrl);
   const playChestOpen = () => playSfx(sfxChestOpenUrl);
 
-  // Weather (rain / snow / clear) — estilo pixel RPG
+  // Weather (rain / snow / clear) — DESABILITADO temporariamente, sempre "clear"
   const [weather, setWeather] = useState<"rain" | "snow" | "clear">("clear");
   useEffect(() => {
-    // alterna: clear (30s) -> rain (35s) -> clear (25s) -> snow (35s) -> loop
-    const seq: ("clear" | "rain" | "snow")[] = ["clear", "rain", "clear", "snow"];
-    const durs = [30000, 35000, 25000, 35000];
-    let idx = 0;
-    setWeather(seq[0]);
-    const tick = () => {
-      idx = (idx + 1) % seq.length;
-      setWeather(seq[idx]);
-      to = setTimeout(tick, durs[idx]);
-    };
-    let to = setTimeout(tick, durs[0]);
-    return () => clearTimeout(to);
+    setWeather("clear");
   }, []);
+
   // Partículas pré-geradas
   const rainDrops = useMemo(() => {
     const arr: { left: number; delay: number; dur: number; len: number; op: number; w: number }[] = [];
@@ -1840,7 +1830,7 @@ function IdlePage() {
       legendIdxRef.current++;
       const until = Date.now() + LEGEND_DURATION_MS;
       setLegendUntil({ until, weather: pick.weather });
-      if (pick.weather) setWeather(pick.weather);
+      // clima desabilitado: if (pick.weather) setWeather(pick.weather);
       setEnemies((prev) => {
         if (prev.some((e) => e.sp === pick.sp)) return prev;
         let x = 200, y = 200, tries = 0;
@@ -1866,16 +1856,11 @@ function IdlePage() {
     return () => { clearTimeout(firstTo); clearInterval(iv); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Enquanto o evento estiver ativo, força o clima escolhido
+  // Enquanto o evento estiver ativo, força o clima escolhido — DESABILITADO
   useEffect(() => {
-    if (!legendUntil || legendUntil.until <= Date.now() || !legendUntil.weather) return;
-    setWeather(legendUntil.weather);
-    const iv = setInterval(() => {
-      if (!legendUntil || Date.now() >= legendUntil.until) { clearInterval(iv); return; }
-      if (legendUntil.weather) setWeather(legendUntil.weather);
-    }, 1500);
-    return () => clearInterval(iv);
+    setWeather("clear");
   }, [legendUntil]);
+
 
 
 
