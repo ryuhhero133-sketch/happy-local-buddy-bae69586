@@ -3823,6 +3823,31 @@ function IdlePage() {
               );
             })()}
 
+            {/* FX de contra-ataque do inimigo (elemento do alvo → em cima do meu poke) */}
+            {enemyAttackAnim && (() => {
+              const dt = Math.min(1, (Date.now() - enemyAttackAnim.ts) / 380);
+              const opacity = dt < 0.6 ? 1 : 1 - (dt - 0.6) / 0.4;
+              const scale = 0.55 + dt * 0.7;
+              const el = enemyAttackAnim.element;
+              const src = ELEMENT_FX_IMG[el];
+              const glow = ELEMENT_FX_GLOW[el];
+              const rot = -dt * 60;
+              return (
+                <img key={enemyAttackAnim.id} src={src} alt="" style={{
+                  position: "absolute",
+                  left: enemyAttackAnim.toX, top: enemyAttackAnim.toY,
+                  width: 72, height: 72,
+                  transform: `translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`,
+                  opacity,
+                  pointerEvents: "none",
+                  filter: `drop-shadow(0 0 10px ${glow}) drop-shadow(0 0 4px #ff3b3b)`,
+                  mixBlendMode: "screen",
+                  zIndex: 7,
+                }} />
+              );
+            })()}
+
+
             {/* Efeitos flutuantes (coords do mundo) */}
             {fx.map((f) => {
               const color =
