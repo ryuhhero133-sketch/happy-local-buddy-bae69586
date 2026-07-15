@@ -1429,7 +1429,7 @@ function IdlePage() {
           const lar = BUILDINGS.find((b) => b.key === "lar");
           if (lar) {
             const reason = noTeam ? "Sem Pokémon no time" : allFainted ? "Todos desmaiados" : "Todos sem energia";
-            pushChat(`🏠 ${reason} — indo até o Lar para descansar (1h grátis).`, "info");
+            pushChat(`🏠 ${reason} — indo até o Lar (${AZUL_REST_COST}💎 = 10s, ou 1h grátis).`, "info");
             walkTargetRef.current = {
               x: lar.x, y: lar.y + 20, label: "Lar",
               resumeAuto: true,
