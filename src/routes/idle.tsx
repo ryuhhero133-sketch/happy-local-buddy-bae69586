@@ -1824,7 +1824,11 @@ function IdlePage() {
           const baseGold = idle.currentMap === "neve"
             ? (2 + Math.floor(Math.random() * 4))
             : Math.floor(35 + Math.random() * 55);
-          const gold = Math.max(1, Math.floor(baseGold * totalMult));
+          // Se o treinador passou do cap do mapa, ouro colapsa junto com o XP.
+          const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
+          const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
+          const goldCapPenalty = overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1;
+          const gold = Math.max(1, Math.floor(baseGold * totalMult * goldCapPenalty));
           pushFxAt(target.x, target.y - 50, `+${xp} EXP`, "xp");
           const bonusParts: string[] = [];
           if (expActive) bonusParts.push(`EXP+${Math.round(idle.buffs.expMult * 100)}%`);
