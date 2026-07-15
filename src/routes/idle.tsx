@@ -224,6 +224,73 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
 
 const ENEMY_POOL: Species[] = ["rattata_f", "pidgey", "zubat", "ekans", "machop", "diglett", "meowth", "psyduck"];
 
+// ============ Elemento por espécie (para FX de ataque) ============
+type ElementFx = "grass" | "fire" | "water" | "electric" | "poison" | "psychic" | "ice" | "rock" | "fighting" | "flying" | "normal";
+const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
+  // Grama/bicho
+  bulbasaur: "grass", ivysaur: "grass", venusaur: "grass",
+  oddish: "grass", gloom: "grass", vileplume: "grass",
+  bellsprout: "grass", weepinbell: "grass", victreebel: "grass",
+  paras: "grass", parasect: "grass",
+  caterpie: "grass", metapod: "grass", butterfree: "flying",
+  virizion: "grass",
+  // Fogo
+  charmander: "fire", charmeleon: "fire", charizard: "fire",
+  growlithe: "fire", arcanine: "fire", ninetales: "fire", vulpix: "fire",
+  magmar: "fire", flareon: "fire", moltres: "fire", blaziken: "fire",
+  // Água
+  squirtle: "water", wartortle: "water", blastoise: "water",
+  psyduck: "water", golduck: "water",
+  poliwag: "water", poliwhirl: "water", poliwrath: "fighting",
+  magikarp: "water", gyarados: "water", vaporeon: "water", lapras: "water",
+  suicune: "water", suicune_shiny: "water",
+  // Elétrico
+  pikachu: "electric", raichu: "electric", magnemite: "electric",
+  jolteon: "electric", zapdos: "electric", luxray_f: "electric", raikou: "electric",
+  // Veneno / bicho venenoso
+  weedle: "poison", kakuna: "poison", beedrill: "poison",
+  ekans: "poison", arbok: "poison",
+  zubat: "poison", golbat: "poison",
+  nidoran_f: "poison", nidorina: "poison", nidoqueen: "poison", nidoking: "poison",
+  venonat: "poison", venomoth: "poison",
+  // Psíquico
+  abra: "psychic", kadabra: "psychic", alakazam: "psychic",
+  mew: "psychic", mewtwo: "psychic",
+  // Gelo
+  articuno: "ice",
+  // Pedra / terra
+  diglett: "rock", dugtrio: "rock",
+  sandshrew: "rock", sandslash: "rock",
+  cubone: "rock", marowak: "rock",
+  golem: "rock", geodude: "rock", graveler: "rock",
+  // Fighting
+  machop: "fighting", machoke: "fighting", machamp: "fighting",
+  mankey: "fighting", primeape: "fighting",
+  lucario: "fighting", pinsir: "fighting",
+  // Flying
+  pidgey: "flying", pidgeotto: "flying", pidgeot: "flying",
+  fearow: "flying", spearow: "flying",
+  // Normal
+  rattata_f: "normal", raticate_f: "normal",
+  meowth: "normal", persian: "normal",
+  eevee: "normal", snorlax: "normal",
+  clefairy: "normal", clefable: "normal",
+} as Record<string, ElementFx>;
+
+function elementOf(sp: Species): ElementFx {
+  return SPECIES_ELEMENT[sp] ?? "normal";
+}
+const ELEMENT_FX_IMG: Record<ElementFx, string> = {
+  grass: fxGrassImg, fire: fxFireImg, water: fxWaterImg, electric: fxElectricImg,
+  poison: fxPoisonImg, psychic: fxPsychicImg, ice: fxIceImg, rock: fxRockImg,
+  fighting: fxFightingImg, flying: fxFlyingImg, normal: fxSlashImg,
+};
+const ELEMENT_FX_GLOW: Record<ElementFx, string> = {
+  grass: "#66e07a", fire: "#ff8a3d", water: "#4dc4ff", electric: "#ffe14d",
+  poison: "#c56bff", psychic: "#ff8bd6", ice: "#8ee8ff", rock: "#c69466",
+  fighting: "#ffd166", flying: "#cfe9ff", normal: "#ffb84d",
+};
+
 // ============ Obstáculos com colisão ============
 type Obstacle = {
   id: number;
