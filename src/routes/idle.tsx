@@ -2808,14 +2808,32 @@ function IdlePage() {
           return [{ ...l, energy: newE, energyRegenAt: now } as PetInstance, ...tm.slice(1)];
         });
 
-        const gain = 200 + Math.floor(Math.random() * 200);
+        // Tabela de loot balanceada
+        //  20% vazio  |  25% chave  |  20% pokébola  |  25% ouro  |  10% cristal
         const roll = Math.random();
-        const bonusCrystal = roll < 0.30 ? 1 : 0;
-        const bonusBall = (!bonusCrystal && roll < 0.55) ? 1 : 0;
-        const parts = [`+${gain} ouro`];
+        let gain = 0;
+        let bonusCrystal = 0;
+        let bonusBall = 0;
+        let bonusKey = 0;
+        let emptyDrop = false;
+        if (roll < 0.20) {
+          emptyDrop = true;
+        } else if (roll < 0.45) {
+          bonusKey = 1;
+        } else if (roll < 0.65) {
+          bonusBall = 1;
+        } else if (roll < 0.90) {
+          gain = 150 + Math.floor(Math.random() * 250);
+        } else {
+          bonusCrystal = 1;
+        }
+        const parts: string[] = [];
+        if (emptyDrop) parts.push("vazio…");
+        if (gain > 0) parts.push(`+${gain} ouro`);
         if (bonusCrystal) parts.push("+1 💎");
         if (bonusBall) parts.push("+1 Pokébola");
-        pushFxAt(oc.x, oc.y - 50, parts.join(" · "), "gold");
+        if (bonusKey) parts.push("+1 🔑 Chave");
+        pushFxAt(oc.x, oc.y - 50, parts.join(" · "), emptyDrop ? "info" : "gold");
         pushChat(`Baú aberto! ${parts.join(" · ")}`, "chest");
         playChestOpen();
         setIdle((s) => ({
