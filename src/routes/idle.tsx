@@ -2952,6 +2952,7 @@ function IdlePage() {
       setRestingUntil(null);
       setRestingStart(null);
       setRestingKind(null);
+      setRestFullRecovery(false);
       const msg = kind === "lar"
         ? (fullRecovery
             ? "🏠 Descanso concluído! HP + energia totalmente recuperados."
