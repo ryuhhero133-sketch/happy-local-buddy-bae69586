@@ -750,7 +750,7 @@ function IdlePage() {
   const [colecaoDetailUid, setColecaoDetailUid] = useState<string | null>(null);
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
-  const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean } | null>(null);
+  const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [, setAnimTick] = useState(0);
   const attackAnimIdRef = useRef(1);
   useEffect(() => {
