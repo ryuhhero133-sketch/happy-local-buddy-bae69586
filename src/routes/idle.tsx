@@ -712,7 +712,7 @@ function freshIdle(): IdleState {
     collection: [],
     craftPoints: 0,
     items: { premium_box: 1 },
-    bank: { gold: 5000, crystals: 0 },
+    bank: { gold: 0, crystals: 30 },
     buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0 },
     autoHeal: { enabled: false, threshold: 0.5 },
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
@@ -1139,15 +1139,8 @@ function IdlePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [energyTick]);
 
-  // Bônus único: +1.000.000 ouro e +100 💎 (aplica 1x por conta local)
-  useEffect(() => {
-    try {
-      if (localStorage.getItem("rubym.bonus.mkt.v1") === "1") return;
-      setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + 1_000_000, crystals: s.bank.crystals + 100 } }));
-      localStorage.setItem("rubym.bonus.mkt.v1", "1");
-      pushChat("🎁 Bônus recebido: +1.000.000 ouro e +100 💎", "cap");
-    } catch { /* ignore */ }
-  }, []); // eslint-disable-line
+  // (removido) bônus inicial de ouro/cristal — jogador começa com 0 ouro e 30 💎
+
 
 
 
