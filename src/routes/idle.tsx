@@ -12,6 +12,7 @@ import navColecao from "@/assets/icons/nav-colecao.png";
 import navLoja from "@/assets/icons/nav-loja.png";
 import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
+import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
 import chestOpenImg from "@/assets/icons/chest-open.png";
@@ -6115,7 +6116,27 @@ function TabOverlay({
       </div>
 
       {tab === "pokemon" && leader && (
-        <div>
+        <div style={{
+          position: "relative",
+          padding: "14px 12px 18px",
+          borderRadius: 18,
+          border: "3px solid #6b3fa0",
+          background: `linear-gradient(180deg, rgba(20,10,35,0.82) 0%, rgba(30,15,50,0.9) 45%, rgba(20,10,35,0.95) 100%), url(${pokemonTabBg}) center/cover no-repeat`,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.55), inset 0 0 40px rgba(192,132,252,0.15), 0 0 22px rgba(192,132,252,0.25)",
+          overflow: "hidden",
+        }}>
+          {/* decorative sparkles overlay */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(circle at 12% 10%, rgba(255,151,225,0.18), transparent 45%), radial-gradient(circle at 88% 90%, rgba(192,132,252,0.18), transparent 45%)",
+          }} />
+          <div style={{
+            position: "absolute", top: 8, right: 14,
+            fontSize: 10, fontWeight: 900, letterSpacing: 3,
+            color: "#ff97e1", textShadow: "0 0 8px rgba(255,151,225,0.7)",
+            opacity: 0.85,
+          }}>✦ MEW ✦</div>
+          <div style={{ position: "relative" }}>
           <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
           <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} />
           <SpeciesLore species={leader.species} rarity={leader.rarity} />
@@ -6190,16 +6211,30 @@ function TabOverlay({
                       spe: Math.round(base * 0.8 + lvl * 2.2),
                     };
                     const maxStat = Math.max(stats.atk, stats.def, stats.spa, stats.spd, stats.spe, 1);
-                    const statRow = (icon: string, label: string, val: number, col: string) => (
+                    const StatIcon = ({ kind, col }: { kind: string; col: string }) => {
+                      const paths: Record<string, any> = {
+                        atk: <><path d="M4 20 L14 10 M12 8 L20 4 L18 12 L10 10 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><circle cx="5" cy="19" r="1.5" fill={col}/></>,
+                        def: <><path d="M12 3 L20 6 V12 C20 17 16 20 12 21 C8 20 4 17 4 12 V6 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><path d="M9 12 L11 14 L15 10" stroke={col} strokeWidth="2" fill="none" strokeLinecap="round"/></>,
+                        spa: <><path d="M12 3 L14 10 L21 12 L14 14 L12 21 L10 14 L3 12 L10 10 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
+                        spd: <><circle cx="12" cy="12" r="8" stroke={col} strokeWidth="2" fill={col+"33"}/><path d="M12 4 Q16 12 12 20 Q8 12 12 4" stroke={col} strokeWidth="1.5" fill={col+"77"}/></>,
+                        spe: <><path d="M13 3 L4 14 H11 L9 21 L20 10 H13 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
+                      };
+                      return (
+                        <svg viewBox="0 0 24 24" width="18" height="18" style={{ filter: `drop-shadow(0 0 3px ${col}aa)` }}>
+                          {paths[kind]}
+                        </svg>
+                      );
+                    };
+                    const statRow = (kind: string, label: string, val: number, col: string) => (
                       <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <div style={{
-                          width: 22, height: 22, borderRadius: 6,
+                          width: 26, height: 26, borderRadius: 7,
                           background: `radial-gradient(circle at 30% 25%, ${col}66, ${col}22 70%, rgba(0,0,0,0.4))`,
                           border: `1px solid ${col}aa`,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 12, flexShrink: 0,
+                          flexShrink: 0,
                           boxShadow: `0 0 6px ${col}55, inset 0 1px 0 rgba(255,255,255,0.15)`,
-                        }}>{icon}</div>
+                        }}><StatIcon kind={kind} col={col} /></div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "#c8b8d0", marginBottom: 2 }}>
                             <span>{label}</span>
@@ -6307,11 +6342,11 @@ function TabOverlay({
 
                           {/* Stats grid */}
                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 2 }}>
-                            {statRow("⚔", "ATK", stats.atk, "#ff7a7a")}
-                            {statRow("🛡", "DEF", stats.def, "#7ec4ff")}
-                            {statRow("✨", "S.ATK", stats.spa, "#c084fc")}
-                            {statRow("🌀", "S.DEF", stats.spd, "#7ef2a2")}
-                            {statRow("💨", "VEL", stats.spe, "#f5cf6b")}
+                            {statRow("atk", "ATK", stats.atk, "#ff7a7a")}
+                            {statRow("def", "DEF", stats.def, "#7ec4ff")}
+                            {statRow("spa", "S.ATK", stats.spa, "#c084fc")}
+                            {statRow("spd", "S.DEF", stats.spd, "#7ef2a2")}
+                            {statRow("spe", "VEL", stats.spe, "#f5cf6b")}
                           </div>
                         </div>
 
@@ -6371,6 +6406,7 @@ function TabOverlay({
             );
           })()}
 
+          </div>
         </div>
       )}
 
