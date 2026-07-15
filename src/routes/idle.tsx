@@ -4127,6 +4127,49 @@ function IdlePage() {
               );
             })}
 
+            {/* Portais no mundo — pontos de viagem visíveis */}
+            {(() => {
+              const worldPortals: { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string }[] = [
+                { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 1200,          y: 1080,          arriveX: WORLD_W / 2, arriveY: WORLD_H - 140, color: "#ff5ea8", label: "Pedreira Antiga" },
+                { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: WORLD_W / 2,   y: WORLD_H - 140, arriveX: 1200,        arriveY: 1080,          color: "#7ef27a", label: "Vale Verdejante" },
+              ];
+              return worldPortals.filter(p => p.from === idle.currentMap).map((p) => (
+                <div
+                  key={p.key}
+                  onClick={() => {
+                    playClick();
+                    setIdle((s) => ({ ...s, currentMap: p.to }));
+                    setTrainerPos({ x: p.arriveX, y: p.arriveY });
+                    const cap = IDLE_MAPS[p.to].maxLevel;
+                    if (cap != null) setEnemies((prev) => prev.filter((e) => (e.level ?? 1) <= cap));
+                    pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
+                  }}
+                  style={{
+                    position: "absolute",
+                    left: p.x - 40, top: p.y - 40,
+                    width: 80, height: 80,
+                    borderRadius: "50%",
+                    background: `radial-gradient(circle, ${p.color}cc 0%, ${p.color}55 45%, transparent 75%)`,
+                    border: `3px solid ${p.color}`,
+                    boxShadow: `0 0 24px ${p.color}, inset 0 0 18px ${p.color}88`,
+                    cursor: "pointer",
+                    zIndex: Math.round(p.y),
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    animation: "pulse 1.6s ease-in-out infinite",
+                  }}
+                  title={`Ir para ${p.label}`}
+                >
+                  <div style={{
+                    fontSize: 11, fontWeight: 800, color: "#fff",
+                    textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+                    textAlign: "center", padding: "0 4px", lineHeight: 1.1,
+                  }}>
+                    🌀<br/>{p.label}
+                  </div>
+                </div>
+              ));
+            })()}
+
 
 
             {/* Inimigos espalhados pelo mapa */}
