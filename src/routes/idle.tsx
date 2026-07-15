@@ -2961,7 +2961,7 @@ function IdlePage() {
       } else if (idle.currentMap === "pedreira") {
         // Pedreira Antiga — Pokémon de Pedra/Terra, níveis 30-55.
         // (onix, sandslash, nidoking, aerodactyl, kabutops removidos — sem sprite/GIF disponível.)
-        const STONE_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = [
+        const STONE_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = ([
           { sp: "sandshrew" as Species, w: 14, forcedRarity: "uncommon" },
           { sp: "diglett"   as Species, w: 14, forcedRarity: "uncommon" },
           { sp: "cubone"    as Species, w: 12, forcedRarity: "uncommon" },
@@ -2969,7 +2969,7 @@ function IdlePage() {
           { sp: "mankey"    as Species, w: 10, forcedRarity: "rare" },
           { sp: "magnemite" as Species, w:  8, forcedRarity: "rare" },
           { sp: "golem"     as Species, w:  5, forcedRarity: "epic" },
-        ];
+        ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
         const total = STONE_TABLE.reduce((s, e) => s + e.w, 0);
         let r = Math.random() * total;
         let chosen = STONE_TABLE[0];
