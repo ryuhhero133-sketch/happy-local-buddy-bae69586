@@ -4142,7 +4142,7 @@ function IdlePage() {
 
           {/* Overlay de DESCANSO — congela o jogo, cura no final */}
           {restingUntil !== null && restingStart !== null && (() => {
-            const totalDur = restingKind === "azul" ? REST_DURATION_BLUE_MS : REST_DURATION_LAR_MS;
+            const totalDur = Math.max(1, restingUntil - restingStart);
             const elapsed = Math.min(totalDur, Math.max(0, Date.now() - restingStart));
             const remaining = Math.max(0, restingUntil - Date.now());
             const pct = Math.min(100, (elapsed / totalDur) * 100);
