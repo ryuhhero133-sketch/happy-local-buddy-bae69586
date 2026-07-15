@@ -2768,6 +2768,18 @@ function IdlePage() {
       pushChat(`Livro VIP usado (+${Math.round(cfg.add*100)}% ouro e EXP por ${cfg.label}).`, "cap");
     } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura") {
       openEgg(id as EggId);
+    } else if (id === "premium_box") {
+      setIdle((s) => ({
+        ...s,
+        items: {
+          ...s.items,
+          premium_box: (s.items.premium_box ?? 0) - 1,
+          potion: (s.items.potion ?? 0) + 50,
+          pokeball: (s.items.pokeball ?? 0) + 50,
+        },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "+50 Poção · +50 Pokébola", "capture");
+      pushChat(`🎁 Caixa Premium aberta! Você recebeu 50 Poções e 50 Pokébolas de evento.`, "cap");
     }
   };
 
