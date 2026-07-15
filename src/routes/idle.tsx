@@ -6038,6 +6038,8 @@ function TabOverlay({
   isVip: boolean;
   skinId: string;
   setSkinId: (id: string) => void;
+  trainerLevel: number;
+  onUpgradeBook: (id: string) => void;
 
 
 }) {
