@@ -3063,12 +3063,14 @@ function IdlePage() {
                 {[...chat].reverse().map((m) => {
                   const color =
                     m.kind === "chest" ? "#ffa64a" :
+                    m.kind === "capture" ? "#ff97e1" :
                     m.kind === "cap" ? "#ffd94d" :
                     m.kind === "lv" ? "#6bd4ff" :
                     m.kind === "hit" ? "#ff6b6b" :
                     m.kind === "dmg" ? "#f5cf6b" : "#c8b8d0";
                   const prefix =
                     m.kind === "chest" ? "🎁" :
+                    m.kind === "capture" ? "✦" :
                     m.kind === "cap" ? "★" :
                     m.kind === "lv" ? "⬆" :
                     m.kind === "hit" ? "✖" :
