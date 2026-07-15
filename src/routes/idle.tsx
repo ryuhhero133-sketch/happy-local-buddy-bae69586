@@ -49,7 +49,7 @@ import npcOakSprite from "@/assets/npc-oak.png";
 import { GuestGate } from "@/components/GuestGate";
 import { loadIdentity, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
-import { assetUrl } from "@/lib/assetUrl";
+import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
@@ -111,11 +111,11 @@ import stalagmiteAsset from "@/assets/stalagmite.png.asset.json";
 import caveCrystalAsset from "@/assets/cave-crystal.png.asset.json";
 import mapPedreiraCavernaAsset from "@/assets/map-pedreira-caverna.jpg.asset.json";
 import crystalClusterAsset from "@/assets/crystal-cluster.png.asset.json";
-const caveFloorUrl = caveFloorAsset.url;
-const stalagmiteUrl = stalagmiteAsset.url;
-const caveCrystalUrl = caveCrystalAsset.url;
-const mapPedreiraCavernaUrl = mapPedreiraCavernaAsset.url;
-const crystalClusterUrl = crystalClusterAsset.url;
+const caveFloorUrl = assetUrlFromJson(caveFloorAsset);
+const stalagmiteUrl = assetUrlFromJson(stalagmiteAsset);
+const caveCrystalUrl = assetUrlFromJson(caveCrystalAsset);
+const mapPedreiraCavernaUrl = assetUrlFromJson(mapPedreiraCavernaAsset);
+const crystalClusterUrl = assetUrlFromJson(crystalClusterAsset);
 
 // Pokemon GIFs (reusa os que já existem no projeto)
 import charizardGif from "@/assets/charizard.gif";
