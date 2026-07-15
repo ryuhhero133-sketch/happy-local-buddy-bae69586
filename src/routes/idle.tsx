@@ -813,6 +813,29 @@ function IdlePage() {
   const [attackTargetId, setAttackTargetId] = useState<number | null>(null);
   const attackTargetIdRef = useRef<number | null>(null);
   useEffect(() => { attackTargetIdRef.current = attackTargetId; }, [attackTargetId]);
+  // Ao trocar de líder (ou seu nível mudar muito), inimigos fora da faixa
+  // de nível são despawnados e novos são gerados para o novo líder.
+  const leaderLvKeyRef = useRef<number>(team[0]?.level ?? 0);
+  const leaderUidRef = useRef<string | undefined>(team[0]?.uid);
+  useEffect(() => {
+    const lv = team[0]?.level ?? 0;
+    const uid = team[0]?.uid;
+    const changed = uid !== leaderUidRef.current || Math.abs(lv - leaderLvKeyRef.current) >= 3;
+    if (changed) {
+      leaderLvKeyRef.current = lv;
+      leaderUidRef.current = uid;
+      // Remove inimigos fora da faixa; se o mapa ficar vazio de válidos, respawna.
+      setEnemies((prev) => {
+        const kept = prev.filter((e) => {
+          const el = e.level ?? lv;
+          return el <= lv + 10 && el >= lv - 5;
+        });
+        setAttackTargetId(null);
+        blacklistRef.current.clear();
+        return kept.length >= 3 ? kept : spawnEnemies();
+      });
+    }
+  }, [team]);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [now, setNow] = useState(() => Date.now());
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
@@ -1442,6 +1465,7 @@ function IdlePage() {
   // ---- Movimento do treinador: caça o inimigo mais próximo ----
   const stuckRef = useRef<{ id: number; count: number }>({ id: 0, count: 0 });
   const blacklistRef = useRef<Map<number, number>>(new Map()); // id -> expiresAt
+  const wanderRef = useRef<{ x: number; y: number; until: number } | null>(null);
   useEffect(() => {
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
@@ -1575,7 +1599,25 @@ function IdlePage() {
           ...openChests.map((c) => ({ x: c.x, y: c.y, kind: "chest" as const, id: c.id, range: 30 })),
           ...enemyPool.map((e) => ({ x: e.x, y: e.y, kind: "enemy" as const, id: e.id, range: ATTACK_RANGE * 0.7 })),
         ];
-        if (candidates.length === 0) return tp;
+        if (candidates.length === 0) {
+          // Sem alvos válidos (ex: acabou de trocar líder p/ nível diferente).
+          // Anda em direção a um ponto aleatório do mapa procurando novos spawns.
+          const wp = wanderRef.current;
+          const need = !wp || nowT > wp.until || Math.hypot(wp.x - tp.x, wp.y - tp.y) < 40;
+          if (need) {
+            wanderRef.current = {
+              x: 120 + Math.random() * (WORLD_W - 240),
+              y: 120 + Math.random() * (WORLD_H - 240),
+              until: nowT + 4000,
+            };
+          }
+          const w = wanderRef.current!;
+          const wdx = w.x - tp.x, wdy = w.y - tp.y;
+          const wd = Math.hypot(wdx, wdy) || 1;
+          if (!moving) setMoving(true);
+          const spd = 14 * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+          return { x: tp.x + (wdx / wd) * spd, y: tp.y + (wdy / wd) * spd };
+        }
         candidates.sort((a, b) =>
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
@@ -1819,7 +1861,12 @@ function IdlePage() {
           const totalMult = goldMult * (1 + totalBonus);
           const honeyActiveKill = Date.now() < (idle.buffs.honeyUntil ?? 0);
           const honeyMult = honeyActiveKill ? 1 + HONEY_BONUS : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * 0.5);
+          // Multiplicador pela raridade DO INIMIGO derrotado
+          const enemyRarityMultMap: Record<Rarity, number> = {
+            common: 1, uncommon: 1.6, rare: 2.6, epic: 4.5, legendary: 8, mythic: 14, mythic_shiny: 22,
+          };
+          const enemyRarityMult = enemyRarityMultMap[target.rarity as Rarity] ?? 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.5);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -1829,7 +1876,7 @@ function IdlePage() {
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1;
-          const gold = Math.max(1, Math.floor(baseGold * totalMult * goldCapPenalty));
+          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty));
           pushFxAt(target.x, target.y - 50, `+${xp} EXP`, "xp");
           const bonusParts: string[] = [];
           if (expActive) bonusParts.push(`EXP+${Math.round(idle.buffs.expMult * 100)}%`);
