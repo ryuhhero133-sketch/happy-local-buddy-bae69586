@@ -1,16 +1,12 @@
-import { useEffect, useState, type ReactNode, type FormEvent } from "react";
+import { useEffect, useState, useRef, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
-import mewBgAsset from "@/assets/mew-login.jpg.asset.json";
-import rubyFrameAsset from "@/assets/ruby-hud-frame.png.asset.json";
-import rubyGemAsset from "@/assets/ruby-gem.png.asset.json";
-
-
+import loginBgAsset from "@/assets/login-bg.png.asset.json";
 
 export const IDENTITY_KEY = "rubym.identity.v1";
 export const GUEST_KEY = "rubym.guest.v1";
-export const GUEST_PASSWORD = "RBM";
+export const SESSION_TOKEN_KEY = "rubym.sessionToken.v1";
 
 export type LocalIdentity = {
   id: string;
