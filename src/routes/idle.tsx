@@ -106,6 +106,12 @@ import treePineAsset from "@/assets/tree-pine.png.asset.json";
 import rockBoulderAsset from "@/assets/rock-boulder.png.asset.json";
 import bushBerryAsset from "@/assets/bush-berry.png.asset.json";
 import rockLavaAsset from "@/assets/rock-lava.png.asset.json";
+import caveFloorAsset from "@/assets/cave-floor.jpg.asset.json";
+import stalagmiteAsset from "@/assets/stalagmite.png.asset.json";
+import caveCrystalAsset from "@/assets/cave-crystal.png.asset.json";
+const caveFloorUrl = assetUrl(caveFloorAsset.url);
+const stalagmiteUrl = assetUrl(stalagmiteAsset.url);
+const caveCrystalUrl = assetUrl(caveCrystalAsset.url);
 
 // Pokemon GIFs (reusa os que já existem no projeto)
 import charizardGif from "@/assets/charizard.gif";
@@ -473,18 +479,23 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     return list;
   }
 
-  // Pedreira Antiga: só pedras/rochas espalhadas. Sem árvores, sem bushes.
+  // Pedreira Antiga: caverna com densidade similar ao Vale (mais coisas espalhadas).
+  // Estalagmites (decor), rochas (colisão) e cristais azuis (decor brilhante).
   if (mapId === "pedreira") {
     const kinds = [
-      { src: rockBoulderUrl, w: 86, h: 76, collideR: 12, blocks: true },
-      { src: rockBoulderUrl, w: 60, h: 54, collideR: 8,  blocks: true },
+      { src: stalagmiteUrl,  w:  78, h: 110, collideR: 12, blocks: true  },
+      { src: stalagmiteUrl,  w:  56, h:  82, collideR:  8, blocks: true  },
+      { src: rockBoulderUrl, w:  86, h:  76, collideR: 12, blocks: true  },
+      { src: rockBoulderUrl, w:  60, h:  54, collideR:  8, blocks: true  },
+      { src: caveCrystalUrl, w:  70, h:  74, collideR:  0, blocks: false },
+      { src: caveCrystalUrl, w:  52, h:  56, collideR:  0, blocks: false },
     ];
     const list: Obstacle[] = [];
-    const MIN_GAP = 90;
-    const CENTER_CLEAR = 160;
+    const MIN_GAP = 62;
+    const CENTER_CLEAR = 180;
     let id = 1;
     let tries = 0;
-    while (list.length < 55 && tries < 3500) {
+    while (list.length < 95 && tries < 4200) {
       tries++;
       const k = kinds[Math.floor(rand() * kinds.length)];
       const x = 60 + rand() * (worldW - 120);
@@ -2797,17 +2808,16 @@ function IdlePage() {
         forcedRarity = pick.forcedRarity;
         mapLvRange = [1, 30];
       } else if (idle.currentMap === "pedreira") {
-        // Pedreira Antiga — Pokémon de Pedra/Terra, níveis 30-55
+        // Pedreira Antiga — Pokémon de Pedra/Terra, níveis 30-55.
+        // (onix, sandslash, nidoking, aerodactyl, kabutops removidos — sem sprite/GIF disponível.)
         const STONE_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = [
-          { sp: "sandshrew" as Species, w: 12, forcedRarity: "uncommon" },
-          { sp: "diglett"   as Species, w: 12, forcedRarity: "uncommon" },
-          { sp: "cubone"    as Species, w: 10, forcedRarity: "uncommon" },
-          { sp: "onix"      as Species, w: 8,  forcedRarity: "rare" },
-          { sp: "sandslash" as Species, w: 7,  forcedRarity: "rare" },
-          { sp: "golem"     as Species, w: 4,  forcedRarity: "epic" },
-          { sp: "nidoking"  as Species, w: 3,  forcedRarity: "epic" },
-          { sp: "aerodactyl"as Species, w: 2,  forcedRarity: "epic" },
-          { sp: "kabutops"  as Species, w: 2,  forcedRarity: "epic" },
+          { sp: "sandshrew" as Species, w: 14, forcedRarity: "uncommon" },
+          { sp: "diglett"   as Species, w: 14, forcedRarity: "uncommon" },
+          { sp: "cubone"    as Species, w: 12, forcedRarity: "uncommon" },
+          { sp: "machop"    as Species, w: 10, forcedRarity: "rare" },
+          { sp: "mankey"    as Species, w: 10, forcedRarity: "rare" },
+          { sp: "magnemite" as Species, w:  8, forcedRarity: "rare" },
+          { sp: "golem"     as Species, w:  5, forcedRarity: "epic" },
         ];
         const total = STONE_TABLE.reduce((s, e) => s + e.w, 0);
         let r = Math.random() * total;
@@ -3854,11 +3864,11 @@ function IdlePage() {
             transition: "transform 120ms linear",
             backgroundColor: viewportBg,
             backgroundImage: isPedreira
-              ? `url(${map.bg}), repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 32px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 3px, transparent 3px 42px)`
+              ? `radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%), url(${caveFloorUrl})`
               : `url(${map.bg})`,
-            backgroundSize: isPedreira ? `${WORLD_W}px ${WORLD_H}px, 64px 64px, 84px 84px` : `${WORLD_W}px ${WORLD_H}px`,
-            backgroundBlendMode: isPedreira ? "luminosity, screen, multiply" : undefined,
-            backgroundRepeat: isPedreira ? "repeat, repeat, repeat" : "no-repeat",
+            backgroundSize: isPedreira ? `${WORLD_W}px ${WORLD_H}px, 256px 256px` : `${WORLD_W}px ${WORLD_H}px`,
+            backgroundBlendMode: isPedreira ? "multiply, normal" : undefined,
+            backgroundRepeat: isPedreira ? "no-repeat, repeat" : "no-repeat",
             imageRendering: "pixelated",
           }}>
 
