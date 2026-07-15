@@ -4127,16 +4127,8 @@ function IdlePage() {
               );
             })}
 
-            {/* HUD de coordenadas — canto inferior direito do mundo */}
-            <div style={{
-              position: "fixed", left: "50%", bottom: 8, transform: "translateX(-50%)",
-              background: "rgba(0,0,0,0.75)", color: "#f5cf6b",
-              padding: "4px 10px", borderRadius: 6, fontSize: 12, fontWeight: 700,
-              fontFamily: "monospace", border: "1px solid rgba(245,207,107,0.4)",
-              pointerEvents: "none", zIndex: 9999,
-            }}>
-              X: {Math.round(trainerPos.x)} · Y: {Math.round(trainerPos.y)}
-            </div>
+
+
 
             {/* Portais no mundo — pontos de viagem visíveis */}
             {(() => {
