@@ -132,6 +132,27 @@ import meowthAsset from "@/assets/meowth.gif.asset.json";
 import psyduckAsset from "@/assets/psyduck.gif.asset.json";
 import lucarioAuraAsset from "@/assets/lucario-aura.webp.asset.json";
 import mewAuraAsset from "@/assets/mew-aura.webp.asset.json";
+import oddishAsset from "@/assets/oddish.gif.asset.json";
+import bellsproutAsset from "@/assets/bellsprout.gif.asset.json";
+import weedleAsset from "@/assets/weedle.gif.asset.json";
+import kakunaAsset from "@/assets/kakuna.gif.asset.json";
+import parasAsset from "@/assets/paras.gif.asset.json";
+import parasectAsset from "@/assets/parasect.gif.asset.json";
+import venonatAsset from "@/assets/venonat.gif.asset.json";
+import clefairyAsset from "@/assets/clefairy.gif.asset.json";
+import sandshrewAsset from "@/assets/sandshrew.gif.asset.json";
+import mankeyAsset from "@/assets/mankey.gif.asset.json";
+import poliwagAsset from "@/assets/poliwag.gif.asset.json";
+import growlitheAsset from "@/assets/growlithe.gif.asset.json";
+import abraAsset from "@/assets/abra.gif.asset.json";
+import cuboneAsset from "@/assets/cubone.gif.asset.json";
+import magnemiteAsset from "@/assets/magnemite.gif.asset.json";
+import nidoranFAsset from "@/assets/nidoran-f.gif.asset.json";
+import snorlaxAsset from "@/assets/snorlax.gif.asset.json";
+import gloomAsset from "@/assets/gloom.gif.asset.json";
+import caterpieGif from "@/assets/caterpie.gif";
+import metapodGif from "@/assets/metapod.gif";
+import vulpixGif from "@/assets/vulpix.gif";
 
 
 const IDLE_KEY = "rubym.idle.v1";
@@ -163,6 +184,24 @@ const meowthUrl = assetUrl(meowthAsset.url);
 const psyduckUrl = assetUrl(psyduckAsset.url);
 const lucarioAuraUrl = assetUrl(lucarioAuraAsset.url);
 const mewAuraUrl = assetUrl(mewAuraAsset.url);
+const oddishUrl = assetUrl(oddishAsset.url);
+const bellsproutUrl = assetUrl(bellsproutAsset.url);
+const weedleUrl = assetUrl(weedleAsset.url);
+const kakunaUrl = assetUrl(kakunaAsset.url);
+const parasUrl = assetUrl(parasAsset.url);
+const parasectUrl = assetUrl(parasectAsset.url);
+const venonatUrl = assetUrl(venonatAsset.url);
+const clefairyUrl = assetUrl(clefairyAsset.url);
+const sandshrewUrl = assetUrl(sandshrewAsset.url);
+const mankeyUrl = assetUrl(mankeyAsset.url);
+const poliwagUrl = assetUrl(poliwagAsset.url);
+const growlitheUrl = assetUrl(growlitheAsset.url);
+const abraUrl = assetUrl(abraAsset.url);
+const cuboneUrl = assetUrl(cuboneAsset.url);
+const magnemiteUrl = assetUrl(magnemiteAsset.url);
+const nidoranFUrl = assetUrl(nidoranFAsset.url);
+const snorlaxUrl = assetUrl(snorlaxAsset.url);
+const gloomUrl = assetUrl(gloomAsset.url);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const gameDb = supabase as any;
 
@@ -182,7 +221,7 @@ type IdleMapDef = {
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  element: "Grama"    },
-  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 5,  element: "Terra"    },
+  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 20, element: "Terra"    },
   venofogo: { name: "Pântano em Chamas",       diff: "Médio",     bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 20, element: "Veneno/Fogo" },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, element: "Água"     },
   neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 30, element: "Gelo"     },
@@ -213,6 +252,12 @@ const GIF: Partial<Record<Species, string>> = {
   virizion: assetUrl(virizionAsset.url), raikou: assetUrl(raikouAsset.url),
   suicune: assetUrl(suicuneAsset.url), suicune_shiny: assetUrl(suicuneShinyAsset.url),
   luxray_f: assetUrl(luxrayFAsset.url),
+  oddish: oddishUrl, bellsprout: bellsproutUrl, weedle: weedleUrl, kakuna: kakunaUrl,
+  caterpie: caterpieGif, metapod: metapodGif, vulpix: vulpixGif,
+  paras: parasUrl, parasect: parasectUrl, venonat: venonatUrl, gloom: gloomUrl,
+  clefairy: clefairyUrl, sandshrew: sandshrewUrl, mankey: mankeyUrl,
+  poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
+  cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
 };
 
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
@@ -2370,7 +2415,7 @@ function IdlePage() {
 
   function spawnEnemies(): Enemy[] {
     const leaderLv = team[0]?.level ?? 10;
-    const count = 10 + Math.floor(Math.random() * 4); // 10-13 pokemons no mundo
+    const count = 16 + Math.floor(Math.random() * 5); // 16-20 pokemons no mundo
     const placed: { x: number; y: number }[] = [];
     const MIN_DIST = 220; // px entre inimigos (nao ficam colados)
     const arr: Enemy[] = [];
@@ -2395,10 +2440,16 @@ function IdlePage() {
       let pool = speciesUnlockedFor(leaderLv);
       // Faixa de nível do mapa (min/max). Se definida, sobrepõe o pareamento com líder.
       let mapLvRange: [number, number] | null = null;
-      // Vale Verdejante: pool temático grama/bicho/normal iniciais, nível 1-20
+      // Vale Verdejante: pool amplo temático grama/bicho/normal, nível 1-30, raridades variadas
       if (idle.currentMap === "arena") {
-        pool = ["bulbasaur", "oddish", "bellsprout", "caterpie", "weedle", "pidgey", "rattata_f"] as Species[];
-        mapLvRange = [1, 20];
+        pool = [
+          "bulbasaur", "oddish", "bellsprout", "caterpie", "metapod", "weedle", "kakuna",
+          "pidgey", "pidgeotto", "rattata_f", "raticate_f", "spearow",
+          "paras", "parasect", "venonat", "gloom",
+          "clefairy", "sandshrew", "mankey", "poliwag", "growlithe",
+          "abra", "cubone", "magnemite", "nidoran_f", "vulpix", "snorlax",
+        ] as Species[];
+        mapLvRange = [1, 30];
       }
       // No Ninho de Marimbondo, com um Pokémon nv 30+ no time, aparecem Beedrill/Butterfree selvagens capturáveis
       if (idle.currentMap === "terra" && maxTeamLv >= 30) {
@@ -2707,9 +2758,9 @@ function IdlePage() {
   }
 
   // alvo de baús no mapa (2 base + 1 por Amuleto do Baú comprado, máx 6)
-  const chestTarget = Math.min(6, 2 + (idle.items?.chest_amulet ?? 0));
+  const chestTarget = Math.min(3, 1 + (idle.items?.chest_amulet ?? 0));
 
-  // spawna baús no início e mantém sempre `chestTarget` no mapa
+  // spawna baús no início e mantém sempre `chestTarget` no mapa (respawn mais lento)
   useEffect(() => {
     const initial = spawnChests(chestTarget);
     setChests(initial);
@@ -2722,7 +2773,7 @@ function IdlePage() {
         const news = spawnChests(needed);
         return [...remaining, ...news];
       });
-    }, 8000);
+    }, 45000);
     // Spawn EXTRA garantido a cada 10 min: um baú COMUM novo (até o teto máx=6)
     const ivExtra = setInterval(() => {
       setChests((prev) => {
@@ -4456,7 +4507,7 @@ function IdlePage() {
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 const targetMap = IDLE_MAPS[g.target];
-                const unlocked = leaderLv >= targetMap.minLevel;
+                const unlocked = idle.trainerLevel >= targetMap.minLevel;
                 if (!unlocked) {
                   pushChat(`Precisa nível ${targetMap.minLevel} para ir a ${targetMap.name}.`, "info");
                   return;
@@ -4506,7 +4557,7 @@ function IdlePage() {
                   {/* Portais para outros mapas */}
                   {currentGates.map((g) => {
                     const targetMap = IDLE_MAPS[g.target];
-                    const unlocked = leaderLv >= targetMap.minLevel;
+                    const unlocked = idle.trainerLevel >= targetMap.minLevel;
                     const label = unlocked ? targetMap.name : `${targetMap.name} (Lv ${targetMap.minLevel})`;
                     return (
                       <button
@@ -4630,7 +4681,7 @@ function IdlePage() {
                         <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
                           🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
                             const tm = IDLE_MAPS[g.target];
-                            const ok = leaderLv >= tm.minLevel;
+                            const ok = idle.trainerLevel >= tm.minLevel;
                             return (
                               <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
                                 ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
