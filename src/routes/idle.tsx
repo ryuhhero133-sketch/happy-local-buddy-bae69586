@@ -2195,15 +2195,9 @@ function IdlePage() {
       const rLabel = rarityLabelMap[np.rarity] ?? String(np.rarity);
       pushFxAt(target.x, target.y - 70, `★ CAPTUROU! ★`, "capture");
       pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
+      pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
       playBonus();
       setEnemies((prev) => prev.filter((e) => e.id !== enemyId));
-      setTeam((tm) => {
-        if (tm.length >= 5) {
-          pushChat(`Time cheio (5/5). ${target.sp.replace(/_/g, " ").toUpperCase()} foi para a Coleção.`, "info");
-          return tm;
-        }
-        return [...tm, np];
-      });
       setIdle((s) => ({
         ...s,
         totals: { ...s.totals, captured: s.totals.captured + 1 },
