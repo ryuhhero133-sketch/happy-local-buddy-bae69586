@@ -1752,6 +1752,18 @@ function IdlePage() {
               usedBall = null;
             }
             if (usedBall) {
+              // ► Animação da pokébola voando
+              const ballAnimId = Date.now();
+              setCaptureAnim({
+                id: ballAnimId,
+                fromX: trainerPosRef.current.x,
+                fromY: trainerPosRef.current.y,
+                toX: target.x, toY: target.y,
+                ts: performance.now(),
+                ballImg: usedBall.img,
+                success: false,
+              });
+              setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
               newItems[usedBall.id] = (newItems[usedBall.id] ?? 0) - 1;
               const baseChance = 0.05; // difícil: 5% base (com bola comum)
               if (isEventLeg && usedBall.id === "greatball") {
