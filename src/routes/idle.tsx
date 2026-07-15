@@ -1810,10 +1810,17 @@ function IdlePage() {
             rare: 0.03, epic: 0.07, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
           };
           const rarityBonus = rarityDropBonus[leaderRarity] ?? 0;
-          const totalMult = goldMult * (1 + rarityBonus);
+          // Sinergia de time: todos da mesma tier
+          const teamSynergyMap: Partial<Record<Rarity, number>> = {
+            rare: 0.02, epic: 0.05, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
+          };
+          const synergyRarity = team.length >= 2 && team.every((p) => p.rarity === leaderRarity) ? leaderRarity : null;
+          const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
+          const totalBonus = rarityBonus + synergyBonus;
+          const totalMult = goldMult * (1 + totalBonus);
           const honeyActiveKill = Date.now() < (idle.buffs.honeyUntil ?? 0);
           const honeyMult = honeyActiveKill ? 1 + HONEY_BONUS : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + rarityBonus) * honeyMult * 0.5);
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * 0.5);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -1825,13 +1832,14 @@ function IdlePage() {
           if (expActive) bonusParts.push(`EXP+${Math.round(idle.buffs.expMult * 100)}%`);
           if (goldActive) bonusParts.push(`Ouro+${Math.round((idle.buffs.goldMult ?? 0) * 100)}%`);
           if (rarityBonus > 0) bonusParts.push(`Líder ${leaderRarity}+${Math.round(rarityBonus * 100)}%`);
+          if (synergyBonus > 0) bonusParts.push(`Sinergia ${synergyRarity}+${Math.round(synergyBonus * 100)}%`);
           const suffix = bonusParts.length ? ` (${bonusParts.join(" · ")})` : "";
           pushChat(`+${xp} EXP · +${gold} ouro${suffix}`, "info");
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
           for (const it of ITEM_POOL) {
             if (it.id === "pokeball") continue;
-            if (Math.random() < it.chance * (1 + rarityBonus) * honeyMult) drops.push(it.id);
+            if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
           }
 
           // XP para o líder + drena energia de TODOS do time
@@ -6089,7 +6097,7 @@ function TabOverlay({
       {tab === "pokemon" && leader && (
         <div>
           <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
-          <ActiveBonuses leaderRarity={leader.rarity} buffs={buffs} />
+          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} />
           <SpeciesLore species={leader.species} rarity={leader.rarity} />
 
 
@@ -7395,8 +7403,9 @@ function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) 
     </div>
   );
 }
-function ActiveBonuses({ leaderRarity, buffs }: {
+function ActiveBonuses({ leaderRarity, team, buffs }: {
   leaderRarity: Rarity;
+  team: { rarity: Rarity }[];
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
 }) {
   const now = Date.now();
@@ -7406,8 +7415,17 @@ function ActiveBonuses({ leaderRarity, buffs }: {
     rare: 0.03, epic: 0.07, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
   };
   const rarityBonus = rarityDropBonus[leaderRarity] ?? 0;
-  const totalXpPct = Math.round(((expActive ? buffs.expMult : 0) + rarityBonus) * 100);
-  const totalGoldPct = Math.round(((goldActive ? (buffs.goldMult ?? 0) : 0) + rarityBonus) * 100);
+  const teamSynergyMap: Partial<Record<Rarity, number>> = {
+    rare: 0.02, epic: 0.05, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
+  };
+  const synergyRarity = team.length >= 2 && team.every((p) => p.rarity === leaderRarity) ? leaderRarity : null;
+  const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
+  const rarityLabel: Record<Rarity, string> = {
+    common: "Comum", uncommon: "Incomum", rare: "Raro", epic: "Épico",
+    legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
+  } as Record<Rarity, string>;
+  const totalXpPct = Math.round(((expActive ? buffs.expMult : 0) + rarityBonus + synergyBonus) * 100);
+  const totalGoldPct = Math.round(((goldActive ? (buffs.goldMult ?? 0) : 0) + rarityBonus + synergyBonus) * 100);
   const fmt = (ms: number) => {
     const s = Math.max(0, Math.floor(ms / 1000));
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
@@ -7424,6 +7442,11 @@ function ActiveBonuses({ leaderRarity, buffs }: {
       {sub && <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 2 }}>{sub}</div>}
     </div>
   );
+  // Preview de sinergia por tier
+  const synergyRow = (["rare","epic","legendary","mythic"] as Rarity[]).map((r) => ({
+    r, pct: Math.round((teamSynergyMap[r] ?? 0) * 100),
+    active: synergyRarity === r,
+  }));
   return (
     <div style={{
       marginTop: 14,
@@ -7433,13 +7456,35 @@ function ActiveBonuses({ leaderRarity, buffs }: {
       <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 900, letterSpacing: 2, marginBottom: 8 }}>✨ BÔNUS ATIVOS</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         <Chip label="EXP TOTAL" value={`+${totalXpPct}%`} color="#6bd4ff"
-          sub={`${expActive ? `Livro +${Math.round(buffs.expMult * 100)}% (${fmt(buffs.expMultUntil! - now)})` : "Sem livro"} · Líder +${Math.round(rarityBonus * 100)}%`} />
+          sub={`${expActive ? `Livro +${Math.round(buffs.expMult * 100)}% (${fmt(buffs.expMultUntil! - now)})` : "Sem livro"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
         <Chip label="OURO TOTAL" value={`+${totalGoldPct}%`} color="#ffd94d"
-          sub={`${goldActive ? `VIP +${Math.round((buffs.goldMult ?? 0) * 100)}% (${fmt(buffs.goldMultUntil! - now)})` : "Sem VIP"} · Líder +${Math.round(rarityBonus * 100)}%`} />
-        <Chip label="DROP ITENS" value={`+${Math.round(rarityBonus * 100)}%`} color="#c084fc"
-          sub={`Vem da raridade do líder (${leaderRarity})`} />
+          sub={`${goldActive ? `VIP +${Math.round((buffs.goldMult ?? 0) * 100)}% (${fmt(buffs.goldMultUntil! - now)})` : "Sem VIP"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
+        <Chip label="DROP ITENS" value={`+${Math.round((rarityBonus + synergyBonus) * 100)}%`} color="#c084fc"
+          sub={`Líder ${leaderRarity} +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
         <Chip label="ATK / DEF" value={`+${Math.round(buffs.atk * 100)}% / -${Math.round(buffs.def * 100)}%`} color="#ff7a3d"
           sub={`Livros permanentes de ATK / DEF`} />
+      </div>
+      <div style={{
+        marginTop: 10, padding: "8px 10px",
+        background: synergyBonus > 0 ? "linear-gradient(180deg,#2a1a3a,#180d24)" : "#150a1e",
+        border: `1px solid ${synergyBonus > 0 ? "#c084fc66" : "rgba(255,255,255,0.06)"}`,
+        borderRadius: 8,
+      }}>
+        <div style={{ fontSize: 10, letterSpacing: 1, color: "#c8b8d0", marginBottom: 6 }}>
+          🤝 SINERGIA DE TIME {synergyRarity ? `— ativo: ${rarityLabel[synergyRarity]} +${Math.round(synergyBonus * 100)}%` : "— monte um time todo da mesma tier"}
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {synergyRow.map(({ r, pct, active }) => (
+            <div key={r} style={{
+              padding: "4px 8px", borderRadius: 6,
+              background: active ? "#c084fc22" : "#0f0818",
+              border: `1px solid ${active ? "#c084fc" : "rgba(255,255,255,0.08)"}`,
+              fontSize: 10, color: active ? "#e9d5ff" : "#8a7a9c", fontWeight: 700,
+            }}>
+              {rarityLabel[r]} · +{pct}%
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
