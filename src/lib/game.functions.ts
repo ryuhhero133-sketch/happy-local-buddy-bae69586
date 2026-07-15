@@ -311,7 +311,12 @@ export const openChest = createServerFn({ method: "POST" })
     }
 
     const entry = pickWeighted(CHEST_LOOT);
-    let loot: Record<string, unknown> = { kind: entry.kind };
+    type Loot =
+      | { kind: "nothing" }
+      | { kind: "gold"; amount: number }
+      | { kind: "crystal"; amount: number }
+      | { kind: "ball"; ball_type: string; qty: number };
+    let loot: Loot = { kind: "nothing" };
 
     if (entry.kind === "gold") {
       const gold = Math.floor(entry.min + Math.random() * (entry.max - entry.min + 1));
