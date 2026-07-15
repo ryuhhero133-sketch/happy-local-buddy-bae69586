@@ -757,6 +757,7 @@ function IdlePage() {
   const [restingUntil, setRestingUntil] = useState<number | null>(null);
   const [restingStart, setRestingStart] = useState<number | null>(null);
   const [restingKind, setRestingKind] = useState<"lar" | "azul" | null>(null);
+  const [restFullRecovery, setRestFullRecovery] = useState<boolean>(false);
   const restingRef = useRef<boolean>(false);
   useEffect(() => { restingRef.current = restingUntil !== null; }, [restingUntil]);
   // ===== Interação com prédios do mundo =====
@@ -1428,7 +1429,7 @@ function IdlePage() {
           const lar = BUILDINGS.find((b) => b.key === "lar");
           if (lar) {
             const reason = noTeam ? "Sem Pokémon no time" : allFainted ? "Todos desmaiados" : "Todos sem energia";
-            pushChat(`🏠 ${reason} — indo até o Lar para descansar (1h grátis).`, "info");
+            pushChat(`🏠 ${reason} — indo até o Lar (${AZUL_REST_COST}💎 = 10s, ou 1h grátis).`, "info");
             walkTargetRef.current = {
               x: lar.x, y: lar.y + 20, label: "Lar",
               resumeAuto: true,
@@ -2841,18 +2842,36 @@ function IdlePage() {
     if (!l) return;
     if (restingUntil) return;
     const now = Date.now();
-    // Lar: 10s se apenas HP (algum pet com energia); 1h se energia esgotada
     const anyExhausted = kind === "lar" && team.some((p) => petCurrentEnergy(p, now) <= 0);
-    const larDur = anyExhausted ? REST_DURATION_LAR_MS : 10_000;
-    const dur = kind === "azul" ? REST_DURATION_BLUE_MS : larDur;
+    // Lar: HP-only = 10s grátis; energia esgotada = 5💎 (10s) OU 1h grátis
+    let dur = 10_000;
+    let fullRecovery = false;
+    let paid = false;
+    if (kind === "azul") {
+      dur = REST_DURATION_BLUE_MS;
+      fullRecovery = true;
+    } else if (anyExhausted) {
+      if (idle.bank.crystals >= AZUL_REST_COST) {
+        setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - AZUL_REST_COST } }));
+        dur = 10_000;
+        fullRecovery = true;
+        paid = true;
+      } else {
+        dur = REST_DURATION_LAR_MS;
+        fullRecovery = true;
+      }
+    }
     setRestingStart(now);
     setRestingUntil(now + dur);
     setRestingKind(kind);
+    setRestFullRecovery(fullRecovery);
     setMoving(false);
     setNearBuilding(null);
     const label = kind === "azul"
       ? "🏡 Casa Azul (5 min)"
-      : anyExhausted ? "🏠 Lar (1 hora — recuperando energia)" : "🏠 Lar (10s — recuperando HP)";
+      : anyExhausted
+        ? (paid ? `🏠 Lar (10s — energia via ${AZUL_REST_COST}💎)` : "🏠 Lar (1 hora — energia grátis)")
+        : "🏠 Lar (10s — recuperando HP)";
     pushChat(`${label} — descansando... todo o time será curado.`, "info");
   };
 
@@ -2920,9 +2939,7 @@ function IdlePage() {
     const remaining = restingUntil - Date.now();
     const t = setTimeout(() => {
       const kind = restingKind;
-      const start = restingStart ?? Date.now();
-      const total = (restingUntil ?? Date.now()) - start;
-      const fullRecovery = kind !== "lar" || total >= 60 * 60 * 1000; // 10s Lar = só HP; 1h Lar = HP + energia
+      const fullRecovery = kind !== "lar" || restFullRecovery;
       // Restaura HP em todo o time; energia só se descanso completo
       setTeam((tm) => tm.map((p) => ({
         ...p,
@@ -2935,6 +2952,7 @@ function IdlePage() {
       setRestingUntil(null);
       setRestingStart(null);
       setRestingKind(null);
+      setRestFullRecovery(false);
       const msg = kind === "lar"
         ? (fullRecovery
             ? "🏠 Descanso concluído! HP + energia totalmente recuperados."
@@ -4124,7 +4142,7 @@ function IdlePage() {
 
           {/* Overlay de DESCANSO — congela o jogo, cura no final */}
           {restingUntil !== null && restingStart !== null && (() => {
-            const totalDur = restingKind === "azul" ? REST_DURATION_BLUE_MS : REST_DURATION_LAR_MS;
+            const totalDur = Math.max(1, restingUntil - restingStart);
             const elapsed = Math.min(totalDur, Math.max(0, Date.now() - restingStart));
             const remaining = Math.max(0, restingUntil - Date.now());
             const pct = Math.min(100, (elapsed / totalDur) * 100);
