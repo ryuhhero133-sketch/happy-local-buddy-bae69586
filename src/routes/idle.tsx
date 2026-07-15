@@ -1615,8 +1615,8 @@ function IdlePage() {
           const wdx = w.x - tp.x, wdy = w.y - tp.y;
           const wd = Math.hypot(wdx, wdy) || 1;
           if (!moving) setMoving(true);
-          setTrainerFacing(wdx < 0 ? "left" : "right");
-          return { x: tp.x + (wdx / wd) * SPEED, y: tp.y + (wdy / wd) * SPEED };
+          const spd = 14 * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+          return { x: tp.x + (wdx / wd) * spd, y: tp.y + (wdy / wd) * spd };
         }
         candidates.sort((a, b) =>
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
