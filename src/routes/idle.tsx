@@ -2920,11 +2920,14 @@ function IdlePage() {
     const remaining = restingUntil - Date.now();
     const t = setTimeout(() => {
       const kind = restingKind;
-      // Restaura HP líder + energia cheia em todo o time (Lar recupera tudo)
+      const start = restingStart ?? Date.now();
+      const total = (restingUntil ?? Date.now()) - start;
+      const fullRecovery = kind !== "lar" || total >= 60 * 60 * 1000; // 10s Lar = só HP; 1h Lar = HP + energia
+      // Restaura HP em todo o time; energia só se descanso completo
       setTeam((tm) => tm.map((p) => ({
         ...p,
-        energy: ENERGY_MAX,
-        energyRegenAt: Date.now(),
+        energy: fullRecovery ? ENERGY_MAX : (p as PetEnergyExt).energy ?? petCurrentEnergy(p),
+        energyRegenAt: fullRecovery ? Date.now() : (p as PetEnergyExt).energyRegenAt ?? Date.now(),
         hp: calcIdleMaxHp(p),
       } as PetInstance)));
       const l = team[0];
@@ -2932,9 +2935,14 @@ function IdlePage() {
       setRestingUntil(null);
       setRestingStart(null);
       setRestingKind(null);
-      const msg = kind === "lar" ? "🏠 Descanso concluído! Time totalmente recuperado (HP + energia)." : "💤 Descanso concluído! HP totalmente restaurado.";
+      const msg = kind === "lar"
+        ? (fullRecovery
+            ? "🏠 Descanso concluído! HP + energia totalmente recuperados."
+            : "🏠 HP restaurado! (energia continua regenerando naturalmente).")
+        : "💤 Descanso concluído! HP totalmente restaurado.";
       pushChat(msg, "cap");
-      pushFxAt(trainerPos.x, trainerPos.y - 60, "+HP / +⚡", "gold");
+      pushFxAt(trainerPos.x, trainerPos.y - 60, fullRecovery ? "+HP / +⚡" : "+HP", "gold");
+    }, Math.max(0, remaining));
     }, Math.max(0, remaining));
     return () => clearTimeout(t);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
