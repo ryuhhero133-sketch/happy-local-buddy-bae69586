@@ -33,6 +33,7 @@ import potionIconAsset from "@/assets/potion-icon.png.asset.json";
 import houseLarImg from "@/assets/house-lar.png";
 import houseLabImg from "@/assets/house-lab.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
+import npcOakSprite from "@/assets/npc-oak.png";
 
 import { GuestGate } from "@/components/GuestGate";
 import { loadIdentity, type LocalIdentity } from "@/components/AuthGate";
@@ -706,7 +707,7 @@ function IdlePage() {
   const pushEvent = (icon: string, title: string, sub?: string, color: string = "#f5cf6b") => {
     const id = eventToastIdRef.current++;
     setEventToast({ id, icon, title, sub, color });
-    setTimeout(() => setEventToast((t) => (t && t.id === id ? null : t)), 4200);
+    setTimeout(() => setEventToast((t) => (t && t.id === id ? null : t)), 7000);
   };
   const [energyTick, setEnergyTick] = useState(0);
   useEffect(() => {
@@ -1782,6 +1783,7 @@ function IdlePage() {
       pushChat(`⬆ Nível ${lv}! Atributos ganhos: ${randomSummary.join(", ")}`, "lv");
       setLevelToast({ level: lv, gains: randomSummary, bonus: statLabel[bonusStat], ts: Date.now() });
       playLevelUp();
+      pushEvent("⬆", `NÍVEL ${lv} ALCANÇADO`, `+${statLabel[bonusStat]} bônus · ${randomSummary.join(", ")}`, "#ffd66b");
 
     } else {
       prevLevelRef.current = lv;
@@ -3912,7 +3914,7 @@ function IdlePage() {
                 borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
               }}>
                 <button
-                  onClick={() => setAB({ enabled: !on })}
+                  onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
                   title={on ? "Auto-batalha ATIVA (clique para desativar)" : "Auto-batalha desativada (clique para ativar)"}
                   style={{
                     background: "transparent", border: "none", padding: 0, cursor: "pointer",
@@ -4986,26 +4988,56 @@ function IdlePage() {
         );
       })()}
 
-      {/* ===== Toast de evento (aviso simples e elegante) ===== */}
+      {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
       {eventToast && (
         <div key={eventToast.id} style={{
-          position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
-          zIndex: 9998, pointerEvents: "none",
-          animation: "evt-slide 300ms ease-out",
+          position: "fixed", top: 16, right: 16,
+          zIndex: 9998, pointerEvents: "auto",
+          animation: "evt-slide 320ms cubic-bezier(.2,.9,.3,1.2)",
+          maxWidth: 340,
         }}>
           <div style={{
-            background: "linear-gradient(180deg, rgba(11,5,16,0.95), rgba(26,15,38,0.95))",
-            border: `1px solid ${eventToast.color}`,
-            borderRadius: 999, padding: "8px 16px 8px 12px",
+            position: "relative",
+            background: "linear-gradient(180deg, #f8f4e8 0%, #ecdfc2 100%)",
+            border: `3px solid ${eventToast.color}`,
+            borderRadius: 14, padding: "10px 12px 10px 10px",
             display: "flex", alignItems: "center", gap: 10,
-            boxShadow: `0 4px 18px rgba(0,0,0,0.5), 0 0 14px ${eventToast.color}55`,
-            color: "#eadfe8",
+            boxShadow: `0 8px 26px rgba(0,0,0,0.55), 0 0 18px ${eventToast.color}66, inset 0 1px 0 rgba(255,255,255,0.6)`,
           }}>
-            <span style={{ fontSize: 18 }}>{eventToast.icon}</span>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 900, color: eventToast.color, letterSpacing: 1 }}>{eventToast.title}</div>
-              {eventToast.sub && <div style={{ fontSize: 10, color: "#c8b8d0", marginTop: 1 }}>{eventToast.sub}</div>}
+            <div style={{
+              width: 56, height: 56, flexShrink: 0,
+              borderRadius: 12,
+              background: `radial-gradient(circle at 40% 35%, ${eventToast.color}55, #fff4d0 70%)`,
+              border: `2px solid ${eventToast.color}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+              boxShadow: `inset 0 0 8px ${eventToast.color}44`,
+            }}>
+              <img src={npcOakSprite} alt="Guia" style={{ width: "110%", height: "110%", objectFit: "cover", imageRendering: "pixelated" }} />
             </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1.5 }}>
+                PROF. CARVALHO · {eventToast.icon}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 900, color: "#3a1f0d", letterSpacing: 0.5, lineHeight: 1.1, marginTop: 2 }}>
+                {eventToast.title}
+              </div>
+              {eventToast.sub && (
+                <div style={{ fontSize: 11, color: "#5a3f1d", marginTop: 3, lineHeight: 1.25 }}>
+                  {eventToast.sub}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setEventToast(null)}
+              title="Fechar"
+              style={{
+                position: "absolute", top: -8, right: -8, width: 22, height: 22, borderRadius: "50%",
+                background: eventToast.color, color: "#1a0f26", border: "2px solid #f8f4e8",
+                fontWeight: 900, fontSize: 12, cursor: "pointer", lineHeight: 1, padding: 0,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+              }}
+            >✕</button>
           </div>
         </div>
       )}
@@ -5239,6 +5271,7 @@ function TabOverlay({
     tab === "config"    ? "CONFIGURAÇÕES" :
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
+  const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
   return (
     <div style={{
       position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
@@ -5361,95 +5394,200 @@ function TabOverlay({
         </div>
       )}
 
-      {tab === "mochila" && (
-        <div>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 16, marginBottom: 18,
-            padding: "14px 18px",
-            background: "linear-gradient(135deg, #2a1638 0%, #3a1f5c 55%, #1a0f26 100%)",
-            border: "2px solid #ffd66b",
-            borderRadius: 14,
-            boxShadow: "0 6px 22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,214,107,0.35)",
-          }}>
-            <img src={bagIconImg} alt="" width={64} height={64} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.6))" }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ color: "#ffd66b", fontSize: 18, fontWeight: 900, letterSpacing: 1, textShadow: "0 2px 0 #0b0510" }}>MOCHILA</div>
-              <div style={{ color: "#c8b8d0", fontSize: 11, marginTop: 2 }}>
-                {Object.values(items).filter((n) => n > 0).length} tipos · {Object.values(items).reduce((a, b) => a + (b > 0 ? b : 0), 0)} itens no total
+      {tab === "mochila" && (() => {
+        const NAMES: Record<string, string> = {
+          potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
+          book_atk: "Livro Ataque", book_def: "Livro Defesa", book_exp: "Livro EXP",
+          book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP ✦",
+          book_vip_30: "Livro VIP 30d ✦✦", book_vip_60: "Livro VIP 60d ✦✦✦",
+          chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura",
+        };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff" };
+        const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
+          if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
+          if (id === "potion" || id === "revive" || id === "berry") return "potions";
+          if (id.startsWith("book_")) return "books";
+          if (id.startsWith("egg_")) return "eggs";
+          return "other";
+        };
+        const CATS: { id: "all" | "balls" | "potions" | "books" | "eggs" | "other"; label: string; icon: string }[] = [
+          { id: "all", label: "Tudo", icon: "🎒" },
+          { id: "balls", label: "Bolas", icon: "⚪" },
+          { id: "potions", label: "Poções", icon: "🧪" },
+          { id: "books", label: "Livros", icon: "📖" },
+          { id: "eggs", label: "Ovos", icon: "🥚" },
+          { id: "other", label: "Outros", icon: "✨" },
+        ];
+        const entries = Object.entries(items).filter(([, n]) => n > 0);
+        const totalTypes = entries.length;
+        const totalCount = entries.reduce((a, [, n]) => a + n, 0);
+        const filtered = mochilaCat === "all" ? entries : entries.filter(([id]) => catOf(id) === mochilaCat);
+        // slots: preenche a grade com mínimo de 24 slots
+        const SLOTS_MIN = 24;
+        const emptyCount = Math.max(0, SLOTS_MIN - filtered.length);
+
+        return (
+          <div>
+            {/* Cabeçalho estilo MMO */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 16, marginBottom: 14,
+              padding: "14px 18px",
+              background: "linear-gradient(135deg, #3a1f5c 0%, #2a1638 50%, #1a0f26 100%)",
+              border: "3px solid #ffd66b", borderRadius: 16,
+              boxShadow: "0 6px 22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,214,107,0.4), 0 0 24px rgba(255,214,107,0.15)",
+              position: "relative", overflow: "hidden",
+            }}>
+              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 30%, rgba(255,214,107,0.15), transparent 60%)", pointerEvents: "none" }} />
+              <div style={{
+                width: 72, height: 72, borderRadius: 16, flexShrink: 0,
+                background: "radial-gradient(circle at 35% 30%, #fff4d0, #ffd66b 65%, #b8862a)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.5)",
+                border: "2px solid #b8862a",
+              }}>
+                <img src={bagIconImg} alt="" width={48} height={48} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }} />
+              </div>
+              <div style={{ flex: 1, position: "relative" }}>
+                <div style={{ color: "#ffd66b", fontSize: 22, fontWeight: 900, letterSpacing: 2, textShadow: "0 2px 0 #0b0510, 0 0 12px rgba(255,214,107,0.6)" }}>✦ MOCHILA ✦</div>
+                <div style={{ color: "#eadfe8", fontSize: 11, marginTop: 4, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <span style={{ background: "rgba(255,214,107,0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(255,214,107,0.3)" }}>
+                    <strong style={{ color: "#ffd66b" }}>{totalTypes}</strong> tipos
+                  </span>
+                  <span style={{ background: "rgba(255,214,107,0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(255,214,107,0.3)" }}>
+                    <strong style={{ color: "#ffd66b" }}>{totalCount}</strong> itens
+                  </span>
+                  <span style={{ background: "rgba(255,214,107,0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(255,214,107,0.3)" }}>
+                    💰 <strong style={{ color: "#ffd66b" }}>{bank.gold.toLocaleString()}</strong>
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          {Object.entries(items).filter(([, n]) => n > 0).length === 0 ? (
-            <div style={{
-              color: "#8a7a9c", fontSize: 13, padding: 30, textAlign: "center",
-              background: "rgba(20,10,35,0.55)", border: "1px dashed #4a3560", borderRadius: 12,
-            }}>
-              Sua mochila está vazia. Derrote Pokémon, abra baús ou visite a Loja!
+
+            {/* Abas de categoria */}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+              {CATS.map((c) => {
+                const active = mochilaCat === c.id;
+                const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setMochilaCat(c.id)}
+                    style={{
+                      padding: "8px 14px", fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
+                      background: active ? "linear-gradient(180deg, #ffd66b, #b8862a)" : "rgba(30,15,50,0.7)",
+                      color: active ? "#0b0510" : "#c8b8d0",
+                      border: active ? "2px solid #fff4d0" : "2px solid rgba(255,214,107,0.25)",
+                      borderRadius: 10, cursor: "pointer",
+                      boxShadow: active ? "0 4px 12px rgba(255,214,107,0.4)" : "none",
+                      display: "flex", alignItems: "center", gap: 6,
+                    }}
+                  >
+                    <span>{c.icon}</span> {c.label} <span style={{ opacity: 0.7, fontSize: 10 }}>({count})</span>
+                  </button>
+                );
+              })}
             </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
-              {(() => {
-                const NAMES: Record<string, string> = {
-                  potion: "Poção",
-                  pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
-                  book_atk: "Livro Ataque", book_def: "Livro Defesa", book_exp: "Livro EXP",
-                  book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP ✦",
-                  book_vip_30: "Livro VIP 30d ✦✦", book_vip_60: "Livro VIP 60d ✦✦✦",
-                  chest_amulet: "Amuleto do Baú",
-                  egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura",
-                };
-                const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff" };
 
-
-                return Object.entries(items).filter(([, n]) => n > 0).map(([id, n]) => {
+            {filtered.length === 0 ? (
+              <div style={{
+                color: "#8a7a9c", fontSize: 13, padding: 40, textAlign: "center",
+                background: "rgba(20,10,35,0.55)", border: "2px dashed #4a3560", borderRadius: 14,
+              }}>
+                {entries.length === 0
+                  ? "Sua mochila está vazia. Derrote Pokémon, abra baús ou visite a Loja!"
+                  : "Nenhum item nesta categoria."}
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
+                {filtered.map(([id, n]) => {
                   const isEgg = id.startsWith("egg_");
                   const color = isEgg ? (EGG_COLORS[id] ?? "#f5cf6b") : (ITEM_COLORS[id] ?? "#f5cf6b");
                   const img = ITEM_IMG[id];
                   const Icon = ITEM_ICONS[id] ?? Sparkles;
+                  const sellPrice = marketSellPrices[id] ?? 0;
                   return (
-
                     <div key={id} style={{
-                      background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
-                      border: `1px solid ${color}44`, borderRadius: 10, padding: 12,
-                      textAlign: "center", boxShadow: `0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                      background: "linear-gradient(160deg, #1a0f26 0%, #2a1638 60%, #1a0f26 100%)",
+                      border: `2px solid ${color}66`, borderRadius: 12, padding: 10,
+                      textAlign: "center", position: "relative",
+                      boxShadow: `0 4px 14px rgba(0,0,0,0.55), inset 0 1px 0 ${color}33, 0 0 12px ${color}22`,
                       display: "flex", flexDirection: "column", gap: 6, alignItems: "center",
-                    }}>
+                      transition: "transform 120ms",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 8px 20px rgba(0,0,0,0.7), inset 0 1px 0 ${color}55, 0 0 20px ${color}55`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 4px 14px rgba(0,0,0,0.55), inset 0 1px 0 ${color}33, 0 0 12px ${color}22`; }}
+                    >
+                      {/* Badge quantidade */}
                       <div style={{
-                        width: 56, height: 56, borderRadius: "50%",
-                        background: `radial-gradient(circle at 30% 30%, ${color}33, ${color}11 60%, transparent)`,
+                        position: "absolute", top: 4, right: 4,
+                        background: color, color: "#0b0510",
+                        fontSize: 10, fontWeight: 900, padding: "2px 6px",
+                        borderRadius: 999, minWidth: 22, textAlign: "center",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                        border: "1px solid rgba(255,255,255,0.4)",
+                      }}>x{n}</div>
+                      {/* Ícone */}
+                      <div style={{
+                        width: 60, height: 60, borderRadius: 12, marginTop: 4,
+                        background: `radial-gradient(circle at 30% 30%, ${color}55, ${color}11 60%, transparent), rgba(0,0,0,0.35)`,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        border: `1px solid ${color}55`,
+                        border: `1px solid ${color}66`,
+                        boxShadow: `inset 0 0 10px ${color}33`,
                       }}>
                         {isEgg ? (
                           <div style={{
-                            width: 34, height: 40, borderRadius: "45% / 55%",
+                            width: 38, height: 44, borderRadius: "45% / 55%",
                             background: `radial-gradient(circle at 30% 25%, #fff, ${color} 55%)`,
-                            border: `1.5px solid ${color}`,
-                            boxShadow: `0 0 8px ${color}88`,
+                            border: `1.5px solid ${color}`, boxShadow: `0 0 10px ${color}aa`,
                           }} />
                         ) : img
-                          ? <img src={img} alt="" width={40} height={40} style={{ imageRendering: "pixelated" }} />
-                          : <Icon size={28} color={color} strokeWidth={2.2} />}
+                          ? <img src={img} alt="" width={44} height={44} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.5))" }} />
+                          : <Icon size={32} color={color} strokeWidth={2.2} />}
                       </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#eadfe8" }}>{NAMES[id] ?? id}</div>
-                      <div style={{ fontSize: 13, color, fontWeight: 800 }}>x{n}</div>
-                      <button
-                        onClick={() => onUseItem(id)}
-                        style={{
-                          width: "100%", padding: "6px 8px", fontSize: 11, fontWeight: 700,
-                          background: color, color: "#0b0510", border: "none",
-                          borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
-                        }}
-                      >{isEgg ? "CHOCAR" : "USAR"}</button>
-
+                      <div style={{ fontSize: 11, fontWeight: 800, color: "#eadfe8", letterSpacing: 0.3, lineHeight: 1.1 }}>{NAMES[id] ?? id}</div>
+                      <div style={{ display: "flex", gap: 4, width: "100%" }}>
+                        <button
+                          onClick={() => onUseItem(id)}
+                          style={{
+                            flex: 1, padding: "6px 4px", fontSize: 10, fontWeight: 800,
+                            background: `linear-gradient(180deg, ${color}, ${color}bb)`, color: "#0b0510",
+                            border: "1px solid rgba(255,255,255,0.3)",
+                            borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
+                            boxShadow: `0 2px 6px ${color}55`,
+                          }}
+                        >{isEgg ? "CHOCAR" : "USAR"}</button>
+                        {sellPrice > 0 && (
+                          <button
+                            onClick={() => onSellItem(id, 1)}
+                            title={`Vender 1 por ${sellPrice} ouro`}
+                            style={{
+                              flex: 1, padding: "6px 4px", fontSize: 10, fontWeight: 800,
+                              background: "linear-gradient(180deg, #f5cf6b, #b8862a)", color: "#0b0510",
+                              border: "1px solid rgba(255,255,255,0.3)",
+                              borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
+                              boxShadow: "0 2px 6px rgba(184,134,42,0.5)",
+                            }}
+                          >💰 {sellPrice}</button>
+                        )}
+                      </div>
                     </div>
                   );
-                });
-              })()}
-            </div>
-          )}
-        </div>
-      )}
+                })}
+                {/* Slots vazios decorativos */}
+                {Array.from({ length: emptyCount }).map((_, i) => (
+                  <div key={`empty-${i}`} style={{
+                    background: "rgba(20,10,35,0.4)",
+                    border: "2px dashed rgba(74,53,96,0.5)", borderRadius: 12,
+                    minHeight: 140,
+                  }} />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
 
       {tab === "colecao" && (
         <div style={{
