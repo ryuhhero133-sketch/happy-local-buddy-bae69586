@@ -260,8 +260,8 @@ const GIF: Partial<Record<Species, string>> = {
   oddish: oddishUrl, bellsprout: bellsproutUrl, weedle: weedleUrl, kakuna: kakunaUrl,
   caterpie: caterpieGif, metapod: metapodGif, vulpix: vulpixGif,
   paras: parasUrl, parasect: parasectUrl, venonat: venonatUrl, gloom: gloomUrl,
-  clefairy: clefairyUrl, eevee: eeveeUrl, sandshrew: sandshrewUrl, mankey: mankeyUrl,
-  poliwag: poliwagUrl, magikarp: magikarpUrl, growlithe: growlitheUrl, abra: abraUrl,
+  clefairy: clefairyUrl, sandshrew: sandshrewUrl, mankey: mankeyUrl,
+  poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
 };
 
