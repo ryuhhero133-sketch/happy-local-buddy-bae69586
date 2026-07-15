@@ -6116,7 +6116,27 @@ function TabOverlay({
       </div>
 
       {tab === "pokemon" && leader && (
-        <div>
+        <div style={{
+          position: "relative",
+          padding: "14px 12px 18px",
+          borderRadius: 18,
+          border: "3px solid #6b3fa0",
+          background: `linear-gradient(180deg, rgba(20,10,35,0.82) 0%, rgba(30,15,50,0.9) 45%, rgba(20,10,35,0.95) 100%), url(${pokemonTabBg}) center/cover no-repeat`,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.55), inset 0 0 40px rgba(192,132,252,0.15), 0 0 22px rgba(192,132,252,0.25)",
+          overflow: "hidden",
+        }}>
+          {/* decorative sparkles overlay */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(circle at 12% 10%, rgba(255,151,225,0.18), transparent 45%), radial-gradient(circle at 88% 90%, rgba(192,132,252,0.18), transparent 45%)",
+          }} />
+          <div style={{
+            position: "absolute", top: 8, right: 14,
+            fontSize: 10, fontWeight: 900, letterSpacing: 3,
+            color: "#ff97e1", textShadow: "0 0 8px rgba(255,151,225,0.7)",
+            opacity: 0.85,
+          }}>✦ MEW ✦</div>
+          <div style={{ position: "relative" }}>
           <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
           <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} />
           <SpeciesLore species={leader.species} rarity={leader.rarity} />
