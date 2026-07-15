@@ -2222,6 +2222,13 @@ function IdlePage() {
       const elite = Math.random() < 0.40; // 40% dos inimigos são "elites" perigosos
       const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
       let pool = speciesUnlockedFor(leaderLv);
+      // Faixa de nível do mapa (min/max). Se definida, sobrepõe o pareamento com líder.
+      let mapLvRange: [number, number] | null = null;
+      // Vale Verdejante: pool temático grama/bicho/normal iniciais, nível 1-20
+      if (idle.currentMap === "arena") {
+        pool = ["bulbasaur", "oddish", "bellsprout", "caterpie", "weedle", "pidgey", "rattata_f"] as Species[];
+        mapLvRange = [1, 20];
+      }
       // No Ninho de Marimbondo, com um Pokémon nv 30+ no time, aparecem Beedrill/Butterfree selvagens capturáveis
       if (idle.currentMap === "terra" && maxTeamLv >= 30) {
         pool = ["beedrill", "butterfree", "blaziken", "pinsir", "golem", "jolteon", "lapras"] as Species[];
@@ -2236,10 +2243,20 @@ function IdlePage() {
       // Elites levam +1 nível e, raramente (5%), aparece um "forte" com +2/+4.
       const rareStrong = Math.random() < 0.05;
       const jitter = Math.floor(Math.random() * 3) - 1; // -1, 0 ou +1
-      const baseLv = rareStrong
+      let baseLv = rareStrong
         ? leaderLv + 2 + Math.floor(Math.random() * 3)
         : Math.max(1, leaderLv + jitter);
-      const lv = elite ? baseLv + 1 : baseLv;
+      let lv = elite ? baseLv + 1 : baseLv;
+      // Aplica faixa do mapa (se houver)
+      if (mapLvRange) {
+        const [lo, hi] = mapLvRange;
+        // Se líder for baixo, spawn perto do líder mas dentro da faixa; senão, pega aleatório na faixa
+        if (leaderLv <= hi) {
+          lv = Math.max(lo, Math.min(hi, lv));
+        } else {
+          lv = lo + Math.floor(Math.random() * (hi - lo + 1));
+        }
+      }
       const pet = makePet(sp, lv);
       const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
       const isAggro = elite || Math.random() < 0.18;
