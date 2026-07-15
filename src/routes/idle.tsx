@@ -495,7 +495,7 @@ type IdleState = {
   startedAt: number;
   lastTickAt: number;
   pending: { gold: number; rubies: number; crystals: number };
-  totals: { gold: number; captured: number };
+  totals: { gold: number; captured: number; kills?: number };
   currentMap: IdleMapId;
   tasks: Task[];
   mapsUnlocked: number;
