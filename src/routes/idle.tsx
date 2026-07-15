@@ -2833,7 +2833,7 @@ function IdlePage() {
         if (bonusCrystal) parts.push("+1 💎");
         if (bonusBall) parts.push("+1 Pokébola");
         if (bonusKey) parts.push("+1 🔑 Chave");
-        pushFxAt(oc.x, oc.y - 50, parts.join(" · "), emptyDrop ? "info" : "gold");
+        pushFxAt(oc.x, oc.y - 50, parts.join(" · "), "gold");
         pushChat(`Baú aberto! ${parts.join(" · ")}`, "chest");
         playChestOpen();
         setIdle((s) => ({
@@ -2842,7 +2842,8 @@ function IdlePage() {
           totals: { ...s.totals, gold: s.totals.gold + gain },
           items: {
             ...s.items,
-            pokeball: bonusBall ? (s.items.pokeball ?? 0) + 1 : (s.items.pokeball ?? 0),
+            pokeball: (s.items.pokeball ?? 0) + bonusBall,
+            chest_key: (s.items.chest_key ?? 0) + bonusKey,
           },
         }));
       }
