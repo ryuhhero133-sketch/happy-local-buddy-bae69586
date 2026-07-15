@@ -563,8 +563,6 @@ type ShopBall = { id: "pokeball" | "greatball" | "ultraball" | "masterball"; nam
 const SHOP_BALLS: ShopBall[] = [
   { id: "pokeball",   name: "Pokébola",   price: 500,    img: ballPokeImg,  captureMult: 1 },
   { id: "greatball",  name: "Great Ball", price: 5000,   img: ballGreatImg, captureMult: 2 },
-  { id: "ultraball",  name: "Ultra Ball", price: 10000,  img: ballUltraImg, captureMult: 3 },
-  
 ];
 type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60"; name: string; desc: string; price: number; img: string };
 const SHOP_BOOKS: ShopBook[] = [
