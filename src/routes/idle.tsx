@@ -2448,10 +2448,10 @@ function IdlePage() {
       if (idle.currentMap === "arena") {
         pool = [
           "bulbasaur", "oddish", "bellsprout", "caterpie", "metapod", "weedle", "kakuna",
-          "pidgey", "pidgeotto", "rattata_f", "raticate_f", "spearow",
+          "pidgey", "pidgeotto", "rattata_f", "raticate_f", "fearow",
           "paras", "parasect", "venonat", "gloom",
           "clefairy", "sandshrew", "mankey", "poliwag", "growlithe",
-          "abra", "cubone", "magnemite", "nidoran_f", "vulpix", "snorlax",
+          "abra", "cubone", "magnemite", "nidoran_f", "vulpix",
         ] as Species[];
         mapLvRange = [1, 30];
       }
