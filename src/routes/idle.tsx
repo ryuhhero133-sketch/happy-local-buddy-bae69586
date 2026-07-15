@@ -109,9 +109,13 @@ import rockLavaAsset from "@/assets/rock-lava.png.asset.json";
 import caveFloorAsset from "@/assets/cave-floor.jpg.asset.json";
 import stalagmiteAsset from "@/assets/stalagmite.png.asset.json";
 import caveCrystalAsset from "@/assets/cave-crystal.png.asset.json";
+import mapCaveFloorAsset from "@/assets/map-cave.jpg.asset.json";
+import crystalClusterAsset from "@/assets/crystal-cluster.png.asset.json";
 const caveFloorUrl = assetUrl(caveFloorAsset.url);
 const stalagmiteUrl = assetUrl(stalagmiteAsset.url);
 const caveCrystalUrl = assetUrl(caveCrystalAsset.url);
+const mapCaveFloorUrl = assetUrl(mapCaveFloorAsset.url);
+const crystalClusterUrl = assetUrl(crystalClusterAsset.url);
 
 // Pokemon GIFs (reusa os que já existem no projeto)
 import charizardGif from "@/assets/charizard.gif";
@@ -244,7 +248,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   floresta: { name: "Floresta Sombria",        diff: "Difícil",   bg: mapFlorestaUrl,  rate: 2.6, minLevel: 1,  element: "Sombrio"  },
   caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 1,  element: "Pedra",
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
-  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapStoneUrl,     rate: 2.4, minLevel: 25, maxLevel: 55, element: "Pedra/Terra" },
+  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapCaveFloorUrl, rate: 2.4, minLevel: 25, maxLevel: 55, element: "Pedra/Terra" },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
@@ -479,28 +483,59 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     return list;
   }
 
-  // Pedreira Antiga: caverna com densidade similar ao Vale (mais coisas espalhadas).
-  // Estalagmites (decor), rochas (colisão) e cristais azuis (decor brilhante).
+  // Pedreira Antiga: MESMA composição do Ninho de Marimbondo, porém tematizada em pedra.
+  // 4 aglomerados gigantes de cristal (no lugar dos casulos), enxame de pokémons rochosos
+  // ao redor + estalagmites/pedras/cristais espalhados como decor.
   if (mapId === "pedreira") {
     const kinds = [
       { src: stalagmiteUrl,  w:  78, h: 110, collideR: 12, blocks: true  },
-      { src: stalagmiteUrl,  w:  56, h:  82, collideR:  8, blocks: true  },
-      { src: rockBoulderUrl, w:  86, h:  76, collideR: 12, blocks: true  },
-      { src: rockBoulderUrl, w:  60, h:  54, collideR:  8, blocks: true  },
-      { src: caveCrystalUrl, w:  70, h:  74, collideR:  0, blocks: false },
-      { src: caveCrystalUrl, w:  52, h:  56, collideR:  0, blocks: false },
+      { src: rockBoulderUrl, w:  86, h:  76, collideR: 10, blocks: true  },
+      { src: caveCrystalUrl, w:  60, h:  64, collideR:  0, blocks: false },
     ];
     const list: Obstacle[] = [];
-    const MIN_GAP = 62;
-    const CENTER_CLEAR = 180;
     let id = 1;
+
+    // 4 aglomerados de cristal gigantes (cantos deslocados) — equivalem aos casulos
+    const crystalSpots: { x: number; y: number }[] = [
+      { x: worldW * 0.28, y: worldH * 0.30 },
+      { x: worldW * 0.72, y: worldH * 0.28 },
+      { x: worldW * 0.30, y: worldH * 0.72 },
+      { x: worldW * 0.74, y: worldH * 0.70 },
+    ];
+    for (const c of crystalSpots) {
+      list.push({ id: id++, x: c.x, y: c.y, w: 150, h: 180, src: crystalClusterUrl, blocks: true, collideR: 44 });
+      // Pokémons rochosos flutuando perto do cristal (decorativos)
+      list.push({ id: id++, x: c.x - 62, y: c.y - 16, w: 40, h: 40, src: golemGif, blocks: false, collideR: 0 });
+      list.push({ id: id++, x: c.x + 62, y: c.y - 8,  w: 40, h: 40, src: machopUrl,  blocks: false, collideR: 0 });
+    }
+
+    // Enxame extra de pokémons rochosos espalhados pelo mapa
+    const swarm: string[] = [golemGif, machopUrl, diglettUrl, sandshrewUrl, cuboneUrl];
+    let sTries = 0;
+    let placed = 0;
+    while (placed < 28 && sTries < 1500) {
+      sTries++;
+      const src = swarm[Math.floor(rand() * swarm.length)];
+      const x = 80 + rand() * (worldW - 160);
+      const y = 100 + rand() * (worldH - 200);
+      let ok = true;
+      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < 120) { ok = false; break; }
+      if (!ok) continue;
+      list.push({ id: id++, x, y, w: 38, h: 38, src, blocks: false, collideR: 0 });
+      placed++;
+    }
+
+    // Estalagmites/pedras/cristais espalhados evitando as zonas dos cristais gigantes
+    const MIN_GAP = 130;
     let tries = 0;
-    while (list.length < 95 && tries < 4200) {
+    while (list.length < crystalSpots.length * 3 + 18 && tries < 2500) {
       tries++;
       const k = kinds[Math.floor(rand() * kinds.length)];
-      const x = 60 + rand() * (worldW - 120);
-      const y = 80 + rand() * (worldH - 160);
-      if (Math.hypot(x - worldW / 2, y - worldH / 2) < CENTER_CLEAR) continue;
+      const x = 80 + rand() * (worldW - 160);
+      const y = 100 + rand() * (worldH - 200);
+      let nearCrystal = false;
+      for (const c of crystalSpots) if (Math.hypot(x - c.x, y - c.y) < 260) { nearCrystal = true; break; }
+      if (nearCrystal) continue;
       let ok = true;
       for (const o of list) if (Math.hypot(x - o.x, y - o.y) < MIN_GAP) { ok = false; break; }
       if (!ok) continue;
@@ -3863,12 +3898,9 @@ function IdlePage() {
             transformOrigin: "0 0",
             transition: "transform 120ms linear",
             backgroundColor: viewportBg,
-            backgroundImage: isPedreira
-              ? `radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%), url(${caveFloorUrl})`
-              : `url(${map.bg})`,
-            backgroundSize: isPedreira ? `${WORLD_W}px ${WORLD_H}px, 256px 256px` : `${WORLD_W}px ${WORLD_H}px`,
-            backgroundBlendMode: isPedreira ? "multiply, normal" : undefined,
-            backgroundRepeat: isPedreira ? "no-repeat, repeat" : "no-repeat",
+            backgroundImage: `url(${map.bg})`,
+            backgroundSize: `${WORLD_W}px ${WORLD_H}px`,
+            backgroundRepeat: "no-repeat",
             imageRendering: "pixelated",
           }}>
 
