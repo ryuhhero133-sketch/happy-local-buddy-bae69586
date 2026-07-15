@@ -668,6 +668,7 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
           </>
         )}
 
+        {kickedMessage && <ErrorBox message={kickedMessage} />}
         <ErrorBox message={error} />
         <InfoBox message={info} />
 
