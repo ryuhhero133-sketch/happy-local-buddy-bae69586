@@ -2128,6 +2128,17 @@ function IdlePage() {
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
+    // ► Animação da pokébola voando (manual)
+    const ballAnimId = Date.now();
+    setCaptureAnim({
+      id: ballAnimId,
+      fromX: trainerPosRef.current.x, fromY: trainerPosRef.current.y,
+      toX: target.x, toY: target.y,
+      ts: performance.now(),
+      ballImg: usedBall.img,
+      success,
+    });
+    setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
     const ballName = usedBall.name;
     setIdle((s) => ({ ...s, items: { ...s.items, [ballId]: Math.max(0, (s.items[ballId] ?? 0) - 1) } }));
     pushFxAt(target.x, target.y - 40, `${ballName}!`, "capture");
