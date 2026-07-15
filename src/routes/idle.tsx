@@ -2888,6 +2888,13 @@ function IdlePage() {
 
   const activeTime = now - idle.startedAt;
   const map = IDLE_MAPS[idle.currentMap];
+  const isPedreira = idle.currentMap === "pedreira";
+  const visibleBuildings = isPedreira ? [] : BUILDINGS;
+  const viewportBg = isPedreira
+    ? "#2e333b"
+    : idle.currentMap === "caverna"
+      ? "#1f2028"
+      : "#1a3d1a";
 
   const collect = () => {
     setIdle((s) => {
@@ -3716,7 +3723,7 @@ function IdlePage() {
             position: "relative",
             borderRadius: 12,
             overflow: "hidden",
-            background: "#1a3d1a",
+            background: viewportBg,
             minHeight: 520,
             height: "calc(100vh - 110px)",
             boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)",
@@ -3845,9 +3852,13 @@ function IdlePage() {
             transform: `scale(${zoom}) translate3d(${-camX}px, ${-camY}px, 0)`,
             transformOrigin: "0 0",
             transition: "transform 120ms linear",
-            backgroundImage: `url(${map.bg})`,
-            backgroundSize: `${WORLD_W}px ${WORLD_H}px`,
-            backgroundRepeat: "no-repeat",
+            backgroundColor: viewportBg,
+            backgroundImage: isPedreira
+              ? `url(${map.bg}), repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 32px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 3px, transparent 3px 42px)`
+              : `url(${map.bg})`,
+            backgroundSize: isPedreira ? `${WORLD_W}px ${WORLD_H}px, 64px 64px, 84px 84px` : `${WORLD_W}px ${WORLD_H}px`,
+            backgroundBlendMode: isPedreira ? "luminosity, screen, multiply" : undefined,
+            backgroundRepeat: isPedreira ? "repeat, repeat, repeat" : "no-repeat",
             imageRendering: "pixelated",
           }}>
 
@@ -4113,7 +4124,7 @@ function IdlePage() {
 
 
             {/* Prédios do mundo — Laboratório e Lar (SVG estilizado) */}
-            {BUILDINGS.map((b) => {
+            {visibleBuildings.map((b) => {
               const active = nearBuilding === b.key;
               return (
                 <div
@@ -5068,7 +5079,7 @@ function IdlePage() {
                   margin: "0 auto",
                 }}>
                   {/* Prédios (clicáveis) */}
-                  {BUILDINGS.map((b) => (
+                  {visibleBuildings.map((b) => (
                     <button
                       key={b.key}
                       title={`Ir ao ${b.label}`}
