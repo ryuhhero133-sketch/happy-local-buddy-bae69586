@@ -5607,17 +5607,8 @@ function IdlePage() {
         </div>
       )}
 
-      {/* HUD de coordenadas — fixa na tela (fora do mundo) */}
-      <div style={{
-        position: "fixed", left: "50%", bottom: 8, transform: "translateX(-50%)",
-        background: "rgba(0,0,0,0.85)", color: "#f5cf6b",
-        padding: "4px 12px", borderRadius: 8, fontSize: 12, fontWeight: 800,
-        fontFamily: "monospace", border: "1px solid rgba(245,207,107,0.5)",
-        pointerEvents: "none", zIndex: 10000,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
-      }}>
-        X: {Math.round(trainerPos.x)} · Y: {Math.round(trainerPos.y)} · {IDLE_MAPS[idle.currentMap].name}
-      </div>
+
+
 
 
       {/* Botão flutuante: resgatar código */}
