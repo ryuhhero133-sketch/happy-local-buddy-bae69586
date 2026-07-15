@@ -5454,58 +5454,6 @@ function IdlePage() {
       })()}
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
-      {eventToast && (
-        <div key={eventToast.id} style={{
-          position: "fixed", top: 16, right: 16,
-          zIndex: 9998, pointerEvents: "auto",
-          animation: "evt-slide 320ms cubic-bezier(.2,.9,.3,1.2)",
-          maxWidth: 340,
-        }}>
-          <div style={{
-            position: "relative",
-            background: "linear-gradient(180deg, #f8f4e8 0%, #ecdfc2 100%)",
-            border: `3px solid ${eventToast.color}`,
-            borderRadius: 14, padding: "10px 12px 10px 10px",
-            display: "flex", alignItems: "center", gap: 10,
-            boxShadow: `0 8px 26px rgba(0,0,0,0.55), 0 0 18px ${eventToast.color}66, inset 0 1px 0 rgba(255,255,255,0.6)`,
-          }}>
-            <div style={{
-              width: 56, height: 56, flexShrink: 0,
-              borderRadius: 12,
-              background: `radial-gradient(circle at 40% 35%, ${eventToast.color}55, #fff4d0 70%)`,
-              border: `2px solid ${eventToast.color}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
-              boxShadow: `inset 0 0 8px ${eventToast.color}44`,
-            }}>
-              <img src={npcOakSprite} alt="Guia" style={{ width: "110%", height: "110%", objectFit: "cover", imageRendering: "pixelated" }} />
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1.5 }}>
-                PROF. CARVALHO · {eventToast.icon}
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#3a1f0d", letterSpacing: 0.5, lineHeight: 1.1, marginTop: 2 }}>
-                {eventToast.title}
-              </div>
-              {eventToast.sub && (
-                <div style={{ fontSize: 11, color: "#5a3f1d", marginTop: 3, lineHeight: 1.25 }}>
-                  {eventToast.sub}
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => setEventToast(null)}
-              title="Fechar"
-              style={{
-                position: "absolute", top: -8, right: -8, width: 22, height: 22, borderRadius: "50%",
-                background: eventToast.color, color: "#1a0f26", border: "2px solid #f8f4e8",
-                fontWeight: 900, fontSize: 12, cursor: "pointer", lineHeight: 1, padding: 0,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-              }}
-            >✕</button>
-          </div>
-        </div>
-      )}
     </div>
 
   );
