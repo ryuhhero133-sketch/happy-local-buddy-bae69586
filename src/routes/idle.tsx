@@ -1397,10 +1397,28 @@ function IdlePage() {
       }
 
       if (!autoRef.current) { if (moving) setMoving(false); return; }
-      // Sem energia em NENHUM pokémon: personagem para (não farm/duela)
+      // Time inviável (vazio, todos KO ou todos sem energia): vai até o Lar sozinho pra descansar
       {
         const nowE = Date.now();
-        if (team.length === 0 || team.every((p) => petIsExhausted(p, nowE))) {
+        const noTeam = team.length === 0;
+        const allFainted = !noTeam && team.every((p) => (p.uid === team[0].uid ? leaderHp : (p.hp ?? calcIdleMaxHp(p))) <= 0);
+        const allExhausted = !noTeam && team.every((p) => petIsExhausted(p, nowE));
+        if ((noTeam || allFainted || allExhausted) && !restingRef.current && !walkTargetRef.current) {
+          const lar = BUILDINGS.find((b) => b.key === "lar");
+          if (lar) {
+            const reason = noTeam ? "Sem Pokémon no time" : allFainted ? "Todos desmaiados" : "Todos sem energia";
+            pushChat(`🏠 ${reason} — indo até o Lar para descansar (1h grátis).`, "info");
+            walkTargetRef.current = {
+              x: lar.x, y: lar.y + 20, label: "Lar",
+              resumeAuto: true,
+              onArrive: () => { restAtHome("lar"); },
+            };
+            setWalkingTo("Lar");
+          }
+          if (moving) setMoving(false);
+          return;
+        }
+        if (noTeam || allFainted || allExhausted) {
           if (moving) setMoving(false);
           return;
         }
