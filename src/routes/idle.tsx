@@ -2842,18 +2842,36 @@ function IdlePage() {
     if (!l) return;
     if (restingUntil) return;
     const now = Date.now();
-    // Lar: 10s se apenas HP (algum pet com energia); 1h se energia esgotada
     const anyExhausted = kind === "lar" && team.some((p) => petCurrentEnergy(p, now) <= 0);
-    const larDur = anyExhausted ? REST_DURATION_LAR_MS : 10_000;
-    const dur = kind === "azul" ? REST_DURATION_BLUE_MS : larDur;
+    // Lar: HP-only = 10s grátis; energia esgotada = 5💎 (10s) OU 1h grátis
+    let dur = 10_000;
+    let fullRecovery = false;
+    let paid = false;
+    if (kind === "azul") {
+      dur = REST_DURATION_BLUE_MS;
+      fullRecovery = true;
+    } else if (anyExhausted) {
+      if (idle.bank.crystals >= AZUL_REST_COST) {
+        setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - AZUL_REST_COST } }));
+        dur = 10_000;
+        fullRecovery = true;
+        paid = true;
+      } else {
+        dur = REST_DURATION_LAR_MS;
+        fullRecovery = true;
+      }
+    }
     setRestingStart(now);
     setRestingUntil(now + dur);
     setRestingKind(kind);
+    setRestFullRecovery(fullRecovery);
     setMoving(false);
     setNearBuilding(null);
     const label = kind === "azul"
       ? "🏡 Casa Azul (5 min)"
-      : anyExhausted ? "🏠 Lar (1 hora — recuperando energia)" : "🏠 Lar (10s — recuperando HP)";
+      : anyExhausted
+        ? (paid ? `🏠 Lar (10s — energia via ${AZUL_REST_COST}💎)` : "🏠 Lar (1 hora — energia grátis)")
+        : "🏠 Lar (10s — recuperando HP)";
     pushChat(`${label} — descansando... todo o time será curado.`, "info");
   };
 
