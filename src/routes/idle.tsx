@@ -20,6 +20,7 @@ import ballPokeImg from "@/assets/items/icon-pokeball.png";
 import ballGreatImg from "@/assets/items/icon-greatball.png";
 import ballUltraImg from "@/assets/items/icon-ultraball.png";
 import potionNewImg from "@/assets/items/icon-potion.png";
+import premiumBoxImg from "@/assets/items/icon-premium-box.png";
 import chestAmuletImg from "@/assets/items/icon-chest-amulet.png";
 import bagIconImg from "@/assets/items/icon-bag.png";
 import reviveIconImg from "@/assets/items/icon-revive.png";
