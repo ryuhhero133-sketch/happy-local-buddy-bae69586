@@ -707,7 +707,7 @@ function IdlePage() {
   const pushEvent = (icon: string, title: string, sub?: string, color: string = "#f5cf6b") => {
     const id = eventToastIdRef.current++;
     setEventToast({ id, icon, title, sub, color });
-    setTimeout(() => setEventToast((t) => (t && t.id === id ? null : t)), 4200);
+    setTimeout(() => setEventToast((t) => (t && t.id === id ? null : t)), 7000);
   };
   const [energyTick, setEnergyTick] = useState(0);
   useEffect(() => {
