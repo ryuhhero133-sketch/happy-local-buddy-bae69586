@@ -526,9 +526,9 @@ export const CRAFT_BY_RARITY: Record<Rarity, number> = {
 };
 
 const DEFAULT_TASKS = (): Task[] => [
-  { id: "t1", title: "Derrote 30 Pokémon selvagens", reward: 200, progress: 0, target: 30, done: false },
-  { id: "t2", title: "Colete 5000 de ouro offline",   reward: 150, progress: 0, target: 5000, done: false },
-  { id: "t3", title: "Capture 10 Pokémon",            reward: 100, progress: 0, target: 10, done: false },
+  { id: "t1", title: "Derrote 30 Pokémon selvagens", reward: 3, progress: 0, target: 30, done: false },
+  { id: "t2", title: "Colete 5000 de ouro offline",   reward: 2, progress: 0, target: 5000, done: false },
+  { id: "t3", title: "Capture 10 Pokémon",            reward: 4, progress: 0, target: 10, done: false },
 ];
 
 // Itens farmáveis (drop aleatório dos inimigos derrotados)
@@ -2775,7 +2775,7 @@ function IdlePage() {
       return {
         ...s,
         tasks: s.tasks.filter((x) => x.id !== tid),
-        pending: { ...s.pending, rubies: s.pending.rubies + t.reward },
+        bank: { ...s.bank, crystals: s.bank.crystals + t.reward },
       };
     });
   };
@@ -5976,11 +5976,30 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
   const ePct = Math.max(0, Math.min(100, energy));
   const exhausted = !infinite && energy <= 0;
+  const rarityColorMap: Record<string, string> = {
+    common: "#9aa0a6", uncommon: "#5ec26a", rare: "#6bd4ff",
+    epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
+  };
+  const rColor = rarityColorMap[pet.rarity] ?? "#c8b8d0";
+  const hexToRgba = (h: string, a: number) => {
+    const n = parseInt(h.replace("#", ""), 16);
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+  };
   return (
-    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{ display: "flex", gap: 6, alignItems: "center", background: exhausted ? "#1a1a1a" : "#2a1a3a", padding: 4, borderRadius: 6, cursor: onClick ? "pointer" : undefined, border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #555" : "1px solid rgba(107,74,138,0.4)"), opacity: exhausted ? 0.65 : 1 }}>
+    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
+      display: "flex", gap: 6, alignItems: "center",
+      background: exhausted
+        ? "linear-gradient(135deg, #1a1a1a 0%, #241d24 100%)"
+        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.28)} 0%, ${hexToRgba(rColor, 0.10)} 100%)`,
+      padding: 4, borderRadius: 6, cursor: onClick ? "pointer" : undefined,
+      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #555" : `1px solid ${hexToRgba(rColor, 0.65)}`),
+      boxShadow: exhausted ? "none" : `0 0 0 1px ${hexToRgba(rColor, 0.15)} inset, 0 0 8px ${hexToRgba(rColor, 0.18)}`,
+      opacity: exhausted ? 0.65 : 1,
+    }}>
       <div style={{
-        width: 38, height: 38, background: "#0b0510", borderRadius: 6,
+        width: 38, height: 38, background: `radial-gradient(circle at 50% 55%, ${hexToRgba(rColor, 0.55)} 0%, #0b0510 75%)`, borderRadius: 6,
         display: "grid", placeItems: "center", overflow: "hidden", position: "relative", flexShrink: 0,
+        border: `1px solid ${hexToRgba(rColor, 0.5)}`,
       }}>
         <img src={src} alt="" style={{ width: "92%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.7)" : undefined }} />
         {resting && <span style={{ position: "absolute", top: 0, right: 1, fontSize: 9 }}>🏡</span>}
@@ -6464,7 +6483,7 @@ function TabOverlay({
       {tab === "tarefas" && (
         <div>
           <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 12 }}>
-            Complete as tarefas para ganhar <img src={rubyGemUrl} alt="" style={{ width: 12, verticalAlign: "middle" }} /> rubis.
+            Complete as tarefas para ganhar <img src={crystalGreenImg} alt="" style={{ width: 12, verticalAlign: "middle" }} /> cristais.
           </div>
           {tasks.length === 0 ? (
             <div style={{ color: "#8a7a9c", fontSize: 13, padding: 20, textAlign: "center" }}>
@@ -6481,7 +6500,7 @@ function TabOverlay({
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6 }}>
                     <span style={{ color: "#eadfe8", fontWeight: 700, fontSize: 13 }}>{t.title}</span>
                     <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#f5cf6b", fontWeight: 800 }}>
-                      <img src={rubyGemUrl} alt="" style={{ width: 14 }} />
+                      <img src={crystalGreenImg} alt="" style={{ width: 14, imageRendering: "pixelated" }} />
                       {t.reward}
                     </span>
                   </div>
