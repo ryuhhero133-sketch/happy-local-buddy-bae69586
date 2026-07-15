@@ -654,21 +654,42 @@ function calcIdleMaxHp(pet: PetInstance) {
   return calcMaxHp(pet) * IDLE_HP_MULT;
 }
 
-// ===== Energia por raridade (regen passivo 0→100) =====
-// Comum/Incomum: 20 min · Raro: 5 min · Épico/Lendário: 3 min · Mítico: infinita
+// ===== Energia por raridade =====
+// Regen passivo (0→100) SÓ conta quando o pokémon está fora do time (na coleção).
+// Enquanto está no time ativo, a energia apenas DRENA — raridade define quanto
+// tempo ele aguenta em atividade antes de cansar.
 const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
   common: 30 * 60 * 1000, uncommon: 50 * 60 * 1000,
   rare: 110 * 60 * 1000, epic: 180 * 60 * 1000, legendary: 180 * 60 * 1000,
   mythic: 0, mythic_shiny: 0,
 };
 
+// Duração (segundos) que 100 de energia dura em auto-battle como líder.
+const ENERGY_ACTIVE_DURATION_S: Partial<Record<Rarity, number>> = {
+  common: 5 * 60,       // 5 min
+  uncommon: 8 * 60,     // 8 min
+  rare: 15 * 60,        // 15 min
+  epic: 25 * 60,        // 25 min
+  legendary: 35 * 60,   // 35 min
+  mythic: 0, mythic_shiny: 0,
+};
+function energyDrainPerSec(rarity: Rarity): number {
+  const dur = ENERGY_ACTIVE_DURATION_S[rarity] ?? 5 * 60;
+  return dur === 0 ? 0 : ENERGY_MAX / dur;
+}
+function energyDrainPerKill(rarity: Rarity): number {
+  const dur = ENERGY_ACTIVE_DURATION_S[rarity] ?? 5 * 60;
+  if (dur === 0) return 0;
+  // ~30s de atividade equivalente por kill
+  return Math.max(1, Math.round((30 / dur) * ENERGY_MAX));
+}
+
 const ENERGY_MAX = 100;
-const ENERGY_DRAIN_PER_KILL = 8;
 const AZUL_REST_MS = 5 * 60 * 1000;
 const AZUL_REST_FREE_MS = 60 * 60 * 1000; // 1h grátis quando não há cristais
 const AZUL_REST_COST = 5; // diamantes
 type PetEnergyExt = PetInstance & { energy?: number; energyRegenAt?: number; azulRestUntil?: number; azulRestFromEnergy?: number; azulRestTotalMs?: number };
-function petCurrentEnergy(pet: PetInstance, now: number = Date.now()): number {
+function petCurrentEnergy(pet: PetInstance, now: number = Date.now(), opts?: { active?: boolean }): number {
   const p = pet as PetEnergyExt;
   const regen = ENERGY_REGEN_MS[pet.rarity] ?? 20 * 60 * 1000;
   if (regen === 0) return ENERGY_MAX;
@@ -681,6 +702,9 @@ function petCurrentEnergy(pet: PetInstance, now: number = Date.now()): number {
   }
 
   const stored = p.energy ?? ENERGY_MAX;
+  // No time ativo: sem regen passivo — só drena.
+  if (opts?.active) return Math.max(0, Math.min(ENERGY_MAX, Math.round(stored)));
+
   const regenAt = p.energyRegenAt ?? now;
   const gain = ((now - regenAt) / regen) * ENERGY_MAX;
   return Math.max(0, Math.min(ENERGY_MAX, Math.round(stored + gain)));
@@ -694,12 +718,12 @@ function petMsToFull(pet: PetInstance, now: number = Date.now()): number {
   const regen = ENERGY_REGEN_MS[pet.rarity] ?? 20 * 60 * 1000;
   return Math.round(((ENERGY_MAX - cur) / ENERGY_MAX) * regen);
 }
-function petIsExhausted(pet: PetInstance, now: number = Date.now()): boolean {
+function petIsExhausted(pet: PetInstance, now: number = Date.now(), opts?: { active?: boolean }): boolean {
   const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
   if (infinite) return false;
   const p = pet as PetEnergyExt;
   if (p.azulRestUntil && p.azulRestUntil > now) return true;
-  return petCurrentEnergy(pet, now) <= 0;
+  return petCurrentEnergy(pet, now, opts) <= 0;
 }
 function fmtMS(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
