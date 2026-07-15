@@ -1350,7 +1350,27 @@ function IdlePage() {
         const dx = target.x - tp.x;
         const dy = target.y - tp.y;
         const dist = Math.hypot(dx, dy);
+        // ---- Detecção de "preso": se ficar muito tempo tentando alcançar
+        // o mesmo alvo (inimigo) sem entrar no alcance, blacklist e busca outro.
+        if (target.kind === "enemy") {
+          const sr = stuckRef.current;
+          if (sr.id === target.id) {
+            sr.count += 1;
+          } else {
+            stuckRef.current = { id: target.id, count: 1 };
+          }
+          // ~60 ticks * 120ms = ~7s tentando; ou distância absurda
+          if (stuckRef.current.count > 60 || dist > 900) {
+            blacklistRef.current.set(target.id, nowT + 20000);
+            stuckRef.current = { id: 0, count: 0 };
+            if (moving) setMoving(false);
+            return tp;
+          }
+        } else {
+          stuckRef.current = { id: 0, count: 0 };
+        }
         if (dist < target.range) {
+          stuckRef.current = { id: 0, count: 0 };
           if (moving) setMoving(false);
           return tp;
         }
