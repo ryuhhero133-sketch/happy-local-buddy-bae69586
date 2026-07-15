@@ -143,6 +143,39 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Single-session enforcement: newer login kicks the older one.
+  const [kicked, setKicked] = useState(false);
+  useEffect(() => {
+    if (!session?.user) return;
+    const uid = session.user.id;
+    let myToken = "";
+    try {
+      myToken = sessionStorage.getItem(SESSION_TOKEN_KEY) || "";
+      if (!myToken) {
+        myToken = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+        sessionStorage.setItem(SESSION_TOKEN_KEY, myToken);
+      }
+    } catch { /* ignore */ }
+
+    const ch = supabase.channel(`presence-user-${uid}`, {
+      config: { broadcast: { self: false } },
+    });
+    ch.on("broadcast", { event: "takeover" }, (payload) => {
+      const other = (payload.payload as { token?: string } | undefined)?.token;
+      if (other && other !== myToken) {
+        setKicked(true);
+        supabase.auth.signOut().catch(() => {});
+      }
+    });
+    ch.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        ch.send({ type: "broadcast", event: "takeover", payload: { token: myToken } });
+      }
+    });
+    return () => { supabase.removeChannel(ch); };
+  }, [session?.user?.id]);
+
+
   // Quando logado: garante profile, decide se precisa criar treinador,
   // pré-carrega save da nuvem.
   useEffect(() => {
