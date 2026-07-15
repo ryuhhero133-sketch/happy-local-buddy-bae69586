@@ -2986,10 +2986,9 @@ function IdlePage() {
           {/* --- PERFIL DE TREINADOR --- */}
           {(() => {
             const leaderP = team[0];
-            const trainerLv = team.reduce((m, p) => Math.max(m, p.level), 1);
-            const totalXp = team.reduce((s, p) => s + (p.xp ?? 0) + (p.level - 1) * 120, 0);
-            const nextAt = 100 + trainerLv * 20;
-            const curXp = leaderP?.xp ?? 0;
+            const trainerLv = idle.trainerLevel ?? 1;
+            const nextAt = trainerXpToNext(trainerLv);
+            const curXp = idle.trainerXp ?? 0;
             const xpPct = Math.max(0, Math.min(100, (curXp / nextAt) * 100));
             const av = leaderP ? GIF[leaderP.species] : null;
             const name = (identity?.name || "Treinador").slice(0, 16);
