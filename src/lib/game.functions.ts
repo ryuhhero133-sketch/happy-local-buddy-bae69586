@@ -379,3 +379,105 @@ export const setActiveMap = createServerFn({ method: "POST" })
 
     return { ok: true as const };
   });
+
+// ---- Push inicial (one-shot): preserva progresso local do jogador ----------
+// Só age se o trainer_state ainda estiver zerado (evita sobrescrever server-side legítimo).
+
+const RarityEnum = z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]);
+const PushInitialSchema = z.object({
+  gold: z.number().int().min(0).max(1_000_000_000),
+  crystal: z.number().int().min(0).max(10_000_000),
+  ruby: z.number().int().min(0).max(10_000_000).optional().default(0),
+  trainer_level: z.number().int().min(1).max(100),
+  trainer_xp: z.number().int().min(0).max(1_000_000_000),
+  kill_count: z.number().int().min(0).max(1_000_000).optional().default(0),
+  pokeballs: z.record(z.string(), z.number().int().min(0).max(9999)),
+  collection: z.array(z.object({
+    species: z.string().min(1).max(64),
+    level: z.number().int().min(1).max(100),
+    rarity: RarityEnum,
+    team_slot: z.number().int().min(0).max(4).nullable().optional(),
+  })).max(2000),
+});
+
+export const pushInitialState = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => PushInitialSchema.parse(data))
+  .handler(async ({ data, context }): Promise<{ ok: boolean; applied: boolean; reason?: string }> => {
+    const supabase = context.supabase as any;
+    const userId = context.userId;
+
+    // Existe estado? Se sim e já tem progresso, ignora (server é canônico).
+    const { data: cur } = await supabase.from("trainer_state")
+      .select("gold, crystal, trainer_level, trainer_xp, kill_count")
+      .eq("user_id", userId).maybeSingle();
+
+    const hasProgress = cur && (
+      Number(cur.gold) > 0 || Number(cur.crystal) > 0 ||
+      cur.trainer_level > 1 || Number(cur.trainer_xp) > 0 ||
+      Number(cur.kill_count) > 0
+    );
+    if (hasProgress) return { ok: true, applied: false, reason: "server_has_progress" };
+
+    // Upsert estado do treinador com o snapshot local.
+    await supabase.from("trainer_state").upsert({
+      user_id: userId,
+      gold: data.gold,
+      crystal: data.crystal,
+      ruby: data.ruby,
+      trainer_level: data.trainer_level,
+      trainer_xp: data.trainer_xp,
+      kill_count: data.kill_count,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+
+    // Pokébolas
+    const ballTypes = ["pokeball","greatball","ultraball","masterball"] as const;
+    for (const bt of ballTypes) {
+      const qty = data.pokeballs[bt] ?? 0;
+      if (qty > 0) {
+        await supabase.from("pokeballs").upsert({
+          user_id: userId, ball_type: bt, qty,
+        }, { onConflict: "user_id,ball_type" });
+      }
+    }
+
+    // Coleção — só insere se a tabela estiver vazia pro user.
+    const { count: colCount } = await supabase.from("pokemon_collection")
+      .select("id", { count: "exact", head: true }).eq("user_id", userId);
+    if ((colCount ?? 0) === 0 && data.collection.length > 0) {
+      const rows = data.collection.map((p) => {
+        const hp = 20 + p.level * 4;
+        return {
+          user_id: userId,
+          species: p.species,
+          level: p.level,
+          rarity: p.rarity,
+          hp_current: hp,
+          hp_max: hp,
+          energy: 100,
+          team_slot: p.team_slot ?? null,
+        };
+      });
+      // Insere em lotes (Postgrest tem limite prático)
+      const chunk = 200;
+      for (let i = 0; i < rows.length; i += chunk) {
+        await supabase.from("pokemon_collection").insert(rows.slice(i, i + chunk));
+      }
+    }
+
+    // Espelha ranked_scores
+    const username = (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador";
+    const { count: pokedexCount } = await supabase.from("pokemon_collection")
+      .select("id", { count: "exact", head: true }).eq("user_id", userId);
+    await supabase.from("ranked_scores").upsert({
+      user_id: userId,
+      username,
+      trainer_level: data.trainer_level,
+      pokedex_count: pokedexCount ?? 0,
+      total_kills: data.kill_count,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+
+    return { ok: true, applied: true };
+  });
