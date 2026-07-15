@@ -2068,6 +2068,9 @@ function IdlePage() {
             if (it.id === "pokeball") continue;
             if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
           }
+          // Ultra Ball: apenas raro+ (rare/epic/legendary/mythic/mythic_shiny), 30% chance
+          const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
+          if (ultraEligible && Math.random() < 0.30) drops.push("ultraball");
 
           // XP para o líder + drena energia de TODOS do time
           setTeam((tm) => {
