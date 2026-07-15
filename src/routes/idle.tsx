@@ -6101,54 +6101,193 @@ function TabOverlay({
           <SpeciesLore species={leader.species} rarity={leader.rarity} />
 
 
-          <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "18px 0 10px" }}>
-            SEU TIME ({team.length}/5) — arraste com os botões para reordenar
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {team.map((p, i) => {
-              const src = gifMap[p.species];
-              const isLeader = i === 0;
-              const move = (from: number, to: number) => {
-                if (to < 0 || to >= team.length) return;
-                const arr = [...team];
-                const [x] = arr.splice(from, 1);
-                arr.splice(to, 0, x);
-                onReorderTeam(arr);
-              };
-              return (
-                <div key={p.uid} style={{
-                  display: "flex", alignItems: "center", gap: 10, padding: 10,
-                  background: isLeader ? "linear-gradient(90deg, #2a1a10, #1a0f26)" : "#1a0f26",
-                  border: `1px solid ${isLeader ? "#f5cf6b88" : "rgba(245,207,107,0.2)"}`,
-                  borderRadius: 8,
-                }}>
-                  <div style={{
-                    width: 26, textAlign: "center", fontWeight: 900,
-                    color: isLeader ? "#f5cf6b" : "#8a7a9c", fontSize: 12,
-                  }}>{isLeader ? "★" : i + 1}</div>
-                  {src && <img src={src} alt="" width={44} height={44} style={{ imageRendering: "pixelated" }} />}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: "#eadfe8", fontWeight: 700, fontSize: 13, textTransform: "uppercase" }}>
-                      {p.species.replace(/_/g, " ")}
+          {(() => {
+            const RARITY_COLORS: Record<string, { c: string; label: string }> = {
+              common:       { c: "#c8b8d0", label: "COMUM" },
+              uncommon:     { c: "#7ef2a2", label: "INCOMUM" },
+              rare:         { c: "#6bd4ff", label: "RARO" },
+              epic:         { c: "#c084fc", label: "ÉPICO" },
+              legendary:    { c: "#f5cf6b", label: "LENDÁRIO" },
+              mythic:       { c: "#ff6b3d", label: "MÍTICO" },
+              mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦" },
+            };
+            return (
+              <div style={{
+                marginTop: 18,
+                padding: "14px 16px",
+                background: "linear-gradient(135deg, #2a1638 0%, #1a0f26 50%, #251638 100%)",
+                border: "3px solid #f5cf6b",
+                borderRadius: 16,
+                boxShadow: "0 6px 22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(245,207,107,0.4), 0 0 24px rgba(245,207,107,0.12)",
+                position: "relative", overflow: "hidden",
+              }}>
+                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 20%, rgba(245,207,107,0.15), transparent 60%)", pointerEvents: "none" }} />
+                {/* Header do time */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, position: "relative" }}>
+                  <div>
+                    <div style={{ color: "#f5cf6b", fontSize: 18, fontWeight: 900, letterSpacing: 2, textShadow: "0 2px 0 #0b0510, 0 0 10px rgba(245,207,107,0.6)" }}>
+                      ⚔ SEU TIME ⚔
                     </div>
-                    <div style={{ color: "#b8a8c8", fontSize: 11 }}>Nível {p.level}</div>
+                    <div style={{ color: "#b8a8c8", fontSize: 10, marginTop: 2, letterSpacing: 1 }}>
+                      Ordene por prioridade — o Líder é o #1
+                    </div>
                   </div>
-                  <div style={{ display: "flex", gap: 4 }}>
-                    <button onClick={() => move(i, i - 1)} disabled={i === 0}
-                      style={{ ...smallBtn, padding: "6px 10px", opacity: i === 0 ? 0.4 : 1, cursor: i === 0 ? "not-allowed" : "pointer" }}>↑</button>
-                    <button onClick={() => move(i, i + 1)} disabled={i === team.length - 1}
-                      style={{ ...smallBtn, padding: "6px 10px", opacity: i === team.length - 1 ? 0.4 : 1, cursor: i === team.length - 1 ? "not-allowed" : "pointer" }}>↓</button>
-                    {!isLeader && (
-                      <button onClick={() => move(i, 0)}
-                        style={{ ...smallBtn, padding: "6px 10px", background: "#c92a2a", color: "#fff", border: "none" }}>
-                        Líder
-                      </button>
-                    )}
-                  </div>
+                  <div style={{
+                    background: "rgba(245,207,107,0.15)", border: "1px solid rgba(245,207,107,0.4)",
+                    padding: "4px 12px", borderRadius: 999, color: "#f5cf6b",
+                    fontSize: 12, fontWeight: 900, letterSpacing: 1,
+                  }}>{team.length}/5</div>
                 </div>
-              );
-            })}
-          </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
+                  {team.map((p, i) => {
+                    const src = gifMap[p.species];
+                    const isLeader = i === 0;
+                    const rarityInfo = RARITY_COLORS[p.rarity] ?? RARITY_COLORS.common;
+                    const rc = rarityInfo.c;
+                    const petMax = calcIdleMaxHp(p);
+                    const petHp = isLeader ? leaderHp : (p.hp ?? petMax);
+                    const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
+                    const hpColor = hpPct > 55 ? "#5ec26a" : hpPct > 25 ? "#f5cf6b" : "#ff5252";
+                    const move = (from: number, to: number) => {
+                      if (to < 0 || to >= team.length) return;
+                      const arr = [...team];
+                      const [x] = arr.splice(from, 1);
+                      arr.splice(to, 0, x);
+                      onReorderTeam(arr);
+                    };
+                    return (
+                      <div key={p.uid} style={{
+                        display: "flex", alignItems: "stretch", gap: 10, padding: 10,
+                        background: isLeader
+                          ? `linear-gradient(90deg, ${rc}22 0%, #1a0f26 55%, #1a0f26 100%)`
+                          : "linear-gradient(90deg, rgba(20,10,35,0.85), rgba(30,20,50,0.85))",
+                        border: `2px solid ${isLeader ? rc : rc + "55"}`,
+                        borderRadius: 12,
+                        boxShadow: isLeader
+                          ? `0 4px 14px rgba(0,0,0,0.5), inset 0 1px 0 ${rc}55, 0 0 18px ${rc}33`
+                          : `0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 ${rc}22`,
+                        position: "relative",
+                      }}>
+                        {/* Slot number */}
+                        <div style={{
+                          width: 28, display: "flex", flexDirection: "column",
+                          alignItems: "center", justifyContent: "center", flexShrink: 0,
+                        }}>
+                          <div style={{
+                            fontSize: isLeader ? 16 : 14, fontWeight: 900,
+                            color: isLeader ? rc : "#8a7a9c",
+                            textShadow: isLeader ? `0 0 10px ${rc}` : "none",
+                            lineHeight: 1,
+                          }}>{isLeader ? "★" : i + 1}</div>
+                          {isLeader && (
+                            <div style={{ fontSize: 8, color: rc, fontWeight: 900, letterSpacing: 1, marginTop: 2 }}>LÍDER</div>
+                          )}
+                        </div>
+
+                        {/* Portrait */}
+                        <div style={{
+                          width: 62, height: 62, flexShrink: 0, borderRadius: 10,
+                          background: `radial-gradient(circle at 30% 25%, ${rc}44, ${rc}11 60%, rgba(0,0,0,0.4))`,
+                          border: `1.5px solid ${rc}88`,
+                          boxShadow: `inset 0 0 10px ${rc}33, 0 2px 6px rgba(0,0,0,0.5)`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          position: "relative", overflow: "hidden",
+                        }}>
+                          {src && <img src={src} alt="" width={52} height={52} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }} />}
+                        </div>
+
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 4 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                            <div style={{ color: "#eadfe8", fontWeight: 900, fontSize: 13, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                              {p.species.replace(/_/g, " ")}
+                            </div>
+                            <div style={{
+                              background: rc, color: "#0b0510",
+                              fontSize: 8, fontWeight: 900, letterSpacing: 1,
+                              padding: "2px 6px", borderRadius: 4,
+                              boxShadow: `0 0 6px ${rc}88`,
+                            }}>{rarityInfo.label}</div>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, color: "#b8a8c8", fontWeight: 700 }}>
+                            <span style={{ color: "#f5cf6b" }}>Lv.{p.level}</span>
+                            <span style={{ opacity: 0.4 }}>•</span>
+                            <span style={{ color: hpColor, fontFamily: "monospace" }}>{Math.floor(petHp)}/{petMax} HP</span>
+                          </div>
+                          {/* HP bar */}
+                          <div style={{
+                            height: 8, background: "rgba(0,0,0,0.55)",
+                            border: "1px solid rgba(0,0,0,0.7)",
+                            borderRadius: 4, overflow: "hidden",
+                            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)",
+                            position: "relative",
+                          }}>
+                            <div style={{
+                              width: `${hpPct}%`, height: "100%",
+                              background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
+                              boxShadow: `0 0 6px ${hpColor}88, inset 0 1px 0 rgba(255,255,255,0.4)`,
+                              transition: "width 200ms",
+                            }} />
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, justifyContent: "center", flexShrink: 0 }}>
+                          <div style={{ display: "flex", gap: 4 }}>
+                            <button onClick={() => move(i, i - 1)} disabled={i === 0}
+                              title="Subir"
+                              style={{
+                                width: 26, height: 22, fontSize: 12, fontWeight: 900,
+                                background: i === 0 ? "#2a1638" : "linear-gradient(180deg, #3a2450, #241634)",
+                                color: i === 0 ? "#4a3560" : "#eadfe8",
+                                border: `1px solid ${i === 0 ? "#3a2450" : "#5a3d78"}`,
+                                borderRadius: 5, cursor: i === 0 ? "not-allowed" : "pointer",
+                              }}>▲</button>
+                            <button onClick={() => move(i, i + 1)} disabled={i === team.length - 1}
+                              title="Descer"
+                              style={{
+                                width: 26, height: 22, fontSize: 12, fontWeight: 900,
+                                background: i === team.length - 1 ? "#2a1638" : "linear-gradient(180deg, #3a2450, #241634)",
+                                color: i === team.length - 1 ? "#4a3560" : "#eadfe8",
+                                border: `1px solid ${i === team.length - 1 ? "#3a2450" : "#5a3d78"}`,
+                                borderRadius: 5, cursor: i === team.length - 1 ? "not-allowed" : "pointer",
+                              }}>▼</button>
+                          </div>
+                          {!isLeader && (
+                            <button onClick={() => move(i, 0)}
+                              title="Tornar Líder"
+                              style={{
+                                padding: "3px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 0.5,
+                                background: "linear-gradient(180deg, #ffd66b, #b8862a)",
+                                color: "#0b0510", border: "1px solid #fff4d0",
+                                borderRadius: 5, cursor: "pointer",
+                                boxShadow: "0 2px 4px rgba(184,134,42,0.55)",
+                              }}>★ LÍDER</button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Slots vazios */}
+                  {Array.from({ length: Math.max(0, 5 - team.length) }).map((_, k) => (
+                    <div key={`empty-${k}`} style={{
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      padding: 14, minHeight: 60,
+                      background: "rgba(20,10,35,0.4)",
+                      border: "2px dashed #4a3560", borderRadius: 12,
+                      color: "#6a5a7c", fontSize: 11, fontWeight: 800, letterSpacing: 1,
+                    }}>
+                      <span style={{ fontSize: 16, opacity: 0.5 }}>＋</span>
+                      SLOT VAZIO — Adicione pela Coleção
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
         </div>
       )}
 
