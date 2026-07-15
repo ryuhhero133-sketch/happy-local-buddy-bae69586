@@ -221,7 +221,7 @@ const sfxChestOpenUrl = assetUrl(sfxChestOpenAsset.url);
 type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "floresta" | "caverna";
 // element: só descritivo; cycle: quando presente, mapa abre a cada `cycleMs` por `openMs`
 type IdleMapDef = {
-  name: string; diff: string; bg: string; rate: number; minLevel: number;
+  name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
   element: string;
   cycle?: { cycleMs: number; openMs: number };
 };
