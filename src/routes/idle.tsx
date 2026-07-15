@@ -1894,8 +1894,12 @@ function IdlePage() {
               common: 1, uncommon: 1.2, rare: 1.5, epic: 2, legendary: 3, mythic: 4.5, mythic_shiny: 6,
             };
             const rMult = rarityTrainerMult[target.rarity] ?? 1;
-            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * (1 + (expActive ? idle.buffs.expMult : 0))));
-            const captureTrainerXp = captured ? Math.max(5, Math.round((25 + target.level * 6) * rMult)) : 0;
+            // Escala por diferença de nível: cada nv acima do inimigo reduz 8% (mín 10%).
+            const trLv = s.trainerLevel ?? 1;
+            const lvDiff = trLv - target.level;
+            const lvScale = lvDiff <= 0 ? 1 : Math.max(0.1, 1 - lvDiff * 0.08);
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * lvScale * (1 + (expActive ? idle.buffs.expMult : 0))));
+            const captureTrainerXp = captured ? Math.max(5, Math.round((25 + target.level * 6) * rMult * lvScale)) : 0;
             const totalTrainerXp = killTrainerXp + captureTrainerXp;
             const applied = applyTrainerXp(s, totalTrainerXp);
             if (applied.leveledTo != null) {
@@ -2758,33 +2762,23 @@ function IdlePage() {
   }
 
   // alvo de baús no mapa (2 base + 1 por Amuleto do Baú comprado, máx 6)
-  const chestTarget = Math.min(3, 1 + (idle.items?.chest_amulet ?? 0));
+  const chestTarget = Math.min(6, 5 + (idle.items?.chest_amulet ?? 0));
 
-  // spawna baús no início e mantém sempre `chestTarget` no mapa (respawn mais lento)
+  // spawna baús no início; respawna a cada 10 min mantendo até `chestTarget` no mapa
   useEffect(() => {
-    const initial = spawnChests(chestTarget);
+    const initial = spawnChests(Math.min(chestTarget, 2));
     setChests(initial);
     const iv = setInterval(() => {
       setChests((prev) => {
         const remaining = prev.filter((c) => !c.opened || (Date.now() - (c.openedAt ?? 0) < 4000));
         const active = remaining.filter((c) => !c.opened);
         if (active.length >= chestTarget) return remaining;
-        const needed = Math.max(1, chestTarget - active.length);
-        const news = spawnChests(needed);
-        return [...remaining, ...news];
-      });
-    }, 45000);
-    // Spawn EXTRA garantido a cada 10 min: um baú COMUM novo (até o teto máx=6)
-    const ivExtra = setInterval(() => {
-      setChests((prev) => {
-        const active = prev.filter((c) => !c.opened);
-        if (active.length >= 6) return prev;
         const news = spawnChests(1);
         if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
-        return [...prev, ...news];
+        return [...remaining, ...news];
       });
     }, 10 * 60 * 1000);
-    return () => { clearInterval(iv); clearInterval(ivExtra); };
+    return () => { clearInterval(iv); };
   }, [chestTarget]); // eslint-disable-line
 
 
@@ -2818,13 +2812,31 @@ function IdlePage() {
           return [{ ...l, energy: newE, energyRegenAt: now } as PetInstance, ...tm.slice(1)];
         });
 
-        const gain = 200 + Math.floor(Math.random() * 200);
+        // Tabela de loot balanceada
+        //  20% vazio  |  25% chave  |  20% pokébola  |  25% ouro  |  10% cristal
         const roll = Math.random();
-        const bonusCrystal = roll < 0.30 ? 1 : 0;
-        const bonusBall = (!bonusCrystal && roll < 0.55) ? 1 : 0;
-        const parts = [`+${gain} ouro`];
+        let gain = 0;
+        let bonusCrystal = 0;
+        let bonusBall = 0;
+        let bonusKey = 0;
+        let emptyDrop = false;
+        if (roll < 0.20) {
+          emptyDrop = true;
+        } else if (roll < 0.45) {
+          bonusKey = 1;
+        } else if (roll < 0.65) {
+          bonusBall = 1;
+        } else if (roll < 0.90) {
+          gain = 150 + Math.floor(Math.random() * 250);
+        } else {
+          bonusCrystal = 1;
+        }
+        const parts: string[] = [];
+        if (emptyDrop) parts.push("vazio…");
+        if (gain > 0) parts.push(`+${gain} ouro`);
         if (bonusCrystal) parts.push("+1 💎");
         if (bonusBall) parts.push("+1 Pokébola");
+        if (bonusKey) parts.push("+1 🔑 Chave");
         pushFxAt(oc.x, oc.y - 50, parts.join(" · "), "gold");
         pushChat(`Baú aberto! ${parts.join(" · ")}`, "chest");
         playChestOpen();
@@ -2834,7 +2846,8 @@ function IdlePage() {
           totals: { ...s.totals, gold: s.totals.gold + gain },
           items: {
             ...s.items,
-            pokeball: bonusBall ? (s.items.pokeball ?? 0) + 1 : (s.items.pokeball ?? 0),
+            pokeball: (s.items.pokeball ?? 0) + bonusBall,
+            chest_key: (s.items.chest_key ?? 0) + bonusKey,
           },
         }));
       }
@@ -4507,7 +4520,7 @@ function IdlePage() {
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 const targetMap = IDLE_MAPS[g.target];
-                const unlocked = idle.trainerLevel >= targetMap.minLevel;
+                const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                 if (!unlocked) {
                   pushChat(`Precisa nível ${targetMap.minLevel} para ir a ${targetMap.name}.`, "info");
                   return;
@@ -4557,7 +4570,7 @@ function IdlePage() {
                   {/* Portais para outros mapas */}
                   {currentGates.map((g) => {
                     const targetMap = IDLE_MAPS[g.target];
-                    const unlocked = idle.trainerLevel >= targetMap.minLevel;
+                    const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                     const label = unlocked ? targetMap.name : `${targetMap.name} (Lv ${targetMap.minLevel})`;
                     return (
                       <button
@@ -4681,7 +4694,7 @@ function IdlePage() {
                         <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
                           🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
                             const tm = IDLE_MAPS[g.target];
-                            const ok = idle.trainerLevel >= tm.minLevel;
+                            const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
                             return (
                               <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
                                 ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
