@@ -2468,20 +2468,16 @@ function IdlePage() {
       // Pokémons selvagens pareados com o nível do líder (±1) pra não ter desvantagem.
       // Elites levam +1 nível e, raramente (5%), aparece um "forte" com +2/+4.
       const rareStrong = Math.random() < 0.05;
-      const jitter = Math.floor(Math.random() * 3) - 1; // -1, 0 ou +1
-      let baseLv = rareStrong
-        ? leaderLv + 2 + Math.floor(Math.random() * 3)
-        : Math.max(1, leaderLv + jitter);
+      // Faixa em torno do líder: -5 até +10 (extremos raros)
+      const offset = rareStrong
+        ? 5 + Math.floor(Math.random() * 6)   // +5..+10 raro forte
+        : -5 + Math.floor(Math.random() * 16); // -5..+10
+      let baseLv = Math.max(1, leaderLv + offset);
       let lv = elite ? baseLv + 1 : baseLv;
-      // Aplica faixa do mapa (se houver)
+      // Aplica faixa do mapa (se houver): clampa para os limites do mapa
       if (mapLvRange) {
         const [lo, hi] = mapLvRange;
-        // Se líder for baixo, spawn perto do líder mas dentro da faixa; senão, pega aleatório na faixa
-        if (leaderLv <= hi) {
-          lv = Math.max(lo, Math.min(hi, lv));
-        } else {
-          lv = lo + Math.floor(Math.random() * (hi - lo + 1));
-        }
+        lv = Math.max(lo, Math.min(hi, lv));
       }
       const pet = makePet(sp, lv);
       const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
