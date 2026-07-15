@@ -2075,6 +2075,8 @@ function IdlePage() {
   const [legendUntil, setLegendUntil] = useState<{ until: number; weather?: "snow" | "rain" } | null>(null);
   useEffect(() => {
     const trigger = () => {
+      // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial)
+      if (idle.currentMap === "arena") return;
       const pick = LEGEND_ROSTER[Math.floor(Math.random() * LEGEND_ROSTER.length)];
       legendIdxRef.current++;
       const until = Date.now() + LEGEND_DURATION_MS;
