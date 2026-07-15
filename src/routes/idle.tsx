@@ -2775,7 +2775,7 @@ function IdlePage() {
       return {
         ...s,
         tasks: s.tasks.filter((x) => x.id !== tid),
-        pending: { ...s.pending, rubies: s.pending.rubies + t.reward },
+        bank: { ...s.bank, crystals: s.bank.crystals + t.reward },
       };
     });
   };
