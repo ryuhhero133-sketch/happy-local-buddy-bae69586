@@ -668,7 +668,7 @@ const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
 const ENERGY_ACTIVE_DURATION_S: Partial<Record<Rarity, number>> = {
   common: 25 * 60,       // 25 min
   uncommon: 35 * 60,     // 35 min
-  rare: 12 * 3600,       // 12 h
+  rare: 1 * 3600,        // 1 h
   epic: 2 * 3600,        // 2 h
   legendary: 5 * 3600,   // 5 h
   mythic: 0, mythic_shiny: 0,
@@ -3082,6 +3082,36 @@ function IdlePage() {
 
   // ===== Casa Azul: coloca 1 Pokémon para restaurar energia =====
   // Modo pago: 5💎 -> 5 min. Modo grátis (auto): 1h.
+  // Adianta um descanso em andamento gastando cristais
+  const speedUpAzulRest = (uid: string) => {
+    const now = Date.now();
+    const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+    const party = save.party ?? team;
+    const pet = party.find((p) => p.uid === uid) as PetEnergyExt | undefined;
+    if (!pet || !pet.azulRestUntil || pet.azulRestUntil <= now) {
+      pushChat(`Nada para adiantar.`, "info");
+      return;
+    }
+    if (idle.bank.crystals < AZUL_REST_COST) {
+      pushChat(`Cristais insuficientes (precisa ${AZUL_REST_COST}💎).`, "info");
+      return;
+    }
+    const refreshed = { ...pet, energy: ENERGY_MAX, energyRegenAt: now, azulRestUntil: undefined, azulRestFromEnergy: undefined, azulRestTotalMs: undefined } as PetInstance;
+    const newParty = (save.party ?? []).map((x) => x.uid === uid ? refreshed : x);
+    saveNow({ ...save, party: newParty });
+    setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - AZUL_REST_COST } }));
+    setRestingBench((b) => b.filter((x) => x.uid !== uid));
+    setTeam((tm) => {
+      if (tm.some((x) => x.uid === uid)) return tm.map((x) => x.uid === uid ? refreshed : x);
+      if (tm.length >= 5) return tm;
+      const next = [...tm, refreshed];
+      if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
+      return next;
+    });
+    pushChat(`⚡ ${pet.species.toUpperCase()} descansou instantaneamente (-${AZUL_REST_COST}💎)`, "info");
+    pushEvent("⚡", "ADIANTADO", `${pet.species.toUpperCase()} pronto!`, "#4a9eff");
+  };
+
   const restPetInAzul = (uid: string, opts?: { auto?: boolean }) => {
     const now = Date.now();
     const auto = !!opts?.auto;
@@ -5608,16 +5638,24 @@ function IdlePage() {
                         <div style={{ fontSize: 10, color: "#c8b8d0" }}>Lv.{p.level} · {p.rarity}</div>
                         <div style={{ fontSize: 10, color: resting ? "#7fc4ff" : (energy < 30 ? "#ff7a3d" : "#8fd0ff") }}>⚡ {label}</div>
                       </div>
-                      <button
-                        disabled={!canPick}
-                        onClick={() => restPetInAzul(p.uid)}
-                        style={{
-                          background: canPick ? "#4a9eff" : "#2a3a4a",
-                          color: canPick ? "#0b0510" : "#5a6a7a",
-                          border: "none", borderRadius: 6, padding: "6px 10px",
-                          fontWeight: 900, fontSize: 11, cursor: canPick ? "pointer" : "not-allowed",
-                        }}
-                      >{resting ? "Ativo" : `Deixar (${AZUL_REST_COST}💎)`}</button>
+                      {(() => {
+                        const canSpeed = resting && idle.bank.crystals >= AZUL_REST_COST;
+                        const canPickNow = canPick;
+                        const enabled = resting ? canSpeed : canPickNow;
+                        const label = resting ? `Adiantar (${AZUL_REST_COST}💎)` : `Deixar (${AZUL_REST_COST}💎)`;
+                        return (
+                          <button
+                            disabled={!enabled}
+                            onClick={() => resting ? speedUpAzulRest(p.uid) : restPetInAzul(p.uid)}
+                            style={{
+                              background: enabled ? "#4a9eff" : "#2a3a4a",
+                              color: enabled ? "#0b0510" : "#5a6a7a",
+                              border: "none", borderRadius: 6, padding: "6px 10px",
+                              fontWeight: 900, fontSize: 11, cursor: enabled ? "pointer" : "not-allowed",
+                            }}
+                          >{infinite ? "—" : label}</button>
+                        );
+                      })()}
                     </div>
                   );
                 })}
