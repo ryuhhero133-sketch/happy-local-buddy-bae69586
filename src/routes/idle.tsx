@@ -666,11 +666,11 @@ const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
 
 // Duração (segundos) que 100 de energia dura em auto-battle como líder.
 const ENERGY_ACTIVE_DURATION_S: Partial<Record<Rarity, number>> = {
-  common: 5 * 60,       // 5 min
-  uncommon: 8 * 60,     // 8 min
-  rare: 15 * 60,        // 15 min
-  epic: 25 * 60,        // 25 min
-  legendary: 35 * 60,   // 35 min
+  common: 25 * 60,       // 25 min
+  uncommon: 35 * 60,     // 35 min
+  rare: 12 * 3600,       // 12 h
+  epic: 2 * 3600,        // 2 h
+  legendary: 5 * 3600,   // 5 h
   mythic: 0, mythic_shiny: 0,
 };
 function energyDrainPerSec(rarity: Rarity): number {
