@@ -2563,8 +2563,7 @@ function IdlePage() {
     { sp: "magnemite" as Species,  w: 3, forcedRarity: "rare" },
     { sp: "gloom" as Species,      w: 2, forcedRarity: "rare" },
     { sp: "parasect" as Species,   w: 2, forcedRarity: "rare" },
-    // Épico ★★ (super raro)
-    { sp: "fearow" as Species,     w: 1, forcedRarity: "epic" },
+    // (Épico só é liberado quando o líder chega ao nível 50 — em outros mapas)
   ];
 
   function pickArenaSpawn(): { sp: Species; forcedRarity?: Rarity } {
