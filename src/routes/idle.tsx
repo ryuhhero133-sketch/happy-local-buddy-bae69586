@@ -4694,10 +4694,12 @@ function IdlePage() {
               isVip={isVip()}
               skinId={skinId}
               setSkinId={setSkinId}
-
+              trainerLevel={idle.trainerLevel ?? 1}
+              onUpgradeBook={upgradeBook}
 
 
             />
+
           )}
         </div>
 
