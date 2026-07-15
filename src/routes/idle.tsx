@@ -960,6 +960,7 @@ function IdlePage() {
         trainer_level: Math.max(1, Math.min(100, s.trainerLevel ?? 1)),
         trainer_xp: Math.max(0, Math.floor(s.trainerXp ?? 0)),
         kill_count: Math.max(0, Math.floor(s.totals?.kills ?? 0)),
+        active_map: s.currentMap,
         pokeballs: balls,
         collection: col,
       };
