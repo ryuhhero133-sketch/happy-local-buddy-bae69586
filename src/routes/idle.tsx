@@ -2127,7 +2127,7 @@ function IdlePage() {
       };
       const rLabel = rarityLabelMap[np.rarity] ?? String(np.rarity);
       pushFxAt(target.x, target.y - 70, `★ CAPTUROU! ★`, "capture");
-      pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "cap");
+      pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
       playBonus();
       setEnemies((prev) => prev.filter((e) => e.id !== enemyId));
       setTeam((tm) => {
