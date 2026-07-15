@@ -936,7 +936,7 @@ function IdlePage() {
     const exhausted = team.find((p) => {
       const pe = p as PetEnergyExt;
       if (pe.azulRestUntil && pe.azulRestUntil > now) return false;
-      return petIsExhausted(p, now);
+      return petIsExhausted(p, now, { active: true });
     });
     if (!exhausted) return;
     pushChat(`⚡ ${exhausted.species.replace(/_/g, " ").toUpperCase()} sem energia — indo para a Casa Azul.`, "info");
