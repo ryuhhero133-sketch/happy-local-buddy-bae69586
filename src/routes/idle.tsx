@@ -87,6 +87,7 @@ import mapFlorestaAsset from "@/assets/map-floresta-secreta.png.asset.json";
 import mapSnowAsset from "@/assets/map-snow-valley.png.asset.json";
 import mapDesertAsset from "@/assets/map-desert.png.asset.json";
 import mapCaveAsset from "@/assets/map-cave1.png.asset.json";
+import mapStoneAsset from "@/assets/map-stone.jpg.asset.json";
 import mapTerraAsset from "@/assets/map-terra-hornet.jpg.asset.json";
 import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
