@@ -594,6 +594,8 @@ type IdleState = {
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number };
 
+export const MAX_COLLECTION = 500;
+
 export const CRAFT_BY_RARITY: Record<Rarity, number> = {
   common: 1,
   uncommon: 3,
