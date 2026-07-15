@@ -109,13 +109,13 @@ import rockLavaAsset from "@/assets/rock-lava.png.asset.json";
 import caveFloorAsset from "@/assets/cave-floor.jpg.asset.json";
 import stalagmiteAsset from "@/assets/stalagmite.png.asset.json";
 import caveCrystalAsset from "@/assets/cave-crystal.png.asset.json";
-import mapCaveFloorAsset from "@/assets/map-cave.jpg.asset.json";
+import mapPedreiraCavernaAsset from "@/assets/map-pedreira-caverna.jpg.asset.json";
 import crystalClusterAsset from "@/assets/crystal-cluster.png.asset.json";
-const caveFloorUrl = assetUrl(caveFloorAsset.url);
-const stalagmiteUrl = assetUrl(stalagmiteAsset.url);
-const caveCrystalUrl = assetUrl(caveCrystalAsset.url);
-const mapCaveFloorUrl = assetUrl(mapCaveFloorAsset.url);
-const crystalClusterUrl = assetUrl(crystalClusterAsset.url);
+const caveFloorUrl = caveFloorAsset.url;
+const stalagmiteUrl = stalagmiteAsset.url;
+const caveCrystalUrl = caveCrystalAsset.url;
+const mapPedreiraCavernaUrl = mapPedreiraCavernaAsset.url;
+const crystalClusterUrl = crystalClusterAsset.url;
 
 // Pokemon GIFs (reusa os que já existem no projeto)
 import charizardGif from "@/assets/charizard.gif";
@@ -248,7 +248,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   floresta: { name: "Floresta Sombria",        diff: "Difícil",   bg: mapFlorestaUrl,  rate: 2.6, minLevel: 1,  element: "Sombrio"  },
   caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 1,  element: "Pedra",
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
-  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapCaveFloorUrl, rate: 2.4, minLevel: 25, maxLevel: 55, element: "Pedra/Terra" },
+  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapPedreiraCavernaUrl, rate: 2.4, minLevel: 25, maxLevel: 55, element: "Pedra/Terra" },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
