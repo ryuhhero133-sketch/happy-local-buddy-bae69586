@@ -1421,7 +1421,11 @@ function IdlePage() {
           if (d < bestD) { bestD = d; target = e; }
         }
         // só entra em combate se estiver perto (raio do ataque)
-        if (Math.sqrt(bestD) > ATTACK_RANGE) return prev;
+        if (Math.sqrt(bestD) > ATTACK_RANGE) {
+          // Alvo fora de alcance: limpa target para não ficar preso mostrando HUD
+          setAttackTargetId((cur) => (cur !== null ? null : cur));
+          return prev;
+        }
         // marca alvo atual (para virar o pokémon na direção dele)
         setAttackTargetId(target.id);
         const attackFace = target.x >= trainerPos.x ? "right" : "left";
