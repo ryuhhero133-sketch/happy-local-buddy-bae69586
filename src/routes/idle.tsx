@@ -4127,22 +4127,14 @@ function IdlePage() {
               );
             })}
 
-            {/* HUD de coordenadas — canto inferior direito do mundo */}
-            <div style={{
-              position: "fixed", left: "50%", bottom: 8, transform: "translateX(-50%)",
-              background: "rgba(0,0,0,0.75)", color: "#f5cf6b",
-              padding: "4px 10px", borderRadius: 6, fontSize: 12, fontWeight: 700,
-              fontFamily: "monospace", border: "1px solid rgba(245,207,107,0.4)",
-              pointerEvents: "none", zIndex: 9999,
-            }}>
-              X: {Math.round(trainerPos.x)} · Y: {Math.round(trainerPos.y)}
-            </div>
+
+
 
             {/* Portais no mundo — pontos de viagem visíveis */}
             {(() => {
               const worldPortals: { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string }[] = [
-                { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 600,           y: 470,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 140, color: "#ff5ea8", label: "Pedreira Antiga" },
-                { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: WORLD_W / 2,   y: WORLD_H - 140, arriveX: 600,         arriveY: 470,           color: "#7ef27a", label: "Vale Verdejante" },
+                { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 450,           y: 420,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 140, color: "#ff5ea8", label: "Pedreira Antiga" },
+                { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: WORLD_W / 2,   y: WORLD_H - 140, arriveX: 450,         arriveY: 420,           color: "#7ef27a", label: "Vale Verdejante" },
               ];
               return worldPortals.filter(p => p.from === idle.currentMap).map((p) => (
                 <div
@@ -4981,7 +4973,7 @@ function IdlePage() {
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-flor",  target: "floresta", x: WORLD_W - 60, y: WORLD_H / 2,  arriveX: 100,          arriveY: WORLD_H / 2,   color: "#7ef27a" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
-                  { key: "to-pedreira", target: "pedreira", x: 600,      y: 470,          arriveX: WORLD_W / 2,  arriveY: WORLD_H - 140, color: "#ff5ea8" },
+                  { key: "to-pedreira", target: "pedreira", x: 450,      y: 420,          arriveX: WORLD_W / 2,  arriveY: WORLD_H - 140, color: "#ff5ea8" },
                 ],
                 terra: [
                   { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
@@ -5589,6 +5581,19 @@ function IdlePage() {
           {identity.name}
         </div>
       )}
+
+      {/* HUD de coordenadas — fixa na tela (fora do mundo) */}
+      <div style={{
+        position: "fixed", left: "50%", bottom: 8, transform: "translateX(-50%)",
+        background: "rgba(0,0,0,0.85)", color: "#f5cf6b",
+        padding: "4px 12px", borderRadius: 8, fontSize: 12, fontWeight: 800,
+        fontFamily: "monospace", border: "1px solid rgba(245,207,107,0.5)",
+        pointerEvents: "none", zIndex: 10000,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+      }}>
+        X: {Math.round(trainerPos.x)} · Y: {Math.round(trainerPos.y)} · {IDLE_MAPS[idle.currentMap].name}
+      </div>
+
 
       {/* Botão flutuante: resgatar código */}
       <button
