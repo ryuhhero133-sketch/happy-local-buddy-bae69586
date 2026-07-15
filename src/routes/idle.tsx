@@ -1674,21 +1674,8 @@ function IdlePage() {
         }
       }
 
-      // Líder acima do cap de nível do mapa → treinador para e avisa no chat.
-      {
-        const cap = IDLE_MAPS[idle.currentMap].maxLevel;
-        const leadLv = team[0]?.level ?? 1;
-        if (cap != null && leadLv > cap) {
-          const nowE = Date.now();
-          if (nowE - overCapMsgRef.current > 15000) {
-            overCapMsgRef.current = nowE;
-            pushChat(`⚠ Pokémon acima do nível para esta área (cap ${cap}). Troque de mapa ou de líder.`, "info");
-          }
-          setAttackTargetId((c) => (c !== null ? null : c));
-          if (moving) setMoving(false);
-          return;
-        }
-      }
+      // Líder acima do cap: pode atacar normalmente, mas XP/ouro serão nerfados no cálculo abaixo.
+
 
       setTrainerPos((tp) => {
 
@@ -1700,13 +1687,10 @@ function IdlePage() {
         const openChests = chests.filter((c) => !c.opened);
         const leaderLvNow = team[0]?.level ?? 1;
         const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
-        // Só considera alvos dentro de ±10 níveis do líder pra não morrer / não perder tempo
-        // Só considera inimigos até +10 níveis acima e até -5 abaixo do líder
-        const alive = aliveAll.filter((e) => {
-          const el = e.level ?? leaderLvNow;
-          return el <= leaderLvNow + 10 && el >= leaderLvNow - 5;
-        });
+        // Líder pode atacar qualquer Pokémon do mapa — ganhos serão nerfados se muito acima.
+        const alive = aliveAll;
         const enemyPool = alive.length > 0 ? alive : [];
+
 
         type Tgt = { x: number; y: number; kind: "enemy" | "chest"; id: number; range: number };
         const candidates: Tgt[] = [
@@ -1979,7 +1963,11 @@ function IdlePage() {
             common: 1, uncommon: 1.6, rare: 2.6, epic: 4.5, legendary: 8, mythic: 14, mythic_shiny: 22,
           };
           const enemyRarityMult = enemyRarityMultMap[target.rarity as Rarity] ?? 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.5);
+          // Nerf por diferença de nível: se líder ≥15 níveis acima do alvo, XP/ouro colapsam.
+          const leaderLvKill = team[0]?.level ?? 1;
+          const lvGap = leaderLvKill - (target.level ?? leaderLvKill);
+          const overLvlPenalty = lvGap >= 15 ? Math.max(0.02, 1 - (lvGap - 14) * 0.15) : 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.5 * overLvlPenalty);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -1989,7 +1977,8 @@ function IdlePage() {
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1;
-          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty));
+          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty * overLvlPenalty));
+
           pushFxAt(target.x, target.y - 50, `+${xp} EXP`, "xp");
           const bonusParts: string[] = [];
           if (expActive) bonusParts.push(`EXP+${Math.round(idle.buffs.expMult * 100)}%`);
