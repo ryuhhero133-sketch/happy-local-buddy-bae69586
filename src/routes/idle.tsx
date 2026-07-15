@@ -3898,12 +3898,9 @@ function IdlePage() {
             transformOrigin: "0 0",
             transition: "transform 120ms linear",
             backgroundColor: viewportBg,
-            backgroundImage: isPedreira
-              ? `radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%), url(${caveFloorUrl})`
-              : `url(${map.bg})`,
-            backgroundSize: isPedreira ? `${WORLD_W}px ${WORLD_H}px, 256px 256px` : `${WORLD_W}px ${WORLD_H}px`,
-            backgroundBlendMode: isPedreira ? "multiply, normal" : undefined,
-            backgroundRepeat: isPedreira ? "no-repeat, repeat" : "no-repeat",
+            backgroundImage: `url(${map.bg})`,
+            backgroundSize: `${WORLD_W}px ${WORLD_H}px`,
+            backgroundRepeat: "no-repeat",
             imageRendering: "pixelated",
           }}>
 
