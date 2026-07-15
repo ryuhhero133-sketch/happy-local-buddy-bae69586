@@ -221,7 +221,7 @@ const sfxClickUrl = assetUrl(sfxClickAsset.url);
 const sfxBonusUrl = assetUrl(sfxBonusAsset.url);
 const sfxChestOpenUrl = assetUrl(sfxChestOpenAsset.url);
 
-type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "floresta" | "caverna";
+type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "floresta" | "caverna" | "pedreira";
 // element: só descritivo; cycle: quando presente, mapa abre a cada `cycleMs` por `openMs`
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
@@ -238,6 +238,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   floresta: { name: "Floresta Sombria",        diff: "Difícil",   bg: mapFlorestaUrl,  rate: 2.6, minLevel: 1,  element: "Sombrio"  },
   caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 1,  element: "Pedra",
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
+  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapStoneUrl,     rate: 2.4, minLevel: 25, maxLevel: 55, element: "Pedra/Terra" },
 };
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
