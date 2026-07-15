@@ -1577,6 +1577,13 @@ function IdlePage() {
         const eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
         // Dano recebido → aparece EM CIMA DO MEU POKÉMON, com um respiro após o meu golpe
         setTimeout(() => {
+          setEnemyAttackAnim({
+            id: attackAnimIdRef.current++,
+            fromX: target.x, fromY: target.y,
+            toX: followerAtX, toY: followerAtY,
+            ts: Date.now(),
+            element: elementOf(target.sp),
+          });
           pushFxAt(followerAtX, followerAtY - 34, `-${eDmg}`, "enemyDmg");
         }, 480);
         setLeaderHp((h) => {
