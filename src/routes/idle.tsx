@@ -1819,7 +1819,12 @@ function IdlePage() {
           const totalMult = goldMult * (1 + totalBonus);
           const honeyActiveKill = Date.now() < (idle.buffs.honeyUntil ?? 0);
           const honeyMult = honeyActiveKill ? 1 + HONEY_BONUS : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * 0.5);
+          // Multiplicador pela raridade DO INIMIGO derrotado
+          const enemyRarityMultMap: Record<Rarity, number> = {
+            common: 1, uncommon: 1.6, rare: 2.6, epic: 4.5, legendary: 8, mythic: 14, mythic_shiny: 22,
+          };
+          const enemyRarityMult = enemyRarityMultMap[target.rarity as Rarity] ?? 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.5);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -1829,7 +1834,7 @@ function IdlePage() {
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1;
-          const gold = Math.max(1, Math.floor(baseGold * totalMult * goldCapPenalty));
+          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty));
           pushFxAt(target.x, target.y - 50, `+${xp} EXP`, "xp");
           const bonusParts: string[] = [];
           if (expActive) bonusParts.push(`EXP+${Math.round(idle.buffs.expMult * 100)}%`);
