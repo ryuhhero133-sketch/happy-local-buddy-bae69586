@@ -2843,10 +2843,8 @@ function IdlePage() {
   };
 
   // Loja — apenas 1 ovo místico (500 cristais), raridade totalmente aleatória
-  const SHOP_EGGS: { id: EggId; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[] = [
-    { id: "egg_mystic", name: "Ovo Místico", price: 1000, currency: "crystals", desc: "Raridade aleatória: comum → mítico ✦ (item raro)", color: "#ff97e1" },
-    { id: "egg_aura",   name: "Ovo da Aura", price: 10,   currency: "gold",     desc: "Choca Lucario ou Mew (com aura mítica) ✨", color: "#6bd4ff" },
-  ];
+  // Loja — ovos temporariamente removidos da venda
+  const SHOP_EGGS: { id: EggId; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[] = [];
 
   const buyEgg = (e: typeof SHOP_EGGS[number]) => {
     setIdle((s) => {
