@@ -2841,13 +2841,18 @@ function IdlePage() {
     if (!l) return;
     if (restingUntil) return;
     const now = Date.now();
-    const dur = kind === "azul" ? REST_DURATION_BLUE_MS : REST_DURATION_LAR_MS;
+    // Lar: 10s se apenas HP (algum pet com energia); 1h se energia esgotada
+    const anyExhausted = kind === "lar" && team.some((p) => petCurrentEnergy(p, now) <= 0);
+    const larDur = anyExhausted ? REST_DURATION_LAR_MS : 10_000;
+    const dur = kind === "azul" ? REST_DURATION_BLUE_MS : larDur;
     setRestingStart(now);
     setRestingUntil(now + dur);
     setRestingKind(kind);
     setMoving(false);
     setNearBuilding(null);
-    const label = kind === "azul" ? "🏡 Casa Azul (5 min)" : "🏠 Lar (1 hora)";
+    const label = kind === "azul"
+      ? "🏡 Casa Azul (5 min)"
+      : anyExhausted ? "🏠 Lar (1 hora — recuperando energia)" : "🏠 Lar (10s — recuperando HP)";
     pushChat(`${label} — descansando... todo o time será curado.`, "info");
   };
 
