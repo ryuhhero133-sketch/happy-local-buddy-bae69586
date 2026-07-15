@@ -2629,7 +2629,12 @@ function IdlePage() {
       }
       const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
       if (hardCap != null) lv = Math.min(lv, hardCap);
-      const pet = makePet(sp, lv, forcedRarity);
+      // Épico só aparece quando o líder chega ao nível 50.
+      if (forcedRarity === "epic" && leaderLv < 50) forcedRarity = "rare";
+      let pet = makePet(sp, lv, forcedRarity);
+      if ((pet.rarity === "epic" || pet.rarity === "legendary") && leaderLv < 50) {
+        pet = makePet(sp, lv, "rare");
+      }
       const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
       const isAggro = elite || Math.random() < 0.18;
       const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60);
