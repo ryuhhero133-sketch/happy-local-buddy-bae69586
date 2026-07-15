@@ -181,7 +181,7 @@ export const reportKill = createServerFn({ method: "POST" })
     let newLevel = state.trainer_level;
     const newKills = Number(state.kill_count) + 1;
 
-    while (newXp >= xpForTrainerLevel(newLevel + 1) && newLevel < 100) {
+    while (newXp >= xpForTrainerLevel(newLevel + 1) && newLevel < 10000) {
       newXp -= xpForTrainerLevel(newLevel + 1);
       newLevel += 1;
     }
