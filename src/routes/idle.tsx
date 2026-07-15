@@ -2114,6 +2114,14 @@ function IdlePage() {
     setWeather("clear");
   }, [legendUntil]);
 
+  // Ao entrar no Vale Verdejante, remove qualquer lendário do evento remanescente
+  useEffect(() => {
+    if (idle.currentMap === "arena") {
+      setEnemies((prev) => prev.filter((e) => !e.eventLegendary));
+      setLegendUntil(null);
+    }
+  }, [idle.currentMap]);
+
 
 
 
