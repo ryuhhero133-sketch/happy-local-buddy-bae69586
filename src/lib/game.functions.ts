@@ -113,10 +113,10 @@ export const getFullGameState = createServerFn({ method: "GET" })
 
 const KillSchema = z.object({
   species: z.string().min(1).max(64),
-  target_level: z.number().int().min(1).max(100),
+  target_level: z.number().int().min(1).max(10000),
   rarity: z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]),
   map_id: z.string().min(1).max(32),
-  leader_level: z.number().int().min(1).max(100),
+  leader_level: z.number().int().min(1).max(10000),
 });
 
 export const reportKill = createServerFn({ method: "POST" })
@@ -234,7 +234,7 @@ export const reportKill = createServerFn({ method: "POST" })
 
 const CaptureSchema = z.object({
   species: z.string().min(1).max(64),
-  target_level: z.number().int().min(1).max(100),
+  target_level: z.number().int().min(1).max(10000),
   rarity: z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]),
   ball_type: z.enum(["pokeball","greatball","ultraball","masterball"]),
 });
@@ -385,16 +385,16 @@ export const setActiveMap = createServerFn({ method: "POST" })
 
 const RarityEnum = z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]);
 const PushInitialSchema = z.object({
-  gold: z.number().int().min(0).max(1_000_000_000),
-  crystal: z.number().int().min(0).max(10_000_000),
-  ruby: z.number().int().min(0).max(10_000_000).optional().default(0),
-  trainer_level: z.number().int().min(1).max(100),
+  gold: z.number().int().min(0).max(50_000_000),
+  crystal: z.number().int().min(0).max(1_000_000),
+  ruby: z.number().int().min(0).max(1_000_000).optional().default(0),
+  trainer_level: z.number().int().min(1).max(10000),
   trainer_xp: z.number().int().min(0).max(1_000_000_000),
   kill_count: z.number().int().min(0).max(1_000_000).optional().default(0),
   pokeballs: z.record(z.string(), z.number().int().min(0).max(9999)),
   collection: z.array(z.object({
     species: z.string().min(1).max(64),
-    level: z.number().int().min(1).max(100),
+    level: z.number().int().min(1).max(10000),
     rarity: RarityEnum,
     team_slot: z.number().int().min(0).max(4).nullable().optional(),
   })).max(2000),
@@ -488,17 +488,17 @@ export const pushInitialState = createServerFn({ method: "POST" })
 // e o servidor descarta o excesso silenciosamente.
 
 const SyncSchema = z.object({
-  gold: z.number().int().min(0).max(1_000_000_000),
-  crystal: z.number().int().min(0).max(10_000_000),
-  ruby: z.number().int().min(0).max(10_000_000).optional().default(0),
-  trainer_level: z.number().int().min(1).max(100),
+  gold: z.number().int().min(0).max(50_000_000),
+  crystal: z.number().int().min(0).max(1_000_000),
+  ruby: z.number().int().min(0).max(1_000_000).optional().default(0),
+  trainer_level: z.number().int().min(1).max(10000),
   trainer_xp: z.number().int().min(0).max(1_000_000_000),
   kill_count: z.number().int().min(0).max(10_000_000),
   active_map: z.string().min(1).max(32).optional(),
   pokeballs: z.record(z.string(), z.number().int().min(0).max(9999)),
   collection: z.array(z.object({
     species: z.string().min(1).max(64),
-    level: z.number().int().min(1).max(100),
+    level: z.number().int().min(1).max(10000),
     rarity: RarityEnum,
     team_slot: z.number().int().min(0).max(4).nullable().optional(),
   })).max(2000),
