@@ -20,6 +20,7 @@ import ballPokeImg from "@/assets/items/icon-pokeball.png";
 import ballGreatImg from "@/assets/items/icon-greatball.png";
 import ballUltraImg from "@/assets/items/icon-ultraball.png";
 import potionNewImg from "@/assets/items/icon-potion.png";
+import premiumBoxImg from "@/assets/items/icon-premium-box.png";
 import chestAmuletImg from "@/assets/items/icon-chest-amulet.png";
 import bagIconImg from "@/assets/items/icon-bag.png";
 import reviveIconImg from "@/assets/items/icon-revive.png";
@@ -631,6 +632,7 @@ const ITEM_IMG: Record<string, string> = {
   revive: reviveIconImg, berry: berryIconImg, key: keyIconImg,
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
+  premium_box: premiumBoxImg,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -683,7 +685,16 @@ function loadIdle(): IdleState {
   if (typeof window === "undefined") return freshIdle();
   try {
     const raw = localStorage.getItem(IDLE_KEY);
-    if (raw) return { ...freshIdle(), ...JSON.parse(raw) };
+    if (raw) {
+      const s: IdleState = { ...freshIdle(), ...JSON.parse(raw) };
+      // Presente de boas-vindas (evento): 1x Caixa Premium
+      const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
+      if (!flags.giftPremiumBoxV1) {
+        s.items = { ...(s.items ?? {}), premium_box: (s.items?.premium_box ?? 0) + 1 };
+        (s as unknown as { flags: Record<string, boolean> }).flags = { ...flags, giftPremiumBoxV1: true };
+      }
+      return s;
+    }
   } catch { /* ignore */ }
   return freshIdle();
 }
@@ -700,7 +711,7 @@ function freshIdle(): IdleState {
     seenSpecies: [],
     collection: [],
     craftPoints: 0,
-    items: {},
+    items: { premium_box: 1 },
     bank: { gold: 5000, crystals: 0 },
     buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0 },
     autoHeal: { enabled: false, threshold: 0.5 },
@@ -2757,6 +2768,18 @@ function IdlePage() {
       pushChat(`Livro VIP usado (+${Math.round(cfg.add*100)}% ouro e EXP por ${cfg.label}).`, "cap");
     } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura") {
       openEgg(id as EggId);
+    } else if (id === "premium_box") {
+      setIdle((s) => ({
+        ...s,
+        items: {
+          ...s.items,
+          premium_box: (s.items.premium_box ?? 0) - 1,
+          potion: (s.items.potion ?? 0) + 50,
+          pokeball: (s.items.pokeball ?? 0) + 50,
+        },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "+50 Poção · +50 Pokébola", "capture");
+      pushChat(`🎁 Caixa Premium aberta! Você recebeu 50 Poções e 50 Pokébolas de evento.`, "cap");
     }
   };
 
@@ -6891,6 +6914,7 @@ function TabOverlay({
           book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP ✦",
           book_vip_30: "Livro VIP 30d ✦✦", book_vip_60: "Livro VIP 60d ✦✦✦",
           chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
+          premium_box: "Caixa Premium ✦ Evento",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff" };
