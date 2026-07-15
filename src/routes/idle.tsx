@@ -6342,11 +6342,11 @@ function TabOverlay({
 
                           {/* Stats grid */}
                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 2 }}>
-                            {statRow("⚔", "ATK", stats.atk, "#ff7a7a")}
-                            {statRow("🛡", "DEF", stats.def, "#7ec4ff")}
-                            {statRow("✨", "S.ATK", stats.spa, "#c084fc")}
-                            {statRow("🌀", "S.DEF", stats.spd, "#7ef2a2")}
-                            {statRow("💨", "VEL", stats.spe, "#f5cf6b")}
+                            {statRow("atk", "ATK", stats.atk, "#ff7a7a")}
+                            {statRow("def", "DEF", stats.def, "#7ec4ff")}
+                            {statRow("spa", "S.ATK", stats.spa, "#c084fc")}
+                            {statRow("spd", "S.DEF", stats.spd, "#7ef2a2")}
+                            {statRow("spe", "VEL", stats.spe, "#f5cf6b")}
                           </div>
                         </div>
 
