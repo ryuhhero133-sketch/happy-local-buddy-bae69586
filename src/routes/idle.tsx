@@ -1830,7 +1830,7 @@ function IdlePage() {
       legendIdxRef.current++;
       const until = Date.now() + LEGEND_DURATION_MS;
       setLegendUntil({ until, weather: pick.weather });
-      if (pick.weather) setWeather(pick.weather);
+      // clima desabilitado: if (pick.weather) setWeather(pick.weather);
       setEnemies((prev) => {
         if (prev.some((e) => e.sp === pick.sp)) return prev;
         let x = 200, y = 200, tries = 0;
