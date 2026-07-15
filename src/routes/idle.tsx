@@ -50,6 +50,7 @@ import { AuthGate, loadIdentity, type LocalIdentity } from "@/components/AuthGat
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
+import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
 import trainerSheet from "@/assets/trainer.png";
@@ -916,6 +917,86 @@ function IdlePage() {
   }, [team]);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [now, setNow] = useState(() => Date.now());
+
+  // ============= Server sync (Supabase anti-cheat) =============
+  const idleRef = useRef(idle);
+  useEffect(() => { idleRef.current = idle; }, [idle]);
+  const teamRef = useRef(team);
+  useEffect(() => { teamRef.current = team; }, [team]);
+
+  const serverSync = useServerSync({
+    buildLocalSnapshot: (): LocalSnapshotForPush => {
+      const s = idleRef.current;
+      const t = teamRef.current;
+      const balls = {
+        pokeball: s.items?.pokeball ?? 0,
+        greatball: s.items?.greatball ?? 0,
+        ultraball: s.items?.ultraball ?? 0,
+        masterball: s.items?.masterball ?? 0,
+      };
+      const col: LocalSnapshotForPush["collection"] = [];
+      // Líder do time como slot 0
+      if (t[0]) {
+        col.push({
+          species: t[0].species as string,
+          level: Math.max(1, Math.min(100, t[0].level ?? 1)),
+          rarity: (t[0].rarity ?? "common") as string,
+          team_slot: 0,
+        });
+      }
+      // Coleção
+      for (const c of s.collection ?? []) {
+        col.push({
+          species: c.species as string,
+          level: Math.max(1, Math.min(100, c.level ?? 1)),
+          rarity: (c.rarity ?? "common") as string,
+          team_slot: null,
+        });
+      }
+      return {
+        gold: Math.max(0, Math.floor(s.bank?.gold ?? 0)),
+        crystal: Math.max(0, Math.floor(s.bank?.crystals ?? 0)),
+        ruby: 0,
+        trainer_level: Math.max(1, Math.min(100, s.trainerLevel ?? 1)),
+        trainer_xp: Math.max(0, Math.floor(s.trainerXp ?? 0)),
+        kill_count: Math.max(0, Math.floor(s.totals?.kills ?? 0)),
+        pokeballs: balls,
+        collection: col,
+      };
+    },
+    onHydrate: (full) => {
+      // Aplica estado do servidor como fonte de verdade.
+      setIdle((prev) => {
+        const items = { ...(prev.items ?? {}) };
+        for (const b of full.pokeballs) items[b.ball_type] = b.qty;
+        const collection = full.collection.map((p) => ({
+          uid: p.id,
+          species: p.species as Species,
+          level: p.level,
+          rarity: p.rarity as Rarity,
+          capturedAt: Date.parse(p.captured_at) || Date.now(),
+        }));
+        return {
+          ...prev,
+          bank: {
+            gold: full.trainer.gold,
+            crystals: full.trainer.crystal,
+          },
+          trainerLevel: full.trainer.trainer_level,
+          trainerXp: full.trainer.trainer_xp,
+          totals: { ...prev.totals, kills: full.trainer.kill_count },
+          items,
+          collection,
+        };
+      });
+      // Se o server já tem líder salvo (team_slot=0), reidrata.
+      if (full.team.length > 0) {
+        const leader = full.team[0];
+        setTeam(() => [makePet(leader.species as Species, leader.level)]);
+      }
+    },
+  });
+
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
   const honeyUntilRef = useRef<number>(idle.buffs.honeyUntil ?? 0);
   useEffect(() => { honeyUntilRef.current = idle.buffs.honeyUntil ?? 0; }, [idle.buffs.honeyUntil]);
