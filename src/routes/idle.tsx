@@ -109,9 +109,13 @@ import rockLavaAsset from "@/assets/rock-lava.png.asset.json";
 import caveFloorAsset from "@/assets/cave-floor.jpg.asset.json";
 import stalagmiteAsset from "@/assets/stalagmite.png.asset.json";
 import caveCrystalAsset from "@/assets/cave-crystal.png.asset.json";
+import mapCaveFloorAsset from "@/assets/map-cave.jpg.asset.json";
+import crystalClusterAsset from "@/assets/crystal-cluster.png.asset.json";
 const caveFloorUrl = assetUrl(caveFloorAsset.url);
 const stalagmiteUrl = assetUrl(stalagmiteAsset.url);
 const caveCrystalUrl = assetUrl(caveCrystalAsset.url);
+const mapCaveFloorUrl = assetUrl(mapCaveFloorAsset.url);
+const crystalClusterUrl = assetUrl(crystalClusterAsset.url);
 
 // Pokemon GIFs (reusa os que já existem no projeto)
 import charizardGif from "@/assets/charizard.gif";
