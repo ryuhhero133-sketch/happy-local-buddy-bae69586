@@ -903,22 +903,22 @@ function IdlePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [energyTick, idle.currentMap]);
-  // Se o líder ficar sem energia: promove o próximo pokémon com energia.
-  // Se nenhum tiver, o personagem PARA (guardas nos ticks de movimento e batalha).
+  // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
+  // para a Casa Azul (5💎 = 5min; sem cristais = 1h grátis). Assim ele sai
+  // do time e o próximo assume — o treinador não fica preso.
   useEffect(() => {
-    setTeam((tm) => {
-      if (tm.length < 2) return tm;
-      const now = Date.now();
-      if (!petIsExhausted(tm[0], now)) return tm;
-      const idx = tm.findIndex((p) => !petIsExhausted(p, now));
-      if (idx <= 0) return tm;
-      const next = [tm[idx], ...tm.filter((_, i) => i !== idx)];
-      pushChat(`⚡ ${tm[0].species.replace(/_/g, " ")} sem energia. ${next[0].species.replace(/_/g, " ")} assumiu o comando.`, "info");
-      setLeaderHp(calcIdleMaxHp(next[0]));
-      return next;
+    const now = Date.now();
+    const exhausted = team.find((p) => {
+      const pe = p as PetEnergyExt;
+      if (pe.azulRestUntil && pe.azulRestUntil > now) return false;
+      return petIsExhausted(p, now);
     });
+    if (!exhausted) return;
+    pushChat(`⚡ ${exhausted.species.replace(/_/g, " ").toUpperCase()} sem energia — indo para a Casa Azul.`, "info");
+    restPetInAzul(exhausted.uid, { auto: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [energyTick]);
+
   // Bônus único: +1.000.000 ouro e +100 💎 (aplica 1x por conta local)
   useEffect(() => {
     try {
