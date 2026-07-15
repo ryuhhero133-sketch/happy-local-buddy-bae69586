@@ -505,12 +505,12 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     for (const c of crystalSpots) {
       list.push({ id: id++, x: c.x, y: c.y, w: 150, h: 180, src: crystalClusterUrl, blocks: true, collideR: 44 });
       // Pokémons rochosos flutuando perto do cristal (decorativos)
-      list.push({ id: id++, x: c.x - 62, y: c.y - 16, w: 40, h: 40, src: geodudeGif, blocks: false, collideR: 0 });
+      list.push({ id: id++, x: c.x - 62, y: c.y - 16, w: 40, h: 40, src: golemGif, blocks: false, collideR: 0 });
       list.push({ id: id++, x: c.x + 62, y: c.y - 8,  w: 40, h: 40, src: machopUrl,  blocks: false, collideR: 0 });
     }
 
     // Enxame extra de pokémons rochosos espalhados pelo mapa
-    const swarm: string[] = [geodudeGif, machopUrl, diglettUrl, sandshrewUrl, cuboneUrl];
+    const swarm: string[] = [golemGif, machopUrl, diglettUrl, sandshrewUrl, cuboneUrl];
     let sTries = 0;
     let placed = 0;
     while (placed < 28 && sTries < 1500) {
