@@ -1598,7 +1598,25 @@ function IdlePage() {
           ...openChests.map((c) => ({ x: c.x, y: c.y, kind: "chest" as const, id: c.id, range: 30 })),
           ...enemyPool.map((e) => ({ x: e.x, y: e.y, kind: "enemy" as const, id: e.id, range: ATTACK_RANGE * 0.7 })),
         ];
-        if (candidates.length === 0) return tp;
+        if (candidates.length === 0) {
+          // Sem alvos válidos (ex: acabou de trocar líder p/ nível diferente).
+          // Anda em direção a um ponto aleatório do mapa procurando novos spawns.
+          const wp = wanderRef.current;
+          const need = !wp || nowT > wp.until || Math.hypot(wp.x - tp.x, wp.y - tp.y) < 40;
+          if (need) {
+            wanderRef.current = {
+              x: 120 + Math.random() * (WORLD_W - 240),
+              y: 120 + Math.random() * (WORLD_H - 240),
+              until: nowT + 4000,
+            };
+          }
+          const w = wanderRef.current!;
+          const wdx = w.x - tp.x, wdy = w.y - tp.y;
+          const wd = Math.hypot(wdx, wdy) || 1;
+          if (!moving) setMoving(true);
+          setTrainerFacing(wdx < 0 ? "left" : "right");
+          return { x: tp.x + (wdx / wd) * SPEED, y: tp.y + (wdy / wd) * SPEED };
+        }
         candidates.sort((a, b) =>
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
