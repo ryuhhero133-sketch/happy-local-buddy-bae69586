@@ -2022,12 +2022,26 @@ function IdlePage() {
             queueMicrotask(() => {
               pushFxAt(target.x, target.y - 80, `+${totalTrainerXp} XP Tr`, "xp");
             });
+            const prevKills = s.totals.kills ?? 0;
+            const newKills = prevKills + 1;
+            // Bônus surpresa: a cada 100 mobs derrotados, ganhe 10 pokébolas.
+            const crossed100 = Math.floor(newKills / 100) > Math.floor(prevKills / 100);
+            const surpriseBalls = crossed100 ? 10 : 0;
+            if (crossed100) {
+              queueMicrotask(() => {
+                pushChat(`🎉 SURPRESA! ${newKills} mobs derrotados — +10 Pokébolas!`, "chest");
+                pushFxAt(trainerPos.x, trainerPos.y - 130, `+10 POKÉBOLAS!`, "capture");
+              });
+            }
+            const itemsWithBalls = surpriseBalls > 0
+              ? { ...newItems, pokeball: (newItems.pokeball ?? 0) + surpriseBalls }
+              : newItems;
             return {
               ...applied.state,
               pending: { ...s.pending, gold: s.pending.gold + gold },
-              totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc },
+              totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
               tasks: nt2,
-              items: newItems,
+              items: itemsWithBalls,
               caughtSpecies: newCaught,
               seenSpecies: newSeen,
               collection: newCollection,
