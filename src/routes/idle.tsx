@@ -153,6 +153,12 @@ import gloomAsset from "@/assets/gloom.gif.asset.json";
 import caterpieGif from "@/assets/caterpie.gif";
 import metapodGif from "@/assets/metapod.gif";
 import vulpixGif from "@/assets/vulpix.gif";
+import pidgeottoAsset from "@/assets/pidgeotto.gif.asset.json";
+import raticateFAsset from "@/assets/raticate-f.gif.asset.json";
+import fearowAsset from "@/assets/fearow.gif.asset.json";
+const pidgeottoUrl = assetUrl(pidgeottoAsset.url);
+const raticateFUrl = assetUrl(raticateFAsset.url);
+const fearowUrl = assetUrl(fearowAsset.url);
 
 
 const IDLE_KEY = "rubym.idle.v1";
