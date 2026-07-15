@@ -1027,6 +1027,7 @@ function IdlePage() {
   // Chat global (cooldown 10 min por jogador)
   const [chatInput, setChatInput] = useState("");
   const [chatCooldownUntil, setChatCooldownUntil] = useState<number>(0);
+  const [chatFilter, setChatFilter] = useState<"all" | "system" | "world" | "captures">("all");
   const [chatTick, setChatTick] = useState(0);
   useEffect(() => {
     if (chatCooldownUntil <= Date.now()) return;
