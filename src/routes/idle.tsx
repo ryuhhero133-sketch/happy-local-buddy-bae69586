@@ -2956,11 +2956,11 @@ function IdlePage() {
         setTeam((tm) => {
           if (tm.length === 0) return tm;
           const l = tm[0];
-          const regen = ENERGY_REGEN_MS[l.rarity] ?? 20 * 60 * 1000;
-          if (regen === 0) return tm; // mítico não cansa
+          const drainSec = energyDrainPerSec(l.rarity);
+          if (drainSec <= 0) return tm; // mítico não cansa
           const now = Date.now();
-          const curE = petCurrentEnergy(l, now);
-          const drain = Math.max(1, Math.round((10_000 / regen) * ENERGY_MAX));
+          const curE = petCurrentEnergy(l, now, { active: true });
+          const drain = Math.max(1, Math.round(drainSec * 10));
           const newE = Math.max(0, curE - drain);
           return [{ ...l, energy: newE, energyRegenAt: now } as PetInstance, ...tm.slice(1)];
         });
