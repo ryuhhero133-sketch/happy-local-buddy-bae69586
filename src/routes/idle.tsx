@@ -6097,7 +6097,7 @@ function TabOverlay({
       {tab === "pokemon" && leader && (
         <div>
           <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
-          <ActiveBonuses leaderRarity={leader.rarity} buffs={buffs} />
+          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} />
           <SpeciesLore species={leader.species} rarity={leader.rarity} />
 
 
