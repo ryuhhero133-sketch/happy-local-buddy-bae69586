@@ -23,7 +23,8 @@ function canDeliver(step: QuestStep, ctx: QuestDeliverContext): boolean {
   const { item, qty } = step.need;
   if (item.startsWith("pet:")) {
     const sp = item.slice(4);
-    return ctx.teamSpecies.includes(sp);
+    const have = ctx.teamSpecies.filter((s) => s === sp).length;
+    return have >= qty;
   }
   return (ctx.inventory[item] || 0) >= qty;
 }
@@ -33,7 +34,8 @@ function progressPct(step: QuestStep, ctx: QuestDeliverContext): number {
   const { item, qty } = step.need;
   if (item.startsWith("pet:")) {
     const sp = item.slice(4);
-    return ctx.teamSpecies.includes(sp) ? 100 : 0;
+    const have = ctx.teamSpecies.filter((s) => s === sp).length;
+    return Math.min(100, Math.round((have / Math.max(1, qty)) * 100));
   }
   return Math.min(100, Math.round(((ctx.inventory[item] || 0) / Math.max(1, qty)) * 100));
 }
@@ -41,17 +43,19 @@ function progressPct(step: QuestStep, ctx: QuestDeliverContext): number {
 function needLabel(step: QuestStep): string {
   if (!step.need) return "Receber itens";
   const { item, qty } = step.need;
-  if (item.startsWith("pet:")) return `Trazer 1× Pokémon (${item.slice(4)})`;
+  if (item.startsWith("pet:")) return `Trazer ${qty}× Pokémon (${item.slice(4)})`;
   return `Entregar ${qty}× ${item.replace(/_/g, " ")}`;
 }
 
 function rewardLabel(r?: QuestReward, give?: Record<string, number>): string {
   const parts: string[] = [];
   if (r?.gold) parts.push(`${r.gold}g`);
+  if (r?.xpBoostHours) parts.push(`+${r.xpBoostHours}h XP boost`);
   if (r?.items) for (const [k, v] of Object.entries(r.items)) parts.push(`${v}× ${k.replace(/_/g, " ")}`);
   if (give) for (const [k, v] of Object.entries(give)) parts.push(`${v}× ${k.replace(/_/g, " ")}`);
   return parts.length ? parts.join(", ") : "—";
 }
+
 
 // Keep the embedded NPC section using the GB-style theme (it sits inside NPC dialogue boxes)
 const cardStyle: React.CSSProperties = {
