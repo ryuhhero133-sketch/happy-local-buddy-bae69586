@@ -1945,11 +1945,11 @@ function IdlePage() {
     leader_rarity: string | null;
     guild_name: string | null;
   };
-  type RankMode = "level" | "trainer" | "craft";
+  type RankMode = "trainer" | "craft";
   const [rankOpen, setRankOpen] = useState(false);
   const [rankRows, setRankRows] = useState<RankRow[]>([]);
   const [rankLoading, setRankLoading] = useState(false);
-  const [rankMode, setRankMode] = useState<RankMode>("level");
+  const [rankMode, setRankMode] = useState<RankMode>("trainer");
   const RANK_CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 horas — snapshot global
   const rankCacheKey = (mode: RankMode) => `rank_cache_v2_real_level_${mode}`;
   useEffect(() => {
