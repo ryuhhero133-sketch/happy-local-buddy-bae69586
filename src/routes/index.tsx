@@ -535,6 +535,7 @@ const SPECIES_GIF: Record<Species, string> = {
   suicune_shiny: assetUrlFromJson(suicuneShinyAsset), luxray_f: assetUrlFromJson(luxrayFAsset),
   blaziken: blazikenGif,
   deoxys: deoxysGif, groudon: groudonGif, lapras_shiny: laprasShinyGif, snorlax_mythic: snorlaxMythicGif,
+  darkrai: darkraiGif, ho_oh: hoOhGif, magmortar: magmortarGif,
 };
 
 
