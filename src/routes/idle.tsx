@@ -195,6 +195,7 @@ import fearowAsset from "@/assets/fearow.gif.asset.json";
 import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
 import groudonAsset from "@/assets/groudon.gif.asset.json";
 import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
+import charizardShinyAsset from "@/assets/charizard-shiny.gif.asset.json";
 import snorlaxMythicAsset from "@/assets/snorlax-mythic.gif.asset.json";
 import darkraiAsset from "@/assets/darkrai.gif.asset.json";
 import hoOhAsset from "@/assets/ho-oh.gif.asset.json";
@@ -205,6 +206,7 @@ const fearowUrl = assetUrlFromJson(fearowAsset);
 const deoxysUrl = assetUrlFromJson(deoxysAsset);
 const groudonUrl = assetUrlFromJson(groudonAsset);
 const laprasShinyUrl = assetUrlFromJson(laprasShinyAsset);
+const charizardShinyUrl = assetUrlFromJson(charizardShinyAsset);
 const snorlaxMythicUrl = assetUrlFromJson(snorlaxMythicAsset);
 const darkraiUrl = assetUrlFromJson(darkraiAsset);
 const hoOhUrl = assetUrlFromJson(hoOhAsset);
@@ -377,7 +379,7 @@ const GIF: Partial<Record<Species, string>> = {
   poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
-  deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl,
+  deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl, charizard_shiny: charizardShinyUrl,
   darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
   lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
 };
