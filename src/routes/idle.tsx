@@ -1862,18 +1862,26 @@ function IdlePage() {
     } catch { /* ignore */ }
     setRankLoading(true);
     (async () => {
+      const collection = idle.collection ?? [];
+      const maxPokeLevel = Math.max(
+        1,
+        ...team.map((p) => p?.level ?? 0),
+        ...collection.map((p) => p?.level ?? 0),
+      );
+      const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
+      const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
       const meRow = (): RankRow => ({
         id: identity?.id ?? "local-trainer",
         name: identity?.name || "Treinador",
-        level: team[0]?.level ?? 1,
+        level: maxPokeLevel,
         trainer_level: idle.trainerLevel ?? 1,
-        craft_points: idle.craftPoints ?? 0,
+        craft_points: totalCraft,
         leader_species: team[0]?.species ?? null,
         leader_rarity: team[0]?.rarity ?? null,
         guild_name: null,
       });
       try {
-        void recordRankedScore(idle.trainerLevel ?? 1, idle.craftPoints ?? 0, null);
+        void recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
         const top = await fetchTopRanked(200);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
@@ -1898,6 +1906,10 @@ function IdlePage() {
         }
 
         if (!rows.some((r) => r.id === (identity?.id ?? "local-trainer"))) rows.push(meRow());
+        else {
+          // Atualiza a linha do usuário local com os valores reais (max nv poke + craft total).
+          rows = rows.map((r) => (r.id === (identity?.id ?? "local-trainer") ? { ...r, ...meRow() } : r));
+        }
         rows.sort((a, b) => {
           const av = rankMode === "trainer" ? a.trainer_level : rankMode === "craft" ? a.craft_points : a.level;
           const bv = rankMode === "trainer" ? b.trainer_level : rankMode === "craft" ? b.craft_points : b.level;
@@ -1914,14 +1926,17 @@ function IdlePage() {
       finally { if (!cancelled) setRankLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.craftPoints, team]);
+  }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.craftPoints, idle.collection, team]);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      void recordRankedScore(idle.trainerLevel ?? 1, idle.craftPoints ?? 0, null);
+      const collection = idle.collection ?? [];
+      const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
+      const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
+      void recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
     }, 4500);
     return () => clearTimeout(t);
-  }, [idle.trainerLevel, idle.craftPoints]);
+  }, [idle.trainerLevel, idle.craftPoints, idle.collection]);
   const viewW = viewSize.w / zoom;
   const viewH = viewSize.h / zoom;
   const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
