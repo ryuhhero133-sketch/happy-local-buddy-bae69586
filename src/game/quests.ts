@@ -109,7 +109,7 @@ export const QUESTS: Quest[] = [
         npc: "kurt",
         ask: "Preciso de 5 toras de lenha pra terminar uma fornada de bolas. Consegue?",
         need: { item: "lenha", qty: 5 },
-        reward: { items: { event_box: 1, apricorn_generic: 3 }, message: "Kurt: Bom trabalho. Leve uma caixa e umas apricorns." },
+        reward: { items: { event_box: 2 }, message: "Kurt: Bom trabalho. Leve as caixas." },
       },
     ],
   },
