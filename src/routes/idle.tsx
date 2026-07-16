@@ -7446,6 +7446,7 @@ function TabOverlay({
   const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
   const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string }>(null);
   const [orbPickerSel, setOrbPickerSel] = useState<Set<string>>(new Set());
+  const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
   return (
     <div style={{
       position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
