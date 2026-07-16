@@ -8052,7 +8052,7 @@ function TabOverlay({
           </h3>
           <div style={{ color: "#b8a8c8", fontSize: 11, marginBottom: 10, lineHeight: 1.5 }}>
             O NPC aceita Pokémon da sua <b>Coleção</b> (não da equipe) em troca de Orbs mais fortes.
-            Ele sempre pega os de menor nível primeiro.
+            <b style={{ color: "#ffd94d" }}> Você escolhe</b> quais Pokémon entregar.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
             {orbTrades.map((t) => {
@@ -8071,12 +8071,15 @@ function TabOverlay({
                   <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 13 }}>{t.label}</div>
                   <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{t.desc}</div>
                   <div style={{ fontSize: 11, color: canTrade ? "#8ae28a" : "#e28a8a" }}>
-                    Disponível: {available} / {t.count}
+                    Coleção {t.rarity.toUpperCase()}: {available} (precisa {t.count})
                   </div>
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
                   <button
                     disabled={!canTrade}
-                    onClick={() => onTradeOrb(t.orbId, t.rarity, t.count)}
+                    onClick={() => {
+                      setOrbPicker({ orbId: t.orbId, rarity: t.rarity, count: t.count, color: t.color, label: t.label });
+                      setOrbPickerSel(new Set());
+                    }}
                     style={{
                       width: "100%", padding: "8px 10px", fontWeight: 800,
                       background: canTrade ? t.color : "#3a2a4a",
@@ -8084,11 +8087,109 @@ function TabOverlay({
                       border: "none", borderRadius: 6,
                       cursor: canTrade ? "pointer" : "not-allowed",
                     }}
-                  >{canTrade ? "TROCAR" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                  >{canTrade ? "ESCOLHER POKÉMON" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
                 </div>
               );
             })}
           </div>
+
+          {orbPicker && (() => {
+            const eligible = collection.filter((c) => c.rarity === orbPicker.rarity);
+            const selCount = orbPickerSel.size;
+            const canConfirm = selCount === orbPicker.count;
+            return (
+              <div
+                onClick={() => setOrbPicker(null)}
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 10000, display: "grid", placeItems: "center", padding: 16 }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: "min(560px, 100%)", maxHeight: "88vh", overflowY: "auto",
+                    background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+                    border: `2px solid ${orbPicker.color}`, borderRadius: 14, padding: 16,
+                    boxShadow: `0 10px 30px rgba(0,0,0,0.7), 0 0 20px ${orbPicker.color}55`,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ fontWeight: 900, color: orbPicker.color, fontSize: 15 }}>
+                      🧙 Escolha {orbPicker.count} Pokémon {orbPicker.rarity.toUpperCase()}
+                    </div>
+                    <button onClick={() => setOrbPicker(null)} style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 18 }}>✕</button>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 10 }}>
+                    Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{orbPicker.count}</b> — Recompensa: <b>{orbPicker.label}</b>
+                  </div>
+                  {eligible.length === 0 ? (
+                    <div style={{ color: "#e28a8a", fontSize: 12, padding: 20, textAlign: "center" }}>
+                      Você não tem Pokémon {orbPicker.rarity.toUpperCase()} na coleção.
+                    </div>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
+                      {eligible.map((c) => {
+                        const sel = orbPickerSel.has(c.uid);
+                        const disabled = !sel && selCount >= orbPicker.count;
+                        return (
+                          <button
+                            key={c.uid}
+                            disabled={disabled}
+                            onClick={() => {
+                              setOrbPickerSel((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(c.uid)) next.delete(c.uid); else next.add(c.uid);
+                                return next;
+                              });
+                            }}
+                            style={{
+                              background: sel ? `linear-gradient(160deg, ${orbPicker.color}55, ${orbPicker.color}22)` : "#1a0f26",
+                              border: sel ? `2px solid ${orbPicker.color}` : "2px solid #3a2a4a",
+                              borderRadius: 10, padding: 6, cursor: disabled ? "not-allowed" : "pointer",
+                              display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                              opacity: disabled ? 0.4 : 1, position: "relative",
+                            }}
+                          >
+                            {gifMap[c.species] ? (
+                              <img src={gifMap[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
+                            ) : (
+                              <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
+                            )}
+                            <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
+                            <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
+                            {sel && (
+                              <div style={{
+                                position: "absolute", top: 2, right: 2, background: orbPicker.color, color: "#0b0510",
+                                width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
+                              }}>✓</div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                    <button
+                      onClick={() => setOrbPicker(null)}
+                      style={{ flex: 1, padding: "10px", background: "#3a2a4a", color: "#eadfe8", border: "none", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
+                    >CANCELAR</button>
+                    <button
+                      disabled={!canConfirm}
+                      onClick={() => {
+                        onTradeOrb(orbPicker.orbId, Array.from(orbPickerSel));
+                        setOrbPicker(null);
+                        setOrbPickerSel(new Set());
+                      }}
+                      style={{
+                        flex: 2, padding: "10px", fontWeight: 900,
+                        background: canConfirm ? orbPicker.color : "#3a2a4a",
+                        color: canConfirm ? "#0b0510" : "#6a5a7c",
+                        border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
+                      }}
+                    >CONFIRMAR TROCA</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
