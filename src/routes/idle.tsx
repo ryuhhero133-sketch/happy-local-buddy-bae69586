@@ -2457,6 +2457,8 @@ function IdlePage() {
         const killedNow = next.find((e) => e.id === target.id && e.hp <= 0);
         if (killedNow) {
           const expActive = !!(idle.buffs.expMultUntil && Date.now() < idle.buffs.expMultUntil);
+          const orbActive = !!(idle.buffs.orbUntil && Date.now() < idle.buffs.orbUntil);
+          const totalExpBoost = (expActive ? idle.buffs.expMult : 0) + (orbActive ? (idle.buffs.orbMult ?? 0) : 0);
           const goldActive = !!(idle.buffs.goldMultUntil && Date.now() < idle.buffs.goldMultUntil);
           const goldMult = 1 + (goldActive ? (idle.buffs.goldMult ?? 0) : 0);
           // Bônus de drop pela raridade do líder
