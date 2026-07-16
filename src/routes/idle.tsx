@@ -352,6 +352,7 @@ const GIF: Partial<Record<Species, string>> = {
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
   deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl,
+  darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
 };
 
 
