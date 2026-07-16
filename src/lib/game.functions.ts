@@ -396,6 +396,7 @@ const PushInitialSchema = z.object({
     id: z.string().uuid().optional(),
     species: z.string().min(1).max(64),
     level: z.number().int().min(1).max(10000),
+    xp: z.number().int().min(0).max(1_000_000_000).optional().default(0),
     rarity: RarityEnum,
     team_slot: z.number().int().min(0).max(4).nullable().optional(),
   })).max(2000),
@@ -454,6 +455,7 @@ export const pushInitialState = createServerFn({ method: "POST" })
           user_id: userId,
           species: p.species,
           level: p.level,
+          xp: p.xp ?? 0,
           rarity: p.rarity,
           hp_current: hp,
           hp_max: hp,
@@ -502,6 +504,7 @@ const SyncSchema = z.object({
     id: z.string().uuid().optional(),
     species: z.string().min(1).max(64),
     level: z.number().int().min(1).max(10000),
+    xp: z.number().int().min(0).max(1_000_000_000).optional().default(0),
     rarity: RarityEnum,
     team_slot: z.number().int().min(0).max(4).nullable().optional(),
   })).max(2000),
@@ -577,7 +580,7 @@ export const syncClientState = createServerFn({ method: "POST" })
     // (preserva progresso real ao mover time ⇄ coleção) e só insere novos.
     if (data.collection.length > 0) {
       const { data: existing } = await supabase.from("pokemon_collection")
-        .select("id, species, level, rarity, team_slot").eq("user_id", userId);
+        .select("id, species, level, xp, rarity, hp_max, hp_current, team_slot").eq("user_id", userId);
       const byId = new Map<string, any>();
       const comboKey = (s: string, r: string) => `${s}:${r}`;
       const byCombo = new Map<string, any>();
@@ -597,16 +600,24 @@ export const syncClientState = createServerFn({ method: "POST" })
 
         const current = p.id ? byId.get(p.id) : byCombo.get(comboKey(p.species, p.rarity));
         if (current) {
-          const level = Math.max(Number(current.level ?? 1), p.level);
+          const currentLevel = Number(current.level ?? 1);
+          const incomingLevel = p.level;
+          const level = Math.max(currentLevel, incomingLevel);
+          const xp = incomingLevel > currentLevel
+            ? (p.xp ?? 0)
+            : incomingLevel === currentLevel
+              ? Math.max(Number(current.xp ?? 0), p.xp ?? 0)
+              : Number(current.xp ?? 0);
           const hp = 20 + level * 4;
           await supabase.from("pokemon_collection").update({
             level,
+            xp,
             rarity: p.rarity,
             hp_max: Math.max(Number(current.hp_max ?? 0), hp),
             hp_current: Math.max(Number(current.hp_current ?? 0), hp),
             team_slot: p.team_slot ?? null,
           }).eq("user_id", userId).eq("id", current.id);
-          byId.set(current.id, { ...current, level, rarity: p.rarity, team_slot: p.team_slot ?? null, hp_max: hp, hp_current: hp });
+          byId.set(current.id, { ...current, level, xp, rarity: p.rarity, team_slot: p.team_slot ?? null, hp_max: hp, hp_current: hp });
           byCombo.set(comboKey(p.species, p.rarity), byId.get(current.id));
         } else {
           news.push(p);
@@ -623,7 +634,7 @@ export const syncClientState = createServerFn({ method: "POST" })
           return {
             ...(p.id ? { id: p.id } : {}),
             user_id: userId, species: p.species, level: p.level, rarity: p.rarity,
-            hp_current: hp, hp_max: hp, energy: 100, team_slot: p.team_slot ?? null,
+            xp: p.xp ?? 0, hp_current: hp, hp_max: hp, energy: 100, team_slot: p.team_slot ?? null,
           };
         });
         await supabase.from("pokemon_collection").insert(rows);

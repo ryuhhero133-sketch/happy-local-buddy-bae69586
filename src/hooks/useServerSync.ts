@@ -27,6 +27,7 @@ export type LocalSnapshotForPush = {
     id?: string;
     species: string;
     level: number;
+    xp?: number;
     rarity: string;
     team_slot?: number | null;
   }>;
