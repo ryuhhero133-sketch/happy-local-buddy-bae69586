@@ -760,6 +760,33 @@ function calcIdleMaxHp(pet: PetInstance) {
   return calcMaxHp(pet) * IDLE_HP_MULT;
 }
 
+function highLevelEnemyHpMult(enemyLevel: number, leaderLevel: number) {
+  if (enemyLevel < 200) return 1;
+  let mult = 2.15 + Math.min(2.75, (enemyLevel - 200) / 80);
+  if (enemyLevel >= 250) {
+    const gap = Math.max(0, enemyLevel - leaderLevel);
+    mult *= 1.55 + Math.min(3.5, gap * 0.09);
+  }
+  return mult;
+}
+
+function highLevelEnemyDamageMult(enemyLevel: number, leaderLevel: number) {
+  if (enemyLevel < 200) return 1;
+  let mult = 2.4 + Math.min(3.25, (enemyLevel - 200) / 70);
+  if (enemyLevel >= 250) {
+    const gap = Math.max(0, enemyLevel - leaderLevel);
+    mult *= 1.7 + Math.min(5, gap * 0.12);
+  }
+  return mult;
+}
+
+function playerDamageVsHighLevelMult(leaderLevel: number, enemyLevel: number) {
+  if (enemyLevel < 250) return enemyLevel >= 200 && leaderLevel + 40 < enemyLevel ? 0.65 : 1;
+  const gap = enemyLevel - leaderLevel;
+  if (gap <= 0) return 1;
+  return Math.max(0.12, 1 - gap * 0.08);
+}
+
 // ===== Energia por raridade =====
 // Regen passivo (0→100) SÓ conta quando o pokémon está fora do time (na coleção).
 // Enquanto está no time ativo, a energia apenas DRENA — raridade define quanto
