@@ -7773,15 +7773,11 @@ function TabOverlay({
                           )}
                           <button
                             onClick={() => {
-                              if (!confirm(`Retirar ${p.species.replace(/_/g, " ")} do time? Ele volta para a Coleção.`)) return;
-                              setTeam((tm) => {
-                                const arr = tm.filter((x) => x.uid !== p.uid);
-                                if (i === 0 && arr[0]) setLeaderHp(calcIdleMaxHp(arr[0]));
-                                return arr;
-                              });
-                              pushChat(`↩ ${p.species.replace(/_/g, " ")} foi retirado do time.`, "info");
+                              if (!confirm(`Retirar ${p.species.replace(/_/g, " ")} do time? Ele continua na Coleção.`)) return;
+                              const next = team.filter((x) => x.uid !== p.uid);
+                              onReorderTeam(next);
                             }}
-                            title="Retirar do time (volta pra Coleção)"
+                            title="Retirar do time (fica na Coleção)"
                             style={{
                               padding: "3px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 0.5,
                               background: "linear-gradient(180deg, #ff7a7a, #8a1a1a)",
