@@ -3423,6 +3423,8 @@ function IdlePage() {
     let sp: Species;
     if (eggId === "egg_aura") {
       sp = (Math.random() < 0.5 ? "lucario" : "mew") as Species;
+    } else if (eggId === "egg_charizard") {
+      sp = "charizard_shiny" as Species;
     } else {
       const unlocked = speciesUnlockedFor(leaderLv).filter((x) => !!GIF[x]);
       const fallback = (Object.keys(GIF) as Species[]);
