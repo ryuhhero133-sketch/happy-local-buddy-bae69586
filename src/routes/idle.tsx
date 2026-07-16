@@ -4623,7 +4623,19 @@ function IdlePage() {
                   cursor: dead ? "default" : "pointer",
                 }}>
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
-                  {stars && (
+                  {e.rider && (
+                    <div style={{
+                      position: "absolute", top: -38, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      color: "#ff5ec7",
+                      fontSize: 18, fontWeight: 900, lineHeight: 1,
+                      textShadow: "1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000, 0 0 8px #ff5ec7",
+                      whiteSpace: "nowrap", pointerEvents: "none",
+                      filter: "drop-shadow(0 0 6px #ff5ec7) drop-shadow(0 0 12px #ff5ec7aa)",
+                      animation: "pulse 1.2s ease-in-out infinite",
+                    }}>✦</div>
+                  )}
+                  {stars && !e.rider && (
                     <div style={{
                       position: "absolute", top: -26, left: "50%",
                       transform: `translateX(-50%) scaleX(${sx})`,
