@@ -595,7 +595,7 @@ export const syncClientState = createServerFn({ method: "POST" })
         if (seenIncoming.has(incomingKey)) continue;
         seenIncoming.add(incomingKey);
 
-        const current = (p.id ? byId.get(p.id) : undefined) ?? byCombo.get(comboKey(p.species, p.rarity));
+        const current = p.id ? byId.get(p.id) : byCombo.get(comboKey(p.species, p.rarity));
         if (current) {
           const level = Math.max(Number(current.level ?? 1), p.level);
           const hp = 20 + level * 4;

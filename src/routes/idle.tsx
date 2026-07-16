@@ -2283,7 +2283,7 @@ function IdlePage() {
                 captured = Math.random() < baseChance * usedBall.captureMult;
               }
               if (captured) {
-                const np = makePet(target.sp, 5);
+                const np = makePet(target.sp, target.level, target.rarity);
                 capturedPet = np;
                 const rarityLabelMap: Record<string, string> = {
                   common: "Comum", uncommon: "Incomum", rare: "Raro",
@@ -2712,7 +2712,7 @@ function IdlePage() {
     setIdle((s) => ({ ...s, items: { ...s.items, [ballId]: Math.max(0, (s.items[ballId] ?? 0) - 1) } }));
     pushFxAt(target.x, target.y - 40, `${ballName}!`, "capture");
     if (success) {
-      const np = makePet(target.sp, 5);
+      const np = makePet(target.sp, target.level, target.rarity);
       const rarityLabelMap: Record<string, string> = {
         common: "Comum", uncommon: "Incomum", rare: "Raro",
         epic: "Épico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
