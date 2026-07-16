@@ -3398,16 +3398,14 @@ function IdlePage() {
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
-  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura";
+  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
-    // Compat com saves antigos
     egg_common: { weights: { common: 70, uncommon: 25, rare: 5 } },
     egg_rare:   { weights: { uncommon: 20, rare: 55, epic: 22, legendary: 3 } },
     egg_epic:   { weights: { rare: 20, epic: 50, legendary: 25, mythic: 5 } },
-    // Ovo Místico — único da loja, pode sair qualquer raridade
     egg_mystic: { weights: { common: 25, uncommon: 25, rare: 22, epic: 16, legendary: 9, mythic: 2, mythic_shiny: 1 } },
-    // Ovo Aura — sempre mítico (Lucario ou Mew com aura)
     egg_aura:   { weights: { mythic: 100 } },
+    egg_charizard: { weights: { mythic: 100 } },
   };
 
   const rollEggRarity = (tier: EggId): Rarity => {
