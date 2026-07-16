@@ -4,7 +4,7 @@
 // - Comprar transfere pokémon + moeda. Vendedor "claima" o pagamento na aba
 //   "Meus anúncios". Se o comprador crashar, ele pode reclamar em "Comprados".
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase as _supabase } from "@/integrations/supabase/client";
 import type { CollectionEntry } from "@/routes/idle";
 import type { Species, Rarity } from "@/game/systems";
@@ -88,6 +88,11 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   const [selUid, setSelUid] = useState<string>("");
   const [price, setPrice] = useState<number>(1000);
   const [currency, setCurrency] = useState<Currency>("gold");
+  // Dedup: IDs de anúncio já processados nesta sessão (compra ou payout).
+  // Evita que o useEffect abaixo reentregue o pokémon quando o refresh
+  // vê a linha ainda com buyer_claimed=false por causa da latência do UPDATE.
+  const claimedBuyerRef = useRef<Set<string>>(new Set());
+  const claimedSellerRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const iv = setInterval(() => setNow(Date.now()), 1000);
@@ -146,8 +151,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   useEffect(() => {
     if (!identity?.id) return;
     for (const r of myBought) {
+      if (claimedBuyerRef.current.has(r.id)) continue;
+      claimedBuyerRef.current.add(r.id);
       const entry: CollectionEntry = {
-        uid: r.pokemon.uid || `bought-${r.id}`,
+        uid: r.pokemon.uid ? `bought-${r.id}` : `bought-${r.id}`,
         species: r.pokemon.species,
         level: r.pokemon.level,
         rarity: r.pokemon.rarity,
@@ -161,12 +168,13 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       });
     }
     for (const r of mySold) {
+      if (claimedSellerRef.current.has(r.id)) continue;
+      claimedSellerRef.current.add(r.id);
       onEarn(r.currency, r.price);
       supabase.from("pokemon_market").update({ payout_claimed: true }).eq("id", r.id).then(() => {
         pushChat(`💸 Recebeu ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"} da venda de ${r.pokemon.species}.`, "cap");
       });
     }
-    // uma vez por refresh
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows]);
 
@@ -227,9 +235,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   const doBuy = async (r: ListingRow) => {
     if (!identity?.id) return;
     if (r.seller_id === identity.id) return;
+    if (claimedBuyerRef.current.has(r.id)) return; // já processado nesta sessão
     const have = r.currency === "gold" ? gold : crystals;
     if (have < r.price) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente.`, "info"); return; }
-    // Reserva com UPDATE atômico
+    // Reserva com UPDATE atômico — só um comprador vence a corrida.
     const { data, error } = await supabase.from("pokemon_market").update({
       status: "sold",
       buyer_id: identity.id,
@@ -237,8 +246,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       sold_at: new Date().toISOString(),
     }).eq("id", r.id).eq("status", "active").is("buyer_id", null).select("id").maybeSingle();
     if (error || !data) { pushChat("Anúncio não está mais disponível.", "info"); void refresh(); return; }
+    // Marca como processado ANTES de qualquer entrega, pra bloquear o useEffect
+    // de reentregar o mesmo pokémon caso o refresh chegue antes do buyer_claimed.
+    claimedBuyerRef.current.add(r.id);
     onSpend(r.currency, r.price);
-    // adiciona à coleção (dedup no idle é feita no reducer)
     onReturned({
       uid: `bought-${r.id}`, species: r.pokemon.species, level: r.pokemon.level,
       rarity: r.pokemon.rarity, xp: r.pokemon.xp ?? 0, traits: r.pokemon.traits ?? [], capturedAt: Date.now(),
