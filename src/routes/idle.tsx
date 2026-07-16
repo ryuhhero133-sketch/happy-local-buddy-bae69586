@@ -8044,8 +8044,53 @@ function TabOverlay({
               );
             })}
           </div>
+
+          {/* ═══ Trocador NPC — Orbs de XP por Pokémon capturados ═══ */}
+          <h3 style={{ color: "#ffd94d", fontSize: 15, margin: "22px 0 6px" }}>
+            🧙 Trocador NPC — Orbs de XP
+          </h3>
+          <div style={{ color: "#b8a8c8", fontSize: 11, marginBottom: 10, lineHeight: 1.5 }}>
+            O NPC aceita Pokémon da sua <b>Coleção</b> (não da equipe) em troca de Orbs mais fortes.
+            Ele sempre pega os de menor nível primeiro.
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+            {orbTrades.map((t) => {
+              const available = collection.filter((c) => c.rarity === t.rarity).length;
+              const canTrade = available >= t.count;
+              const owned = items[t.orbId] ?? 0;
+              return (
+                <div key={t.orbId} style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${t.color}55`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${t.color}22`,
+                }}>
+                  <img src={t.img} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 10px ${t.color}aa)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 13 }}>{t.label}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{t.desc}</div>
+                  <div style={{ fontSize: 11, color: canTrade ? "#8ae28a" : "#e28a8a" }}>
+                    Disponível: {available} / {t.count}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <button
+                    disabled={!canTrade}
+                    onClick={() => onTradeOrb(t.orbId, t.rarity, t.count)}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800,
+                      background: canTrade ? t.color : "#3a2a4a",
+                      color: canTrade ? "#0b0510" : "#6a5a7c",
+                      border: "none", borderRadius: 6,
+                      cursor: canTrade ? "pointer" : "not-allowed",
+                    }}
+                  >{canTrade ? "TROCAR" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
+
 
       {tab === "melhorias" && (
         <div>
