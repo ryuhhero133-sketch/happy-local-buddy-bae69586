@@ -43,9 +43,10 @@ type PlayerRankRow = {
 
 function mapLegacyRankedRows(rows: LegacyRankedScore[]): RankedRow[] {
   return rows.map((r) => {
-    const trainerLevel = Math.max(1, Number(r.trainer_level ?? r.level ?? (r.score ? Math.floor(Number(r.score) / 100) : 1)) || 1);
+    // Nível REAL do treinador — nunca deriva do score nem do nível do líder Pokémon.
+    const trainerLevel = Math.max(1, Number(r.trainer_level ?? 1) || 1);
     const craftPoints = Math.max(0, Number(r.pokedex_count ?? r.craft_points ?? 0) || 0);
-    const score = Number(r.score ?? (trainerLevel * 100 + craftPoints + Math.floor((Number(r.total_kills ?? 0) || 0) / 10))) || trainerLevel * 100;
+    const score = trainerLevel * 100 + craftPoints;
     return {
       user_id: r.user_id,
       username: r.username || "Treinador",
@@ -60,7 +61,8 @@ function mapLegacyRankedRows(rows: LegacyRankedScore[]): RankedRow[] {
 
 function mapPlayersRows(rows: PlayerRankRow[]): RankedRow[] {
   return rows.map((r) => {
-    const trainerLevel = Math.max(1, Number(r.trainer_level ?? r.level ?? 1) || 1);
+    // Nível REAL do treinador — não usa o nível do líder Pokémon como fallback.
+    const trainerLevel = Math.max(1, Number(r.trainer_level ?? 1) || 1);
     const craftPoints = Math.max(0, Number(r.craft_points ?? 0) || 0);
     return {
       user_id: String(r.id || crypto.randomUUID()),
