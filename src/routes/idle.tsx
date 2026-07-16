@@ -1945,11 +1945,11 @@ function IdlePage() {
     leader_rarity: string | null;
     guild_name: string | null;
   };
-  type RankMode = "level" | "trainer" | "craft";
+  type RankMode = "trainer" | "craft";
   const [rankOpen, setRankOpen] = useState(false);
   const [rankRows, setRankRows] = useState<RankRow[]>([]);
   const [rankLoading, setRankLoading] = useState(false);
-  const [rankMode, setRankMode] = useState<RankMode>("level");
+  const [rankMode, setRankMode] = useState<RankMode>("trainer");
   const RANK_CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 horas — snapshot global
   const rankCacheKey = (mode: RankMode) => `rank_cache_v2_real_level_${mode}`;
   useEffect(() => {
@@ -2003,7 +2003,7 @@ function IdlePage() {
         }));
 
         if (rows.length === 0) {
-          const orderCol = rankMode === "trainer" ? "trainer_level" : rankMode === "craft" ? "craft_points" : "level";
+          const orderCol = rankMode === "craft" ? "craft_points" : "trainer_level";
           const { data, error } = await gameDb
             .from("players")
             .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,guild_name")
@@ -2019,8 +2019,8 @@ function IdlePage() {
           rows = rows.map((r) => (r.id === (identity?.id ?? "local-trainer") ? { ...r, ...meRow() } : r));
         }
         rows.sort((a, b) => {
-          const av = rankMode === "trainer" ? a.trainer_level : rankMode === "craft" ? a.craft_points : a.level;
-          const bv = rankMode === "trainer" ? b.trainer_level : rankMode === "craft" ? b.craft_points : b.level;
+          const av = rankMode === "craft" ? a.craft_points : a.trainer_level;
+          const bv = rankMode === "craft" ? b.craft_points : b.trainer_level;
           return bv - av;
         });
         rows = rows.slice(0, 200);
@@ -4683,7 +4683,6 @@ function IdlePage() {
                   {/* Tabs */}
                   <div style={{ display: "flex", gap: 6, padding: "10px 14px 0", background: "rgba(0,0,0,0.2)" }}>
                     {([
-                      { k: "level", label: "🐉 Nível Pokémon" },
                       { k: "trainer", label: "🎓 Nível Treinador" },
                       { k: "craft", label: "⚒️ Pontos de Craft" },
                     ] as { k: RankMode; label: string }[]).map((t) => {
@@ -4717,8 +4716,8 @@ function IdlePage() {
                         {rankRows.map((r, i) => {
                           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
                           const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e5e5e5" : i === 2 ? "#d99b1a" : "#ffe9a8";
-                          const mainVal = rankMode === "trainer" ? r.trainer_level : rankMode === "craft" ? r.craft_points : r.level;
-                          const mainLabel = rankMode === "trainer" ? "Treinador Lv" : rankMode === "craft" ? "Craft" : "Pokémon Lv";
+                          const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
+                          const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
                           return (
                             <div key={r.id} style={{
                               display: "grid",
