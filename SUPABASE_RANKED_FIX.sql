@@ -158,18 +158,19 @@ begin
   )
   on conflict (season_id, user_id) do update set
     username = excluded.username,
-    trainer_level = greatest(public.ranked_leaderboard.trainer_level, excluded.trainer_level),
-    craft_points = greatest(public.ranked_leaderboard.craft_points, excluded.craft_points),
+    -- SEMPRE reflete o nível REAL atual do treinador (sem greatest histórico).
+    trainer_level = excluded.trainer_level,
+    craft_points = excluded.craft_points,
     guild_name = excluded.guild_name,
-    score = greatest(public.ranked_leaderboard.score, excluded.score),
+    score = excluded.score,
     updated_at = now();
 
   insert into public.ranked_scores (user_id, username, trainer_level, pokedex_count, updated_at)
   values (_uid, _username, _level_safe, _craft_safe, now())
   on conflict (user_id) do update set
     username = excluded.username,
-    trainer_level = greatest(public.ranked_scores.trainer_level, excluded.trainer_level),
-    pokedex_count = greatest(public.ranked_scores.pokedex_count, excluded.pokedex_count),
+    trainer_level = excluded.trainer_level,
+    pokedex_count = excluded.pokedex_count,
     updated_at = now();
 end;
 $$;
