@@ -41,11 +41,74 @@ type PlayerRankRow = {
   updated_at?: string | null;
 };
 
-function mapLegacyRankedRows(rows: LegacyRankedScore[]): RankedRow[] {
+function safeInt(value: unknown, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.floor(n) : fallback;
+}
+
+function inferTrainerLevelFromScore(score: unknown) {
+  const n = safeInt(score, 0);
+  return n > 0 ? Math.max(1, Math.min(10000, Math.floor(n / 100))) : 1;
+}
+
+function rowTime(row: Pick<RankedRow, "updated_at">) {
+  const t = Date.parse(row.updated_at);
+  return Number.isFinite(t) ? t : 0;
+}
+
+function normalizeRankedRow(row: RankedRow): RankedRow {
+  const trainerLevel = Math.max(1, Math.min(10000, safeInt(row.trainer_level, 1)));
+  const craftPoints = Math.max(0, safeInt(row.craft_points, 0));
+  return {
+    ...row,
+    trainer_level: trainerLevel,
+    craft_points: craftPoints,
+    score: trainerLevel * 100 + craftPoints,
+    updated_at: row.updated_at || new Date().toISOString(),
+  };
+}
+
+function mergeRankedRows(...sources: RankedRow[][]): RankedRow[] {
+  const byUser = new Map<string, RankedRow>();
+  for (const rows of sources) {
+    for (const raw of rows) {
+      const incoming = normalizeRankedRow(raw);
+      const existing = byUser.get(incoming.user_id);
+      if (!existing) {
+        byUser.set(incoming.user_id, incoming);
+        continue;
+      }
+      const incomingTime = rowTime(incoming);
+      const existingTime = rowTime(existing);
+      const newer = incomingTime >= existingTime;
+      const trainerLevel = incoming.trainer_level > 1 && (newer || existing.trainer_level <= 1)
+        ? incoming.trainer_level
+        : existing.trainer_level;
+      const craftPoints = newer ? incoming.craft_points : existing.craft_points;
+      byUser.set(incoming.user_id, {
+        user_id: incoming.user_id,
+        username: newer ? incoming.username : existing.username,
+        trainer_level: trainerLevel,
+        craft_points: craftPoints,
+        guild_name: newer ? incoming.guild_name : existing.guild_name,
+        score: trainerLevel * 100 + craftPoints,
+        updated_at: newer ? incoming.updated_at : existing.updated_at,
+      });
+    }
+  }
+  return [...byUser.values()]
+    .sort((a, b) => b.score - a.score || rowTime(a) - rowTime(b));
+}
+
+function mapLegacyRankedRows(rows: LegacyRankedScore[], inferFromScore = false): RankedRow[] {
   return rows.map((r) => {
-    // Nível REAL do treinador — nunca deriva do score nem do nível do líder Pokémon.
-    const trainerLevel = Math.max(1, Number(r.trainer_level ?? 1) || 1);
-    const craftPoints = Math.max(0, Number(r.pokedex_count ?? r.craft_points ?? 0) || 0);
+    // Nível REAL do treinador. Em setups antigos que só tinham `score`, inferimos
+    // porque o próprio cliente grava `score = trainerLevel * 100 + craft`.
+    const trainerLevel = Math.max(1, Math.min(10000, safeInt(
+      r.trainer_level ?? (inferFromScore ? inferTrainerLevelFromScore(r.score) : 1),
+      1,
+    )));
+    const craftPoints = Math.max(0, safeInt(r.pokedex_count ?? r.craft_points ?? 0, 0));
     const score = trainerLevel * 100 + craftPoints;
     return {
       user_id: r.user_id,
@@ -62,8 +125,8 @@ function mapLegacyRankedRows(rows: LegacyRankedScore[]): RankedRow[] {
 function mapPlayersRows(rows: PlayerRankRow[]): RankedRow[] {
   return rows.map((r) => {
     // Nível REAL do treinador — não usa o nível do líder Pokémon como fallback.
-    const trainerLevel = Math.max(1, Number(r.trainer_level ?? 1) || 1);
-    const craftPoints = Math.max(0, Number(r.craft_points ?? 0) || 0);
+    const trainerLevel = Math.max(1, Math.min(10000, safeInt(r.trainer_level ?? 1, 1)));
+    const craftPoints = Math.max(0, safeInt(r.craft_points ?? 0, 0));
     return {
       user_id: String(r.id || crypto.randomUUID()),
       username: r.name || "Treinador",
@@ -132,7 +195,7 @@ async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
       console.warn("[ranked] legacy:", fallback.error.message);
       return fetchPlayersFallback(limit);
     }
-    const rows = mapLegacyRankedRows((fallback.data ?? []) as LegacyRankedScore[]);
+    const rows = mapLegacyRankedRows((fallback.data ?? []) as LegacyRankedScore[], true);
     return rows.length ? rows : fetchPlayersFallback(limit);
   } catch (e) {
     console.warn("[ranked] legacy exc:", e);
@@ -142,45 +205,76 @@ async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
 
 /** Envia/atualiza score do jogador na temporada corrente. */
 export async function recordRankedScore(level: number, craftPoints: number, guildName?: string | null) {
+  const trainerLevel = Math.max(1, Math.min(10000, Math.floor(level || 1)));
+  const craft = Math.max(0, Math.floor(craftPoints || 0));
+
+  const upsertDirectBackup = async () => {
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth?.user;
+    if (!user) return;
+    const username = (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string;
+
+    // Tabela legacy/publica usada pelo ranking global. Mantém nível REAL atual.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const legacy = await (supabase as any).from("ranked_scores").upsert({
+      user_id: user.id,
+      username,
+      trainer_level: trainerLevel,
+      pokedex_count: craft,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+    if (legacy.error) {
+      // Compatibilidade com setup antigo que só tinha score/season.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fallback = await (supabase as any).from("ranked_scores").upsert({
+        user_id: user.id,
+        username,
+        score: trainerLevel * 100 + craft,
+        season: 1,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id,season" });
+      if (fallback.error) console.warn("[ranked] score upsert:", fallback.error.message);
+    }
+
+    // Backup direto também na tabela de temporada, para não depender só da RPC.
+    try {
+      const season = await fetchCurrentSeason();
+      if (!season) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from("ranked_leaderboard").upsert({
+        season_id: season.id,
+        user_id: user.id,
+        username,
+        trainer_level: trainerLevel,
+        craft_points: craft,
+        guild_name: guildName ?? null,
+        score: trainerLevel * 100 + craft,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "season_id,user_id" });
+      if (error) console.warn("[ranked] leaderboard backup:", error.message);
+    } catch (e) {
+      console.warn("[ranked] leaderboard backup exc:", e);
+    }
+  };
+
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase as any).rpc("record_ranked_score", {
-      _level: Math.max(1, Math.floor(level || 1)),
-      _craft_points: Math.max(0, Math.floor(craftPoints || 0)),
+      _level: trainerLevel,
+      _craft_points: craft,
       _guild_name: guildName ?? null,
     });
-    if (!error) return;
+    if (!error) {
+      await upsertDirectBackup();
+      return;
+    }
     console.warn("[ranked] record:", error.message);
   } catch (e) {
     console.warn("[ranked] record exc:", e);
   }
 
   try {
-    const { data: auth } = await supabase.auth.getUser();
-    const user = auth?.user;
-    if (!user) return;
-    const trainerLevel = Math.max(1, Math.floor(level || 1));
-    const craft = Math.max(0, Math.floor(craftPoints || 0));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any).from("ranked_scores").upsert({
-      user_id: user.id,
-      username: (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string,
-      trainer_level: trainerLevel,
-      pokedex_count: craft,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
-    if (!error) return;
-    console.warn("[ranked] legacy upsert:", error.message);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fallback = await (supabase as any).from("ranked_scores").upsert({
-      user_id: user.id,
-      username: (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string,
-      score: trainerLevel * 100 + craft,
-      season: 1,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id,season" });
-    if (fallback.error) console.warn("[ranked] score upsert:", fallback.error.message);
+    await upsertDirectBackup();
   } catch (e) {
     console.warn("[ranked] legacy record exc:", e);
   }
@@ -201,6 +295,18 @@ export async function fetchCurrentSeason(): Promise<RankedSeason | null> {
 
 /** Top N da temporada corrente, ordenado por score desc. */
 export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
+  try {
+    // Fonte mais fiel: RPC segura lê o Lv real do blob `game_saves` e só retorna campos públicos.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc("get_global_ranked", { _limit: limit });
+    if (!error && Array.isArray(data) && data.length) {
+      return mergeRankedRows(data as RankedRow[]).slice(0, limit);
+    }
+    if (error) console.warn("[ranked] global rpc:", error.message);
+  } catch (e) {
+    console.warn("[ranked] global rpc exc:", e);
+  }
+
   const season = await fetchCurrentSeason();
   if (!season) {
     const legacy = await fetchLegacyRankedScores(limit);
@@ -219,8 +325,9 @@ export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
     const legacy = await fetchLegacyRankedScores(limit);
     return legacy.length ? legacy : fetchPlayersFallback(limit);
   }
-  const rows = (data ?? []) as RankedRow[];
-  if (rows.length) return rows;
+  const rows = ((data ?? []) as RankedRow[]).map(normalizeRankedRow);
   const legacy = await fetchLegacyRankedScores(limit);
-  return legacy.length ? legacy : fetchPlayersFallback(limit);
+  const online = await fetchPlayersFallback(limit);
+  const merged = mergeRankedRows(rows, legacy, online);
+  return merged.length ? merged.slice(0, limit) : online;
 }
