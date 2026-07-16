@@ -1533,6 +1533,30 @@ function IdlePage() {
       setCodeInput("");
       return;
     }
+    // ===== Códigos Ovo Lendário (3 unidades) =====
+    const LEGENDARY_EGG_CODES: Record<string, string> = {
+      "lendario-ovo-ruby-1": "rubym.legEgg1Code.used",
+      "lendario-ovo-ruby-2": "rubym.legEgg2Code.used",
+      "lendario-ovo-ruby-3": "rubym.legEgg3Code.used",
+    };
+    if (LEGENDARY_EGG_CODES[c]) {
+      const storageKey = LEGENDARY_EGG_CODES[c];
+      try {
+        if (localStorage.getItem(storageKey) === "1") {
+          setCodeMsg({ kind: "err", text: "Este código já foi resgatado." });
+          return;
+        }
+        localStorage.setItem(storageKey, "1");
+      } catch { /* ignore */ }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, egg_epic: (s.items.egg_epic ?? 0) + 1 },
+      }));
+      setCodeMsg({ kind: "ok", text: "✦ +1 Ovo Lendário! Confira sua mochila." });
+      pushChat("✦ Ovo Lendário resgatado via código!", "cap");
+      setCodeInput("");
+      return;
+    }
     // ===== Códigos VIP vitalício 1 ano (3 unidades) =====
     const VIP_CODES: Record<string, string> = {
       "vip-ruby-alpha-365": "rubym.vipAlphaCode.used",
