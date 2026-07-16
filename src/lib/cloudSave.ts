@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const SAVE_KEY = "rubym.save.v2";
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingData: unknown = null;
 let lastCloudSaveError: string | null = null;
@@ -19,12 +22,46 @@ function isFullCloudSave(data: unknown): data is { idle: unknown; team: unknown;
   return Boolean(value.idle && Array.isArray(value.team) && Array.isArray(value.restingBench));
 }
 
+async function getAuthedRestHeaders() {
+  const { data: sess } = await supabase.auth.getSession();
+  const session = sess.session;
+  if (!session?.user?.id || !session.access_token) {
+    throw new Error("sem sessão/login ativo");
+  }
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    throw new Error("Supabase não configurado no app publicado");
+  }
+  return {
+    uid: session.user.id,
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${session.access_token}`,
+      "Content-Type": "application/json",
+    },
+  };
+}
+
+async function parseRestError(response: Response) {
+  const text = await response.text().catch(() => "");
+  try {
+    const json = JSON.parse(text) as { message?: string; hint?: string; details?: string; code?: string };
+    return [json.message, json.hint, json.details, json.code].filter(Boolean).join(" · ");
+  } catch {
+    return text || `HTTP ${response.status}`;
+  }
+}
+
 async function upsert(uid: string, snapshot: unknown) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any)
-    .from("game_saves")
-    .upsert({ user_id: uid, data: snapshot, updated_at: new Date().toISOString() });
-  if (error) throw error;
+  const { headers } = await getAuthedRestHeaders();
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`, {
+    method: "POST",
+    headers: {
+      ...headers,
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify({ user_id: uid, data: snapshot, updated_at: new Date().toISOString() }),
+  });
+  if (!response.ok) throw new Error(await parseRestError(response));
 }
 
 /** Debounced push (1.5s) — usar durante gameplay. */
@@ -42,7 +79,10 @@ export function scheduleCloudSync(data: unknown) {
     try {
       const { data: sess } = await supabase.auth.getSession();
       const uid = sess.session?.user?.id;
-      if (!uid || !snapshot) return;
+      if (!uid || !snapshot) {
+        lastCloudSaveError = "sem sessão/login ativo";
+        return;
+      }
       await upsert(uid, snapshot);
       lastCloudSaveError = null;
     } catch (e) {
@@ -60,12 +100,7 @@ export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
     return false;
   }
   try {
-    const { data: sess } = await supabase.auth.getSession();
-    const uid = sess.session?.user?.id;
-    if (!uid) {
-      lastCloudSaveError = "sem sessão/login ativo";
-      return false;
-    }
+    const { uid } = await getAuthedRestHeaders();
     await upsert(uid, data);
     lastCloudSaveError = null;
     return true;
@@ -77,17 +112,21 @@ export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
 }
 
 export async function fetchCloudSave(userId: string): Promise<unknown | null> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
-    .from("game_saves")
-    .select("data")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (error) {
-    console.warn("[cloudSave] fetch failed", error);
+  try {
+    const { headers } = await getAuthedRestHeaders();
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+      { headers },
+    );
+    if (!response.ok) throw new Error(await parseRestError(response));
+    const rows = (await response.json()) as Array<{ data?: unknown }>;
+    lastCloudSaveError = null;
+    return rows[0]?.data ?? null;
+  } catch (e) {
+    lastCloudSaveError = e instanceof Error ? e.message : String(e);
+    console.warn("[cloudSave] fetch failed", e);
     return null;
   }
-  return data?.data ?? null;
 }
 
 export async function deleteCloudSave(userId: string): Promise<void> {
