@@ -1612,15 +1612,8 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
     return () => clearInterval(interval);
   }, []);
 
-  // Keep fake players' trainer_level always below the real player's active level
-  useEffect(() => {
-    const cap = Math.max(1, trainerLevel - 1);
-    FAKE_PLAYERS.forEach(bot => {
-      if (bot.trainer_level >= trainerLevel) {
-        bot.trainer_level = Math.max(1, cap - Math.floor(Math.random() * 3));
-      }
-    });
-  }, [trainerLevel]);
+
+
 
   // ===== RARE MUSHROOM SPAWN — a cada 3 min + (185s), some em 60s se não pegar =====
   useEffect(() => {
