@@ -588,6 +588,15 @@ const SHOP_BALLS: ShopBall[] = [
   { id: "pokeball",   name: "Pokébola",   price: 500,    img: ballPokeImg,  captureMult: 1 },
   { id: "greatball",  name: "Great Ball", price: 5000,   img: ballGreatImg, captureMult: 2 },
 ];
+// Catálogo COMPLETO usado no cálculo de captura (inclui bolas que não são
+// vendidas na loja mas o jogador pode ter dropado / recebido de eventos).
+const ALL_BALLS: ShopBall[] = [
+  { id: "pokeball",   name: "Pokébola",   price: 500,    img: ballPokeImg,  captureMult: 1 },
+  { id: "greatball",  name: "Great Ball", price: 5000,   img: ballGreatImg, captureMult: 2 },
+  { id: "ultraball",  name: "Ultra Ball", price: 15000,  img: ballUltraImg, captureMult: 3.5 },
+  { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
+];
+
 type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60"; name: string; desc: string; price: number; img: string };
 const SHOP_BOOKS: ShopBook[] = [
   { id: "book_atk", name: "Livro de Ataque", desc: "+10% de dano permanente por uso", price: 20, img: bookAtkImg },
@@ -2379,7 +2388,7 @@ function IdlePage() {
             let usedBall: ShopBall | null = null;
             if (useBall) {
               if (pref !== "auto") {
-                const b = SHOP_BALLS.find((x) => x.id === pref);
+                const b = ALL_BALLS.find((x) => x.id === pref);
                 if (b && (newItems[b.id] ?? 0) > 0) usedBall = b;
               }
               if (!usedBall) {
@@ -2388,7 +2397,7 @@ function IdlePage() {
                   ? ["masterball", "ultraball", "greatball", "pokeball"]
                   : ["ultraball", "greatball", "pokeball"]; // master reservada para eventos
                 for (const id of order) {
-                  const b = SHOP_BALLS.find((x) => x.id === id);
+                  const b = ALL_BALLS.find((x) => x.id === id);
                   if (b && (newItems[b.id] ?? 0) > 0) { usedBall = b; break; }
                 }
               }
@@ -2809,11 +2818,11 @@ function IdlePage() {
     // seleciona bola
     let usedBall: ShopBall | null = null;
     if (pref !== "auto") {
-      const b = SHOP_BALLS.find((x) => x.id === pref);
+      const b = ALL_BALLS.find((x) => x.id === pref);
       if (b && (idle.items[b.id] ?? 0) > 0) usedBall = b;
     }
     if (!usedBall) {
-      for (const b of [...SHOP_BALLS].reverse()) {
+      for (const b of [...ALL_BALLS].reverse()) {
         if ((idle.items[b.id] ?? 0) > 0) { usedBall = b; break; }
       }
     }
