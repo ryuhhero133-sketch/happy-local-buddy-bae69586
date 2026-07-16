@@ -232,6 +232,7 @@ const mapVenenoUrl = assetUrl(mapVenenoAsset.url);
 const orbXpMinorUrl = assetUrl(orbXpMinorAsset.url);
 const orbXpMajorUrl = assetUrl(orbXpMajorAsset.url);
 const orbXpSupremeUrl = assetUrl(orbXpSupremeAsset.url);
+const npcTraderUrl = assetUrl(npcTraderAsset.url);
 const redLakeUrl = assetUrl(redLakeAsset.url);
 const volcanoUrl = assetUrl(volcanoAsset.url);
 const rubyGemUrl = assetUrl(rubyGemAsset.url);
