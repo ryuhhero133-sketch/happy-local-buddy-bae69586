@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, type ReactNode, type FormEvent } from "react";
+import { useEffect, useState, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
@@ -95,6 +95,7 @@ async function preloadCloudSave(userId: string) {
       log("preloadCloudSave: nenhum save remoto");
     }
   } catch (e) {
+    try { localStorage.removeItem(CLOUD_PRELOADED_KEY); } catch { /* ignore */ }
     warn("preloadCloudSave falhou", e);
   }
 }
