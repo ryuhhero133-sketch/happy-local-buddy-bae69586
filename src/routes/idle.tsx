@@ -1085,7 +1085,20 @@ function IdlePage() {
   // ===== Escolha do inicial (declarada cedo p/ gatear loops do jogo) =====
   const [starterChosen, setStarterChosen] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
-    try { return !!localStorage.getItem("rubym.starter.chosen"); } catch { return true; }
+    try {
+      if (localStorage.getItem("rubym.starter.chosen")) return true;
+      // Fallback: se já existe party salvo (cloud ou local), considera escolhido
+      // e persiste a flag para não reabrir o modal no próximo login/F5.
+      const raw = localStorage.getItem("rubym.save.v2");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.party) && parsed.party.length > 0) {
+          try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
+          return true;
+        }
+      }
+      return false;
+    } catch { return true; }
   });
   const starterChosenRef = useRef(starterChosen);
   useEffect(() => { starterChosenRef.current = starterChosen; }, [starterChosen]);
