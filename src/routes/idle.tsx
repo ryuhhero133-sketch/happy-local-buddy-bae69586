@@ -1057,6 +1057,9 @@ function IdlePage() {
   // alvo atual (para virar o pokémon) — id do inimigo que estamos atacando
   const [attackTargetId, setAttackTargetId] = useState<number | null>(null);
   const attackTargetIdRef = useRef<number | null>(null);
+  const paralyzedUntilRef = useRef<number>(0);
+  const [paralyzedUntil, setParalyzedUntil] = useState<number>(0);
+
   useEffect(() => { attackTargetIdRef.current = attackTargetId; }, [attackTargetId]);
   // Ao trocar de líder (ou seu nível mudar muito), inimigos fora da faixa
   // de nível são despawnados e novos são gerados para o novo líder.
