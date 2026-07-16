@@ -4965,38 +4965,57 @@ function IdlePage() {
 
             {/* Portais no mundo — pontos de viagem visíveis */}
             {(() => {
-              return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => (
-                <div
-                  key={p.key}
-                  onClick={() => {
-                    playClick();
-                    enterWorldPortal(p);
-                  }}
-                  style={{
-                    position: "absolute",
-                    left: p.x - 40, top: p.y - 40,
-                    width: 80, height: 80,
-                    borderRadius: "50%",
-                    background: `radial-gradient(circle, ${p.color}cc 0%, ${p.color}55 45%, transparent 75%)`,
-                    border: `3px solid ${p.color}`,
-                    boxShadow: `0 0 24px ${p.color}, inset 0 0 18px ${p.color}88`,
-                    cursor: "pointer",
-                    zIndex: Math.round(p.y),
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    animation: "pulse 1.6s ease-in-out infinite",
-                  }}
-                  title={`Ir para ${p.label}`}
-                >
-                  <div style={{
-                    fontSize: 11, fontWeight: 800, color: "#fff",
-                    textShadow: "0 1px 3px rgba(0,0,0,0.9)",
-                    textAlign: "center", padding: "0 4px", lineHeight: 1.1,
-                  }}>
-                    🌀<br/>{p.label}
+              const lv = idle.trainerLevel ?? 1;
+              return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => {
+                const locked = !!(p.reqLevel && lv < p.reqLevel);
+                return (
+                  <div
+                    key={p.key}
+                    onClick={() => {
+                      playClick();
+                      enterWorldPortal(p);
+                    }}
+                    style={{
+                      position: "absolute",
+                      left: p.x - 44, top: p.y - 44,
+                      width: 88, height: 88,
+                      borderRadius: "50%",
+                      background: locked
+                        ? `radial-gradient(circle, #6b728088 0%, #33415544 45%, transparent 75%)`
+                        : `radial-gradient(circle, ${p.color}cc 0%, ${p.color}55 45%, transparent 75%)`,
+                      border: `3px solid ${locked ? "#94a3b8" : p.color}`,
+                      boxShadow: locked ? `0 0 12px #0008` : `0 0 24px ${p.color}, inset 0 0 18px ${p.color}88`,
+                      cursor: "pointer",
+                      zIndex: Math.round(p.y),
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      animation: locked ? "none" : "pulse 1.6s ease-in-out infinite",
+                      opacity: locked ? 0.75 : 1,
+                    }}
+                    title={locked ? `Bloqueado — requer Treinador Nv ${p.reqLevel}` : `Ir para ${p.label}`}
+                  >
+                    <div style={{
+                      fontSize: 11, fontWeight: 800, color: "#fff",
+                      textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+                      textAlign: "center", padding: "0 4px", lineHeight: 1.1,
+                    }}>
+                      {locked ? "🔒" : "🌀"}<br/>{p.label}
+                    </div>
+                    {/* Placa de requisito */}
+                    <div style={{
+                      position: "absolute", top: -26, left: "50%", transform: "translateX(-50%)",
+                      background: "rgba(11,5,16,0.92)",
+                      color: locked ? "#fca5a5" : "#fde68a",
+                      border: `1px solid ${locked ? "#ef4444" : p.color}`,
+                      borderRadius: 4, padding: "2px 8px", fontSize: 10, fontWeight: 800,
+                      whiteSpace: "nowrap", letterSpacing: 0.5,
+                    }}>
+                      {p.reqLevel ? `TREINADOR Nv ${p.reqLevel}${locked ? ` • FALTA ${p.reqLevel - lv}` : " ✓"}` : "← VOLTAR"}
+                    </div>
                   </div>
-                </div>
-              ));
+                );
+              });
             })()}
+
 
             {/* 🧙 NPC Trocador — presente em todos os mapas, canto acessível */}
             {(() => {
