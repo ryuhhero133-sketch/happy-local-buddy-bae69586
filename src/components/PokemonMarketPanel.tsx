@@ -5,11 +5,17 @@
 //   "Meus anúncios". Se o comprador crashar, ele pode reclamar em "Comprados".
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { CollectionEntry, Species, Rarity } from "@/routes/idle";
+import { supabase as _supabase } from "@/integrations/supabase/client";
+import type { CollectionEntry } from "@/routes/idle";
+import type { Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
+
+// A tabela pokemon_market ainda não está nos types gerados — cast pra any.
+const supabase = _supabase as unknown as {
+  from: (table: string) => any;
+};
 
 type Currency = "gold" | "crystal";
 
