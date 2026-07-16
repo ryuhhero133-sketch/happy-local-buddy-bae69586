@@ -138,7 +138,10 @@ export type Species =
   // Mythic Roamers (aparecem raro em qualquer mapa, Lv 500)
   | "deoxys" | "groudon" | "lapras_shiny" | "snorlax_mythic" | "darkrai"
   // Novos pokémons
-  | "ho_oh" | "magmortar";
+  | "ho_oh" | "magmortar"
+  // Evento Lugia + reforços
+  | "lugia" | "hariyama" | "ursaring";
+
 
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "mythic_shiny";
