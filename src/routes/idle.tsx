@@ -3422,6 +3422,19 @@ function IdlePage() {
       pushChat(`🎁 Caixa Premium aberta! Você recebeu 50 Poções, 50 Pokébolas e 1 Ticket de Skin ✦ (use na aba Início para escolher uma skin premium).`, "cap");
     } else if (id === "skin_ticket") {
       pushChat(`✦ Vá até a aba Início e escolha uma skin premium para desbloquear com o ticket.`, "info");
+    } else if (id === "incenso_mel") {
+      const nowT = Date.now();
+      if ((idle.buffs.honeyUntil ?? 0) > nowT) {
+        pushChat(`Já há um Incenso de Mel ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, incenso_mel: (s.items.incenso_mel ?? 0) - 1 },
+        buffs: { ...s.buffs, honeyUntil: nowT + HONEY_DURATION_MS },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "🍯 MEL +10% · 1h", "capture");
+      pushChat(`🍯 Incenso de Mel ativado! +10% drop/xp/def/velocidade por 1 hora.`, "cap");
     }
   };
 
