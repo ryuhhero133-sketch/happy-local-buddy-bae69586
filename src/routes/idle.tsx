@@ -4883,7 +4883,7 @@ function IdlePage() {
 
 
             {/* Outros jogadores no mesmo mapa */}
-            {remotePlayers.map((rp) => {
+            {visibleMapPlayers.map((rp) => {
               const rpLeaderSrc = rp.leaderSp ? GIF[rp.leaderSp] : undefined;
               return (
                 <div key={rp.id} style={{
@@ -5659,7 +5659,7 @@ function IdlePage() {
                     }} />
                   ))}
                   {/* Outros jogadores no mesmo mapa */}
-                  {remotePlayers.map((rp) => (
+                  {visibleMapPlayers.map((rp) => (
                     <div key={`mm-${rp.id}`} title={rp.name} style={{
                       position: "absolute",
                       left: `${(rp.x / WORLD_W) * 100}%`,
