@@ -1127,10 +1127,19 @@ function IdlePage() {
         let fled: number[] = [];
         const next = prev.filter((e) => {
           if (!e.eventLegendary || e.level < 400) return true;
-          // não foge se estiver sendo atacado
-          if (attackTargetIdRef.current === e.id) return true;
-          // 12% de chance a cada 20s
-          if (Math.random() < 0.12) { fled.push(e.id); return false; }
+          const beingAttacked = attackTargetIdRef.current === e.id;
+          // Lugia é o mais fujão: pode escapar mesmo em batalha
+          if (e.sp === "lugia") {
+            const p = beingAttacked ? 0.10 : 0.18;
+            if (Math.random() < p) { fled.push(e.id); return false; }
+            return true;
+          }
+          if (beingAttacked) {
+            // Outros Lv500+ têm pequena chance de fugir mesmo lutando
+            if (Math.random() < 0.04) { fled.push(e.id); return false; }
+            return true;
+          }
+          if (Math.random() < 0.15) { fled.push(e.id); return false; }
           return true;
         });
         if (fled.length > 0) {
