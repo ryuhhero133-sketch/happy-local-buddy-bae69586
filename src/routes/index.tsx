@@ -543,7 +543,9 @@ const SPECIES_GIF: Record<Species, string> = {
   blaziken: blazikenGif,
   deoxys: deoxysGif, groudon: groudonGif, lapras_shiny: laprasShinyGif, snorlax_mythic: snorlaxMythicGif,
   darkrai: darkraiGif, ho_oh: hoOhGif, magmortar: magmortarGif,
+  lugia: lugiaGif, hariyama: hariyamaGif, ursaring: ursaringGif,
 };
+
 
 
 const SPECIES_NAME: Record<Species, string> = {
