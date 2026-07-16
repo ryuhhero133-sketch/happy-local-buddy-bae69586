@@ -3451,7 +3451,7 @@ function IdlePage() {
 
       // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
       // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
-      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic"];
+      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic", "darkrai"];
       const currentRoamers = enemies.filter((e) => e.eventLegendary && e.level >= 400).length;
       const isMythicRoamer = currentRoamers === 0 && Math.random() < 0.004;
       if (isMythicRoamer) {
