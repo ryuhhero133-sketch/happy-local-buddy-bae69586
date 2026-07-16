@@ -1102,8 +1102,7 @@ function IdlePage() {
         });
         if (fled.length > 0) {
           try {
-            const names = fled.map(() => "★ Mítico").join(", ");
-            pushSystemMsg?.(`${names} desapareceu nas sombras... fugiu!`);
+            pushChat(`★ Mítico Roamer desapareceu nas sombras... fugiu!`, "info");
           } catch {}
         }
         return next;
