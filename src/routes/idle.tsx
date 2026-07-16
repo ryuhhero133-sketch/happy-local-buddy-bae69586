@@ -7552,27 +7552,46 @@ function TabOverlay({
             <li>Novos Pokémon aparecem conforme seu nível sobe.</li>
           </ul>
 
-          <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "18px 0 10px" }}>Escolher Skin</h3>
+          <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "18px 0 10px" }}>
+            Escolher Skin <span style={{ fontSize: 11, color: "#b9a7ff" }}>· 🎟️ Tickets: {skinTickets}</span>
+          </h3>
+          <div style={{ fontSize: 11, color: "#b9a7ff", marginBottom: 8 }}>
+            Skins premium ficam bloqueadas. Abra a <strong>Caixa Premium ✦</strong> na Mochila para ganhar Tickets e desbloquear a skin que quiser.
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
             {SKINS.map((s) => {
               const active = s.id === skinId;
+              const unlocked = unlockedSkins.includes(s.id);
+              const canUnlock = !unlocked && skinTickets > 0;
               return (
                 <button
                   key={s.id}
-                  onClick={() => setSkinId(s.id)}
+                  onClick={() => {
+                    if (unlocked) { setSkinId(s.id); return; }
+                    if (canUnlock) {
+                      if (window.confirm(`Desbloquear a skin "${s.label}" usando 1 Ticket de Skin ✦?`)) {
+                        onUnlockSkin(s.id);
+                      }
+                    }
+                  }}
+                  disabled={!unlocked && !canUnlock}
                   style={{
-                    background: active ? "linear-gradient(160deg,#3a1f5c,#6b3fb0)" : "#1a0f26",
-                    border: `2px solid ${active ? "#f5cf6b" : "rgba(107,212,255,0.35)"}`,
-                    borderRadius: 10, padding: 10, cursor: "pointer",
+                    position: "relative",
+                    background: active ? "linear-gradient(160deg,#3a1f5c,#6b3fb0)" : unlocked ? "#1a0f26" : "#120a1c",
+                    border: `2px solid ${active ? "#f5cf6b" : unlocked ? "rgba(107,212,255,0.35)" : "rgba(255,255,255,0.08)"}`,
+                    borderRadius: 10, padding: 10,
+                    cursor: unlocked ? "pointer" : canUnlock ? "pointer" : "not-allowed",
                     display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                    color: "#eadfe8", fontFamily: "inherit",
+                    color: unlocked ? "#eadfe8" : "#7a6f8a", fontFamily: "inherit",
                     boxShadow: active ? "0 0 18px rgba(245,207,107,0.45)" : "none",
+                    opacity: unlocked ? 1 : 0.85,
                   }}
                 >
                   <div style={{
                     width: 72, height: 72, display: "grid", placeItems: "center",
                     background: "rgba(0,0,0,0.35)", borderRadius: 8,
                     imageRendering: "pixelated",
+                    filter: unlocked ? "none" : "grayscale(1) brightness(0.55)",
                   }}>
                     {s.url ? (
                       <img src={s.url} alt={s.label} style={{ maxWidth: "100%", maxHeight: "100%", imageRendering: "pixelated" }} />
@@ -7582,10 +7601,19 @@ function TabOverlay({
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 700, textAlign: "center" }}>{s.label}</div>
                   {active && <div style={{ fontSize: 9, color: "#f5cf6b" }}>✓ EM USO</div>}
+                  {!unlocked && (
+                    <div style={{ fontSize: 9, color: canUnlock ? "#f5cf6b" : "#8a7fa0", fontWeight: 700 }}>
+                      {canUnlock ? "🎟️ USAR TICKET" : "🔒 BLOQUEADA"}
+                    </div>
+                  )}
+                  {!unlocked && (
+                    <div style={{ position: "absolute", top: 6, right: 6, fontSize: 14 }}>🔒</div>
+                  )}
                 </button>
               );
             })}
           </div>
+
         </div>
       )}
 
