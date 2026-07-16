@@ -46,6 +46,7 @@ import houseLarImg from "@/assets/house-lar.png";
 import houseLabImg from "@/assets/house-lab.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
+import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
@@ -231,6 +232,7 @@ const mapVenenoUrl = assetUrl(mapVenenoAsset.url);
 const orbXpMinorUrl = assetUrl(orbXpMinorAsset.url);
 const orbXpMajorUrl = assetUrl(orbXpMajorAsset.url);
 const orbXpSupremeUrl = assetUrl(orbXpSupremeAsset.url);
+const npcTraderUrl = assetUrl(npcTraderAsset.url);
 const redLakeUrl = assetUrl(redLakeAsset.url);
 const volcanoUrl = assetUrl(volcanoAsset.url);
 const rubyGemUrl = assetUrl(rubyGemAsset.url);
@@ -3680,6 +3682,10 @@ function IdlePage() {
     { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
     { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
   ];
+  // Estado do NPC Trocador no mapa (modal na tela do mundo)
+  const [worldTraderOpen, setWorldTraderOpen] = useState(false);
+  const [worldTraderPick, setWorldTraderPick] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string; img: string }>(null);
+  const [worldTraderSel, setWorldTraderSel] = useState<Set<string>>(new Set());
   const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => {
     const trade = ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
@@ -4842,6 +4848,49 @@ function IdlePage() {
                 </div>
               ));
             })()}
+
+            {/* 🧙 NPC Trocador — presente em todos os mapas, canto acessível */}
+            {(() => {
+              const npcX = 260, npcY = 260;
+              return (
+                <div
+                  onClick={() => { playClick(); setWorldTraderOpen(true); }}
+                  title="Trocador — Troque Pokémon da coleção por Orbs de XP"
+                  style={{
+                    position: "absolute",
+                    left: npcX - 40, top: npcY - 60,
+                    width: 80, height: 100,
+                    cursor: "pointer",
+                    zIndex: Math.round(npcY),
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.6))",
+                  }}
+                >
+                  <div style={{
+                    position: "absolute", top: -18, left: "50%", transform: "translateX(-50%)",
+                    background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
+                    border: "1px solid #ffd94d", color: "#ffd94d",
+                    borderRadius: 999, padding: "2px 8px",
+                    fontSize: 10, fontWeight: 900, whiteSpace: "nowrap",
+                    boxShadow: "0 0 10px rgba(255,217,77,0.5)",
+                    animation: "pulse 1.6s ease-in-out infinite",
+                  }}>✦ TROCADOR</div>
+                  <img
+                    src={npcTraderUrl}
+                    alt="NPC Trocador"
+                    width={80} height={100}
+                    style={{ width: 80, height: 100, imageRendering: "pixelated", objectFit: "contain" }}
+                  />
+                  <div style={{
+                    position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)",
+                    width: 60, height: 8, borderRadius: "50%",
+                    background: "radial-gradient(ellipse, rgba(255,217,77,0.55), transparent 70%)",
+                  }} />
+                </div>
+              );
+            })()}
+
+
 
 
 
@@ -6373,19 +6422,172 @@ function IdlePage() {
 
 
 
-      {/* Botão flutuante: NPC Trocador (abre Loja direto na seção do trocador) */}
-      <button
-        onClick={() => { playClick(); setTab("loja"); }}
-        title="Trocador NPC — troque Pokémon por Orbs de XP"
-        style={{
-          position: "fixed", bottom: 12, right: 108, zIndex: 100,
-          background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
-          border: "1px solid #ffd94d", color: "#ffd94d",
-          borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 800,
-          fontFamily: "monospace", cursor: "pointer",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.5), 0 0 12px rgba(255,217,77,0.35)",
-        }}
-      >🧙 Trocador</button>
+      {/* ═══ Modal do NPC Trocador (aberto ao clicar no NPC no mapa) ═══ */}
+      {worldTraderOpen && (() => {
+        const collection = idle.collection ?? [];
+        return (
+          <div
+            onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "min(640px, 100%)", maxHeight: "90vh", overflowY: "auto",
+                background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+                border: "2px solid #ffd94d", borderRadius: 16, padding: 18,
+                boxShadow: "0 12px 36px rgba(0,0,0,0.75), 0 0 32px rgba(255,217,77,0.35)",
+              }}
+            >
+              {/* Cabeçalho do NPC */}
+              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+                <img src={npcTraderUrl} alt="" width={72} height={90}
+                  style={{ imageRendering: "pixelated", filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.6))" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: "#ffd94d" }}>🧙 Elyra, a Trocadora</div>
+                  <div style={{ fontSize: 11, color: "#c8b8d0", lineHeight: 1.5, marginTop: 4, fontStyle: "italic" }}>
+                    "Traga-me Pokémon da sua <b style={{ color: "#ffd94d" }}>Coleção</b> e eu os transformarei em <b style={{ color: "#ffd94d" }}>Orbs de XP</b>. Você escolhe quais entregar."
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+                  style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 20 }}
+                >✕</button>
+              </div>
+
+              {!worldTraderPick && (
+                <>
+                  <div style={{ color: "#b8a8c8", fontSize: 12, marginBottom: 10 }}>Escolha a raridade da troca:</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    {ORB_TRADES.map((t) => {
+                      const available = collection.filter((c) => c.rarity === t.rarity).length;
+                      const canTrade = available >= t.count;
+                      const owned = idle.items[t.orbId] ?? 0;
+                      return (
+                        <div key={t.orbId} style={{
+                          background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                          border: `2px solid ${t.color}66`, borderRadius: 14, padding: 14,
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                          boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${t.color}33`,
+                        }}>
+                          <img src={t.img} alt={t.label} width={72} height={72}
+                            style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 12px ${t.color}bb)` }} />
+                          <div style={{ fontWeight: 900, color: "#eadfe8", fontSize: 14 }}>{t.label}</div>
+                          <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center", lineHeight: 1.4 }}>{t.desc}</div>
+                          <div style={{ fontSize: 11, color: canTrade ? "#8ae28a" : "#e28a8a", fontWeight: 700 }}>
+                            {t.rarity.toUpperCase()} na coleção: {available}/{t.count}
+                          </div>
+                          <div style={{ fontSize: 10, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                          <button
+                            disabled={!canTrade}
+                            onClick={() => { setWorldTraderPick(t); setWorldTraderSel(new Set()); }}
+                            style={{
+                              width: "100%", padding: "8px 10px", fontWeight: 900, fontSize: 12,
+                              background: canTrade ? t.color : "#3a2a4a",
+                              color: canTrade ? "#0b0510" : "#6a5a7c",
+                              border: "none", borderRadius: 8,
+                              cursor: canTrade ? "pointer" : "not-allowed",
+                            }}
+                          >{canTrade ? "ESCOLHER POKÉMON" : `PRECISA ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {worldTraderPick && (() => {
+                const pick = worldTraderPick;
+                const eligible = collection.filter((c) => c.rarity === pick.rarity);
+                const selCount = worldTraderSel.size;
+                const canConfirm = selCount === pick.count;
+                return (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div style={{ fontWeight: 900, color: pick.color, fontSize: 14 }}>
+                        Escolha {pick.count} Pokémon {pick.rarity.toUpperCase()}
+                      </div>
+                      <button
+                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+                        style={{ background: "transparent", border: "1px solid #3a2a4a", color: "#eadfe8", cursor: "pointer", fontSize: 11, padding: "4px 10px", borderRadius: 6 }}
+                      >← VOLTAR</button>
+                    </div>
+                    <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 10 }}>
+                      Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{pick.count}</b> — Recompensa: <b style={{ color: pick.color }}>{pick.label}</b>
+                    </div>
+                    {eligible.length === 0 ? (
+                      <div style={{ color: "#e28a8a", fontSize: 12, padding: 24, textAlign: "center" }}>
+                        Você não tem Pokémon {pick.rarity.toUpperCase()} na coleção.
+                      </div>
+                    ) : (
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8, maxHeight: "48vh", overflowY: "auto", padding: 4 }}>
+                        {eligible.map((c) => {
+                          const sel = worldTraderSel.has(c.uid);
+                          const disabled = !sel && selCount >= pick.count;
+                          return (
+                            <button
+                              key={c.uid}
+                              disabled={disabled}
+                              onClick={() => {
+                                setWorldTraderSel((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(c.uid)) next.delete(c.uid); else next.add(c.uid);
+                                  return next;
+                                });
+                              }}
+                              style={{
+                                background: sel ? `linear-gradient(160deg, ${pick.color}55, ${pick.color}22)` : "#1a0f26",
+                                border: sel ? `2px solid ${pick.color}` : "2px solid #3a2a4a",
+                                borderRadius: 10, padding: 6, cursor: disabled ? "not-allowed" : "pointer",
+                                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                                opacity: disabled ? 0.4 : 1, position: "relative",
+                              }}
+                            >
+                              {GIF[c.species] ? (
+                                <img src={GIF[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
+                              ) : (
+                                <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
+                              )}
+                              <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
+                              <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
+                              {sel && (
+                                <div style={{
+                                  position: "absolute", top: 2, right: 2, background: pick.color, color: "#0b0510",
+                                  width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
+                                }}>✓</div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                      <button
+                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+                        style={{ flex: 1, padding: "10px", background: "#3a2a4a", color: "#eadfe8", border: "none", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
+                      >CANCELAR</button>
+                      <button
+                        disabled={!canConfirm}
+                        onClick={() => {
+                          tradeForOrb(pick.orbId, Array.from(worldTraderSel));
+                          setWorldTraderPick(null);
+                          setWorldTraderSel(new Set());
+                        }}
+                        style={{
+                          flex: 2, padding: "10px", fontWeight: 900,
+                          background: canConfirm ? pick.color : "#3a2a4a",
+                          color: canConfirm ? "#0b0510" : "#6a5a7c",
+                          border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
+                        }}
+                      >CONFIRMAR TROCA</button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Botão flutuante: resgatar código */}
       <button
