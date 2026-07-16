@@ -245,6 +245,13 @@ const snorlaxMythicGif = assetUrlFromJson(snorlaxMythicAsset);
 const darkraiGif = assetUrlFromJson(darkraiAsset);
 const hoOhGif = assetUrlFromJson(hoOhAsset);
 const magmortarGif = assetUrlFromJson(magmortarAsset);
+import lugiaAsset from "@/assets/lugia.gif.asset.json";
+import hariyamaAsset from "@/assets/hariyama.gif.asset.json";
+import ursaringAsset from "@/assets/ursaring.gif.asset.json";
+const lugiaGif = assetUrlFromJson(lugiaAsset);
+const hariyamaGif = assetUrlFromJson(hariyamaAsset);
+const ursaringGif = assetUrlFromJson(ursaringAsset);
+
 
 const laprasGif = laprasAsset.url;
 const vaporeonGif = vaporeonAsset.url;
