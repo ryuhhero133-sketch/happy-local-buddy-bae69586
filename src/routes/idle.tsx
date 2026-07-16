@@ -379,7 +379,9 @@ const GIF: Partial<Record<Species, string>> = {
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
   deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl,
   darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
+  lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
 };
+
 
 
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
