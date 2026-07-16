@@ -1761,9 +1761,13 @@ function IdlePage() {
       "pikachu", "bulbasaur", "charmander", "squirtle", "pidgey", "zubat", "jigglypuff", "oddish", "growlithe", "golem",
       "cubone", "magnemite", "poliwag", "vulpix", "sandshrew", "mankey", "bellsprout", "venonat", "clefairy", "meowth",
     ];
+    const mapIds = Object.keys(IDLE_MAPS) as IdleMapId[];
+    const skinUrls = SKINS.map((s) => s.url);
     const t = Math.floor(Date.now() / 1000);
-    return Array.from({ length: 50 }, (_, i) => {
-      const a = (i * 47 + idle.currentMap.length * 19) % 360;
+    // 50 jogadores espalhados por TODOS os mapas; cada um em um mapa fixo.
+    const all: RemotePlayer[] = Array.from({ length: 50 }, (_, i) => {
+      const mapId = mapIds[i % mapIds.length];
+      const a = (i * 47 + mapId.length * 19) % 360;
       const r1 = 260 + ((i * 83) % 620);
       const r2 = 210 + ((i * 61) % 570);
       const speed = 0.018 + (i % 7) * 0.003;
@@ -1774,7 +1778,7 @@ function IdlePage() {
       const dy = Math.cos(phase * 1.13) * r2;
       const dir: Dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
       return {
-        id: `fake-${idle.currentMap}-${i}`,
+        id: `fake-${mapId}-${i}`,
         userId: `fake-${i}`,
         name: names[i] ?? `Trainer ${i + 1}`,
         x,
@@ -1783,12 +1787,13 @@ function IdlePage() {
         step: Math.floor((t / 0.45 + i) % 4),
         leaderSp: leaders[i % leaders.length],
         ts: Date.now(),
-        fake: true,
+        skinUrl: skinUrls[i % skinUrls.length],
+        mapId,
       } as RemotePlayer & { fake: true };
     });
+    // Filtra só os do mapa atual para renderizar.
+    return all.filter((p) => p.mapId === idle.currentMap);
   }, [idle.currentMap, energyTick]);
-
-  const visibleMapPlayers = useMemo(() => [...remotePlayers, ...fakeMapPlayers], [remotePlayers, fakeMapPlayers]);
 
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
