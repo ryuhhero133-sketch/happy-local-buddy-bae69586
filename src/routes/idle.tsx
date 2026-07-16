@@ -321,8 +321,26 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   nucleo_primordial: { name: "Núcleo Primordial", diff: "PRIMORDIAL", bg: mapVenenoUrl,          rate: 10.0, minLevel: 460, maxLevel: 500, element: "Misto", stars: 8 },
 };
 
-type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
-const WORLD_PORTALS: WorldPortalDef[] = [];
+type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
+// Cadeia endgame — portais visíveis em todos os mapas, mas exigem nível de treinador para atravessar
+const ENDGAME_CHAIN: Array<{ from: IdleMapId; to: IdleMapId; req: number; color: string }> = [
+  { from: "terra",             to: "vale_rochas",       req: 40,  color: "#c9a76a" },
+  { from: "vale_rochas",       to: "vale_planta",       req: 110, color: "#4ade80" },
+  { from: "vale_planta",       to: "vale_gelo",         req: 180, color: "#7dd3fc" },
+  { from: "vale_gelo",         to: "vale_veneno",       req: 250, color: "#c084fc" },
+  { from: "vale_veneno",       to: "vale_fogo",         req: 320, color: "#fb923c" },
+  { from: "vale_fogo",         to: "vulcao_ativo",      req: 390, color: "#ef4444" },
+  { from: "vulcao_ativo",      to: "nucleo_primordial", req: 460, color: "#f0abfc" },
+];
+const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
+  const toName = IDLE_MAPS[c.to].name;
+  const fromName = IDLE_MAPS[c.from].name;
+  return [
+    { key: `${c.from}->${c.to}`, from: c.from, to: c.to, x: 1720, y: 260, arriveX: 220, arriveY: 1660, color: c.color, label: toName, reqLevel: c.req },
+    { key: `${c.to}->${c.from}`, from: c.to, to: c.from, x: 200, y: 1660, arriveX: 1700, arriveY: 260, color: "#94a3b8", label: `↩ ${fromName}` },
+  ];
+});
+
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
   const c = IDLE_MAPS.caverna.cycle!;
@@ -2109,6 +2127,15 @@ function IdlePage() {
   const overCapMsgRef = useRef<number>(0);
 
   const enterWorldPortal = (p: WorldPortalDef) => {
+    const lv = idle.trainerLevel ?? 1;
+    if (p.reqLevel && lv < p.reqLevel) {
+      const now = Date.now();
+      if (now - overCapMsgRef.current > 4000) {
+        overCapMsgRef.current = now;
+        pushChat(`🔒 ${IDLE_MAPS[p.to].name} — requer Treinador Nv ${p.reqLevel} (você tem Nv ${lv}).`, "info");
+      }
+      return;
+    }
     setIdle((s) => ({ ...s, currentMap: p.to }));
     setTrainerPos({ x: p.arriveX, y: p.arriveY });
     walkTargetRef.current = null;
@@ -2117,6 +2144,7 @@ function IdlePage() {
     setEnemies([]);
     pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
   };
+
 
   useEffect(() => {
     const iv = setInterval(() => {
@@ -4937,38 +4965,57 @@ function IdlePage() {
 
             {/* Portais no mundo — pontos de viagem visíveis */}
             {(() => {
-              return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => (
-                <div
-                  key={p.key}
-                  onClick={() => {
-                    playClick();
-                    enterWorldPortal(p);
-                  }}
-                  style={{
-                    position: "absolute",
-                    left: p.x - 40, top: p.y - 40,
-                    width: 80, height: 80,
-                    borderRadius: "50%",
-                    background: `radial-gradient(circle, ${p.color}cc 0%, ${p.color}55 45%, transparent 75%)`,
-                    border: `3px solid ${p.color}`,
-                    boxShadow: `0 0 24px ${p.color}, inset 0 0 18px ${p.color}88`,
-                    cursor: "pointer",
-                    zIndex: Math.round(p.y),
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    animation: "pulse 1.6s ease-in-out infinite",
-                  }}
-                  title={`Ir para ${p.label}`}
-                >
-                  <div style={{
-                    fontSize: 11, fontWeight: 800, color: "#fff",
-                    textShadow: "0 1px 3px rgba(0,0,0,0.9)",
-                    textAlign: "center", padding: "0 4px", lineHeight: 1.1,
-                  }}>
-                    🌀<br/>{p.label}
+              const lv = idle.trainerLevel ?? 1;
+              return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => {
+                const locked = !!(p.reqLevel && lv < p.reqLevel);
+                return (
+                  <div
+                    key={p.key}
+                    onClick={() => {
+                      playClick();
+                      enterWorldPortal(p);
+                    }}
+                    style={{
+                      position: "absolute",
+                      left: p.x - 44, top: p.y - 44,
+                      width: 88, height: 88,
+                      borderRadius: "50%",
+                      background: locked
+                        ? `radial-gradient(circle, #6b728088 0%, #33415544 45%, transparent 75%)`
+                        : `radial-gradient(circle, ${p.color}cc 0%, ${p.color}55 45%, transparent 75%)`,
+                      border: `3px solid ${locked ? "#94a3b8" : p.color}`,
+                      boxShadow: locked ? `0 0 12px #0008` : `0 0 24px ${p.color}, inset 0 0 18px ${p.color}88`,
+                      cursor: "pointer",
+                      zIndex: Math.round(p.y),
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      animation: locked ? "none" : "pulse 1.6s ease-in-out infinite",
+                      opacity: locked ? 0.75 : 1,
+                    }}
+                    title={locked ? `Bloqueado — requer Treinador Nv ${p.reqLevel}` : `Ir para ${p.label}`}
+                  >
+                    <div style={{
+                      fontSize: 11, fontWeight: 800, color: "#fff",
+                      textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+                      textAlign: "center", padding: "0 4px", lineHeight: 1.1,
+                    }}>
+                      {locked ? "🔒" : "🌀"}<br/>{p.label}
+                    </div>
+                    {/* Placa de requisito */}
+                    <div style={{
+                      position: "absolute", top: -26, left: "50%", transform: "translateX(-50%)",
+                      background: "rgba(11,5,16,0.92)",
+                      color: locked ? "#fca5a5" : "#fde68a",
+                      border: `1px solid ${locked ? "#ef4444" : p.color}`,
+                      borderRadius: 4, padding: "2px 8px", fontSize: 10, fontWeight: 800,
+                      whiteSpace: "nowrap", letterSpacing: 0.5,
+                    }}>
+                      {p.reqLevel ? `TREINADOR Nv ${p.reqLevel}${locked ? ` • FALTA ${p.reqLevel - lv}` : " ✓"}` : "← VOLTAR"}
+                    </div>
                   </div>
-                </div>
-              ));
+                );
+              });
             })()}
+
 
             {/* 🧙 NPC Trocador — presente em todos os mapas, canto acessível */}
             {(() => {
