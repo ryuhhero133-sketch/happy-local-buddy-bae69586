@@ -140,138 +140,139 @@ export const QUESTS: Quest[] = [
     ],
   },
 
-  // ============ QUESTS DIFÍCEIS (+2h de XP boost cada) ============
+  // ============ QUESTS DIFÍCEIS DE CAPTURA (+2h de XP boost cada) ============
   {
     id: "hard_oddish_hunter",
     title: "★ Caçador de Oddish",
-    intro: "A Botânica está estudando ervas raras. Precisa de MUITOS Oddish.",
+    intro: "A Botânica precisa estudar 20 Oddish.",
     chain: [
       {
         npc: "botanist",
-        ask: "Capture 20 Oddish e traga aqui na coleção. Sua paciência será recompensada!",
+        ask: "Capture 20 Oddish. Quero estudar cada folhinha!",
         need: { item: "pet:oddish", qty: 20 },
-        reward: { gold: 3000, xpBoostHours: 2, items: { event_box: 1 }, message: "Botânica: Impressionante! +2h de XP boost!" },
+        reward: { gold: 3000, xpBoostHours: 2, items: { event_box: 1 }, message: "Botânica: Impressionante! +2h XP!" },
       },
     ],
   },
   {
-    id: "hard_ancient_wisdom",
-    title: "★ Sabedoria Ancestral",
-    intro: "Oak precisa de um Livro/Incenso Épico para um ritual de estudo.",
+    id: "hard_pidgey_flock",
+    title: "★ Bando de Pidgey",
+    intro: "Oak quer mapear uma revoada.",
     chain: [
       {
         npc: "oak",
-        ask: "Entregue 1 Incenso Épico (livro épico de XP) para eu decifrar antigos escritos.",
-        need: { item: "incenseEpic", qty: 1 },
-        reward: { gold: 4000, xpBoostHours: 2, items: { event_box: 2 }, message: "Oak: Extraordinário! +2h de XP boost!" },
+        ask: "Capture 20 Pidgey — preciso rastrear a rota migratória.",
+        need: { item: "pet:pidgey", qty: 20 },
+        reward: { gold: 3200, xpBoostHours: 2, items: { event_box: 1 }, message: "Oak: Excelente coleta! +2h XP!" },
       },
     ],
   },
   {
-    id: "hard_rare_tomes",
-    title: "★ Tomos Raros",
-    intro: "Kurt coleciona livros raros para aprimorar suas Pokébolas.",
-    chain: [
-      {
-        npc: "kurt",
-        ask: "Traga 3 Incensos Raros (livros raros de XP). Vou usar como base de estudo.",
-        need: { item: "incenseRare", qty: 3 },
-        reward: { gold: 3500, xpBoostHours: 2, items: { apricorn_generic: 5 }, message: "Kurt: Excelente material! +2h de XP boost!" },
-      },
-    ],
-  },
-  {
-    id: "hard_strawberry_flood",
-    title: "★ Dilúvio de Morangos",
-    intro: "Moranguinho quer abrir uma doceria — precisa de estoque.",
+    id: "hard_rattata_plague",
+    title: "★ Praga de Rattata",
+    intro: "Moranguinho reclama de Rattata invadindo a horta.",
     chain: [
       {
         npc: "moranguinho",
-        ask: "Traga 50 morangos! Vou fazer uma torta épica.",
-        need: { item: "fruta_morango", qty: 50 },
-        reward: { gold: 3000, xpBoostHours: 2, items: { event_box: 1 }, message: "Moranguinho: UAU! +2h de XP boost!" },
+        ask: "Capture 25 Rattata pra me livrar da praga!",
+        need: { item: "pet:rattata", qty: 25 },
+        reward: { gold: 3500, xpBoostHours: 2, items: { event_box: 1 }, message: "Moranguinho: Salvou minha horta! +2h XP!" },
       },
     ],
   },
   {
-    id: "hard_lemon_king",
-    title: "★ Rei do Limão",
-    intro: "O Velho dos Mares quer preparar limonada para toda a vila.",
-    chain: [
-      {
-        npc: "velhoDosMares",
-        ask: "Traga 40 limões dourados. Vou fazer a limonada do século!",
-        need: { item: "fruta_limao", qty: 40 },
-        reward: { gold: 3200, xpBoostHours: 2, items: { fish_bait: 15 }, message: "Velho: SPLENDIDO! +2h de XP boost!" },
-      },
-    ],
-  },
-  {
-    id: "hard_lumberjack",
-    title: "★ Lenhador Lendário",
-    intro: "Kurt precisa de MUITA lenha para forjar Pokébolas especiais.",
+    id: "hard_caterpie_silk",
+    title: "★ Coleta de Seda",
+    intro: "Kurt quer fibras de Caterpie pra novas pokébolas.",
     chain: [
       {
         npc: "kurt",
-        ask: "60 lenhas! Corte árvores e volte com um estoque digno de um lenhador lendário.",
-        need: { item: "lenha", qty: 60 },
-        reward: { gold: 3500, xpBoostHours: 2, items: { event_box: 1, apricorn_generic: 3 }, message: "Kurt: Trabalho de mestre! +2h de XP boost!" },
+        ask: "Capture 20 Caterpie — vou extrair seda pras minhas bolas.",
+        need: { item: "pet:caterpie", qty: 20 },
+        reward: { gold: 3000, xpBoostHours: 2, items: { apricorn_generic: 5 }, message: "Kurt: Fio perfeito! +2h XP!" },
       },
     ],
   },
   {
-    id: "hard_pink_bloom",
-    title: "★ Floração Rosa",
-    intro: "A Botânica quer criar um perfume raro com bagas rosa.",
+    id: "hard_weedle_venom",
+    title: "★ Ferrão Venenoso",
+    intro: "A Botânica pesquisa antídotos com Weedle.",
     chain: [
       {
         npc: "botanist",
-        ask: "Traga 30 bagas rosa. Vou destilar o perfume perfeito!",
-        need: { item: "fruta_rosa", qty: 30 },
-        reward: { gold: 3000, xpBoostHours: 2, items: { event_box: 1, fruta_morango: 5 }, message: "Botânica: Fragrância divina! +2h de XP boost!" },
+        ask: "Capture 20 Weedle — o veneno vira antídoto no laboratório.",
+        need: { item: "pet:weedle", qty: 20 },
+        reward: { gold: 3000, xpBoostHours: 2, items: { event_box: 1 }, message: "Botânica: Toxina rara! +2h XP!" },
       },
     ],
   },
   {
-    id: "hard_deep_sea_bait",
-    title: "★ Isca das Profundezas",
-    intro: "O Capitão Navio quer pescar um monstro marinho.",
+    id: "hard_zubat_swarm",
+    title: "★ Enxame de Zubat",
+    intro: "O Velho dos Mares perdeu a paciência com Zubats na gruta.",
     chain: [
       {
-        npc: "captainNavio",
-        ask: "Preciso de 40 iscas de pesca. Vou fisgar algo LENDÁRIO!",
-        need: { item: "fish_bait", qty: 40 },
-        reward: { gold: 3500, xpBoostHours: 2, items: { event_box: 1 }, message: "Capitão: Marinheiro dos mares! +2h de XP boost!" },
-      },
-    ],
-  },
-  {
-    id: "hard_apricorn_master",
-    title: "★ Mestre das Apricorns",
-    intro: "Kurt está desenvolvendo uma Pokébola experimental.",
-    chain: [
-      {
-        npc: "kurt",
-        ask: "Traga 30 Apricorns de qualquer tipo. Vou testar uma fórmula secreta!",
-        need: { item: "apricorn_generic", qty: 30 },
-        reward: { gold: 4000, xpBoostHours: 2, items: { event_box: 2 }, message: "Kurt: Ciência avançada! +2h de XP boost!" },
+        npc: "velhoDosMares",
+        ask: "Capture 25 Zubat! Não aguento mais essas asas na cara.",
+        need: { item: "pet:zubat", qty: 25 },
+        reward: { gold: 3500, xpBoostHours: 2, items: { event_box: 1 }, message: "Velho: FINALMENTE! +2h XP!" },
       },
     ],
   },
   {
     id: "hard_pikachu_squad",
     title: "★ Esquadrão Pikachu",
-    intro: "O Treinador da Árvore quer testar um esquadrão elétrico.",
+    intro: "O Treinador da Árvore quer um esquadrão elétrico.",
     chain: [
       {
         npc: "trainerTree",
-        ask: "Capture 5 Pikachu e traga na sua coleção. Quero ver o poder elétrico!",
-        need: { item: "pet:pikachu", qty: 5 },
-        reward: { gold: 5000, xpBoostHours: 2, items: { event_box: 2 }, message: "Treinador: CHOCANTE! +2h de XP boost!" },
+        ask: "Capture 10 Pikachu — quero ver o poder elétrico completo!",
+        need: { item: "pet:pikachu", qty: 10 },
+        reward: { gold: 5000, xpBoostHours: 2, items: { event_box: 2 }, message: "Treinador: CHOCANTE! +2h XP!" },
+      },
+    ],
+  },
+  {
+    id: "hard_magikarp_farm",
+    title: "★ Fazenda de Magikarp",
+    intro: "O Capitão Navio jura que Magikarp vira lenda.",
+    chain: [
+      {
+        npc: "captainNavio",
+        ask: "Capture 30 Magikarp! Um deles vai virar Gyarados, marinheiro.",
+        need: { item: "pet:magikarp", qty: 30 },
+        reward: { gold: 4000, xpBoostHours: 2, items: { event_box: 1 }, message: "Capitão: Marinheiro lendário! +2h XP!" },
+      },
+    ],
+  },
+  {
+    id: "hard_geodude_quarry",
+    title: "★ Pedreira de Geodude",
+    intro: "Kurt precisa de rochas vivas.",
+    chain: [
+      {
+        npc: "kurt",
+        ask: "Capture 15 Geodude — quero forjar bolas de pedra!",
+        need: { item: "pet:geodude", qty: 15 },
+        reward: { gold: 4000, xpBoostHours: 2, items: { apricorn_generic: 5 }, message: "Kurt: Pedra dos deuses! +2h XP!" },
+      },
+    ],
+  },
+  {
+    id: "hard_eevee_squad",
+    title: "★ Colecionador de Eevee",
+    intro: "Oak estuda as evoluções múltiplas.",
+    chain: [
+      {
+        npc: "oak",
+        ask: "Capture 8 Eevee — cada um pode virar algo diferente!",
+        need: { item: "pet:eevee", qty: 8 },
+        reward: { gold: 6000, xpBoostHours: 2, items: { event_box: 2 }, message: "Oak: Descoberta épica! +2h XP!" },
       },
     ],
   },
 ];
+
 
 
 // ============ Progresso ============
