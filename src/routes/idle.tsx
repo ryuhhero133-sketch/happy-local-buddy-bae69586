@@ -94,6 +94,7 @@ import mapTerraAsset from "@/assets/map-terra-hornet.jpg.asset.json";
 import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
+import mapFantasmaUrl from "@/assets/map-fantasma.jpg";
 import redLakeAsset from "@/assets/red-lake.png.asset.json";
 import volcanoAsset from "@/assets/volcano.png.asset.json";
 import mapBeachUrl from "@/assets/map-beach-idle.png";
@@ -234,7 +235,7 @@ const sfxClickUrl = assetUrl(sfxClickAsset.url);
 const sfxBonusUrl = assetUrl(sfxBonusAsset.url);
 const sfxChestOpenUrl = assetUrl(sfxChestOpenAsset.url);
 
-type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna";
+type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma";
 // element: só descritivo; cycle: quando presente, mapa abre a cada `cycleMs` por `openMs`
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
@@ -251,6 +252,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo"     },
   caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra",
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
+  fantasma: { name: "Cemitério Assombrado",    diff: "Lendário",  bg: mapFantasmaUrl,  rate: 4.0, minLevel: 1,  maxLevel: 9999, element: "Fantasma" },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
@@ -374,8 +376,61 @@ type Obstacle = {
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
   // PRNG determinístico simples
-  let seed = mapId === "terra" ? 98765 : 12345;
+  let seed = mapId === "terra" ? 98765 : mapId === "fantasma" ? 66613 : 12345;
   const rand = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+
+  // Cemitério Assombrado (fantasma): mesma composição do Ninho de Marimbondo,
+  // porém re-tematizado — lápides gigantes no lugar dos casulos, árvores mortas ao redor.
+  if (mapId === "fantasma") {
+    const kinds = [
+      { src: treeOakUrl,     w: 110, h: 124, collideR: 0,  blocks: false },
+      { src: rockBoulderUrl, w:  86, h:  76, collideR: 10, blocks: true  },
+    ];
+    const list: Obstacle[] = [];
+    let id = 1;
+    // 4 lápides/portais espirituais espalhados (mesmos slots dos casulos)
+    const graveSpots: { x: number; y: number }[] = [
+      { x: worldW * 0.28, y: worldH * 0.30 },
+      { x: worldW * 0.72, y: worldH * 0.28 },
+      { x: worldW * 0.30, y: worldH * 0.72 },
+      { x: worldW * 0.74, y: worldH * 0.70 },
+    ];
+    for (const c of graveSpots) {
+      list.push({ id: id++, x: c.x, y: c.y, w: 120, h: 140, src: rockBoulderUrl, blocks: true, collideR: 42 });
+    }
+    // Enxame decorativo de zubats/venomoths espectrais
+    const swarm: string[] = [zubatUrl, venonatUrl];
+    let sTries = 0;
+    let placed = 0;
+    while (placed < 24 && sTries < 1500) {
+      sTries++;
+      const src = swarm[Math.floor(rand() * swarm.length)];
+      const x = 80 + rand() * (worldW - 160);
+      const y = 100 + rand() * (worldH - 200);
+      let ok = true;
+      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < 120) { ok = false; break; }
+      if (!ok) continue;
+      list.push({ id: id++, x, y, w: 38, h: 38, src, blocks: false, collideR: 0 });
+      placed++;
+    }
+    // Árvores mortas espalhadas evitando as lápides
+    const MIN_GAP = 130;
+    let tries = 0;
+    while (list.length < graveSpots.length * 3 + 14 && tries < 2500) {
+      tries++;
+      const k = kinds[Math.floor(rand() * kinds.length)];
+      const x = 80 + rand() * (worldW - 160);
+      const y = 100 + rand() * (worldH - 200);
+      let nearGrave = false;
+      for (const c of graveSpots) if (Math.hypot(x - c.x, y - c.y) < 260) { nearGrave = true; break; }
+      if (nearGrave) continue;
+      let ok = true;
+      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < MIN_GAP) { ok = false; break; }
+      if (!ok) continue;
+      list.push({ id: id++, x, y, w: k.w, h: k.h, src: k.src, blocks: k.blocks, collideR: k.collideR });
+    }
+    return list;
+  }
 
   // Pântano em Chamas (venofogo): MESMA composição do Vale Verdejante (arena),
   // porém re-tematizada — árvores/matos de fogo, 2 lagos de lava e um vulcão central.
@@ -3246,6 +3301,12 @@ function IdlePage() {
           // Pântano em Chamas: pokémons sempre 10-15 níveis acima do líder (zona de risco).
           mapLvRange = [leaderLv + 10, leaderLv + 15];
         }
+        if (idle.currentMap === "fantasma") {
+          // Cemitério Assombrado: zona endgame nível 200+ — sempre bem acima do líder.
+          pool = ["zubat", "venomoth", "venonat", "gloom", "ekans", "arbok", "abra", "kadabra", "meowth", "persian"] as Species[];
+          const base = Math.max(200, leaderLv);
+          mapLvRange = [base, base + 30];
+        }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
         sp = pool[Math.floor(Math.random() * pool.length)];
@@ -5466,9 +5527,13 @@ function IdlePage() {
                 terra: [
                   { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
                   { key: "to-venofogo", target: "venofogo", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,           color: "#ff5c2e" },
+                  { key: "to-fantasma", target: "fantasma", x: 60,          y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a259ff" },
                 ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
+                ],
+                fantasma: [
+                  { key: "to-terra", target: "terra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9873a" },
                 ],
                 praia: [
                   { key: "to-arena",   target: "arena",   x: WORLD_W - 60, y: 60,          arriveX: 100,           arriveY: WORLD_H - 100, color: "#7ef27a" },
