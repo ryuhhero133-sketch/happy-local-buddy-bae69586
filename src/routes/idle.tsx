@@ -1861,17 +1861,24 @@ function IdlePage() {
     });
     void savePresence(payloadNow());
     void loadPresence();
-    // Presença + broadcast ~4x/s (redundância p/ garantir sincronia)
+    // Presença + broadcast (throttle p/ economizar realtime/egress).
+    // Só emite quando muda posição/direção; heartbeat máx 2s.
+    let lastSent = { x: -1, y: -1, dir: "" as string, t: 0 };
     const iv = setInterval(() => {
       const payload = payloadNow();
+      const moved = Math.abs(payload.x - lastSent.x) > 1 || Math.abs(payload.y - lastSent.y) > 1 || payload.dir !== lastSent.dir;
+      const heartbeat = Date.now() - lastSent.t > 2000;
+      if (!moved && !heartbeat) return;
+      lastSent = { x: payload.x, y: payload.y, dir: payload.dir, t: Date.now() };
       void ch.track(payload);
       void ch.send({ type: "broadcast", event: "pos", payload });
-    }, 250);
+    }, 500);
     const dbIv = setInterval(() => {
       const payload = payloadNow();
       void savePresence(payload);
       void loadPresence();
-    }, 1_500);
+    }, 5_000);
+
     const prune = setInterval(() => {
       const cutoff = Date.now() - 12_000;
       setRemotePlayers((prev) => prev.filter((p) => p.ts >= cutoff));
