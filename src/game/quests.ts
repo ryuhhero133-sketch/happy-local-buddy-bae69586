@@ -254,7 +254,7 @@ export const QUESTS: Quest[] = [
         npc: "kurt",
         ask: "Capture 15 Geodude — quero forjar bolas de pedra!",
         need: { item: "pet:geodude", qty: 15 },
-        reward: { gold: 4000, xpBoostHours: 2, items: { apricorn_generic: 5 }, message: "Kurt: Pedra dos deuses! +2h XP!" },
+        reward: { gold: 4000, xpBoostHours: 2, items: { event_box: 1 }, message: "Kurt: Pedra dos deuses! +2h XP!" },
       },
     ],
   },
