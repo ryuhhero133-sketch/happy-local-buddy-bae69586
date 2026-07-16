@@ -96,6 +96,21 @@ import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
 import mapFantasmaAsset from "@/assets/map-fantasma.jpg.asset.json";
+// Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
+import mapForestAsset from "@/assets/map-forest.png.asset.json";
+import mapFlorestaSecretaAsset from "@/assets/map-floresta-secreta.png.asset.json";
+import mapPedreiraCavernaAsset from "@/assets/map-pedreira-caverna.jpg.asset.json";
+import mapRoute3Asset from "@/assets/map-route3.png.asset.json";
+import mapForestCaveAsset from "@/assets/map-forest-cave.png.asset.json";
+import mapPalletRouteAsset from "@/assets/map-pallet-route.png.asset.json";
+import mapEliteRouteAsset from "@/assets/map-elite-route.png.asset.json";
+import mapVictoryRoadAsset from "@/assets/map-victoryroad.png.asset.json";
+import mapViridianAsset from "@/assets/map-viridian.png.asset.json";
+import mapVenenoAsset from "@/assets/map-veneno.png.asset.json";
+// Orbs de XP (sprites geradas) — item exclusivo (1 ativo), 1h de +XP
+import orbXpMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
+import orbXpMajorAsset from "@/assets/orb-xp-major.png.asset.json";
+import orbXpSupremeAsset from "@/assets/orb-xp-supreme.png.asset.json";
 import redLakeAsset from "@/assets/red-lake.png.asset.json";
 import volcanoAsset from "@/assets/volcano.png.asset.json";
 import mapBeachUrl from "@/assets/map-beach-idle.png";
@@ -201,6 +216,21 @@ const hornetCocoonUrl = assetUrl(hornetCocoonAsset.url);
 const fireLakeUrl = assetUrl(fireLakeAsset.url);
 const mapVenofogoOrangeUrl = assetUrl(mapVenofogoOrangeAsset.url);
 const mapFantasmaUrl = assetUrlFromJson(mapFantasmaAsset);
+// URLs dos 10 novos mapas endgame
+const mapForestUrl = assetUrl(mapForestAsset.url);
+const mapFlorestaSecretaUrl = assetUrl(mapFlorestaSecretaAsset.url);
+const mapPedreiraCavernaUrl = assetUrl(mapPedreiraCavernaAsset.url);
+const mapRoute3Url = assetUrl(mapRoute3Asset.url);
+const mapForestCaveUrl = assetUrl(mapForestCaveAsset.url);
+const mapPalletRouteUrl = assetUrl(mapPalletRouteAsset.url);
+const mapEliteRouteUrl = assetUrl(mapEliteRouteAsset.url);
+const mapVictoryRoadUrl = assetUrl(mapVictoryRoadAsset.url);
+const mapViridianUrl = assetUrl(mapViridianAsset.url);
+const mapVenenoUrl = assetUrl(mapVenenoAsset.url);
+// URLs dos orbs (sprites transparentes)
+const orbXpMinorUrl = assetUrl(orbXpMinorAsset.url);
+const orbXpMajorUrl = assetUrl(orbXpMajorAsset.url);
+const orbXpSupremeUrl = assetUrl(orbXpSupremeAsset.url);
 const redLakeUrl = assetUrl(redLakeAsset.url);
 const volcanoUrl = assetUrl(volcanoAsset.url);
 const rubyGemUrl = assetUrl(rubyGemAsset.url);
@@ -246,7 +276,11 @@ const sfxClickUrl = assetUrl(sfxClickAsset.url);
 const sfxBonusUrl = assetUrl(sfxBonusAsset.url);
 const sfxChestOpenUrl = assetUrl(sfxChestOpenAsset.url);
 
-type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma";
+type IdleMapId =
+  | "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
+  // 10 novos mapas endgame Lv 200→500
+  | "bosque_fada" | "ruina_verdejante" | "vale_rochas" | "costa_tempest" | "pico_congelado"
+  | "ruinas_perdidas" | "trilha_elite" | "vulcao_ativo" | "ceu_fraturado" | "nucleo_primordial";
 // element: só descritivo; cycle: quando presente, mapa abre a cada `cycleMs` por `openMs`
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
@@ -258,12 +292,23 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra"    },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água"     },
   venofogo: { name: "Pântano em Chamas",       diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo" },
-  
+
   neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 40, maxLevel: 65, element: "Gelo"     },
   deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo"     },
   caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra",
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
   fantasma: { name: "Cemitério Assombrado",    diff: "Lendário",  bg: mapFantasmaUrl,  rate: 4.0, minLevel: 1,  maxLevel: 9999, element: "Fantasma" },
+  // ═══ ENDGAME Lv 200→500 (todos liberados; pokemons 300+ são MUITO fortes) ═══
+  bosque_fada:       { name: "Bosque Cintilante",   diff: "Épico",       bg: mapForestUrl,          rate: 5.0, minLevel: 1, maxLevel: 230, element: "Fada"      },
+  ruina_verdejante:  { name: "Ruínas Verdejantes",  diff: "Épico+",      bg: mapFlorestaSecretaUrl, rate: 5.5, minLevel: 1, maxLevel: 260, element: "Planta"    },
+  vale_rochas:       { name: "Vale das Rochas",     diff: "Lendário",    bg: mapPedreiraCavernaUrl, rate: 6.0, minLevel: 1, maxLevel: 290, element: "Pedra"     },
+  costa_tempest:     { name: "Costa Tempestuosa",   diff: "Lendário+",   bg: mapRoute3Url,          rate: 6.5, minLevel: 1, maxLevel: 320, element: "Água/Elétrico" },
+  pico_congelado:    { name: "Pico Congelado",      diff: "Lendário+",   bg: mapForestCaveUrl,      rate: 7.0, minLevel: 1, maxLevel: 360, element: "Gelo"      },
+  ruinas_perdidas:   { name: "Ruínas Perdidas",     diff: "Mítico",      bg: mapPalletRouteUrl,     rate: 7.5, minLevel: 1, maxLevel: 400, element: "Psíquico"  },
+  trilha_elite:      { name: "Trilha da Elite",     diff: "Mítico",      bg: mapEliteRouteUrl,      rate: 8.0, minLevel: 1, maxLevel: 425, element: "Sombrio"   },
+  vulcao_ativo:      { name: "Vulcão Ativo",        diff: "Mítico+",     bg: mapVictoryRoadUrl,     rate: 8.5, minLevel: 1, maxLevel: 460, element: "Fogo"      },
+  ceu_fraturado:     { name: "Céu Fraturado",       diff: "Mítico+",     bg: mapViridianUrl,        rate: 9.0, minLevel: 1, maxLevel: 485, element: "Dragão"    },
+  nucleo_primordial: { name: "Núcleo Primordial",   diff: "PRIMORDIAL",  bg: mapVenenoUrl,          rate: 10.0, minLevel: 1, maxLevel: 500, element: "Misto"    },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
@@ -644,6 +689,7 @@ const ITEM_IMG: Record<string, string> = {
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
   premium_box: premiumBoxImg,
+  orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -668,14 +714,18 @@ const ALL_BALLS: ShopBall[] = [
   { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
 ];
 
-type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60"; name: string; desc: string; price: number; img: string };
+type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold" };
 const SHOP_BOOKS: ShopBook[] = [
   { id: "book_atk", name: "Livro de Ataque", desc: "+10% de dano permanente por uso", price: 20, img: bookAtkImg },
   { id: "book_def", name: "Livro de Defesa", desc: "-10% de dano recebido por uso",  price: 20, img: bookDefImg },
   { id: "book_exp", name: "Livro de EXP",    desc: "+30% EXP em batalhas por 1 hora",   price: 30, img: bookExpImg },
-  
+
   { id: "book_vip_30", name: "Livro VIP 30d ✦✦", desc: "+30% ouro e +30% EXP por 30 DIAS", price: 500, img: bookExpImg },
   { id: "book_vip_60", name: "Livro VIP 60d ✦✦✦", desc: "+40% ouro e +40% EXP por 60 DIAS", price: 1000, img: bookExpImg },
+  // ═══ ORBS DE XP — 1h de bônus, apenas 1 ativo por vez ═══
+  { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo)", price: 5000,  img: orbXpMinorUrl,   currency: "gold" },
+  { id: "orb_xp_major",   name: "Orb de XP Maior ✦✦",  desc: "+20% EXP por 1 hora (apenas 1 orb ativo)", price: 15000, img: orbXpMajorUrl,   currency: "gold" },
+  { id: "orb_xp_supreme", name: "Orb de XP Supremo ✦✦✦", desc: "+30% EXP por 1 hora (apenas 1 orb ativo)", price: 40000, img: orbXpSupremeUrl, currency: "gold" },
 ];
 
 
@@ -776,7 +826,11 @@ function calcIdleMaxHp(pet: PetInstance) {
 
 function highLevelEnemyHpMult(enemyLevel: number, leaderLevel: number) {
   if (enemyLevel < 200) return 1;
-  let mult = 1.45 + Math.min(1.55, (enemyLevel - 200) / 110);
+  // 200=1.45x · 250=1.9x · 300=2.6x · 350=3.4x · 400=4.3x · 450=5.2x · 500=6.0x
+  let mult = 1.45;
+  if (enemyLevel >= 200) mult += Math.min(0.55, (enemyLevel - 200) / 100);   // até 300 → +0.55 (=2.0)
+  if (enemyLevel >= 300) mult += Math.min(1.6, (enemyLevel - 300) / 100 * 0.8); // 300→500: +0..1.6 (=3.6)
+  if (enemyLevel >= 400) mult += Math.min(1.0, (enemyLevel - 400) / 100);       // 400→500: mais +1
   if (enemyLevel >= 250) {
     const gap = Math.max(0, enemyLevel - leaderLevel);
     mult *= 1.15 + Math.min(1.6, gap * 0.045);
@@ -786,7 +840,11 @@ function highLevelEnemyHpMult(enemyLevel: number, leaderLevel: number) {
 
 function highLevelEnemyDamageMult(enemyLevel: number, leaderLevel: number) {
   if (enemyLevel < 200) return 1;
-  let mult = 1.55 + Math.min(1.8, (enemyLevel - 200) / 100);
+  // Curva de dano progressiva 200→500 (mais agressiva a partir de 300)
+  let mult = 1.55;
+  if (enemyLevel >= 200) mult += Math.min(0.65, (enemyLevel - 200) / 100 * 0.65);
+  if (enemyLevel >= 300) mult += Math.min(1.4, (enemyLevel - 300) / 100 * 0.7);
+  if (enemyLevel >= 400) mult += Math.min(0.9, (enemyLevel - 400) / 100 * 0.9);
   if (enemyLevel >= 250) {
     const gap = Math.max(0, enemyLevel - leaderLevel);
     mult *= 1.2 + Math.min(2.2, gap * 0.055);
@@ -3057,7 +3115,7 @@ function IdlePage() {
       const pct = Math.round(add * 100);
       const nowT = Date.now();
       if ((idle.buffs.expMultUntil ?? 0) > nowT) {
-        pushChat(`Já há um Livro de EXP ativo. Espere o tempo acabar.`, "info");
+        pushChat(`Já há um Livro/Orb de EXP ativo. Espere o tempo acabar.`, "info");
         return;
       }
       setIdle((s) => ({
@@ -3067,6 +3125,23 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `EXP +${pct}% · 1h`, "capture");
       pushChat(`Livro de EXP usado (+${pct}% EXP por 1 hora).`, "cap");
+    } else if (id === "orb_xp_minor" || id === "orb_xp_major" || id === "orb_xp_supreme") {
+      const add = id === "orb_xp_minor" ? 0.10 : id === "orb_xp_major" ? 0.20 : 0.30;
+      const pct = Math.round(add * 100);
+      const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : "Orb Supremo";
+      const nowT = Date.now();
+      if ((idle.buffs.expMultUntil ?? 0) > nowT) {
+        pushChat(`Já há um Orb/Livro de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, [id]: have - 1 },
+        buffs: { ...s.buffs, expMult: add, expMultUntil: Date.now() + 3600_000 },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · 1h`, "capture");
+      pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por 1 hora`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
+      pushChat(`✦ ${label} usado — +${pct}% EXP por 1 hora.`, "cap");
     } else if (id === "book_vip" || id === "book_vip_30" || id === "book_vip_60") {
       const cfg = id === "book_vip_60"
         ? { add: 0.40, ms: 60 * 24 * 3600_000, label: "60 dias" }
@@ -3581,15 +3656,19 @@ function IdlePage() {
   };
   const buyBook = (bk: ShopBook) => {
     setIdle((s) => {
-      if (s.bank.crystals < bk.price) {
-        pushChat(`Cristais insuficientes para ${bk.name}.`, "info");
+      const useGold = bk.currency === "gold";
+      const have = useGold ? s.bank.gold : s.bank.crystals;
+      if (have < bk.price) {
+        pushChat(useGold ? `Ouro insuficiente para ${bk.name}.` : `Cristais insuficientes para ${bk.name}.`, "info");
         return s;
       }
       const curQty = s.items[bk.id] ?? 0;
       pushChat(`Comprou ${bk.name}. Use pela Mochila quando quiser.`, "cap");
       return {
         ...s,
-        bank: { ...s.bank, crystals: s.bank.crystals - bk.price },
+        bank: useGold
+          ? { ...s.bank, gold: s.bank.gold - bk.price }
+          : { ...s.bank, crystals: s.bank.crystals - bk.price },
         items: { ...s.items, [bk.id]: curQty + 1 },
       };
     });
@@ -5578,7 +5657,7 @@ function IdlePage() {
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
-                  
+                  { key: "to-bosque_fada", target: "bosque_fada", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#ff9ee8" },
                 ],
                 terra: [
                   { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
@@ -5604,6 +5683,47 @@ function IdlePage() {
                 ],
                 caverna: [
                   { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
+                ],
+                // ═══ Cadeia endgame (todos liberados; morre se tentar sem preparo) ═══
+                bosque_fada: [
+                  { key: "b-arena", target: "arena",             x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
+                  { key: "b-next",  target: "ruina_verdejante",  x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#9dff6b" },
+                ],
+                ruina_verdejante: [
+                  { key: "r-back", target: "bosque_fada", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#ff9ee8" },
+                  { key: "r-next", target: "vale_rochas", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a08770" },
+                ],
+                vale_rochas: [
+                  { key: "vr-back", target: "ruina_verdejante", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#9dff6b" },
+                  { key: "vr-next", target: "costa_tempest",    x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#5cd3ff" },
+                ],
+                costa_tempest: [
+                  { key: "ct-back", target: "vale_rochas",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#a08770" },
+                  { key: "ct-next", target: "pico_congelado", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e6f4ff" },
+                ],
+                pico_congelado: [
+                  { key: "pc-back", target: "costa_tempest",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#5cd3ff" },
+                  { key: "pc-next", target: "ruinas_perdidas", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                ],
+                ruinas_perdidas: [
+                  { key: "rp-back", target: "pico_congelado", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#e6f4ff" },
+                  { key: "rp-next", target: "trilha_elite",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8a2be2" },
+                ],
+                trilha_elite: [
+                  { key: "te-back", target: "ruinas_perdidas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#c084fc" },
+                  { key: "te-next", target: "vulcao_ativo",    x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
+                ],
+                vulcao_ativo: [
+                  { key: "va-back", target: "trilha_elite",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#8a2be2" },
+                  { key: "va-next", target: "ceu_fraturado", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ecbff" },
+                ],
+                ceu_fraturado: [
+                  { key: "cf-back", target: "vulcao_ativo",       x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#ff5c2e" },
+                  { key: "cf-next", target: "nucleo_primordial",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
+                ],
+                nucleo_primordial: [
+                  { key: "np-back",  target: "ceu_fraturado", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7ecbff" },
+                  { key: "np-arena", target: "arena",         x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
                 ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
@@ -7857,7 +7977,8 @@ function TabOverlay({
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
             {SHOP_BOOKS.map((bk) => {
               const owned = items[bk.id] ?? 0;
-              const canBuy = bank.crystals >= bk.price;
+              const useGold = bk.currency === "gold";
+              const canBuy = useGold ? bank.gold >= bk.price : bank.crystals >= bk.price;
               const color = ITEM_COLORS[bk.id] ?? "#c084fc";
               return (
                 <div key={bk.id} style={{
@@ -7870,7 +7991,7 @@ function TabOverlay({
                     style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 8px ${color}88)` }} />
                   <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 13 }}>{bk.name}</div>
                   <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{bk.desc}</div>
-                  <div style={{ fontSize: 12, color: "#c084fc", fontWeight: 700 }}>💎 {bk.price}</div>
+                  <div style={{ fontSize: 12, color: useGold ? "#ffd94d" : "#c084fc", fontWeight: 700 }}>{useGold ? "🪙" : "💎"} {bk.price}</div>
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
                   <button
                     onClick={() => onBuyBook(bk)}
