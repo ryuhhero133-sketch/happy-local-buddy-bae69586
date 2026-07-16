@@ -7771,6 +7771,20 @@ function TabOverlay({
                                 boxShadow: "0 2px 4px rgba(184,134,42,0.55)",
                               }}>★ LÍDER</button>
                           )}
+                          <button
+                            onClick={() => {
+                              if (!confirm(`Retirar ${p.species.replace(/_/g, " ")} do time? Ele continua na Coleção.`)) return;
+                              const next = team.filter((x) => x.uid !== p.uid);
+                              onReorderTeam(next);
+                            }}
+                            title="Retirar do time (fica na Coleção)"
+                            style={{
+                              padding: "3px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 0.5,
+                              background: "linear-gradient(180deg, #ff7a7a, #8a1a1a)",
+                              color: "#fff", border: "1px solid #ffb8b8",
+                              borderRadius: 5, cursor: "pointer",
+                              boxShadow: "0 2px 4px rgba(138,26,26,0.55)",
+                            }}>↩ RETIRAR</button>
                         </div>
                       </div>
                     );
