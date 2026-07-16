@@ -2391,6 +2391,8 @@ function IdlePage() {
               queueMicrotask(() => {
                 pushChat(`🎓 TREINADOR subiu para o nível ${applied.leveledTo}!`, "lv");
                 pushFxAt(trainerPos.x, trainerPos.y - 130, `TREINADOR LV ${applied.leveledTo}!`, "capture");
+                // Salva imediatamente no banco — nível de treinador não pode dar rollback
+                void serverSync.pushNow();
               });
             }
             queueMicrotask(() => {
