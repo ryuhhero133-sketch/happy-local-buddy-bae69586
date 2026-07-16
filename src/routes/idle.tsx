@@ -3673,6 +3673,39 @@ function IdlePage() {
     });
   };
 
+  // ===== Trocador NPC — Orbs de XP por Pokémon capturados =====
+  // Só oferece os orbs mais fortes (o menor está na Loja). Consome da coleção
+  // (não da equipe) os Pokémon da raridade exigida, com o menor nível primeiro.
+  const ORB_TRADES: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[] = [
+    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "raro",   count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
+    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epico",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
+  ];
+  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", rarity: Rarity, count: number) => {
+    setIdle((s) => {
+      const col = s.collection ?? [];
+      const matches = col
+        .map((c, idx) => ({ c, idx }))
+        .filter((x) => x.c.rarity === rarity)
+        .sort((a, b) => (a.c.level - b.c.level));
+      if (matches.length < count) {
+        pushChat(`Você precisa de ${count} Pokémon ${rarity.toUpperCase()} na coleção para essa troca.`, "info");
+        return s;
+      }
+      const removeIdx = new Set(matches.slice(0, count).map((m) => m.idx));
+      const newCol = col.filter((_, i) => !removeIdx.has(i));
+      const cur = s.items[orbId] ?? 0;
+      const orbName = orbId === "orb_xp_major" ? "Orb Maior ✦✦" : "Orb Supremo ✦✦✦";
+      pushChat(`✦ NPC recebeu ${count} ${rarity.toUpperCase()} e entregou 1 ${orbName}.`, "cap");
+      return {
+        ...s,
+        collection: newCol,
+        items: { ...s.items, [orbId]: cur + 1 },
+      };
+    });
+  };
+
+
+
   // ===== UPGRADE de Livros =====
   // Regras: junta livros iguais para forjar o próximo nível. Exige nível de treinador.
   const BOOK_UPGRADES: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
