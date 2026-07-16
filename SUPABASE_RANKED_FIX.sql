@@ -155,7 +155,7 @@ begin
   end
   into _save_level_text
   from public.game_saves
-  where user_id = _uid::text
+  where user_id = _uid
   limit 1;
 
   if _save_level_text ~ '^[0-9]+$' then
@@ -200,7 +200,7 @@ grant execute on function public.record_ranked_score(integer, integer, text) to 
 -- usando o nível real do save completo.
 with real_saves as (
   select
-    user_id::uuid as uid,
+    user_id as uid,
     greatest(1, least((case
       when (data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' then (data #>> '{idle,trainerLevel}')::integer
       when (data #>> '{idle,trainer_level}') ~ '^[0-9]+$' then (data #>> '{idle,trainer_level}')::integer
@@ -208,8 +208,7 @@ with real_saves as (
     end), 10000)) as real_level,
     updated_at
   from public.game_saves
-  where user_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and ((data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' or (data #>> '{idle,trainer_level}') ~ '^[0-9]+$')
+  where ((data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' or (data #>> '{idle,trainer_level}') ~ '^[0-9]+$')
 )
 update public.ranked_scores rs
 set trainer_level = real_saves.real_level,
@@ -220,7 +219,7 @@ where rs.user_id = real_saves.uid
 
 with real_saves as (
   select
-    user_id::uuid as uid,
+    user_id as uid,
     greatest(1, least((case
       when (data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' then (data #>> '{idle,trainerLevel}')::integer
       when (data #>> '{idle,trainer_level}') ~ '^[0-9]+$' then (data #>> '{idle,trainer_level}')::integer
@@ -228,8 +227,7 @@ with real_saves as (
     end), 10000)) as real_level,
     updated_at
   from public.game_saves
-  where user_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and ((data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' or (data #>> '{idle,trainer_level}') ~ '^[0-9]+$')
+  where ((data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' or (data #>> '{idle,trainer_level}') ~ '^[0-9]+$')
 )
 update public.ranked_leaderboard rl
 set trainer_level = real_saves.real_level,
@@ -264,7 +262,7 @@ as $$
     limit 1
   ), saves as (
     select
-      gs.user_id::uuid as uid,
+      gs.user_id as uid,
       greatest(1, least((case
         when (gs.data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' then (gs.data #>> '{idle,trainerLevel}')::integer
         when (gs.data #>> '{idle,trainer_level}') ~ '^[0-9]+$' then (gs.data #>> '{idle,trainer_level}')::integer
@@ -272,8 +270,7 @@ as $$
       end), 10000)) as real_level,
       gs.updated_at as save_updated_at
     from public.game_saves gs
-    where gs.user_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-      and ((gs.data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' or (gs.data #>> '{idle,trainer_level}') ~ '^[0-9]+$')
+    where ((gs.data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' or (gs.data #>> '{idle,trainer_level}') ~ '^[0-9]+$')
   ), base as (
     select
       coalesce(rl.user_id, rs.user_id, saves.uid) as uid,
