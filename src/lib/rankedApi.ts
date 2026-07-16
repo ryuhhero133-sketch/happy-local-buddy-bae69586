@@ -41,16 +41,6 @@ type PlayerRankRow = {
   updated_at?: string | null;
 };
 
-type PlayerRankRow = {
-  id: string;
-  name: string | null;
-  level?: number | null;
-  trainer_level?: number | null;
-  craft_points?: number | null;
-  guild_name?: string | null;
-  updated_at?: string | null;
-};
-
 function mapLegacyRankedRows(rows: LegacyRankedScore[]): RankedRow[] {
   return rows.map((r) => {
     const trainerLevel = Math.max(1, Number(r.trainer_level ?? r.level ?? (r.score ? Math.floor(Number(r.score) / 100) : 1)) || 1);
@@ -145,40 +135,6 @@ async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
   } catch (e) {
     console.warn("[ranked] legacy exc:", e);
     return fetchPlayersFallback(limit);
-  }
-}
-
-async function fetchPlayersFallback(limit: number): Promise<RankedRow[]> {
-  try {
-    // Última camada de fallback: tabela de presença/progresso do jogo.
-    // Isso mantém o Top Ranked visível mesmo quando a migration ranked_* ainda não foi aplicada.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
-      .from("players")
-      .select("id, name, level, trainer_level, craft_points, guild_name, updated_at")
-      .order("trainer_level", { ascending: false })
-      .order("craft_points", { ascending: false })
-      .limit(limit);
-    if (error) {
-      console.warn("[ranked] players fallback:", error.message);
-      return [];
-    }
-    return ((data ?? []) as PlayerRankRow[]).map((r) => {
-      const trainerLevel = Math.max(1, Number(r.trainer_level ?? r.level ?? 1) || 1);
-      const craftPoints = Math.max(0, Number(r.craft_points ?? 0) || 0);
-      return {
-        user_id: r.id,
-        username: r.name || "Treinador",
-        trainer_level: trainerLevel,
-        craft_points: craftPoints,
-        guild_name: r.guild_name ?? null,
-        score: trainerLevel * 100 + craftPoints,
-        updated_at: r.updated_at ?? new Date().toISOString(),
-      };
-    });
-  } catch (e) {
-    console.warn("[ranked] players fallback exc:", e);
-    return [];
   }
 }
 
