@@ -721,6 +721,7 @@ function freshIdle(): IdleState {
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
     trainerLevel: 1,
     trainerXp: 0,
+    unlockedSkins: ["default"],
   };
 }
 function saveIdle(s: IdleState) {
