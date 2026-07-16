@@ -1351,6 +1351,8 @@ function IdlePage() {
   const [codeMsg, setCodeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const CRYSTAL_CODE_KEY = "rubym.idlerbmCode.used";
   const GOLD_CODE_KEY = "rubym.goldrbmCode.used";
+  const MYTHIC2_CODE_KEY = "rubym.mythic2Code.used";
+  const MYTHIC3_CODE_KEY = "rubym.mythic3Code.used";
   const redeemCrystalCode = () => {
     const c = codeInput.trim().toLowerCase();
     if (c === "idlerbm") {
@@ -1376,6 +1378,50 @@ function IdlePage() {
       } catch { /* ignore */ }
       setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + 10000 } }));
       setCodeMsg({ kind: "ok", text: "+10.000 🪙 gold!" });
+      setCodeInput("");
+      return;
+    }
+    if (c === "mythic-duo-ruby") {
+      try {
+        if (localStorage.getItem(MYTHIC2_CODE_KEY) === "1") {
+          setCodeMsg({ kind: "err", text: "Este código já foi resgatado." });
+          return;
+        }
+        localStorage.setItem(MYTHIC2_CODE_KEY, "1");
+      } catch { /* ignore */ }
+      setIdle((s) => ({
+        ...s,
+        bank: { ...s.bank, crystals: s.bank.crystals + 3000 },
+        items: {
+          ...s.items,
+          egg_aura: (s.items.egg_aura ?? 0) + 2,
+          ultraball: (s.items.ultraball ?? 0) + 100,
+          greatball: (s.items.greatball ?? 0) + 100,
+        },
+      }));
+      setCodeMsg({ kind: "ok", text: "+2 Ovos Míticos, +100 Ultra, +100 Great, +3.000 💎!" });
+      setCodeInput("");
+      return;
+    }
+    if (c === "mythic-trio-ruby") {
+      try {
+        if (localStorage.getItem(MYTHIC3_CODE_KEY) === "1") {
+          setCodeMsg({ kind: "err", text: "Este código já foi resgatado." });
+          return;
+        }
+        localStorage.setItem(MYTHIC3_CODE_KEY, "1");
+      } catch { /* ignore */ }
+      setIdle((s) => ({
+        ...s,
+        bank: { ...s.bank, crystals: s.bank.crystals + 10000 },
+        items: {
+          ...s.items,
+          egg_aura: (s.items.egg_aura ?? 0) + 3,
+          ultraball: (s.items.ultraball ?? 0) + 500,
+          greatball: (s.items.greatball ?? 0) + 500,
+        },
+      }));
+      setCodeMsg({ kind: "ok", text: "+3 Ovos Míticos, +500 Ultra, +500 Great, +10.000 💎!" });
       setCodeInput("");
       return;
     }
