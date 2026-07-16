@@ -80,7 +80,7 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   // Normal
   jigglypuff: ["fada","normal"], clefairy: ["fada"], clefable: ["fada"],
   meowth: ["normal"], persian: ["normal"], rattata_f: ["normal"], raticate_f: ["normal"],
-  eevee: ["normal"], snorlax: ["normal"], snorlax_mythic: ["normal"],
+  snorlax: ["normal"], snorlax_mythic: ["normal"],
   // Dragão
   dragonair: ["dragao"], dragonite: ["dragao","voador"], dragonite_shiny: ["dragao","voador"],
   // Aura / especial
