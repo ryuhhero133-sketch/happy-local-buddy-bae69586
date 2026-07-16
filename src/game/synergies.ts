@@ -42,6 +42,9 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   vulpix: ["fogo"], ninetales: ["fogo"], growlithe: ["fogo"], arcanine: ["fogo"],
   moltres: ["fogo","voador"], magmar: ["fogo"], flareon: ["fogo"], flareon_shiny: ["fogo"],
   blaziken: ["fogo","lutador"],
+  magmortar: ["fogo"],
+  ho_oh: ["fogo","voador"],
+  darkrai: ["fantasma","psiquico"],
   // Água
   squirtle: ["agua"], wartortle: ["agua"], wartortle_shiny: ["agua"],
   blastoise: ["agua"], blastoise_shiny: ["agua"],
