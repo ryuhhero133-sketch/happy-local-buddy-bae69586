@@ -3677,8 +3677,8 @@ function IdlePage() {
   // Só oferece os orbs mais fortes (o menor está na Loja). Consome da coleção
   // (não da equipe) os Pokémon da raridade exigida, com o menor nível primeiro.
   const ORB_TRADES: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[] = [
-    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "raro",   count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
-    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epico",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
+    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
+    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
   ];
   const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", rarity: Rarity, count: number) => {
     setIdle((s) => {
