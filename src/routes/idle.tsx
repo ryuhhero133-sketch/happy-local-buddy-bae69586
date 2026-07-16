@@ -2132,7 +2132,7 @@ function IdlePage() {
       const now = Date.now();
       if (now - overCapMsgRef.current > 4000) {
         overCapMsgRef.current = now;
-        pushChat(`🔒 ${IDLE_MAPS[p.to].name} — requer Treinador Nv ${p.reqLevel} (você tem Nv ${lv}).`, "sys");
+        pushChat(`🔒 ${IDLE_MAPS[p.to].name} — requer Treinador Nv ${p.reqLevel} (você tem Nv ${lv}).`, "info");
       }
       return;
     }
