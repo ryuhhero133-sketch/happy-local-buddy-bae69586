@@ -723,9 +723,8 @@ const SHOP_BOOKS: ShopBook[] = [
   { id: "book_vip_30", name: "Livro VIP 30d ✦✦", desc: "+30% ouro e +30% EXP por 30 DIAS", price: 500, img: bookExpImg },
   { id: "book_vip_60", name: "Livro VIP 60d ✦✦✦", desc: "+40% ouro e +40% EXP por 60 DIAS", price: 1000, img: bookExpImg },
   // ═══ ORBS DE XP — 1h de bônus, apenas 1 ativo por vez ═══
+  // ═══ ORB DE XP FRACO — único vendido; os fortes vêm da troca com NPC ═══
   { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo)", price: 5000,  img: orbXpMinorUrl,   currency: "gold" },
-  { id: "orb_xp_major",   name: "Orb de XP Maior ✦✦",  desc: "+20% EXP por 1 hora (apenas 1 orb ativo)", price: 15000, img: orbXpMajorUrl,   currency: "gold" },
-  { id: "orb_xp_supreme", name: "Orb de XP Supremo ✦✦✦", desc: "+30% EXP por 1 hora (apenas 1 orb ativo)", price: 40000, img: orbXpSupremeUrl, currency: "gold" },
 ];
 
 
@@ -3674,6 +3673,39 @@ function IdlePage() {
     });
   };
 
+  // ===== Trocador NPC — Orbs de XP por Pokémon capturados =====
+  // Só oferece os orbs mais fortes (o menor está na Loja). Consome da coleção
+  // (não da equipe) os Pokémon da raridade exigida, com o menor nível primeiro.
+  const ORB_TRADES: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[] = [
+    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
+    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
+  ];
+  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", rarity: Rarity, count: number) => {
+    setIdle((s) => {
+      const col = s.collection ?? [];
+      const matches = col
+        .map((c, idx) => ({ c, idx }))
+        .filter((x) => x.c.rarity === rarity)
+        .sort((a, b) => (a.c.level - b.c.level));
+      if (matches.length < count) {
+        pushChat(`Você precisa de ${count} Pokémon ${rarity.toUpperCase()} na coleção para essa troca.`, "info");
+        return s;
+      }
+      const removeIdx = new Set(matches.slice(0, count).map((m) => m.idx));
+      const newCol = col.filter((_, i) => !removeIdx.has(i));
+      const cur = s.items[orbId] ?? 0;
+      const orbName = orbId === "orb_xp_major" ? "Orb Maior ✦✦" : "Orb Supremo ✦✦✦";
+      pushChat(`✦ NPC recebeu ${count} ${rarity.toUpperCase()} e entregou 1 ${orbName}.`, "cap");
+      return {
+        ...s,
+        collection: newCol,
+        items: { ...s.items, [orbId]: cur + 1 },
+      };
+    });
+  };
+
+
+
   // ===== UPGRADE de Livros =====
   // Regras: junta livros iguais para forjar o próximo nível. Exige nível de treinador.
   const BOOK_UPGRADES: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
@@ -5582,6 +5614,8 @@ function IdlePage() {
               buffs={idle.buffs}
               onBuyBall={buyBall}
               onBuyBook={buyBook}
+              orbTrades={ORB_TRADES}
+              onTradeOrb={tradeForOrb}
               onBuyPotion={buyPotion}
               onBuyEgg={buyEgg}
               shopEggs={SHOP_EGGS}
@@ -7018,7 +7052,7 @@ const zoomBtn: React.CSSProperties = {
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
-  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook,
+  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb,
 
 }: {
   tab: string;
@@ -7070,6 +7104,8 @@ function TabOverlay({
   skinTickets: number;
   onUnlockSkin: (id: string) => void;
   onUpgradeBook: (id: string) => void;
+  orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[];
+  onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", rarity: Rarity, count: number) => void;
 
 
 }) {
@@ -8008,8 +8044,53 @@ function TabOverlay({
               );
             })}
           </div>
+
+          {/* ═══ Trocador NPC — Orbs de XP por Pokémon capturados ═══ */}
+          <h3 style={{ color: "#ffd94d", fontSize: 15, margin: "22px 0 6px" }}>
+            🧙 Trocador NPC — Orbs de XP
+          </h3>
+          <div style={{ color: "#b8a8c8", fontSize: 11, marginBottom: 10, lineHeight: 1.5 }}>
+            O NPC aceita Pokémon da sua <b>Coleção</b> (não da equipe) em troca de Orbs mais fortes.
+            Ele sempre pega os de menor nível primeiro.
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+            {orbTrades.map((t) => {
+              const available = collection.filter((c) => c.rarity === t.rarity).length;
+              const canTrade = available >= t.count;
+              const owned = items[t.orbId] ?? 0;
+              return (
+                <div key={t.orbId} style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${t.color}55`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${t.color}22`,
+                }}>
+                  <img src={t.img} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 10px ${t.color}aa)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 13 }}>{t.label}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{t.desc}</div>
+                  <div style={{ fontSize: 11, color: canTrade ? "#8ae28a" : "#e28a8a" }}>
+                    Disponível: {available} / {t.count}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <button
+                    disabled={!canTrade}
+                    onClick={() => onTradeOrb(t.orbId, t.rarity, t.count)}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800,
+                      background: canTrade ? t.color : "#3a2a4a",
+                      color: canTrade ? "#0b0510" : "#6a5a7c",
+                      border: "none", borderRadius: 6,
+                      cursor: canTrade ? "pointer" : "not-allowed",
+                    }}
+                  >{canTrade ? "TROCAR" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
+
 
       {tab === "melhorias" && (
         <div>
