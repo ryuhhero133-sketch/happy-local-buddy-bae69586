@@ -1814,21 +1814,66 @@ function IdlePage() {
     } catch { /* ignore */ }
     setRankLoading(true);
     (async () => {
+      const meRow = (): RankRow => ({
+        id: identity.id,
+        name: identity.name || "Treinador",
+        level: team[0]?.level ?? 1,
+        trainer_level: idle.trainerLevel ?? 1,
+        craft_points: idle.craftPoints ?? 0,
+        leader_species: team[0]?.species ?? null,
+        leader_rarity: team[0]?.rarity ?? null,
+        guild_name: null,
+      });
       try {
-        const orderCol = rankMode === "trainer" ? "trainer_level" : rankMode === "craft" ? "craft_points" : "level";
-        const { data } = await gameDb
-          .from("players")
-          .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,guild_name")
-          .order(orderCol, { ascending: false })
-          .limit(50);
-        const rows = (data as RankRow[] | null) ?? [];
+        void recordRankedScore(idle.trainerLevel ?? 1, idle.craftPoints ?? 0, null);
+        const top = await fetchTopRanked(200);
+        let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
+          id: r.user_id,
+          name: r.username || "Treinador",
+          level: r.trainer_level,
+          trainer_level: r.trainer_level,
+          craft_points: r.craft_points ?? 0,
+          leader_species: null,
+          leader_rarity: null,
+          guild_name: r.guild_name ?? null,
+        }));
+
+        if (rows.length === 0) {
+          const orderCol = rankMode === "trainer" ? "trainer_level" : rankMode === "craft" ? "craft_points" : "level";
+          const { data, error } = await gameDb
+            .from("players")
+            .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,guild_name")
+            .order(orderCol, { ascending: false })
+            .limit(200);
+          if (error) console.warn("[idle ranked] players:", error.message);
+          rows = (data as RankRow[] | null) ?? [];
+        }
+
+        if (!rows.some((r) => r.id === identity.id)) rows.push(meRow());
+        rows.sort((a, b) => {
+          const av = rankMode === "trainer" ? a.trainer_level : rankMode === "craft" ? a.craft_points : a.level;
+          const bv = rankMode === "trainer" ? b.trainer_level : rankMode === "craft" ? b.craft_points : b.level;
+          return bv - av;
+        });
+        rows = rows.slice(0, 200);
         if (!cancelled) setRankRows(rows);
         try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), rows })); } catch { /* ignore */ }
-      } catch { /* ignore */ }
+      } catch (e) {
+        console.warn("[idle ranked] load:", e);
+        const rows = [meRow()];
+        if (!cancelled) setRankRows(rows);
+      }
       finally { if (!cancelled) setRankLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [rankOpen, rankMode]);
+  }, [rankOpen, rankMode, identity.id, identity.name, idle.trainerLevel, idle.craftPoints, team]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      void recordRankedScore(idle.trainerLevel ?? 1, idle.craftPoints ?? 0, null);
+    }, 4500);
+    return () => clearTimeout(t);
+  }, [idle.trainerLevel, idle.craftPoints]);
   const viewW = viewSize.w / zoom;
   const viewH = viewSize.h / zoom;
   const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
