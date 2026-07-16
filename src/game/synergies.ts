@@ -248,8 +248,37 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
     pack.dmgMult += 0.15; pack.goldMult += 0.05; pack.combos.push("🐲 Fúria Dracônica");
   }
 
+  // ===== GACHA — bônus por raridade dos membros do time =====
+  // Não altera stats base; só some no pacote de sinergia (XP/Ouro/Dano).
+  // Escala: rare/epic/legendary/mythic/mythic_shiny.
+  const gachaWeight: Partial<Record<Rarity, { xp: number; gold: number; dmg: number; label: string }>> = {
+    rare:         { xp: 0.02, gold: 0.02, dmg: 0.02, label: "Raro" },
+    epic:         { xp: 0.04, gold: 0.05, dmg: 0.04, label: "Épico" },
+    legendary:    { xp: 0.07, gold: 0.08, dmg: 0.06, label: "Lendário" },
+    mythic:       { xp: 0.10, gold: 0.12, dmg: 0.09, label: "Mítico" },
+    mythic_shiny: { xp: 0.15, gold: 0.18, dmg: 0.14, label: "Mítico ✦" },
+  };
+  const gachaCounts: Partial<Record<Rarity, number>> = {};
+  let gachaXp = 0, gachaGold = 0, gachaDmg = 0;
+  for (const p of team) {
+    const w = gachaWeight[p.rarity];
+    if (!w) continue;
+    gachaCounts[p.rarity] = (gachaCounts[p.rarity] ?? 0) + 1;
+    gachaXp += w.xp; gachaGold += w.gold; gachaDmg += w.dmg;
+  }
+  if (gachaXp > 0 || gachaGold > 0 || gachaDmg > 0) {
+    pack.xpMult += gachaXp;
+    pack.goldMult += gachaGold;
+    pack.dmgMult += gachaDmg;
+    const parts = Object.entries(gachaCounts)
+      .map(([r, n]) => `${gachaWeight[r as Rarity]?.label} ×${n}`)
+      .join(" · ");
+    pack.effects.push(`🎰 Gacha — ${parts} · +${Math.round(gachaXp*100)}% XP · +${Math.round(gachaGold*100)}% ouro · +${Math.round(gachaDmg*100)}% dano`);
+  }
+
   return pack;
 }
+
 
 export function primaryElement(sp: Species): Element {
   return elementsOf(sp)[0];
