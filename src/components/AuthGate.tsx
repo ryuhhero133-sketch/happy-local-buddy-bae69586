@@ -19,8 +19,10 @@ const log = (...args: unknown[]) => console.log("[AuthGate]", ...args);
 const warn = (...args: unknown[]) => console.warn("[AuthGate]", ...args);
 const IDLE_KEY = "rubym.idle.v1";
 
-function isCloudBlob(value: unknown): value is { idle?: unknown; team?: unknown[]; restingBench?: unknown[] } {
-  return Boolean(value && typeof value === "object");
+function isCloudBlob(value: unknown): value is { idle?: unknown; team?: unknown[]; restingBench?: unknown[]; party?: unknown[] } {
+  if (!value || typeof value !== "object") return false;
+  const blob = value as { idle?: unknown; team?: unknown; restingBench?: unknown; party?: unknown };
+  return Boolean(blob.idle || Array.isArray(blob.team) || Array.isArray(blob.restingBench) || Array.isArray(blob.party));
 }
 
 export function loadIdentity(): LocalIdentity | null {
@@ -81,8 +83,10 @@ async function preloadCloudSave(userId: string) {
     const cloud = await fetchCloudSave(userId);
     if (isCloudBlob(cloud)) {
       if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
-      const party = [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+      const party = Array.isArray(cloud.party)
+        ? cloud.party
+        : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
+      if (party.length > 0) localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
       log("preloadCloudSave: save restaurado do servidor");
     } else {
       log("preloadCloudSave: nenhum save remoto");

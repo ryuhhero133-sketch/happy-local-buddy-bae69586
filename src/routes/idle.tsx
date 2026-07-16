@@ -986,7 +986,7 @@ function IdlePage() {
         const uid = sess.session?.user?.id;
         if (!uid) return;
         const blob = (await fetchCloudSave(uid)) as
-          | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[] }
+          | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
           | null;
         if (cancelled || !blob) return;
         if (blob.idle) {
@@ -1003,9 +1003,13 @@ function IdlePage() {
         }
         if (Array.isArray(blob.team) && blob.team.length > 0) {
           setTeam(blob.team.slice(0, 5));
+        } else if (Array.isArray(blob.party) && blob.party.length > 0) {
+          setTeam(blob.party.slice(0, 5));
         }
         if (Array.isArray(blob.restingBench)) {
           setRestingBench(blob.restingBench);
+        } else if (Array.isArray(blob.party) && blob.party.length > 5) {
+          setRestingBench(blob.party.slice(5));
         }
         cloudBlobHydratedRef.current = true;
       } catch (e) {
