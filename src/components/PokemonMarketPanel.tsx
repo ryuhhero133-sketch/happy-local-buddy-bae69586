@@ -235,9 +235,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   const doBuy = async (r: ListingRow) => {
     if (!identity?.id) return;
     if (r.seller_id === identity.id) return;
+    if (claimedBuyerRef.current.has(r.id)) return; // já processado nesta sessão
     const have = r.currency === "gold" ? gold : crystals;
     if (have < r.price) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente.`, "info"); return; }
-    // Reserva com UPDATE atômico
+    // Reserva com UPDATE atômico — só um comprador vence a corrida.
     const { data, error } = await supabase.from("pokemon_market").update({
       status: "sold",
       buyer_id: identity.id,
@@ -245,8 +246,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       sold_at: new Date().toISOString(),
     }).eq("id", r.id).eq("status", "active").is("buyer_id", null).select("id").maybeSingle();
     if (error || !data) { pushChat("Anúncio não está mais disponível.", "info"); void refresh(); return; }
+    // Marca como processado ANTES de qualquer entrega, pra bloquear o useEffect
+    // de reentregar o mesmo pokémon caso o refresh chegue antes do buyer_claimed.
+    claimedBuyerRef.current.add(r.id);
     onSpend(r.currency, r.price);
-    // adiciona à coleção (dedup no idle é feita no reducer)
     onReturned({
       uid: `bought-${r.id}`, species: r.pokemon.species, level: r.pokemon.level,
       rarity: r.pokemon.rarity, xp: r.pokemon.xp ?? 0, traits: r.pokemon.traits ?? [], capturedAt: Date.now(),
