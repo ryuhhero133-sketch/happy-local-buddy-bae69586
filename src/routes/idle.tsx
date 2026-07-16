@@ -7236,7 +7236,9 @@ function TabOverlay({
               {collection.slice().sort((a, b) => b.capturedAt - a.capturedAt).map((entry, i) => {
                 const sp = entry.species;
                 const isCurrent = leader?.species === sp && leader?.uid === entry.uid;
-                const inTeam = team.some((p) => p.uid === entry.uid);
+                const teamPet = team.find((p) => p.uid === entry.uid);
+                const inTeam = !!teamPet;
+                const displayLevel = teamPet?.level ?? entry.level;
                 const rarityColor: Partial<Record<Rarity, string>> = {
                   common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
                   epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
@@ -7273,7 +7275,7 @@ function TabOverlay({
                       {entry.rarity.toUpperCase()}
                     </div>
                     <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 900 }}>
-                      Nv. {entry.level}
+                      Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
                     </div>
                     <button
                       onClick={() => {
