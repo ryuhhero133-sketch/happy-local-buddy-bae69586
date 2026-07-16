@@ -393,6 +393,7 @@ const PushInitialSchema = z.object({
   kill_count: z.number().int().min(0).max(1_000_000).optional().default(0),
   pokeballs: z.record(z.string(), z.number().int().min(0).max(9999)),
   collection: z.array(z.object({
+    id: z.string().uuid().optional(),
     species: z.string().min(1).max(64),
     level: z.number().int().min(1).max(10000),
     rarity: RarityEnum,
@@ -449,6 +450,7 @@ export const pushInitialState = createServerFn({ method: "POST" })
       const rows = data.collection.map((p) => {
         const hp = 20 + p.level * 4;
         return {
+          ...(p.id ? { id: p.id } : {}),
           user_id: userId,
           species: p.species,
           level: p.level,
@@ -497,6 +499,7 @@ const SyncSchema = z.object({
   active_map: z.string().min(1).max(32).optional(),
   pokeballs: z.record(z.string(), z.number().int().min(0).max(9999)),
   collection: z.array(z.object({
+    id: z.string().uuid().optional(),
     species: z.string().min(1).max(64),
     level: z.number().int().min(1).max(10000),
     rarity: RarityEnum,
@@ -570,23 +573,55 @@ export const syncClientState = createServerFn({ method: "POST" })
       }
     }
 
-    // Coleção: só INSERE novos (por species+level combo que ainda não existe pro user).
-    // Não deleta nem atualiza — evita perda de progresso por cheat inverso.
+    // Coleção: o servidor nunca rebaixa nível. Atualiza por id quando existe
+    // (preserva progresso real ao mover time ⇄ coleção) e só insere novos.
     if (data.collection.length > 0) {
       const { data: existing } = await supabase.from("pokemon_collection")
-        .select("species, level").eq("user_id", userId);
-      const key = (s: string, l: number) => `${s}:${l}`;
-      const have = new Set((existing ?? []).map((r: any) => key(r.species, r.level)));
-      const news = data.collection
-        .filter((p) => !have.has(key(p.species, p.level)))
-        .slice(0, CAP_GAIN.new_pokemons);
-      if (news.length < data.collection.filter((p) => !have.has(key(p.species, p.level))).length) {
+        .select("id, species, level, rarity, team_slot").eq("user_id", userId);
+      const byId = new Map<string, any>();
+      const comboKey = (s: string, r: string) => `${s}:${r}`;
+      const byCombo = new Map<string, any>();
+      for (const row of existing ?? []) {
+        byId.set(row.id, row);
+        const key = comboKey(row.species, row.rarity);
+        const prev = byCombo.get(key);
+        if (!prev || Number(row.level) > Number(prev.level)) byCombo.set(key, row);
+      }
+
+      const seenIncoming = new Set<string>();
+      const news: typeof data.collection = [];
+      for (const p of data.collection) {
+        const incomingKey = p.id ?? comboKey(p.species, p.rarity);
+        if (seenIncoming.has(incomingKey)) continue;
+        seenIncoming.add(incomingKey);
+
+        const current = p.id ? byId.get(p.id) : byCombo.get(comboKey(p.species, p.rarity));
+        if (current) {
+          const level = Math.max(Number(current.level ?? 1), p.level);
+          const hp = 20 + level * 4;
+          await supabase.from("pokemon_collection").update({
+            level,
+            rarity: p.rarity,
+            hp_max: Math.max(Number(current.hp_max ?? 0), hp),
+            hp_current: Math.max(Number(current.hp_current ?? 0), hp),
+            team_slot: p.team_slot ?? null,
+          }).eq("user_id", userId).eq("id", current.id);
+          byId.set(current.id, { ...current, level, rarity: p.rarity, team_slot: p.team_slot ?? null, hp_max: hp, hp_current: hp });
+          byCombo.set(comboKey(p.species, p.rarity), byId.get(current.id));
+        } else {
+          news.push(p);
+        }
+      }
+
+      const limitedNews = news.slice(0, CAP_GAIN.new_pokemons);
+      if (limitedNews.length < news.length) {
         clamped = true;
       }
-      if (news.length > 0) {
-        const rows = news.map((p) => {
+      if (limitedNews.length > 0) {
+        const rows = limitedNews.map((p) => {
           const hp = 20 + p.level * 4;
           return {
+            ...(p.id ? { id: p.id } : {}),
             user_id: userId, species: p.species, level: p.level, rarity: p.rarity,
             hp_current: hp, hp_max: hp, energy: 100, team_slot: p.team_slot ?? null,
           };

@@ -24,6 +24,7 @@ export type LocalSnapshotForPush = {
   active_map?: string;
   pokeballs: Record<string, number>;
   collection: Array<{
+    id?: string;
     species: string;
     level: number;
     rarity: string;

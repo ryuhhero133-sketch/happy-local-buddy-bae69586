@@ -594,7 +594,7 @@ type IdleState = {
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
 };
 
-export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number };
+export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number };
 
 export const MAX_COLLECTION = 500;
 
@@ -956,20 +956,24 @@ function IdlePage() {
         masterball: s.items?.masterball ?? 0,
       };
       const col: LocalSnapshotForPush["collection"] = [];
-      // Líder do time como slot 0
-      if (t[0]) {
+      const teamIds = new Set(t.map((p) => p.uid));
+      // Time atual como slots 0-4: o mesmo Pokémon não é enviado duplicado como coleção.
+      t.slice(0, 5).forEach((pet, slot) => {
         col.push({
-          species: t[0].species as string,
-          level: Math.max(1, Math.min(100, t[0].level ?? 1)),
-          rarity: (t[0].rarity ?? "common") as string,
-          team_slot: 0,
+          id: pet.uid,
+          species: pet.species as string,
+          level: Math.max(1, Math.min(10000, pet.level ?? 1)),
+          rarity: (pet.rarity ?? "common") as string,
+          team_slot: slot,
         });
-      }
+      });
       // Coleção
       for (const c of s.collection ?? []) {
+        if (teamIds.has(c.uid)) continue;
         col.push({
+          id: c.uid,
           species: c.species as string,
-          level: Math.max(1, Math.min(100, c.level ?? 1)),
+          level: Math.max(1, Math.min(10000, c.level ?? 1)),
           rarity: (c.rarity ?? "common") as string,
           team_slot: null,
         });
@@ -978,7 +982,7 @@ function IdlePage() {
         gold: Math.max(0, Math.floor(s.bank?.gold ?? 0)),
         crystal: Math.max(0, Math.floor(s.bank?.crystals ?? 0)),
         ruby: 0,
-        trainer_level: Math.max(1, Math.min(100, s.trainerLevel ?? 1)),
+        trainer_level: Math.max(1, Math.min(10000, s.trainerLevel ?? 1)),
         trainer_xp: Math.max(0, Math.floor(s.trainerXp ?? 0)),
         kill_count: Math.max(0, Math.floor(s.totals?.kills ?? 0)),
         active_map: s.currentMap,
@@ -995,6 +999,7 @@ function IdlePage() {
           uid: p.id,
           species: p.species as Species,
           level: p.level,
+          xp: p.xp ?? 0,
           rarity: p.rarity as Rarity,
           capturedAt: Date.parse(p.captured_at) || Date.now(),
         }));
@@ -1013,8 +1018,14 @@ function IdlePage() {
       });
       // Se o server já tem líder salvo (team_slot=0), reidrata.
       if (full.team.length > 0) {
-        const leader = full.team[0];
-        setTeam(() => [makePet(leader.species as Species, leader.level)]);
+        setTeam(() => full.team.slice(0, 5).map((p) => ({
+          ...makePet(p.species as Species, p.level, p.rarity as Rarity),
+          uid: p.id,
+          xp: p.xp ?? 0,
+          hp: p.hp_current ?? p.hp_max,
+          maxHp: p.hp_max,
+          energy: p.energy ?? ENERGY_MAX,
+        } as PetInstance)));
       }
     },
   });
@@ -1068,7 +1079,7 @@ function IdlePage() {
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
   const onPickTeamFromColecao = (entry: CollectionEntry) => {
-    const newPet = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid };
+    const newPet = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0 };
     setTeam((tm) => {
       const idx = tm.findIndex((p) => p.uid === entry.uid);
       if (idx >= 0) {
@@ -2272,7 +2283,7 @@ function IdlePage() {
                 captured = Math.random() < baseChance * usedBall.captureMult;
               }
               if (captured) {
-                const np = makePet(target.sp, 5);
+                const np = makePet(target.sp, target.level, target.rarity);
                 capturedPet = np;
                 const rarityLabelMap: Record<string, string> = {
                   common: "Comum", uncommon: "Incomum", rare: "Raro",
@@ -2427,19 +2438,31 @@ function IdlePage() {
 
   useEffect(() => { saveIdle(idle); }, [idle]);
 
-  // Reconcilia: qualquer pokémon no time/bench que não esteja na coleção é adicionado (retroativo).
+  // Reconcilia: qualquer pokémon no time/bench fica espelhado na coleção com o MAIOR nível já visto.
   useEffect(() => {
     setIdle((s) => {
       const col = s.collection ?? [];
-      const known = new Set(col.map((e) => e.uid));
+      const active = [...team, ...restingBench];
+      const byUid = new Map(active.map((p) => [p.uid, p]));
+      let changed = false;
+      const nextCol = col.map((e) => {
+        const live = byUid.get(e.uid);
+        if (!live) return e;
+        const level = Math.max(e.level ?? 1, live.level ?? 1);
+        const xp = Math.max(e.xp ?? 0, live.xp ?? 0);
+        if (level === e.level && xp === (e.xp ?? 0)) return e;
+        changed = true;
+        return { ...e, level, xp };
+      });
+      const known = new Set(nextCol.map((e) => e.uid));
       const missing: CollectionEntry[] = [];
       for (const p of [...team, ...restingBench]) {
         if (!known.has(p.uid)) {
-          missing.push({ uid: p.uid, species: p.species, level: p.level, rarity: p.rarity, capturedAt: Date.now() });
+          missing.push({ uid: p.uid, species: p.species, level: p.level, xp: p.xp ?? 0, rarity: p.rarity, capturedAt: Date.now() });
         }
       }
-      if (missing.length === 0) return s;
-      return { ...s, collection: [...col, ...missing] };
+      if (!changed && missing.length === 0) return s;
+      return { ...s, collection: [...nextCol, ...missing] };
     });
   }, [team, restingBench]);
 
@@ -2508,6 +2531,10 @@ function IdlePage() {
   const maxLevelRef = useRef<Record<string, number>>({});
   useEffect(() => {
     const all = [...team, ...restingBench];
+    for (const c of idle.collection ?? []) {
+      const prev = maxLevelRef.current[c.uid] ?? 0;
+      if ((c.level ?? 0) > prev) maxLevelRef.current[c.uid] = c.level;
+    }
     for (const p of all) {
       const prev = maxLevelRef.current[p.uid] ?? 0;
       if ((p.level ?? 0) > prev) maxLevelRef.current[p.uid] = p.level;
@@ -2526,7 +2553,14 @@ function IdlePage() {
       return p;
     });
     if (benchChanged) setRestingBench(fixedBench);
-  }, [team, restingBench]);
+    let collectionChanged = false;
+    const fixedCollection = (idle.collection ?? []).map((e) => {
+      const mx = maxLevelRef.current[e.uid] ?? 0;
+      if ((e.level ?? 0) < mx) { collectionChanged = true; return { ...e, level: mx }; }
+      return e;
+    });
+    if (collectionChanged) setIdle((s) => ({ ...s, collection: fixedCollection }));
+  }, [team, restingBench, idle.collection]);
 
   // ==== Evento Lendário: 5 pokémon raros aparecem a cada 30 min (rotativo) ====
   const LEGEND_INTERVAL_MS = 30 * 60 * 1000;
@@ -2678,7 +2712,7 @@ function IdlePage() {
     setIdle((s) => ({ ...s, items: { ...s.items, [ballId]: Math.max(0, (s.items[ballId] ?? 0) - 1) } }));
     pushFxAt(target.x, target.y - 40, `${ballName}!`, "capture");
     if (success) {
-      const np = makePet(target.sp, 5);
+      const np = makePet(target.sp, target.level, target.rarity);
       const rarityLabelMap: Record<string, string> = {
         common: "Comum", uncommon: "Incomum", rare: "Raro",
         epic: "Épico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
@@ -6199,6 +6233,8 @@ function IdlePage() {
       {colecaoDetailUid && (() => {
         const entry = idle.collection?.find((p) => p.uid === colecaoDetailUid);
         if (!entry) return null;
+        const livePet = team.find((p) => p.uid === entry.uid) ?? restingBench.find((p) => p.uid === entry.uid);
+        const displayLevel = Math.max(entry.level ?? 1, livePet?.level ?? 1);
         const sp = entry.species;
         const base = SPECIES_BASE[sp];
         const rarityColor: Partial<Record<Rarity, string>> = {
@@ -6224,7 +6260,7 @@ function IdlePage() {
                     {sp.replace(/_/g, " ").toUpperCase()}
                   </div>
                   <div style={{ marginTop: 4, fontSize: 11, padding: "3px 10px", borderRadius: 12, background: rColor, color: "#fff", display: "inline-block", fontWeight: 900, letterSpacing: 1 }}>
-                    {entry.rarity.toUpperCase()} · Nv. {entry.level}
+                    {entry.rarity.toUpperCase()} · Nv. {displayLevel}
                   </div>
                 </div>
                 <button onClick={() => setColecaoDetailUid(null)} style={{ background: "#b8862a", border: "none", color: "#fff9e8", borderRadius: 6, padding: "4px 10px", fontWeight: 900, cursor: "pointer" }}>✕</button>
