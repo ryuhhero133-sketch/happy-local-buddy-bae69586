@@ -660,7 +660,7 @@ type IdleState = {
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
 };
 
-export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number };
+export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[] };
 
 export const MAX_COLLECTION = 500;
 
