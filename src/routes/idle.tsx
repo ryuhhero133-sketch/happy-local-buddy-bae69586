@@ -591,6 +591,7 @@ type IdleState = {
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
+  unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number };
@@ -695,6 +696,10 @@ function loadIdle(): IdleState {
       }
       // Auto-Poção sempre ativada ao entrar no jogo (usuário pode desativar depois na sessão)
       s.autoHeal = { ...(s.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: true };
+      // Garante lista de skins desbloqueadas (default sempre incluída)
+      const uskins = Array.isArray(s.unlockedSkins) ? s.unlockedSkins.slice() : [];
+      if (!uskins.includes("default")) uskins.unshift("default");
+      s.unlockedSkins = uskins;
       return s;
     }
   } catch { /* ignore */ }
@@ -720,6 +725,7 @@ function freshIdle(): IdleState {
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
     trainerLevel: 1,
     trainerXp: 0,
+    unlockedSkins: ["default"],
   };
 }
 function saveIdle(s: IdleState) {
@@ -2788,10 +2794,13 @@ function IdlePage() {
           premium_box: (s.items.premium_box ?? 0) - 1,
           potion: (s.items.potion ?? 0) + 50,
           pokeball: (s.items.pokeball ?? 0) + 50,
+          skin_ticket: (s.items.skin_ticket ?? 0) + 1,
         },
       }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "+50 Poção · +50 Pokébola", "capture");
-      pushChat(`🎁 Caixa Premium aberta! Você recebeu 50 Poções e 50 Pokébolas de evento.`, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "+50 Poção · +50 Pokébola · +1 Ticket de Skin", "capture");
+      pushChat(`🎁 Caixa Premium aberta! Você recebeu 50 Poções, 50 Pokébolas e 1 Ticket de Skin ✦ (use na aba Início para escolher uma skin premium).`, "cap");
+    } else if (id === "skin_ticket") {
+      pushChat(`✦ Vá até a aba Início e escolha uma skin premium para desbloquear com o ticket.`, "info");
     }
   };
 
@@ -5190,6 +5199,24 @@ function IdlePage() {
               isVip={isVip()}
               skinId={skinId}
               setSkinId={setSkinId}
+              unlockedSkins={idle.unlockedSkins ?? ["default"]}
+              skinTickets={idle.items?.skin_ticket ?? 0}
+              onUnlockSkin={(sid) => {
+                setIdle((s) => {
+                  const tickets = s.items?.skin_ticket ?? 0;
+                  const unlocked = new Set(s.unlockedSkins ?? ["default"]);
+                  if (unlocked.has(sid)) return s;
+                  if (tickets <= 0) return s;
+                  unlocked.add(sid);
+                  return {
+                    ...s,
+                    items: { ...s.items, skin_ticket: tickets - 1 },
+                    unlockedSkins: Array.from(unlocked),
+                  };
+                });
+                setSkinId(sid);
+                pushChat(`✦ Skin premium desbloqueada! Você consumiu 1 Ticket de Skin.`, "cap");
+              }}
               trainerLevel={idle.trainerLevel ?? 1}
               onUpgradeBook={upgradeBook}
 
@@ -6509,7 +6536,7 @@ const zoomBtn: React.CSSProperties = {
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
-  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, trainerLevel, onUpgradeBook,
+  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook,
 
 }: {
   tab: string;
@@ -6557,6 +6584,9 @@ function TabOverlay({
   skinId: string;
   setSkinId: (id: string) => void;
   trainerLevel: number;
+  unlockedSkins: string[];
+  skinTickets: number;
+  onUnlockSkin: (id: string) => void;
   onUpgradeBook: (id: string) => void;
 
 
@@ -6943,6 +6973,7 @@ function TabOverlay({
           book_vip_30: "Livro VIP 30d ✦✦", book_vip_60: "Livro VIP 60d ✦✦✦",
           chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
           premium_box: "Caixa Premium ✦ Evento",
+          skin_ticket: "Ticket de Skin ✦",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff" };
@@ -7521,27 +7552,46 @@ function TabOverlay({
             <li>Novos Pokémon aparecem conforme seu nível sobe.</li>
           </ul>
 
-          <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "18px 0 10px" }}>Escolher Skin</h3>
+          <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "18px 0 10px" }}>
+            Escolher Skin <span style={{ fontSize: 11, color: "#b9a7ff" }}>· 🎟️ Tickets: {skinTickets}</span>
+          </h3>
+          <div style={{ fontSize: 11, color: "#b9a7ff", marginBottom: 8 }}>
+            Skins premium ficam bloqueadas. Abra a <strong>Caixa Premium ✦</strong> na Mochila para ganhar Tickets e desbloquear a skin que quiser.
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
             {SKINS.map((s) => {
               const active = s.id === skinId;
+              const unlocked = unlockedSkins.includes(s.id);
+              const canUnlock = !unlocked && skinTickets > 0;
               return (
                 <button
                   key={s.id}
-                  onClick={() => setSkinId(s.id)}
+                  onClick={() => {
+                    if (unlocked) { setSkinId(s.id); return; }
+                    if (canUnlock) {
+                      if (window.confirm(`Desbloquear a skin "${s.label}" usando 1 Ticket de Skin ✦?`)) {
+                        onUnlockSkin(s.id);
+                      }
+                    }
+                  }}
+                  disabled={!unlocked && !canUnlock}
                   style={{
-                    background: active ? "linear-gradient(160deg,#3a1f5c,#6b3fb0)" : "#1a0f26",
-                    border: `2px solid ${active ? "#f5cf6b" : "rgba(107,212,255,0.35)"}`,
-                    borderRadius: 10, padding: 10, cursor: "pointer",
+                    position: "relative",
+                    background: active ? "linear-gradient(160deg,#3a1f5c,#6b3fb0)" : unlocked ? "#1a0f26" : "#120a1c",
+                    border: `2px solid ${active ? "#f5cf6b" : unlocked ? "rgba(107,212,255,0.35)" : "rgba(255,255,255,0.08)"}`,
+                    borderRadius: 10, padding: 10,
+                    cursor: unlocked ? "pointer" : canUnlock ? "pointer" : "not-allowed",
                     display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                    color: "#eadfe8", fontFamily: "inherit",
+                    color: unlocked ? "#eadfe8" : "#7a6f8a", fontFamily: "inherit",
                     boxShadow: active ? "0 0 18px rgba(245,207,107,0.45)" : "none",
+                    opacity: unlocked ? 1 : 0.85,
                   }}
                 >
                   <div style={{
                     width: 72, height: 72, display: "grid", placeItems: "center",
                     background: "rgba(0,0,0,0.35)", borderRadius: 8,
                     imageRendering: "pixelated",
+                    filter: unlocked ? "none" : "grayscale(1) brightness(0.55)",
                   }}>
                     {s.url ? (
                       <img src={s.url} alt={s.label} style={{ maxWidth: "100%", maxHeight: "100%", imageRendering: "pixelated" }} />
@@ -7551,10 +7601,19 @@ function TabOverlay({
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 700, textAlign: "center" }}>{s.label}</div>
                   {active && <div style={{ fontSize: 9, color: "#f5cf6b" }}>✓ EM USO</div>}
+                  {!unlocked && (
+                    <div style={{ fontSize: 9, color: canUnlock ? "#f5cf6b" : "#8a7fa0", fontWeight: 700 }}>
+                      {canUnlock ? "🎟️ USAR TICKET" : "🔒 BLOQUEADA"}
+                    </div>
+                  )}
+                  {!unlocked && (
+                    <div style={{ position: "absolute", top: 6, right: 6, fontSize: 14 }}>🔒</div>
+                  )}
                 </button>
               );
             })}
           </div>
+
         </div>
       )}
 
