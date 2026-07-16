@@ -5879,7 +5879,7 @@ function IdlePage() {
                 const targetMap = IDLE_MAPS[g.target];
                 const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                 if (!unlocked) {
-                  pushChat(`Precisa nível ${targetMap.minLevel} para ir a ${targetMap.name}.`, "info");
+                  pushChat(`🔒 ${targetMap.name} exige Treinador Lv ${targetMap.minLevel} para entrar.`, "info");
                   return;
                 }
                 if (targetMap.cycle) {
