@@ -6584,6 +6584,9 @@ function TabOverlay({
   skinId: string;
   setSkinId: (id: string) => void;
   trainerLevel: number;
+  unlockedSkins: string[];
+  skinTickets: number;
+  onUnlockSkin: (id: string) => void;
   onUpgradeBook: (id: string) => void;
 
 
