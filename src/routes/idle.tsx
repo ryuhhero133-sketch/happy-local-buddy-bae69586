@@ -176,6 +176,7 @@ const fearowUrl = assetUrl(fearowAsset.url);
 
 
 const IDLE_KEY = "rubym.idle.v1";
+const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
 const idleArenaUrl = assetUrl(idleArenaAsset.url);
@@ -933,6 +934,11 @@ function IdlePage() {
       };
     },
     onHydrate: (full) => {
+      try {
+        // Se o blob completo já foi pré-carregado do Supabase, ele é a fonte de verdade.
+        // O sync normalizado antigo não pode sobrescrever com trainer_state/pokemon_collection defasados.
+        if (localStorage.getItem(CLOUD_PRELOADED_KEY)) return;
+      } catch { /* ignore */ }
       // Aplica estado do servidor como fonte de verdade.
       setIdle((prev) => {
         const items = { ...(prev.items ?? {}) };
