@@ -119,15 +119,43 @@ export function AuthGate({ children }: { children: ReactNode }) {
       }
     }
 
+    const CURRENT_UID_KEY = "rubym.currentUid";
+    const wipeLocalGameData = () => {
+      try {
+        const keep = new Set<string>([CURRENT_UID_KEY]);
+        const toRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (!k) continue;
+          if (keep.has(k)) continue;
+          if (k.startsWith("rubym.")) toRemove.push(k);
+        }
+        toRemove.forEach((k) => localStorage.removeItem(k));
+      } catch { /* ignore */ }
+    };
+
     const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
       log("authStateChange", event, sess?.user?.id);
       setSession(sess);
       if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
+      if (event === "SIGNED_IN" && sess?.user?.id) {
+        try {
+          const prev = localStorage.getItem(CURRENT_UID_KEY);
+          if (prev && prev !== sess.user.id) {
+            // Conta diferente — limpa o save local da conta anterior
+            wipeLocalGameData();
+          }
+          localStorage.setItem(CURRENT_UID_KEY, sess.user.id);
+        } catch { /* ignore */ }
+      }
       if (event === "SIGNED_OUT") {
         setIdentity(null);
         setNeedsChar(false);
         try {
           localStorage.removeItem(IDENTITY_KEY);
+          // Limpa dados de jogo locais para evitar vazamento entre contas
+          wipeLocalGameData();
+          localStorage.removeItem(CURRENT_UID_KEY);
         } catch {
           /* ignore */
         }
