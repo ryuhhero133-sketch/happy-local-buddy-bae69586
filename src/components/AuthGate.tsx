@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, type ReactNode, type FormEvent } from "react";
+import { useEffect, useState, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
@@ -17,6 +17,14 @@ export type LocalIdentity = {
 
 const log = (...args: unknown[]) => console.log("[AuthGate]", ...args);
 const warn = (...args: unknown[]) => console.warn("[AuthGate]", ...args);
+const IDLE_KEY = "rubym.idle.v1";
+const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
+
+function isCloudBlob(value: unknown): value is { idle?: unknown; team?: unknown[]; restingBench?: unknown[]; party?: unknown[] } {
+  if (!value || typeof value !== "object") return false;
+  const blob = value as { idle?: unknown; team?: unknown; restingBench?: unknown; party?: unknown };
+  return Boolean(blob.idle || Array.isArray(blob.team) || Array.isArray(blob.restingBench) || Array.isArray(blob.party));
+}
 
 export function loadIdentity(): LocalIdentity | null {
   if (typeof window === "undefined") return null;
@@ -74,13 +82,20 @@ async function preloadCloudSave(userId: string) {
   try {
     log("preloadCloudSave start", userId);
     const cloud = await fetchCloudSave(userId);
-    if (cloud) {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(cloud));
+    if (isCloudBlob(cloud)) {
+      if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
+      const party = Array.isArray(cloud.party)
+        ? cloud.party
+        : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
+      if (party.length > 0) localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+      localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
       log("preloadCloudSave: save restaurado do servidor");
     } else {
+      localStorage.removeItem(CLOUD_PRELOADED_KEY);
       log("preloadCloudSave: nenhum save remoto");
     }
   } catch (e) {
+    try { localStorage.removeItem(CLOUD_PRELOADED_KEY); } catch { /* ignore */ }
     warn("preloadCloudSave falhou", e);
   }
 }
@@ -153,7 +168,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setNeedsChar(false);
         try {
           localStorage.removeItem(IDENTITY_KEY);
-          // Limpa dados de jogo locais para evitar vazamento entre contas
+          // Logout real: limpa dados locais para evitar vazamento entre contas.
           wipeLocalGameData();
           localStorage.removeItem(CURRENT_UID_KEY);
         } catch {
@@ -162,19 +177,12 @@ export function AuthGate({ children }: { children: ReactNode }) {
       }
     });
 
-    // F5 / carregar página sempre volta pra tela de login:
-    // se existe sessão persistida, encerra antes de mostrar o app.
+    // Em F5 não desloga: a sessão ativa é necessária para reidratar/salvar no Supabase
+    // antes de qualquer cache local ser usado. Logout manual continua limpando tudo.
     supabase.auth.getSession().then(({ data }) => {
       log("initial session", data.session?.user?.id ?? null);
-      if (data.session && !window.location.hash.includes("type=recovery")) {
-        supabase.auth.signOut().finally(() => {
-          setSession(null);
-          setChecking(false);
-        });
-      } else {
-        setSession(data.session);
-        setChecking(false);
-      }
+      setSession(data.session);
+      setChecking(false);
     });
 
     return () => sub.subscription.unsubscribe();

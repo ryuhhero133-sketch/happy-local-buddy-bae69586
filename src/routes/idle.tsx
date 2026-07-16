@@ -52,7 +52,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
-import { fetchCloudSave, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
+import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
 import trainerSheet from "@/assets/trainer.png";
@@ -176,6 +176,7 @@ const fearowUrl = assetUrl(fearowAsset.url);
 
 
 const IDLE_KEY = "rubym.idle.v1";
+const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
 const idleArenaUrl = assetUrl(idleArenaAsset.url);
@@ -933,6 +934,11 @@ function IdlePage() {
       };
     },
     onHydrate: (full) => {
+      try {
+        // Se o blob completo já foi pré-carregado do Supabase, ele é a fonte de verdade.
+        // O sync normalizado antigo não pode sobrescrever com trainer_state/pokemon_collection defasados.
+        if (localStorage.getItem(CLOUD_PRELOADED_KEY)) return;
+      } catch { /* ignore */ }
       // Aplica estado do servidor como fonte de verdade.
       setIdle((prev) => {
         const items = { ...(prev.items ?? {}) };
@@ -976,6 +982,7 @@ function IdlePage() {
   // Hidrata state COMPLETO (items, missões, skins, buffs, party, bench)
   // e sobrescreve o cache local — evita rollback após F5 / trocar de dispositivo.
   const cloudBlobHydratedRef = useRef(false);
+  const [cloudBlobReady, setCloudBlobReady] = useState(false);
   useEffect(() => {
     if (cloudBlobHydratedRef.current) return;
     let cancelled = false;
@@ -985,7 +992,7 @@ function IdlePage() {
         const uid = sess.session?.user?.id;
         if (!uid) return;
         const blob = (await fetchCloudSave(uid)) as
-          | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[] }
+          | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
           | null;
         if (cancelled || !blob) return;
         if (blob.idle) {
@@ -1002,13 +1009,19 @@ function IdlePage() {
         }
         if (Array.isArray(blob.team) && blob.team.length > 0) {
           setTeam(blob.team.slice(0, 5));
+        } else if (Array.isArray(blob.party) && blob.party.length > 0) {
+          setTeam(blob.party.slice(0, 5));
         }
         if (Array.isArray(blob.restingBench)) {
           setRestingBench(blob.restingBench);
+        } else if (Array.isArray(blob.party) && blob.party.length > 5) {
+          setRestingBench(blob.party.slice(5));
         }
         cloudBlobHydratedRef.current = true;
       } catch (e) {
         console.warn("[cloudBlob] hydrate failed", e);
+      } finally {
+        if (!cancelled) setCloudBlobReady(true);
       }
     })();
     return () => { cancelled = true; };
@@ -1022,18 +1035,26 @@ function IdlePage() {
     savedAt: Date.now(),
   }), [restingBench]);
   useEffect(() => {
+    if (!cloudBlobReady) return;
     scheduleCloudSync(buildFullBlob());
-  }, [idle, team, restingBench, buildFullBlob]);
+  }, [idle, team, restingBench, buildFullBlob, cloudBlobReady]);
 
   // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
   useEffect(() => {
-    const flush = () => { void pushCloudSaveNow(buildFullBlob()); };
+    const flush = () => {
+      if (!cloudBlobReady) return;
+      void pushCloudSaveNow(buildFullBlob());
+    };
     window.addEventListener("beforeunload", flush);
-    document.addEventListener("visibilitychange", () => {
+    const onVisibilityChange = () => {
       if (document.visibilityState === "hidden") flush();
-    });
-    return () => { window.removeEventListener("beforeunload", flush); };
-  }, [buildFullBlob]);
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [buildFullBlob, cloudBlobReady]);
 
 
   // Salvamento urgente de level-up: quando qualquer Pokémon sobe de nível,
@@ -5752,10 +5773,14 @@ function IdlePage() {
           <button
             onClick={async () => {
               playClick();
+              if (!cloudBlobReady) {
+                pushChat("⏳ Aguarde carregar o save da nuvem antes de salvar.", "info");
+                return;
+              }
               try {
                 const ok = await pushCloudSaveNow(buildFullBlob());
                 await serverSync.pushNow();
-                pushChat(ok ? "☁️ Progresso salvo na nuvem!" : "⚠️ Salvo local (sem conexão).", "info");
+                pushChat(ok ? "☁️ Progresso salvo na nuvem!" : `⚠️ Não salvou na nuvem: ${getCloudSaveLastError() ?? "verifique a tabela game_saves"}.`, "info");
               } catch (e) {
                 pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
               }

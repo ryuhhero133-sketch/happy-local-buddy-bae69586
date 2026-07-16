@@ -11,7 +11,6 @@
 // Each backup is a JSON envelope: { savedAt: number, data: <SaveState> }.
 
 import { toast } from "sonner";
-import { scheduleCloudSync } from "@/lib/cloudSave";
 
 export const SAVE_KEY = "rubym.save.v2";
 const BACKUP_KEYS = ["rubym.save.bak.1", "rubym.save.bak.2", "rubym.save.bak.3"] as const;
@@ -68,7 +67,6 @@ function flush() {
     localStorage.setItem(SAVE_KEY, serialized);
     rotateBackups(serialized);
     lastSerialized = serialized;
-    try { scheduleCloudSync(pending); } catch { /* ignore */ }
   } catch (e) {
     console.warn("[localSave] flush failed", e);
   } finally {

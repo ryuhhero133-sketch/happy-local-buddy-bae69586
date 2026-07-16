@@ -7,6 +7,17 @@ export const SAVE_KEY = "rubym.save.v2";
 
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingData: unknown = null;
+let lastCloudSaveError: string | null = null;
+
+export function getCloudSaveLastError() {
+  return lastCloudSaveError;
+}
+
+function isFullCloudSave(data: unknown): data is { idle: unknown; team: unknown; restingBench: unknown } {
+  if (!data || typeof data !== "object") return false;
+  const value = data as { idle?: unknown; team?: unknown; restingBench?: unknown };
+  return Boolean(value.idle && Array.isArray(value.team) && Array.isArray(value.restingBench));
+}
 
 async function upsert(uid: string, snapshot: unknown) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,6 +29,10 @@ async function upsert(uid: string, snapshot: unknown) {
 
 /** Debounced push (1.5s) — usar durante gameplay. */
 export function scheduleCloudSync(data: unknown) {
+  if (!isFullCloudSave(data)) {
+    console.warn("[cloudSave] ignored partial snapshot");
+    return;
+  }
   pendingData = data;
   if (syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(async () => {
@@ -29,7 +44,9 @@ export function scheduleCloudSync(data: unknown) {
       const uid = sess.session?.user?.id;
       if (!uid || !snapshot) return;
       await upsert(uid, snapshot);
+      lastCloudSaveError = null;
     } catch (e) {
+      lastCloudSaveError = e instanceof Error ? e.message : String(e);
       console.warn("[cloudSave] sync failed", e);
     }
   }, 1500);
@@ -37,13 +54,23 @@ export function scheduleCloudSync(data: unknown) {
 
 /** Push imediato (botão Salvar, level-up, beforeunload). */
 export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
+  if (!isFullCloudSave(data)) {
+    lastCloudSaveError = "snapshot incompleto";
+    console.warn("[cloudSave] pushNow ignored partial snapshot");
+    return false;
+  }
   try {
     const { data: sess } = await supabase.auth.getSession();
     const uid = sess.session?.user?.id;
-    if (!uid) return false;
+    if (!uid) {
+      lastCloudSaveError = "sem sessão/login ativo";
+      return false;
+    }
     await upsert(uid, data);
+    lastCloudSaveError = null;
     return true;
   } catch (e) {
+    lastCloudSaveError = e instanceof Error ? e.message : String(e);
     console.warn("[cloudSave] pushNow failed", e);
     return false;
   }
