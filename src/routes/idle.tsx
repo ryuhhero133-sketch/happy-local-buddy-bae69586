@@ -2739,8 +2739,15 @@ function IdlePage() {
               queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
             }
             const newCollection = capturedPet && !colFull
-              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now() }]
+              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits }]
               : prevCol;
+            // Anuncia traits sorteados no chat
+            if (capturedPet && capturedPet.traits && capturedPet.traits.length > 0) {
+              const tLabels = capturedPet.traits.map((id) => {
+                const t = TRAITS[id]; return t ? `${t.icon} ${t.name}` : id;
+              }).join(" · ");
+              queueMicrotask(() => pushChat(`✨ Traits: ${tLabels}`, "cap"));
+            }
             // === XP DO TREINADOR (separado do XP do pokémon) ===
             // Base: ~40% do xp do pokémon, escalado pelo nível do inimigo e raridade.
             const rarityTrainerMult: Record<Rarity, number> = {
