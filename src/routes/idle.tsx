@@ -1031,13 +1031,20 @@ function IdlePage() {
 
   // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
   useEffect(() => {
-    const flush = () => { void pushCloudSaveNow(buildFullBlob()); };
+    const flush = () => {
+      if (!cloudBlobReady) return;
+      void pushCloudSaveNow(buildFullBlob());
+    };
     window.addEventListener("beforeunload", flush);
-    document.addEventListener("visibilitychange", () => {
+    const onVisibilityChange = () => {
       if (document.visibilityState === "hidden") flush();
-    });
-    return () => { window.removeEventListener("beforeunload", flush); };
-  }, [buildFullBlob]);
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [buildFullBlob, cloudBlobReady]);
 
 
   // Salvamento urgente de level-up: quando qualquer Pokémon sobe de nível,
@@ -5756,6 +5763,10 @@ function IdlePage() {
           <button
             onClick={async () => {
               playClick();
+              if (!cloudBlobReady) {
+                pushChat("⏳ Aguarde carregar o save da nuvem antes de salvar.", "info");
+                return;
+              }
               try {
                 const ok = await pushCloudSaveNow(buildFullBlob());
                 await serverSync.pushNow();
