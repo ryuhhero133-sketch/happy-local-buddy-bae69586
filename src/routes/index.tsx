@@ -1577,37 +1577,43 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
   const [mushroomSpawn, setMushroomSpawn] = useState<{ x: number, y: number, mapId: MapId, createdAt: number } | null>(null);
 
 
-  // Bot movement simulation
+  // Bot movement — hunting behavior (persistent direction, quicker steps)
+  const botIntentRef = useRef<Record<string, { dir: Dir; ticks: number }>>({});
   useEffect(() => {
     const interval = setInterval(() => {
       setBotPositions(prev => {
         const next = { ...prev };
+        const intents = botIntentRef.current;
         FAKE_PLAYERS.forEach(bot => {
-          if (!next[bot.id]) {
-            next[bot.id] = { x: bot.x, y: bot.y, dir: bot.dir };
-          }
-          if (Math.random() < 0.15) { // 15% chance to move
+          if (!next[bot.id]) next[bot.id] = { x: bot.x, y: bot.y, dir: bot.dir };
+          let intent = intents[bot.id];
+          if (!intent || intent.ticks <= 0 || Math.random() < 0.04) {
             const dirs: Dir[] = ["up", "down", "left", "right"];
-            const dir = dirs[Math.floor(Math.random() * dirs.length)];
-            const speed = 4;
-            let { x, y } = next[bot.id];
-            if (dir === "up") y -= speed;
-            if (dir === "down") y += speed;
-            if (dir === "left") x -= speed;
-            if (dir === "right") x += speed;
-            
-            // Boundary checks (simplified)
-            x = Math.max(100, Math.min(600, x));
-            y = Math.max(100, Math.min(600, y));
-            
-            next[bot.id] = { x, y, dir };
+            intent = { dir: dirs[Math.floor(Math.random() * dirs.length)], ticks: 6 + Math.floor(Math.random() * 14) };
+            intents[bot.id] = intent;
           }
+          if (Math.random() < 0.08) { intent.ticks--; return; } // brief pause
+          const speed = 6 + Math.floor(Math.random() * 3);
+          let { x, y } = next[bot.id];
+          if (intent.dir === "up") y -= speed;
+          if (intent.dir === "down") y += speed;
+          if (intent.dir === "left") x -= speed;
+          if (intent.dir === "right") x += speed;
+          if (x < 120)  { x = 120;  intent.dir = "right"; }
+          if (x > 1400) { x = 1400; intent.dir = "left"; }
+          if (y < 180)  { y = 180;  intent.dir = "down"; }
+          if (y > 1400) { y = 1400; intent.dir = "up"; }
+          next[bot.id] = { x, y, dir: intent.dir };
+          intent.ticks--;
         });
         return next;
       });
-    }, 1000);
+    }, 220);
     return () => clearInterval(interval);
   }, []);
+
+
+
 
   // ===== RARE MUSHROOM SPAWN — a cada 3 min + (185s), some em 60s se não pegar =====
   useEffect(() => {
@@ -2050,6 +2056,15 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
   const trainerXpSpan = Math.max(1, trainerXpNext - trainerXpBase);
   const trainerXpPct = Math.max(0, Math.min(100, (trainerXpInLevel / trainerXpSpan) * 100));
   const leaderIsShiny = leader && leader.rarity === "mythic";
+
+  // Fake players' trainer_level always stays below the real player's level
+  useEffect(() => {
+    FAKE_PLAYERS.forEach(bot => {
+      if (bot.trainer_level >= trainerLevel) {
+        bot.trainer_level = Math.max(1, trainerLevel - 1 - Math.floor(Math.random() * 3));
+      }
+    });
+  }, [trainerLevel]);
 
   // Sobe nivel se passou do limite (caso o XP tenha pulado varios niveis)
   const lastTrainerLevelRef = useRef<number>(trainerLevel);
