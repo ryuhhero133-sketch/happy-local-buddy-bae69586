@@ -245,6 +245,13 @@ const snorlaxMythicGif = assetUrlFromJson(snorlaxMythicAsset);
 const darkraiGif = assetUrlFromJson(darkraiAsset);
 const hoOhGif = assetUrlFromJson(hoOhAsset);
 const magmortarGif = assetUrlFromJson(magmortarAsset);
+import lugiaAsset from "@/assets/lugia.gif.asset.json";
+import hariyamaAsset from "@/assets/hariyama.gif.asset.json";
+import ursaringAsset from "@/assets/ursaring.gif.asset.json";
+const lugiaGif = assetUrlFromJson(lugiaAsset);
+const hariyamaGif = assetUrlFromJson(hariyamaAsset);
+const ursaringGif = assetUrlFromJson(ursaringAsset);
+
 
 const laprasGif = laprasAsset.url;
 const vaporeonGif = vaporeonAsset.url;
@@ -536,7 +543,9 @@ const SPECIES_GIF: Record<Species, string> = {
   blaziken: blazikenGif,
   deoxys: deoxysGif, groudon: groudonGif, lapras_shiny: laprasShinyGif, snorlax_mythic: snorlaxMythicGif,
   darkrai: darkraiGif, ho_oh: hoOhGif, magmortar: magmortarGif,
+  lugia: lugiaGif, hariyama: hariyamaGif, ursaring: ursaringGif,
 };
+
 
 
 const SPECIES_NAME: Record<Species, string> = {
@@ -578,7 +587,9 @@ const SPECIES_NAME: Record<Species, string> = {
   suicune_shiny: "SUICUNE ✦", luxray_f: "LUXRAY♀", blaziken: "BLAZIKEN",
   deoxys: "DEOXYS", groudon: "GROUDON", lapras_shiny: "LAPRAS ✦", snorlax_mythic: "SNORLAX ✦",
   darkrai: "DARKRAI ✦", ho_oh: "HO-OH", magmortar: "MAGMORTAR",
+  lugia: "LUGIA ✦", hariyama: "HARIYAMA", ursaring: "URSARING",
 };
+
 
 
 const SPAWN_WEIGHTS: { sp: Species; w: number }[] = [

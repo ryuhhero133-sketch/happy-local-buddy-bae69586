@@ -138,7 +138,10 @@ export type Species =
   // Mythic Roamers (aparecem raro em qualquer mapa, Lv 500)
   | "deoxys" | "groudon" | "lapras_shiny" | "snorlax_mythic" | "darkrai"
   // Novos pokémons
-  | "ho_oh" | "magmortar";
+  | "ho_oh" | "magmortar"
+  // Evento Lugia + reforços
+  | "lugia" | "hariyama" | "ursaring";
+
 
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "mythic_shiny";
@@ -359,6 +362,10 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   darkrai:         { hp: 140, atk: 180, def: 100, spa: 200, spd: 120, spe: 160, rarity: "mythic_shiny", goldRange: [900, 1500], crystalChance: 0.98, catchMod: 5.5, minLv: 500 },
   ho_oh:           { hp: 106, atk: 130, def: 90, spa: 110, spd: 154, spe: 90, rarity: "legendary", goldRange: [150, 260], crystalChance: 0.55, catchMod: 2.4, minLv: 70 },
   magmortar:       { hp: 75, atk: 95, def: 67, spa: 125, spd: 95, spe: 83, rarity: "epic", goldRange: [80, 150], crystalChance: 0.4, catchMod: 1.9, minLv: 40 },
+  lugia:           { hp: 200, atk: 170, def: 155, spa: 190, spd: 220, spe: 130, rarity: "mythic_shiny", goldRange: [1500, 2800], crystalChance: 1.0, catchMod: 6.5, minLv: 600 },
+  hariyama:        { hp: 144, atk: 120, def: 60, spa: 40, spd: 60, spe: 50, rarity: "legendary", goldRange: [220, 380], crystalChance: 0.6, catchMod: 2.6, minLv: 250 },
+  ursaring:        { hp: 130, atk: 140, def: 75, spa: 55, spd: 75, spe: 55, rarity: "mythic", goldRange: [320, 520], crystalChance: 0.75, catchMod: 3.2, minLv: 340 },
+
 
 };
 

@@ -209,6 +209,13 @@ const snorlaxMythicUrl = assetUrlFromJson(snorlaxMythicAsset);
 const darkraiUrl = assetUrlFromJson(darkraiAsset);
 const hoOhUrl = assetUrlFromJson(hoOhAsset);
 const magmortarUrl = assetUrlFromJson(magmortarAsset);
+import lugiaAsset from "@/assets/lugia.gif.asset.json";
+import hariyamaAsset from "@/assets/hariyama.gif.asset.json";
+import ursaringAsset from "@/assets/ursaring.gif.asset.json";
+const lugiaUrl = assetUrlFromJson(lugiaAsset);
+const hariyamaUrl = assetUrlFromJson(hariyamaAsset);
+const ursaringUrl = assetUrlFromJson(ursaringAsset);
+
 
 
 
@@ -372,7 +379,9 @@ const GIF: Partial<Record<Species, string>> = {
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
   deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl,
   darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
+  lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
 };
+
 
 
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
@@ -438,6 +447,8 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Mythic Roamers
   deoxys: "psychic", groudon: "fire", lapras_shiny: "water",
   darkrai: "psychic", ho_oh: "fire", magmortar: "fire",
+  lugia: "psychic", hariyama: "fighting", ursaring: "normal",
+
 } as Record<string, ElementFx>;
 
 
@@ -1046,6 +1057,9 @@ function IdlePage() {
   // alvo atual (para virar o pokémon) — id do inimigo que estamos atacando
   const [attackTargetId, setAttackTargetId] = useState<number | null>(null);
   const attackTargetIdRef = useRef<number | null>(null);
+  const paralyzedUntilRef = useRef<number>(0);
+  const [paralyzedUntil, setParalyzedUntil] = useState<number>(0);
+
   useEffect(() => { attackTargetIdRef.current = attackTargetId; }, [attackTargetId]);
   // Ao trocar de líder (ou seu nível mudar muito), inimigos fora da faixa
   // de nível são despawnados e novos são gerados para o novo líder.
@@ -2451,7 +2465,9 @@ function IdlePage() {
       if (petIsExhausted(leader)) { setAttackTargetId((c) => c !== null ? null : c); return; }
       if (!autoBattleRef.current?.enabled) { setAttackTargetId((c) => c !== null ? null : c); return; }
 
+      if (Date.now() < paralyzedUntilRef.current) return;
       setEnemies((prev) => {
+
         if (prev.length === 0) return spawnEnemies();
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
@@ -2507,8 +2523,41 @@ function IdlePage() {
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyActive = Date.now() < (idle.buffs.honeyUntil ?? 0);
         const honeyDef = honeyActive ? HONEY_BONUS : 0;
-        const eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
-        // Dano recebido → aparece EM CIMA DO MEU POKÉMON, com um respiro após o meu golpe
+        let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
+
+        // ✦ Habilidades especiais de espécies fortes (crit / paralisar / fugir)
+        const SPECIAL_ABILITY: Partial<Record<Species, { crit: number; para: number; flee: number }>> = {
+          lugia:     { crit: 0.35, para: 0.22, flee: 0.06 },
+          darkrai:   { crit: 0.25, para: 0.18, flee: 0.05 },
+          ho_oh:     { crit: 0.22, para: 0.12, flee: 0.04 },
+          deoxys:    { crit: 0.20, para: 0.15, flee: 0.05 },
+          groudon:   { crit: 0.28, para: 0.05, flee: 0.03 },
+          snorlax_mythic: { crit: 0.18, para: 0.10, flee: 0.02 },
+          lapras_shiny: { crit: 0.15, para: 0.15, flee: 0.03 },
+          hariyama:  { crit: 0.20, para: 0.10, flee: 0 },
+          ursaring:  { crit: 0.22, para: 0.06, flee: 0 },
+        };
+        const spec = SPECIAL_ABILITY[target.sp];
+        if (spec) {
+          if (Math.random() < spec.crit) {
+            eDmg = Math.floor(eDmg * 2.5);
+            pushChat(`💥 ${target.sp.replace(/_/g," ").toUpperCase()} desferiu um GOLPE CRÍTICO!`, "hit");
+          }
+          if (Math.random() < spec.para) {
+            const dur = target.sp === "lugia" ? 120_000 : 60_000;
+            paralyzedUntilRef.current = Date.now() + dur;
+            setParalyzedUntil(paralyzedUntilRef.current);
+            pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+          }
+          if (spec.flee > 0 && Math.random() < spec.flee) {
+            const fleeId = target.id;
+            setTimeout(() => {
+              setEnemies((cur) => cur.filter((e) => e.id !== fleeId));
+              pushChat(`💨 ${target.sp.replace(/_/g," ").toUpperCase()} fugiu do combate!`, "info");
+            }, 900);
+          }
+        }
+
         setTimeout(() => {
           setEnemyAttackAnim({
             id: attackAnimIdRef.current++,
@@ -3054,6 +3103,34 @@ function IdlePage() {
       setLegendUntil(null);
     }
   }, [idle.currentMap]);
+
+
+  // ==== EVENTO LUGIA: a cada 1h aparece Lugia (Nv 600, Mítico Brilhante) ====
+  useEffect(() => {
+    const spawnLugia = () => {
+      if (currentMapRef.current === "arena") return; // não polui o mapa inicial
+      setEnemies((prev) => {
+        if (prev.some((e) => e.sp === "lugia")) return prev;
+        let x = 400, y = 400, tries = 0;
+        do {
+          x = 300 + Math.random() * (WORLD_W - 600);
+          y = 300 + Math.random() * (WORLD_H - 600);
+          tries++;
+        } while (collidesWithAny(x, y) && tries < 30);
+        const petA = makePet("lugia", 600);
+        const hp = Math.floor(calcIdleMaxHp(petA) * 8); // muito tanky
+        return [
+          ...prev,
+          { sp: "lugia", hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: false, aggroR: 0, elite: true, level: 600, rarity: "mythic_shiny", eventLegendary: true } as Enemy,
+        ];
+      });
+      pushEvent("🌊", "EVENTO MÍTICO ✦", "LUGIA ✦ surgiu! Extremamente forte — pode paralisar, dar crítico e fugir!", "#7ee6ff");
+      pushChat(`★ EVENTO MÍTICO ✦: LUGIA ✦ apareceu! Só MASTER ou ULTRA (com muita sorte) captura!`, "cap");
+    };
+    const firstTo = setTimeout(spawnLugia, 5 * 60_000); // primeira aparição em 5 min
+    const iv = setInterval(spawnLugia, 60 * 60_000);   // depois 1h em 1h
+    return () => { clearTimeout(firstTo); clearInterval(iv); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
 
@@ -5117,7 +5194,26 @@ function IdlePage() {
                   zIndex: Math.round(e.y),
                   cursor: dead ? "default" : "pointer",
                 }}>
+                  {e.sp === "lugia" && (
+                    <>
+                      <div style={{
+                        position: "absolute", inset: -60, borderRadius: "50%",
+                        background: "radial-gradient(circle, rgba(126,230,255,0.35) 0%, rgba(255,151,225,0.18) 45%, transparent 75%)",
+                        filter: "blur(4px)",
+                        animation: "pulse 2s ease-in-out infinite",
+                        pointerEvents: "none", zIndex: -1,
+                      }} />
+                      <div style={{
+                        position: "absolute", inset: -30, borderRadius: "50%",
+                        border: "2px solid rgba(126,230,255,0.7)",
+                        boxShadow: "0 0 40px rgba(126,230,255,0.9), inset 0 0 30px rgba(255,151,225,0.7)",
+                        animation: "spin 8s linear infinite",
+                        pointerEvents: "none", zIndex: -1,
+                      }} />
+                    </>
+                  )}
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
+
                   {e.rider && (
                     <div style={{
                       position: "absolute", top: -38, left: "50%",
