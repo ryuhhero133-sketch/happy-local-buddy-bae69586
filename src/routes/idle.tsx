@@ -69,9 +69,9 @@ import luxrayFAsset from "@/assets/legends/luxray-f.gif.asset.json";
 
 const SKINS: { id: string; label: string; url: string | null }[] = [
   { id: "default", label: "Treinador Clássico", url: null },
-  { id: "pedro", label: "Pedro Dancer", url: assetUrl(skinPedroAsset.url) },
-  { id: "phone", label: "Phone 036", url: assetUrl(skinPhoneAsset.url) },
-  { id: "goku", label: "Goku", url: assetUrl(skinGokuAsset.url) },
+  { id: "pedro", label: "Pedro Dancer", url: assetUrlFromJson(skinPedroAsset) },
+  { id: "phone", label: "Phone 036", url: assetUrlFromJson(skinPhoneAsset) },
+  { id: "goku", label: "Goku", url: assetUrlFromJson(skinGokuAsset) },
 ];
 const SKIN_KEY = "rubym.skin.v1";
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
@@ -192,13 +192,13 @@ import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
 import groudonAsset from "@/assets/groudon.gif.asset.json";
 import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
 import snorlaxMythicAsset from "@/assets/snorlax-mythic.gif.asset.json";
-const pidgeottoUrl = assetUrl(pidgeottoAsset.url);
-const raticateFUrl = assetUrl(raticateFAsset.url);
-const fearowUrl = assetUrl(fearowAsset.url);
-const deoxysUrl = assetUrl(deoxysAsset.url);
-const groudonUrl = assetUrl(groudonAsset.url);
-const laprasShinyUrl = assetUrl(laprasShinyAsset.url);
-const snorlaxMythicUrl = assetUrl(snorlaxMythicAsset.url);
+const pidgeottoUrl = assetUrlFromJson(pidgeottoAsset);
+const raticateFUrl = assetUrlFromJson(raticateFAsset);
+const fearowUrl = assetUrlFromJson(fearowAsset);
+const deoxysUrl = assetUrlFromJson(deoxysAsset);
+const groudonUrl = assetUrlFromJson(groudonAsset);
+const laprasShinyUrl = assetUrlFromJson(laprasShinyAsset);
+const snorlaxMythicUrl = assetUrlFromJson(snorlaxMythicAsset);
 
 
 
@@ -206,77 +206,77 @@ const IDLE_KEY = "rubym.idle.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
-const idleArenaUrl = assetUrl(idleArenaAsset.url);
+const idleArenaUrl = assetUrlFromJson(idleArenaAsset);
 
-const mapSnowUrl = assetUrl(mapSnowAsset.url);
-const mapDesertUrl = assetUrl(mapDesertAsset.url);
-const mapCaveUrl = assetUrl(mapCaveAsset.url);
-const mapStoneUrl = assetUrl(mapStoneAsset.url);
-const mapTerraUrl = assetUrl(mapTerraAsset.url);
-const hornetCocoonUrl = assetUrl(hornetCocoonAsset.url);
-const fireLakeUrl = assetUrl(fireLakeAsset.url);
-const mapVenofogoOrangeUrl = assetUrl(mapVenofogoOrangeAsset.url);
+const mapSnowUrl = assetUrlFromJson(mapSnowAsset);
+const mapDesertUrl = assetUrlFromJson(mapDesertAsset);
+const mapCaveUrl = assetUrlFromJson(mapCaveAsset);
+const mapStoneUrl = assetUrlFromJson(mapStoneAsset);
+const mapTerraUrl = assetUrlFromJson(mapTerraAsset);
+const hornetCocoonUrl = assetUrlFromJson(hornetCocoonAsset);
+const fireLakeUrl = assetUrlFromJson(fireLakeAsset);
+const mapVenofogoOrangeUrl = assetUrlFromJson(mapVenofogoOrangeAsset);
 const mapFantasmaUrl = assetUrlFromJson(mapFantasmaAsset);
 // URLs dos 10 novos mapas endgame
-const mapForestUrl = assetUrl(mapForestAsset.url);
-const mapFlorestaSecretaUrl = assetUrl(mapFlorestaSecretaAsset.url);
-const mapPedreiraCavernaUrl = assetUrl(mapPedreiraCavernaAsset.url);
-const mapRoute3Url = assetUrl(mapRoute3Asset.url);
-const mapForestCaveUrl = assetUrl(mapForestCaveAsset.url);
-const mapPalletRouteUrl = assetUrl(mapPalletRouteAsset.url);
-const mapEliteRouteUrl = assetUrl(mapEliteRouteAsset.url);
-const mapVictoryRoadUrl = assetUrl(mapVictoryRoadAsset.url);
-const mapViridianUrl = assetUrl(mapViridianAsset.url);
-const mapVenenoUrl = assetUrl(mapVenenoAsset.url);
+const mapForestUrl = assetUrlFromJson(mapForestAsset);
+const mapFlorestaSecretaUrl = assetUrlFromJson(mapFlorestaSecretaAsset);
+const mapPedreiraCavernaUrl = assetUrlFromJson(mapPedreiraCavernaAsset);
+const mapRoute3Url = assetUrlFromJson(mapRoute3Asset);
+const mapForestCaveUrl = assetUrlFromJson(mapForestCaveAsset);
+const mapPalletRouteUrl = assetUrlFromJson(mapPalletRouteAsset);
+const mapEliteRouteUrl = assetUrlFromJson(mapEliteRouteAsset);
+const mapVictoryRoadUrl = assetUrlFromJson(mapVictoryRoadAsset);
+const mapViridianUrl = assetUrlFromJson(mapViridianAsset);
+const mapVenenoUrl = assetUrlFromJson(mapVenenoAsset);
 // URLs dos orbs (sprites transparentes)
-const orbXpMinorUrl = assetUrl(orbXpMinorAsset.url);
-const orbXpMajorUrl = assetUrl(orbXpMajorAsset.url);
-const orbXpSupremeUrl = assetUrl(orbXpSupremeAsset.url);
-const npcTraderUrl = assetUrl(npcTraderAsset.url);
-const redLakeUrl = assetUrl(redLakeAsset.url);
-const volcanoUrl = assetUrl(volcanoAsset.url);
-const rubyGemUrl = assetUrl(rubyGemAsset.url);
-const treeOakUrl = assetUrl(treeOakAsset.url);
-const treePineUrl = assetUrl(treePineAsset.url);
-const rockBoulderUrl = assetUrl(rockBoulderAsset.url);
-const bushBerryUrl = assetUrl(bushBerryAsset.url);
-const rockLavaUrl = assetUrl(rockLavaAsset.url);
-const rattataFUrl = assetUrl(rattataFAsset.url);
-const zubatUrl = assetUrl(zubatAsset.url);
-const ekansUrl = assetUrl(ekansAsset.url);
-const machopUrl = assetUrl(machopAsset.url);
-const diglettUrl = assetUrl(diglettAsset.url);
-const meowthUrl = assetUrl(meowthAsset.url);
-const psyduckUrl = assetUrl(psyduckAsset.url);
-const lucarioAuraUrl = assetUrl(lucarioAuraAsset.url);
-const mewAuraUrl = assetUrl(mewAuraAsset.url);
-const oddishUrl = assetUrl(oddishAsset.url);
-const bellsproutUrl = assetUrl(bellsproutAsset.url);
-const weedleUrl = assetUrl(weedleAsset.url);
-const kakunaUrl = assetUrl(kakunaAsset.url);
-const parasUrl = assetUrl(parasAsset.url);
-const parasectUrl = assetUrl(parasectAsset.url);
-const venonatUrl = assetUrl(venonatAsset.url);
-const clefairyUrl = assetUrl(clefairyAsset.url);
-const sandshrewUrl = assetUrl(sandshrewAsset.url);
-const mankeyUrl = assetUrl(mankeyAsset.url);
-const poliwagUrl = assetUrl(poliwagAsset.url);
-const growlitheUrl = assetUrl(growlitheAsset.url);
-const abraUrl = assetUrl(abraAsset.url);
-const cuboneUrl = assetUrl(cuboneAsset.url);
-const magnemiteUrl = assetUrl(magnemiteAsset.url);
-const nidoranFUrl = assetUrl(nidoranFAsset.url);
-const snorlaxUrl = assetUrl(snorlaxAsset.url);
-const gloomUrl = assetUrl(gloomAsset.url);
+const orbXpMinorUrl = assetUrlFromJson(orbXpMinorAsset);
+const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
+const orbXpSupremeUrl = assetUrlFromJson(orbXpSupremeAsset);
+const npcTraderUrl = assetUrlFromJson(npcTraderAsset);
+const redLakeUrl = assetUrlFromJson(redLakeAsset);
+const volcanoUrl = assetUrlFromJson(volcanoAsset);
+const rubyGemUrl = assetUrlFromJson(rubyGemAsset);
+const treeOakUrl = assetUrlFromJson(treeOakAsset);
+const treePineUrl = assetUrlFromJson(treePineAsset);
+const rockBoulderUrl = assetUrlFromJson(rockBoulderAsset);
+const bushBerryUrl = assetUrlFromJson(bushBerryAsset);
+const rockLavaUrl = assetUrlFromJson(rockLavaAsset);
+const rattataFUrl = assetUrlFromJson(rattataFAsset);
+const zubatUrl = assetUrlFromJson(zubatAsset);
+const ekansUrl = assetUrlFromJson(ekansAsset);
+const machopUrl = assetUrlFromJson(machopAsset);
+const diglettUrl = assetUrlFromJson(diglettAsset);
+const meowthUrl = assetUrlFromJson(meowthAsset);
+const psyduckUrl = assetUrlFromJson(psyduckAsset);
+const lucarioAuraUrl = assetUrlFromJson(lucarioAuraAsset);
+const mewAuraUrl = assetUrlFromJson(mewAuraAsset);
+const oddishUrl = assetUrlFromJson(oddishAsset);
+const bellsproutUrl = assetUrlFromJson(bellsproutAsset);
+const weedleUrl = assetUrlFromJson(weedleAsset);
+const kakunaUrl = assetUrlFromJson(kakunaAsset);
+const parasUrl = assetUrlFromJson(parasAsset);
+const parasectUrl = assetUrlFromJson(parasectAsset);
+const venonatUrl = assetUrlFromJson(venonatAsset);
+const clefairyUrl = assetUrlFromJson(clefairyAsset);
+const sandshrewUrl = assetUrlFromJson(sandshrewAsset);
+const mankeyUrl = assetUrlFromJson(mankeyAsset);
+const poliwagUrl = assetUrlFromJson(poliwagAsset);
+const growlitheUrl = assetUrlFromJson(growlitheAsset);
+const abraUrl = assetUrlFromJson(abraAsset);
+const cuboneUrl = assetUrlFromJson(cuboneAsset);
+const magnemiteUrl = assetUrlFromJson(magnemiteAsset);
+const nidoranFUrl = assetUrlFromJson(nidoranFAsset);
+const snorlaxUrl = assetUrlFromJson(snorlaxAsset);
+const gloomUrl = assetUrlFromJson(gloomAsset);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const gameDb = supabase as any;
 
-const potionIconUrl = assetUrl(potionIconAsset.url);
-const bgmUrl = assetUrl(bgmAsset.url);
-const sfxLevelUpUrl = assetUrl(sfxLevelUpAsset.url);
-const sfxClickUrl = assetUrl(sfxClickAsset.url);
-const sfxBonusUrl = assetUrl(sfxBonusAsset.url);
-const sfxChestOpenUrl = assetUrl(sfxChestOpenAsset.url);
+const potionIconUrl = assetUrlFromJson(potionIconAsset);
+const bgmUrl = assetUrlFromJson(bgmAsset);
+const sfxLevelUpUrl = assetUrlFromJson(sfxLevelUpAsset);
+const sfxClickUrl = assetUrlFromJson(sfxClickAsset);
+const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
+const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
   | "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
@@ -334,9 +334,9 @@ const GIF: Partial<Record<Species, string>> = {
   beedrill: beedrillGif, butterfree: butterfreeGif,
   pinsir: pinsirGif, golem: golemGif, jolteon: jolteonGif, lapras: laprasGif,
   blaziken: blazikenGif,
-  virizion: assetUrl(virizionAsset.url), raikou: assetUrl(raikouAsset.url),
-  suicune: assetUrl(suicuneAsset.url), suicune_shiny: assetUrl(suicuneShinyAsset.url),
-  luxray_f: assetUrl(luxrayFAsset.url),
+  virizion: assetUrlFromJson(virizionAsset), raikou: assetUrlFromJson(raikouAsset),
+  suicune: assetUrlFromJson(suicuneAsset), suicune_shiny: assetUrlFromJson(suicuneShinyAsset),
+  luxray_f: assetUrlFromJson(luxrayFAsset),
   oddish: oddishUrl, bellsprout: bellsproutUrl, weedle: weedleUrl, kakuna: kakunaUrl,
   caterpie: caterpieGif, metapod: metapodGif, vulpix: vulpixGif,
   paras: parasUrl, parasect: parasectUrl, venonat: venonatUrl, gloom: gloomUrl,
@@ -4411,7 +4411,7 @@ function IdlePage() {
               title="Ranking — Top 20 níveis"
             >
               <img
-                src={assetUrl(trophyIconAsset.url)}
+                src={assetUrlFromJson(trophyIconAsset)}
                 alt="Ranking"
                 width={30}
                 height={30}
@@ -4583,7 +4583,7 @@ function IdlePage() {
                     borderBottom: "1px solid rgba(255,214,80,0.35)",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <img src={assetUrl(trophyIconAsset.url)} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(255,214,80,0.7))" }} />
+                      <img src={assetUrlFromJson(trophyIconAsset)} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(255,214,80,0.7))" }} />
                       <div>
                         <div style={{ fontWeight: 900, fontSize: 18, color: "#ffd94d", letterSpacing: 0.5 }}>RANKING GLOBAL</div>
                         <div style={{ fontSize: 10, opacity: 0.7 }}>Top 50 treinadores do mundo</div>
