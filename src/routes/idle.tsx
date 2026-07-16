@@ -1771,6 +1771,21 @@ function IdlePage() {
       setCodeInput("");
       return;
     }
+    if (raw === "CHARIZARDEGG2026") {
+      if (localStorage.getItem(CHARIZARD_EGG_CODE_KEY) === "1") {
+        setCodeMsg({ kind: "err", text: "Este código já foi resgatado nesta conta." });
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, egg_charizard: (s.items.egg_charizard ?? 0) + 1 },
+      }));
+      localStorage.setItem(CHARIZARD_EGG_CODE_KEY, "1");
+      pushChat("🔥 Código resgatado: +1 Ovo do Charizard (mítico)!", "cap");
+      setCodeMsg({ kind: "ok", text: "Recompensa: 1× Ovo do Charizard (mítico)." });
+      setCodeInput("");
+      return;
+    }
     setCodeMsg({ kind: "err", text: "Código inválido." });
   };
 
