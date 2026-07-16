@@ -191,7 +191,7 @@ const mapTerraUrl = assetUrl(mapTerraAsset.url);
 const hornetCocoonUrl = assetUrl(hornetCocoonAsset.url);
 const fireLakeUrl = assetUrl(fireLakeAsset.url);
 const mapVenofogoOrangeUrl = assetUrl(mapVenofogoOrangeAsset.url);
-const mapFantasmaUrl = assetUrl(mapFantasmaAsset.url);
+const mapFantasmaUrl = assetUrlFromJson(mapFantasmaAsset);
 const redLakeUrl = assetUrl(redLakeAsset.url);
 const volcanoUrl = assetUrl(volcanoAsset.url);
 const rubyGemUrl = assetUrl(rubyGemAsset.url);
@@ -1748,6 +1748,47 @@ function IdlePage() {
       setRemotePlayers([]);
     };
   }, [identity?.id, identity?.name, idle.currentMap, idle.totals.captured, idle.craftPoints, team]);
+
+  const fakeMapPlayers = useMemo<RemotePlayer[]>(() => {
+    const names = [
+      "Luna", "Ryu", "Mika", "Theo", "Nina", "Kai", "Yuri", "Lia", "Noah", "Iris",
+      "Bento", "Akira", "Tina", "Kiko", "Maya", "Zeca", "Lipe", "Sora", "Neko", "Ruby",
+      "Ash", "Brock", "Misty", "Red", "Blue", "Green", "Gold", "Silver", "Leaf", "Dawn",
+      "May", "Serena", "Clem", "Rosa", "Hilda", "Nate", "Hugo", "Lola", "Jade", "Bolt",
+      "Pyro", "Flora", "Ghost", "Rocky", "Aqua", "Zuzu", "Pip", "Max", "Lulu", "Toby",
+    ];
+    const leaders: Species[] = [
+      "pikachu", "bulbasaur", "charmander", "squirtle", "pidgey", "zubat", "jigglypuff", "oddish", "growlithe", "golem",
+      "cubone", "magnemite", "poliwag", "vulpix", "sandshrew", "mankey", "bellsprout", "venonat", "clefairy", "meowth",
+    ];
+    const t = Math.floor(Date.now() / 1000);
+    return Array.from({ length: 50 }, (_, i) => {
+      const a = (i * 47 + idle.currentMap.length * 19) % 360;
+      const r1 = 260 + ((i * 83) % 620);
+      const r2 = 210 + ((i * 61) % 570);
+      const speed = 0.018 + (i % 7) * 0.003;
+      const phase = (a * Math.PI) / 180 + t * speed;
+      const x = Math.max(90, Math.min(WORLD_W - 90, WORLD_W / 2 + Math.cos(phase) * r1 + Math.sin(phase * 0.7 + i) * 90));
+      const y = Math.max(110, Math.min(WORLD_H - 110, WORLD_H / 2 + Math.sin(phase * 1.13) * r2 + Math.cos(phase * 0.55 + i) * 70));
+      const dx = -Math.sin(phase) * r1;
+      const dy = Math.cos(phase * 1.13) * r2;
+      const dir: Dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+      return {
+        id: `fake-${idle.currentMap}-${i}`,
+        userId: `fake-${i}`,
+        name: names[i] ?? `Trainer ${i + 1}`,
+        x,
+        y,
+        dir,
+        step: Math.floor((t / 0.45 + i) % 4),
+        leaderSp: leaders[i % leaders.length],
+        ts: Date.now(),
+        fake: true,
+      } as RemotePlayer & { fake: true };
+    });
+  }, [idle.currentMap, energyTick]);
+
+  const visibleMapPlayers = useMemo(() => [...remotePlayers, ...fakeMapPlayers], [remotePlayers, fakeMapPlayers]);
 
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -4842,7 +4883,7 @@ function IdlePage() {
 
 
             {/* Outros jogadores no mesmo mapa */}
-            {remotePlayers.map((rp) => {
+            {visibleMapPlayers.map((rp) => {
               const rpLeaderSrc = rp.leaderSp ? GIF[rp.leaderSp] : undefined;
               return (
                 <div key={rp.id} style={{
@@ -5618,7 +5659,7 @@ function IdlePage() {
                     }} />
                   ))}
                   {/* Outros jogadores no mesmo mapa */}
-                  {remotePlayers.map((rp) => (
+                  {visibleMapPlayers.map((rp) => (
                     <div key={`mm-${rp.id}`} title={rp.name} style={{
                       position: "absolute",
                       left: `${(rp.x / WORLD_W) * 100}%`,
