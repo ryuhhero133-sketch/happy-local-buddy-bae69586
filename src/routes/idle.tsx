@@ -61,6 +61,7 @@ import { computeTeamSynergies, computePower } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
+import { PokemonMarketPanel } from "@/components/PokemonMarketPanel";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
@@ -6039,6 +6040,35 @@ function IdlePage() {
               onBuyMarket={buyMarketListing}
               onCancelMarket={cancelMarketListing}
               isVip={isVip()}
+              pokemonMarketNode={
+                <PokemonMarketPanel
+                  identity={identity}
+                  collection={idle.collection ?? []}
+                  gold={idle.bank.gold}
+                  crystals={idle.bank.crystals}
+                  isVip={isVip()}
+                  gifOf={(sp) => GIF[sp]}
+                  onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
+                  onReturned={(entry) => setIdle((s) => {
+                    const col = s.collection ?? [];
+                    if (col.some(c => c.uid === entry.uid)) return s;
+                    return { ...s, collection: [...col, entry] };
+                  })}
+                  onSpend={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
+                      : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
+                  }))}
+                  onEarn={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: s.bank.gold + amount }
+                      : { ...s.bank, crystals: s.bank.crystals + amount },
+                  }))}
+                  pushChat={pushChat}
+                />
+              }
               skinId={skinId}
               setSkinId={setSkinId}
               unlockedSkins={idle.unlockedSkins ?? ["default"]}
@@ -6501,7 +6531,7 @@ function IdlePage() {
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
-            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
+            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d" },
             // Carteira bloqueada temporariamente
             // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
           ] as const).map((t) => {
@@ -7651,7 +7681,7 @@ const zoomBtn: React.CSSProperties = {
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
-  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb,
+  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode,
 
 }: {
   tab: string;
@@ -7705,6 +7735,7 @@ function TabOverlay({
   onUpgradeBook: (id: string) => void;
   orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[];
   onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => void;
+  pokemonMarketNode?: React.ReactNode;
 
 
 }) {
@@ -8968,18 +8999,20 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-        <MarketScreen
-          items={items}
-          bank={bank}
-          identity={identity}
-          isVip={isVip}
-          onList={onListMarket}
-          onBuy={onBuyMarket}
-          onCancel={onCancelMarket}
-          onNpcSell={onSellItem}
-          npcPrices={marketSellPrices}
-        />
-
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {pokemonMarketNode}
+          <MarketScreen
+            items={items}
+            bank={bank}
+            identity={identity}
+            isVip={isVip}
+            onList={onListMarket}
+            onBuy={onBuyMarket}
+            onCancel={onCancelMarket}
+            onNpcSell={onSellItem}
+            npcPrices={marketSellPrices}
+          />
+        </div>
       )}
 
 
