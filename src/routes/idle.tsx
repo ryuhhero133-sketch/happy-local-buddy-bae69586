@@ -2226,8 +2226,8 @@ function IdlePage() {
               const newXp = (p.xp ?? 0) + xp;
               let lv = p.level;
               let remaining = newXp;
-              while (lv < 3000 && remaining >= 100 + lv * 20) { remaining -= 100 + lv * 20; lv += 1; }
-              if (lv >= 3000) remaining = 0;
+              while (lv < 10000 && remaining >= 100 + lv * 20) { remaining -= 100 + lv * 20; lv += 1; }
+              if (lv >= 10000) remaining = 0;
               return {
                 ...p, level: lv, xp: remaining,
                 hp: Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })),
