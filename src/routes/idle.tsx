@@ -1313,6 +1313,7 @@ function IdlePage() {
   const [azulPickerOpen, setAzulPickerOpen] = useState(false);
   const [azulPreselectUid, setAzulPreselectUid] = useState<string | null>(null);
   const [colecaoDetailUid, setColecaoDetailUid] = useState<string | null>(null);
+  const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
