@@ -5753,8 +5753,9 @@ function IdlePage() {
             onClick={async () => {
               playClick();
               try {
+                const ok = await pushCloudSaveNow(buildFullBlob());
                 await serverSync.pushNow();
-                pushChat("☁️ Progresso salvo na nuvem!", "info");
+                pushChat(ok ? "☁️ Progresso salvo na nuvem!" : "⚠️ Salvo local (sem conexão).", "info");
               } catch (e) {
                 pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
               }
