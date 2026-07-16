@@ -7560,7 +7560,7 @@ function MenuOverlay({
           <Tile label="STATUS" sub="Pikachu observa atributos" tint="#f5f3ff" accent="#facc15" art={artStatus} onClick={onStatus} />
           <Tile label="ASCENSÃO" sub="Charizard desperta o poder" tint="#fffbeb" accent="#f97316" art={artAscension} onClick={onAscension} badge="!" />
           <Tile label="ÁLBUM" sub="Pokédex brilhante" tint="#f0f9ff" accent="#dc2626" art={artAlbum} onClick={onCodex} />
-          <Tile label="QUESTS" sub="Modo história — NPCs" tint="#f5f3ff" accent="#a855f7" art={artAlbum} onClick={onQuests} badge={questCount > 0 ? String(questCount) : undefined} />
+          <Tile label="ATIVIDADES" sub="Quests & missões dos NPCs" tint="#f5f3ff" accent="#a855f7" art={artAlbum} onClick={onQuests} badge={questCount > 0 ? String(questCount) : undefined} />
           <Tile label="DRIVE" sub="Armazenamento futurista" tint="#ecfeff" accent="#22d3ee" art={artDrive} onClick={onDrive} />
           <Tile label="PvP" sub="Arena dos treinadores" tint="#fff1f2" accent="#ef4444" art={artPvp} onClick={onPlayers} />
           <Tile label="GUILDA" sub={hasGuild ? "Brasão lendário" : "Funde a sua guilda"} tint="#f5f3ff" accent="#8b5cf6" art={artGuild} onClick={onGuild} badge={hasGuild ? "12" : undefined} />
