@@ -195,6 +195,9 @@ import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
 import groudonAsset from "@/assets/groudon.gif.asset.json";
 import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
 import snorlaxMythicAsset from "@/assets/snorlax-mythic.gif.asset.json";
+import darkraiAsset from "@/assets/darkrai.gif.asset.json";
+import hoOhAsset from "@/assets/ho-oh.gif.asset.json";
+import magmortarAsset from "@/assets/magmortar.gif.asset.json";
 const pidgeottoUrl = assetUrlFromJson(pidgeottoAsset);
 const raticateFUrl = assetUrlFromJson(raticateFAsset);
 const fearowUrl = assetUrlFromJson(fearowAsset);
@@ -202,6 +205,9 @@ const deoxysUrl = assetUrlFromJson(deoxysAsset);
 const groudonUrl = assetUrlFromJson(groudonAsset);
 const laprasShinyUrl = assetUrlFromJson(laprasShinyAsset);
 const snorlaxMythicUrl = assetUrlFromJson(snorlaxMythicAsset);
+const darkraiUrl = assetUrlFromJson(darkraiAsset);
+const hoOhUrl = assetUrlFromJson(hoOhAsset);
+const magmortarUrl = assetUrlFromJson(magmortarAsset);
 
 
 
