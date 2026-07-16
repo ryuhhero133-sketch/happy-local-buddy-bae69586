@@ -7275,7 +7275,7 @@ function TabOverlay({
                       {entry.rarity.toUpperCase()}
                     </div>
                     <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 900 }}>
-                      Nv. {entry.level}
+                      Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
                     </div>
                     <button
                       onClick={() => {
