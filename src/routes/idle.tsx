@@ -7771,6 +7771,24 @@ function TabOverlay({
                                 boxShadow: "0 2px 4px rgba(184,134,42,0.55)",
                               }}>★ LÍDER</button>
                           )}
+                          <button
+                            onClick={() => {
+                              if (!confirm(`Retirar ${p.species.replace(/_/g, " ")} do time? Ele volta para a Coleção.`)) return;
+                              setTeam((tm) => {
+                                const arr = tm.filter((x) => x.uid !== p.uid);
+                                if (i === 0 && arr[0]) setLeaderHp(calcIdleMaxHp(arr[0]));
+                                return arr;
+                              });
+                              pushChat(`↩ ${p.species.replace(/_/g, " ")} foi retirado do time.`, "info");
+                            }}
+                            title="Retirar do time (volta pra Coleção)"
+                            style={{
+                              padding: "3px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 0.5,
+                              background: "linear-gradient(180deg, #ff7a7a, #8a1a1a)",
+                              color: "#fff", border: "1px solid #ffb8b8",
+                              borderRadius: 5, cursor: "pointer",
+                              boxShadow: "0 2px 4px rgba(138,26,26,0.55)",
+                            }}>↩ RETIRAR</button>
                         </div>
                       </div>
                     );
