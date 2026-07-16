@@ -89,6 +89,10 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   dragonair: ["dragao"], dragonite: ["dragao","voador"], dragonite_shiny: ["dragao","voador"],
   // Aura / especial
   lucario: ["lutador"],
+  lugia: ["psiquico","voador"],
+  hariyama: ["lutador"],
+  ursaring: ["normal"],
+
 };
 
 export function elementsOf(sp: Species): Element[] {
