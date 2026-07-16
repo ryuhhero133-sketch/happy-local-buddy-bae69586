@@ -569,7 +569,9 @@ const SPECIES_NAME: Record<Species, string> = {
   lucario: "LUCARIO",
   virizion: "VIRIZION", raikou: "RAIKOU", suicune: "SUICUNE",
   suicune_shiny: "SUICUNE ✦", luxray_f: "LUXRAY♀", blaziken: "BLAZIKEN",
+  deoxys: "DEOXYS", groudon: "GROUDON", lapras_shiny: "LAPRAS ✦", snorlax_mythic: "SNORLAX ✦",
 };
+
 
 const SPAWN_WEIGHTS: { sp: Species; w: number }[] = [
   { sp: "caterpie", w: 55 }, { sp: "jigglypuff", w: 42 },
