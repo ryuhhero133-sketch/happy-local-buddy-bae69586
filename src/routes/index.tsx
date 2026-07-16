@@ -230,15 +230,21 @@ import jolteonAsset from "@/assets/jolteon.gif.asset.json";
 import jolteonShinyAsset from "@/assets/jolteon-shiny.gif.asset.json";
 import vaporeonShinyAsset from "@/assets/vaporeon-shiny.gif.asset.json";
 import blazikenAsset from "@/assets/blaziken.gif.asset.json";
-const blazikenGif = blazikenAsset.url;
+const blazikenGif = assetUrlFromJson(blazikenAsset);
 import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
 import groudonAsset from "@/assets/groudon.gif.asset.json";
 import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
 import snorlaxMythicAsset from "@/assets/snorlax-mythic.gif.asset.json";
+import darkraiAsset from "@/assets/darkrai.gif.asset.json";
+import hoOhAsset from "@/assets/ho-oh.gif.asset.json";
+import magmortarAsset from "@/assets/magmortar.gif.asset.json";
 const deoxysGif = assetUrlFromJson(deoxysAsset);
 const groudonGif = assetUrlFromJson(groudonAsset);
 const laprasShinyGif = assetUrlFromJson(laprasShinyAsset);
 const snorlaxMythicGif = assetUrlFromJson(snorlaxMythicAsset);
+const darkraiGif = assetUrlFromJson(darkraiAsset);
+const hoOhGif = assetUrlFromJson(hoOhAsset);
+const magmortarGif = assetUrlFromJson(magmortarAsset);
 
 const laprasGif = laprasAsset.url;
 const vaporeonGif = vaporeonAsset.url;
@@ -529,6 +535,7 @@ const SPECIES_GIF: Record<Species, string> = {
   suicune_shiny: assetUrlFromJson(suicuneShinyAsset), luxray_f: assetUrlFromJson(luxrayFAsset),
   blaziken: blazikenGif,
   deoxys: deoxysGif, groudon: groudonGif, lapras_shiny: laprasShinyGif, snorlax_mythic: snorlaxMythicGif,
+  darkrai: darkraiGif, ho_oh: hoOhGif, magmortar: magmortarGif,
 };
 
 
@@ -570,6 +577,7 @@ const SPECIES_NAME: Record<Species, string> = {
   virizion: "VIRIZION", raikou: "RAIKOU", suicune: "SUICUNE",
   suicune_shiny: "SUICUNE ✦", luxray_f: "LUXRAY♀", blaziken: "BLAZIKEN",
   deoxys: "DEOXYS", groudon: "GROUDON", lapras_shiny: "LAPRAS ✦", snorlax_mythic: "SNORLAX ✦",
+  darkrai: "DARKRAI ✦", ho_oh: "HO-OH", magmortar: "MAGMORTAR",
 };
 
 

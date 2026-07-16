@@ -136,7 +136,9 @@ export type Species =
   // Legendários/míticos evento
   | "virizion" | "raikou" | "suicune" | "suicune_shiny" | "luxray_f"
   // Mythic Roamers (aparecem raro em qualquer mapa, Lv 500)
-  | "deoxys" | "groudon" | "lapras_shiny" | "snorlax_mythic";
+  | "deoxys" | "groudon" | "lapras_shiny" | "snorlax_mythic" | "darkrai"
+  // Novos pokémons
+  | "ho_oh" | "magmortar";
 
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "mythic_shiny";
@@ -353,6 +355,9 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   groudon:         { hp: 100, atk: 150, def: 140, spa: 100, spd: 90, spe: 90, rarity: "mythic_shiny", goldRange: [500, 900], crystalChance: 0.9, catchMod: 3.0, minLv: 500 },
   lapras_shiny:    { hp: 130, atk: 85, def: 80, spa: 95, spd: 95, spe: 60, rarity: "mythic_shiny", goldRange: [500, 900], crystalChance: 0.9, catchMod: 3.0, minLv: 500 },
   snorlax_mythic:  { hp: 160, atk: 110, def: 65, spa: 65, spd: 110, spe: 30, rarity: "mythic_shiny", goldRange: [500, 900], crystalChance: 0.9, catchMod: 3.0, minLv: 500 },
+  darkrai:         { hp: 140, atk: 180, def: 100, spa: 200, spd: 120, spe: 160, rarity: "mythic_shiny", goldRange: [900, 1500], crystalChance: 0.98, catchMod: 5.5, minLv: 500 },
+  ho_oh:           { hp: 106, atk: 130, def: 90, spa: 110, spd: 154, spe: 90, rarity: "legendary", goldRange: [150, 260], crystalChance: 0.55, catchMod: 2.4, minLv: 70 },
+  magmortar:       { hp: 75, atk: 95, def: 67, spa: 125, spd: 95, spe: 83, rarity: "epic", goldRange: [80, 150], crystalChance: 0.4, catchMod: 1.9, minLv: 40 },
 
 };
 

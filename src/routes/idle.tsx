@@ -156,9 +156,9 @@ import golemGif from "@/assets/golem.gif";
 import jolteonIdleAsset from "@/assets/jolteon.gif.asset.json";
 import laprasIdleAsset from "@/assets/lapras.gif.asset.json";
 import blazikenIdleAsset from "@/assets/blaziken.gif.asset.json";
-const jolteonGif = jolteonIdleAsset.url;
-const laprasGif = laprasIdleAsset.url;
-const blazikenGif = blazikenIdleAsset.url;
+const jolteonGif = assetUrlFromJson(jolteonIdleAsset);
+const laprasGif = assetUrlFromJson(laprasIdleAsset);
+const blazikenGif = assetUrlFromJson(blazikenIdleAsset);
 import zubatAsset from "@/assets/zubat.gif.asset.json";
 import ekansAsset from "@/assets/ekans.gif.asset.json";
 import machopAsset from "@/assets/machop.gif.asset.json";
@@ -195,6 +195,9 @@ import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
 import groudonAsset from "@/assets/groudon.gif.asset.json";
 import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
 import snorlaxMythicAsset from "@/assets/snorlax-mythic.gif.asset.json";
+import darkraiAsset from "@/assets/darkrai.gif.asset.json";
+import hoOhAsset from "@/assets/ho-oh.gif.asset.json";
+import magmortarAsset from "@/assets/magmortar.gif.asset.json";
 const pidgeottoUrl = assetUrlFromJson(pidgeottoAsset);
 const raticateFUrl = assetUrlFromJson(raticateFAsset);
 const fearowUrl = assetUrlFromJson(fearowAsset);
@@ -202,6 +205,9 @@ const deoxysUrl = assetUrlFromJson(deoxysAsset);
 const groudonUrl = assetUrlFromJson(groudonAsset);
 const laprasShinyUrl = assetUrlFromJson(laprasShinyAsset);
 const snorlaxMythicUrl = assetUrlFromJson(snorlaxMythicAsset);
+const darkraiUrl = assetUrlFromJson(darkraiAsset);
+const hoOhUrl = assetUrlFromJson(hoOhAsset);
+const magmortarUrl = assetUrlFromJson(magmortarAsset);
 
 
 
@@ -346,6 +352,7 @@ const GIF: Partial<Record<Species, string>> = {
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
   deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl,
+  darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
 };
 
 
@@ -411,6 +418,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   clefairy: "normal", clefable: "normal",
   // Mythic Roamers
   deoxys: "psychic", groudon: "fire", lapras_shiny: "water",
+  darkrai: "psychic", ho_oh: "fire", magmortar: "fire",
 } as Record<string, ElementFx>;
 
 
@@ -1076,6 +1084,30 @@ function IdlePage() {
         return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
       }));
     }, 3000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // ===== Mythic Roamers podem FUGIR (some do mapa) — muito raros =====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setEnemies((prev) => {
+        let fled: number[] = [];
+        const next = prev.filter((e) => {
+          if (!e.eventLegendary || e.level < 400) return true;
+          // não foge se estiver sendo atacado
+          if (attackTargetIdRef.current === e.id) return true;
+          // 12% de chance a cada 20s
+          if (Math.random() < 0.12) { fled.push(e.id); return false; }
+          return true;
+        });
+        if (fled.length > 0) {
+          try {
+            pushChat(`★ Mítico Roamer desapareceu nas sombras... fugiu!`, "info");
+          } catch {}
+        }
+        return next;
+      });
+    }, 20000);
     return () => clearInterval(iv);
   }, []);
 
@@ -3443,7 +3475,7 @@ function IdlePage() {
 
       // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
       // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
-      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic"];
+      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic", "darkrai"];
       const currentRoamers = enemies.filter((e) => e.eventLegendary && e.level >= 400).length;
       const isMythicRoamer = currentRoamers === 0 && Math.random() < 0.004;
       if (isMythicRoamer) {
