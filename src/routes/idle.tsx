@@ -693,6 +693,8 @@ function loadIdle(): IdleState {
         s.items = { ...(s.items ?? {}), premium_box: (s.items?.premium_box ?? 0) + 1 };
         (s as unknown as { flags: Record<string, boolean> }).flags = { ...flags, giftPremiumBoxV1: true };
       }
+      // Auto-Poção sempre ativada ao entrar no jogo (usuário pode desativar depois na sessão)
+      s.autoHeal = { ...(s.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: true };
       return s;
     }
   } catch { /* ignore */ }
