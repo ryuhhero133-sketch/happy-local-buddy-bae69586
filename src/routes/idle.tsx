@@ -172,9 +172,18 @@ import vulpixGif from "@/assets/vulpix.gif";
 import pidgeottoAsset from "@/assets/pidgeotto.gif.asset.json";
 import raticateFAsset from "@/assets/raticate-f.gif.asset.json";
 import fearowAsset from "@/assets/fearow.gif.asset.json";
+import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
+import groudonAsset from "@/assets/groudon.gif.asset.json";
+import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
+import snorlaxMythicAsset from "@/assets/snorlax-mythic.gif.asset.json";
 const pidgeottoUrl = assetUrl(pidgeottoAsset.url);
 const raticateFUrl = assetUrl(raticateFAsset.url);
 const fearowUrl = assetUrl(fearowAsset.url);
+const deoxysUrl = assetUrl(deoxysAsset.url);
+const groudonUrl = assetUrl(groudonAsset.url);
+const laprasShinyUrl = assetUrl(laprasShinyAsset.url);
+const snorlaxMythicUrl = assetUrl(snorlaxMythicAsset.url);
+
 
 
 const IDLE_KEY = "rubym.idle.v1";
