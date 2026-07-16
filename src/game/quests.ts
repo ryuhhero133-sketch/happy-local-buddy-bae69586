@@ -189,7 +189,7 @@ export const QUESTS: Quest[] = [
         npc: "kurt",
         ask: "Capture 20 Caterpie — vou extrair seda pras minhas bolas.",
         need: { item: "pet:caterpie", qty: 20 },
-        reward: { gold: 3000, xpBoostHours: 2, items: { apricorn_generic: 5 }, message: "Kurt: Fio perfeito! +2h XP!" },
+        reward: { gold: 3000, xpBoostHours: 2, items: { event_box: 1 }, message: "Kurt: Fio perfeito! +2h XP!" },
       },
     ],
   },
