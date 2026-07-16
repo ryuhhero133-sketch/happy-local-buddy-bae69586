@@ -1735,6 +1735,7 @@ function IdlePage() {
   const MYTHIC3_CODE_KEY = "rubym.mythic3Code.used";
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
+  const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
   const redeemCrystalCode = () => {
     const raw = codeInput.trim().toUpperCase();
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
