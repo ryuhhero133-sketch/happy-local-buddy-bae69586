@@ -7602,8 +7602,8 @@ function TabOverlay({
   onBuyBall: (b: ShopBall) => void;
   onBuyBook: (bk: ShopBook) => void;
   onBuyPotion: (qty?: number) => void;
-  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
-  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
+  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
+  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
 
   onBuyChestAmulet: () => void;
 
