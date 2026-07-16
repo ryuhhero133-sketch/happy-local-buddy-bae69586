@@ -57,6 +57,9 @@ import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudS
 import { fetchTopRanked, recordRankedScore, type RankedRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
+import { computeTeamSynergies, computePower } from "@/game/synergies";
+import { SynergyPanel } from "@/components/SynergyPanel";
+import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
