@@ -1795,6 +1795,8 @@ function IdlePage() {
     return all.filter((p) => p.mapId === idle.currentMap);
   }, [idle.currentMap, energyTick]);
 
+  const visibleMapPlayers = useMemo(() => [...remotePlayers, ...fakeMapPlayers], [remotePlayers, fakeMapPlayers]);
+
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   useEffect(() => {
