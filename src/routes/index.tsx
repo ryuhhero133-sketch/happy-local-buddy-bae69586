@@ -235,10 +235,10 @@ import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
 import groudonAsset from "@/assets/groudon.gif.asset.json";
 import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
 import snorlaxMythicAsset from "@/assets/snorlax-mythic.gif.asset.json";
-const deoxysGif = assetUrl(deoxysAsset.url);
-const groudonGif = assetUrl(groudonAsset.url);
-const laprasShinyGif = assetUrl(laprasShinyAsset.url);
-const snorlaxMythicGif = assetUrl(snorlaxMythicAsset.url);
+const deoxysGif = assetUrlFromJson(deoxysAsset);
+const groudonGif = assetUrlFromJson(groudonAsset);
+const laprasShinyGif = assetUrlFromJson(laprasShinyAsset);
+const snorlaxMythicGif = assetUrlFromJson(snorlaxMythicAsset);
 
 const laprasGif = laprasAsset.url;
 const vaporeonGif = vaporeonAsset.url;
@@ -525,8 +525,8 @@ const SPECIES_GIF: Record<Species, string> = {
   poliwrath: poliwrathGif, psyduck: psyduckGif,
   venonat: venonatGif, venomoth: venomothGif, zubat: zubatGif,
   lucario: mewGif,
-  virizion: assetUrl(virizionAsset.url), raikou: assetUrl(raikouAsset.url), suicune: assetUrl(suicuneAsset.url),
-  suicune_shiny: assetUrl(suicuneShinyAsset.url), luxray_f: assetUrl(luxrayFAsset.url),
+  virizion: assetUrlFromJson(virizionAsset), raikou: assetUrlFromJson(raikouAsset), suicune: assetUrlFromJson(suicuneAsset),
+  suicune_shiny: assetUrlFromJson(suicuneShinyAsset), luxray_f: assetUrlFromJson(luxrayFAsset),
   blaziken: blazikenGif,
   deoxys: deoxysGif, groudon: groudonGif, lapras_shiny: laprasShinyGif, snorlax_mythic: snorlaxMythicGif,
 };
