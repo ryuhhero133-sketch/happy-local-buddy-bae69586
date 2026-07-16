@@ -8998,18 +8998,20 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-        <MarketScreen
-          items={items}
-          bank={bank}
-          identity={identity}
-          isVip={isVip}
-          onList={onListMarket}
-          onBuy={onBuyMarket}
-          onCancel={onCancelMarket}
-          onNpcSell={onSellItem}
-          npcPrices={marketSellPrices}
-        />
-
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {pokemonMarketNode}
+          <MarketScreen
+            items={items}
+            bank={bank}
+            identity={identity}
+            isVip={isVip}
+            onList={onListMarket}
+            onBuy={onBuyMarket}
+            onCancel={onCancelMarket}
+            onNpcSell={onSellItem}
+            npcPrices={marketSellPrices}
+          />
+        </div>
       )}
 
 
