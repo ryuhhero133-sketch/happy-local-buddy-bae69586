@@ -8123,6 +8123,7 @@ function TabOverlay({
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard",
+          incenso_mel: "Incenso de Mel 🍯",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
@@ -8140,7 +8141,8 @@ function TabOverlay({
           { id: "eggs", label: "Ovos", icon: "🥚" },
           { id: "other", label: "Outros", icon: "✨" },
         ];
-        const entries = Object.entries(items).filter(([, n]) => n > 0);
+        // filtra chaves internas de contagem (não devem aparecer na mochila)
+        const entries = Object.entries(items).filter(([id, n]) => n > 0 && !id.startsWith("_"));
         const totalTypes = entries.length;
         const totalCount = entries.reduce((a, [, n]) => a + n, 0);
         const filtered = mochilaCat === "all" ? entries : entries.filter(([id]) => catOf(id) === mochilaCat);
