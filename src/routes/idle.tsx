@@ -1951,7 +1951,7 @@ function IdlePage() {
   const [rankLoading, setRankLoading] = useState(false);
   const [rankMode, setRankMode] = useState<RankMode>("level");
   const RANK_CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 horas — snapshot global
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v1_${mode}`;
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v2_real_level_${mode}`;
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
@@ -1989,7 +1989,7 @@ function IdlePage() {
         guild_name: null,
       });
       try {
-        void recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
+        await recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
         const top = await fetchTopRanked(200);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
