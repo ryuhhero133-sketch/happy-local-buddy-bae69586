@@ -3188,10 +3188,19 @@ function IdlePage() {
       if ((pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
         pet = makePet(sp, lv, "rare");
       }
-      const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
+      // ★ POKÉMON RIDER: 1.2% de chance — muito acima do nível do líder, dá MUITO xp
+      const isRider = Math.random() < 0.012 && !mapLvRange;
+      if (isRider) {
+        const boost = 25 + Math.floor(Math.random() * 21); // +25..+45
+        lv = leaderLv + boost;
+        if (hardCap != null) lv = Math.min(lv, hardCap + 50); // riders podem passar do cap
+        pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
+      }
+      const baseHp = calcIdleMaxHp(pet);
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1));
       const isAggro = elite || Math.random() < 0.18;
       const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60);
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider };
     }
     return null;
   }
