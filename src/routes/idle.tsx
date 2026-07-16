@@ -6028,7 +6028,7 @@ function IdlePage() {
                     >⛶</button>
                   </div>
                   <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
-                    {map.name} · {map.diff}
+                    {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
                     {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
                   </div>
 
