@@ -4351,7 +4351,7 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
                 {questCount > 0 && (
                   <button
                     onClick={() => setQuestLogOpen(true)}
-                    title="Quests ativas"
+                    title="Atividades"
                     style={{ ...btnBase, animation: "questPulse 1.6s ease-in-out infinite" }}
                   >
                     <span style={{ fontSize: 13 }}>✉</span>
