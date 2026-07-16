@@ -73,7 +73,7 @@ const SKINS: { id: string; label: string; url: string | null }[] = [
 ];
 const SKIN_KEY = "rubym.skin.v1";
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
-import sfxLevelUpAsset from "@/assets/audio/level-up.mp3.asset.json";
+import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
 import sfxBonusAsset from "@/assets/audio/bonus.mp3.asset.json";
 import sfxChestOpenAsset from "@/assets/audio/chest-open.mp3.asset.json";
