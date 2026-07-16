@@ -1287,7 +1287,7 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
@@ -2119,8 +2119,11 @@ function IdlePage() {
         const placed = alive.map((e) => ({ x: e.x, y: e.y }));
         const ne = spawnOneEnemy(placed);
         if (!ne) return prev;
-        // Anúncio quando um raro+ aparece via top-up
-        if (ne.rarity === "epic" || ne.rarity === "legendary" || ne.rarity === "mythic" || ne.rarity === "mythic_shiny") {
+        // Anúncio quando um raro+ ou RIDER aparece via top-up
+        if (ne.rider) {
+          pushEvent("✦", "POKÉMON RIDER!", `${ne.sp.replace(/_/g, " ").toUpperCase()} Lv.${ne.level} apareceu — recompensa massiva!`, "#ff5ec7");
+          pushChat(`✦ RIDER: ${ne.sp.replace(/_/g, " ").toUpperCase()} Lv.${ne.level} apareceu! XP MASSIVO`, "cap");
+        } else if (ne.rarity === "epic" || ne.rarity === "legendary" || ne.rarity === "mythic" || ne.rarity === "mythic_shiny") {
           const label = ne.rarity === "mythic_shiny" ? "MÍTICO SHINY" : ne.rarity.toUpperCase();
           const color = ne.rarity === "mythic_shiny" ? "#ffd94d" : ne.rarity === "mythic" ? "#ff5252" : ne.rarity === "legendary" ? "#ff8b3d" : "#c084fc";
           pushEvent("★", `${label} À VISTA!`, `${ne.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
@@ -2271,8 +2274,11 @@ function IdlePage() {
           // Nerf por diferença de nível: se líder ≥15 níveis acima do alvo, XP/ouro colapsam.
           const leaderLvKill = team[0]?.level ?? 1;
           const lvGap = leaderLvKill - (target.level ?? leaderLvKill);
-          const overLvlPenalty = lvGap >= 15 ? Math.max(0.02, 1 - (lvGap - 14) * 0.15) : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty);
+          const isRiderKill = !!target.rider;
+          const overLvlPenalty = isRiderKill ? 1 : (lvGap >= 15 ? Math.max(0.02, 1 - (lvGap - 14) * 0.15) : 1);
+          const riderMult = isRiderKill ? 8 : 1; // rider dá MUITO xp
+          const riderGoldMult = isRiderKill ? 4 : 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -2281,8 +2287,12 @@ function IdlePage() {
           // Se o treinador passou do cap do mapa, ouro colapsa junto com o XP.
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
-          const goldCapPenalty = overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1;
-          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty * overLvlPenalty));
+          const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1);
+          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
+          if (isRiderKill) {
+            pushEvent("✦", "RIDER DERROTADO!", `+${xp} EXP · +${gold} ouro`, "#ff5ec7");
+            pushChat(`✦ RIDER DERROTADO! +${xp} EXP · +${gold} ouro`, "cap");
+          }
 
           pushFxAt(target.x, target.y - 50, `+${xp} EXP`, "xp");
           const bonusParts: string[] = [];
@@ -3188,10 +3198,19 @@ function IdlePage() {
       if ((pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
         pet = makePet(sp, lv, "rare");
       }
-      const hp = Math.floor(calcIdleMaxHp(pet) * (elite ? 1.6 : 1));
+      // ★ POKÉMON RIDER: 1.2% de chance — muito acima do nível do líder, dá MUITO xp
+      const isRider = Math.random() < 0.012 && !mapLvRange;
+      if (isRider) {
+        const boost = 25 + Math.floor(Math.random() * 21); // +25..+45
+        lv = leaderLv + boost;
+        if (hardCap != null) lv = Math.min(lv, hardCap + 50); // riders podem passar do cap
+        pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
+      }
+      const baseHp = calcIdleMaxHp(pet);
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1));
       const isAggro = elite || Math.random() < 0.18;
       const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60);
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider };
     }
     return null;
   }
@@ -4604,7 +4623,19 @@ function IdlePage() {
                   cursor: dead ? "default" : "pointer",
                 }}>
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
-                  {stars && (
+                  {e.rider && (
+                    <div style={{
+                      position: "absolute", top: -38, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      color: "#ff5ec7",
+                      fontSize: 18, fontWeight: 900, lineHeight: 1,
+                      textShadow: "1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000, 0 0 8px #ff5ec7",
+                      whiteSpace: "nowrap", pointerEvents: "none",
+                      filter: "drop-shadow(0 0 6px #ff5ec7) drop-shadow(0 0 12px #ff5ec7aa)",
+                      animation: "pulse 1.2s ease-in-out infinite",
+                    }}>✦</div>
+                  )}
+                  {stars && !e.rider && (
                     <div style={{
                       position: "absolute", top: -26, left: "50%",
                       transform: `translateX(-50%) scaleX(${sx})`,
