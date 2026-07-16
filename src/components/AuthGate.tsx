@@ -134,10 +134,19 @@ export function AuthGate({ children }: { children: ReactNode }) {
       }
     });
 
+    // F5 / carregar página sempre volta pra tela de login:
+    // se existe sessão persistida, encerra antes de mostrar o app.
     supabase.auth.getSession().then(({ data }) => {
       log("initial session", data.session?.user?.id ?? null);
-      setSession(data.session);
-      setChecking(false);
+      if (data.session && !window.location.hash.includes("type=recovery")) {
+        supabase.auth.signOut().finally(() => {
+          setSession(null);
+          setChecking(false);
+        });
+      } else {
+        setSession(data.session);
+        setChecking(false);
+      }
     });
 
     return () => sub.subscription.unsubscribe();

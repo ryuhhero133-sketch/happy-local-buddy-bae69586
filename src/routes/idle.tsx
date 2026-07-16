@@ -47,7 +47,7 @@ import houseLabImg from "@/assets/house-lab.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 
-import { AuthGate, loadIdentity, type LocalIdentity } from "@/components/AuthGate";
+import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
@@ -714,7 +714,7 @@ function freshIdle(): IdleState {
     items: { premium_box: 1 },
     bank: { gold: 0, crystals: 30 },
     buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0 },
-    autoHeal: { enabled: false, threshold: 0.5 },
+    autoHeal: { enabled: true, threshold: 0.5 },
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
     trainerLevel: 1,
     trainerXp: 0,
@@ -5058,6 +5058,22 @@ function IdlePage() {
                   <div style={{ fontSize: 10, color: "#8f8296", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 6 }}>
                     💡 Clique em um Pokémon selvagem para lançar a Pokébola manualmente.
                   </div>
+                  <button
+                    onClick={() => {
+                      if (confirm("Sair e voltar para a tela de login?")) {
+                        signOutRubyM().finally(() => { window.location.reload(); });
+                      }
+                    }}
+                    style={{
+                      marginTop: 6,
+                      background: "linear-gradient(180deg,#7a1d1d,#4a0e0e)",
+                      border: "1px solid #ff6b6b", color: "#ffd7d7",
+                      borderRadius: 8, padding: "6px 10px", cursor: "pointer",
+                      fontSize: 11, fontWeight: 700, letterSpacing: 1,
+                    }}
+                  >
+                    🚪 IR PARA TELA DE LOGIN
+                  </button>
                 </div>
               )}
               <div style={{
