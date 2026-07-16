@@ -963,6 +963,7 @@ function IdlePage() {
           id: pet.uid,
           species: pet.species as string,
           level: Math.max(1, Math.min(10000, pet.level ?? 1)),
+          xp: Math.max(0, Math.floor(pet.xp ?? 0)),
           rarity: (pet.rarity ?? "common") as string,
           team_slot: slot,
         });
@@ -974,6 +975,7 @@ function IdlePage() {
           id: c.uid,
           species: c.species as string,
           level: Math.max(1, Math.min(10000, c.level ?? 1)),
+          xp: Math.max(0, Math.floor(c.xp ?? 0)),
           rarity: (c.rarity ?? "common") as string,
           team_slot: null,
         });
@@ -1029,6 +1031,24 @@ function IdlePage() {
       }
     },
   });
+
+  // Salvamento urgente de level-up: quando qualquer Pokémon sobe de nível,
+  // empurra snapshot pro banco quase na hora para evitar rollback ao fechar a aba.
+  const lastPokemonLevelSyncKeyRef = useRef("");
+  useEffect(() => {
+    const all = [...team, ...restingBench, ...(idle.collection ?? [])];
+    const key = all
+      .map((p) => `${p.uid}:${Math.max(1, p.level ?? 1)}`)
+      .sort()
+      .join("|");
+    if (!key || lastPokemonLevelSyncKeyRef.current === key) return;
+    const hadPrevious = lastPokemonLevelSyncKeyRef.current !== "";
+    lastPokemonLevelSyncKeyRef.current = key;
+    if (!hadPrevious || serverSync.status !== "ready") return;
+    const latestSave = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+    saveNow({ ...latestSave, party: [...team, ...restingBench] });
+    void serverSync.pushNow();
+  }, [team, restingBench, idle.collection, serverSync.status, serverSync.pushNow]);
 
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
   const honeyUntilRef = useRef<number>(idle.buffs.honeyUntil ?? 0);
@@ -2206,8 +2226,8 @@ function IdlePage() {
               const newXp = (p.xp ?? 0) + xp;
               let lv = p.level;
               let remaining = newXp;
-              while (lv < 3000 && remaining >= 100 + lv * 20) { remaining -= 100 + lv * 20; lv += 1; }
-              if (lv >= 3000) remaining = 0;
+              while (lv < 10000 && remaining >= 100 + lv * 20) { remaining -= 100 + lv * 20; lv += 1; }
+              if (lv >= 10000) remaining = 0;
               return {
                 ...p, level: lv, xp: remaining,
                 hp: Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })),
