@@ -4,7 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { assetUrl } from "@/lib/assetUrl";
+import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { FAKE_PLAYERS, type BotPlayer } from "@/game/bots";
 import { AuthGate, loadIdentity, IDENTITY_KEY } from "@/components/AuthGate";
 import { ProfessorOakGuide, type GuideTopic } from "@/components/ProfessorOakGuide";
