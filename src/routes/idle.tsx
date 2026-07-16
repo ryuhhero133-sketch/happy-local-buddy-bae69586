@@ -4423,7 +4423,48 @@ function IdlePage() {
                 draggable={false}
               />
             </button>
+            {(() => {
+              const orbUntil = idle.buffs.orbUntil ?? 0;
+              const remain = orbUntil - now;
+              if (remain <= 0) return null;
+              const orbId = idle.buffs.orbId || "orb_xp_minor";
+              const orbImg = orbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbId === "orb_xp_major" ? orbXpMajorUrl : orbXpMinorUrl;
+              const orbPct = Math.round((idle.buffs.orbMult ?? 0) * 100);
+              const mins = Math.floor(remain / 60000);
+              const secs = Math.floor((remain % 60000) / 1000);
+              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+              return (
+                <div
+                  title={`Orb ativo: +${orbPct}% EXP · ${timeStr}`}
+                  style={{
+                    marginTop: 4,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 2,
+                    padding: "3px 5px",
+                    background: "rgba(15,10,30,0.85)",
+                    border: "1px solid #7c5cff",
+                    borderRadius: 6,
+                    boxShadow: "0 0 8px rgba(124,92,255,0.5)",
+                  }}
+                >
+                  <img
+                    src={orbImg}
+                    alt="Orb ativo"
+                    width={22}
+                    height={22}
+                    style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(180,120,255,0.9))" }}
+                    draggable={false}
+                  />
+                  <span style={{ fontSize: 9, color: "#e0d0ff", fontWeight: 700, lineHeight: 1, whiteSpace: "nowrap" }}>
+                    {timeStr}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
+
 
 
 
