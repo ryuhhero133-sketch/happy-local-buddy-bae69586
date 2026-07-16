@@ -972,6 +972,70 @@ function IdlePage() {
     },
   });
 
+  // ============= Cloud FULL BLOB (game_saves) =============
+  // Hidrata state COMPLETO (items, missões, skins, buffs, party, bench)
+  // e sobrescreve o cache local — evita rollback após F5 / trocar de dispositivo.
+  const cloudBlobHydratedRef = useRef(false);
+  useEffect(() => {
+    if (cloudBlobHydratedRef.current) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        const uid = sess.session?.user?.id;
+        if (!uid) return;
+        const blob = (await fetchCloudSave(uid)) as
+          | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[] }
+          | null;
+        if (cancelled || !blob) return;
+        if (blob.idle) {
+          setIdle((prev) => {
+            const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
+            // Sanitiza
+            if (!IDLE_MAPS[merged.currentMap]) merged.currentMap = "arena";
+            const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
+            if (!uskins.includes("default")) uskins.unshift("default");
+            merged.unlockedSkins = uskins;
+            merged.autoHeal = { ...(merged.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: merged.autoHeal?.enabled ?? true };
+            return merged;
+          });
+        }
+        if (Array.isArray(blob.team) && blob.team.length > 0) {
+          setTeam(blob.team.slice(0, 5));
+        }
+        if (Array.isArray(blob.restingBench)) {
+          setRestingBench(blob.restingBench);
+        }
+        cloudBlobHydratedRef.current = true;
+      } catch (e) {
+        console.warn("[cloudBlob] hydrate failed", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Autosave do BLOB completo — debounced (1.5s) sempre que idle/team/bench mudam.
+  const buildFullBlob = useCallback(() => ({
+    idle: idleRef.current,
+    team: teamRef.current,
+    restingBench,
+    savedAt: Date.now(),
+  }), [restingBench]);
+  useEffect(() => {
+    scheduleCloudSync(buildFullBlob());
+  }, [idle, team, restingBench, buildFullBlob]);
+
+  // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
+  useEffect(() => {
+    const flush = () => { void pushCloudSaveNow(buildFullBlob()); };
+    window.addEventListener("beforeunload", flush);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flush();
+    });
+    return () => { window.removeEventListener("beforeunload", flush); };
+  }, [buildFullBlob]);
+
+
   // Salvamento urgente de level-up: quando qualquer Pokémon sobe de nível,
   // empurra snapshot pro banco quase na hora para evitar rollback ao fechar a aba.
   const lastPokemonLevelSyncKeyRef = useRef("");
