@@ -3682,6 +3682,10 @@ function IdlePage() {
     { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
     { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
   ];
+  // Estado do NPC Trocador no mapa (modal na tela do mundo)
+  const [worldTraderOpen, setWorldTraderOpen] = useState(false);
+  const [worldTraderPick, setWorldTraderPick] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string; img: string }>(null);
+  const [worldTraderSel, setWorldTraderSel] = useState<Set<string>>(new Set());
   const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => {
     const trade = ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
