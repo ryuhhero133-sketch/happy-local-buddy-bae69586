@@ -2934,11 +2934,11 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
       }
     };
     load();
-    const ch = supabase.channel("rt-market").on("postgres_changes", { event: "*", schema: "public", table: "market_listings" }, load).subscribe();
-    return () => { void supabase.removeChannel(ch); };
+    const iv = setInterval(load, 30_000);
+    return () => { clearInterval(iv); };
   }, []);
 
-  // ===== CHALLENGES =====
+  // ===== CHALLENGES (sem PvP: polling raro) =====
   useEffect(() => {
     const load = async () => {
       const { data } = await gameDb.from("challenges").select("*")
@@ -2947,9 +2947,10 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
       if (data) setChallenges(data as unknown as DbChallenge[]);
     };
     load();
-    const ch = supabase.channel("rt-challenges").on("postgres_changes", { event: "*", schema: "public", table: "challenges" }, load).subscribe();
-    return () => { void supabase.removeChannel(ch); };
+    const iv = setInterval(load, 20_000);
+    return () => { clearInterval(iv); };
   }, [identity.id]);
+
 
   // Accept incoming or start active battle
   useEffect(() => {
