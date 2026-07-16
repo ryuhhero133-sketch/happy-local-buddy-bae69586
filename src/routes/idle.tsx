@@ -2537,7 +2537,7 @@ function IdlePage() {
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1);
-          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
+          const gold = Math.max(1, Math.floor(baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
           if (isRiderKill) {
             pushEvent("✦", "RIDER DERROTADO!", `+${xp} EXP · +${gold} ouro`, "#ff5ec7");
             pushChat(`✦ RIDER DERROTADO! +${xp} EXP · +${gold} ouro`, "cap");
