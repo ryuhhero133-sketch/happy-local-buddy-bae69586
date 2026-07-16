@@ -5908,7 +5908,15 @@ function IdlePage() {
                   border: "1px solid rgba(245,207,107,0.4)",
                   margin: "0 auto",
                 }}>
-                  {/* Prédios (clicáveis) */}
+                  {/* Overlay de recolorização (mapas endgame recolorizados) */}
+                  {map.overlay && (
+                    <div style={{
+                      position: "absolute", inset: 0,
+                      background: map.overlay,
+                      mixBlendMode: "color",
+                      pointerEvents: "none",
+                    }} />
+                  )}
                   {visibleBuildings.map((b) => (
                     <button
                       key={b.key}
