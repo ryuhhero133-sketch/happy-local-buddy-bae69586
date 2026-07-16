@@ -180,15 +180,27 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (cancelRemaining > 0) { pushChat(`Cooldown ativo: aguarde ${fmtTime(cancelRemaining)}.`, "info"); return; }
 
     const activate = new Date(Date.now() + 3 * 60 * 1000).toISOString();
-    const { error } = await supabase.from("pokemon_market").insert({
+    const payload = {
       seller_id: identity.id,
       seller_name: identity.name || "Treinador",
       pokemon: { uid: entry.uid, species: entry.species, level: entry.level, rarity: entry.rarity, xp: entry.xp ?? 0, traits: entry.traits ?? [] },
       price, currency,
       status: "pending",
       activate_at: activate,
-    });
-    if (error) { pushChat(`Falha ao anunciar: ${error.message}`, "info"); return; }
+    };
+    const { error } = await supabase.from("pokemon_market").insert(payload);
+    if (error) {
+      console.error("[market] insert failed", error, payload);
+      const msg = String(error.message || error.hint || error.details || "erro desconhecido");
+      if (/does not exist|schema cache|relation.*pokemon_market/i.test(msg)) {
+        pushChat(`⚠ Marketplace ainda não ativado no banco. Rode o SQL SUPABASE_MARKETPLACE_POKEMON.sql no Supabase.`, "info");
+      } else if (/row-level security|permission|policy/i.test(msg)) {
+        pushChat(`⚠ Sem permissão pra anunciar (RLS). Confira login e políticas no Supabase.`, "info");
+      } else {
+        pushChat(`Falha ao anunciar: ${msg}`, "info");
+      }
+      return;
+    }
     onListed(entry.uid);
     setSelUid("");
     pushChat(`📢 ${entry.species} anunciado por ${price} ${currency === "gold" ? "ouro" : "cristal"}. Fica visível em 3 min.`, "cap");
