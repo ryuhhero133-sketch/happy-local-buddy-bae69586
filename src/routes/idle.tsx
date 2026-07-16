@@ -2465,7 +2465,9 @@ function IdlePage() {
       if (petIsExhausted(leader)) { setAttackTargetId((c) => c !== null ? null : c); return; }
       if (!autoBattleRef.current?.enabled) { setAttackTargetId((c) => c !== null ? null : c); return; }
 
+      if (Date.now() < paralyzedUntilRef.current) return;
       setEnemies((prev) => {
+
         if (prev.length === 0) return spawnEnemies();
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
