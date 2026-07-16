@@ -3242,10 +3242,12 @@ function IdlePage() {
           mapLvRange = [leaderLv + 10, leaderLv + 15];
         }
         if (idle.currentMap === "fantasma") {
-          // Cemitério Assombrado: zona endgame nível 200+ — sempre bem acima do líder.
+          // Cemitério Assombrado: zona endgame nível 200+.
+          // Até 249 o mapa empurra acima do líder; a partir de 250 exige parear níveis.
           pool = ["zubat", "venomoth", "venonat", "gloom", "ekans", "arbok", "abra", "kadabra", "meowth", "persian"] as Species[];
-          const base = Math.max(200, leaderLv);
-          mapLvRange = [base, base + 30];
+          if (leaderLv < 200) mapLvRange = [200, 225];
+          else if (leaderLv < 250) mapLvRange = [leaderLv + 12, leaderLv + 32];
+          else mapLvRange = [Math.max(250, leaderLv - 2), leaderLv + 18];
         }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
@@ -3280,7 +3282,8 @@ function IdlePage() {
         pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
       }
       const baseHp = calcIdleMaxHp(pet);
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1));
+      const highHp = highLevelEnemyHpMult(lv, leaderLv);
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * highHp);
       const isAggro = elite || Math.random() < 0.18;
       const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60);
       return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider };
