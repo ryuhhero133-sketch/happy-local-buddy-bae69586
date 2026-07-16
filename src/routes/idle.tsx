@@ -2677,7 +2677,8 @@ function IdlePage() {
                 captured = Math.random() < baseChance * usedBall.captureMult;
               }
               if (captured) {
-                const np = makePet(target.sp, target.level, target.rarity);
+                const rolled = rollTraits(target.rarity);
+                const np = { ...makePet(target.sp, target.level, target.rarity), traits: rolled };
                 capturedPet = np;
                 const rarityLabelMap: Record<string, string> = {
                   common: "Comum", uncommon: "Incomum", rare: "Raro",
