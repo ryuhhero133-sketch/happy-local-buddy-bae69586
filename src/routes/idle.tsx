@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -52,6 +52,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
+import { fetchCloudSave, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
 import trainerSheet from "@/assets/trainer.png";
@@ -970,6 +971,70 @@ function IdlePage() {
       }
     },
   });
+
+  // ============= Cloud FULL BLOB (game_saves) =============
+  // Hidrata state COMPLETO (items, missões, skins, buffs, party, bench)
+  // e sobrescreve o cache local — evita rollback após F5 / trocar de dispositivo.
+  const cloudBlobHydratedRef = useRef(false);
+  useEffect(() => {
+    if (cloudBlobHydratedRef.current) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        const uid = sess.session?.user?.id;
+        if (!uid) return;
+        const blob = (await fetchCloudSave(uid)) as
+          | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[] }
+          | null;
+        if (cancelled || !blob) return;
+        if (blob.idle) {
+          setIdle((prev) => {
+            const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
+            // Sanitiza
+            if (!IDLE_MAPS[merged.currentMap]) merged.currentMap = "arena";
+            const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
+            if (!uskins.includes("default")) uskins.unshift("default");
+            merged.unlockedSkins = uskins;
+            merged.autoHeal = { ...(merged.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: merged.autoHeal?.enabled ?? true };
+            return merged;
+          });
+        }
+        if (Array.isArray(blob.team) && blob.team.length > 0) {
+          setTeam(blob.team.slice(0, 5));
+        }
+        if (Array.isArray(blob.restingBench)) {
+          setRestingBench(blob.restingBench);
+        }
+        cloudBlobHydratedRef.current = true;
+      } catch (e) {
+        console.warn("[cloudBlob] hydrate failed", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Autosave do BLOB completo — debounced (1.5s) sempre que idle/team/bench mudam.
+  const buildFullBlob = useCallback(() => ({
+    idle: idleRef.current,
+    team: teamRef.current,
+    restingBench,
+    savedAt: Date.now(),
+  }), [restingBench]);
+  useEffect(() => {
+    scheduleCloudSync(buildFullBlob());
+  }, [idle, team, restingBench, buildFullBlob]);
+
+  // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
+  useEffect(() => {
+    const flush = () => { void pushCloudSaveNow(buildFullBlob()); };
+    window.addEventListener("beforeunload", flush);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flush();
+    });
+    return () => { window.removeEventListener("beforeunload", flush); };
+  }, [buildFullBlob]);
+
 
   // Salvamento urgente de level-up: quando qualquer Pokémon sobe de nível,
   // empurra snapshot pro banco quase na hora para evitar rollback ao fechar a aba.
@@ -5688,8 +5753,9 @@ function IdlePage() {
             onClick={async () => {
               playClick();
               try {
+                const ok = await pushCloudSaveNow(buildFullBlob());
                 await serverSync.pushNow();
-                pushChat("☁️ Progresso salvo na nuvem!", "info");
+                pushChat(ok ? "☁️ Progresso salvo na nuvem!" : "⚠️ Salvo local (sem conexão).", "info");
               } catch (e) {
                 pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
               }
