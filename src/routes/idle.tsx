@@ -4849,6 +4849,49 @@ function IdlePage() {
               ));
             })()}
 
+            {/* 🧙 NPC Trocador — presente em todos os mapas, canto acessível */}
+            {(() => {
+              const npcX = 260, npcY = 260;
+              return (
+                <div
+                  onClick={() => { playClick(); setWorldTraderOpen(true); }}
+                  title="Trocador — Troque Pokémon da coleção por Orbs de XP"
+                  style={{
+                    position: "absolute",
+                    left: npcX - 40, top: npcY - 60,
+                    width: 80, height: 100,
+                    cursor: "pointer",
+                    zIndex: Math.round(npcY),
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.6))",
+                  }}
+                >
+                  <div style={{
+                    position: "absolute", top: -18, left: "50%", transform: "translateX(-50%)",
+                    background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
+                    border: "1px solid #ffd94d", color: "#ffd94d",
+                    borderRadius: 999, padding: "2px 8px",
+                    fontSize: 10, fontWeight: 900, whiteSpace: "nowrap",
+                    boxShadow: "0 0 10px rgba(255,217,77,0.5)",
+                    animation: "pulse 1.6s ease-in-out infinite",
+                  }}>✦ TROCADOR</div>
+                  <img
+                    src={npcTraderUrl}
+                    alt="NPC Trocador"
+                    width={80} height={100}
+                    style={{ width: 80, height: 100, imageRendering: "pixelated", objectFit: "contain" }}
+                  />
+                  <div style={{
+                    position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)",
+                    width: 60, height: 8, borderRadius: "50%",
+                    background: "radial-gradient(ellipse, rgba(255,217,77,0.55), transparent 70%)",
+                  }} />
+                </div>
+              );
+            })()}
+
+
+
 
 
             {/* Inimigos espalhados pelo mapa */}
