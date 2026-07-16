@@ -1127,10 +1127,19 @@ function IdlePage() {
         let fled: number[] = [];
         const next = prev.filter((e) => {
           if (!e.eventLegendary || e.level < 400) return true;
-          // não foge se estiver sendo atacado
-          if (attackTargetIdRef.current === e.id) return true;
-          // 12% de chance a cada 20s
-          if (Math.random() < 0.12) { fled.push(e.id); return false; }
+          const beingAttacked = attackTargetIdRef.current === e.id;
+          // Lugia é o mais fujão: pode escapar mesmo em batalha
+          if (e.sp === "lugia") {
+            const p = beingAttacked ? 0.10 : 0.18;
+            if (Math.random() < p) { fled.push(e.id); return false; }
+            return true;
+          }
+          if (beingAttacked) {
+            // Outros Lv500+ têm pequena chance de fugir mesmo lutando
+            if (Math.random() < 0.04) { fled.push(e.id); return false; }
+            return true;
+          }
+          if (Math.random() < 0.15) { fled.push(e.id); return false; }
           return true;
         });
         if (fled.length > 0) {
@@ -2565,13 +2574,13 @@ function IdlePage() {
 
         // ✦ Habilidades especiais de espécies fortes (crit / paralisar / fugir)
         const SPECIAL_ABILITY: Partial<Record<Species, { crit: number; para: number; flee: number }>> = {
-          lugia:     { crit: 0.35, para: 0.22, flee: 0.06 },
-          darkrai:   { crit: 0.25, para: 0.18, flee: 0.05 },
-          ho_oh:     { crit: 0.22, para: 0.12, flee: 0.04 },
-          deoxys:    { crit: 0.20, para: 0.15, flee: 0.05 },
-          groudon:   { crit: 0.28, para: 0.05, flee: 0.03 },
-          snorlax_mythic: { crit: 0.18, para: 0.10, flee: 0.02 },
-          lapras_shiny: { crit: 0.15, para: 0.15, flee: 0.03 },
+          lugia:     { crit: 0.45, para: 0.35, flee: 0.14 },
+          darkrai:   { crit: 0.40, para: 0.30, flee: 0.12 },
+          ho_oh:     { crit: 0.35, para: 0.22, flee: 0.10 },
+          deoxys:    { crit: 0.32, para: 0.25, flee: 0.11 },
+          groudon:   { crit: 0.40, para: 0.10, flee: 0.08 },
+          snorlax_mythic: { crit: 0.28, para: 0.18, flee: 0.06 },
+          lapras_shiny: { crit: 0.25, para: 0.25, flee: 0.08 },
           hariyama:  { crit: 0.20, para: 0.10, flee: 0 },
           ursaring:  { crit: 0.22, para: 0.06, flee: 0 },
         };
@@ -3234,7 +3243,16 @@ function IdlePage() {
     } else if (isEventLeg && usedBall.id === "masterball") {
       chance = 1; // Master captura garantido
     } else if (isEventLeg) {
-      chance = usedBall.id === "ultraball" ? 0.02 : 0; // Ultra: 2% fixo; qualquer outra falha
+      // Lv 500+ míticos e Lugia: ULTRA muito difícil; escala com HP baixo
+      const isUltra = usedBall.id === "ultraball";
+      if (!isUltra) { chance = 0; }
+      else if (target.sp === "lugia") {
+        chance = hpPct > 0.15 ? 0 : 0.008; // só com HP < 15% e mesmo assim 0.8%
+      } else if (target.level >= 500) {
+        chance = hpPct > 0.25 ? 0.002 : 0.012; // Lv500+ míticos: 0.2%~1.2%
+      } else {
+        chance = 0.02;
+      }
     } else {
       const base = 0.08 + (1 - hpPct) * 0.37;
       chance = Math.min(0.95, base * usedBall.captureMult);
