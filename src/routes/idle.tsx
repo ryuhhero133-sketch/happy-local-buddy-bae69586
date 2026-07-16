@@ -7089,10 +7089,18 @@ function IdlePage() {
               <div style={{ marginTop: 10, fontSize: 11, color: "#6b4a10" }}>
                 Ouro por derrota: <b>{base.goldRange[0]}-{base.goldRange[1]}</b> · Nível mínimo: <b>{base.minLv}</b>
               </div>
+              <button
+                onClick={() => {
+                  const pet = livePet ?? makePet(sp, displayLevel, entry.rarity);
+                  setStatsCardPet(pet);
+                  setColecaoDetailUid(null);
+                }}
+                style={{ marginTop: 12, width: "100%", background: "linear-gradient(180deg,#f5cf6b,#b8862a)", color: "#1a0f26", border: "1px solid #0b0510", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer", letterSpacing: 1 }}
+              >⚡ VER FICHA COMPLETA (CARD RPG)</button>
               {!isCurrent && (
                 <button
                   onClick={() => { onPickTeamFromColecao(entry); setColecaoDetailUid(null); }}
-                  style={{ marginTop: 14, width: "100%", background: "linear-gradient(180deg,#5ec26a,#3d7a4a)", color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer", letterSpacing: 1 }}
+                  style={{ marginTop: 8, width: "100%", background: "linear-gradient(180deg,#5ec26a,#3d7a4a)", color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer", letterSpacing: 1 }}
                 >COLOCAR NO TIME</button>
               )}
               {isCurrent && (
