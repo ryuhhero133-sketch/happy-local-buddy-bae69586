@@ -2538,7 +2538,7 @@ function IdlePage() {
         setTimeout(() => {
           pushFxAt(target.x, target.y - 34, isCrit ? `CRIT ${dmg}!` : `${dmg}`, isCrit ? "crit" : "myDmg");
         }, 180);
-        pushChat(`${isCrit ? "CRÍTICO! " : ""}Você causou ${dmg} de dano em ${target.sp.replace(/_/g, " ")}.`, "dmg");
+        // (dano rotineiro não vai para o chat — apenas floating text)
 
         // Contra-ataque do inimigo: dano no meu pokémon (reduzido pelo buff de def)
         const eBase = SPECIES_BASE[target.sp];
