@@ -6373,6 +6373,20 @@ function IdlePage() {
 
 
 
+      {/* Botão flutuante: NPC Trocador (abre Loja direto na seção do trocador) */}
+      <button
+        onClick={() => { playClick(); setTab("loja"); }}
+        title="Trocador NPC — troque Pokémon por Orbs de XP"
+        style={{
+          position: "fixed", bottom: 12, right: 108, zIndex: 100,
+          background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
+          border: "1px solid #ffd94d", color: "#ffd94d",
+          borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 800,
+          fontFamily: "monospace", cursor: "pointer",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.5), 0 0 12px rgba(255,217,77,0.35)",
+        }}
+      >🧙 Trocador</button>
+
       {/* Botão flutuante: resgatar código */}
       <button
         onClick={() => { setCodeOpen(true); setCodeMsg(null); }}
