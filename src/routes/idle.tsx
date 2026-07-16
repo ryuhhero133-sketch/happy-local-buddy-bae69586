@@ -1625,7 +1625,7 @@ function IdlePage() {
   }, []);
 
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
-  type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number };
+  type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number; skinUrl?: string; mapId?: IdleMapId };
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
   const trainerPosRef = useRef(trainerPos);
   useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
@@ -1761,9 +1761,13 @@ function IdlePage() {
       "pikachu", "bulbasaur", "charmander", "squirtle", "pidgey", "zubat", "jigglypuff", "oddish", "growlithe", "golem",
       "cubone", "magnemite", "poliwag", "vulpix", "sandshrew", "mankey", "bellsprout", "venonat", "clefairy", "meowth",
     ];
+    const mapIds = Object.keys(IDLE_MAPS) as IdleMapId[];
+    const skinUrls = SKINS.map((s) => s.url);
     const t = Math.floor(Date.now() / 1000);
-    return Array.from({ length: 50 }, (_, i) => {
-      const a = (i * 47 + idle.currentMap.length * 19) % 360;
+    // 50 jogadores espalhados por TODOS os mapas; cada um em um mapa fixo.
+    const all: RemotePlayer[] = Array.from({ length: 50 }, (_, i) => {
+      const mapId = mapIds[i % mapIds.length];
+      const a = (i * 47 + mapId.length * 19) % 360;
       const r1 = 260 + ((i * 83) % 620);
       const r2 = 210 + ((i * 61) % 570);
       const speed = 0.018 + (i % 7) * 0.003;
@@ -1774,7 +1778,7 @@ function IdlePage() {
       const dy = Math.cos(phase * 1.13) * r2;
       const dir: Dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
       return {
-        id: `fake-${idle.currentMap}-${i}`,
+        id: `fake-${mapId}-${i}`,
         userId: `fake-${i}`,
         name: names[i] ?? `Trainer ${i + 1}`,
         x,
@@ -1783,9 +1787,12 @@ function IdlePage() {
         step: Math.floor((t / 0.45 + i) % 4),
         leaderSp: leaders[i % leaders.length],
         ts: Date.now(),
-        fake: true,
+        skinUrl: skinUrls[i % skinUrls.length],
+        mapId,
       } as RemotePlayer & { fake: true };
     });
+    // Filtra só os do mapa atual para renderizar.
+    return all.filter((p) => p.mapId === idle.currentMap);
   }, [idle.currentMap, energyTick]);
 
   const visibleMapPlayers = useMemo(() => [...remotePlayers, ...fakeMapPlayers], [remotePlayers, fakeMapPlayers]);
@@ -4911,11 +4918,11 @@ function IdlePage() {
                   }}>{rp.name}</div>
                   <div style={{
                     width: "100%", height: "100%",
-                    backgroundImage: `url(${trainerSheet})`,
+                    backgroundImage: `url(${rp.skinUrl ?? trainerSheet})`,
                     backgroundSize: "400% 400%",
                     backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`,
                     imageRendering: "pixelated",
-                    filter: "hue-rotate(140deg) saturate(1.1)",
+                    filter: rp.skinUrl ? undefined : "hue-rotate(140deg) saturate(1.1)",
                   }} />
                   {rpLeaderSrc && (
                     rp.leaderSp && SPRITE_SHEET[rp.leaderSp] ? (
