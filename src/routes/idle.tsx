@@ -5844,46 +5844,34 @@ function IdlePage() {
                 caverna: [
                   { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
                 ],
-                // ═══ Cadeia endgame (todos liberados; morre se tentar sem preparo) ═══
-                bosque_fada: [
-                  { key: "b-arena", target: "arena",             x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
-                  { key: "b-next",  target: "ruina_verdejante",  x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#9dff6b" },
-                ],
-                ruina_verdejante: [
-                  { key: "r-back", target: "bosque_fada", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#ff9ee8" },
-                  { key: "r-next", target: "vale_rochas", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a08770" },
-                ],
+                // ═══ Cadeia endgame — portais visíveis; ao entrar, exige nível ═══
                 vale_rochas: [
-                  { key: "vr-back", target: "ruina_verdejante", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#9dff6b" },
-                  { key: "vr-next", target: "costa_tempest",    x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#5cd3ff" },
+                  { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
+                  { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
                 ],
-                costa_tempest: [
-                  { key: "ct-back", target: "vale_rochas",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#a08770" },
-                  { key: "ct-next", target: "pico_congelado", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e6f4ff" },
+                vale_planta: [
+                  { key: "vp-back", target: "vale_rochas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#a08770" },
+                  { key: "vp-next", target: "vale_gelo",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ce6ff" },
                 ],
-                pico_congelado: [
-                  { key: "pc-back", target: "costa_tempest",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#5cd3ff" },
-                  { key: "pc-next", target: "ruinas_perdidas", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                vale_gelo: [
+                  { key: "vg-back", target: "vale_planta", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#7ef27a" },
+                  { key: "vg-next", target: "vale_veneno", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
                 ],
-                ruinas_perdidas: [
-                  { key: "rp-back", target: "pico_congelado", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#e6f4ff" },
-                  { key: "rp-next", target: "trilha_elite",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8a2be2" },
+                vale_veneno: [
+                  { key: "vv-back", target: "vale_gelo",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#8ce6ff" },
+                  { key: "vv-next", target: "vale_fogo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5f2d" },
                 ],
-                trilha_elite: [
-                  { key: "te-back", target: "ruinas_perdidas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#c084fc" },
-                  { key: "te-next", target: "vulcao_ativo",    x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
+                vale_fogo: [
+                  { key: "vf-back", target: "vale_veneno",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#b45adc" },
+                  { key: "vf-next", target: "vulcao_ativo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
                 ],
                 vulcao_ativo: [
-                  { key: "va-back", target: "trilha_elite",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#8a2be2" },
-                  { key: "va-next", target: "ceu_fraturado", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ecbff" },
-                ],
-                ceu_fraturado: [
-                  { key: "cf-back", target: "vulcao_ativo",       x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#ff5c2e" },
-                  { key: "cf-next", target: "nucleo_primordial",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
+                  { key: "va-back", target: "vale_fogo",         x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#ff5f2d" },
+                  { key: "va-next", target: "nucleo_primordial", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
                 ],
                 nucleo_primordial: [
-                  { key: "np-back",  target: "ceu_fraturado", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7ecbff" },
-                  { key: "np-arena", target: "arena",         x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
+                  { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
+                  { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
                 ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
