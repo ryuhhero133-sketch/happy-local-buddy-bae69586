@@ -209,6 +209,13 @@ const snorlaxMythicUrl = assetUrlFromJson(snorlaxMythicAsset);
 const darkraiUrl = assetUrlFromJson(darkraiAsset);
 const hoOhUrl = assetUrlFromJson(hoOhAsset);
 const magmortarUrl = assetUrlFromJson(magmortarAsset);
+import lugiaAsset from "@/assets/lugia.gif.asset.json";
+import hariyamaAsset from "@/assets/hariyama.gif.asset.json";
+import ursaringAsset from "@/assets/ursaring.gif.asset.json";
+const lugiaUrl = assetUrlFromJson(lugiaAsset);
+const hariyamaUrl = assetUrlFromJson(hariyamaAsset);
+const ursaringUrl = assetUrlFromJson(ursaringAsset);
+
 
 
 
