@@ -231,6 +231,15 @@ import jolteonShinyAsset from "@/assets/jolteon-shiny.gif.asset.json";
 import vaporeonShinyAsset from "@/assets/vaporeon-shiny.gif.asset.json";
 import blazikenAsset from "@/assets/blaziken.gif.asset.json";
 const blazikenGif = blazikenAsset.url;
+import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
+import groudonAsset from "@/assets/groudon.gif.asset.json";
+import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
+import snorlaxMythicAsset from "@/assets/snorlax-mythic.gif.asset.json";
+const deoxysGif = assetUrl(deoxysAsset.url);
+const groudonGif = assetUrl(groudonAsset.url);
+const laprasShinyGif = assetUrl(laprasShinyAsset.url);
+const snorlaxMythicGif = assetUrl(snorlaxMythicAsset.url);
+
 const laprasGif = laprasAsset.url;
 const vaporeonGif = vaporeonAsset.url;
 const dragonairGif = dragonairAsset.url;
