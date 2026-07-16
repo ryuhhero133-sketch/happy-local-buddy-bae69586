@@ -1735,6 +1735,7 @@ function IdlePage() {
   const MYTHIC3_CODE_KEY = "rubym.mythic3Code.used";
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
+  const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
   const redeemCrystalCode = () => {
     const raw = codeInput.trim().toUpperCase();
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
@@ -1767,6 +1768,21 @@ function IdlePage() {
       localStorage.setItem(MYTHIC_EGG2_CODE_KEY, "1");
       pushChat("🎁 Código resgatado: +1 Ovo Aura (mítico) e +1000 cristais!", "cap");
       setCodeMsg({ kind: "ok", text: "Recompensa: 1× Ovo Aura + 1000 cristais." });
+      setCodeInput("");
+      return;
+    }
+    if (raw === "CHARIZARDEGG2026") {
+      if (localStorage.getItem(CHARIZARD_EGG_CODE_KEY) === "1") {
+        setCodeMsg({ kind: "err", text: "Este código já foi resgatado nesta conta." });
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, egg_charizard: (s.items.egg_charizard ?? 0) + 1 },
+      }));
+      localStorage.setItem(CHARIZARD_EGG_CODE_KEY, "1");
+      pushChat("🔥 Código resgatado: +1 Ovo do Charizard (mítico)!", "cap");
+      setCodeMsg({ kind: "ok", text: "Recompensa: 1× Ovo do Charizard (mítico)." });
       setCodeInput("");
       return;
     }
@@ -3398,16 +3414,14 @@ function IdlePage() {
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
-  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura";
+  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
-    // Compat com saves antigos
     egg_common: { weights: { common: 70, uncommon: 25, rare: 5 } },
     egg_rare:   { weights: { uncommon: 20, rare: 55, epic: 22, legendary: 3 } },
     egg_epic:   { weights: { rare: 20, epic: 50, legendary: 25, mythic: 5 } },
-    // Ovo Místico — único da loja, pode sair qualquer raridade
     egg_mystic: { weights: { common: 25, uncommon: 25, rare: 22, epic: 16, legendary: 9, mythic: 2, mythic_shiny: 1 } },
-    // Ovo Aura — sempre mítico (Lucario ou Mew com aura)
     egg_aura:   { weights: { mythic: 100 } },
+    egg_charizard: { weights: { mythic: 100 } },
   };
 
   const rollEggRarity = (tier: EggId): Rarity => {
@@ -3425,6 +3439,8 @@ function IdlePage() {
     let sp: Species;
     if (eggId === "egg_aura") {
       sp = (Math.random() < 0.5 ? "lucario" : "mew") as Species;
+    } else if (eggId === "egg_charizard") {
+      sp = "charizard_shiny" as Species;
     } else {
       const unlocked = speciesUnlockedFor(leaderLv).filter((x) => !!GIF[x]);
       const fallback = (Object.keys(GIF) as Species[]);
@@ -7604,8 +7620,8 @@ function TabOverlay({
   onBuyBall: (b: ShopBall) => void;
   onBuyBook: (bk: ShopBook) => void;
   onBuyPotion: (qty?: number) => void;
-  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
-  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
+  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
+  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
 
   onBuyChestAmulet: () => void;
 
@@ -8051,9 +8067,9 @@ function TabOverlay({
           chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
-          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard",
         };
-        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff" };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
           if (id === "potion" || id === "revive" || id === "berry") return "potions";
