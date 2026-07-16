@@ -1625,7 +1625,7 @@ function IdlePage() {
   }, []);
 
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
-  type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number };
+  type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number; skinUrl?: string; mapId?: IdleMapId };
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
   const trainerPosRef = useRef(trainerPos);
   useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
