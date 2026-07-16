@@ -2794,10 +2794,13 @@ function IdlePage() {
           premium_box: (s.items.premium_box ?? 0) - 1,
           potion: (s.items.potion ?? 0) + 50,
           pokeball: (s.items.pokeball ?? 0) + 50,
+          skin_ticket: (s.items.skin_ticket ?? 0) + 1,
         },
       }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "+50 Poção · +50 Pokébola", "capture");
-      pushChat(`🎁 Caixa Premium aberta! Você recebeu 50 Poções e 50 Pokébolas de evento.`, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "+50 Poção · +50 Pokébola · +1 Ticket de Skin", "capture");
+      pushChat(`🎁 Caixa Premium aberta! Você recebeu 50 Poções, 50 Pokébolas e 1 Ticket de Skin ✦ (use na aba Início para escolher uma skin premium).`, "cap");
+    } else if (id === "skin_ticket") {
+      pushChat(`✦ Vá até a aba Início e escolha uma skin premium para desbloquear com o ticket.`, "info");
     }
   };
 
