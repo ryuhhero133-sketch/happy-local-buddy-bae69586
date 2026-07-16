@@ -2,6 +2,7 @@
 import type { PetInstance } from "@/game/systems";
 import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META, computeTeamSynergies } from "@/game/synergies";
+import { TRAITS, TIER_COLOR } from "@/game/traits";
 
 interface Props {
   pet: PetInstance;
