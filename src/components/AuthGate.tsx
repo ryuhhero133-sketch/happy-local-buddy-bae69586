@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, type ReactNode, type FormEvent } from "rea
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
-import loginBgAsset from "@/assets/login-bg.png.asset.json";
+const loginBgAsset = { url: "/login-bg.png" };
 
 export const IDENTITY_KEY = "rubym.identity.v1";
 export const GUEST_KEY = "rubym.guest.v1";
