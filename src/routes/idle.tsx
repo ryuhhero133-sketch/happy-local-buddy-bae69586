@@ -1349,8 +1349,9 @@ function IdlePage() {
   useEffect(() => { honeyUntilRef.current = idle.buffs.honeyUntil ?? 0; }, [idle.buffs.honeyUntil]);
   const [honeyShop, setHoneyShop] = useState<null | { x: number; y: number }>(null);
   const HONEY_PRICE = 3000;
-  const HONEY_DURATION_MS = 10 * 60 * 1000;
+  const HONEY_DURATION_MS = 60 * 60 * 1000; // 1 hora por incenso ativado
   const HONEY_BONUS = 0.10; // +10% drop, xp, def, velocidade
+  const HONEY_BUY_LIMIT = 20; // limite de compras (vitalício)
   // ===== Escolha do inicial (declarada cedo p/ gatear loops do jogo) =====
   const [starterChosen, setStarterChosen] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
@@ -3421,6 +3422,19 @@ function IdlePage() {
       pushChat(`🎁 Caixa Premium aberta! Você recebeu 50 Poções, 50 Pokébolas e 1 Ticket de Skin ✦ (use na aba Início para escolher uma skin premium).`, "cap");
     } else if (id === "skin_ticket") {
       pushChat(`✦ Vá até a aba Início e escolha uma skin premium para desbloquear com o ticket.`, "info");
+    } else if (id === "incenso_mel") {
+      const nowT = Date.now();
+      if ((idle.buffs.honeyUntil ?? 0) > nowT) {
+        pushChat(`Já há um Incenso de Mel ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, incenso_mel: (s.items.incenso_mel ?? 0) - 1 },
+        buffs: { ...s.buffs, honeyUntil: nowT + HONEY_DURATION_MS },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "🍯 MEL +10% · 1h", "capture");
+      pushChat(`🍯 Incenso de Mel ativado! +10% drop/xp/def/velocidade por 1 hora.`, "cap");
     }
   };
 
@@ -4986,11 +5000,9 @@ function IdlePage() {
                   <button onClick={() => setHoneyShop(null)} style={{ background: "transparent", border: "none", color: "#ffe9a8", cursor: "pointer", fontSize: 18 }}>×</button>
                 </div>
                 <div style={{ fontSize: 12, lineHeight: 1.45, marginBottom: 10, opacity: 0.9 }}>
-                  Ativa por <b>10 minutos</b>:<br />
-                  • +10% Drop<br />
-                  • +10% EXP<br />
-                  • +10% Defesa<br />
-                  • +10% Velocidade
+                  Compra o Incenso e leva pra <b>Mochila</b>. Ative quando quiser — dura <b>1 hora</b>:<br />
+                  • +10% Drop • +10% EXP<br />
+                  • +10% Defesa • +10% Velocidade
                 </div>
                 {(() => {
                   const active = Date.now() < (idle.buffs.honeyUntil ?? 0);
@@ -4999,40 +5011,63 @@ function IdlePage() {
                   const ss = String(remaining % 60).padStart(2, "0");
                   return active ? (
                     <div style={{ fontSize: 12, marginBottom: 8, color: "#8bffb0" }}>
-                      ✨ Ativo — {mm}:{ss} restantes
+                      ✨ Buff ativo — {mm}:{ss} restantes
                     </div>
                   ) : null;
                 })()}
-                <button
-                  onClick={() => {
-                    setIdle((s) => {
-                      if (s.bank.gold < HONEY_PRICE) {
-                        pushChat(`Ouro insuficiente. Preço: ${HONEY_PRICE} 🪙`, "info");
-                        return s;
-                      }
-                      const base = Math.max(Date.now(), s.buffs.honeyUntil ?? 0);
-                      pushChat(`🍯 Incenso de Mel ativado por 10 min! +10% drop/xp/def/velocidade`, "info");
-                      return {
-                        ...s,
-                        bank: { ...s.bank, gold: s.bank.gold - HONEY_PRICE },
-                        buffs: { ...s.buffs, honeyUntil: base + HONEY_DURATION_MS },
-                      };
-                    });
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    background: "linear-gradient(180deg, #ffd94d, #d99b1a)",
-                    color: "#2a1a0a",
-                    border: "none",
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    fontSize: 13,
-                  }}
-                >
-                  Comprar por {HONEY_PRICE} 🪙
-                </button>
+                {(() => {
+                  const bought = idle.items._honey_bought ?? 0;
+                  const remainingBuys = Math.max(0, HONEY_BUY_LIMIT - bought);
+                  const stock = idle.items.incenso_mel ?? 0;
+                  const canBuy = remainingBuys > 0;
+                  return (
+                    <>
+                      <div style={{ fontSize: 11, marginBottom: 6, display: "flex", justifyContent: "space-between", opacity: 0.9 }}>
+                        <span>Na mochila: <b>{stock}</b></span>
+                        <span>Restantes: <b>{remainingBuys}/{HONEY_BUY_LIMIT}</b></span>
+                      </div>
+                      <button
+                        disabled={!canBuy}
+                        onClick={() => {
+                          setIdle((s) => {
+                            const alreadyBought = s.items._honey_bought ?? 0;
+                            if (alreadyBought >= HONEY_BUY_LIMIT) {
+                              pushChat(`Limite de ${HONEY_BUY_LIMIT} incensos atingido.`, "info");
+                              return s;
+                            }
+                            if (s.bank.gold < HONEY_PRICE) {
+                              pushChat(`Ouro insuficiente. Preço: ${HONEY_PRICE} 🪙`, "info");
+                              return s;
+                            }
+                            pushChat(`🍯 Incenso de Mel comprado! Ative pela Mochila (dura 1h).`, "info");
+                            return {
+                              ...s,
+                              bank: { ...s.bank, gold: s.bank.gold - HONEY_PRICE },
+                              items: {
+                                ...s.items,
+                                incenso_mel: (s.items.incenso_mel ?? 0) + 1,
+                                _honey_bought: alreadyBought + 1,
+                              },
+                            };
+                          });
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px",
+                          background: canBuy ? "linear-gradient(180deg, #ffd94d, #d99b1a)" : "linear-gradient(180deg, #665544, #443322)",
+                          color: canBuy ? "#2a1a0a" : "#8a7a6a",
+                          border: "none",
+                          borderRadius: 8,
+                          fontWeight: 700,
+                          cursor: canBuy ? "pointer" : "not-allowed",
+                          fontSize: 13,
+                        }}
+                      >
+                        {canBuy ? `Comprar por ${HONEY_PRICE} 🪙` : "LIMITE ATINGIDO"}
+                      </button>
+                    </>
+                  );
+                })()}
                 <div style={{ fontSize: 11, opacity: 0.7, marginTop: 6, textAlign: "center" }}>
                   Ouro no banco: {Math.floor(idle.bank.gold)} 🪙
                 </div>
@@ -8088,6 +8123,7 @@ function TabOverlay({
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard",
+          incenso_mel: "Incenso de Mel 🍯",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
@@ -8105,7 +8141,8 @@ function TabOverlay({
           { id: "eggs", label: "Ovos", icon: "🥚" },
           { id: "other", label: "Outros", icon: "✨" },
         ];
-        const entries = Object.entries(items).filter(([, n]) => n > 0);
+        // filtra chaves internas de contagem (não devem aparecer na mochila)
+        const entries = Object.entries(items).filter(([id, n]) => n > 0 && !id.startsWith("_"));
         const totalTypes = entries.length;
         const totalCount = entries.reduce((a, [, n]) => a + n, 0);
         const filtered = mochilaCat === "all" ? entries : entries.filter(([id]) => catOf(id) === mochilaCat);
