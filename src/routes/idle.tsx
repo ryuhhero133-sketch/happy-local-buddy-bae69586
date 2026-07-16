@@ -53,6 +53,7 @@ import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
+import { fetchTopRanked, recordRankedScore, type RankedRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
 import trainerSheet from "@/assets/trainer.png";
@@ -757,6 +758,33 @@ function applyTrainerXp(s: IdleState, gained: number): { state: IdleState; level
 const IDLE_HP_MULT = 6;
 function calcIdleMaxHp(pet: PetInstance) {
   return calcMaxHp(pet) * IDLE_HP_MULT;
+}
+
+function highLevelEnemyHpMult(enemyLevel: number, leaderLevel: number) {
+  if (enemyLevel < 200) return 1;
+  let mult = 2.15 + Math.min(2.75, (enemyLevel - 200) / 80);
+  if (enemyLevel >= 250) {
+    const gap = Math.max(0, enemyLevel - leaderLevel);
+    mult *= 1.55 + Math.min(3.5, gap * 0.09);
+  }
+  return mult;
+}
+
+function highLevelEnemyDamageMult(enemyLevel: number, leaderLevel: number) {
+  if (enemyLevel < 200) return 1;
+  let mult = 2.4 + Math.min(3.25, (enemyLevel - 200) / 70);
+  if (enemyLevel >= 250) {
+    const gap = Math.max(0, enemyLevel - leaderLevel);
+    mult *= 1.7 + Math.min(5, gap * 0.12);
+  }
+  return mult;
+}
+
+function playerDamageVsHighLevelMult(leaderLevel: number, enemyLevel: number) {
+  if (enemyLevel < 250) return enemyLevel >= 200 && leaderLevel + 40 < enemyLevel ? 0.65 : 1;
+  const gap = enemyLevel - leaderLevel;
+  if (gap <= 0) return 1;
+  return Math.max(0.12, 1 - gap * 0.08);
 }
 
 // ===== Energia por raridade =====
@@ -1786,21 +1814,66 @@ function IdlePage() {
     } catch { /* ignore */ }
     setRankLoading(true);
     (async () => {
+      const meRow = (): RankRow => ({
+        id: identity?.id ?? "local-trainer",
+        name: identity?.name || "Treinador",
+        level: team[0]?.level ?? 1,
+        trainer_level: idle.trainerLevel ?? 1,
+        craft_points: idle.craftPoints ?? 0,
+        leader_species: team[0]?.species ?? null,
+        leader_rarity: team[0]?.rarity ?? null,
+        guild_name: null,
+      });
       try {
-        const orderCol = rankMode === "trainer" ? "trainer_level" : rankMode === "craft" ? "craft_points" : "level";
-        const { data } = await gameDb
-          .from("players")
-          .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,guild_name")
-          .order(orderCol, { ascending: false })
-          .limit(50);
-        const rows = (data as RankRow[] | null) ?? [];
+        void recordRankedScore(idle.trainerLevel ?? 1, idle.craftPoints ?? 0, null);
+        const top = await fetchTopRanked(200);
+        let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
+          id: r.user_id,
+          name: r.username || "Treinador",
+          level: r.trainer_level,
+          trainer_level: r.trainer_level,
+          craft_points: r.craft_points ?? 0,
+          leader_species: null,
+          leader_rarity: null,
+          guild_name: r.guild_name ?? null,
+        }));
+
+        if (rows.length === 0) {
+          const orderCol = rankMode === "trainer" ? "trainer_level" : rankMode === "craft" ? "craft_points" : "level";
+          const { data, error } = await gameDb
+            .from("players")
+            .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,guild_name")
+            .order(orderCol, { ascending: false })
+            .limit(200);
+          if (error) console.warn("[idle ranked] players:", error.message);
+          rows = (data as RankRow[] | null) ?? [];
+        }
+
+        if (!rows.some((r) => r.id === (identity?.id ?? "local-trainer"))) rows.push(meRow());
+        rows.sort((a, b) => {
+          const av = rankMode === "trainer" ? a.trainer_level : rankMode === "craft" ? a.craft_points : a.level;
+          const bv = rankMode === "trainer" ? b.trainer_level : rankMode === "craft" ? b.craft_points : b.level;
+          return bv - av;
+        });
+        rows = rows.slice(0, 200);
         if (!cancelled) setRankRows(rows);
         try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), rows })); } catch { /* ignore */ }
-      } catch { /* ignore */ }
+      } catch (e) {
+        console.warn("[idle ranked] load:", e);
+        const rows = [meRow()];
+        if (!cancelled) setRankRows(rows);
+      }
       finally { if (!cancelled) setRankLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [rankOpen, rankMode]);
+  }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.craftPoints, team]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      void recordRankedScore(idle.trainerLevel ?? 1, idle.craftPoints ?? 0, null);
+    }, 4500);
+    return () => clearTimeout(t);
+  }, [idle.trainerLevel, idle.craftPoints]);
   const viewW = viewSize.w / zoom;
   const viewH = viewSize.h / zoom;
   const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
@@ -2190,6 +2263,7 @@ function IdlePage() {
         const isCrit = Math.random() < critChance;
         let dmg = Math.floor((5 + leader.level * 0.8 + base.atk * 0.12 + Math.random() * 5) * (1 + idle.buffs.atk));
         if (isCrit) dmg = Math.floor(dmg * 1.8);
+        dmg = Math.max(1, Math.floor(dmg * playerDamageVsHighLevelMult(leader.level, target.level)));
 
         // Lunge: pokémon avança em direção ao inimigo
         const animId = attackAnimIdRef.current++;
@@ -2207,7 +2281,7 @@ function IdlePage() {
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyActive = Date.now() < (idle.buffs.honeyUntil ?? 0);
         const honeyDef = honeyActive ? HONEY_BONUS : 0;
-        const eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
+        const eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
         // Dano recebido → aparece EM CIMA DO MEU POKÉMON, com um respiro após o meu golpe
         setTimeout(() => {
           setEnemyAttackAnim({
@@ -3169,10 +3243,12 @@ function IdlePage() {
           mapLvRange = [leaderLv + 10, leaderLv + 15];
         }
         if (idle.currentMap === "fantasma") {
-          // Cemitério Assombrado: zona endgame nível 200+ — sempre bem acima do líder.
+          // Cemitério Assombrado: zona endgame nível 200+.
+          // Até 249 o mapa empurra acima do líder; a partir de 250 exige parear níveis.
           pool = ["zubat", "venomoth", "venonat", "gloom", "ekans", "arbok", "abra", "kadabra", "meowth", "persian"] as Species[];
-          const base = Math.max(200, leaderLv);
-          mapLvRange = [base, base + 30];
+          if (leaderLv < 200) mapLvRange = [200, 225];
+          else if (leaderLv < 250) mapLvRange = [leaderLv + 12, leaderLv + 32];
+          else mapLvRange = [Math.max(250, leaderLv - 2), leaderLv + 18];
         }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
@@ -3207,7 +3283,8 @@ function IdlePage() {
         pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
       }
       const baseHp = calcIdleMaxHp(pet);
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1));
+      const highHp = highLevelEnemyHpMult(lv, leaderLv);
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * highHp);
       const isAggro = elite || Math.random() < 0.18;
       const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60);
       return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider };
