@@ -280,37 +280,35 @@ const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
   | "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
-  // 10 novos mapas endgame Lv 200→500
-  | "bosque_fada" | "ruina_verdejante" | "vale_rochas" | "costa_tempest" | "pico_congelado"
-  | "ruinas_perdidas" | "trilha_elite" | "vulcao_ativo" | "ceu_fraturado" | "nucleo_primordial";
-// element: só descritivo; cycle: quando presente, mapa abre a cada `cycleMs` por `openMs`
+  // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
+  | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
+  | "vulcao_ativo" | "nucleo_primordial";
+// overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
+// stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
-  element: string;
+  element: string; stars?: number; overlay?: string;
   cycle?: { cycleMs: number; openMs: number };
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
-  arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama"    },
-  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra"    },
-  praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água"     },
-  venofogo: { name: "Pântano em Chamas",       diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo" },
+  arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
+  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
+  praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
+  venofogo: { name: "Pântano em Chamas",       diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
 
-  neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 40, maxLevel: 65, element: "Gelo"     },
-  deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo"     },
-  caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra",
+  neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 40, maxLevel: 65, element: "Gelo", stars: 2 },
+  deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo", stars: 2 },
+  caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra", stars: 3,
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
-  fantasma: { name: "Cemitério Assombrado",    diff: "Lendário",  bg: mapFantasmaUrl,  rate: 4.0, minLevel: 1,  maxLevel: 9999, element: "Fantasma" },
-  // ═══ ENDGAME Lv 200→500 (todos liberados; pokemons 300+ são MUITO fortes) ═══
-  bosque_fada:       { name: "Bosque Cintilante",   diff: "Épico",       bg: mapForestUrl,          rate: 5.0, minLevel: 1, maxLevel: 230, element: "Fada"      },
-  ruina_verdejante:  { name: "Ruínas Verdejantes",  diff: "Épico+",      bg: mapFlorestaSecretaUrl, rate: 5.5, minLevel: 1, maxLevel: 260, element: "Planta"    },
-  vale_rochas:       { name: "Vale das Rochas",     diff: "Lendário",    bg: mapPedreiraCavernaUrl, rate: 6.0, minLevel: 1, maxLevel: 290, element: "Pedra"     },
-  costa_tempest:     { name: "Costa Tempestuosa",   diff: "Lendário+",   bg: mapRoute3Url,          rate: 6.5, minLevel: 1, maxLevel: 320, element: "Água/Elétrico" },
-  pico_congelado:    { name: "Pico Congelado",      diff: "Lendário+",   bg: mapForestCaveUrl,      rate: 7.0, minLevel: 1, maxLevel: 360, element: "Gelo"      },
-  ruinas_perdidas:   { name: "Ruínas Perdidas",     diff: "Mítico",      bg: mapPalletRouteUrl,     rate: 7.5, minLevel: 1, maxLevel: 400, element: "Psíquico"  },
-  trilha_elite:      { name: "Trilha da Elite",     diff: "Mítico",      bg: mapEliteRouteUrl,      rate: 8.0, minLevel: 1, maxLevel: 425, element: "Sombrio"   },
-  vulcao_ativo:      { name: "Vulcão Ativo",        diff: "Mítico+",     bg: mapVictoryRoadUrl,     rate: 8.5, minLevel: 1, maxLevel: 460, element: "Fogo"      },
-  ceu_fraturado:     { name: "Céu Fraturado",       diff: "Mítico+",     bg: mapViridianUrl,        rate: 9.0, minLevel: 1, maxLevel: 485, element: "Dragão"    },
-  nucleo_primordial: { name: "Núcleo Primordial",   diff: "PRIMORDIAL",  bg: mapVenenoUrl,          rate: 10.0, minLevel: 1, maxLevel: 500, element: "Misto"    },
+  fantasma: { name: "Cemitério Assombrado",    diff: "Lendário",  bg: mapFantasmaUrl,  rate: 4.0, minLevel: 1,  maxLevel: 9999, element: "Fantasma", stars: 4 },
+  // ═══ ENDGAME — cadeia progressiva, portal visível mas exige nível de treinador ═══
+  vale_rochas:       { name: "Vale das Rochas",   diff: "Lendário",   bg: mapPedreiraCavernaUrl, rate: 6.0, minLevel: 50,  maxLevel: 150, element: "Pedra",  stars: 4 },
+  vale_planta:       { name: "Vale Esmeralda",    diff: "Lendário+",  bg: mapPedreiraCavernaUrl, rate: 6.5, minLevel: 120, maxLevel: 220, element: "Planta", stars: 5, overlay: "rgba(70,210,90,0.42)" },
+  vale_gelo:         { name: "Vale Gélido",       diff: "Mítico",     bg: mapPedreiraCavernaUrl, rate: 7.0, minLevel: 190, maxLevel: 290, element: "Gelo",   stars: 6, overlay: "rgba(140,220,255,0.45)" },
+  vale_veneno:       { name: "Vale Tóxico",       diff: "Mítico+",    bg: mapPedreiraCavernaUrl, rate: 7.5, minLevel: 260, maxLevel: 360, element: "Veneno", stars: 7, overlay: "rgba(180,90,220,0.48)" },
+  vale_fogo:         { name: "Vale Ígneo",        diff: "Mítico+",    bg: mapPedreiraCavernaUrl, rate: 8.0, minLevel: 330, maxLevel: 420, element: "Fogo",   stars: 7, overlay: "rgba(255,95,45,0.45)" },
+  vulcao_ativo:      { name: "Vulcão Ativo",      diff: "PRIMORDIAL", bg: mapVictoryRoadUrl,     rate: 9.0, minLevel: 400, maxLevel: 470, element: "Fogo",   stars: 8 },
+  nucleo_primordial: { name: "Núcleo Primordial", diff: "PRIMORDIAL", bg: mapVenenoUrl,          rate: 10.0, minLevel: 460, maxLevel: 500, element: "Misto", stars: 8 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
@@ -5819,7 +5817,7 @@ function IdlePage() {
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
-                  { key: "to-bosque_fada", target: "bosque_fada", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#ff9ee8" },
+                  { key: "to-vale_rochas", target: "vale_rochas", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
                 ],
                 terra: [
                   { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
@@ -5846,46 +5844,34 @@ function IdlePage() {
                 caverna: [
                   { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
                 ],
-                // ═══ Cadeia endgame (todos liberados; morre se tentar sem preparo) ═══
-                bosque_fada: [
-                  { key: "b-arena", target: "arena",             x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
-                  { key: "b-next",  target: "ruina_verdejante",  x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#9dff6b" },
-                ],
-                ruina_verdejante: [
-                  { key: "r-back", target: "bosque_fada", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#ff9ee8" },
-                  { key: "r-next", target: "vale_rochas", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a08770" },
-                ],
+                // ═══ Cadeia endgame — portais visíveis; ao entrar, exige nível ═══
                 vale_rochas: [
-                  { key: "vr-back", target: "ruina_verdejante", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#9dff6b" },
-                  { key: "vr-next", target: "costa_tempest",    x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#5cd3ff" },
+                  { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
+                  { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
                 ],
-                costa_tempest: [
-                  { key: "ct-back", target: "vale_rochas",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#a08770" },
-                  { key: "ct-next", target: "pico_congelado", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e6f4ff" },
+                vale_planta: [
+                  { key: "vp-back", target: "vale_rochas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#a08770" },
+                  { key: "vp-next", target: "vale_gelo",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ce6ff" },
                 ],
-                pico_congelado: [
-                  { key: "pc-back", target: "costa_tempest",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#5cd3ff" },
-                  { key: "pc-next", target: "ruinas_perdidas", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                vale_gelo: [
+                  { key: "vg-back", target: "vale_planta", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#7ef27a" },
+                  { key: "vg-next", target: "vale_veneno", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
                 ],
-                ruinas_perdidas: [
-                  { key: "rp-back", target: "pico_congelado", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#e6f4ff" },
-                  { key: "rp-next", target: "trilha_elite",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8a2be2" },
+                vale_veneno: [
+                  { key: "vv-back", target: "vale_gelo",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#8ce6ff" },
+                  { key: "vv-next", target: "vale_fogo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5f2d" },
                 ],
-                trilha_elite: [
-                  { key: "te-back", target: "ruinas_perdidas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#c084fc" },
-                  { key: "te-next", target: "vulcao_ativo",    x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
+                vale_fogo: [
+                  { key: "vf-back", target: "vale_veneno",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#b45adc" },
+                  { key: "vf-next", target: "vulcao_ativo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
                 ],
                 vulcao_ativo: [
-                  { key: "va-back", target: "trilha_elite",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#8a2be2" },
-                  { key: "va-next", target: "ceu_fraturado", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ecbff" },
-                ],
-                ceu_fraturado: [
-                  { key: "cf-back", target: "vulcao_ativo",       x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,          arriveY: WORLD_H / 2, color: "#ff5c2e" },
-                  { key: "cf-next", target: "nucleo_primordial",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
+                  { key: "va-back", target: "vale_fogo",         x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#ff5f2d" },
+                  { key: "va-next", target: "nucleo_primordial", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
                 ],
                 nucleo_primordial: [
-                  { key: "np-back",  target: "ceu_fraturado", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7ecbff" },
-                  { key: "np-arena", target: "arena",         x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
+                  { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
+                  { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
                 ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
@@ -5893,7 +5879,7 @@ function IdlePage() {
                 const targetMap = IDLE_MAPS[g.target];
                 const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                 if (!unlocked) {
-                  pushChat(`Precisa nível ${targetMap.minLevel} para ir a ${targetMap.name}.`, "info");
+                  pushChat(`🔒 ${targetMap.name} exige Treinador Lv ${targetMap.minLevel} para entrar.`, "info");
                   return;
                 }
                 if (targetMap.cycle) {
@@ -5922,7 +5908,15 @@ function IdlePage() {
                   border: "1px solid rgba(245,207,107,0.4)",
                   margin: "0 auto",
                 }}>
-                  {/* Prédios (clicáveis) */}
+                  {/* Overlay de recolorização (mapas endgame recolorizados) */}
+                  {map.overlay && (
+                    <div style={{
+                      position: "absolute", inset: 0,
+                      background: map.overlay,
+                      mixBlendMode: "color",
+                      pointerEvents: "none",
+                    }} />
+                  )}
                   {visibleBuildings.map((b) => (
                     <button
                       key={b.key}
@@ -6034,7 +6028,7 @@ function IdlePage() {
                     >⛶</button>
                   </div>
                   <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
-                    {map.name} · {map.diff}
+                    {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
                     {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
                   </div>
 
