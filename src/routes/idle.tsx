@@ -723,9 +723,8 @@ const SHOP_BOOKS: ShopBook[] = [
   { id: "book_vip_30", name: "Livro VIP 30d ✦✦", desc: "+30% ouro e +30% EXP por 30 DIAS", price: 500, img: bookExpImg },
   { id: "book_vip_60", name: "Livro VIP 60d ✦✦✦", desc: "+40% ouro e +40% EXP por 60 DIAS", price: 1000, img: bookExpImg },
   // ═══ ORBS DE XP — 1h de bônus, apenas 1 ativo por vez ═══
+  // ═══ ORB DE XP FRACO — único vendido; os fortes vêm da troca com NPC ═══
   { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo)", price: 5000,  img: orbXpMinorUrl,   currency: "gold" },
-  { id: "orb_xp_major",   name: "Orb de XP Maior ✦✦",  desc: "+20% EXP por 1 hora (apenas 1 orb ativo)", price: 15000, img: orbXpMajorUrl,   currency: "gold" },
-  { id: "orb_xp_supreme", name: "Orb de XP Supremo ✦✦✦", desc: "+30% EXP por 1 hora (apenas 1 orb ativo)", price: 40000, img: orbXpSupremeUrl, currency: "gold" },
 ];
 
 
