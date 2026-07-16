@@ -2538,7 +2538,7 @@ function IdlePage() {
         setTimeout(() => {
           pushFxAt(target.x, target.y - 34, isCrit ? `CRIT ${dmg}!` : `${dmg}`, isCrit ? "crit" : "myDmg");
         }, 180);
-        pushChat(`${isCrit ? "CRÍTICO! " : ""}Você causou ${dmg} de dano em ${target.sp.replace(/_/g, " ")}.`, "dmg");
+        // (dano rotineiro não vai para o chat — apenas floating text)
 
         // Contra-ataque do inimigo: dano no meu pokémon (reduzido pelo buff de def)
         const eBase = SPECIES_BASE[target.sp];
@@ -2592,7 +2592,7 @@ function IdlePage() {
         }, 480);
         setLeaderHp((h) => {
           let nh = Math.max(0, h - eDmg);
-          pushChat(`${target.sp.replace(/_/g, " ")} causou ${eDmg} de dano em você.`, "hit");
+          // (dano rotineiro do inimigo — sem spam no chat)
           // Auto-poção: se HP% <= threshold, consome 1 poção
           const leaderNow = team[0];
           if (leaderNow && idle.autoHeal.enabled && nh > 0) {
