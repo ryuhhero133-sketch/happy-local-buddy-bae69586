@@ -8421,7 +8421,7 @@ function PillButton({ label, onClick, sub }: { label: string; onClick: () => voi
 
 void calcMaxHp;
 
-function RankedOverlay({ me, speciesGif, onClose }: {
+function RankedOverlay({ players, me, speciesGif, onClose }: {
   players: RemotePlayer[];
   me: { id: string; name: string; trainer_level: number; craft_points: number; leader_species: string | null };
   speciesGif: Record<string, string>;
@@ -8438,13 +8438,27 @@ function RankedOverlay({ me, speciesGif, onClose }: {
     const load = async () => {
       const [top, season] = await Promise.all([fetchTopRanked(200), fetchCurrentSeason()]);
       if (!active) return;
-      const mapped: Row[] = (top as RankedRow[]).map((r) => ({
+      let mapped: Row[] = (top as RankedRow[]).map((r) => ({
         id: r.user_id, name: r.username,
         trainer_level: r.trainer_level, craft_points: r.craft_points,
         score: r.score, guild_name: r.guild_name,
         leader_species: null,
         isMe: r.user_id === me.id,
       }));
+
+      // Fallback: se Supabase ranked não retornou nada, monta ranking a partir dos players online sincronizados.
+      if (mapped.length === 0) {
+        mapped = players.map((p) => ({
+          id: p.id, name: p.name,
+          trainer_level: p.trainer_level ?? p.level ?? 1,
+          craft_points: p.craft_points ?? 0,
+          score: (p.trainer_level ?? p.level ?? 1) * 100 + (p.craft_points ?? 0),
+          guild_name: p.guild_name ?? null,
+          leader_species: p.leader_species,
+          isMe: p.id === me.id,
+        }));
+      }
+
       // garante que o jogador apareça mesmo se ainda não rankeou
       if (!mapped.some((r) => r.id === me.id)) {
         mapped.push({
@@ -8453,9 +8467,9 @@ function RankedOverlay({ me, speciesGif, onClose }: {
           score: me.trainer_level * 100 + me.craft_points,
           guild_name: null, leader_species: me.leader_species, isMe: true,
         });
-        mapped.sort((a, b) => b.score - a.score);
       }
-      setRows(mapped);
+      mapped.sort((a, b) => b.score - a.score);
+      setRows(mapped.slice(0, 200));
       setEndsAt(season ? new Date(season.ends_at).getTime() : null);
       setLoading(false);
     };
@@ -8464,7 +8478,8 @@ function RankedOverlay({ me, speciesGif, onClose }: {
     const t = setInterval(load, 3 * 60 * 60 * 1000);
     const c = setInterval(() => setNow(Date.now()), 1000);
     return () => { active = false; clearInterval(t); clearInterval(c); };
-  }, [me.id, me.name, me.trainer_level, me.craft_points, me.leader_species]);
+  }, [me.id, me.name, me.trainer_level, me.craft_points, me.leader_species, players]);
+
 
   const myRank = rows.findIndex((r) => r.id === me.id) + 1;
   const remainMs = endsAt ? Math.max(0, endsAt - now) : 0;
