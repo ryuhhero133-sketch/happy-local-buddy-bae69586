@@ -146,7 +146,7 @@ export default function QuestLogOverlay({
         <div className="flex items-center justify-between px-2 py-1.5 bg-black/40 border-b border-purple-900 flex-shrink-0">
           <div className="flex items-center gap-1 min-w-0">
             <span style={{ fontSize: 11 }}>📜</span>
-            <h2 className="font-bold tracking-wider truncate" style={{ color: "#e9d5ff", fontSize: 9 }}>QUESTS</h2>
+            <h2 className="font-bold tracking-wider truncate" style={{ color: "#e9d5ff", fontSize: 9 }}>ATIVIDADES</h2>
           </div>
           <button onClick={onClose} className="shrink-0 bg-purple-900/70 text-purple-100 rounded font-bold active:scale-90 hover:bg-purple-800" style={{ fontSize: 9, padding: "2px 7px" }}>✕</button>
         </div>
