@@ -116,7 +116,8 @@ export function useServerSync(opts: {
   useEffect(() => {
     const iv = setInterval(() => {
       if (document.visibilityState === "visible") doPush();
-    }, 6000);
+    }, 20000);
+
     const onHide = () => { if (document.visibilityState === "hidden") doPush(); };
     document.addEventListener("visibilitychange", onHide);
     window.addEventListener("beforeunload", () => { doPush(); });
