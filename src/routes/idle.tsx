@@ -6430,32 +6430,39 @@ function IdlePage() {
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
-            // Carteira e Mercado bloqueados temporariamente
+            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
+            // Carteira bloqueada temporariamente
             // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
-            // { id: "market",   label: "Mercado",  img: navMarket,    color: "#ff9d3d" },
           ] as const).map((t) => {
 
             const active = tab === t.id;
             const showActive = active;
             const color = t.color;
+            const isDisabled = (t as { disabled?: boolean }).disabled === true;
             return (
               <button
                 key={t.id}
                 onClick={() => {
+                  if (isDisabled) {
+                    playClick();
+                    pushChat("🛒 Marketplace em breve — ainda não habilitado.", "info");
+                    return;
+                  }
                   playClick();
                   setTab(t.id as typeof tab);
                 }}
-                title={t.label}
+                title={isDisabled ? `${t.label} (em breve)` : t.label}
                 style={{
                   flex: 1, maxWidth: 130,
                   background: showActive ? `linear-gradient(180deg, ${color}33 0%, ${color}11 100%)` : "transparent",
-                  color: showActive ? color : "#c8b8d0",
+                  color: isDisabled ? "#6a5a70" : (showActive ? color : "#c8b8d0"),
                   border: showActive ? `1px solid ${color}88` : "1px solid transparent",
-                  padding: "8px 6px", cursor: "pointer",
+                  padding: "8px 6px", cursor: isDisabled ? "not-allowed" : "pointer",
                   borderRadius: 10, display: "flex", flexDirection: "column",
                   alignItems: "center", gap: 4, fontSize: 11, position: "relative",
                   transition: "background 150ms, color 150ms, border-color 150ms",
                   boxShadow: showActive ? `0 0 14px ${color}66, inset 0 1px 0 ${color}44` : "none",
+                  opacity: isDisabled ? 0.55 : 1,
                 }}
               >
                 <img
@@ -6465,9 +6472,11 @@ function IdlePage() {
                   height={34}
                   style={{
                     width: 34, height: 34, imageRendering: "pixelated",
-                    filter: showActive
-                      ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 2px 2px rgba(0,0,0,0.5))`
-                      : "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) saturate(0.85) brightness(0.9)",
+                    filter: isDisabled
+                      ? "grayscale(1) brightness(0.7) drop-shadow(0 2px 2px rgba(0,0,0,0.6))"
+                      : (showActive
+                        ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 2px 2px rgba(0,0,0,0.5))`
+                        : "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) saturate(0.85) brightness(0.9)"),
                     transform: active ? "translateY(-2px) scale(1.08)" : "none",
                     transition: "transform 150ms, filter 150ms",
                   }}
@@ -6475,6 +6484,14 @@ function IdlePage() {
                 <span style={{ fontWeight: showActive ? 700 : 500, letterSpacing: 0.3 }}>
                   {t.label}
                 </span>
+                {isDisabled && (
+                  <span style={{
+                    position: "absolute", top: 2, right: 4,
+                    fontSize: 8, fontWeight: 700, letterSpacing: 0.5,
+                    color: "#ffd66b", background: "rgba(0,0,0,0.55)",
+                    padding: "1px 4px", borderRadius: 4, border: "1px solid #ffd66b55",
+                  }}>EM BREVE</span>
+                )}
               </button>
             );
           })}
