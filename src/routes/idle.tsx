@@ -2592,7 +2592,7 @@ function IdlePage() {
         }, 480);
         setLeaderHp((h) => {
           let nh = Math.max(0, h - eDmg);
-          pushChat(`${target.sp.replace(/_/g, " ")} causou ${eDmg} de dano em você.`, "hit");
+          // (dano rotineiro do inimigo — sem spam no chat)
           // Auto-poção: se HP% <= threshold, consome 1 poção
           const leaderNow = team[0];
           if (leaderNow && idle.autoHeal.enabled && nh > 0) {
