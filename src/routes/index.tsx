@@ -8428,7 +8428,7 @@ function RankedOverlay({ me, speciesGif, onClose }: {
   useEffect(() => {
     let active = true;
     const load = async () => {
-      const [top, season] = await Promise.all([fetchTopRanked(50), fetchCurrentSeason()]);
+      const [top, season] = await Promise.all([fetchTopRanked(200), fetchCurrentSeason()]);
       if (!active) return;
       const mapped: Row[] = (top as RankedRow[]).map((r) => ({
         id: r.user_id, name: r.username,
@@ -8452,7 +8452,8 @@ function RankedOverlay({ me, speciesGif, onClose }: {
       setLoading(false);
     };
     void load();
-    const t = setInterval(load, 30_000);
+    // Snapshot global do ranking atualiza a cada 3 horas (countdown continua em 1s).
+    const t = setInterval(load, 3 * 60 * 60 * 1000);
     const c = setInterval(() => setNow(Date.now()), 1000);
     return () => { active = false; clearInterval(t); clearInterval(c); };
   }, [me.id, me.name, me.trainer_level, me.craft_points, me.leader_species]);
@@ -8477,7 +8478,7 @@ function RankedOverlay({ me, speciesGif, onClose }: {
             <span style={{ fontSize: 22 }}>🏆</span>
             <div>
               <div className="name-font" style={{ fontSize: 13, letterSpacing: 1 }}>TOP RANKED</div>
-              <div style={{ fontSize: 7, opacity: 0.9 }}>Seu rank: #{myRank || "-"} · Reset em {countdown}</div>
+              <div style={{ fontSize: 7, opacity: 0.9 }}>Seu rank: #{myRank || "-"} · Reset em {countdown} · Atualiza a cada 3h</div>
             </div>
           </div>
           <button onClick={onClose} className="gb-font" style={{ background: "rgba(0,0,0,0.4)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)", padding: "2px 6px", fontSize: 8, borderRadius: 4 }}>X</button>
