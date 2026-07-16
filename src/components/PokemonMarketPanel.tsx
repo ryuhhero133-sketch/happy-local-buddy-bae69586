@@ -4,7 +4,7 @@
 // - Comprar transfere pokémon + moeda. Vendedor "claima" o pagamento na aba
 //   "Meus anúncios". Se o comprador crashar, ele pode reclamar em "Comprados".
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase as _supabase } from "@/integrations/supabase/client";
 import type { CollectionEntry } from "@/routes/idle";
 import type { Species, Rarity } from "@/game/systems";
