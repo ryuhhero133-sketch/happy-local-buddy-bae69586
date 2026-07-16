@@ -2003,7 +2003,7 @@ function IdlePage() {
         }));
 
         if (rows.length === 0) {
-          const orderCol = rankMode === "trainer" ? "trainer_level" : rankMode === "craft" ? "craft_points" : "level";
+          const orderCol = rankMode === "craft" ? "craft_points" : "trainer_level";
           const { data, error } = await gameDb
             .from("players")
             .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,guild_name")
@@ -2019,8 +2019,8 @@ function IdlePage() {
           rows = rows.map((r) => (r.id === (identity?.id ?? "local-trainer") ? { ...r, ...meRow() } : r));
         }
         rows.sort((a, b) => {
-          const av = rankMode === "trainer" ? a.trainer_level : rankMode === "craft" ? a.craft_points : a.level;
-          const bv = rankMode === "trainer" ? b.trainer_level : rankMode === "craft" ? b.craft_points : b.level;
+          const av = rankMode === "craft" ? a.craft_points : a.trainer_level;
+          const bv = rankMode === "craft" ? b.craft_points : b.trainer_level;
           return bv - av;
         });
         rows = rows.slice(0, 200);
