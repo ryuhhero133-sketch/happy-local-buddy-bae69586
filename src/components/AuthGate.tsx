@@ -112,7 +112,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [bootstrapping, setBootstrapping] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
-  const refreshLogoutRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -168,34 +167,21 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setNeedsChar(false);
         try {
           localStorage.removeItem(IDENTITY_KEY);
-          if (refreshLogoutRef.current) {
-            refreshLogoutRef.current = false;
-          } else {
-            // Logout real: limpa dados locais para evitar vazamento entre contas.
-            // O logout automático do F5 NÃO limpa, para não causar reset se a rede/cloud atrasar.
-            wipeLocalGameData();
-            localStorage.removeItem(CURRENT_UID_KEY);
-          }
+          // Logout real: limpa dados locais para evitar vazamento entre contas.
+          wipeLocalGameData();
+          localStorage.removeItem(CURRENT_UID_KEY);
         } catch {
           /* ignore */
         }
       }
     });
 
-    // F5 / carregar página sempre volta pra tela de login:
-    // se existe sessão persistida, encerra antes de mostrar o app.
+    // Em F5 não desloga: a sessão ativa é necessária para reidratar/salvar no Supabase
+    // antes de qualquer cache local ser usado. Logout manual continua limpando tudo.
     supabase.auth.getSession().then(({ data }) => {
       log("initial session", data.session?.user?.id ?? null);
-      if (data.session && !window.location.hash.includes("type=recovery")) {
-        refreshLogoutRef.current = true;
-        supabase.auth.signOut().finally(() => {
-          setSession(null);
-          setChecking(false);
-        });
-      } else {
-        setSession(data.session);
-        setChecking(false);
-      }
+      setSession(data.session);
+      setChecking(false);
     });
 
     return () => sub.subscription.unsubscribe();
