@@ -280,37 +280,35 @@ const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
   | "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
-  // 10 novos mapas endgame Lv 200→500
-  | "bosque_fada" | "ruina_verdejante" | "vale_rochas" | "costa_tempest" | "pico_congelado"
-  | "ruinas_perdidas" | "trilha_elite" | "vulcao_ativo" | "ceu_fraturado" | "nucleo_primordial";
-// element: só descritivo; cycle: quando presente, mapa abre a cada `cycleMs` por `openMs`
+  // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
+  | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
+  | "vulcao_ativo" | "nucleo_primordial";
+// overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
+// stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
-  element: string;
+  element: string; stars?: number; overlay?: string;
   cycle?: { cycleMs: number; openMs: number };
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
-  arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama"    },
-  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra"    },
-  praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água"     },
-  venofogo: { name: "Pântano em Chamas",       diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo" },
+  arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
+  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
+  praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
+  venofogo: { name: "Pântano em Chamas",       diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
 
-  neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 40, maxLevel: 65, element: "Gelo"     },
-  deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo"     },
-  caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra",
+  neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 40, maxLevel: 65, element: "Gelo", stars: 2 },
+  deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo", stars: 2 },
+  caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra", stars: 3,
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
-  fantasma: { name: "Cemitério Assombrado",    diff: "Lendário",  bg: mapFantasmaUrl,  rate: 4.0, minLevel: 1,  maxLevel: 9999, element: "Fantasma" },
-  // ═══ ENDGAME Lv 200→500 (todos liberados; pokemons 300+ são MUITO fortes) ═══
-  bosque_fada:       { name: "Bosque Cintilante",   diff: "Épico",       bg: mapForestUrl,          rate: 5.0, minLevel: 1, maxLevel: 230, element: "Fada"      },
-  ruina_verdejante:  { name: "Ruínas Verdejantes",  diff: "Épico+",      bg: mapFlorestaSecretaUrl, rate: 5.5, minLevel: 1, maxLevel: 260, element: "Planta"    },
-  vale_rochas:       { name: "Vale das Rochas",     diff: "Lendário",    bg: mapPedreiraCavernaUrl, rate: 6.0, minLevel: 1, maxLevel: 290, element: "Pedra"     },
-  costa_tempest:     { name: "Costa Tempestuosa",   diff: "Lendário+",   bg: mapRoute3Url,          rate: 6.5, minLevel: 1, maxLevel: 320, element: "Água/Elétrico" },
-  pico_congelado:    { name: "Pico Congelado",      diff: "Lendário+",   bg: mapForestCaveUrl,      rate: 7.0, minLevel: 1, maxLevel: 360, element: "Gelo"      },
-  ruinas_perdidas:   { name: "Ruínas Perdidas",     diff: "Mítico",      bg: mapPalletRouteUrl,     rate: 7.5, minLevel: 1, maxLevel: 400, element: "Psíquico"  },
-  trilha_elite:      { name: "Trilha da Elite",     diff: "Mítico",      bg: mapEliteRouteUrl,      rate: 8.0, minLevel: 1, maxLevel: 425, element: "Sombrio"   },
-  vulcao_ativo:      { name: "Vulcão Ativo",        diff: "Mítico+",     bg: mapVictoryRoadUrl,     rate: 8.5, minLevel: 1, maxLevel: 460, element: "Fogo"      },
-  ceu_fraturado:     { name: "Céu Fraturado",       diff: "Mítico+",     bg: mapViridianUrl,        rate: 9.0, minLevel: 1, maxLevel: 485, element: "Dragão"    },
-  nucleo_primordial: { name: "Núcleo Primordial",   diff: "PRIMORDIAL",  bg: mapVenenoUrl,          rate: 10.0, minLevel: 1, maxLevel: 500, element: "Misto"    },
+  fantasma: { name: "Cemitério Assombrado",    diff: "Lendário",  bg: mapFantasmaUrl,  rate: 4.0, minLevel: 1,  maxLevel: 9999, element: "Fantasma", stars: 4 },
+  // ═══ ENDGAME — cadeia progressiva, portal visível mas exige nível de treinador ═══
+  vale_rochas:       { name: "Vale das Rochas",   diff: "Lendário",   bg: mapPedreiraCavernaUrl, rate: 6.0, minLevel: 50,  maxLevel: 150, element: "Pedra",  stars: 4 },
+  vale_planta:       { name: "Vale Esmeralda",    diff: "Lendário+",  bg: mapPedreiraCavernaUrl, rate: 6.5, minLevel: 120, maxLevel: 220, element: "Planta", stars: 5, overlay: "rgba(70,210,90,0.42)" },
+  vale_gelo:         { name: "Vale Gélido",       diff: "Mítico",     bg: mapPedreiraCavernaUrl, rate: 7.0, minLevel: 190, maxLevel: 290, element: "Gelo",   stars: 6, overlay: "rgba(140,220,255,0.45)" },
+  vale_veneno:       { name: "Vale Tóxico",       diff: "Mítico+",    bg: mapPedreiraCavernaUrl, rate: 7.5, minLevel: 260, maxLevel: 360, element: "Veneno", stars: 7, overlay: "rgba(180,90,220,0.48)" },
+  vale_fogo:         { name: "Vale Ígneo",        diff: "Mítico+",    bg: mapPedreiraCavernaUrl, rate: 8.0, minLevel: 330, maxLevel: 420, element: "Fogo",   stars: 7, overlay: "rgba(255,95,45,0.45)" },
+  vulcao_ativo:      { name: "Vulcão Ativo",      diff: "PRIMORDIAL", bg: mapVictoryRoadUrl,     rate: 9.0, minLevel: 400, maxLevel: 470, element: "Fogo",   stars: 8 },
+  nucleo_primordial: { name: "Núcleo Primordial", diff: "PRIMORDIAL", bg: mapVenenoUrl,          rate: 10.0, minLevel: 460, maxLevel: 500, element: "Misto", stars: 8 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
