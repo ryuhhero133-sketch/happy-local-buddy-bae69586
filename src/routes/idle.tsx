@@ -3680,22 +3680,21 @@ function IdlePage() {
     { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
     { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
   ];
-  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", rarity: Rarity, count: number) => {
+  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => {
+    const trade = ORB_TRADES.find((t) => t.orbId === orbId);
+    if (!trade) return;
     setIdle((s) => {
       const col = s.collection ?? [];
-      const matches = col
-        .map((c, idx) => ({ c, idx }))
-        .filter((x) => x.c.rarity === rarity)
-        .sort((a, b) => (a.c.level - b.c.level));
-      if (matches.length < count) {
-        pushChat(`Você precisa de ${count} Pokémon ${rarity.toUpperCase()} na coleção para essa troca.`, "info");
+      const selected = col.filter((c) => uids.includes(c.uid) && c.rarity === trade.rarity);
+      if (selected.length !== trade.count) {
+        pushChat(`Selecione exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} para essa troca.`, "info");
         return s;
       }
-      const removeIdx = new Set(matches.slice(0, count).map((m) => m.idx));
-      const newCol = col.filter((_, i) => !removeIdx.has(i));
+      const removeSet = new Set(selected.map((c) => c.uid));
+      const newCol = col.filter((c) => !removeSet.has(c.uid));
       const cur = s.items[orbId] ?? 0;
       const orbName = orbId === "orb_xp_major" ? "Orb Maior ✦✦" : "Orb Supremo ✦✦✦";
-      pushChat(`✦ NPC recebeu ${count} ${rarity.toUpperCase()} e entregou 1 ${orbName}.`, "cap");
+      pushChat(`✦ NPC recebeu ${trade.count} ${trade.rarity.toUpperCase()} e entregou 1 ${orbName}.`, "cap");
       return {
         ...s,
         collection: newCol,
@@ -6374,6 +6373,20 @@ function IdlePage() {
 
 
 
+      {/* Botão flutuante: NPC Trocador (abre Loja direto na seção do trocador) */}
+      <button
+        onClick={() => { playClick(); setTab("loja"); }}
+        title="Trocador NPC — troque Pokémon por Orbs de XP"
+        style={{
+          position: "fixed", bottom: 12, right: 108, zIndex: 100,
+          background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
+          border: "1px solid #ffd94d", color: "#ffd94d",
+          borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 800,
+          fontFamily: "monospace", cursor: "pointer",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.5), 0 0 12px rgba(255,217,77,0.35)",
+        }}
+      >🧙 Trocador</button>
+
       {/* Botão flutuante: resgatar código */}
       <button
         onClick={() => { setCodeOpen(true); setCodeMsg(null); }}
@@ -7105,7 +7118,7 @@ function TabOverlay({
   onUnlockSkin: (id: string) => void;
   onUpgradeBook: (id: string) => void;
   orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[];
-  onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", rarity: Rarity, count: number) => void;
+  onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => void;
 
 
 }) {
@@ -7124,6 +7137,8 @@ function TabOverlay({
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
   const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
+  const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string }>(null);
+  const [orbPickerSel, setOrbPickerSel] = useState<Set<string>>(new Set());
   return (
     <div style={{
       position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
@@ -8051,7 +8066,7 @@ function TabOverlay({
           </h3>
           <div style={{ color: "#b8a8c8", fontSize: 11, marginBottom: 10, lineHeight: 1.5 }}>
             O NPC aceita Pokémon da sua <b>Coleção</b> (não da equipe) em troca de Orbs mais fortes.
-            Ele sempre pega os de menor nível primeiro.
+            <b style={{ color: "#ffd94d" }}> Você escolhe</b> quais Pokémon entregar.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
             {orbTrades.map((t) => {
@@ -8070,12 +8085,15 @@ function TabOverlay({
                   <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 13 }}>{t.label}</div>
                   <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{t.desc}</div>
                   <div style={{ fontSize: 11, color: canTrade ? "#8ae28a" : "#e28a8a" }}>
-                    Disponível: {available} / {t.count}
+                    Coleção {t.rarity.toUpperCase()}: {available} (precisa {t.count})
                   </div>
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
                   <button
                     disabled={!canTrade}
-                    onClick={() => onTradeOrb(t.orbId, t.rarity, t.count)}
+                    onClick={() => {
+                      setOrbPicker({ orbId: t.orbId, rarity: t.rarity, count: t.count, color: t.color, label: t.label });
+                      setOrbPickerSel(new Set());
+                    }}
                     style={{
                       width: "100%", padding: "8px 10px", fontWeight: 800,
                       background: canTrade ? t.color : "#3a2a4a",
@@ -8083,11 +8101,109 @@ function TabOverlay({
                       border: "none", borderRadius: 6,
                       cursor: canTrade ? "pointer" : "not-allowed",
                     }}
-                  >{canTrade ? "TROCAR" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                  >{canTrade ? "ESCOLHER POKÉMON" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
                 </div>
               );
             })}
           </div>
+
+          {orbPicker && (() => {
+            const eligible = collection.filter((c) => c.rarity === orbPicker.rarity);
+            const selCount = orbPickerSel.size;
+            const canConfirm = selCount === orbPicker.count;
+            return (
+              <div
+                onClick={() => setOrbPicker(null)}
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 10000, display: "grid", placeItems: "center", padding: 16 }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: "min(560px, 100%)", maxHeight: "88vh", overflowY: "auto",
+                    background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+                    border: `2px solid ${orbPicker.color}`, borderRadius: 14, padding: 16,
+                    boxShadow: `0 10px 30px rgba(0,0,0,0.7), 0 0 20px ${orbPicker.color}55`,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ fontWeight: 900, color: orbPicker.color, fontSize: 15 }}>
+                      🧙 Escolha {orbPicker.count} Pokémon {orbPicker.rarity.toUpperCase()}
+                    </div>
+                    <button onClick={() => setOrbPicker(null)} style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 18 }}>✕</button>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 10 }}>
+                    Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{orbPicker.count}</b> — Recompensa: <b>{orbPicker.label}</b>
+                  </div>
+                  {eligible.length === 0 ? (
+                    <div style={{ color: "#e28a8a", fontSize: 12, padding: 20, textAlign: "center" }}>
+                      Você não tem Pokémon {orbPicker.rarity.toUpperCase()} na coleção.
+                    </div>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
+                      {eligible.map((c) => {
+                        const sel = orbPickerSel.has(c.uid);
+                        const disabled = !sel && selCount >= orbPicker.count;
+                        return (
+                          <button
+                            key={c.uid}
+                            disabled={disabled}
+                            onClick={() => {
+                              setOrbPickerSel((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(c.uid)) next.delete(c.uid); else next.add(c.uid);
+                                return next;
+                              });
+                            }}
+                            style={{
+                              background: sel ? `linear-gradient(160deg, ${orbPicker.color}55, ${orbPicker.color}22)` : "#1a0f26",
+                              border: sel ? `2px solid ${orbPicker.color}` : "2px solid #3a2a4a",
+                              borderRadius: 10, padding: 6, cursor: disabled ? "not-allowed" : "pointer",
+                              display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                              opacity: disabled ? 0.4 : 1, position: "relative",
+                            }}
+                          >
+                            {gifMap[c.species] ? (
+                              <img src={gifMap[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
+                            ) : (
+                              <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
+                            )}
+                            <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
+                            <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
+                            {sel && (
+                              <div style={{
+                                position: "absolute", top: 2, right: 2, background: orbPicker.color, color: "#0b0510",
+                                width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
+                              }}>✓</div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                    <button
+                      onClick={() => setOrbPicker(null)}
+                      style={{ flex: 1, padding: "10px", background: "#3a2a4a", color: "#eadfe8", border: "none", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
+                    >CANCELAR</button>
+                    <button
+                      disabled={!canConfirm}
+                      onClick={() => {
+                        onTradeOrb(orbPicker.orbId, Array.from(orbPickerSel));
+                        setOrbPicker(null);
+                        setOrbPickerSel(new Set());
+                      }}
+                      style={{
+                        flex: 2, padding: "10px", fontWeight: 900,
+                        background: canConfirm ? orbPicker.color : "#3a2a4a",
+                        color: canConfirm ? "#0b0510" : "#6a5a7c",
+                        border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
+                      }}
+                    >CONFIRMAR TROCA</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
