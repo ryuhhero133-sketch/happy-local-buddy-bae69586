@@ -57,6 +57,9 @@ import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudS
 import { fetchTopRanked, recordRankedScore, type RankedRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
+import { computeTeamSynergies, computePower } from "@/game/synergies";
+import { SynergyPanel } from "@/components/SynergyPanel";
+import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
@@ -1048,6 +1051,33 @@ function IdlePage() {
   useEffect(() => { idleRef.current = idle; }, [idle]);
   const teamRef = useRef(team);
   useEffect(() => { teamRef.current = team; }, [team]);
+
+  // ===== Regen passiva por sinergia Planta/Fada =====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const t = teamRef.current;
+      if (!t || t.length === 0) return;
+      const syn = computeTeamSynergies(t);
+      if (syn.regenPct <= 0) return;
+      // Cura líder
+      setLeaderHp((h) => {
+        const leader = t[0];
+        if (!leader) return h;
+        const max = calcIdleMaxHp(leader);
+        if (h >= max || h <= 0) return h;
+        return Math.min(max, h + max * syn.regenPct);
+      });
+      // Cura pets do time (não-líder)
+      setTeam((tm) => tm.map((p, i) => {
+        if (i === 0) return p;
+        const max = calcIdleMaxHp(p);
+        const cur = p.hp ?? max;
+        if (cur >= max || cur <= 0) return p;
+        return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
+      }));
+    }, 3000);
+    return () => clearInterval(iv);
+  }, []);
 
   const serverSync = useServerSync({
     buildLocalSnapshot: (): LocalSnapshotForPush => {
@@ -2523,7 +2553,8 @@ function IdlePage() {
           const overLvlPenalty = isRiderKill ? 1 : (lvGap >= 15 ? Math.max(0.02, 1 - (lvGap - 14) * 0.15) : 1);
           const riderMult = isRiderKill ? 8 : 1; // rider dá MUITO xp
           const riderGoldMult = isRiderKill ? 4 : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult);
+          const elemSyn = computeTeamSynergies(team);
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -2533,7 +2564,7 @@ function IdlePage() {
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1);
-          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
+          const gold = Math.max(1, Math.floor(baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
           if (isRiderKill) {
             pushEvent("✦", "RIDER DERROTADO!", `+${xp} EXP · +${gold} ouro`, "#ff5ec7");
             pushChat(`✦ RIDER DERROTADO! +${xp} EXP · +${gold} ouro`, "cap");
@@ -7415,6 +7446,7 @@ function TabOverlay({
   const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
   const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string }>(null);
   const [orbPickerSel, setOrbPickerSel] = useState<Set<string>>(new Set());
+  const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
   return (
     <div style={{
       position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
@@ -7492,6 +7524,10 @@ function TabOverlay({
                     fontSize: 12, fontWeight: 900, letterSpacing: 1,
                   }}>{team.length}/5</div>
                 </div>
+
+                <SynergyPanel team={team} />
+
+
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
                   {team.map((p, i) => {
@@ -7630,7 +7666,17 @@ function TabOverlay({
                               padding: "2px 7px", borderRadius: 4,
                               boxShadow: `0 0 8px ${rc}88`, border: "1px solid rgba(0,0,0,0.4)",
                             }}>{rarityInfo.label}</div>
+                            <button
+                              onClick={() => setStatsCardPet(p)}
+                              title="Ver ficha completa"
+                              style={{
+                                marginLeft: "auto", background: "linear-gradient(180deg,#f5cf6b,#b8862a)",
+                                color: "#1a0f26", border: "1px solid #0b0510", borderRadius: 6,
+                                padding: "2px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 1, cursor: "pointer",
+                              }}
+                            >⚡ {computePower(p)} • CARD</button>
                           </div>
+
 
                           {/* HP */}
                           <div>
@@ -8702,6 +8748,10 @@ function TabOverlay({
             Se a música não iniciar automaticamente, clique em qualquer lugar da tela — os navegadores exigem uma interação antes de tocar áudio.
           </div>
         </div>
+      )}
+
+      {statsCardPet && (
+        <PokemonStatsCard pet={statsCardPet} team={team} gifSrc={gifMap[statsCardPet.species]} onClose={() => setStatsCardPet(null)} />
       )}
     </div>
   );
