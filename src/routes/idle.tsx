@@ -321,8 +321,26 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   nucleo_primordial: { name: "Núcleo Primordial", diff: "PRIMORDIAL", bg: mapVenenoUrl,          rate: 10.0, minLevel: 460, maxLevel: 500, element: "Misto", stars: 8 },
 };
 
-type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
-const WORLD_PORTALS: WorldPortalDef[] = [];
+type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
+// Cadeia endgame — portais visíveis em todos os mapas, mas exigem nível de treinador para atravessar
+const ENDGAME_CHAIN: Array<{ from: IdleMapId; to: IdleMapId; req: number; color: string }> = [
+  { from: "terra",             to: "vale_rochas",       req: 40,  color: "#c9a76a" },
+  { from: "vale_rochas",       to: "vale_planta",       req: 110, color: "#4ade80" },
+  { from: "vale_planta",       to: "vale_gelo",         req: 180, color: "#7dd3fc" },
+  { from: "vale_gelo",         to: "vale_veneno",       req: 250, color: "#c084fc" },
+  { from: "vale_veneno",       to: "vale_fogo",         req: 320, color: "#fb923c" },
+  { from: "vale_fogo",         to: "vulcao_ativo",      req: 390, color: "#ef4444" },
+  { from: "vulcao_ativo",      to: "nucleo_primordial", req: 460, color: "#f0abfc" },
+];
+const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
+  const toName = IDLE_MAPS[c.to].name;
+  const fromName = IDLE_MAPS[c.from].name;
+  return [
+    { key: `${c.from}->${c.to}`, from: c.from, to: c.to, x: 1720, y: 260, arriveX: 220, arriveY: 1660, color: c.color, label: toName, reqLevel: c.req },
+    { key: `${c.to}->${c.from}`, from: c.to, to: c.from, x: 200, y: 1660, arriveX: 1700, arriveY: 260, color: "#94a3b8", label: `↩ ${fromName}` },
+  ];
+});
+
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
   const c = IDLE_MAPS.caverna.cycle!;
