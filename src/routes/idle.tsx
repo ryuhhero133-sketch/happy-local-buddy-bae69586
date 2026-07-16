@@ -4425,7 +4425,7 @@ function IdlePage() {
             </button>
             {(() => {
               const orbUntil = idle.buffs.orbUntil ?? 0;
-              const remain = orbUntil - nowTs;
+              const remain = orbUntil - Date.now();
               if (remain <= 0) return null;
               const orbId = idle.buffs.orbId || "orb_xp_minor";
               const orbImg = orbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbId === "orb_xp_major" ? orbXpMajorUrl : orbXpMinorUrl;
