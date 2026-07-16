@@ -3475,7 +3475,8 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
       if (item.startsWith("pet:")) {
         const sp = item.slice(4);
         const allSpecies = [...teamPets, ...(storedPets || [])].map((p) => p.species);
-        if (!allSpecies.includes(sp as Species)) { setMessage(`Você precisa de um ${sp} na sua coleção.`); return { ok: false }; }
+        const have = allSpecies.filter((s) => s === sp).length;
+        if (have < qty) { setMessage(`Você precisa de ${qty}× ${sp} na sua coleção (tem ${have}).`); return { ok: false }; }
         // Não consome o pet, apenas verifica.
       } else {
         if ((inventory[item] || 0) < qty) { setMessage(`Itens insuficientes (${qty}× ${item}).`); return { ok: false }; }
@@ -3503,6 +3504,12 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
         });
         for (const [k, v] of Object.entries(result.reward.items)) addBound(k, v);
       }
+      if (result.reward.xpBoostHours && result.reward.xpBoostHours > 0) {
+        const addMs = result.reward.xpBoostHours * 60 * 60 * 1000;
+        setXpBoostUntil((prev) => Math.max(prev, Date.now()) + addMs);
+        setIncenseType((t) => t ?? "epic");
+        toast.success(`⚡ +${result.reward.xpBoostHours}h de XP boost ativado!`);
+      }
       if (result.reward.message) toast.success(result.reward.message);
     }
     if (result.finished) toast.success(`✓ Quest concluída!`);
@@ -3510,6 +3517,7 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
     return { ok: true };
   };
   void QUEST_DEFS; // mantido para tree-shaking explícito; QuestLogOverlay usa internamente.
+
 
 
   const buy = (it: typeof SHOP[number], qty: number = 1) => {
