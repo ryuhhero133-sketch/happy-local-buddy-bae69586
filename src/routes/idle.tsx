@@ -1758,7 +1758,7 @@ function IdlePage() {
       "Pyro", "Flora", "Ghost", "Rocky", "Aqua", "Zuzu", "Pip", "Max", "Lulu", "Toby",
     ];
     const leaders: Species[] = [
-      "pikachu", "bulbasaur", "charmander", "squirtle", "pidgey", "zubat", "eevee", "oddish", "growlithe", "geodude",
+      "pikachu", "bulbasaur", "charmander", "squirtle", "pidgey", "zubat", "jigglypuff", "oddish", "growlithe", "golem",
       "cubone", "magnemite", "poliwag", "vulpix", "sandshrew", "mankey", "bellsprout", "venonat", "clefairy", "meowth",
     ];
     const t = Math.floor(Date.now() / 1000);
