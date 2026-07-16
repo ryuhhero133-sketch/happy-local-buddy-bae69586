@@ -134,7 +134,10 @@ export type Species =
   // Novo pack (evento maribondo)
   | "blaziken"
   // Legendários/míticos evento
-  | "virizion" | "raikou" | "suicune" | "suicune_shiny" | "luxray_f";
+  | "virizion" | "raikou" | "suicune" | "suicune_shiny" | "luxray_f"
+  // Mythic Roamers (aparecem raro em qualquer mapa, Lv 500)
+  | "deoxys" | "groudon" | "lapras_shiny" | "snorlax_mythic";
+
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "mythic_shiny";
 
@@ -346,6 +349,11 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   venomoth:        { hp: 70, atk: 65, def: 60, spa: 90, spd: 75, spe: 90, rarity: "rare", goldRange: [22, 36], crystalChance: 0.12, catchMod: 1.3, minLv: 16 },
   zubat:           { hp: 40, atk: 45, def: 35, spa: 30, spd: 40, spe: 55, rarity: "common", goldRange: [4, 10], crystalChance: 0.01, catchMod: 0.85, minLv: 3 },
   blaziken:        { hp: 80, atk: 120, def: 70, spa: 110, spd: 70, spe: 80, rarity: "epic", goldRange: [80, 150], crystalChance: 0.4, catchMod: 1.9, minLv: 36 },
+  deoxys:          { hp: 50, atk: 150, def: 50, spa: 150, spd: 50, spe: 150, rarity: "mythic_shiny", goldRange: [500, 900], crystalChance: 0.9, catchMod: 3.0, minLv: 500 },
+  groudon:         { hp: 100, atk: 150, def: 140, spa: 100, spd: 90, spe: 90, rarity: "mythic_shiny", goldRange: [500, 900], crystalChance: 0.9, catchMod: 3.0, minLv: 500 },
+  lapras_shiny:    { hp: 130, atk: 85, def: 80, spa: 95, spd: 95, spe: 60, rarity: "mythic_shiny", goldRange: [500, 900], crystalChance: 0.9, catchMod: 3.0, minLv: 500 },
+  snorlax_mythic:  { hp: 160, atk: 110, def: 65, spa: 65, spd: 110, spe: 30, rarity: "mythic_shiny", goldRange: [500, 900], crystalChance: 0.9, catchMod: 3.0, minLv: 500 },
+
 };
 
 const RARITY_WEIGHT: Record<Rarity, number> = {

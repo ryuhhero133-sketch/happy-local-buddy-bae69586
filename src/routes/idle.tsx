@@ -172,9 +172,18 @@ import vulpixGif from "@/assets/vulpix.gif";
 import pidgeottoAsset from "@/assets/pidgeotto.gif.asset.json";
 import raticateFAsset from "@/assets/raticate-f.gif.asset.json";
 import fearowAsset from "@/assets/fearow.gif.asset.json";
+import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
+import groudonAsset from "@/assets/groudon.gif.asset.json";
+import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
+import snorlaxMythicAsset from "@/assets/snorlax-mythic.gif.asset.json";
 const pidgeottoUrl = assetUrl(pidgeottoAsset.url);
 const raticateFUrl = assetUrl(raticateFAsset.url);
 const fearowUrl = assetUrl(fearowAsset.url);
+const deoxysUrl = assetUrl(deoxysAsset.url);
+const groudonUrl = assetUrl(groudonAsset.url);
+const laprasShinyUrl = assetUrl(laprasShinyAsset.url);
+const snorlaxMythicUrl = assetUrl(snorlaxMythicAsset.url);
+
 
 
 const IDLE_KEY = "rubym.idle.v1";
@@ -288,7 +297,9 @@ const GIF: Partial<Record<Species, string>> = {
   poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
+  deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl,
 };
+
 
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
 const SPRITE_SHEET: Partial<Record<Species, string>> = {
@@ -348,9 +359,12 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Normal
   rattata_f: "normal", raticate_f: "normal",
   meowth: "normal", persian: "normal",
-  eevee: "normal", snorlax: "normal",
+  eevee: "normal", snorlax: "normal", snorlax_mythic: "normal",
   clefairy: "normal", clefable: "normal",
+  // Mythic Roamers
+  deoxys: "psychic", groudon: "fire", lapras_shiny: "water",
 } as Record<string, ElementFx>;
+
 
 function elementOf(sp: Species): ElementFx {
   return SPECIES_ELEMENT[sp] ?? "normal";
@@ -3318,6 +3332,17 @@ function IdlePage() {
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
 
+      // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
+      // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
+      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic"];
+      const currentRoamers = enemies.filter((e) => e.eventLegendary && e.level >= 400).length;
+      const isMythicRoamer = currentRoamers === 0 && Math.random() < 0.004;
+      if (isMythicRoamer) {
+        sp = MYTHIC_ROAMERS[Math.floor(Math.random() * MYTHIC_ROAMERS.length)];
+        forcedRarity = "mythic_shiny";
+        mapLvRange = [500, 500];
+      }
+
       const rareStrong = Math.random() < 0.05;
       const offset = rareStrong
         ? 5 + Math.floor(Math.random() * 6)
@@ -3329,16 +3354,17 @@ function IdlePage() {
         lv = Math.max(lo, Math.min(hi, lv));
       }
       const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
-      if (hardCap != null) lv = Math.min(lv, hardCap);
+      if (hardCap != null && !isMythicRoamer) lv = Math.min(lv, hardCap);
+      if (isMythicRoamer) lv = 500;
       // Épico só aparece quando o líder chega ao nível 50.
       const allowEpic = leaderLv >= 50;
       if (forcedRarity === "epic" && !allowEpic) forcedRarity = "rare";
       let pet = makePet(sp, lv, forcedRarity);
-      if ((pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
+      if (!isMythicRoamer && (pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
         pet = makePet(sp, lv, "rare");
       }
       // ★ POKÉMON RIDER: 1.2% de chance — muito acima do nível do líder, dá MUITO xp
-      const isRider = Math.random() < 0.012 && !mapLvRange;
+      const isRider = !isMythicRoamer && Math.random() < 0.012 && !mapLvRange;
       if (isRider) {
         const boost = 25 + Math.floor(Math.random() * 21); // +25..+45
         lv = leaderLv + boost;
@@ -3347,10 +3373,12 @@ function IdlePage() {
       }
       const baseHp = calcIdleMaxHp(pet);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * highHp);
+      const roamerHpMult = isMythicRoamer ? 6 : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp);
       const isAggro = elite || Math.random() < 0.18;
       const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60);
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, eventLegendary: isMythicRoamer };
+
     }
     return null;
   }
