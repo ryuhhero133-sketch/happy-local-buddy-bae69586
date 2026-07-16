@@ -1647,9 +1647,24 @@ function IdlePage() {
   const [rankRows, setRankRows] = useState<RankRow[]>([]);
   const [rankLoading, setRankLoading] = useState(false);
   const [rankMode, setRankMode] = useState<RankMode>("level");
+  const RANK_CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 horas — snapshot global
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v1_${mode}`;
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
+    const key = rankCacheKey(rankMode);
+    // Serve cache local se ainda dentro da janela de 3h
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { at: number; rows: RankRow[] };
+        if (parsed && Date.now() - parsed.at < RANK_CACHE_TTL_MS && Array.isArray(parsed.rows)) {
+          setRankRows(parsed.rows);
+          setRankLoading(false);
+          return;
+        }
+      }
+    } catch { /* ignore */ }
     setRankLoading(true);
     (async () => {
       try {
@@ -1659,7 +1674,9 @@ function IdlePage() {
           .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,guild_name")
           .order(orderCol, { ascending: false })
           .limit(50);
-        if (!cancelled) setRankRows((data as RankRow[] | null) ?? []);
+        const rows = (data as RankRow[] | null) ?? [];
+        if (!cancelled) setRankRows(rows);
+        try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), rows })); } catch { /* ignore */ }
       } catch { /* ignore */ }
       finally { if (!cancelled) setRankLoading(false); }
     })();
