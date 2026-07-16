@@ -7666,7 +7666,17 @@ function TabOverlay({
                               padding: "2px 7px", borderRadius: 4,
                               boxShadow: `0 0 8px ${rc}88`, border: "1px solid rgba(0,0,0,0.4)",
                             }}>{rarityInfo.label}</div>
+                            <button
+                              onClick={() => setStatsCardPet(p)}
+                              title="Ver ficha completa"
+                              style={{
+                                marginLeft: "auto", background: "linear-gradient(180deg,#f5cf6b,#b8862a)",
+                                color: "#1a0f26", border: "1px solid #0b0510", borderRadius: 6,
+                                padding: "2px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 1, cursor: "pointer",
+                              }}
+                            >⚡ {computePower(p)} • CARD</button>
                           </div>
+
 
                           {/* HP */}
                           <div>
