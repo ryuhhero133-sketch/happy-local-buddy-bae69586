@@ -4716,8 +4716,8 @@ function IdlePage() {
                         {rankRows.map((r, i) => {
                           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
                           const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e5e5e5" : i === 2 ? "#d99b1a" : "#ffe9a8";
-                          const mainVal = rankMode === "trainer" ? r.trainer_level : rankMode === "craft" ? r.craft_points : r.level;
-                          const mainLabel = rankMode === "trainer" ? "Treinador Lv" : rankMode === "craft" ? "Craft" : "Pokémon Lv";
+                          const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
+                          const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
                           return (
                             <div key={r.id} style={{
                               display: "grid",
