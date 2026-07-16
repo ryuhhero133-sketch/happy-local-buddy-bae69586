@@ -1764,8 +1764,8 @@ function IdlePage() {
     const mapIds = Object.keys(IDLE_MAPS) as IdleMapId[];
     const skinUrls = SKINS.map((s) => s.url);
     const t = Math.floor(Date.now() / 1000);
-    // 50 jogadores espalhados por TODOS os mapas; cada um em um mapa fixo.
-    const all: RemotePlayer[] = Array.from({ length: 50 }, (_, i) => {
+    // 30 jogadores espalhados por TODOS os mapas; cada um em um mapa fixo.
+    const all: RemotePlayer[] = Array.from({ length: 30 }, (_, i) => {
       const mapId = mapIds[i % mapIds.length];
       const a = (i * 47 + mapId.length * 19) % 360;
       const r1 = 260 + ((i * 83) % 620);
