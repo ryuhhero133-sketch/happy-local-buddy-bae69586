@@ -110,12 +110,12 @@ import rockLavaAsset from "@/assets/rock-lava.png.asset.json";
 import caveFloorAsset from "@/assets/cave-floor.jpg.asset.json";
 import stalagmiteAsset from "@/assets/stalagmite.png.asset.json";
 import caveCrystalAsset from "@/assets/cave-crystal.png.asset.json";
-import mapPedreiraCavernaAsset from "@/assets/map-pedreira-caverna.jpg.asset.json";
+
 import crystalClusterAsset from "@/assets/crystal-cluster.png.asset.json";
 const caveFloorUrl = assetUrlFromJson(caveFloorAsset);
 const stalagmiteUrl = assetUrlFromJson(stalagmiteAsset);
 const caveCrystalUrl = assetUrlFromJson(caveCrystalAsset);
-const mapPedreiraCavernaUrl = assetUrlFromJson(mapPedreiraCavernaAsset);
+
 const crystalClusterUrl = assetUrlFromJson(crystalClusterAsset);
 
 // Pokemon GIFs (reusa os que já existem no projeto)
@@ -232,7 +232,7 @@ const sfxClickUrl = assetUrl(sfxClickAsset.url);
 const sfxBonusUrl = assetUrl(sfxBonusAsset.url);
 const sfxChestOpenUrl = assetUrl(sfxChestOpenAsset.url);
 
-type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "pedreira";
+type IdleMapId = "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna";
 // element: só descritivo; cycle: quando presente, mapa abre a cada `cycleMs` por `openMs`
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
@@ -244,7 +244,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra"    },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água"     },
   venofogo: { name: "Pântano em Chamas",       diff: "Médio",     bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 50, element: "Veneno/Fogo" },
-  pedreira: { name: "Pedreira Antiga",         diff: "Difícil",   bg: mapPedreiraCavernaUrl, rate: 2.4, minLevel: 30, maxLevel: 55, element: "Pedra/Terra" },
+  
   neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 40, maxLevel: 65, element: "Gelo"     },
   deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo"     },
   caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra",
@@ -252,10 +252,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string };
-const WORLD_PORTALS: WorldPortalDef[] = [
-  { key: "arena-to-pedreira", from: "arena",    to: "pedreira", x: 377, y: 330,  arriveX: 960, arriveY: 1680, color: "#ff5ea8", label: "Pedreira Antiga" },
-  { key: "pedreira-to-arena", from: "pedreira", to: "arena",    x: 960, y: 1780, arriveX: 377, arriveY: 430,  color: "#7ef27a", label: "Vale Verdejante" },
-];
+const WORLD_PORTALS: WorldPortalDef[] = [];
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
   const c = IDLE_MAPS.caverna.cycle!;
@@ -483,66 +480,6 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     return list;
   }
 
-  // Pedreira Antiga: MESMA composição do Ninho de Marimbondo, porém tematizada em pedra.
-  // 4 aglomerados gigantes de cristal (no lugar dos casulos), enxame de pokémons rochosos
-  // ao redor + estalagmites/pedras/cristais espalhados como decor.
-  if (mapId === "pedreira") {
-    const kinds = [
-      { src: stalagmiteUrl,  w:  78, h: 110, collideR: 12, blocks: true  },
-      { src: rockBoulderUrl, w:  86, h:  76, collideR: 10, blocks: true  },
-      { src: caveCrystalUrl, w:  60, h:  64, collideR:  0, blocks: false },
-    ];
-    const list: Obstacle[] = [];
-    let id = 1;
-
-    // 4 aglomerados de cristal gigantes (cantos deslocados) — equivalem aos casulos
-    const crystalSpots: { x: number; y: number }[] = [
-      { x: worldW * 0.28, y: worldH * 0.30 },
-      { x: worldW * 0.72, y: worldH * 0.28 },
-      { x: worldW * 0.30, y: worldH * 0.72 },
-      { x: worldW * 0.74, y: worldH * 0.70 },
-    ];
-    for (const c of crystalSpots) {
-      list.push({ id: id++, x: c.x, y: c.y, w: 150, h: 180, src: crystalClusterUrl, blocks: true, collideR: 44 });
-      // Pokémons rochosos flutuando perto do cristal (decorativos)
-      list.push({ id: id++, x: c.x - 62, y: c.y - 16, w: 40, h: 40, src: golemGif, blocks: false, collideR: 0 });
-      list.push({ id: id++, x: c.x + 62, y: c.y - 8,  w: 40, h: 40, src: machopUrl,  blocks: false, collideR: 0 });
-    }
-
-    // Enxame extra de pokémons rochosos espalhados pelo mapa
-    const swarm: string[] = [golemGif, machopUrl, diglettUrl, sandshrewUrl, cuboneUrl];
-    let sTries = 0;
-    let placed = 0;
-    while (placed < 28 && sTries < 1500) {
-      sTries++;
-      const src = swarm[Math.floor(rand() * swarm.length)];
-      const x = 80 + rand() * (worldW - 160);
-      const y = 100 + rand() * (worldH - 200);
-      let ok = true;
-      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < 120) { ok = false; break; }
-      if (!ok) continue;
-      list.push({ id: id++, x, y, w: 38, h: 38, src, blocks: false, collideR: 0 });
-      placed++;
-    }
-
-    // Estalagmites/pedras/cristais espalhados evitando as zonas dos cristais gigantes
-    const MIN_GAP = 130;
-    let tries = 0;
-    while (list.length < crystalSpots.length * 3 + 18 && tries < 2500) {
-      tries++;
-      const k = kinds[Math.floor(rand() * kinds.length)];
-      const x = 80 + rand() * (worldW - 160);
-      const y = 100 + rand() * (worldH - 200);
-      let nearCrystal = false;
-      for (const c of crystalSpots) if (Math.hypot(x - c.x, y - c.y) < 260) { nearCrystal = true; break; }
-      if (nearCrystal) continue;
-      let ok = true;
-      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < MIN_GAP) { ok = false; break; }
-      if (!ok) continue;
-      list.push({ id: id++, x, y, w: k.w, h: k.h, src: k.src, blocks: k.blocks, collideR: k.collideR });
-    }
-    return list;
-  }
 
   const kinds = [
     { src: treeOakUrl,     w: 110, h: 124, collideR: 0,  blocks: false },
@@ -700,6 +637,8 @@ function loadIdle(): IdleState {
       const uskins = Array.isArray(s.unlockedSkins) ? s.unlockedSkins.slice() : [];
       if (!uskins.includes("default")) uskins.unshift("default");
       s.unlockedSkins = uskins;
+      // Sanitiza mapa removido (Pedreira Antiga)
+      if (!IDLE_MAPS[s.currentMap]) s.currentMap = "arena";
       return s;
     }
   } catch { /* ignore */ }
@@ -3060,25 +2999,6 @@ function IdlePage() {
         sp = pick.sp;
         forcedRarity = pick.forcedRarity;
         mapLvRange = [1, 30];
-      } else if (idle.currentMap === "pedreira") {
-        // Pedreira Antiga — Pokémon de Pedra/Terra, níveis 30-55.
-        // (onix, sandslash, nidoking, aerodactyl, kabutops removidos — sem sprite/GIF disponível.)
-        const STONE_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = ([
-          { sp: "sandshrew" as Species, w: 14, forcedRarity: "uncommon" },
-          { sp: "diglett"   as Species, w: 14, forcedRarity: "uncommon" },
-          { sp: "cubone"    as Species, w: 12, forcedRarity: "uncommon" },
-          { sp: "machop"    as Species, w: 10, forcedRarity: "rare" },
-          { sp: "mankey"    as Species, w: 10, forcedRarity: "rare" },
-          { sp: "magnemite" as Species, w:  8, forcedRarity: "rare" },
-          { sp: "golem"     as Species, w:  5, forcedRarity: "epic" },
-        ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
-        const total = STONE_TABLE.reduce((s, e) => s + e.w, 0);
-        let r = Math.random() * total;
-        let chosen = STONE_TABLE[0];
-        for (const e of STONE_TABLE) { r -= e.w; if (r <= 0) { chosen = e; break; } }
-        sp = chosen.sp;
-        forcedRarity = chosen.forcedRarity;
-        mapLvRange = [30, 55];
       } else {
         if (idle.currentMap === "terra" && maxTeamLv >= 30) {
           pool = ["beedrill", "butterfree", "blaziken", "pinsir", "golem", "jolteon", "lapras"] as Species[];
@@ -3104,8 +3024,8 @@ function IdlePage() {
       }
       const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
       if (hardCap != null) lv = Math.min(lv, hardCap);
-      // Épico só aparece quando o líder chega ao nível 50 (exceto na Pedreira Antiga, gated pelo mapa).
-      const allowEpic = leaderLv >= 50 || idle.currentMap === "pedreira";
+      // Épico só aparece quando o líder chega ao nível 50.
+      const allowEpic = leaderLv >= 50;
       if (forcedRarity === "epic" && !allowEpic) forcedRarity = "rare";
       let pet = makePet(sp, lv, forcedRarity);
       if ((pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
@@ -3153,13 +3073,8 @@ function IdlePage() {
 
   const activeTime = now - idle.startedAt;
   const map = IDLE_MAPS[idle.currentMap];
-  const isPedreira = idle.currentMap === "pedreira";
-  const visibleBuildings = isPedreira ? [] : BUILDINGS;
-  const viewportBg = isPedreira
-    ? "#2e333b"
-    : idle.currentMap === "caverna"
-      ? "#1f2028"
-      : "#1a3d1a";
+  const visibleBuildings = BUILDINGS;
+  const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#1a3d1a";
 
   const collect = () => {
     setIdle((s) => {
@@ -5307,7 +5222,7 @@ function IdlePage() {
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
-                  { key: "to-pedreira", target: "pedreira", x: 377,      y: 330,          arriveX: WORLD_W / 2,  arriveY: WORLD_H - 240, color: "#ff5ea8" },
+                  
                 ],
                 terra: [
                   { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
@@ -5329,9 +5244,6 @@ function IdlePage() {
                 ],
                 caverna: [
                   { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
-                ],
-                pedreira: [
-                  { key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: 377, arriveY: 430, color: "#ff5ea8" },
                 ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
