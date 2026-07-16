@@ -190,6 +190,7 @@ const mapTerraUrl = assetUrl(mapTerraAsset.url);
 const hornetCocoonUrl = assetUrl(hornetCocoonAsset.url);
 const fireLakeUrl = assetUrl(fireLakeAsset.url);
 const mapVenofogoOrangeUrl = assetUrl(mapVenofogoOrangeAsset.url);
+const mapFantasmaUrl = assetUrl(mapFantasmaAsset.url);
 const redLakeUrl = assetUrl(redLakeAsset.url);
 const volcanoUrl = assetUrl(volcanoAsset.url);
 const rubyGemUrl = assetUrl(rubyGemAsset.url);
