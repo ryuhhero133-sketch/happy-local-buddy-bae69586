@@ -359,9 +359,12 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Normal
   rattata_f: "normal", raticate_f: "normal",
   meowth: "normal", persian: "normal",
-  eevee: "normal", snorlax: "normal",
+  eevee: "normal", snorlax: "normal", snorlax_mythic: "normal",
   clefairy: "normal", clefable: "normal",
+  // Mythic Roamers
+  deoxys: "psychic", groudon: "fire", lapras_shiny: "water",
 } as Record<string, ElementFx>;
+
 
 function elementOf(sp: Species): ElementFx {
   return SPECIES_ELEMENT[sp] ?? "normal";
