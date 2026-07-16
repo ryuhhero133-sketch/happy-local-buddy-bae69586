@@ -1815,8 +1815,8 @@ function IdlePage() {
     setRankLoading(true);
     (async () => {
       const meRow = (): RankRow => ({
-        id: identity.id,
-        name: identity.name || "Treinador",
+        id: identity?.id ?? "local-trainer",
+        name: identity?.name || "Treinador",
         level: team[0]?.level ?? 1,
         trainer_level: idle.trainerLevel ?? 1,
         craft_points: idle.craftPoints ?? 0,
@@ -1849,7 +1849,7 @@ function IdlePage() {
           rows = (data as RankRow[] | null) ?? [];
         }
 
-        if (!rows.some((r) => r.id === identity.id)) rows.push(meRow());
+        if (!rows.some((r) => r.id === (identity?.id ?? "local-trainer"))) rows.push(meRow());
         rows.sort((a, b) => {
           const av = rankMode === "trainer" ? a.trainer_level : rankMode === "craft" ? a.craft_points : a.level;
           const bv = rankMode === "trainer" ? b.trainer_level : rankMode === "craft" ? b.craft_points : b.level;
@@ -1866,7 +1866,7 @@ function IdlePage() {
       finally { if (!cancelled) setRankLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [rankOpen, rankMode, identity.id, identity.name, idle.trainerLevel, idle.craftPoints, team]);
+  }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.craftPoints, team]);
 
   useEffect(() => {
     const t = setTimeout(() => {
