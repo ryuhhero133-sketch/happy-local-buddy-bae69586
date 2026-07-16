@@ -61,6 +61,7 @@ import { computeTeamSynergies, computePower } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
+import { PokemonMarketPanel } from "@/components/PokemonMarketPanel";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
