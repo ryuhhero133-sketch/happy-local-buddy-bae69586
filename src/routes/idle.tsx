@@ -3130,14 +3130,14 @@ function IdlePage() {
       const pct = Math.round(add * 100);
       const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : "Orb Supremo";
       const nowT = Date.now();
-      if ((idle.buffs.expMultUntil ?? 0) > nowT) {
-        pushChat(`Já há um Orb/Livro de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
+      if ((idle.buffs.orbUntil ?? 0) > nowT) {
+        pushChat(`Já há um Orb de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
         return;
       }
       setIdle((s) => ({
         ...s,
         items: { ...s.items, [id]: have - 1 },
-        buffs: { ...s.buffs, expMult: add, expMultUntil: Date.now() + 3600_000 },
+        buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + 3600_000, orbId: id },
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · 1h`, "capture");
       pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por 1 hora`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
