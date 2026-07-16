@@ -109,6 +109,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [bootstrapping, setBootstrapping] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
+  const refreshLogoutRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -164,9 +165,14 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setNeedsChar(false);
         try {
           localStorage.removeItem(IDENTITY_KEY);
-          // Limpa dados de jogo locais para evitar vazamento entre contas
-          wipeLocalGameData();
-          localStorage.removeItem(CURRENT_UID_KEY);
+          if (refreshLogoutRef.current) {
+            refreshLogoutRef.current = false;
+          } else {
+            // Logout real: limpa dados locais para evitar vazamento entre contas.
+            // O logout automático do F5 NÃO limpa, para não causar reset se a rede/cloud atrasar.
+            wipeLocalGameData();
+            localStorage.removeItem(CURRENT_UID_KEY);
+          }
         } catch {
           /* ignore */
         }
@@ -178,6 +184,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       log("initial session", data.session?.user?.id ?? null);
       if (data.session && !window.location.hash.includes("type=recovery")) {
+        refreshLogoutRef.current = true;
         supabase.auth.signOut().finally(() => {
           setSession(null);
           setChecking(false);
