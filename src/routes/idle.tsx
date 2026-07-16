@@ -1047,7 +1047,7 @@ function IdlePage() {
     if (!hadPrevious || serverSync.status !== "ready") return;
     const latestSave = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
     saveNow({ ...latestSave, party: [...team, ...restingBench] });
-    window.setTimeout(() => { void serverSync.pushNow(); }, 250);
+    void serverSync.pushNow();
   }, [team, restingBench, idle.collection, serverSync.status, serverSync.pushNow]);
 
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
