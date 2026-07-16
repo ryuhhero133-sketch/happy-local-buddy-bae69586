@@ -8749,6 +8749,10 @@ function TabOverlay({
           </div>
         </div>
       )}
+
+      {statsCardPet && (
+        <PokemonStatsCard pet={statsCardPet} team={team} gifMap={gifMap} onClose={() => setStatsCardPet(null)} />
+      )}
     </div>
   );
 }
