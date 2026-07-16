@@ -3116,7 +3116,8 @@ function IdlePage() {
     setIdle((s) => ({ ...s, items: { ...s.items, [ballId]: Math.max(0, (s.items[ballId] ?? 0) - 1) } }));
     pushFxAt(target.x, target.y - 40, `${ballName}!`, "capture");
     if (success) {
-      const np = makePet(target.sp, target.level, target.rarity);
+      const rolled = rollTraits(target.rarity);
+      const np = { ...makePet(target.sp, target.level, target.rarity), traits: rolled };
       const rarityLabelMap: Record<string, string> = {
         common: "Comum", uncommon: "Incomum", rare: "Raro",
         epic: "Épico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
@@ -3125,6 +3126,10 @@ function IdlePage() {
       pushFxAt(target.x, target.y - 70, `★ CAPTUROU! ★`, "capture");
       pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
       pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
+      if (rolled.length > 0) {
+        const tLabels = rolled.map((id) => { const t = TRAITS[id]; return t ? `${t.icon} ${t.name}` : id; }).join(" · ");
+        pushChat(`✨ Traits: ${tLabels}`, "cap");
+      }
       playBonus();
       setEnemies((prev) => prev.filter((e) => e.id !== enemyId));
       setIdle((s) => {
@@ -3137,7 +3142,7 @@ function IdlePage() {
           ...s,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
-          collection: [...prev, { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now() }],
+          collection: [...prev, { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now(), traits: rolled }],
         };
       });
     } else {
