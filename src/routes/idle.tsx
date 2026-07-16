@@ -5058,6 +5058,22 @@ function IdlePage() {
                   <div style={{ fontSize: 10, color: "#8f8296", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 6 }}>
                     💡 Clique em um Pokémon selvagem para lançar a Pokébola manualmente.
                   </div>
+                  <button
+                    onClick={() => {
+                      if (confirm("Sair e voltar para a tela de login?")) {
+                        signOutRubyM().finally(() => { window.location.reload(); });
+                      }
+                    }}
+                    style={{
+                      marginTop: 6,
+                      background: "linear-gradient(180deg,#7a1d1d,#4a0e0e)",
+                      border: "1px solid #ff6b6b", color: "#ffd7d7",
+                      borderRadius: 8, padding: "6px 10px", cursor: "pointer",
+                      fontSize: 11, fontWeight: 700, letterSpacing: 1,
+                    }}
+                  >
+                    🚪 IR PARA TELA DE LOGIN
+                  </button>
                 </div>
               )}
               <div style={{
