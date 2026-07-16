@@ -1776,9 +1776,6 @@ function IdlePage() {
     const meUserId = identity.id;
     const meId = getMultiplayerSessionId(meUserId);
     const meName = identity.name || "Treinador";
-    const ch = supabase.channel(`idle-map-${mapId}`, {
-      config: { presence: { key: meId }, broadcast: { self: false } },
-    });
     const payloadNow = (): RemotePlayer => ({
       id: meId, userId: meUserId, name: meName,
       x: trainerPosRef.current.x, y: trainerPosRef.current.y,
@@ -1801,11 +1798,11 @@ function IdlePage() {
           craft_points: idle.craftPoints ?? 0,
           updated_at: new Date().toISOString(),
         });
-      } catch { /* multiplayer continua via realtime */ }
+      } catch { /* multiplayer via DB polling */ }
     };
     const loadPresence = async () => {
       try {
-        const since = new Date(Date.now() - 12_000).toISOString();
+        const since = new Date(Date.now() - 20_000).toISOString();
         const { data } = await gameDb
           .from("players")
           .select("id,name,map,x,y,dir,leader_species,updated_at")
@@ -1828,70 +1825,31 @@ function IdlePage() {
               ts: new Date(row.updated_at || Date.now()).getTime(),
             });
           }
-          return Array.from(byId.values()).filter((p) => p.id !== meId && Date.now() - p.ts < 12_000);
+          return Array.from(byId.values()).filter((p) => p.id !== meId && Date.now() - p.ts < 20_000);
         });
       } catch { /* ignore */ }
     };
-    const applyState = () => {
-      const state = ch.presenceState<RemotePlayer>();
-      const list: RemotePlayer[] = [];
-      for (const key of Object.keys(state)) {
-        if (key === meId) continue;
-        const entry = state[key]?.[0];
-        if (entry) list.push({ ...entry, ts: Date.now() });
-      }
-      setRemotePlayers(list);
-    };
-    ch.on("presence", { event: "sync" }, applyState);
-    ch.on("presence", { event: "join" }, applyState);
-    ch.on("presence", { event: "leave" }, applyState);
-    ch.on("broadcast", { event: "pos" }, (payload) => {
-      const p = payload.payload as RemotePlayer;
-      if (!p || p.id === meId) return;
-      setRemotePlayers((prev) => {
-        const others = prev.filter((r) => r.id !== p.id);
-        return [...others, { ...p, ts: Date.now() }];
-      });
-    });
-    const trackNow = () => ch.track(payloadNow());
-    ch.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        await trackNow();
-      }
-    });
     void savePresence(payloadNow());
     void loadPresence();
-    // Presença + broadcast (throttle p/ economizar realtime/egress).
-    // Só emite quando muda posição/direção; heartbeat máx 2s.
-    let lastSent = { x: -1, y: -1, dir: "" as string, t: 0 };
-    const iv = setInterval(() => {
-      const payload = payloadNow();
-      const moved = Math.abs(payload.x - lastSent.x) > 1 || Math.abs(payload.y - lastSent.y) > 1 || payload.dir !== lastSent.dir;
-      const heartbeat = Date.now() - lastSent.t > 2000;
-      if (!moved && !heartbeat) return;
-      lastSent = { x: payload.x, y: payload.y, dir: payload.dir, t: Date.now() };
-      void ch.track(payload);
-      void ch.send({ type: "broadcast", event: "pos", payload });
-    }, 500);
+    // Sem Realtime: apenas DB polling (economia máxima de mensagens).
+    // Sem PvP, ver outros jogadores em ~8s é suficiente.
     const dbIv = setInterval(() => {
       const payload = payloadNow();
       void savePresence(payload);
       void loadPresence();
-    }, 5_000);
-
+    }, 8_000);
     const prune = setInterval(() => {
-      const cutoff = Date.now() - 12_000;
+      const cutoff = Date.now() - 20_000;
       setRemotePlayers((prev) => prev.filter((p) => p.ts >= cutoff));
-    }, 2_000);
+    }, 4_000);
     return () => {
-      clearInterval(iv);
       clearInterval(dbIv);
       clearInterval(prune);
-      void supabase.removeChannel(ch);
       void gameDb.from("players").delete().eq("id", meId);
       setRemotePlayers([]);
     };
   }, [identity?.id, identity?.name, idle.currentMap, idle.totals.captured, idle.craftPoints, team]);
+
 
   const fakeMapPlayers = useMemo<RemotePlayer[]>(() => {
     const names = [

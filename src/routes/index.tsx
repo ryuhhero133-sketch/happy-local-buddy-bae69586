@@ -2865,8 +2865,7 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
       if (active && data) setRemotePlayers((data as unknown as RemotePlayer[]).filter((p) => p.id !== identity.id));
     };
     load();
-    const ch = supabase.channel("rt-players").on("postgres_changes", { event: "*", schema: "public", table: "players" }, load).subscribe();
-    const refresh = setInterval(load, 4000);
+    const refresh = setInterval(load, 8000);
     const cleanup = setInterval(async () => {
       const cutoff = new Date(Date.now() - PRESENCE_TIMEOUT_MS).toISOString();
       await gameDb.from("players").delete().lt("updated_at", cutoff);
@@ -2876,10 +2875,10 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
     return () => {
       active = false; clearInterval(refresh); clearInterval(cleanup);
       window.removeEventListener("beforeunload", onUnload);
-      void supabase.removeChannel(ch);
       void gameDb.from("players").delete().eq("id", identity.id);
     };
   }, [identity.id]);
+
 
   // ===== GUILD (Supabase) =====
   const refreshGuild = useCallback(async () => {
@@ -2935,11 +2934,11 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
       }
     };
     load();
-    const ch = supabase.channel("rt-market").on("postgres_changes", { event: "*", schema: "public", table: "market_listings" }, load).subscribe();
-    return () => { void supabase.removeChannel(ch); };
+    const iv = setInterval(load, 30_000);
+    return () => { clearInterval(iv); };
   }, []);
 
-  // ===== CHALLENGES =====
+  // ===== CHALLENGES (sem PvP: polling raro) =====
   useEffect(() => {
     const load = async () => {
       const { data } = await gameDb.from("challenges").select("*")
@@ -2948,9 +2947,10 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
       if (data) setChallenges(data as unknown as DbChallenge[]);
     };
     load();
-    const ch = supabase.channel("rt-challenges").on("postgres_changes", { event: "*", schema: "public", table: "challenges" }, load).subscribe();
-    return () => { void supabase.removeChannel(ch); };
+    const iv = setInterval(load, 20_000);
+    return () => { clearInterval(iv); };
   }, [identity.id]);
+
 
   // Accept incoming or start active battle
   useEffect(() => {
