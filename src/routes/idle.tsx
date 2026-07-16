@@ -3680,22 +3680,21 @@ function IdlePage() {
     { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
     { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
   ];
-  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", rarity: Rarity, count: number) => {
+  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => {
+    const trade = ORB_TRADES.find((t) => t.orbId === orbId);
+    if (!trade) return;
     setIdle((s) => {
       const col = s.collection ?? [];
-      const matches = col
-        .map((c, idx) => ({ c, idx }))
-        .filter((x) => x.c.rarity === rarity)
-        .sort((a, b) => (a.c.level - b.c.level));
-      if (matches.length < count) {
-        pushChat(`Você precisa de ${count} Pokémon ${rarity.toUpperCase()} na coleção para essa troca.`, "info");
+      const selected = col.filter((c) => uids.includes(c.uid) && c.rarity === trade.rarity);
+      if (selected.length !== trade.count) {
+        pushChat(`Selecione exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} para essa troca.`, "info");
         return s;
       }
-      const removeIdx = new Set(matches.slice(0, count).map((m) => m.idx));
-      const newCol = col.filter((_, i) => !removeIdx.has(i));
+      const removeSet = new Set(selected.map((c) => c.uid));
+      const newCol = col.filter((c) => !removeSet.has(c.uid));
       const cur = s.items[orbId] ?? 0;
       const orbName = orbId === "orb_xp_major" ? "Orb Maior ✦✦" : "Orb Supremo ✦✦✦";
-      pushChat(`✦ NPC recebeu ${count} ${rarity.toUpperCase()} e entregou 1 ${orbName}.`, "cap");
+      pushChat(`✦ NPC recebeu ${trade.count} ${trade.rarity.toUpperCase()} e entregou 1 ${orbName}.`, "cap");
       return {
         ...s,
         collection: newCol,
