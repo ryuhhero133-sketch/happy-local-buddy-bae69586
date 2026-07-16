@@ -5194,7 +5194,26 @@ function IdlePage() {
                   zIndex: Math.round(e.y),
                   cursor: dead ? "default" : "pointer",
                 }}>
+                  {e.sp === "lugia" && (
+                    <>
+                      <div style={{
+                        position: "absolute", inset: -60, borderRadius: "50%",
+                        background: "radial-gradient(circle, rgba(126,230,255,0.35) 0%, rgba(255,151,225,0.18) 45%, transparent 75%)",
+                        filter: "blur(4px)",
+                        animation: "pulse 2s ease-in-out infinite",
+                        pointerEvents: "none", zIndex: -1,
+                      }} />
+                      <div style={{
+                        position: "absolute", inset: -30, borderRadius: "50%",
+                        border: "2px solid rgba(126,230,255,0.7)",
+                        boxShadow: "0 0 40px rgba(126,230,255,0.9), inset 0 0 30px rgba(255,151,225,0.7)",
+                        animation: "spin 8s linear infinite",
+                        pointerEvents: "none", zIndex: -1,
+                      }} />
+                    </>
+                  )}
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
+
                   {e.rider && (
                     <div style={{
                       position: "absolute", top: -38, left: "50%",
