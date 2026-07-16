@@ -643,7 +643,7 @@ type IdleState = {
   craftPoints?: number; // pontos obtidos ao fragmentar pokémons da coleção
   items: Record<string, number>;
   bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 10min
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string }; // livros de xp/vip são temporários (1h); honey = incenso de mel 10min; orb = boost independente (stack com livro)
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
@@ -716,7 +716,7 @@ const ALL_BALLS: ShopBall[] = [
   { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
 ];
 
-type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold" };
+type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
 const SHOP_BOOKS: ShopBook[] = [
   { id: "book_atk", name: "Livro de Ataque", desc: "+10% de dano permanente por uso", price: 20, img: bookAtkImg },
   { id: "book_def", name: "Livro de Defesa", desc: "-10% de dano recebido por uso",  price: 20, img: bookDefImg },
@@ -724,9 +724,8 @@ const SHOP_BOOKS: ShopBook[] = [
 
   { id: "book_vip_30", name: "Livro VIP 30d ✦✦", desc: "+30% ouro e +30% EXP por 30 DIAS", price: 500, img: bookExpImg },
   { id: "book_vip_60", name: "Livro VIP 60d ✦✦✦", desc: "+40% ouro e +40% EXP por 60 DIAS", price: 1000, img: bookExpImg },
-  // ═══ ORBS DE XP — 1h de bônus, apenas 1 ativo por vez ═══
   // ═══ ORB DE XP FRACO — único vendido; os fortes vêm da troca com NPC ═══
-  { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo)", price: 5000,  img: orbXpMinorUrl,   currency: "gold" },
+  { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo, stack com livro)", price: 100,  img: orbXpMinorUrl,   currency: "crystals", priceGold: 50000 },
 ];
 
 
@@ -792,7 +791,7 @@ function freshIdle(): IdleState {
     craftPoints: 0,
     items: { premium_box: 1 },
     bank: { gold: 0, crystals: 30 },
-    buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0 },
+    buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0, orbMult: 0, orbUntil: 0, orbId: "" },
     autoHeal: { enabled: true, threshold: 0.5 },
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
     trainerLevel: 1,
@@ -2458,6 +2457,8 @@ function IdlePage() {
         const killedNow = next.find((e) => e.id === target.id && e.hp <= 0);
         if (killedNow) {
           const expActive = !!(idle.buffs.expMultUntil && Date.now() < idle.buffs.expMultUntil);
+          const orbActive = !!(idle.buffs.orbUntil && Date.now() < idle.buffs.orbUntil);
+          const totalExpBoost = (expActive ? idle.buffs.expMult : 0) + (orbActive ? (idle.buffs.orbMult ?? 0) : 0);
           const goldActive = !!(idle.buffs.goldMultUntil && Date.now() < idle.buffs.goldMultUntil);
           const goldMult = 1 + (goldActive ? (idle.buffs.goldMult ?? 0) : 0);
           // Bônus de drop pela raridade do líder
@@ -2488,7 +2489,7 @@ function IdlePage() {
           const overLvlPenalty = isRiderKill ? 1 : (lvGap >= 15 ? Math.max(0.02, 1 - (lvGap - 14) * 0.15) : 1);
           const riderMult = isRiderKill ? 8 : 1; // rider dá MUITO xp
           const riderGoldMult = isRiderKill ? 4 : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult);
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -2507,6 +2508,7 @@ function IdlePage() {
           pushFxAt(target.x, target.y - 50, `+${xp} EXP`, "xp");
           const bonusParts: string[] = [];
           if (expActive) bonusParts.push(`EXP+${Math.round(idle.buffs.expMult * 100)}%`);
+          if (orbActive) bonusParts.push(`ORB+${Math.round((idle.buffs.orbMult ?? 0) * 100)}%`);
           if (goldActive) bonusParts.push(`Ouro+${Math.round((idle.buffs.goldMult ?? 0) * 100)}%`);
           if (rarityBonus > 0) bonusParts.push(`Líder ${leaderRarity}+${Math.round(rarityBonus * 100)}%`);
           if (synergyBonus > 0) bonusParts.push(`Sinergia ${synergyRarity}+${Math.round(synergyBonus * 100)}%`);
@@ -3131,14 +3133,14 @@ function IdlePage() {
       const pct = Math.round(add * 100);
       const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : "Orb Supremo";
       const nowT = Date.now();
-      if ((idle.buffs.expMultUntil ?? 0) > nowT) {
-        pushChat(`Já há um Orb/Livro de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
+      if ((idle.buffs.orbUntil ?? 0) > nowT) {
+        pushChat(`Já há um Orb de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
         return;
       }
       setIdle((s) => ({
         ...s,
         items: { ...s.items, [id]: have - 1 },
-        buffs: { ...s.buffs, expMult: add, expMultUntil: Date.now() + 3600_000 },
+        buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + 3600_000, orbId: id },
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · 1h`, "capture");
       pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por 1 hora`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
@@ -3663,15 +3665,17 @@ function IdlePage() {
         pushChat(useGold ? `Ouro insuficiente para ${bk.name}.` : `Cristais insuficientes para ${bk.name}.`, "info");
         return s;
       }
+      if (bk.priceGold && s.bank.gold < bk.priceGold) {
+        pushChat(`Ouro insuficiente para ${bk.name} (custa ${bk.priceGold} 🪙 + ${bk.price} 💎).`, "info");
+        return s;
+      }
       const curQty = s.items[bk.id] ?? 0;
       pushChat(`Comprou ${bk.name}. Use pela Mochila quando quiser.`, "cap");
-      return {
-        ...s,
-        bank: useGold
-          ? { ...s.bank, gold: s.bank.gold - bk.price }
-          : { ...s.bank, crystals: s.bank.crystals - bk.price },
-        items: { ...s.items, [bk.id]: curQty + 1 },
-      };
+      const bank0 = useGold
+        ? { ...s.bank, gold: s.bank.gold - bk.price }
+        : { ...s.bank, crystals: s.bank.crystals - bk.price };
+      const bank1 = bk.priceGold ? { ...bank0, gold: bank0.gold - bk.priceGold } : bank0;
+      return { ...s, bank: bank1, items: { ...s.items, [bk.id]: curQty + 1 } };
     });
   };
 
@@ -4419,7 +4423,48 @@ function IdlePage() {
                 draggable={false}
               />
             </button>
+            {(() => {
+              const orbUntil = idle.buffs.orbUntil ?? 0;
+              const remain = orbUntil - Date.now();
+              if (remain <= 0) return null;
+              const orbId = idle.buffs.orbId || "orb_xp_minor";
+              const orbImg = orbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbId === "orb_xp_major" ? orbXpMajorUrl : orbXpMinorUrl;
+              const orbPct = Math.round((idle.buffs.orbMult ?? 0) * 100);
+              const mins = Math.floor(remain / 60000);
+              const secs = Math.floor((remain % 60000) / 1000);
+              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+              return (
+                <div
+                  title={`Orb ativo: +${orbPct}% EXP · ${timeStr}`}
+                  style={{
+                    marginTop: 4,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 2,
+                    padding: "3px 5px",
+                    background: "rgba(15,10,30,0.85)",
+                    border: "1px solid #7c5cff",
+                    borderRadius: 6,
+                    boxShadow: "0 0 8px rgba(124,92,255,0.5)",
+                  }}
+                >
+                  <img
+                    src={orbImg}
+                    alt="Orb ativo"
+                    width={22}
+                    height={22}
+                    style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(180,120,255,0.9))" }}
+                    draggable={false}
+                  />
+                  <span style={{ fontSize: 9, color: "#e0d0ff", fontWeight: 700, lineHeight: 1, whiteSpace: "nowrap" }}>
+                    {timeStr}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
+
 
 
 
