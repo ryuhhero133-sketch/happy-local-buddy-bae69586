@@ -87,7 +87,12 @@ async function preloadCloudSave(userId: string) {
       const party = Array.isArray(cloud.party)
         ? cloud.party
         : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
-      if (party.length > 0) localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+      if (party.length > 0) {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+        // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
+        // não pode reabrir o modal de starter em outro navegador/F5.
+        try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
+      }
       localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
       log("preloadCloudSave: save restaurado do servidor");
     } else {
