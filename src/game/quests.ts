@@ -139,7 +139,140 @@ export const QUESTS: Quest[] = [
       },
     ],
   },
+
+  // ============ QUESTS DIFÍCEIS (+2h de XP boost cada) ============
+  {
+    id: "hard_oddish_hunter",
+    title: "★ Caçador de Oddish",
+    intro: "A Botânica está estudando ervas raras. Precisa de MUITOS Oddish.",
+    chain: [
+      {
+        npc: "botanist",
+        ask: "Capture 20 Oddish e traga aqui na coleção. Sua paciência será recompensada!",
+        need: { item: "pet:oddish", qty: 20 },
+        reward: { gold: 3000, xpBoostHours: 2, items: { event_box: 1 }, message: "Botânica: Impressionante! +2h de XP boost!" },
+      },
+    ],
+  },
+  {
+    id: "hard_ancient_wisdom",
+    title: "★ Sabedoria Ancestral",
+    intro: "Oak precisa de um Livro/Incenso Épico para um ritual de estudo.",
+    chain: [
+      {
+        npc: "oak",
+        ask: "Entregue 1 Incenso Épico (livro épico de XP) para eu decifrar antigos escritos.",
+        need: { item: "incenseEpic", qty: 1 },
+        reward: { gold: 4000, xpBoostHours: 2, items: { event_box: 2 }, message: "Oak: Extraordinário! +2h de XP boost!" },
+      },
+    ],
+  },
+  {
+    id: "hard_rare_tomes",
+    title: "★ Tomos Raros",
+    intro: "Kurt coleciona livros raros para aprimorar suas Pokébolas.",
+    chain: [
+      {
+        npc: "kurt",
+        ask: "Traga 3 Incensos Raros (livros raros de XP). Vou usar como base de estudo.",
+        need: { item: "incenseRare", qty: 3 },
+        reward: { gold: 3500, xpBoostHours: 2, items: { apricorn_generic: 5 }, message: "Kurt: Excelente material! +2h de XP boost!" },
+      },
+    ],
+  },
+  {
+    id: "hard_strawberry_flood",
+    title: "★ Dilúvio de Morangos",
+    intro: "Moranguinho quer abrir uma doceria — precisa de estoque.",
+    chain: [
+      {
+        npc: "moranguinho",
+        ask: "Traga 50 morangos! Vou fazer uma torta épica.",
+        need: { item: "fruta_morango", qty: 50 },
+        reward: { gold: 3000, xpBoostHours: 2, items: { event_box: 1 }, message: "Moranguinho: UAU! +2h de XP boost!" },
+      },
+    ],
+  },
+  {
+    id: "hard_lemon_king",
+    title: "★ Rei do Limão",
+    intro: "O Velho dos Mares quer preparar limonada para toda a vila.",
+    chain: [
+      {
+        npc: "velhoDosMares",
+        ask: "Traga 40 limões dourados. Vou fazer a limonada do século!",
+        need: { item: "fruta_limao", qty: 40 },
+        reward: { gold: 3200, xpBoostHours: 2, items: { fish_bait: 15 }, message: "Velho: SPLENDIDO! +2h de XP boost!" },
+      },
+    ],
+  },
+  {
+    id: "hard_lumberjack",
+    title: "★ Lenhador Lendário",
+    intro: "Kurt precisa de MUITA lenha para forjar Pokébolas especiais.",
+    chain: [
+      {
+        npc: "kurt",
+        ask: "60 lenhas! Corte árvores e volte com um estoque digno de um lenhador lendário.",
+        need: { item: "lenha", qty: 60 },
+        reward: { gold: 3500, xpBoostHours: 2, items: { event_box: 1, apricorn_generic: 3 }, message: "Kurt: Trabalho de mestre! +2h de XP boost!" },
+      },
+    ],
+  },
+  {
+    id: "hard_pink_bloom",
+    title: "★ Floração Rosa",
+    intro: "A Botânica quer criar um perfume raro com bagas rosa.",
+    chain: [
+      {
+        npc: "botanist",
+        ask: "Traga 30 bagas rosa. Vou destilar o perfume perfeito!",
+        need: { item: "fruta_rosa", qty: 30 },
+        reward: { gold: 3000, xpBoostHours: 2, items: { event_box: 1, fruta_morango: 5 }, message: "Botânica: Fragrância divina! +2h de XP boost!" },
+      },
+    ],
+  },
+  {
+    id: "hard_deep_sea_bait",
+    title: "★ Isca das Profundezas",
+    intro: "O Capitão Navio quer pescar um monstro marinho.",
+    chain: [
+      {
+        npc: "captainNavio",
+        ask: "Preciso de 40 iscas de pesca. Vou fisgar algo LENDÁRIO!",
+        need: { item: "fish_bait", qty: 40 },
+        reward: { gold: 3500, xpBoostHours: 2, items: { event_box: 1 }, message: "Capitão: Marinheiro dos mares! +2h de XP boost!" },
+      },
+    ],
+  },
+  {
+    id: "hard_apricorn_master",
+    title: "★ Mestre das Apricorns",
+    intro: "Kurt está desenvolvendo uma Pokébola experimental.",
+    chain: [
+      {
+        npc: "kurt",
+        ask: "Traga 30 Apricorns de qualquer tipo. Vou testar uma fórmula secreta!",
+        need: { item: "apricorn_generic", qty: 30 },
+        reward: { gold: 4000, xpBoostHours: 2, items: { event_box: 2 }, message: "Kurt: Ciência avançada! +2h de XP boost!" },
+      },
+    ],
+  },
+  {
+    id: "hard_pikachu_squad",
+    title: "★ Esquadrão Pikachu",
+    intro: "O Treinador da Árvore quer testar um esquadrão elétrico.",
+    chain: [
+      {
+        npc: "trainerTree",
+        ask: "Capture 5 Pikachu e traga na sua coleção. Quero ver o poder elétrico!",
+        need: { item: "pet:pikachu", qty: 5 },
+        reward: { gold: 5000, xpBoostHours: 2, items: { event_box: 2 }, message: "Treinador: CHOCANTE! +2h de XP boost!" },
+      },
+    ],
+  },
 ];
+
 
 // ============ Progresso ============
 type ProgressMap = Record<string, number | "done">;
