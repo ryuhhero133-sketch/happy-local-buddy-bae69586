@@ -11,8 +11,10 @@
 export type QuestReward = {
   gold?: number;
   items?: Record<string, number>; // todos entram como `bound`
+  xpBoostHours?: number; // horas de boost de XP (aplicado no handler do idle)
   message?: string;
 };
+
 
 export type QuestStep = {
   npc: NpcId;
