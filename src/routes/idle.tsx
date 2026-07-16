@@ -7332,7 +7332,7 @@ function TabOverlay({
   onPickTeam: (entry: CollectionEntry) => void;
   onUseItem: (id: string) => void;
   bank: { gold: number; crystals: number };
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string };
   onBuyBall: (b: ShopBall) => void;
   onBuyBook: (bk: ShopBook) => void;
   onBuyPotion: (qty?: number) => void;
@@ -8455,20 +8455,54 @@ function TabOverlay({
       )}
 
 
-      {tab === "melhorias" && (
-        <div>
-          <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
-            <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((buffs?.atk ?? 0) * 100)}%`} color="#ff5252" />
-            <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
-            <BuffCell img={bookExpImg} label="EXP" value={`+${Math.round((buffs?.expMult ?? 0) * 100)}%`} color="#5ec26a" />
+      {tab === "melhorias" && (() => {
+        const nowMs = Date.now();
+        const bookActive = !!(buffs?.expMultUntil && nowMs < buffs.expMultUntil);
+        const orbActive = !!(buffs?.orbUntil && nowMs < buffs.orbUntil);
+        const bookPct = bookActive ? Math.round((buffs?.expMult ?? 0) * 100) : 0;
+        const orbPct = orbActive ? Math.round((buffs?.orbMult ?? 0) * 100) : 0;
+        const totalExpPct = bookPct + orbPct;
+        const fmtTime = (ms: number) => {
+          const s = Math.max(0, Math.floor(ms / 1000));
+          const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+          return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${r}s` : `${r}s`;
+        };
+        return (
+          <div>
+            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
+              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((buffs?.atk ?? 0) * 100)}%`} color="#ff5252" />
+              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
+              <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
+            </div>
+            {(bookActive || orbActive) && (
+              <div style={{ background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 8, padding: 10, marginBottom: 14 }}>
+                <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Composição EXP:</div>
+                {bookActive && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d0c0e0", padding: "3px 0" }}>
+                    <span>📖 Livro EXP <span style={{ color: "#8a80a8" }}>({fmtTime(buffs!.expMultUntil! - nowMs)})</span></span>
+                    <span style={{ color: "#5ec26a", fontWeight: 700 }}>+{bookPct}%</span>
+                  </div>
+                )}
+                {orbActive && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d0c0e0", padding: "3px 0" }}>
+                    <span>✦ Orb EXP <span style={{ color: "#8a80a8" }}>({fmtTime(buffs!.orbUntil! - nowMs)})</span></span>
+                    <span style={{ color: "#c084fc", fontWeight: 700 }}>+{orbPct}%</span>
+                  </div>
+                )}
+                <div style={{ borderTop: "1px solid #3a2e58", marginTop: 6, paddingTop: 6, display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
+                  <span style={{ color: "#f5cf6b" }}>Total EXP</span>
+                  <span style={{ color: "#ffd94d" }}>+{totalExpPct}%</span>
+                </div>
+              </div>
+            )}
+            <div style={{ color: "#b8a8c8", fontSize: 12, lineHeight: 1.5 }}>
+              Livros e Orbs de EXP <strong style={{ color: "#f5cf6b" }}>somam</strong> enquanto ambos estão ativos. Quando o tempo do Orb acabar, ele sai e só o Livro (se ativo) continua.
+            </div>
           </div>
-          <div style={{ color: "#b8a8c8", fontSize: 12, lineHeight: 1.5 }}>
-            Use Livros de Habilidade da sua mochila para aumentar esses bônus permanentemente.
-            Compre os livros na aba <strong style={{ color: "#f5cf6b" }}>Loja</strong> pagando com cristais 💎.
-          </div>
-        </div>
-      )}
+        );
+      })()}
+
 
       {tab === "inicio" && (
         <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6 }}>
