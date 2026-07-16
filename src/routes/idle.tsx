@@ -5614,6 +5614,9 @@ function IdlePage() {
               buffs={idle.buffs}
               onBuyBall={buyBall}
               onBuyBook={buyBook}
+              orbTrades={ORB_TRADES}
+              onTradeOrb={tradeForOrb}
+              collection={idle.collection ?? []}
               onBuyPotion={buyPotion}
               onBuyEgg={buyEgg}
               shopEggs={SHOP_EGGS}
