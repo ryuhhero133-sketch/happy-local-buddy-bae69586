@@ -5,6 +5,7 @@
 
 import type { PetInstance, Species, Rarity } from "./systems";
 import { SPECIES_BASE } from "./systems";
+import { aggregateTraits } from "./traits";
 
 export type Element =
   | "planta" | "fogo" | "agua" | "eletrico" | "pedra" | "veneno"
