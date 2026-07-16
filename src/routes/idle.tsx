@@ -2274,8 +2274,11 @@ function IdlePage() {
           // Nerf por diferença de nível: se líder ≥15 níveis acima do alvo, XP/ouro colapsam.
           const leaderLvKill = team[0]?.level ?? 1;
           const lvGap = leaderLvKill - (target.level ?? leaderLvKill);
-          const overLvlPenalty = lvGap >= 15 ? Math.max(0.02, 1 - (lvGap - 14) * 0.15) : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty);
+          const isRiderKill = !!target.rider;
+          const overLvlPenalty = isRiderKill ? 1 : (lvGap >= 15 ? Math.max(0.02, 1 - (lvGap - 14) * 0.15) : 1);
+          const riderMult = isRiderKill ? 8 : 1; // rider dá MUITO xp
+          const riderGoldMult = isRiderKill ? 4 : 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + (expActive ? idle.buffs.expMult : 0)) * (1 + totalBonus) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -2284,8 +2287,12 @@ function IdlePage() {
           // Se o treinador passou do cap do mapa, ouro colapsa junto com o XP.
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
-          const goldCapPenalty = overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1;
-          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty * overLvlPenalty));
+          const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1);
+          const gold = Math.max(1, Math.floor(baseGold * totalMult * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
+          if (isRiderKill) {
+            pushEvent("✦", "RIDER DERROTADO!", `+${xp} EXP · +${gold} ouro`, "#ff5ec7");
+            pushChat(`✦ RIDER DERROTADO! +${xp} EXP · +${gold} ouro`, "cap");
+          }
 
           pushFxAt(target.x, target.y - 50, `+${xp} EXP`, "xp");
           const bonusParts: string[] = [];
