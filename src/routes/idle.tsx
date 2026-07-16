@@ -2263,6 +2263,7 @@ function IdlePage() {
         const isCrit = Math.random() < critChance;
         let dmg = Math.floor((5 + leader.level * 0.8 + base.atk * 0.12 + Math.random() * 5) * (1 + idle.buffs.atk));
         if (isCrit) dmg = Math.floor(dmg * 1.8);
+        dmg = Math.max(1, Math.floor(dmg * playerDamageVsHighLevelMult(leader.level, target.level)));
 
         // Lunge: pokémon avança em direção ao inimigo
         const animId = attackAnimIdRef.current++;
@@ -2280,7 +2281,7 @@ function IdlePage() {
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyActive = Date.now() < (idle.buffs.honeyUntil ?? 0);
         const honeyDef = honeyActive ? HONEY_BONUS : 0;
-        const eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
+        const eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
         // Dano recebido → aparece EM CIMA DO MEU POKÉMON, com um respiro após o meu golpe
         setTimeout(() => {
           setEnemyAttackAnim({
