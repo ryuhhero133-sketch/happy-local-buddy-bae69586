@@ -50,17 +50,28 @@ async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from("ranked_scores")
-      .select("user_id, username, trainer_level, pokedex_count, total_kills, score, updated_at")
+      .select("user_id, username, trainer_level, pokedex_count, total_kills, updated_at")
       .order("trainer_level", { ascending: false })
       .order("pokedex_count", { ascending: false })
       .order("total_kills", { ascending: false })
       .limit(limit);
-    if (error) {
-      console.warn("[ranked] legacy:", error.message);
+    if (!error) {
+      return mapLegacyRankedRows((data ?? []) as LegacyRankedScore[])
+        .sort((a, b) => b.score - a.score || new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
+    }
+
+    // Compatível com `SUPABASE_FULL_SETUP.md`, que usa somente score/season.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fallback = await (supabase as any)
+      .from("ranked_scores")
+      .select("user_id, username, score, updated_at")
+      .order("score", { ascending: false })
+      .limit(limit);
+    if (fallback.error) {
+      console.warn("[ranked] legacy:", fallback.error.message);
       return [];
     }
-    return mapLegacyRankedRows((data ?? []) as LegacyRankedScore[])
-      .sort((a, b) => b.score - a.score || new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
+    return mapLegacyRankedRows((fallback.data ?? []) as LegacyRankedScore[]);
   } catch (e) {
     console.warn("[ranked] legacy exc:", e);
     return [];
@@ -89,14 +100,23 @@ export async function recordRankedScore(level: number, craftPoints: number, guil
     const trainerLevel = Math.max(1, Math.floor(level || 1));
     const craft = Math.max(0, Math.floor(craftPoints || 0));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("ranked_scores").upsert({
+    const { error } = await (supabase as any).from("ranked_scores").upsert({
       user_id: user.id,
       username: (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string,
       trainer_level: trainerLevel,
       pokedex_count: craft,
-      score: trainerLevel * 100 + craft,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
+    if (!error) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("ranked_scores").upsert({
+      user_id: user.id,
+      username: (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string,
+      score: trainerLevel * 100 + craft,
+      season: 1,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id,season" });
   } catch (e) {
     console.warn("[ranked] legacy record exc:", e);
   }
