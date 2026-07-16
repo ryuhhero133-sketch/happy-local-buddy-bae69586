@@ -2057,6 +2057,15 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
   const trainerXpPct = Math.max(0, Math.min(100, (trainerXpInLevel / trainerXpSpan) * 100));
   const leaderIsShiny = leader && leader.rarity === "mythic";
 
+  // Fake players' trainer_level always stays below the real player's level
+  useEffect(() => {
+    FAKE_PLAYERS.forEach(bot => {
+      if (bot.trainer_level >= trainerLevel) {
+        bot.trainer_level = Math.max(1, trainerLevel - 1 - Math.floor(Math.random() * 3));
+      }
+    });
+  }, [trainerLevel]);
+
   // Sobe nivel se passou do limite (caso o XP tenha pulado varios niveis)
   const lastTrainerLevelRef = useRef<number>(trainerLevel);
   useEffect(() => {
