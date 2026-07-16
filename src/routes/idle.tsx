@@ -206,6 +206,7 @@ const fearowUrl = assetUrlFromJson(fearowAsset);
 const deoxysUrl = assetUrlFromJson(deoxysAsset);
 const groudonUrl = assetUrlFromJson(groudonAsset);
 const laprasShinyUrl = assetUrlFromJson(laprasShinyAsset);
+const charizardShinyUrl = assetUrlFromJson(charizardShinyAsset);
 const snorlaxMythicUrl = assetUrlFromJson(snorlaxMythicAsset);
 const darkraiUrl = assetUrlFromJson(darkraiAsset);
 const hoOhUrl = assetUrlFromJson(hoOhAsset);
