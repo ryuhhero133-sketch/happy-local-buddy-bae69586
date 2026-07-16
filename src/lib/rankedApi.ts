@@ -17,6 +17,56 @@ export type RankedSeason = {
   is_current: boolean;
 };
 
+type LegacyRankedScore = {
+  user_id: string;
+  username: string | null;
+  trainer_level?: number | null;
+  pokedex_count?: number | null;
+  total_kills?: number | null;
+  score?: number | null;
+  updated_at: string;
+};
+
+function mapLegacyRankedRows(rows: LegacyRankedScore[]): RankedRow[] {
+  return rows.map((r) => {
+    const trainerLevel = Math.max(1, Number(r.trainer_level ?? (r.score ? Math.floor(Number(r.score) / 100) : 1)) || 1);
+    const craftPoints = Math.max(0, Number(r.pokedex_count ?? 0) || 0);
+    const score = Number(r.score ?? (trainerLevel * 100 + craftPoints + Math.floor((Number(r.total_kills ?? 0) || 0) / 10))) || trainerLevel * 100;
+    return {
+      user_id: r.user_id,
+      username: r.username || "Treinador",
+      trainer_level: trainerLevel,
+      craft_points: craftPoints,
+      guild_name: null,
+      score,
+      updated_at: r.updated_at,
+    };
+  });
+}
+
+async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
+  try {
+    // Compatível com o setup antigo (`ranked_scores`) que o servidor já alimenta no save/sync.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from("ranked_scores")
+      .select("user_id, username, trainer_level, pokedex_count, total_kills, score, updated_at")
+      .order("trainer_level", { ascending: false })
+      .order("pokedex_count", { ascending: false })
+      .order("total_kills", { ascending: false })
+      .limit(limit);
+    if (error) {
+      console.warn("[ranked] legacy:", error.message);
+      return [];
+    }
+    return mapLegacyRankedRows((data ?? []) as LegacyRankedScore[])
+      .sort((a, b) => b.score - a.score || new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
+  } catch (e) {
+    console.warn("[ranked] legacy exc:", e);
+    return [];
+  }
+}
+
 /** Envia/atualiza score do jogador na temporada corrente. */
 export async function recordRankedScore(level: number, craftPoints: number, guildName?: string | null) {
   try {
@@ -26,9 +76,29 @@ export async function recordRankedScore(level: number, craftPoints: number, guil
       _craft_points: Math.max(0, Math.floor(craftPoints || 0)),
       _guild_name: guildName ?? null,
     });
-    if (error) console.warn("[ranked] record:", error.message);
+    if (!error) return;
+    console.warn("[ranked] record:", error.message);
   } catch (e) {
     console.warn("[ranked] record exc:", e);
+  }
+
+  try {
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth?.user;
+    if (!user) return;
+    const trainerLevel = Math.max(1, Math.floor(level || 1));
+    const craft = Math.max(0, Math.floor(craftPoints || 0));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("ranked_scores").upsert({
+      user_id: user.id,
+      username: (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string,
+      trainer_level: trainerLevel,
+      pokedex_count: craft,
+      score: trainerLevel * 100 + craft,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+  } catch (e) {
+    console.warn("[ranked] legacy record exc:", e);
   }
 }
 
@@ -48,7 +118,7 @@ export async function fetchCurrentSeason(): Promise<RankedSeason | null> {
 /** Top N da temporada corrente, ordenado por score desc. */
 export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
   const season = await fetchCurrentSeason();
-  if (!season) return [];
+  if (!season) return fetchLegacyRankedScores(limit);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
     .from("ranked_leaderboard")
@@ -57,6 +127,7 @@ export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
     .order("score", { ascending: false })
     .order("updated_at", { ascending: true })
     .limit(limit);
-  if (error) { console.warn("[ranked] top:", error.message); return []; }
-  return (data ?? []) as RankedRow[];
+  if (error) { console.warn("[ranked] top:", error.message); return fetchLegacyRankedScores(limit); }
+  const rows = (data ?? []) as RankedRow[];
+  return rows.length ? rows : fetchLegacyRankedScores(limit);
 }
