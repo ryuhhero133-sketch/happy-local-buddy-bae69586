@@ -696,6 +696,10 @@ function loadIdle(): IdleState {
       }
       // Auto-Poção sempre ativada ao entrar no jogo (usuário pode desativar depois na sessão)
       s.autoHeal = { ...(s.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: true };
+      // Garante lista de skins desbloqueadas (default sempre incluída)
+      const uskins = Array.isArray(s.unlockedSkins) ? s.unlockedSkins.slice() : [];
+      if (!uskins.includes("default")) uskins.unshift("default");
+      s.unlockedSkins = uskins;
       return s;
     }
   } catch { /* ignore */ }
