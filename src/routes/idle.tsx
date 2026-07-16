@@ -1524,6 +1524,38 @@ function IdlePage() {
       setCodeInput("");
       return;
     }
+    // ===== Códigos VIP vitalício 1 ano (3 unidades) =====
+    const VIP_CODES: Record<string, string> = {
+      "vip-ruby-alpha-365": "rubym.vipAlphaCode.used",
+      "vip-ruby-omega-365": "rubym.vipOmegaCode.used",
+      "vip-ruby-elite-365": "rubym.vipEliteCode.used",
+    };
+    if (VIP_CODES[c]) {
+      const storageKey = VIP_CODES[c];
+      try {
+        if (localStorage.getItem(storageKey) === "1") {
+          setCodeMsg({ kind: "err", text: "Este código já foi resgatado." });
+          return;
+        }
+        localStorage.setItem(storageKey, "1");
+      } catch { /* ignore */ }
+      const ONE_YEAR = 365 * 24 * 60 * 60 * 1000;
+      const until = Date.now() + ONE_YEAR;
+      setIdle((s) => ({
+        ...s,
+        buffs: {
+          ...s.buffs,
+          expMult: Math.max(s.buffs.expMult ?? 1, 1.4),
+          expMultUntil: Math.max(s.buffs.expMultUntil ?? 0, until),
+          goldMult: Math.max(s.buffs.goldMult ?? 1, 1.4),
+          goldMultUntil: Math.max(s.buffs.goldMultUntil ?? 0, until),
+        },
+      }));
+      setCodeMsg({ kind: "ok", text: "✦ VIP ativado por 1 ANO! +40% ouro e +40% EXP." });
+      pushChat("✦ VIP vitalício (1 ano) ativado! +40% ouro e +40% EXP.", "cap");
+      setCodeInput("");
+      return;
+    }
     setCodeMsg({ kind: "err", text: "Código inválido." });
   };
 
