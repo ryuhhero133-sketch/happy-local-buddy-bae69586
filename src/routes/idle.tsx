@@ -3113,10 +3113,7 @@ function IdlePage() {
     return () => { clearTimeout(firstTo); clearInterval(iv); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Enquanto o evento estiver ativo, força o clima escolhido — DESABILITADO
-  useEffect(() => {
-    setWeather("clear");
-  }, [legendUntil]);
+  // (Clima gerenciado pelo ciclo global de neve — não sobrescrever aqui)
 
   // Ao entrar no Vale Verdejante, remove qualquer lendário do evento remanescente
   useEffect(() => {
