@@ -130,6 +130,10 @@ export async function fetchCloudSave(userId: string): Promise<unknown | null> {
 }
 
 export async function deleteCloudSave(userId: string): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase as any).from("game_saves").delete().eq("user_id", userId);
+  const { headers } = await getAuthedRestHeaders();
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?user_id=eq.${encodeURIComponent(userId)}`, {
+    method: "DELETE",
+    headers: { ...headers, Prefer: "return=minimal" },
+  });
+  if (!response.ok) throw new Error(await parseRestError(response));
 }
