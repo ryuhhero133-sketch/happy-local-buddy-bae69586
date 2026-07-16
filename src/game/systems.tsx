@@ -182,6 +182,7 @@ export interface PetInstance {
     statPcts?: Partial<Record<"hp"|"atk"|"def"|"spa"|"spd"|"spe", number>>; // bônus por stat sorteado
   };
   hungerUpdatedAt?: number; // ms — último cálculo de decaimento de fome
+  traits?: string[]; // IDs de traits (ver src/game/traits.ts) sorteados na captura
 }
 
 export type LoyaltyStatKey = "hp" | "atk" | "def" | "spa" | "spd" | "spe";
