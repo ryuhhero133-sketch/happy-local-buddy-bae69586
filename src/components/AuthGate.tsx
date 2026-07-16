@@ -17,6 +17,11 @@ export type LocalIdentity = {
 
 const log = (...args: unknown[]) => console.log("[AuthGate]", ...args);
 const warn = (...args: unknown[]) => console.warn("[AuthGate]", ...args);
+const IDLE_KEY = "rubym.idle.v1";
+
+function isCloudBlob(value: unknown): value is { idle?: unknown; team?: unknown[]; restingBench?: unknown[] } {
+  return Boolean(value && typeof value === "object");
+}
 
 export function loadIdentity(): LocalIdentity | null {
   if (typeof window === "undefined") return null;
@@ -74,8 +79,10 @@ async function preloadCloudSave(userId: string) {
   try {
     log("preloadCloudSave start", userId);
     const cloud = await fetchCloudSave(userId);
-    if (cloud) {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(cloud));
+    if (isCloudBlob(cloud)) {
+      if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
+      const party = [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
       log("preloadCloudSave: save restaurado do servidor");
     } else {
       log("preloadCloudSave: nenhum save remoto");

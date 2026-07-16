@@ -976,6 +976,7 @@ function IdlePage() {
   // Hidrata state COMPLETO (items, missões, skins, buffs, party, bench)
   // e sobrescreve o cache local — evita rollback após F5 / trocar de dispositivo.
   const cloudBlobHydratedRef = useRef(false);
+  const [cloudBlobReady, setCloudBlobReady] = useState(false);
   useEffect(() => {
     if (cloudBlobHydratedRef.current) return;
     let cancelled = false;
@@ -1009,6 +1010,8 @@ function IdlePage() {
         cloudBlobHydratedRef.current = true;
       } catch (e) {
         console.warn("[cloudBlob] hydrate failed", e);
+      } finally {
+        if (!cancelled) setCloudBlobReady(true);
       }
     })();
     return () => { cancelled = true; };
@@ -1022,8 +1025,9 @@ function IdlePage() {
     savedAt: Date.now(),
   }), [restingBench]);
   useEffect(() => {
+    if (!cloudBlobReady) return;
     scheduleCloudSync(buildFullBlob());
-  }, [idle, team, restingBench, buildFullBlob]);
+  }, [idle, team, restingBench, buildFullBlob, cloudBlobReady]);
 
   // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
   useEffect(() => {

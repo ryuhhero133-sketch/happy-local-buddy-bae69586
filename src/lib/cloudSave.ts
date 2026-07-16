@@ -8,6 +8,12 @@ export const SAVE_KEY = "rubym.save.v2";
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingData: unknown = null;
 
+function isFullCloudSave(data: unknown): data is { idle: unknown; team: unknown; restingBench: unknown } {
+  if (!data || typeof data !== "object") return false;
+  const value = data as { idle?: unknown; team?: unknown; restingBench?: unknown };
+  return Boolean(value.idle && Array.isArray(value.team) && Array.isArray(value.restingBench));
+}
+
 async function upsert(uid: string, snapshot: unknown) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
@@ -18,6 +24,10 @@ async function upsert(uid: string, snapshot: unknown) {
 
 /** Debounced push (1.5s) — usar durante gameplay. */
 export function scheduleCloudSync(data: unknown) {
+  if (!isFullCloudSave(data)) {
+    console.warn("[cloudSave] ignored partial snapshot", data);
+    return;
+  }
   pendingData = data;
   if (syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(async () => {
@@ -37,6 +47,10 @@ export function scheduleCloudSync(data: unknown) {
 
 /** Push imediato (botão Salvar, level-up, beforeunload). */
 export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
+  if (!isFullCloudSave(data)) {
+    console.warn("[cloudSave] pushNow ignored partial snapshot", data);
+    return false;
+  }
   try {
     const { data: sess } = await supabase.auth.getSession();
     const uid = sess.session?.user?.id;
