@@ -1589,6 +1589,25 @@ function IdlePage() {
       setCodeInput("");
       return;
     }
+    // ===== Código Ovo Mítico Random (3 ovos) =====
+    if (c === "mitico-random-ruby") {
+      const KEY = "rubym.miticoRandomCode.used";
+      try {
+        if (localStorage.getItem(KEY) === "1") {
+          setCodeMsg({ kind: "err", text: "Este código já foi resgatado." });
+          return;
+        }
+        localStorage.setItem(KEY, "1");
+      } catch { /* ignore */ }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 3 },
+      }));
+      setCodeMsg({ kind: "ok", text: "✦ +3 Ovos Míticos Random! Confira sua mochila." });
+      pushChat("✦ 3 Ovos Míticos Random resgatados via código!", "cap");
+      setCodeInput("");
+      return;
+    }
     setCodeMsg({ kind: "err", text: "Código inválido." });
   };
 
