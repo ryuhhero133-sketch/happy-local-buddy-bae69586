@@ -2549,7 +2549,7 @@ function IdlePage() {
             setParalyzedUntil(paralyzedUntilRef.current);
             pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
           }
-          if (spec.flee > 0 && attackTargetIdRef.current !== target.id ? false : Math.random() < spec.flee) {
+          if (spec.flee > 0 && Math.random() < spec.flee) {
             const fleeId = target.id;
             setTimeout(() => {
               setEnemies((cur) => cur.filter((e) => e.id !== fleeId));
