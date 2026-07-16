@@ -4683,7 +4683,6 @@ function IdlePage() {
                   {/* Tabs */}
                   <div style={{ display: "flex", gap: 6, padding: "10px 14px 0", background: "rgba(0,0,0,0.2)" }}>
                     {([
-                      { k: "level", label: "🐉 Nível Pokémon" },
                       { k: "trainer", label: "🎓 Nível Treinador" },
                       { k: "craft", label: "⚒️ Pontos de Craft" },
                     ] as { k: RankMode; label: string }[]).map((t) => {
