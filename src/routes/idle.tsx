@@ -1557,10 +1557,32 @@ function IdlePage() {
   const playBonus = () => playSfx(sfxBonusUrl);
   const playChestOpen = () => playSfx(sfxChestOpenUrl);
 
-  // Weather (rain / snow / clear) — DESABILITADO temporariamente, sempre "clear"
-  const [weather, setWeather] = useState<"rain" | "snow" | "clear">("clear");
+  // Weather cycle: 20 min de NEVE → 30 min limpo → repete
+  const [weather, setWeather] = useState<"rain" | "snow" | "clear">("snow");
   useEffect(() => {
-    setWeather("clear");
+    const SNOW_MS = 20 * 60 * 1000;
+    const CLEAR_MS = 30 * 60 * 1000;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const cycle = (phase: "snow" | "clear") => {
+      if (cancelled) return;
+      if (phase === "snow") {
+        setWeather("snow");
+        pushChat("❄ Uma nevasca começou a cair sobre a região...", "info");
+        timer = setTimeout(() => cycle("clear"), SNOW_MS);
+      } else {
+        setWeather("clear");
+        pushChat("☀ A nevasca passou. O clima está limpo agora.", "info");
+        timer = setTimeout(() => cycle("snow"), CLEAR_MS);
+      }
+    };
+    cycle("snow");
+    // Aviso a cada 30 minutos sobre criaturas poderosas
+    const warn = setInterval(() => {
+      pushChat("⚠ Criaturas MUITO PODEROSAS foram avistadas por perto... fique alerta!", "info");
+    }, 30 * 60 * 1000);
+    return () => { cancelled = true; clearTimeout(timer); clearInterval(warn); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Partículas pré-geradas
@@ -3091,10 +3113,7 @@ function IdlePage() {
     return () => { clearTimeout(firstTo); clearInterval(iv); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Enquanto o evento estiver ativo, força o clima escolhido — DESABILITADO
-  useEffect(() => {
-    setWeather("clear");
-  }, [legendUntil]);
+  // (Clima gerenciado pelo ciclo global de neve — não sobrescrever aqui)
 
   // Ao entrar no Vale Verdejante, remove qualquer lendário do evento remanescente
   useEffect(() => {
