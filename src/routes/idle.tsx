@@ -1349,8 +1349,9 @@ function IdlePage() {
   useEffect(() => { honeyUntilRef.current = idle.buffs.honeyUntil ?? 0; }, [idle.buffs.honeyUntil]);
   const [honeyShop, setHoneyShop] = useState<null | { x: number; y: number }>(null);
   const HONEY_PRICE = 3000;
-  const HONEY_DURATION_MS = 10 * 60 * 1000;
+  const HONEY_DURATION_MS = 60 * 60 * 1000; // 1 hora por incenso ativado
   const HONEY_BONUS = 0.10; // +10% drop, xp, def, velocidade
+  const HONEY_BUY_LIMIT = 20; // limite de compras (vitalício)
   // ===== Escolha do inicial (declarada cedo p/ gatear loops do jogo) =====
   const [starterChosen, setStarterChosen] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
