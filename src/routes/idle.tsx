@@ -2565,13 +2565,13 @@ function IdlePage() {
 
         // ✦ Habilidades especiais de espécies fortes (crit / paralisar / fugir)
         const SPECIAL_ABILITY: Partial<Record<Species, { crit: number; para: number; flee: number }>> = {
-          lugia:     { crit: 0.35, para: 0.22, flee: 0.06 },
-          darkrai:   { crit: 0.25, para: 0.18, flee: 0.05 },
-          ho_oh:     { crit: 0.22, para: 0.12, flee: 0.04 },
-          deoxys:    { crit: 0.20, para: 0.15, flee: 0.05 },
-          groudon:   { crit: 0.28, para: 0.05, flee: 0.03 },
-          snorlax_mythic: { crit: 0.18, para: 0.10, flee: 0.02 },
-          lapras_shiny: { crit: 0.15, para: 0.15, flee: 0.03 },
+          lugia:     { crit: 0.45, para: 0.35, flee: 0.14 },
+          darkrai:   { crit: 0.40, para: 0.30, flee: 0.12 },
+          ho_oh:     { crit: 0.35, para: 0.22, flee: 0.10 },
+          deoxys:    { crit: 0.32, para: 0.25, flee: 0.11 },
+          groudon:   { crit: 0.40, para: 0.10, flee: 0.08 },
+          snorlax_mythic: { crit: 0.28, para: 0.18, flee: 0.06 },
+          lapras_shiny: { crit: 0.25, para: 0.25, flee: 0.08 },
           hariyama:  { crit: 0.20, para: 0.10, flee: 0 },
           ursaring:  { crit: 0.22, para: 0.06, flee: 0 },
         };
