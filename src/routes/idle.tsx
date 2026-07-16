@@ -1628,7 +1628,7 @@ function IdlePage() {
       }
       setIdle((s) => ({
         ...s,
-        crystals: (s.crystals ?? 0) + 1000,
+        bank: { ...s.bank, crystals: (s.bank?.crystals ?? 0) + 1000 },
         items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
       }));
       localStorage.setItem(MYTHIC_EGG_CODE_KEY, "1");
