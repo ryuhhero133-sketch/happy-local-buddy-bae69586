@@ -21,16 +21,28 @@ type LegacyRankedScore = {
   user_id: string;
   username: string | null;
   trainer_level?: number | null;
+  level?: number | null;
   pokedex_count?: number | null;
+  craft_points?: number | null;
   total_kills?: number | null;
   score?: number | null;
   updated_at: string;
 };
 
+type PlayerRankRow = {
+  id: string;
+  name: string | null;
+  level?: number | null;
+  trainer_level?: number | null;
+  craft_points?: number | null;
+  guild_name?: string | null;
+  updated_at?: string | null;
+};
+
 function mapLegacyRankedRows(rows: LegacyRankedScore[]): RankedRow[] {
   return rows.map((r) => {
-    const trainerLevel = Math.max(1, Number(r.trainer_level ?? (r.score ? Math.floor(Number(r.score) / 100) : 1)) || 1);
-    const craftPoints = Math.max(0, Number(r.pokedex_count ?? 0) || 0);
+    const trainerLevel = Math.max(1, Number(r.trainer_level ?? r.level ?? (r.score ? Math.floor(Number(r.score) / 100) : 1)) || 1);
+    const craftPoints = Math.max(0, Number(r.pokedex_count ?? r.craft_points ?? 0) || 0);
     const score = Number(r.score ?? (trainerLevel * 100 + craftPoints + Math.floor((Number(r.total_kills ?? 0) || 0) / 10))) || trainerLevel * 100;
     return {
       user_id: r.user_id,
@@ -42,6 +54,51 @@ function mapLegacyRankedRows(rows: LegacyRankedScore[]): RankedRow[] {
       updated_at: r.updated_at,
     };
   });
+}
+
+function mapPlayersRows(rows: PlayerRankRow[]): RankedRow[] {
+  return rows.map((r) => {
+    const trainerLevel = Math.max(1, Number(r.trainer_level ?? r.level ?? 1) || 1);
+    const craftPoints = Math.max(0, Number(r.craft_points ?? 0) || 0);
+    return {
+      user_id: String(r.id || crypto.randomUUID()),
+      username: r.name || "Treinador",
+      trainer_level: trainerLevel,
+      craft_points: craftPoints,
+      guild_name: r.guild_name ?? null,
+      score: trainerLevel * 100 + craftPoints,
+      updated_at: r.updated_at || new Date().toISOString(),
+    };
+  });
+}
+
+async function fetchPlayersFallback(limit: number): Promise<RankedRow[]> {
+  try {
+    // Fallback visual: usa a tabela de presença quando o ranked ainda não foi populado.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from("players")
+      .select("id, name, level, trainer_level, craft_points, guild_name, updated_at")
+      .order("trainer_level", { ascending: false })
+      .order("level", { ascending: false })
+      .limit(limit);
+    if (!error) return mapPlayersRows((data ?? []) as PlayerRankRow[]).sort((a, b) => b.score - a.score);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const simple = await (supabase as any)
+      .from("players")
+      .select("id, name, level, updated_at")
+      .order("level", { ascending: false })
+      .limit(limit);
+    if (simple.error) {
+      console.warn("[ranked] players fallback:", simple.error.message);
+      return [];
+    }
+    return mapPlayersRows((simple.data ?? []) as PlayerRankRow[]).sort((a, b) => b.score - a.score);
+  } catch (e) {
+    console.warn("[ranked] players fallback exc:", e);
+    return [];
+  }
 }
 
 async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
@@ -69,12 +126,13 @@ async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
       .limit(limit);
     if (fallback.error) {
       console.warn("[ranked] legacy:", fallback.error.message);
-      return [];
+      return fetchPlayersFallback(limit);
     }
-    return mapLegacyRankedRows((fallback.data ?? []) as LegacyRankedScore[]);
+    const rows = mapLegacyRankedRows((fallback.data ?? []) as LegacyRankedScore[]);
+    return rows.length ? rows : fetchPlayersFallback(limit);
   } catch (e) {
     console.warn("[ranked] legacy exc:", e);
-    return [];
+    return fetchPlayersFallback(limit);
   }
 }
 
@@ -108,15 +166,17 @@ export async function recordRankedScore(level: number, craftPoints: number, guil
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
     if (!error) return;
+    console.warn("[ranked] legacy upsert:", error.message);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("ranked_scores").upsert({
+    const fallback = await (supabase as any).from("ranked_scores").upsert({
       user_id: user.id,
       username: (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string,
       score: trainerLevel * 100 + craft,
       season: 1,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id,season" });
+    if (fallback.error) console.warn("[ranked] score upsert:", fallback.error.message);
   } catch (e) {
     console.warn("[ranked] legacy record exc:", e);
   }
