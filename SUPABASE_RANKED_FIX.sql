@@ -148,7 +148,11 @@ begin
 
   -- Se o cliente chegou com level 1 por cache/timing, usa o nível REAL do save completo.
   -- O game_saves é a fonte de verdade do jogo publicado.
-  select coalesce(data #>> '{idle,trainerLevel}', data #>> '{idle,trainer_level}')
+  select case
+    when (data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' then data #>> '{idle,trainerLevel}'
+    when (data #>> '{idle,trainer_level}') ~ '^[0-9]+$' then data #>> '{idle,trainer_level}'
+    else null
+  end
   into _save_level_text
   from public.game_saves
   where user_id = _uid::text
@@ -197,11 +201,15 @@ grant execute on function public.record_ranked_score(integer, integer, text) to 
 with real_saves as (
   select
     user_id::uuid as uid,
-    greatest(1, least(coalesce(nullif(data #>> '{idle,trainerLevel}', '')::integer, nullif(data #>> '{idle,trainer_level}', '')::integer, 1), 10000)) as real_level,
+    greatest(1, least((case
+      when (data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' then (data #>> '{idle,trainerLevel}')::integer
+      when (data #>> '{idle,trainer_level}') ~ '^[0-9]+$' then (data #>> '{idle,trainer_level}')::integer
+      else 1
+    end), 10000)) as real_level,
     updated_at
   from public.game_saves
   where user_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and coalesce(data #>> '{idle,trainerLevel}', data #>> '{idle,trainer_level}') ~ '^[0-9]+$'
+    and ((data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' or (data #>> '{idle,trainer_level}') ~ '^[0-9]+$')
 )
 update public.ranked_scores rs
 set trainer_level = real_saves.real_level,
@@ -213,11 +221,15 @@ where rs.user_id = real_saves.uid
 with real_saves as (
   select
     user_id::uuid as uid,
-    greatest(1, least(coalesce(nullif(data #>> '{idle,trainerLevel}', '')::integer, nullif(data #>> '{idle,trainer_level}', '')::integer, 1), 10000)) as real_level,
+    greatest(1, least((case
+      when (data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' then (data #>> '{idle,trainerLevel}')::integer
+      when (data #>> '{idle,trainer_level}') ~ '^[0-9]+$' then (data #>> '{idle,trainer_level}')::integer
+      else 1
+    end), 10000)) as real_level,
     updated_at
   from public.game_saves
   where user_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and coalesce(data #>> '{idle,trainerLevel}', data #>> '{idle,trainer_level}') ~ '^[0-9]+$'
+    and ((data #>> '{idle,trainerLevel}') ~ '^[0-9]+$' or (data #>> '{idle,trainer_level}') ~ '^[0-9]+$')
 )
 update public.ranked_leaderboard rl
 set trainer_level = real_saves.real_level,
