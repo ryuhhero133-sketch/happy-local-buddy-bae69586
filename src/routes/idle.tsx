@@ -7112,6 +7112,15 @@ function IdlePage() {
         );
       })()}
 
+      {statsCardPet && (
+        <PokemonStatsCard
+          pet={statsCardPet}
+          team={team}
+          gifSrc={GIF[statsCardPet.species]}
+          onClose={() => setStatsCardPet(null)}
+        />
+      )}
+
 
 
 
