@@ -58,6 +58,7 @@ import { fetchTopRanked, recordRankedScore, type RankedRow } from "@/lib/rankedA
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
 import { computeTeamSynergies, computePower } from "@/game/synergies";
+import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import trainerSheet from "@/assets/trainer.png";
