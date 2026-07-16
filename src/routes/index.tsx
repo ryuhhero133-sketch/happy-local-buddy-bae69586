@@ -528,7 +528,9 @@ const SPECIES_GIF: Record<Species, string> = {
   virizion: assetUrl(virizionAsset.url), raikou: assetUrl(raikouAsset.url), suicune: assetUrl(suicuneAsset.url),
   suicune_shiny: assetUrl(suicuneShinyAsset.url), luxray_f: assetUrl(luxrayFAsset.url),
   blaziken: blazikenGif,
+  deoxys: deoxysGif, groudon: groudonGif, lapras_shiny: laprasShinyGif, snorlax_mythic: snorlaxMythicGif,
 };
+
 
 const SPECIES_NAME: Record<Species, string> = {
   charmeleon: "CHARMELEON", bulbasaur: "BULBASAUR", vulpix: "VULPIX",
