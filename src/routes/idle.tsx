@@ -6040,6 +6040,35 @@ function IdlePage() {
               onBuyMarket={buyMarketListing}
               onCancelMarket={cancelMarketListing}
               isVip={isVip()}
+              pokemonMarketNode={
+                <PokemonMarketPanel
+                  identity={identity}
+                  collection={idle.collection ?? []}
+                  gold={idle.bank.gold}
+                  crystals={idle.bank.crystals}
+                  isVip={isVip()}
+                  gifOf={(sp) => GIF[sp]}
+                  onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
+                  onReturned={(entry) => setIdle((s) => {
+                    const col = s.collection ?? [];
+                    if (col.some(c => c.uid === entry.uid)) return s;
+                    return { ...s, collection: [...col, entry] };
+                  })}
+                  onSpend={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
+                      : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
+                  }))}
+                  onEarn={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: s.bank.gold + amount }
+                      : { ...s.bank, crystals: s.bank.crystals + amount },
+                  }))}
+                  pushChat={pushChat}
+                />
+              }
               skinId={skinId}
               setSkinId={setSkinId}
               unlockedSkins={idle.unlockedSkins ?? ["default"]}
