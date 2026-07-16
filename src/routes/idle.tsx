@@ -5689,11 +5689,9 @@ function IdlePage() {
               playClick();
               try {
                 await serverSync.pushNow();
-                pushChat("sistema", "☁️ Progresso salvo na nuvem!");
-                try { toast.success("Progresso salvo na nuvem!"); } catch {}
+                pushChat("☁️ Progresso salvo na nuvem!", "info");
               } catch (e) {
-                pushChat("sistema", "⚠️ Falha ao salvar. Tente de novo.");
-                try { toast.error("Falha ao salvar na nuvem"); } catch {}
+                pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
               }
             }}
             title="Salvar progresso na nuvem"
