@@ -4918,11 +4918,11 @@ function IdlePage() {
                   }}>{rp.name}</div>
                   <div style={{
                     width: "100%", height: "100%",
-                    backgroundImage: `url(${trainerSheet})`,
+                    backgroundImage: `url(${rp.skinUrl ?? trainerSheet})`,
                     backgroundSize: "400% 400%",
                     backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`,
                     imageRendering: "pixelated",
-                    filter: "hue-rotate(140deg) saturate(1.1)",
+                    filter: rp.skinUrl ? undefined : "hue-rotate(140deg) saturate(1.1)",
                   }} />
                   {rpLeaderSrc && (
                     rp.leaderSp && SPRITE_SHEET[rp.leaderSp] ? (
