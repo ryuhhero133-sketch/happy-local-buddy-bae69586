@@ -46,6 +46,7 @@ import houseLarImg from "@/assets/house-lar.png";
 import houseLabImg from "@/assets/house-lab.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
+import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
