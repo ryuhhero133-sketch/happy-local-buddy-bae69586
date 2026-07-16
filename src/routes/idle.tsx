@@ -53,6 +53,7 @@ import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
+import { fetchTopRanked, recordRankedScore, type RankedRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
 import trainerSheet from "@/assets/trainer.png";
