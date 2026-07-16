@@ -5,6 +5,7 @@
 
 import type { PetInstance, Species, Rarity } from "./systems";
 import { SPECIES_BASE } from "./systems";
+import { aggregateTraits } from "./traits";
 
 export type Element =
   | "planta" | "fogo" | "agua" | "eletrico" | "pedra" | "veneno"
@@ -277,6 +278,22 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
       .map(([r, n]) => `${gachaWeight[r as Rarity]?.label} ×${n}`)
       .join(" · ");
     pack.effects.push(`🎰 Gacha — ${parts} · +${Math.round(gachaXp*100)}% XP · +${Math.round(gachaGold*100)}% ouro · +${Math.round(gachaDmg*100)}% dano`);
+  }
+
+  // ===== TRAITS — atributos bônus dos pokémon capturados =====
+  const traitAgg = aggregateTraits(team);
+  if (traitAgg.count > 0) {
+    pack.xpMult       += traitAgg.xpMult;
+    pack.goldMult     += traitAgg.goldMult;
+    pack.dmgMult      += traitAgg.dmgMult;
+    pack.defMult      += traitAgg.defMult;
+    pack.hpMult       += traitAgg.hpMult;
+    pack.atkSpeedMult += traitAgg.atkSpeedMult;
+    pack.regenPct     += traitAgg.regenPct;
+    pack.critChance   += traitAgg.critChance;
+    pack.dodgeChance  += traitAgg.dodgeChance;
+    pack.lifeSteal    += traitAgg.lifeSteal;
+    pack.effects.push(`✨ Traits ×${traitAgg.count} — ${traitAgg.labels.slice(0, 6).join(" · ")}${traitAgg.labels.length > 6 ? " …" : ""}`);
   }
 
   return pack;

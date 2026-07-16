@@ -58,6 +58,7 @@ import { fetchTopRanked, recordRankedScore, type RankedRow } from "@/lib/rankedA
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
 import { computeTeamSynergies, computePower } from "@/game/synergies";
+import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import trainerSheet from "@/assets/trainer.png";
@@ -660,7 +661,7 @@ type IdleState = {
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
 };
 
-export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number };
+export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[] };
 
 export const MAX_COLLECTION = 500;
 
@@ -1363,7 +1364,7 @@ function IdlePage() {
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
   const onPickTeamFromColecao = (entry: CollectionEntry) => {
-    const newPet = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0 };
+    const newPet = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0, traits: entry.traits ?? [] };
     setTeam((tm) => {
       const idx = tm.findIndex((p) => p.uid === entry.uid);
       if (idx >= 0) {
@@ -2676,7 +2677,8 @@ function IdlePage() {
                 captured = Math.random() < baseChance * usedBall.captureMult;
               }
               if (captured) {
-                const np = makePet(target.sp, target.level, target.rarity);
+                const rolled = rollTraits(target.rarity);
+                const np = { ...makePet(target.sp, target.level, target.rarity), traits: rolled };
                 capturedPet = np;
                 const rarityLabelMap: Record<string, string> = {
                   common: "Comum", uncommon: "Incomum", rare: "Raro",
@@ -2737,8 +2739,15 @@ function IdlePage() {
               queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
             }
             const newCollection = capturedPet && !colFull
-              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now() }]
+              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits }]
               : prevCol;
+            // Anuncia traits sorteados no chat
+            if (capturedPet && capturedPet.traits && capturedPet.traits.length > 0) {
+              const tLabels = capturedPet.traits.map((id) => {
+                const t = TRAITS[id]; return t ? `${t.icon} ${t.name}` : id;
+              }).join(" · ");
+              queueMicrotask(() => pushChat(`✨ Traits: ${tLabels}`, "cap"));
+            }
             // === XP DO TREINADOR (separado do XP do pokémon) ===
             // Base: ~40% do xp do pokémon, escalado pelo nível do inimigo e raridade.
             const rarityTrainerMult: Record<Rarity, number> = {
@@ -3107,7 +3116,8 @@ function IdlePage() {
     setIdle((s) => ({ ...s, items: { ...s.items, [ballId]: Math.max(0, (s.items[ballId] ?? 0) - 1) } }));
     pushFxAt(target.x, target.y - 40, `${ballName}!`, "capture");
     if (success) {
-      const np = makePet(target.sp, target.level, target.rarity);
+      const rolled = rollTraits(target.rarity);
+      const np = { ...makePet(target.sp, target.level, target.rarity), traits: rolled };
       const rarityLabelMap: Record<string, string> = {
         common: "Comum", uncommon: "Incomum", rare: "Raro",
         epic: "Épico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
@@ -3116,6 +3126,10 @@ function IdlePage() {
       pushFxAt(target.x, target.y - 70, `★ CAPTUROU! ★`, "capture");
       pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
       pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
+      if (rolled.length > 0) {
+        const tLabels = rolled.map((id) => { const t = TRAITS[id]; return t ? `${t.icon} ${t.name}` : id; }).join(" · ");
+        pushChat(`✨ Traits: ${tLabels}`, "cap");
+      }
       playBonus();
       setEnemies((prev) => prev.filter((e) => e.id !== enemyId));
       setIdle((s) => {
@@ -3128,7 +3142,7 @@ function IdlePage() {
           ...s,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
-          collection: [...prev, { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now() }],
+          collection: [...prev, { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now(), traits: rolled }],
         };
       });
     } else {
@@ -8147,6 +8161,19 @@ function TabOverlay({
                     <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 900 }}>
                       Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
                     </div>
+                    {entry.traits && entry.traits.length > 0 && (
+                      <div style={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap", marginTop: 2 }} title={entry.traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ")}>
+                        {entry.traits.slice(0, 4).map((id) => {
+                          const t = TRAITS[id]; if (!t) return null;
+                          const col = TIER_COLOR[t.tier];
+                          return (
+                            <span key={id} title={`${t.name} — ${t.desc}`} style={{ fontSize: 11, padding: "1px 4px", borderRadius: 4, background: `${col}33`, border: `1px solid ${col}`, lineHeight: 1 }}>
+                              {t.icon}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                     <button
                       onClick={() => {
                         if (inTeam) { alert("Retire do time antes de fragmentar."); return; }

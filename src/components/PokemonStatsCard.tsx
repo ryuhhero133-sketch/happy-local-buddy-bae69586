@@ -2,6 +2,7 @@
 import type { PetInstance } from "@/game/systems";
 import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META, computeTeamSynergies } from "@/game/synergies";
+import { TRAITS, TIER_COLOR } from "@/game/traits";
 
 interface Props {
   pet: PetInstance;
@@ -149,6 +150,35 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
               {bar("S.ATK", stats.spa, "#c084fc")}
               {bar("S.DEF", stats.spd, "#7ef2a2")}
               {bar("VEL",   stats.spe, "#f5cf6b")}
+            </div>
+          )}
+
+          {/* Traits (atributos bônus da captura) */}
+          {(pet.traits && pet.traits.length > 0) && (
+            <div style={{
+              padding: 12, borderRadius: 12,
+              background: "linear-gradient(135deg, rgba(192,132,252,0.18), rgba(0,0,0,0.4))",
+              border: "1px solid #c084fc66",
+            }}>
+              <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2, color: "#c084fc", marginBottom: 8 }}>
+                ✨ TRAITS ({pet.traits.length})
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {pet.traits.map((id) => {
+                  const t = TRAITS[id]; if (!t) return null;
+                  const col = TIER_COLOR[t.tier];
+                  return (
+                    <div key={id} title={t.desc} style={{
+                      fontSize: 10, padding: "6px 10px", borderRadius: 8,
+                      background: `${col}22`, border: `1px solid ${col}aa`, color: col,
+                      fontWeight: 900, letterSpacing: 0.5, display: "flex", flexDirection: "column", gap: 2,
+                    }}>
+                      <span>{t.icon} {t.name}</span>
+                      <span style={{ fontSize: 8, fontWeight: 600, opacity: 0.9 }}>{t.desc}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
