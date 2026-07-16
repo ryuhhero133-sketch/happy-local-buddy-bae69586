@@ -1618,6 +1618,7 @@ function IdlePage() {
   const MYTHIC2_CODE_KEY = "rubym.mythic2Code.used";
   const MYTHIC3_CODE_KEY = "rubym.mythic3Code.used";
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
+  const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const redeemCrystalCode = () => {
     const raw = codeInput.trim().toUpperCase();
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
@@ -1637,8 +1638,25 @@ function IdlePage() {
       setCodeInput("");
       return;
     }
+    if (raw === "AURAEGG2026") {
+      if (localStorage.getItem(MYTHIC_EGG2_CODE_KEY) === "1") {
+        setCodeMsg({ kind: "err", text: "Este código já foi resgatado nesta conta." });
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        bank: { ...s.bank, crystals: (s.bank?.crystals ?? 0) + 1000 },
+        items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
+      }));
+      localStorage.setItem(MYTHIC_EGG2_CODE_KEY, "1");
+      pushChat("🎁 Código resgatado: +1 Ovo Aura (mítico) e +1000 cristais!", "cap");
+      setCodeMsg({ kind: "ok", text: "Recompensa: 1× Ovo Aura + 1000 cristais." });
+      setCodeInput("");
+      return;
+    }
     setCodeMsg({ kind: "err", text: "Código inválido." });
   };
+
 
 
 
