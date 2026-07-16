@@ -8161,6 +8161,19 @@ function TabOverlay({
                     <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 900 }}>
                       Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
                     </div>
+                    {entry.traits && entry.traits.length > 0 && (
+                      <div style={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap", marginTop: 2 }} title={entry.traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ")}>
+                        {entry.traits.slice(0, 4).map((id) => {
+                          const t = TRAITS[id]; if (!t) return null;
+                          const col = TIER_COLOR[t.tier];
+                          return (
+                            <span key={id} title={`${t.name} — ${t.desc}`} style={{ fontSize: 11, padding: "1px 4px", borderRadius: 4, background: `${col}33`, border: `1px solid ${col}`, lineHeight: 1 }}>
+                              {t.icon}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                     <button
                       onClick={() => {
                         if (inTeam) { alert("Retire do time antes de fragmentar."); return; }
