@@ -399,7 +399,7 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
       list.push({ id: id++, x: c.x, y: c.y, w: 120, h: 140, src: rockBoulderUrl, blocks: true, collideR: 42 });
     }
     // Enxame decorativo de zubats/venomoths espectrais
-    const swarm: string[] = [zubatUrl, venomothUrl];
+    const swarm: string[] = [zubatUrl, venonatUrl];
     let sTries = 0;
     let placed = 0;
     while (placed < 24 && sTries < 1500) {
