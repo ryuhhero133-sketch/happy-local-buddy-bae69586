@@ -151,8 +151,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   useEffect(() => {
     if (!identity?.id) return;
     for (const r of myBought) {
+      if (claimedBuyerRef.current.has(r.id)) continue;
+      claimedBuyerRef.current.add(r.id);
       const entry: CollectionEntry = {
-        uid: r.pokemon.uid || `bought-${r.id}`,
+        uid: r.pokemon.uid ? `bought-${r.id}` : `bought-${r.id}`,
         species: r.pokemon.species,
         level: r.pokemon.level,
         rarity: r.pokemon.rarity,
@@ -166,12 +168,13 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       });
     }
     for (const r of mySold) {
+      if (claimedSellerRef.current.has(r.id)) continue;
+      claimedSellerRef.current.add(r.id);
       onEarn(r.currency, r.price);
       supabase.from("pokemon_market").update({ payout_claimed: true }).eq("id", r.id).then(() => {
         pushChat(`💸 Recebeu ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"} da venda de ${r.pokemon.species}.`, "cap");
       });
     }
-    // uma vez por refresh
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows]);
 
