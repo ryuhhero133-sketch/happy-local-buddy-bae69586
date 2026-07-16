@@ -134,7 +134,10 @@ export type Species =
   // Novo pack (evento maribondo)
   | "blaziken"
   // Legendários/míticos evento
-  | "virizion" | "raikou" | "suicune" | "suicune_shiny" | "luxray_f";
+  | "virizion" | "raikou" | "suicune" | "suicune_shiny" | "luxray_f"
+  // Mythic Roamers (aparecem raro em qualquer mapa, Lv 500)
+  | "deoxys" | "groudon" | "lapras_shiny" | "snorlax_mythic";
+
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "mythic_shiny";
 
