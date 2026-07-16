@@ -762,29 +762,29 @@ function calcIdleMaxHp(pet: PetInstance) {
 
 function highLevelEnemyHpMult(enemyLevel: number, leaderLevel: number) {
   if (enemyLevel < 200) return 1;
-  let mult = 2.15 + Math.min(2.75, (enemyLevel - 200) / 80);
+  let mult = 1.45 + Math.min(1.55, (enemyLevel - 200) / 110);
   if (enemyLevel >= 250) {
     const gap = Math.max(0, enemyLevel - leaderLevel);
-    mult *= 1.55 + Math.min(3.5, gap * 0.09);
+    mult *= 1.15 + Math.min(1.6, gap * 0.045);
   }
   return mult;
 }
 
 function highLevelEnemyDamageMult(enemyLevel: number, leaderLevel: number) {
   if (enemyLevel < 200) return 1;
-  let mult = 2.4 + Math.min(3.25, (enemyLevel - 200) / 70);
+  let mult = 1.55 + Math.min(1.8, (enemyLevel - 200) / 100);
   if (enemyLevel >= 250) {
     const gap = Math.max(0, enemyLevel - leaderLevel);
-    mult *= 1.7 + Math.min(5, gap * 0.12);
+    mult *= 1.2 + Math.min(2.2, gap * 0.055);
   }
   return mult;
 }
 
 function playerDamageVsHighLevelMult(leaderLevel: number, enemyLevel: number) {
-  if (enemyLevel < 250) return enemyLevel >= 200 && leaderLevel + 40 < enemyLevel ? 0.65 : 1;
+  if (enemyLevel < 250) return enemyLevel >= 200 && leaderLevel + 40 < enemyLevel ? 0.85 : 1;
   const gap = enemyLevel - leaderLevel;
   if (gap <= 0) return 1;
-  return Math.max(0.12, 1 - gap * 0.08);
+  return Math.max(0.35, 1 - gap * 0.035);
 }
 
 // ===== Energia por raridade =====
@@ -1764,8 +1764,8 @@ function IdlePage() {
     const mapIds = Object.keys(IDLE_MAPS) as IdleMapId[];
     const skinUrls = SKINS.map((s) => s.url);
     const t = Math.floor(Date.now() / 1000);
-    // 50 jogadores espalhados por TODOS os mapas; cada um em um mapa fixo.
-    const all: RemotePlayer[] = Array.from({ length: 50 }, (_, i) => {
+    // 30 jogadores espalhados por TODOS os mapas; cada um em um mapa fixo.
+    const all: RemotePlayer[] = Array.from({ length: 30 }, (_, i) => {
       const mapId = mapIds[i % mapIds.length];
       const a = (i * 47 + mapId.length * 19) % 360;
       const r1 = 260 + ((i * 83) % 620);
