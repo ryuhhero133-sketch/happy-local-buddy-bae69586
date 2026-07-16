@@ -7525,6 +7525,10 @@ function TabOverlay({
                   }}>{team.length}/5</div>
                 </div>
 
+                <SynergyPanel team={team} />
+
+
+
                 <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
                   {team.map((p, i) => {
                     const src = gifMap[p.species];
