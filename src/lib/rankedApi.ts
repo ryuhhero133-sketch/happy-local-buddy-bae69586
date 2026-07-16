@@ -109,7 +109,7 @@ function mapLegacyRankedRows(rows: LegacyRankedScore[], inferFromScore = false):
       1,
     )));
     const craftPoints = Math.max(0, safeInt(r.pokedex_count ?? r.craft_points ?? 0, 0));
-    const score = r.score != null ? Math.max(trainerLevel * 100 + craftPoints, safeInt(r.score, 0)) : trainerLevel * 100 + craftPoints;
+    const score = trainerLevel * 100 + craftPoints;
     return {
       user_id: r.user_id,
       username: r.username || "Treinador",
@@ -295,6 +295,18 @@ export async function fetchCurrentSeason(): Promise<RankedSeason | null> {
 
 /** Top N da temporada corrente, ordenado por score desc. */
 export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
+  try {
+    // Fonte mais fiel: RPC segura lê o Lv real do blob `game_saves` e só retorna campos públicos.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc("get_global_ranked", { _limit: limit });
+    if (!error && Array.isArray(data) && data.length) {
+      return mergeRankedRows(data as RankedRow[]).slice(0, limit);
+    }
+    if (error) console.warn("[ranked] global rpc:", error.message);
+  } catch (e) {
+    console.warn("[ranked] global rpc exc:", e);
+  }
+
   const season = await fetchCurrentSeason();
   if (!season) {
     const legacy = await fetchLegacyRankedScores(limit);
