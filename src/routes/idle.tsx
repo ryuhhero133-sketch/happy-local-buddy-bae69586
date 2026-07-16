@@ -7735,6 +7735,7 @@ function TabOverlay({
   onUpgradeBook: (id: string) => void;
   orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[];
   onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => void;
+  pokemonMarketNode?: React.ReactNode;
 
 
 }) {
