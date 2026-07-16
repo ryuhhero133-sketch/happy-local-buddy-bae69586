@@ -3200,6 +3200,8 @@ function IdlePage() {
         if (idle.currentMap === "venofogo") {
           pool = ["blaziken", "charmander", "charmeleon", "charizard", "magmar", "arcanine", "growlithe",
                   "ekans", "arbok", "zubat", "venonat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
+          // Pântano em Chamas: pokémons sempre 10-15 níveis acima do líder (zona de risco).
+          mapLvRange = [leaderLv + 10, leaderLv + 15];
         }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
