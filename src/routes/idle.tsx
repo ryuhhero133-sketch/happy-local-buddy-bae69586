@@ -2523,8 +2523,41 @@ function IdlePage() {
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyActive = Date.now() < (idle.buffs.honeyUntil ?? 0);
         const honeyDef = honeyActive ? HONEY_BONUS : 0;
-        const eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
-        // Dano recebido → aparece EM CIMA DO MEU POKÉMON, com um respiro após o meu golpe
+        let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
+
+        // ✦ Habilidades especiais de espécies fortes (crit / paralisar / fugir)
+        const SPECIAL_ABILITY: Partial<Record<Species, { crit: number; para: number; flee: number }>> = {
+          lugia:     { crit: 0.35, para: 0.22, flee: 0.06 },
+          darkrai:   { crit: 0.25, para: 0.18, flee: 0.05 },
+          ho_oh:     { crit: 0.22, para: 0.12, flee: 0.04 },
+          deoxys:    { crit: 0.20, para: 0.15, flee: 0.05 },
+          groudon:   { crit: 0.28, para: 0.05, flee: 0.03 },
+          snorlax_mythic: { crit: 0.18, para: 0.10, flee: 0.02 },
+          lapras_shiny: { crit: 0.15, para: 0.15, flee: 0.03 },
+          hariyama:  { crit: 0.20, para: 0.10, flee: 0 },
+          ursaring:  { crit: 0.22, para: 0.06, flee: 0 },
+        };
+        const spec = SPECIAL_ABILITY[target.sp];
+        if (spec) {
+          if (Math.random() < spec.crit) {
+            eDmg = Math.floor(eDmg * 2.5);
+            pushChat(`💥 ${target.sp.replace(/_/g," ").toUpperCase()} desferiu um GOLPE CRÍTICO!`, "hit");
+          }
+          if (Math.random() < spec.para) {
+            const dur = target.sp === "lugia" ? 120_000 : 60_000;
+            paralyzedUntilRef.current = Date.now() + dur;
+            setParalyzedUntil(paralyzedUntilRef.current);
+            pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+          }
+          if (spec.flee > 0 && attackTargetIdRef.current !== target.id ? false : Math.random() < spec.flee) {
+            const fleeId = target.id;
+            setTimeout(() => {
+              setEnemies((cur) => cur.filter((e) => e.id !== fleeId));
+              pushChat(`💨 ${target.sp.replace(/_/g," ").toUpperCase()} fugiu do combate!`, "info");
+            }, 900);
+          }
+        }
+
         setTimeout(() => {
           setEnemyAttackAnim({
             id: attackAnimIdRef.current++,
