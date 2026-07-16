@@ -3662,15 +3662,17 @@ function IdlePage() {
         pushChat(useGold ? `Ouro insuficiente para ${bk.name}.` : `Cristais insuficientes para ${bk.name}.`, "info");
         return s;
       }
+      if (bk.priceGold && s.bank.gold < bk.priceGold) {
+        pushChat(`Ouro insuficiente para ${bk.name} (custa ${bk.priceGold} 🪙 + ${bk.price} 💎).`, "info");
+        return s;
+      }
       const curQty = s.items[bk.id] ?? 0;
       pushChat(`Comprou ${bk.name}. Use pela Mochila quando quiser.`, "cap");
-      return {
-        ...s,
-        bank: useGold
-          ? { ...s.bank, gold: s.bank.gold - bk.price }
-          : { ...s.bank, crystals: s.bank.crystals - bk.price },
-        items: { ...s.items, [bk.id]: curQty + 1 },
-      };
+      const bank0 = useGold
+        ? { ...s.bank, gold: s.bank.gold - bk.price }
+        : { ...s.bank, crystals: s.bank.crystals - bk.price };
+      const bank1 = bk.priceGold ? { ...bank0, gold: bank0.gold - bk.priceGold } : bank0;
+      return { ...s, bank: bank1, items: { ...s.items, [bk.id]: curQty + 1 } };
     });
   };
 
