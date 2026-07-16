@@ -1087,6 +1087,31 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, []);
 
+  // ===== Mythic Roamers podem FUGIR (some do mapa) — muito raros =====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setEnemies((prev) => {
+        let fled: number[] = [];
+        const next = prev.filter((e) => {
+          if (!e.eventLegendary || e.level < 400) return true;
+          // não foge se estiver sendo atacado
+          if (attackTargetIdRef.current === e.id) return true;
+          // 12% de chance a cada 20s
+          if (Math.random() < 0.12) { fled.push(e.id); return false; }
+          return true;
+        });
+        if (fled.length > 0) {
+          try {
+            const names = fled.map(() => "★ Mítico").join(", ");
+            pushSystemMsg?.(`${names} desapareceu nas sombras... fugiu!`);
+          } catch {}
+        }
+        return next;
+      });
+    }, 20000);
+    return () => clearInterval(iv);
+  }, []);
+
   const serverSync = useServerSync({
     buildLocalSnapshot: (): LocalSnapshotForPush => {
       const s = idleRef.current;
