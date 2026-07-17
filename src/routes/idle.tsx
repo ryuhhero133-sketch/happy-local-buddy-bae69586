@@ -4053,7 +4053,7 @@ function IdlePage() {
       // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
       // Raridade varia de comum a mítico.
       const GUARDIAN_MONS: Species[] = ["ditto", "ditto_shiny", "scizor", "umbreon"];
-      const guardianEligible = !isMythicRoamer && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
+      const guardianEligible = !isMythicRoamer && !isDialgaEvent && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
       const isGuardian = guardianEligible && Math.random() < 0.008;
       if (isGuardian) {
         sp = GUARDIAN_MONS[Math.floor(Math.random() * GUARDIAN_MONS.length)];
