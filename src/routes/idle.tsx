@@ -2764,6 +2764,11 @@ function IdlePage() {
           krookodile:     { crit: 0.40, para: 0.08, flee: 0 },
           tyranitar:      { crit: 0.48, para: 0.12, flee: 0 },
           nidoking_shiny: { crit: 0.55, para: 0.20, flee: 0.05 },
+          rapidash:       { crit: 0.30, para: 0.04, flee: 0.08 },
+          rapidash_shiny: { crit: 0.38, para: 0.06, flee: 0.10 },
+          skarmory:       { crit: 0.32, para: 0.10, flee: 0 },
+          // Dialga — edição especial: crit devastador, paraliza, foge fácil
+          dialga:         { crit: 0.65, para: 0.40, flee: 0.25 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
