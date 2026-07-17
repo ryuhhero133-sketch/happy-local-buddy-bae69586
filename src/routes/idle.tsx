@@ -1272,7 +1272,7 @@ function IdlePage() {
       });
       // Se o server já tem líder salvo (team_slot=0), reidrata.
       if (full.team.length > 0) {
-        setTeam(() => full.team.slice(0, 5).map((p) => ({
+        setTeam(() => full.team.slice(0, 6).map((p) => ({
           ...makePet(p.species as Species, p.level, p.rarity as Rarity),
           uid: p.id,
           xp: p.xp ?? 0,
@@ -1314,7 +1314,7 @@ function IdlePage() {
           });
         }
         if (Array.isArray(blob.team) && blob.team.length > 0) {
-          setTeam(blob.team.slice(0, 5));
+          setTeam(blob.team.slice(0, 6));
         } else if (Array.isArray(blob.party) && blob.party.length > 0) {
           setTeam(blob.party.slice(0, 5));
         }
@@ -2649,10 +2649,16 @@ function IdlePage() {
             pushChat(`💥 ${target.sp.replace(/_/g," ").toUpperCase()} desferiu um GOLPE CRÍTICO!`, "hit");
           }
           if (Math.random() < spec.para) {
-            const dur = target.sp === "lugia" ? 120_000 : 60_000;
-            paralyzedUntilRef.current = Date.now() + dur;
-            setParalyzedUntil(paralyzedUntilRef.current);
-            pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+            const synNow = computeTeamSynergies(teamRef.current);
+            const resist = Math.min(0.95, synNow.paraResist);
+            if (resist > 0 && Math.random() < resist) {
+              pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
+            } else {
+              const dur = target.sp === "lugia" ? 120_000 : 60_000;
+              paralyzedUntilRef.current = Date.now() + dur;
+              setParalyzedUntil(paralyzedUntilRef.current);
+              pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+            }
           }
           if (spec.flee > 0 && Math.random() < spec.flee) {
             const fleeId = target.id;
@@ -4626,7 +4632,7 @@ function IdlePage() {
                   <div style={{ fontSize: 9, color: "#8fd0ff", marginTop: 2, display: "flex", gap: 8 }}>
                     <span>💰 {idle.totals.gold}</span>
                     <span>★ {idle.totals.captured}/151</span>
-                    <span style={{ marginLeft: "auto", color: "#c8b8d0" }}>Pokémons: {team.length}/5</span>
+                    <span style={{ marginLeft: "auto", color: "#c8b8d0" }}>Pokémons: {team.length}/6</span>
                   </div>
                 </div>
               </div>
@@ -8175,7 +8181,7 @@ function TabOverlay({
                     background: "rgba(245,207,107,0.15)", border: "1px solid rgba(245,207,107,0.4)",
                     padding: "4px 12px", borderRadius: 999, color: "#f5cf6b",
                     fontSize: 12, fontWeight: 900, letterSpacing: 1,
-                  }}>{team.length}/5</div>
+                  }}>{team.length}/6</div>
                 </div>
 
                 <SynergyPanel team={team} />
@@ -8415,7 +8421,7 @@ function TabOverlay({
                   })}
 
                   {/* Slots vazios */}
-                  {Array.from({ length: Math.max(0, 5 - team.length) }).map((_, k) => (
+                  {Array.from({ length: Math.max(0, 6 - team.length) }).map((_, k) => (
                     <div key={`empty-${k}`} style={{
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                       padding: 14, minHeight: 60,

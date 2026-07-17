@@ -126,6 +126,7 @@ export interface SynergyPack {
   critChance: number;   // 0..1
   dodgeChance: number;  // 0..1
   lifeSteal: number;    // 0..1
+  paraResist: number;   // 0..1 — chance de resistir a paralisia inimiga
   effects: string[];    // labels legíveis
   byElement: Partial<Record<Element, number>>; // contagem por elemento
   combos: string[];     // combos ativos
@@ -143,6 +144,7 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
   const pack: SynergyPack = {
     xpMult: 0, goldMult: 0, dmgMult: 0, defMult: 0, hpMult: 0,
     atkSpeedMult: 0, regenPct: 0, critChance: 0, dodgeChance: 0, lifeSteal: 0,
+    paraResist: 0,
     effects: [], byElement, combos: [],
   };
 
@@ -166,16 +168,18 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
     pack.defMult += tier(c("agua"), [0.08, 0.16, 0.25, 0.35, 0.50]);
     pack.effects.push(`💧 Água ×${c("agua")} — +${Math.round(tier(c("agua"),[8,16,25,35,50]))}% def`);
   }
-  // Elétrico — atk speed + crit
+  // Elétrico — atk speed + crit + resistência a paralisia (aterramento)
   if (c("eletrico") > 0) {
     pack.atkSpeedMult += tier(c("eletrico"), [0.15, 0.25, 0.40, 0.55, 0.75]);
     pack.critChance   += tier(c("eletrico"), [0.03, 0.06, 0.10, 0.15, 0.22]);
-    pack.effects.push(`⚡ Elétrico ×${c("eletrico")} — +${Math.round(tier(c("eletrico"),[15,25,40,55,75]))}% velocidade`);
+    pack.paraResist   += tier(c("eletrico"), [0.15, 0.30, 0.50, 0.70, 0.90]);
+    pack.effects.push(`⚡ Elétrico ×${c("eletrico")} — +${Math.round(tier(c("eletrico"),[15,25,40,55,75]))}% vel · ${Math.round(tier(c("eletrico"),[15,30,50,70,90]))}% resist. paralisia`);
   }
-  // Pedra — hp
+  // Pedra — hp + resistência a paralisia (aterramento)
   if (c("pedra") > 0) {
     pack.hpMult += tier(c("pedra"), [0.20, 0.40, 0.60, 0.80, 1.20]);
-    pack.effects.push(`🪨 Pedra ×${c("pedra")} — +${Math.round(tier(c("pedra"),[20,40,60,80,120]))}% HP`);
+    pack.paraResist += tier(c("pedra"), [0.05, 0.10, 0.18, 0.28, 0.40]);
+    pack.effects.push(`🪨 Pedra ×${c("pedra")} — +${Math.round(tier(c("pedra"),[20,40,60,80,120]))}% HP · aterramento`);
   }
   // Veneno — dano crescente
   if (c("veneno") > 0) {
@@ -220,11 +224,12 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
     pack.xpMult += u; pack.goldMult += u; pack.dmgMult += u; pack.defMult += u;
     pack.effects.push(`🐉 Dragão ×${c("dragao")} — +${Math.round(u*100)}% em tudo`);
   }
-  // Fada — regen + def
+  // Fada — regen + def + pequena resistência a paralisia
   if (c("fada") > 0) {
     pack.regenPct += tier(c("fada"), [0.005, 0.01, 0.02, 0.03, 0.04]);
     pack.defMult  += tier(c("fada"), [0.05, 0.10, 0.15, 0.20, 0.30]);
-    pack.effects.push(`🧚 Fada ×${c("fada")} — proteção mágica`);
+    pack.paraResist += tier(c("fada"), [0.03, 0.07, 0.12, 0.18, 0.25]);
+    pack.effects.push(`🧚 Fada ×${c("fada")} — proteção mágica · anti-paralisia`);
   }
 
   // ===== Combos cruzados =====
@@ -242,6 +247,12 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
   }
   if (c("eletrico") >= 1 && c("voador") >= 1) {
     pack.atkSpeedMult += 0.15; pack.combos.push("⛈ Tempestade (+15% vel)");
+  }
+  if (c("eletrico") >= 1 && c("pedra") >= 1) {
+    pack.paraResist += 0.25; pack.combos.push("🧲 Aterramento Total (+25% resist. paralisia)");
+  }
+  if (c("fada") >= 2 && c("psiquico") >= 1) {
+    pack.paraResist += 0.20; pack.combos.push("🌟 Bênção Encantada (+20% resist. paralisia)");
   }
   if (c("gelo") >= 1 && c("agua") >= 1) {
     pack.dodgeChance += 0.05; pack.combos.push("🌊 Abismo Gélido");
