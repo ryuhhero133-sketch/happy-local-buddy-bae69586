@@ -3136,31 +3136,9 @@ function IdlePage() {
   }, [idle.currentMap]);
 
 
-  // ==== EVENTO LUGIA: a cada 1h aparece Lugia (Nv 600, Mítico Brilhante) ====
+  // ==== EVENTO LUGIA: DESATIVADO a pedido do jogador ====
   useEffect(() => {
-    const spawnLugia = () => {
-      if (currentMapRef.current === "arena") return; // não polui o mapa inicial
-      setEnemies((prev) => {
-        if (prev.some((e) => e.sp === "lugia")) return prev;
-        let x = 400, y = 400, tries = 0;
-        do {
-          x = 300 + Math.random() * (WORLD_W - 600);
-          y = 300 + Math.random() * (WORLD_H - 600);
-          tries++;
-        } while (collidesWithAny(x, y) && tries < 30);
-        const petA = makePet("lugia", 600);
-        const hp = Math.floor(calcIdleMaxHp(petA) * 8); // muito tanky
-        return [
-          ...prev,
-          { sp: "lugia", hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: false, aggroR: 0, elite: true, level: 600, rarity: "mythic_shiny", eventLegendary: true } as Enemy,
-        ];
-      });
-      pushEvent("🌊", "EVENTO MÍTICO ✦", "LUGIA ✦ surgiu! Extremamente forte — pode paralisar, dar crítico e fugir!", "#7ee6ff");
-      pushChat(`★ EVENTO MÍTICO ✦: LUGIA ✦ apareceu! Só MASTER ou ULTRA (com muita sorte) captura!`, "cap");
-    };
-    const firstTo = setTimeout(spawnLugia, 5 * 60_000); // primeira aparição em 5 min
-    const iv = setInterval(spawnLugia, 60 * 60_000);   // depois 1h em 1h
-    return () => { clearTimeout(firstTo); clearInterval(iv); };
+    setEnemies((prev) => prev.filter((e) => e.sp !== "lugia"));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
