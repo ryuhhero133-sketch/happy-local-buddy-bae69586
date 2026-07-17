@@ -2993,7 +2993,7 @@ function IdlePage() {
           if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
           if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
           // Evento Gelius: chance alta de cristal extra
-          if (isGeliusMap && Math.random() < 0.35) drops.push("crystal");
+          // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
           // XP para o líder + drena energia de TODOS do time
           setTeam((tm) => {
