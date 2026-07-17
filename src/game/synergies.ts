@@ -126,6 +126,7 @@ export interface SynergyPack {
   critChance: number;   // 0..1
   dodgeChance: number;  // 0..1
   lifeSteal: number;    // 0..1
+  paraResist: number;   // 0..1 — chance de resistir a paralisia inimiga
   effects: string[];    // labels legíveis
   byElement: Partial<Record<Element, number>>; // contagem por elemento
   combos: string[];     // combos ativos
