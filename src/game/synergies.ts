@@ -92,7 +92,12 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   lugia: ["psiquico","voador"],
   hariyama: ["lutador"],
   ursaring: ["normal"],
-
+  // Guardiões Anti-Paralisia
+  ditto: ["normal"],
+  electabuzz: ["eletrico"],
+  gengar: ["fantasma","veneno"],
+  hitmontop: ["lutador"],
+  magneton: ["eletrico"],
 };
 
 export function elementsOf(sp: Species): Element[] {
