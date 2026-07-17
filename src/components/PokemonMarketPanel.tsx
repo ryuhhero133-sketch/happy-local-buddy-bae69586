@@ -41,6 +41,19 @@ type ListingRow = {
   sold_at: string | null;
   payout_claimed: boolean;
   buyer_claimed: boolean;
+  via_offer?: boolean;
+  created_at: string;
+};
+
+type OfferRow = {
+  id: string;
+  listing_id: string;
+  seller_id: string;
+  buyer_id: string;
+  buyer_name: string;
+  amount: number;
+  currency: Currency;
+  status: "pending" | "accepted" | "rejected" | "cancelled";
   created_at: string;
 };
 
