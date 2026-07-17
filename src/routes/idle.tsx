@@ -894,12 +894,11 @@ function highLevelEnemyDamageMult(enemyLevel: number, leaderLevel: number) {
   return mult;
 }
 
-function playerDamageVsHighLevelMult(leaderLevel: number, enemyLevel: number) {
-  if (enemyLevel < 250) return enemyLevel >= 200 && leaderLevel + 40 < enemyLevel ? 0.85 : 1;
-  const gap = enemyLevel - leaderLevel;
-  if (gap <= 0) return 1;
-  return Math.max(0.35, 1 - gap * 0.035);
+function playerDamageVsHighLevelMult(_leaderLevel: number, _enemyLevel: number) {
+  // Sem restrição por diferença de nível — jogador causa dano cheio em qualquer alvo.
+  return 1;
 }
+
 
 // ===== Energia por raridade =====
 // Regen passivo (0→100) SÓ conta quando o pokémon está fora do time (na coleção).
