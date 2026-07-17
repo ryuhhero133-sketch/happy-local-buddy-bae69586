@@ -602,6 +602,7 @@ const SPECIES_NAME: Record<Species, string> = {
   deoxys: "DEOXYS", groudon: "GROUDON", lapras_shiny: "LAPRAS ✦", snorlax_mythic: "SNORLAX ✦",
   darkrai: "DARKRAI ✦", ho_oh: "HO-OH", magmortar: "MAGMORTAR",
   lugia: "LUGIA ✦", hariyama: "HARIYAMA", ursaring: "URSARING",
+  ditto: "DITTO", electabuzz: "ELECTABUZZ", gengar: "GENGAR", hitmontop: "HITMONTOP", magneton: "MAGNETON",
 };
 
 
