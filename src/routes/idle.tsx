@@ -1314,7 +1314,7 @@ function IdlePage() {
           });
         }
         if (Array.isArray(blob.team) && blob.team.length > 0) {
-          setTeam(blob.team.slice(0, 5));
+          setTeam(blob.team.slice(0, 6));
         } else if (Array.isArray(blob.party) && blob.party.length > 0) {
           setTeam(blob.party.slice(0, 5));
         }
