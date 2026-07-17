@@ -4042,7 +4042,7 @@ function IdlePage() {
         pet = makePet(sp, lv, "rare");
       }
       // ★ POKÉMON RIDER: 1.2% de chance — muito acima do nível do líder, dá MUITO xp
-      const isRider = !isMythicRoamer && Math.random() < 0.012 && !mapLvRange;
+      const isRider = !isMythicRoamer && !isDialgaEvent && Math.random() < 0.012 && !mapLvRange;
       if (isRider) {
         const boost = 25 + Math.floor(Math.random() * 21); // +25..+45
         lv = leaderLv + boost;
