@@ -744,6 +744,31 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
             <span />
           )}
         </div>
+
+        {mode === "login" && (
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                const name = (prompt("Nome do treinador (aparece no chat):", "Convidado") || "").trim().slice(0, 16);
+                if (name.length < 2) return;
+                const guest: LocalIdentity = {
+                  id: `guest-${crypto.randomUUID?.() ?? Date.now()}`,
+                  name,
+                  secretKey: "",
+                  createdAt: Date.now(),
+                };
+                localStorage.setItem(IDENTITY_KEY, JSON.stringify(guest));
+                localStorage.setItem(GUEST_KEY, "1");
+                window.location.reload();
+              } catch { /* ignore */ }
+            }}
+            className="w-full mt-2 py-2 text-[11px] tracking-[2px] underline"
+            style={{ color: "#fde68a" }}
+          >
+            ENTRAR COMO CONVIDADO (OFFLINE)
+          </button>
+        )}
       </form>
     </PanelShell>
   );
