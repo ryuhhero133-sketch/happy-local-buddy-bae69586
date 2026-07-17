@@ -145,7 +145,10 @@ export type Species =
   | "ditto" | "electabuzz" | "gengar" | "hitmontop" | "magneton"
   | "ditto_shiny" | "scizor" | "umbreon"
   // Apex — bosses raros Lv 300-700 (crit alto, difícil de capturar)
-  | "infernape" | "krookodile" | "tyranitar" | "nidoking_shiny";
+  | "infernape" | "krookodile" | "tyranitar" | "nidoking_shiny"
+  | "rapidash" | "rapidash_shiny" | "skarmory"
+  // Edição especial — Dialga (Lv 800, evento 3h em 3h)
+  | "dialga";
 
 
 
