@@ -2366,14 +2366,23 @@ function IdlePage() {
       }
       return;
     }
-    setIdle((s) => ({ ...s, currentMap: p.to }));
+    const TELEPORT_COST = 1000;
+    if ((idle.bank.gold ?? 0) < TELEPORT_COST) {
+      const now = Date.now();
+      if (now - overCapMsgRef.current > 4000) {
+        overCapMsgRef.current = now;
+        pushChat(`💰 Teleporte custa ${TELEPORT_COST} ouro — você não tem o suficiente.`, "info");
+      }
+      return;
+    }
+    setIdle((s) => ({ ...s, currentMap: p.to, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - TELEPORT_COST) } }));
     setTrainerPos({ x: p.arriveX, y: p.arriveY });
     walkTargetRef.current = null;
     setWalkingTo(null);
     setAttackTargetId(null);
     setEnemies([]);
     clearBattleScene();
-    pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
+    pushChat(`Chegou em ${IDLE_MAPS[p.to].name}! (-${TELEPORT_COST} 🪙)`, "cap");
     if (p.to === "terra") {
       setTimeout(() => {
         pushChat(`🧙 SÁBIO DAS COLMEIAS: "Bem-vindo, treinador! Aqui vivem Guardiões Anti-Paralisia..."`, "info");
