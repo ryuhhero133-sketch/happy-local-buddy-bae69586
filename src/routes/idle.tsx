@@ -111,6 +111,7 @@ import { currentGeliusInfo, isGeliusActive, getGeliusEntries, canEnterGelius, co
 import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
+import mapPantanoFogoAsset from "@/assets/map-pantano-fogo.png.asset.json";
 import mapFantasmaAsset from "@/assets/map-fantasma.jpg.asset.json";
 // Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
 import mapForestAsset from "@/assets/map-forest.png.asset.json";
