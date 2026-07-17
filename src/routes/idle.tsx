@@ -1140,6 +1140,9 @@ function IdlePage() {
   const attackTargetIdRef = useRef<number | null>(null);
   const paralyzedUntilRef = useRef<number>(0);
   const [paralyzedUntil, setParalyzedUntil] = useState<number>(0);
+  // Rastreia qual inimigo aplicou a paralisia — se ele morrer/fugir,
+  // limpamos o efeito para o treinador voltar a atacar imediatamente.
+  const paralyzedByEnemyIdRef = useRef<number | null>(null);
   const atkDebuffUntilRef = useRef<number>(0);
   const poisonUntilRef = useRef<number>(0);
   const mapEnterAtRef = useRef<number>(Date.now());
