@@ -4626,7 +4626,7 @@ function IdlePage() {
                   <div style={{ fontSize: 9, color: "#8fd0ff", marginTop: 2, display: "flex", gap: 8 }}>
                     <span>💰 {idle.totals.gold}</span>
                     <span>★ {idle.totals.captured}/151</span>
-                    <span style={{ marginLeft: "auto", color: "#c8b8d0" }}>Pokémons: {team.length}/5</span>
+                    <span style={{ marginLeft: "auto", color: "#c8b8d0" }}>Pokémons: {team.length}/6</span>
                   </div>
                 </div>
               </div>
