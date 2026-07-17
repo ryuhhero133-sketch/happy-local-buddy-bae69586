@@ -766,7 +766,7 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
             className="w-full mt-2 py-2 text-[11px] tracking-[2px] underline"
             style={{ color: "#fde68a" }}
           >
-            ENTRAR COMO CONVIDADO (OFFLINE)
+            MODO CONVIDADO
           </button>
         )}
       </form>
