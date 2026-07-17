@@ -4849,35 +4849,36 @@ function IdlePage() {
               }} />
             ))}
 
-            {/* Clique nos casulos (Ninho de Marimbondo) — só se tiver Pokémon abelha */}
+            {/* Clique nos casulos (Ninho de Marimbondo) — abre painel de Colmeia p/ posicionar Beedrills */}
             {idle.currentMap === "terra" && obstacles.filter((o) => o.src === hornetCocoonUrl).map((o) => {
-              const beeIds: Species[] = ["weedle", "weedle_shiny", "kakuna", "kakuna_shiny", "beedrill"];
-              const hasBee = team.some((p) => beeIds.includes(p.species)) || idle.caughtSpecies.some((s) => beeIds.includes(s));
+              const cocoonKey = `terra:${Math.round(o.x)}:${Math.round(o.y)}`;
+              const beedrillCount = (idle.collection ?? []).filter((c) => c.species === "beedrill").length;
+              const canUse = beedrillCount > 0;
               return (
                 <button
                   key={`cocoon-btn-${o.id}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (!hasBee) {
-                      pushChat("🐝 Precisa de um Pokémon abelha (Weedle, Kakuna ou Beedrill) para se aproximar do casulo!", "info");
+                    if (!canUse) {
+                      pushChat("🐝 Você precisa ter pelo menos 1 Beedrill na coleção para usar a colmeia!", "info");
                       return;
                     }
-                    setHoneyShop({ x: o.x, y: o.y - o.h });
+                    setHoneyShop({ cocoonKey, x: o.x, y: o.y - o.h });
                   }}
-                  title={hasBee ? "Ninho de Marimbondo — Comprar Incenso de Mel" : "Requer Pokémon abelha"}
+                  title={canUse ? "Colmeia — posicionar Beedrills p/ produzir Incenso" : "Requer Beedrill na coleção"}
                   style={{
                     position: "absolute",
                     left: o.x - o.w / 2,
                     top: o.y - o.h + 8,
                     width: o.w, height: o.h,
                     background: "transparent",
-                    border: hasBee ? "2px dashed rgba(255,214,80,0.85)" : "2px dashed rgba(255,255,255,0.25)",
+                    border: canUse ? "2px dashed rgba(255,214,80,0.85)" : "2px dashed rgba(255,255,255,0.25)",
                     borderRadius: 12,
-                    cursor: hasBee ? "pointer" : "not-allowed",
+                    cursor: canUse ? "pointer" : "not-allowed",
                     zIndex: Math.round(o.y) + 1,
                     padding: 0,
-                    boxShadow: hasBee ? "0 0 12px rgba(255,214,80,0.55)" : "none",
-                    animation: hasBee ? "lvglow 1.6s ease-in-out infinite" : "none",
+                    boxShadow: canUse ? "0 0 12px rgba(255,214,80,0.55)" : "none",
+                    animation: canUse ? "lvglow 1.6s ease-in-out infinite" : "none",
                   }}
                 />
               );
