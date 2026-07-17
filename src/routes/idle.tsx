@@ -9019,9 +9019,10 @@ function TabOverlay({
         const bookActive = !!(buffs?.expMultUntil && nowMs < buffs.expMultUntil);
         const orbActive = !!(buffs?.orbUntil && nowMs < buffs.orbUntil);
         const honeyActive = !!(buffs?.honeyUntil && nowMs < buffs.honeyUntil);
+        const honeyRareActive = !!(buffs?.honeyRareUntil && nowMs < buffs.honeyRareUntil);
         const bookPct = bookActive ? Math.round((buffs?.expMult ?? 0) * 100) : 0;
         const orbPct = orbActive ? Math.round((buffs?.orbMult ?? 0) * 100) : 0;
-        const honeyPct = honeyActive ? 10 : 0;
+        const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
         const totalExpPct = bookPct + orbPct + honeyPct;
         const fmtTime = (ms: number) => {
           const s = Math.max(0, Math.floor(ms / 1000));
