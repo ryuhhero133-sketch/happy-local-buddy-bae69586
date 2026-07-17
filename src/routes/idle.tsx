@@ -6008,16 +6008,44 @@ function IdlePage() {
                     }}>
                       {locked ? "🔒" : "🌀"}<br/>{p.label}
                     </div>
-                    {/* Placa de requisito */}
+                    {/* Balão-guia branco (estilo speech bubble) */}
                     <div style={{
-                      position: "absolute", top: -26, left: "50%", transform: "translateX(-50%)",
-                      background: "rgba(11,5,16,0.92)",
-                      color: locked ? "#fca5a5" : "#fde68a",
-                      border: `1px solid ${locked ? "#ef4444" : p.color}`,
-                      borderRadius: 4, padding: "2px 8px", fontSize: 10, fontWeight: 800,
-                      whiteSpace: "nowrap", letterSpacing: 0.5,
+                      position: "absolute", bottom: "calc(100% + 14px)", left: "50%", transform: "translateX(-50%)",
+                      background: "linear-gradient(180deg, #ffffff 0%, #f7f5ef 100%)",
+                      color: "#1f2937",
+                      border: `2px solid ${locked ? "#ef4444" : "#e5c76b"}`,
+                      borderRadius: 10,
+                      padding: "6px 10px",
+                      fontSize: 11, fontWeight: 800,
+                      whiteSpace: "nowrap", letterSpacing: 0.3,
+                      boxShadow: "0 4px 14px rgba(0,0,0,0.45), inset 0 1px 0 #fff",
+                      textAlign: "center", lineHeight: 1.25,
+                      pointerEvents: "none",
                     }}>
-                      {p.reqLevel ? `TREINADOR Nv ${p.reqLevel}${locked ? ` • FALTA ${p.reqLevel - lv}` : " ✓"}` : "← VOLTAR"}
+                      <div style={{ fontSize: 9, color: "#6b7280", letterSpacing: 0.6, marginBottom: 2 }}>
+                        {p.reqLevel ? (locked ? "🔒 PRÓXIMO MAPA" : "✓ MAPA LIBERADO") : "↩ RETORNO"}
+                      </div>
+                      <div style={{ color: "#111827", fontSize: 12 }}>{p.label}</div>
+                      {p.reqLevel && (
+                        <div style={{ fontSize: 10, color: locked ? "#b91c1c" : "#15803d", marginTop: 2 }}>
+                          {locked ? `Libera em Treinador Nv ${p.reqLevel} • faltam ${p.reqLevel - lv}` : `Treinador Nv ${p.reqLevel} ✓`}
+                        </div>
+                      )}
+                      {/* Rabinho do balão */}
+                      <div style={{
+                        position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)",
+                        width: 0, height: 0,
+                        borderLeft: "7px solid transparent",
+                        borderRight: "7px solid transparent",
+                        borderTop: `8px solid ${locked ? "#ef4444" : "#e5c76b"}`,
+                      }} />
+                      <div style={{
+                        position: "absolute", top: "100%", left: "50%", transform: "translate(-50%, -2px)",
+                        width: 0, height: 0,
+                        borderLeft: "6px solid transparent",
+                        borderRight: "6px solid transparent",
+                        borderTop: "7px solid #ffffff",
+                      }} />
                     </div>
                   </div>
                 );
