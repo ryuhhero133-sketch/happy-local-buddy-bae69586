@@ -373,7 +373,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   terry:    { name: "Terras de Terry",         diff: "Elite",     bg: mapTerryUrl,     rate: 3.2, minLevel: 200, maxLevel: 400, element: "Terra", stars: 4, entryCrystals: 8 },
   n2:       { name: "Planície de Terry",        diff: "Elite+",    bg: mapN2Url,        rate: 3.8, minLevel: 350, maxLevel: 550, element: "Terra", stars: 5, entryCrystals: 20 },
   n3:       { name: "Confins de Terry",         diff: "Lendário",  bg: mapN3Url,        rate: 4.5, minLevel: 500, maxLevel: 700, element: "Terra", stars: 5, entryCrystals: 20 },
-  pantano_fogo: { name: "Pântano em Chamas",   diff: "PRIMORDIAL",bg: mapPantanoFogoUrl,rate: 12.0, minLevel: 800, maxLevel: 1200, element: "Fogo/Veneno", stars: 8, entryCrystals: 400 },
+  pantano_fogo: { name: "Pântano em Chamas",   diff: "PRIMORDIAL",bg: mapPantanoFogoUrl,rate: 12.0, minLevel: 700, maxLevel: 1200, element: "Fogo/Veneno", stars: 8, entryCrystals: 400 },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
   venofogo: { name: "Pântano Ardente",         diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
 
