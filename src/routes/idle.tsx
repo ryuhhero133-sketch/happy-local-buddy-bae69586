@@ -1272,7 +1272,7 @@ function IdlePage() {
       });
       // Se o server já tem líder salvo (team_slot=0), reidrata.
       if (full.team.length > 0) {
-        setTeam(() => full.team.slice(0, 5).map((p) => ({
+        setTeam(() => full.team.slice(0, 6).map((p) => ({
           ...makePet(p.species as Species, p.level, p.rarity as Rarity),
           uid: p.id,
           xp: p.xp ?? 0,
