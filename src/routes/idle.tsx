@@ -4212,13 +4212,38 @@ function IdlePage() {
         pet = makePet(sp, aLv, aRarity);
         lv = aLv;
       }
+      // 💀 PERIGO ABISSAL — criatura mítica não identificada. Aparece 1x por mapa
+      // a cada ~1h. Nível 500-900, HP monstruoso, dá crítico devastador (3-hit-kill).
+      // Não tem aggro, não foge. Ao ser atacada com pokébola vira agressiva.
+      // Impossível de capturar.
+      const MENACE_INTERVAL_MS = 55 * 60 * 1000;
+      const menaceOnMap = enemies.some((en) => en.menace);
+      let isMenace = false;
+      try {
+        const last = Number(localStorage.getItem("menace_last_spawn_ms") || 0);
+        if (!menaceOnMap && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && !isApex
+            && leaderLv >= 400
+            && Date.now() - last >= MENACE_INTERVAL_MS
+            && Math.random() < 0.015) {
+          isMenace = true;
+          localStorage.setItem("menace_last_spawn_ms", String(Date.now()));
+        }
+      } catch {}
+      if (isMenace) {
+        const MENACE_POOL: Species[] = ["tyranitar","dragonite","gengar","machamp","gyarados","nidoking_shiny","darkrai","groudon","krookodile","infernape"];
+        const filtered = MENACE_POOL.filter(hasGif);
+        sp = (filtered.length ? filtered : MENACE_POOL)[Math.floor(Math.random() * (filtered.length || MENACE_POOL.length))];
+        lv = 500 + Math.floor(Math.random() * 401); // 500..900
+        pet = makePet(sp, lv, "mythic_shiny");
+      }
       const baseHp = calcIdleMaxHp(pet);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : isDialgaEvent ? 12 : 1;
       const guardianHpMult = isGuardian ? 2.2 : 1;
       const apexHpMult = isApex ? 4.5 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult);
-      const isAggro = true; // todos os pokémon selvagens agora são agressivos
+      const menaceHpMult = isMenace ? 18 : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult);
+      const isAggro = isMenace ? false : true; // menace começa passivo
       const aggroR = elite ? 300 : isApex ? 360 : 220 + Math.floor(Math.random() * 60);
 
       // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
@@ -4232,7 +4257,7 @@ function IdlePage() {
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
       }
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent, disguise, revealed: false };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace, disguise, revealed: false, menace: isMenace };
 
 
     }
