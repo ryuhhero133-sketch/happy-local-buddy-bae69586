@@ -1823,6 +1823,23 @@ function IdlePage() {
       );
       return;
     }
+    if (["CHARBUNDLE2026", "CHARIZARDBUNDLE", "CHARPACK2026"].includes(raw)) {
+      redeemOnce(
+        "lovable.code.charBundle2026",
+        (s) => ({
+          ...s,
+          items: {
+            ...s.items,
+            egg_charizard: (s.items.egg_charizard ?? 0) + 1,
+            ultraball: (s.items.ultraball ?? 0) + 30,
+            greatball: (s.items.greatball ?? 0) + 20,
+          },
+        }),
+        "🔥 Código resgatado: +1 Ovo do Charizard (mítico), +30 Ultra Balls e +20 Great Balls!",
+        "Recompensa: 1× Ovo Charizard + 30× Ultra Ball + 20× Great Ball.",
+      );
+      return;
+    }
     setCodeMsg({ kind: "err", text: "Código inválido." });
   };
 
