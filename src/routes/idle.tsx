@@ -3049,7 +3049,7 @@ function IdlePage() {
               });
               setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
               newItems[usedBall.id] = (newItems[usedBall.id] ?? 0) - 1;
-              const baseChance = 0.05; // difícil: 5% base (com bola comum)
+              const baseChance = 0.035; // difícil: 3.5% base (com bola comum)
               if (isEventLeg && usedBall.id === "greatball") {
                 captured = false; // Great sempre falha em lendários do evento
               } else if (isEventLeg && usedBall.id === "masterball") {
