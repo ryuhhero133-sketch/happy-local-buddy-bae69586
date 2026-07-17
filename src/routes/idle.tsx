@@ -5249,6 +5249,58 @@ function IdlePage() {
               />
             </button>
             {(() => {
+              const gi = currentGeliusInfo();
+              if (gi.phase === "closed") return null;
+              const mins = Math.floor(gi.msUntilChange / 60000);
+              const secs = Math.floor((gi.msUntilChange % 60000) / 1000);
+              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+              const entriesLeft = 3 - getGeliusEntries();
+              const inEvent = idle.currentMap === "gelius1" || idle.currentMap === "gelius2";
+              const canEnter = !inEvent && entriesLeft > 0;
+              return (
+                <button
+                  onClick={() => {
+                    if (inEvent) { pushChat(`🐧 Evento Gelius — ${gi.phase === "phase1" ? "Onda 1" : "Onda 2"} · ${timeStr}`, "info"); return; }
+                    if (entriesLeft <= 0) { pushChat(`🐧 Você já usou suas 3 entradas de hoje no Gelius.`, "info"); return; }
+                    consumeGeliusEntry();
+                    const target: IdleMapId = gi.phase === "phase2" ? "gelius2" : "gelius1";
+                    setIdle((s) => ({ ...s, currentMap: target }));
+                    setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+                    setEnemies([]);
+                    pushChat(`🐧 Entrou no evento GELIUS — ${IDLE_MAPS[target].name}!`, "cap");
+                    playBonus();
+                  }}
+                  title={inEvent
+                    ? `Evento ativo — ${timeStr} restante`
+                    : canEnter
+                      ? `Entrar no Gelius (${entriesLeft} entradas restantes hoje)`
+                      : "Sem entradas hoje"}
+                  style={{
+                    marginTop: 6,
+                    padding: 3,
+                    background: "linear-gradient(180deg,#0b2e4a,#082035)",
+                    border: "1.5px solid #7fd8ff",
+                    borderRadius: 10,
+                    boxShadow: "0 0 14px rgba(127,216,255,0.7), inset 0 0 6px rgba(180,235,255,0.4)",
+                    cursor: canEnter || inEvent ? "pointer" : "not-allowed",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    animation: "penguinPulse 1.6s ease-in-out infinite",
+                  }}
+                >
+                  <img
+                    src={assetUrlFromJson(eventPenguinAsset)}
+                    alt="Evento Gelius"
+                    width={34}
+                    height={34}
+                    style={{ filter: "drop-shadow(0 0 6px rgba(127,216,255,0.9))" }}
+                    draggable={false}
+                  />
+                  <span style={{ fontSize: 9, color: "#d0f0ff", fontWeight: 800, lineHeight: 1 }}>{timeStr}</span>
+                  <span style={{ fontSize: 8, color: "#7fd8ff", fontWeight: 700, lineHeight: 1 }}>{gi.phase === "phase1" ? "ONDA 1" : "ONDA 2"}</span>
+                </button>
+              );
+            })()}
+            {(() => {
               const orbUntil = idle.buffs.orbUntil ?? 0;
               const remain = orbUntil - Date.now();
               if (remain <= 0) return null;
