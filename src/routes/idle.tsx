@@ -3449,7 +3449,9 @@ function IdlePage() {
       }
     } else {
       const base = 0.08 + (1 - hpPct) * 0.37;
-      chance = Math.min(0.95, base * usedBall.captureMult);
+      // 🖤 Guardiões anti-paralisia: um pouco mais difíceis de capturar
+      const guardMult = target.guardian ? 0.55 : 1;
+      chance = Math.min(0.95, base * usedBall.captureMult * guardMult);
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
