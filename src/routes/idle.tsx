@@ -6958,53 +6958,8 @@ function IdlePage() {
             }} />
           </div>
 
-          {/* ===== Guia Inteligente (Prof. Carvalho) — inline, abaixo do MODO IDLE ===== */}
-          {eventToast && (
-            <div key={eventToast.id} style={{
-              position: "relative",
-              background: "linear-gradient(180deg, #f8f4e8 0%, #ecdfc2 100%)",
-              border: `3px solid ${eventToast.color}`,
-              borderRadius: 12, padding: "8px 10px 8px 8px",
-              display: "flex", alignItems: "center", gap: 8,
-              boxShadow: `0 4px 14px rgba(0,0,0,0.4), 0 0 12px ${eventToast.color}55, inset 0 1px 0 rgba(255,255,255,0.6)`,
-              animation: "evt-slide 320ms cubic-bezier(.2,.9,.3,1.2)",
-            }}>
-              <div style={{
-                width: 44, height: 44, flexShrink: 0,
-                borderRadius: 10,
-                background: `radial-gradient(circle at 40% 35%, ${eventToast.color}55, #fff4d0 70%)`,
-                border: `2px solid ${eventToast.color}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                overflow: "hidden",
-                boxShadow: `inset 0 0 6px ${eventToast.color}44`,
-              }}>
-                <img src={npcOakSprite} alt="Guia" style={{ width: "110%", height: "110%", objectFit: "cover", imageRendering: "pixelated" }} />
-              </div>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 8, fontWeight: 900, color: "#8b6a30", letterSpacing: 1.5 }}>
-                  PROF. CARVALHO · {eventToast.icon}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 900, color: "#3a1f0d", letterSpacing: 0.3, lineHeight: 1.1, marginTop: 2 }}>
-                  {eventToast.title}
-                </div>
-                {eventToast.sub && (
-                  <div style={{ fontSize: 10, color: "#5a3f1d", marginTop: 2, lineHeight: 1.2 }}>
-                    {eventToast.sub}
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => setEventToast(null)}
-                title="Fechar"
-                style={{
-                  position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%",
-                  background: eventToast.color, color: "#1a0f26", border: "2px solid #f8f4e8",
-                  fontWeight: 900, fontSize: 11, cursor: "pointer", lineHeight: 1, padding: 0,
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-                }}
-              >✕</button>
-            </div>
-          )}
+          {/* Guia do Prof. Carvalho removido a pedido do usuário */}
+
         </div>
 
 
