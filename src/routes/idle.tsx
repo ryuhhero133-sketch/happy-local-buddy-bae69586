@@ -840,7 +840,7 @@ function freshIdle(): IdleState {
     craftPoints: 0,
     items: { premium_box: 1 },
     bank: { gold: 0, crystals: 30 },
-    buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0, orbMult: 0, orbUntil: 0, orbId: "" },
+    buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0, honeyRareUntil: 0, orbMult: 0, orbUntil: 0, orbId: "" },
     autoHeal: { enabled: true, threshold: 0.5 },
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
     trainerLevel: 1,
