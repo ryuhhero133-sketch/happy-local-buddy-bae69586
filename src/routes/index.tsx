@@ -8571,7 +8571,7 @@ function RankedOverlay({ players, me, speciesGif, onClose }: {
             <span style={{ fontSize: 22 }}>🏆</span>
             <div>
               <div className="name-font" style={{ fontSize: 13, letterSpacing: 1 }}>TOP RANKED</div>
-              <div style={{ fontSize: 7, opacity: 0.9 }}>Seu rank: #{myRank || "-"} · Reset em {countdown} · Atualiza a cada 3h</div>
+              <div style={{ fontSize: 7, opacity: 0.9 }}>Seu rank: #{myRank || "-"} · Reset em {countdown} · Ao vivo (60s)</div>
             </div>
           </div>
           <button onClick={onClose} className="gb-font" style={{ background: "rgba(0,0,0,0.4)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)", padding: "2px 6px", fontSize: 8, borderRadius: 4 }}>X</button>
