@@ -42,6 +42,7 @@ type ListingRow = {
   payout_claimed: boolean;
   buyer_claimed: boolean;
   via_offer?: boolean;
+  offers_only?: boolean;
   created_at: string;
 };
 
