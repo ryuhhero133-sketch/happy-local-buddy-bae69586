@@ -626,6 +626,7 @@ const SPECIES_NAME: Record<Species, string> = {
   ditto: "DITTO", electabuzz: "ELECTABUZZ", gengar: "GENGAR", hitmontop: "HITMONTOP", magneton: "MAGNETON",
   ditto_shiny: "DITTO ✦", scizor: "SCIZOR", umbreon: "UMBREON",
   infernape: "INFERNAPE", krookodile: "KROOKODILE", tyranitar: "TYRANITAR", nidoking_shiny: "NIDOKING ✦",
+  dialga: "DIALGA ✦", rapidash: "RAPIDASH", rapidash_shiny: "RAPIDASH ✦", skarmory: "SKARMORY",
 };
 
 
