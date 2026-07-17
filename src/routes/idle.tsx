@@ -2865,6 +2865,15 @@ function IdlePage() {
           }
         }
 
+        // 💀 PERIGO ABISSAL — dano brutal, pode matar em 3 hits
+        if (target.menace) {
+          eDmg = Math.floor(eDmg * 3.2);
+          if (Math.random() < 0.7) {
+            eDmg = Math.floor(eDmg * 1.9);
+            pushChat(`💀 PERIGO ABISSAL desferiu um GOLPE DEVASTADOR!`, "hit");
+          }
+        }
+
         setTimeout(() => {
           setEnemyAttackAnim({
             id: attackAnimIdRef.current++,
