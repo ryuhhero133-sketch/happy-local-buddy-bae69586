@@ -2649,10 +2649,16 @@ function IdlePage() {
             pushChat(`💥 ${target.sp.replace(/_/g," ").toUpperCase()} desferiu um GOLPE CRÍTICO!`, "hit");
           }
           if (Math.random() < spec.para) {
-            const dur = target.sp === "lugia" ? 120_000 : 60_000;
-            paralyzedUntilRef.current = Date.now() + dur;
-            setParalyzedUntil(paralyzedUntilRef.current);
-            pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+            const synNow = computeTeamSynergies(teamRef.current);
+            const resist = Math.min(0.95, synNow.paraResist);
+            if (resist > 0 && Math.random() < resist) {
+              pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
+            } else {
+              const dur = target.sp === "lugia" ? 120_000 : 60_000;
+              paralyzedUntilRef.current = Date.now() + dur;
+              setParalyzedUntil(paralyzedUntilRef.current);
+              pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+            }
           }
           if (spec.flee > 0 && Math.random() < spec.flee) {
             const fleeId = target.id;
