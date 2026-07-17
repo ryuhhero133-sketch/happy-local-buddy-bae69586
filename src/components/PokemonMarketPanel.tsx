@@ -106,6 +106,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   // vê a linha ainda com buyer_claimed=false por causa da latência do UPDATE.
   const claimedBuyerRef = useRef<Set<string>>(new Set());
   const claimedSellerRef = useRef<Set<string>>(new Set());
+  const [offers, setOffers] = useState<OfferRow[]>([]);
 
   useEffect(() => {
     const iv = setInterval(() => setNow(Date.now()), 1000);
