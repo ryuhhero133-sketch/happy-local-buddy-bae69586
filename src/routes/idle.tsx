@@ -483,6 +483,9 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   deoxys: "psychic", groudon: "fire", lapras_shiny: "water",
   darkrai: "psychic", ho_oh: "fire", magmortar: "fire",
   lugia: "psychic", hariyama: "fighting", ursaring: "normal",
+  // Guardiões Anti-Paralisia
+  ditto: "normal", electabuzz: "electric", magneton: "electric",
+  gengar: "poison", hitmontop: "fighting",
 
 } as Record<string, ElementFx>;
 
