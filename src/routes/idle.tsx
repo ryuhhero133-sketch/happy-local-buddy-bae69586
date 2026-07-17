@@ -1146,6 +1146,17 @@ function IdlePage() {
         });
         if (fled.length > 0) {
           try {
+            // Ao fugir, o mítico remove os status que impôs (paralisia)
+            // e libera o alvo, senão o treinador ficaria travado sem atacar.
+            paralyzedUntilRef.current = 0;
+            setParalyzedUntil(0);
+            for (const fid of fled) {
+              blacklistRef.current.delete(fid);
+            }
+            if (fled.includes(attackTargetIdRef.current ?? -1)) {
+              setAttackTargetId(null);
+            }
+            stuckRef.current = { id: 0, count: 0 };
             pushChat(`★ Mítico Roamer desapareceu nas sombras... fugiu!`, "info");
           } catch {}
         }
