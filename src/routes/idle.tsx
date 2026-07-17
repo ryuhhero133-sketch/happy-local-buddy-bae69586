@@ -4115,7 +4115,13 @@ function IdlePage() {
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
       }
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex, apex: isApex, eventLegendary: isMythicRoamer, disguise, revealed: false };
+      if (isDialgaEvent) {
+        try {
+          pushEvent("✨", "DIALGA APARECEU!", `Edição especial — Lv 800 no mapa!`, "#7dd3fc");
+          pushChat(`✨ EDIÇÃO ESPECIAL: DIALGA (Lv 800) apareceu! Só a Ultra Ball tem chance...`, "cap");
+        } catch {}
+      }
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent, disguise, revealed: false };
 
 
     }
