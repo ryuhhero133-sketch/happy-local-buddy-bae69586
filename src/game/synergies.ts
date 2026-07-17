@@ -248,6 +248,12 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
   if (c("eletrico") >= 1 && c("voador") >= 1) {
     pack.atkSpeedMult += 0.15; pack.combos.push("⛈ Tempestade (+15% vel)");
   }
+  if (c("eletrico") >= 1 && c("pedra") >= 1) {
+    pack.paraResist += 0.25; pack.combos.push("🧲 Aterramento Total (+25% resist. paralisia)");
+  }
+  if (c("fada") >= 2 && c("psiquico") >= 1) {
+    pack.paraResist += 0.20; pack.combos.push("🌟 Bênção Encantada (+20% resist. paralisia)");
+  }
   if (c("gelo") >= 1 && c("agua") >= 1) {
     pack.dodgeChance += 0.05; pack.combos.push("🌊 Abismo Gélido");
   }
