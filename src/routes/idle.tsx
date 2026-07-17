@@ -3047,6 +3047,11 @@ function IdlePage() {
                 }
               }
             }
+            // Evento Gelius: só permite capturar espécies específicas (ditto/gengar/magmar)
+            const inGelius = s.currentMap === "gelius1" || s.currentMap === "gelius2";
+            if (inGelius && !GELIUS_CAPTURABLE.has(target.sp)) {
+              usedBall = null;
+            }
             let captured = false;
             let capturedPet: PetInstance | null = null;
             const isEventLeg = !!target.eventLegendary;
