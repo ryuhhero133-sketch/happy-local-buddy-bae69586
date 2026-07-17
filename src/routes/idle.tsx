@@ -3473,6 +3473,7 @@ function IdlePage() {
     return () => { clearTimeout(warn1); clearTimeout(kick); };
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const geliusReturnMapRef = useRef<IdleMapId | null>(null);
   // ==== EVENTO GELIUS — tick 1s: troca fase aos 5min, expulsa aos 10min ====
   useEffect(() => {
     const iv = setInterval(() => {
@@ -3480,10 +3481,12 @@ function IdlePage() {
       const cm = idle.currentMap;
       if (cm !== "gelius1" && cm !== "gelius2") return;
       if (gi.phase === "closed") {
-        setIdle((s) => ({ ...s, currentMap: "arena" }));
+        const ret = (geliusReturnMapRef.current ?? "arena") as IdleMapId;
+        setIdle((s) => ({ ...s, currentMap: ret }));
         setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
         setEnemies([]);
-        pushChat(`🐧 Evento Gelius terminou — retornando à Arena.`, "info");
+        geliusReturnMapRef.current = null;
+        pushChat(`🐧 Evento Gelius encerrado — teleportado de volta para ${IDLE_MAPS[ret].name}.`, "info");
         return;
       }
       if (gi.phase === "phase1" && cm === "gelius2") {
@@ -5290,9 +5293,11 @@ function IdlePage() {
                 <button
                   onClick={() => {
                     if (inEvent) { pushChat(`🐧 Evento Gelius — ${gi.phase === "phase1" ? "Onda 1" : "Onda 2"} · ${timeStr}`, "info"); return; }
+                    if (!isGeliusActive()) { pushChat(`🐧 Evento encerrado — aguarde o próximo ciclo.`, "info"); return; }
                     if (entriesLeft <= 0) { pushChat(`🐧 Você já usou suas 3 entradas de hoje no Gelius.`, "info"); return; }
                     consumeGeliusEntry();
                     const target: IdleMapId = gi.phase === "phase2" ? "gelius2" : "gelius1";
+                    geliusReturnMapRef.current = idle.currentMap;
                     setIdle((s) => ({ ...s, currentMap: target }));
                     setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
                     setEnemies([]);
