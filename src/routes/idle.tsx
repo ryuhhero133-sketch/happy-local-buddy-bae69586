@@ -330,9 +330,9 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
   deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
-  terry:    { name: "Terras de Terry",         diff: "Médio+",    bg: mapTerryUrl,     rate: 2.0, minLevel: 30, maxLevel: 70, element: "Terra", stars: 3, entryCrystals: 8 },
-  n2:       { name: "Planície de Terry",        diff: "Difícil",   bg: mapN2Url,        rate: 2.4, minLevel: 50, maxLevel: 100, element: "Terra", stars: 4, entryCrystals: 12 },
-  n3:       { name: "Confins de Terry",         diff: "Difícil+",  bg: mapN3Url,        rate: 2.8, minLevel: 80, maxLevel: 140, element: "Terra", stars: 5, entryCrystals: 18 },
+  terry:    { name: "Terras de Terry",         diff: "Elite",     bg: mapTerryUrl,     rate: 3.2, minLevel: 200, maxLevel: 400, element: "Terra", stars: 4, entryCrystals: 8 },
+  n2:       { name: "Planície de Terry",        diff: "Elite+",    bg: mapN2Url,        rate: 3.8, minLevel: 350, maxLevel: 550, element: "Terra", stars: 5, entryCrystals: 20 },
+  n3:       { name: "Confins de Terry",         diff: "Lendário",  bg: mapN3Url,        rate: 4.5, minLevel: 500, maxLevel: 700, element: "Terra", stars: 5, entryCrystals: 20 },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
   venofogo: { name: "Pântano em Chamas",       diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
 
@@ -1084,6 +1084,9 @@ function IdlePage() {
   const attackTargetIdRef = useRef<number | null>(null);
   const paralyzedUntilRef = useRef<number>(0);
   const [paralyzedUntil, setParalyzedUntil] = useState<number>(0);
+  const atkDebuffUntilRef = useRef<number>(0);
+  const poisonUntilRef = useRef<number>(0);
+  const mapEnterAtRef = useRef<number>(Date.now());
 
   useEffect(() => { attackTargetIdRef.current = attackTargetId; }, [attackTargetId]);
   // Ao trocar de líder (ou seu nível mudar muito), inimigos fora da faixa
@@ -2581,6 +2584,8 @@ function IdlePage() {
         const isCrit = Math.random() < critChance;
         let dmg = Math.floor((5 + leader.level * 0.8 + base.atk * 0.12 + Math.random() * 5) * (1 + idle.buffs.atk));
         if (isCrit) dmg = Math.floor(dmg * 1.8);
+        // n2 debuff: enquanto ativo, reduz -40% do ataque do jogador
+        if (Date.now() < atkDebuffUntilRef.current) dmg = Math.floor(dmg * 0.6);
         dmg = Math.max(1, Math.floor(dmg * playerDamageVsHighLevelMult(leader.level, target.level)));
 
         // Lunge: pokémon avança em direção ao inimigo
@@ -2599,6 +2604,25 @@ function IdlePage() {
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyDef = honeyBonusNow();
         let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
+
+        // ==== Efeitos por mapa (Terry / n2 / n3) ====
+        const mapNow = idle.currentMap;
+        if (mapNow === "terry" && Math.random() < 0.28) {
+          // Peçonha: se def do jogador for baixa, aplica DoT por 6s
+          const defTotal = (idle.buffs.def ?? 0) + honeyDef;
+          if (defTotal < 0.35) {
+            poisonUntilRef.current = Date.now() + 6000;
+            pushChat(`☠ Seu Pokémon foi ENVENENADO!`, "hit");
+          }
+        }
+        if (mapNow === "n2" && Math.random() < 0.20) {
+          atkDebuffUntilRef.current = Date.now() + 8000;
+          pushChat(`⬇ Ataque reduzido em 40% por 8s!`, "hit");
+        }
+        if (mapNow === "n3") {
+          eDmg = Math.floor(eDmg * 1.5);
+        }
+
 
         // ✦ Habilidades especiais de espécies fortes (crit / paralisar / fugir)
         const SPECIAL_ABILITY: Partial<Record<Species, { crit: number; para: number; flee: number }>> = {
@@ -2671,6 +2695,15 @@ function IdlePage() {
           if (nh <= 0) {
             pushFxAt(followerAtX, followerAtY - 70, "DESMAIOU!", "enemyDmg");
             pushChat(`Seu Pokémon desmaiou!`, "hit");
+            // n3: penalidade — perde 1 nível do líder e ouro
+            if (idle.currentMap === "n3") {
+              setTeam((tm) => tm.map((p, idx) => idx === 0 && p.level > 1 ? { ...p, level: p.level - 1, xp: 0 } : p));
+              setIdle((s) => {
+                const lose = Math.floor((s.bank.gold ?? 0) * 0.10);
+                pushChat(`💀 Confins de Terry: -1 nível e -${lose} ouro pela derrota.`, "hit");
+                return { ...s, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - lose) } };
+              });
+            }
           }
           return nh;
         });
@@ -2745,9 +2778,13 @@ function IdlePage() {
             if (it.id === "pokeball") continue;
             if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
           }
-          // Ultra Ball: apenas raro+ (rare/epic/legendary/mythic/mythic_shiny), 30% chance
+          // Ultra Ball: raro+, 30% padrão. Mapas Terry/n2/n3 têm chance elevada e Great Ball extra.
           const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
-          if (ultraEligible && Math.random() < 0.30) drops.push("ultraball");
+          const cm = idle.currentMap;
+          const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
+          const ultraChance = isTerryMap ? 0.65 : 0.30;
+          if (ultraEligible && Math.random() < ultraChance) drops.push("ultraball");
+          if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
 
           // XP para o líder + drena energia de TODOS do time
           setTeam((tm) => {
@@ -3196,6 +3233,37 @@ function IdlePage() {
   useEffect(() => {
     setEnemies((prev) => prev.filter((e) => e.sp !== "lugia"));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ==== Timer de permanência em n2/n3 (máx 3h → volta para Terry) ====
+  useEffect(() => {
+    mapEnterAtRef.current = Date.now();
+    atkDebuffUntilRef.current = 0;
+    poisonUntilRef.current = 0;
+    if (idle.currentMap !== "n2" && idle.currentMap !== "n3") return;
+    const cm = idle.currentMap;
+    const warn1 = setTimeout(() => pushChat(`⏳ ${IDLE_MAPS[cm].name}: 30min para você ser levado de volta a Terras de Terry.`, "info"), 2.5 * 60 * 60 * 1000);
+    const kick = setTimeout(() => {
+      setIdle((s) => ({ ...s, currentMap: "terry" }));
+      setTrainerPos({ x: 200, y: WORLD_H / 2 });
+      setEnemies([]);
+      pushChat(`⌛ Você excedeu 3h em ${IDLE_MAPS[cm].name}. Retornado para Terras de Terry.`, "cap");
+    }, 3 * 60 * 60 * 1000);
+    return () => { clearTimeout(warn1); clearTimeout(kick); };
+  }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ==== Peçonha (Terry) — DoT enquanto poisonUntilRef ativo ====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (Date.now() >= poisonUntilRef.current) return;
+      const leader = team[0]; if (!leader) return;
+      const maxHp = calcIdleMaxHp(leader);
+      const tick = Math.max(2, Math.floor(maxHp * 0.03));
+      setLeaderHp((h) => Math.max(0, h - tick));
+      const fx = followerStateRef.current;
+      pushFxAt(fx.x, fx.y - 30, `☠ -${tick}`, "enemyDmg");
+    }, 1500);
+    return () => clearInterval(iv);
+  }, [team]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ==== EVENTO PÁSSAROS LENDÁRIOS: Moltres / Zapdos / Articuno a cada 2h ====
   // Extremamente fortes, agressivos ao ver, captura minúscula (só ULTRA/MASTER).
@@ -3739,6 +3807,21 @@ function IdlePage() {
           if (leaderLv < 200) mapLvRange = [200, 225];
           else if (leaderLv < 250) mapLvRange = [leaderLv + 12, leaderLv + 32];
           else mapLvRange = [Math.max(250, leaderLv - 2), leaderLv + 18];
+        }
+        if (idle.currentMap === "terry") {
+          // Terras de Terry — Elite Lv 200-400 com pokémons peçonhentos
+          pool = ["arbok", "ekans", "venomoth", "venonat", "beedrill", "nidoking", "nidorina", "gloom", "oddish", "primeape", "machamp", "hariyama", "ursaring"] as Species[];
+          mapLvRange = [200, 400];
+        }
+        if (idle.currentMap === "n2") {
+          // Planície de Terry — Elite+ Lv 350-550, criaturas com debuff de ataque
+          pool = ["arbok", "venomoth", "nidoking", "machamp", "hariyama", "ursaring", "primeape", "gyarados", "arcanine", "kadabra", "persian"] as Species[];
+          mapLvRange = [350, 550];
+        }
+        if (idle.currentMap === "n3") {
+          // Confins de Terry — Lendário Lv 500-700, ataques fortes
+          pool = ["gyarados", "arcanine", "machamp", "nidoking", "ursaring", "hariyama", "arbok", "venomoth", "kadabra", "dragonair", "clefable", "magmortar", "raichu"] as Species[];
+          mapLvRange = [500, 700];
         }
         if (idle.currentMap === "deserto_purpura") {
           // Areias de Anúbis — deserto tóxico continuação do Ninho de Marimbondo
