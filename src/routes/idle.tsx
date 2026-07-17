@@ -3574,7 +3574,10 @@ function IdlePage() {
       // Lv 500+ míticos e Lugia: ULTRA muito difícil; escala com HP baixo
       const isUltra = usedBall.id === "ultraball";
       if (!isUltra) { chance = 0; }
-      else if (target.sp === "lugia") {
+      else if (target.sp === "dialga") {
+        // Dialga: menor chance do jogo — 1% fixo, apenas Ultra Ball
+        chance = 0.01;
+      } else if (target.sp === "lugia") {
         chance = hpPct > 0.15 ? 0 : 0.008; // só com HP < 15% e mesmo assim 0.8%
       } else if (target.level >= 500) {
         chance = hpPct > 0.25 ? 0.002 : 0.012; // Lv500+ míticos: 0.2%~1.2%
