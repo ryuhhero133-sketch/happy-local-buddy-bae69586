@@ -1847,7 +1847,7 @@ function IdlePage() {
     if (raw === "SHINYCHARI2026") {
       setIdle((s) => ({
         ...s,
-        crystals: Math.min(1000000, (s.crystals ?? 0) + 1000),
+        bank: { ...s.bank, crystals: Math.min(1000000, (s.bank?.crystals ?? 0) + 1000) },
         items: { ...s.items, ultraball: (s.items.ultraball ?? 0) + 100, egg_charizard: (s.items.egg_charizard ?? 0) + 1 },
         redeemedCodes: [...((s as any).redeemedCodes ?? []), raw],
       } as any));
