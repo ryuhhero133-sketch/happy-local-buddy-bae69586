@@ -143,7 +143,9 @@ export type Species =
   | "lugia" | "hariyama" | "ursaring"
   // Guardiões Anti-Paralisia
   | "ditto" | "electabuzz" | "gengar" | "hitmontop" | "magneton"
-  | "ditto_shiny" | "scizor" | "umbreon";
+  | "ditto_shiny" | "scizor" | "umbreon"
+  // Apex — bosses raros Lv 300-700 (crit alto, difícil de capturar)
+  | "infernape" | "krookodile" | "tyranitar" | "nidoking_shiny";
 
 
 
