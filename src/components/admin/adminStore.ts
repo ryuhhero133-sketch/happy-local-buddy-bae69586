@@ -15,7 +15,8 @@ export const SECRET_REWARD_CODE = "__DISABLED_REWARD__";
 export const SECRET_ADMIN_CODE = "__DISABLED_ADMIN__";
 export const SECRET_BETA_CODE = "__DISABLED_BETA__";
 export const SECRET_MASTERBALL_CODE = "__DISABLED_MASTER__";
-export const SECRET_ULTRA200_CODE = "ULTRABALL200X";
+export const SECRET_ULTRA200_CODE = "ULTRA2026";
+export const LEGACY_ULTRA200_CODES = ["ULTRA200", "ULTRABALL200X"];
 export const BETA_KEY = "rubym.betaCodeUsed";
 export const MASTERBALL_KEY = "rubym.masterballCodeUsed";
 export const ULTRA200_KEY = "rubym.ultra200CodeUsed";
@@ -303,7 +304,8 @@ export function tryRedeemCode(code: string):
   | { kind: "admin" }
   | { kind: "already-used" }
   | { kind: "invalid" } {
-  const c = code.trim();
+  const c = code.trim().toUpperCase().replace(/[\s\-_]/g, "");
+  const ultraCodes = [SECRET_ULTRA200_CODE, ...LEGACY_ULTRA200_CODES].map((x) => x.toUpperCase().replace(/[\s\-_]/g, ""));
   if (c === SECRET_REWARD_CODE) {
     if (isRewardUsed()) return { kind: "already-used" };
     return { kind: "reward", bundle: grantRewardBundle() };
@@ -316,7 +318,7 @@ export function tryRedeemCode(code: string):
     if (isMasterballUsed()) return { kind: "already-used" };
     return { kind: "masterball", bundle: grantMasterballBundle() };
   }
-  if (c === SECRET_ULTRA200_CODE) {
+  if (ultraCodes.includes(c)) {
     if (isUltra200Used()) return { kind: "already-used" };
     return { kind: "masterball", bundle: grantUltra200Bundle() };
   }
