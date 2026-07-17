@@ -404,7 +404,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
             const myOffer = offers.find(o => o.listing_id === r.id && o.buyer_id === (identity?.id ?? "") && o.status === "pending");
             return (
               <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
-                action={<button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>}
+                badge={r.offers_only ? "💬 Só ofertas" : undefined}
+                action={r.offers_only
+                  ? <div style={{ fontSize: 10, color: "#6bd4ff", fontWeight: 900, letterSpacing: 1, textAlign: "right" }}>SOMENTE<br/>OFERTAS</div>
+                  : <button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>}
                 footer={
                   <OfferBox
                     r={r} myOffer={myOffer}
