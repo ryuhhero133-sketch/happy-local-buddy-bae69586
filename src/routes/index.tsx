@@ -254,6 +254,16 @@ import ursaringAsset from "@/assets/ursaring.gif.asset.json";
 const lugiaGif = assetUrlFromJson(lugiaAsset);
 const hariyamaGif = assetUrlFromJson(hariyamaAsset);
 const ursaringGif = assetUrlFromJson(ursaringAsset);
+import dittoAsset from "@/assets/ditto.gif.asset.json";
+import electabuzzAsset from "@/assets/electabuzz.gif.asset.json";
+import gengarAsset from "@/assets/gengar.gif.asset.json";
+import hitmontopAsset from "@/assets/hitmontop.gif.asset.json";
+import magnetonAsset from "@/assets/magneton.gif.asset.json";
+const dittoGif = assetUrlFromJson(dittoAsset);
+const electabuzzGif = assetUrlFromJson(electabuzzAsset);
+const gengarGif = assetUrlFromJson(gengarAsset);
+const hitmontopGif = assetUrlFromJson(hitmontopAsset);
+const magnetonGif = assetUrlFromJson(magnetonAsset);
 
 
 const laprasGif = laprasAsset.url;
