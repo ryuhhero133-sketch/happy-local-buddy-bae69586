@@ -4251,6 +4251,24 @@ function IdlePage() {
       };
     });
   };
+  // Bundle de Ultra Ball pago em cristais: 1000 💎 = 20 unidades
+  const buyUltraBundle = () => {
+    setIdle((s) => {
+      const COST = 1000;
+      const QTY = 20;
+      if (s.bank.crystals < COST) {
+        pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info");
+        return s;
+      }
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${QTY} Ultra Ball`, "capture");
+      pushChat(`Comprou ${QTY} Ultra Ball por ${COST} 💎.`, "cap");
+      return {
+        ...s,
+        bank: { ...s.bank, crystals: s.bank.crystals - COST },
+        items: { ...s.items, ultraball: (s.items.ultraball ?? 0) + QTY },
+      };
+    });
+  };
   // ===== Carteira: câmbio ouro ↔ cristal =====
   // 1 💎 = 1000 ouro (compra); vende 1 💎 por 800 ouro (spread do câmbio)
   const exchange = (dir: "g2c" | "c2g", amount: number) => {
@@ -6656,6 +6674,7 @@ function IdlePage() {
               bank={idle.bank}
               buffs={idle.buffs}
               onBuyBall={buyBall}
+              onBuyUltraBundle={buyUltraBundle}
               onBuyBook={buyBook}
               orbTrades={ORB_TRADES}
               onTradeOrb={tradeForOrb}
@@ -8339,7 +8358,7 @@ const zoomBtn: React.CSSProperties = {
 // ============ Overlay das abas ============
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
-  bank, buffs, onBuyBall, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
+  bank, buffs, onBuyBall, onBuyUltraBundle, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode,
 
 }: {
@@ -8362,6 +8381,7 @@ function TabOverlay({
   bank: { gold: number; crystals: number };
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number };
   onBuyBall: (b: ShopBall) => void;
+  onBuyUltraBundle: () => void;
   onBuyBook: (bk: ShopBook) => void;
   onBuyPotion: (qty?: number) => void;
   onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
@@ -9286,6 +9306,43 @@ function TabOverlay({
               );
             })}
           </div>
+
+          <h3 style={{ color: "#c084fc", fontSize: 15, margin: "6px 0 10px" }}>Pacote de Ultra Ball — pago em cristais 💎</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
+            {(() => {
+              const COST = 1000, QTY = 20;
+              const owned = items.ultraball ?? 0;
+              const canBuy = bank.crystals >= COST;
+              const color = "#c084fc";
+              return (
+                <div style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                }}>
+                  <img src={ballUltraImg} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 10px ${color}bb)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>Pacote Ultra Ball ×{QTY}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>20 Ultra Ball — captura x3.5</div>
+                  <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned} Ultra Ball</div>
+                  <button
+                    onClick={() => onBuyUltraBundle()}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800,
+                      background: canBuy ? color : "#3a2a4a",
+                      color: canBuy ? "#0b0510" : "#6a5a7c",
+                      border: "none", borderRadius: 6,
+                      cursor: canBuy ? "pointer" : "not-allowed",
+                    }}
+                  >{canBuy ? "COMPRAR" : "SEM CRISTAIS"}</button>
+                </div>
+              );
+            })()}
+          </div>
+
 
           <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>🥚 Ovos — chocam Pokémon com raridade aleatória</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
