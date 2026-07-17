@@ -6200,6 +6200,15 @@ function IdlePage() {
                     return;
                   }
                 }
+                if (targetMap.entryCrystals && idle.currentMap !== g.target) {
+                  const cost = targetMap.entryCrystals;
+                  if (idle.bank.crystals < cost) {
+                    pushChat(`💎 ${targetMap.name} exige ${cost} cristais para entrar (você tem ${idle.bank.crystals}).`, "info");
+                    return;
+                  }
+                  setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - cost } }));
+                  pushChat(`💎 Pagou ${cost} cristais para entrar em ${targetMap.name}.`, "cap");
+                }
                 playClick();
                 goTo(targetMap.name, g.x, g.y, () => {
                   setIdle((s) => ({ ...s, currentMap: g.target }));
