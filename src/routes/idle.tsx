@@ -3661,8 +3661,9 @@ function IdlePage() {
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : 1;
       const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp);
-      const isAggro = elite || Math.random() < 0.18;
-      const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60);
+      const isAggro = true; // todos os pokémon selvagens agora são agressivos
+      const aggroR = elite ? 300 : 220 + Math.floor(Math.random() * 60);
+
       return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, eventLegendary: isMythicRoamer };
 
     }
