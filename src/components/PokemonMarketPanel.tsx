@@ -704,3 +704,9 @@ const btnRed: React.CSSProperties = {
   background: "linear-gradient(180deg, #ff5a5a, #8a1a1a)", color: "#fff",
   border: "1px solid #ffb8b8", borderRadius: 8, cursor: "pointer",
 };
+const btnBlue: React.CSSProperties = {
+  padding: "8px 14px", fontSize: 11, fontWeight: 900, letterSpacing: 1,
+  background: "linear-gradient(180deg, #6bd4ff, #1a5a8a)", color: "#0b0510",
+  border: "1px solid #b8ecff", borderRadius: 8, cursor: "pointer",
+  boxShadow: "0 3px 8px rgba(26,90,138,0.5)",
+};
