@@ -3561,9 +3561,16 @@ function IdlePage() {
   };
 
   // Lança bola manualmente em um inimigo (clique)
-  const throwBallAt = (enemyId: number) => {
+   const throwBallAt = (enemyId: number) => {
     const target = enemies.find((e) => e.id === enemyId);
     if (!target || target.hp <= 0) return;
+    // Evento Gelius: apenas ditto/gengar/magmar capturáveis
+    const curMap = idle.currentMap;
+    if ((curMap === "gelius1" || curMap === "gelius2") && !GELIUS_CAPTURABLE.has(target.sp)) {
+      pushFxAt(target.x, target.y - 60, "Não pode capturar no evento!", "enemyDmg");
+      pushChat(`⚠ Neste evento só é possível capturar Ditto, Gengar e Magmar.`, "info");
+      return;
+    }
     const abCfg = autoBattleRef.current;
     const pref = abCfg?.preferredBall ?? "auto";
     // seleciona bola
