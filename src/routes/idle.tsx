@@ -236,6 +236,10 @@ import infernapeAsset from "@/assets/infernape.gif.asset.json";
 import krookodileAsset from "@/assets/krookodile.gif.asset.json";
 import tyranitarAsset from "@/assets/tyranitar.gif.asset.json";
 import nidokingShinyAsset from "@/assets/nidoking-shiny.gif.asset.json";
+import dialgaAsset from "@/assets/dialga.gif.asset.json";
+import rapidashAsset from "@/assets/rapidash.gif.asset.json";
+import rapidashShinyAsset from "@/assets/rapidash-shiny.gif.asset.json";
+import skarmoryAsset from "@/assets/skarmory.gif.asset.json";
 const lugiaUrl = assetUrlFromJson(lugiaAsset);
 const hariyamaUrl = assetUrlFromJson(hariyamaAsset);
 const ursaringUrl = assetUrlFromJson(ursaringAsset);
@@ -251,6 +255,10 @@ const infernapeUrl = assetUrlFromJson(infernapeAsset);
 const krookodileUrl = assetUrlFromJson(krookodileAsset);
 const tyranitarUrl = assetUrlFromJson(tyranitarAsset);
 const nidokingShinyUrl = assetUrlFromJson(nidokingShinyAsset);
+const dialgaUrl = assetUrlFromJson(dialgaAsset);
+const rapidashUrl = assetUrlFromJson(rapidashAsset);
+const rapidashShinyUrl = assetUrlFromJson(rapidashShinyAsset);
+const skarmoryUrl = assetUrlFromJson(skarmoryAsset);
 const moltresUrl = assetUrlFromJson(moltresAsset);
 const zapdosUrl = assetUrlFromJson(zapdosAsset);
 const articunoUrl = assetUrlFromJson(articunoAsset);
@@ -431,6 +439,7 @@ const GIF: Partial<Record<Species, string>> = {
   ditto: dittoUrl, electabuzz: electabuzzUrl, gengar: gengarUrl, hitmontop: hitmontopUrl, magneton: magnetonUrl,
   ditto_shiny: dittoShinyUrl, scizor: scizorUrl, umbreon: umbreonUrl,
   infernape: infernapeUrl, krookodile: krookodileUrl, tyranitar: tyranitarUrl, nidoking_shiny: nidokingShinyUrl,
+  dialga: dialgaUrl, rapidash: rapidashUrl, rapidash_shiny: rapidashShinyUrl, skarmory: skarmoryUrl,
   moltres: moltresUrl, zapdos: zapdosUrl, articuno: articunoUrl,
 };
 
@@ -506,6 +515,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   ditto_shiny: "normal", scizor: "fighting", umbreon: "psychic",
   // Apex bosses
   infernape: "fire", krookodile: "rock", tyranitar: "rock", nidoking_shiny: "poison",
+  dialga: "psychic", rapidash: "fire", rapidash_shiny: "fire", skarmory: "flying",
 
 
 } as Record<string, ElementFx>;
@@ -2754,6 +2764,11 @@ function IdlePage() {
           krookodile:     { crit: 0.40, para: 0.08, flee: 0 },
           tyranitar:      { crit: 0.48, para: 0.12, flee: 0 },
           nidoking_shiny: { crit: 0.55, para: 0.20, flee: 0.05 },
+          rapidash:       { crit: 0.30, para: 0.04, flee: 0.08 },
+          rapidash_shiny: { crit: 0.38, para: 0.06, flee: 0.10 },
+          skarmory:       { crit: 0.32, para: 0.10, flee: 0 },
+          // Dialga — edição especial: crit devastador, paraliza, foge fácil
+          dialga:         { crit: 0.65, para: 0.40, flee: 0.25 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
@@ -3982,8 +3997,24 @@ function IdlePage() {
       // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
       const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic", "darkrai"];
       const currentRoamers = enemies.filter((e) => e.eventLegendary && e.level >= 400).length;
-      const isMythicRoamer = currentRoamers === 0 && Math.random() < 0.004;
-      if (isMythicRoamer) {
+      // ✨ EVENTO ESPECIAL DIALGA — Lv 800, a cada 3 horas (persistente via localStorage)
+      // Máx 1 no mapa. Foge fácil, crit brutal, captura só via ultraball (super difícil).
+      const DIALGA_INTERVAL_MS = 3 * 60 * 60 * 1000;
+      const dialgaOnMap = enemies.some((e) => e.sp === "dialga");
+      let isDialgaEvent = false;
+      try {
+        const last = Number(localStorage.getItem("dialga_last_spawn_ms") || 0);
+        if (!dialgaOnMap && !currentRoamers && Date.now() - last >= DIALGA_INTERVAL_MS && Math.random() < 0.02) {
+          isDialgaEvent = true;
+          localStorage.setItem("dialga_last_spawn_ms", String(Date.now()));
+        }
+      } catch {}
+      const isMythicRoamer = !isDialgaEvent && currentRoamers === 0 && Math.random() < 0.004;
+      if (isDialgaEvent) {
+        sp = "dialga";
+        forcedRarity = "mythic_shiny";
+        mapLvRange = [800, 800];
+      } else if (isMythicRoamer) {
         sp = MYTHIC_ROAMERS[Math.floor(Math.random() * MYTHIC_ROAMERS.length)];
         forcedRarity = "mythic_shiny";
         mapLvRange = [500, 500];
@@ -4000,8 +4031,9 @@ function IdlePage() {
         lv = Math.max(lo, Math.min(hi, lv));
       }
       const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
-      if (hardCap != null && !isMythicRoamer) lv = Math.min(lv, hardCap);
+      if (hardCap != null && !isMythicRoamer && !isDialgaEvent) lv = Math.min(lv, hardCap);
       if (isMythicRoamer) lv = 500;
+      if (isDialgaEvent) lv = 800;
       // Épico só aparece quando o líder chega ao nível 50.
       const allowEpic = leaderLv >= 50;
       if (forcedRarity === "epic" && !allowEpic) forcedRarity = "rare";
@@ -4010,7 +4042,7 @@ function IdlePage() {
         pet = makePet(sp, lv, "rare");
       }
       // ★ POKÉMON RIDER: 1.2% de chance — muito acima do nível do líder, dá MUITO xp
-      const isRider = !isMythicRoamer && Math.random() < 0.012 && !mapLvRange;
+      const isRider = !isMythicRoamer && !isDialgaEvent && Math.random() < 0.012 && !mapLvRange;
       if (isRider) {
         const boost = 25 + Math.floor(Math.random() * 21); // +25..+45
         lv = leaderLv + boost;
@@ -4021,7 +4053,7 @@ function IdlePage() {
       // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
       // Raridade varia de comum a mítico.
       const GUARDIAN_MONS: Species[] = ["ditto", "ditto_shiny", "scizor", "umbreon"];
-      const guardianEligible = !isMythicRoamer && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
+      const guardianEligible = !isMythicRoamer && !isDialgaEvent && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
       const isGuardian = guardianEligible && Math.random() < 0.008;
       if (isGuardian) {
         sp = GUARDIAN_MONS[Math.floor(Math.random() * GUARDIAN_MONS.length)];
@@ -4043,9 +4075,12 @@ function IdlePage() {
         { sp: "krookodile",     minLv: 350, rarityFloor: "epic" },
         { sp: "tyranitar",      minLv: 500, rarityFloor: "legendary" },
         { sp: "nidoking_shiny", minLv: 600, rarityFloor: "mythic" },
+        { sp: "rapidash",       minLv: 300, rarityFloor: "epic" },
+        { sp: "rapidash_shiny", minLv: 400, rarityFloor: "legendary" },
+        { sp: "skarmory",       minLv: 350, rarityFloor: "legendary" },
       ];
       const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
-      const apexEligible = !isMythicRoamer && !isRider && !isGuardian && apexPool.length > 0;
+      const apexEligible = !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && apexPool.length > 0;
       // 0.6% chance quando elegível (aparição escassa)
       const isApex = apexEligible && Math.random() < 0.006;
       if (isApex) {
@@ -4062,7 +4097,7 @@ function IdlePage() {
       }
       const baseHp = calcIdleMaxHp(pet);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
-      const roamerHpMult = isMythicRoamer ? 6 : 1;
+      const roamerHpMult = isMythicRoamer ? 6 : isDialgaEvent ? 12 : 1;
       const guardianHpMult = isGuardian ? 2.2 : 1;
       const apexHpMult = isApex ? 4.5 : 1;
       const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult);
@@ -4080,7 +4115,7 @@ function IdlePage() {
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
       }
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex, apex: isApex, eventLegendary: isMythicRoamer, disguise, revealed: false };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent, disguise, revealed: false };
 
 
     }
