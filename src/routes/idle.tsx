@@ -2767,9 +2767,14 @@ function IdlePage() {
         });
 
 
-        const next = prev.map((e) => e.id === target.id
-          ? { ...e, hp: e.hp - dmg, face: (trainerPos.x < e.x ? "left" : "right") as "left" | "right" }
-          : e);
+        const next = prev.map((e) => {
+          if (e.id !== target.id) return e;
+          const wasCamou = !!(e.disguise && !e.revealed);
+          if (wasCamou) {
+            pushChat(`🎭 A camuflagem falhou! Era um ${e.sp === "ditto_shiny" ? "DITTO ✨ SHINY" : "DITTO"}!`, "info");
+          }
+          return { ...e, hp: e.hp - dmg, revealed: e.disguise ? true : e.revealed, face: (trainerPos.x < e.x ? "left" : "right") as "left" | "right" };
+        });
         const killedNow = next.find((e) => e.id === target.id && e.hp <= 0);
         if (killedNow) {
           const expActive = !!(idle.buffs.expMultUntil && Date.now() < idle.buffs.expMultUntil);
