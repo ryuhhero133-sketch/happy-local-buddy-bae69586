@@ -8869,9 +8869,11 @@ function TabOverlay({
         const nowMs = Date.now();
         const bookActive = !!(buffs?.expMultUntil && nowMs < buffs.expMultUntil);
         const orbActive = !!(buffs?.orbUntil && nowMs < buffs.orbUntil);
+        const honeyActive = !!(buffs?.honeyUntil && nowMs < buffs.honeyUntil);
         const bookPct = bookActive ? Math.round((buffs?.expMult ?? 0) * 100) : 0;
         const orbPct = orbActive ? Math.round((buffs?.orbMult ?? 0) * 100) : 0;
-        const totalExpPct = bookPct + orbPct;
+        const honeyPct = honeyActive ? 10 : 0;
+        const totalExpPct = bookPct + orbPct + honeyPct;
         const fmtTime = (ms: number) => {
           const s = Math.max(0, Math.floor(ms / 1000));
           const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
@@ -8885,7 +8887,7 @@ function TabOverlay({
               <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
-            {(bookActive || orbActive) && (
+            {(bookActive || orbActive || honeyActive) && (
               <div style={{ background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 8, padding: 10, marginBottom: 14 }}>
                 <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Composição EXP:</div>
                 {bookActive && (
@@ -8900,6 +8902,12 @@ function TabOverlay({
                     <span style={{ color: "#c084fc", fontWeight: 700 }}>+{orbPct}%</span>
                   </div>
                 )}
+                {honeyActive && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#ffe9a8", padding: "3px 0" }}>
+                    <span>🍯 Incenso de Mel <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyUntil! - nowMs)})</span></span>
+                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+{honeyPct}% drop/xp/def/vel</span>
+                  </div>
+                )}
                 <div style={{ borderTop: "1px solid #3a2e58", marginTop: 6, paddingTop: 6, display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
                   <span style={{ color: "#f5cf6b" }}>Total EXP</span>
                   <span style={{ color: "#ffd94d" }}>+{totalExpPct}%</span>
@@ -8907,7 +8915,7 @@ function TabOverlay({
               </div>
             )}
             <div style={{ color: "#b8a8c8", fontSize: 12, lineHeight: 1.5 }}>
-              Livros e Orbs de EXP <strong style={{ color: "#f5cf6b" }}>somam</strong> enquanto ambos estão ativos. Quando o tempo do Orb acabar, ele sai e só o Livro (se ativo) continua.
+              Livros, Orbs e Incenso de Mel <strong style={{ color: "#f5cf6b" }}>somam</strong> enquanto ativos. Quando cada tempo acaba, o bônus daquela fonte sai.
             </div>
           </div>
         );
