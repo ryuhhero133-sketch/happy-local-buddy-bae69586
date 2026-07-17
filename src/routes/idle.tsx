@@ -6131,7 +6131,50 @@ function IdlePage() {
                       }} />
                     </>
                   )}
+                  {e.menace && (
+                    <>
+                      {/* Aura preta com miolo púrpura */}
+                      <div style={{
+                        position: "absolute", inset: -80, borderRadius: "50%",
+                        background: "radial-gradient(circle, rgba(60,0,90,0.55) 0%, rgba(0,0,0,0.75) 45%, transparent 78%)",
+                        filter: "blur(6px)",
+                        animation: "pulse 1.6s ease-in-out infinite",
+                        pointerEvents: "none", zIndex: -1,
+                      }} />
+                      {/* Anel de estrelas girando */}
+                      <div style={{
+                        position: "absolute", inset: -46, borderRadius: "50%",
+                        border: "2px solid rgba(180,120,255,0.55)",
+                        boxShadow: "0 0 30px rgba(0,0,0,0.9), inset 0 0 30px rgba(80,0,120,0.6)",
+                        animation: "spin 6s linear infinite",
+                        pointerEvents: "none", zIndex: -1,
+                      }} />
+                      {/* Estrelas orbitando */}
+                      {[0,1,2,3,4,5,6,7].map((i) => (
+                        <div key={`ms${i}`} style={{
+                          position: "absolute", left: "50%", top: "50%",
+                          transform: `translate(-50%,-50%) rotate(${i*45}deg) translateY(-46px)`,
+                          color: "#e0b3ff", fontSize: 12, fontWeight: 900,
+                          textShadow: "0 0 4px #000, 0 0 8px #7a00b8",
+                          pointerEvents: "none", zIndex: -1,
+                          animation: "pulse 1.2s ease-in-out infinite",
+                        }}>✦</div>
+                      ))}
+                    </>
+                  )}
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
+                  {e.menace && (
+                    <div style={{
+                      position: "absolute", top: -52, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      color: "#e0b3ff",
+                      fontSize: 12, fontWeight: 900, lineHeight: 1,
+                      textShadow: "1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000, 0 0 10px #7a00b8",
+                      whiteSpace: "nowrap", pointerEvents: "none",
+                      filter: "drop-shadow(0 0 4px #000)",
+                      animation: "pulse 1s ease-in-out infinite",
+                    }}>✦✦✦✦✦✦✦✦✦✦<br/><span style={{ fontSize: 9, color: "#ffb3ff" }}>? ? ?</span></div>
+                  )}
 
                   {e.rider && (
                     <div style={{
