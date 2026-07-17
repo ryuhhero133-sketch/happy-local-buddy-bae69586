@@ -4097,7 +4097,7 @@ function IdlePage() {
       }
       const baseHp = calcIdleMaxHp(pet);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
-      const roamerHpMult = isMythicRoamer ? 6 : 1;
+      const roamerHpMult = isMythicRoamer ? 6 : isDialgaEvent ? 12 : 1;
       const guardianHpMult = isGuardian ? 2.2 : 1;
       const apexHpMult = isApex ? 4.5 : 1;
       const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult);
