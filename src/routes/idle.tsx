@@ -2323,8 +2323,11 @@ function IdlePage() {
           if (maxId >= enemyIdRef.current) enemyIdRef.current = maxId + 1;
           const now = Date.now();
           if (snap.paralyzedUntil > now) {
-            paralyzedUntilRef.current = snap.paralyzedUntil;
-            setParalyzedUntil(snap.paralyzedUntil);
+            // Cap defensivo: no máximo 20s a partir de agora ao rehidratar,
+            // pra snapshots antigos (paralisia de 60s+) não travarem o jogador.
+            const capped = Math.min(snap.paralyzedUntil, now + 20_000);
+            paralyzedUntilRef.current = capped;
+            setParalyzedUntil(capped);
           }
           if (snap.atkDebuffUntil > now) atkDebuffUntilRef.current = snap.atkDebuffUntil;
           if (snap.poisonUntil > now) poisonUntilRef.current = snap.poisonUntil;
