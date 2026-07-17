@@ -272,6 +272,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   const doBuy = async (r: ListingRow) => {
     if (!identity?.id) return;
     if (r.seller_id === identity.id) return;
+    if (r.offers_only) { pushChat("Este anúncio aceita apenas ofertas.", "info"); return; }
     if (claimedBuyerRef.current.has(r.id)) return; // já processado nesta sessão
     const have = r.currency === "gold" ? gold : crystals;
     if (have < r.price) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente.`, "info"); return; }
