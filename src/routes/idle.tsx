@@ -690,12 +690,14 @@ type IdleState = {
   craftPoints?: number; // pontos obtidos ao fragmentar pokémons da coleção
   items: Record<string, number>;
   bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string }; // livros de xp/vip são temporários (1h); honey = incenso de mel 10min; orb = boost independente (stack com livro)
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro)
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
+  // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
+  hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[] };
