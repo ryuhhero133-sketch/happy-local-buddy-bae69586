@@ -387,6 +387,9 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_fogo:         { name: "Vale Ígneo",        diff: "Mítico+",    bg: mapPedreiraCavernaUrl, rate: 8.0, minLevel: 330, maxLevel: 420, element: "Fogo",   stars: 7, overlay: "rgba(255,95,45,0.45)" },
   vulcao_ativo:      { name: "Vulcão Ativo",      diff: "PRIMORDIAL", bg: mapVictoryRoadUrl,     rate: 9.0, minLevel: 400, maxLevel: 470, element: "Fogo",   stars: 8 },
   nucleo_primordial: { name: "Núcleo Primordial", diff: "PRIMORDIAL", bg: mapVenenoUrl,          rate: 10.0, minLevel: 460, maxLevel: 500, element: "Misto", stars: 8 },
+  // ═══ EVENTO GELIUS (a cada 2h, 10min de duração, troca de fase aos 5min) ═══
+  gelius1: { name: "Gelius — Onda 1", diff: "EVENTO", bg: assetUrlFromJson(mapGelius1Asset), rate: 5.0, minLevel: 1,   maxLevel: 200,  element: "Gelo/Evento", stars: 5 },
+  gelius2: { name: "Gelius — Onda 2", diff: "EVENTO", bg: assetUrlFromJson(mapGelius2Asset), rate: 7.0, minLevel: 400, maxLevel: 1000, element: "Gelo/Evento", stars: 8 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
