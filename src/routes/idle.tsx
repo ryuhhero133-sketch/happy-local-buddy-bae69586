@@ -1842,7 +1842,19 @@ function IdlePage() {
   const redeemCrystalCode = () => {
     const raw = normalizeCode(codeInput);
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
-    // Todos os códigos promocionais foram encerrados.
+    const used = (idleRef.current as any).redeemedCodes ?? [];
+    if (used.includes(raw)) { setCodeMsg({ kind: "err", text: "Código já utilizado." }); return; }
+    if (raw === "SHINYCHARI2026") {
+      setIdle((s) => ({
+        ...s,
+        bank: { ...s.bank, crystals: Math.min(1000000, (s.bank?.crystals ?? 0) + 1000) },
+        items: { ...s.items, ultraball: (s.items.ultraball ?? 0) + 100, egg_charizard: (s.items.egg_charizard ?? 0) + 1 },
+        redeemedCodes: [...((s as any).redeemedCodes ?? []), raw],
+      } as any));
+      setCodeInput("");
+      setCodeMsg({ kind: "ok", text: "🎉 +1 Ovo Mítico Charizard Shiny, +1000 Cristais e +100 Ultra Balls!" });
+      return;
+    }
     setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
 
