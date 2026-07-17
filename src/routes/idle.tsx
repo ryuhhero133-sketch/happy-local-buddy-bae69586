@@ -5705,7 +5705,7 @@ function IdlePage() {
                       animation: "pulse 1.2s ease-in-out infinite",
                     }}>✦</div>
                   )}
-                  {e.guardian && !e.rider && (
+                  {e.guardian && !e.rider && !camouflaged && (
                     <div style={{
                       position: "absolute", top: -38, left: "50%",
                       transform: `translateX(-50%) scaleX(${sx})`,
