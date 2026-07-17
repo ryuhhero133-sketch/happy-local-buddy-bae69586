@@ -6105,9 +6105,11 @@ function IdlePage() {
                   transform: `translate(-50%, -50%) scaleX(${sx})`,
                   opacity: dead ? 0 : 1,
                   transition: "opacity 400ms, transform 160ms",
-                  filter: showAura
-                    ? `drop-shadow(0 0 ${auraStrength}px ${auraColor}) drop-shadow(0 0 ${auraStrength / 2}px ${auraColor}) drop-shadow(0 3px 2px rgba(0,0,0,0.55))`
-                    : (e.aggressive ? "drop-shadow(0 0 6px rgba(255,60,60,0.9)) drop-shadow(0 3px 2px rgba(0,0,0,0.55))" : "drop-shadow(0 3px 2px rgba(0,0,0,0.55))"),
+                  filter: e.menace
+                    ? "drop-shadow(0 0 22px rgba(120,0,180,0.95)) drop-shadow(0 0 44px rgba(0,0,0,0.9)) drop-shadow(0 3px 2px rgba(0,0,0,0.7))"
+                    : (showAura
+                      ? `drop-shadow(0 0 ${auraStrength}px ${auraColor}) drop-shadow(0 0 ${auraStrength / 2}px ${auraColor}) drop-shadow(0 3px 2px rgba(0,0,0,0.55))`
+                      : (e.aggressive ? "drop-shadow(0 0 6px rgba(255,60,60,0.9)) drop-shadow(0 3px 2px rgba(0,0,0,0.55))" : "drop-shadow(0 3px 2px rgba(0,0,0,0.55))")),
                   zIndex: Math.round(e.y),
                   cursor: dead ? "default" : "pointer",
                 }}>
