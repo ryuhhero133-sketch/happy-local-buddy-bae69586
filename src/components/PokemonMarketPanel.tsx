@@ -293,6 +293,68 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     void refresh();
   };
 
+  const doMakeOffer = async (r: ListingRow, amount: number) => {
+    if (!identity?.id) { pushChat("Faça login pra ofertar.", "info"); return; }
+    if (r.seller_id === identity.id) return;
+    if (amount < 1 || amount > 100_000_000) { pushChat("Valor inválido.", "info"); return; }
+    if (amount >= r.price) { pushChat(`Oferta precisa ser menor que ${r.price.toLocaleString()}.`, "info"); return; }
+    const have = r.currency === "gold" ? gold : crystals;
+    if (have < amount) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente pra cobrir a oferta.`, "info"); return; }
+    // Só uma oferta pending por comprador+anúncio
+    const existing = offers.find(o => o.listing_id === r.id && o.buyer_id === identity.id && o.status === "pending");
+    if (existing) { pushChat("Você já tem uma oferta ativa nesse anúncio. Cancele antes de refazer.", "info"); return; }
+    const { error } = await supabase.from("pokemon_market_offers").insert({
+      listing_id: r.id, seller_id: r.seller_id,
+      buyer_id: identity.id, buyer_name: identity.name || "Treinador",
+      amount, currency: r.currency, status: "pending",
+    });
+    if (error) {
+      const msg = String(error.message || "");
+      if (/does not exist|relation.*pokemon_market_offers/i.test(msg)) {
+        pushChat("⚠ Ofertas ainda não ativadas no banco. Rode o SQL SUPABASE_MARKETPLACE_OFFERS.sql.", "info");
+      } else {
+        pushChat(`Falha ao ofertar: ${msg}`, "info");
+      }
+      return;
+    }
+    pushChat(`💬 Oferta de ${amount.toLocaleString()} ${r.currency === "gold" ? "ouro" : "cristal"} enviada.`, "cap");
+    void refresh();
+  };
+
+  const doAcceptOffer = async (o: OfferRow, r: ListingRow) => {
+    if (!identity?.id || r.seller_id !== identity.id) return;
+    // Aceita a oferta E marca o anúncio vendido, tudo num só passo por linha.
+    const { data: sold, error: e1 } = await supabase.from("pokemon_market").update({
+      status: "sold",
+      buyer_id: o.buyer_id,
+      buyer_name: o.buyer_name,
+      price: o.amount,
+      sold_at: new Date().toISOString(),
+      via_offer: true,
+    }).eq("id", r.id).eq("status", "active").is("buyer_id", null).select("id").maybeSingle();
+    if (e1 || !sold) { pushChat("Não foi possível aceitar (anúncio pode ter sido vendido).", "info"); void refresh(); return; }
+    await supabase.from("pokemon_market_offers").update({ status: "accepted" }).eq("id", o.id);
+    // rejeita as outras ofertas do mesmo anúncio
+    await supabase.from("pokemon_market_offers").update({ status: "rejected" })
+      .eq("listing_id", r.id).eq("status", "pending").neq("id", o.id);
+    pushChat(`✅ Oferta de ${o.buyer_name} aceita por ${o.amount.toLocaleString()} ${o.currency === "gold" ? "ouro" : "cristal"}.`, "cap");
+    void refresh();
+  };
+
+  const doRejectOffer = async (o: OfferRow) => {
+    if (!identity?.id || o.seller_id !== identity.id) return;
+    await supabase.from("pokemon_market_offers").update({ status: "rejected" }).eq("id", o.id).eq("status", "pending");
+    pushChat(`Oferta de ${o.buyer_name} recusada.`, "info");
+    void refresh();
+  };
+
+  const doCancelOffer = async (o: OfferRow) => {
+    if (!identity?.id || o.buyer_id !== identity.id) return;
+    await supabase.from("pokemon_market_offers").update({ status: "cancelled" }).eq("id", o.id).eq("status", "pending");
+    pushChat("Oferta cancelada.", "info");
+    void refresh();
+  };
+
   return (
     <div style={{ maxWidth: 1000 }}>
       <div style={{ background: "linear-gradient(180deg,#0f2b3d,#02141e)", border: "2px solid #6bd4ff66", borderRadius: 12, padding: 14, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
