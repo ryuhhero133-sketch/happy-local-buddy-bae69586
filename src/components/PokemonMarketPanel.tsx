@@ -457,6 +457,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
           selUid={selUid} setSelUid={setSelUid}
           price={price} setPrice={setPrice}
           currency={currency} setCurrency={setCurrency}
+          offersOnly={offersOnly} setOffersOnly={setOffersOnly}
           isVip={isVip} cooldownMs={cancelRemaining}
           onSubmit={() => void doList()}
         />
