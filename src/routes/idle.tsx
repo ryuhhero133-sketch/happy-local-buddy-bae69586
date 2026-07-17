@@ -100,6 +100,7 @@ import mapCaveAsset from "@/assets/map-cave1.png.asset.json";
 import mapStoneAsset from "@/assets/map-stone.jpg.asset.json";
 import mapTerraAsset from "@/assets/map-terra-hornet.jpg.asset.json";
 import mapDesertoPurpuraAsset from "@/assets/map-deserto-purpura.jpg.asset.json";
+import mapTerryAsset from "@/assets/map-terry.png.asset.json";
 import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
@@ -236,6 +237,7 @@ const mapCaveUrl = assetUrlFromJson(mapCaveAsset);
 const mapStoneUrl = assetUrlFromJson(mapStoneAsset);
 const mapTerraUrl = assetUrlFromJson(mapTerraAsset);
 const mapDesertoPurpuraUrl = assetUrlFromJson(mapDesertoPurpuraAsset);
+const mapTerryUrl = assetUrlFromJson(mapTerryAsset);
 const hornetCocoonUrl = assetUrlFromJson(hornetCocoonAsset);
 const fireLakeUrl = assetUrlFromJson(fireLakeAsset);
 const mapVenofogoOrangeUrl = assetUrlFromJson(mapVenofogoOrangeAsset);
@@ -302,7 +304,7 @@ const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
-  | "arena" | "terra" | "deserto_purpura" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
+  | "arena" | "terra" | "deserto_purpura" | "terry" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
   | "vulcao_ativo" | "nucleo_primordial";
@@ -318,6 +320,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
   deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
+  terry:    { name: "Terras de Terry",         diff: "Médio+",    bg: mapTerryUrl,     rate: 2.0, minLevel: 30, maxLevel: 70, element: "Terra", stars: 3, entryCrystals: 8 },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
   venofogo: { name: "Pântano em Chamas",       diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
 
@@ -6250,6 +6253,10 @@ function IdlePage() {
                 ],
                 deserto_purpura: [
                   { key: "to-terra", target: "terra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9873a" },
+                  { key: "to-terry", target: "terry", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
+                ],
+                terry: [
+                  { key: "to-deserto_purpura", target: "deserto_purpura", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
                 ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
