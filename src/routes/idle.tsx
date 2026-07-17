@@ -104,6 +104,10 @@ import mapDesertoPurpuraAsset from "@/assets/map-deserto-purpura.jpg.asset.json"
 import mapTerryAsset from "@/assets/map-terry.png.asset.json";
 import mapN2Asset from "@/assets/map-n2.png.asset.json";
 import mapN3Asset from "@/assets/map-n3.png.asset.json";
+import mapGelius1Asset from "@/assets/map-gelius-1.png.asset.json";
+import mapGelius2Asset from "@/assets/map-gelius-2.png.asset.json";
+import eventPenguinAsset from "@/assets/event-penguin-badge.png.asset.json";
+import { currentGeliusInfo, isGeliusActive, getGeliusEntries, canEnterGelius, consumeGeliusEntry, GELIUS_CAPTURABLE, GELIUS_PHASE1_POOL, GELIUS_PHASE2_POOL } from "@/game/geliusEvent";
 import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
@@ -348,6 +352,7 @@ const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
   | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
+  | "gelius1" | "gelius2"
   // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
   | "vulcao_ativo" | "nucleo_primordial";
@@ -382,6 +387,9 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_fogo:         { name: "Vale Ígneo",        diff: "Mítico+",    bg: mapPedreiraCavernaUrl, rate: 8.0, minLevel: 330, maxLevel: 420, element: "Fogo",   stars: 7, overlay: "rgba(255,95,45,0.45)" },
   vulcao_ativo:      { name: "Vulcão Ativo",      diff: "PRIMORDIAL", bg: mapVictoryRoadUrl,     rate: 9.0, minLevel: 400, maxLevel: 470, element: "Fogo",   stars: 8 },
   nucleo_primordial: { name: "Núcleo Primordial", diff: "PRIMORDIAL", bg: mapVenenoUrl,          rate: 10.0, minLevel: 460, maxLevel: 500, element: "Misto", stars: 8 },
+  // ═══ EVENTO GELIUS (a cada 2h, 10min de duração, troca de fase aos 5min) ═══
+  gelius1: { name: "Gelius — Onda 1", diff: "EVENTO", bg: assetUrlFromJson(mapGelius1Asset), rate: 5.0, minLevel: 1,   maxLevel: 200,  element: "Gelo/Evento", stars: 5 },
+  gelius2: { name: "Gelius — Onda 2", diff: "EVENTO", bg: assetUrlFromJson(mapGelius2Asset), rate: 7.0, minLevel: 400, maxLevel: 1000, element: "Gelo/Evento", stars: 8 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -2980,9 +2988,12 @@ function IdlePage() {
           const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
           const cm = idle.currentMap;
           const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
-          const ultraChance = isTerryMap ? 0.65 : 0.30;
-          if (ultraEligible && Math.random() < ultraChance) drops.push("ultraball");
+          const isGeliusMap = cm === "gelius1" || cm === "gelius2";
+          const ultraChance = isGeliusMap ? 0.85 : isTerryMap ? 0.65 : 0.30;
+          if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
           if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
+          // Evento Gelius: chance alta de cristal extra
+          // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
           // XP para o líder + drena energia de TODOS do time
           setTeam((tm) => {
@@ -3038,6 +3049,11 @@ function IdlePage() {
                   if (b && (newItems[b.id] ?? 0) > 0) { usedBall = b; break; }
                 }
               }
+            }
+            // Evento Gelius: só permite capturar espécies específicas (ditto/gengar/magmar)
+            const inGelius = s.currentMap === "gelius1" || s.currentMap === "gelius2";
+            if (inGelius && !GELIUS_CAPTURABLE.has(target.sp)) {
+              usedBall = null;
             }
             let captured = false;
             let capturedPet: PetInstance | null = null;
@@ -3200,7 +3216,7 @@ function IdlePage() {
               : newItems;
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + gold },
+              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + (isGeliusMap && Math.random() < 0.35 ? 1 : 0) },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
               tasks: nt2,
               items: itemsWithBalls,
@@ -3457,6 +3473,35 @@ function IdlePage() {
     return () => { clearTimeout(warn1); clearTimeout(kick); };
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ==== EVENTO GELIUS — tick 1s: troca fase aos 5min, expulsa aos 10min ====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const gi = currentGeliusInfo();
+      const cm = idle.currentMap;
+      if (cm !== "gelius1" && cm !== "gelius2") return;
+      if (gi.phase === "closed") {
+        setIdle((s) => ({ ...s, currentMap: "arena" }));
+        setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+        setEnemies([]);
+        pushChat(`🐧 Evento Gelius terminou — retornando à Arena.`, "info");
+        return;
+      }
+      if (gi.phase === "phase1" && cm === "gelius2") {
+        setIdle((s) => ({ ...s, currentMap: "gelius1" }));
+        setEnemies([]);
+        pushChat(`🐧 Voltando à Onda 1 do Gelius.`, "info");
+      } else if (gi.phase === "phase2" && cm === "gelius1") {
+        setIdle((s) => ({ ...s, currentMap: "gelius2" }));
+        setEnemies([]);
+        pushChat(`🐧 GELIUS — Onda 2 iniciou! Pokémons mais fortes agora.`, "cap");
+        playBonus();
+      }
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
+
   // ==== Peçonha (Terry) — DoT enquanto poisonUntilRef ativo ====
   useEffect(() => {
     const iv = setInterval(() => {
@@ -3548,9 +3593,16 @@ function IdlePage() {
   };
 
   // Lança bola manualmente em um inimigo (clique)
-  const throwBallAt = (enemyId: number) => {
+   const throwBallAt = (enemyId: number) => {
     const target = enemies.find((e) => e.id === enemyId);
     if (!target || target.hp <= 0) return;
+    // Evento Gelius: apenas ditto/gengar/magmar capturáveis
+    const curMap = idle.currentMap;
+    if ((curMap === "gelius1" || curMap === "gelius2") && !GELIUS_CAPTURABLE.has(target.sp)) {
+      pushFxAt(target.x, target.y - 60, "Não pode capturar no evento!", "enemyDmg");
+      pushChat(`⚠ Neste evento só é possível capturar Ditto, Gengar e Magmar.`, "info");
+      return;
+    }
     const abCfg = autoBattleRef.current;
     const pref = abCfg?.preferredBall ?? "auto";
     // seleciona bola
@@ -4042,6 +4094,16 @@ function IdlePage() {
         }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
+        // Evento Gelius: rosters específicos, sobrescreve pool
+        if (idle.currentMap === "gelius1") {
+          pool = [...GELIUS_PHASE1_POOL].filter(hasGif) as Species[];
+          if (pool.length === 0) pool = ["magmar", "gengar", "ditto"] as Species[];
+          mapLvRange = [50, 200];
+        } else if (idle.currentMap === "gelius2") {
+          pool = [...GELIUS_PHASE2_POOL].filter(hasGif) as Species[];
+          if (pool.length === 0) pool = ["gengar", "magmar", "tyranitar"] as Species[];
+          mapLvRange = [400, 1000];
+        }
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
 
@@ -5215,6 +5277,58 @@ function IdlePage() {
                 draggable={false}
               />
             </button>
+            {(() => {
+              const gi = currentGeliusInfo();
+              if (gi.phase === "closed") return null;
+              const mins = Math.floor(gi.msUntilChange / 60000);
+              const secs = Math.floor((gi.msUntilChange % 60000) / 1000);
+              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+              const entriesLeft = 3 - getGeliusEntries();
+              const inEvent = idle.currentMap === "gelius1" || idle.currentMap === "gelius2";
+              const canEnter = !inEvent && entriesLeft > 0;
+              return (
+                <button
+                  onClick={() => {
+                    if (inEvent) { pushChat(`🐧 Evento Gelius — ${gi.phase === "phase1" ? "Onda 1" : "Onda 2"} · ${timeStr}`, "info"); return; }
+                    if (entriesLeft <= 0) { pushChat(`🐧 Você já usou suas 3 entradas de hoje no Gelius.`, "info"); return; }
+                    consumeGeliusEntry();
+                    const target: IdleMapId = gi.phase === "phase2" ? "gelius2" : "gelius1";
+                    setIdle((s) => ({ ...s, currentMap: target }));
+                    setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+                    setEnemies([]);
+                    pushChat(`🐧 Entrou no evento GELIUS — ${IDLE_MAPS[target].name}!`, "cap");
+                    playBonus();
+                  }}
+                  title={inEvent
+                    ? `Evento ativo — ${timeStr} restante`
+                    : canEnter
+                      ? `Entrar no Gelius (${entriesLeft} entradas restantes hoje)`
+                      : "Sem entradas hoje"}
+                  style={{
+                    marginTop: 6,
+                    padding: 3,
+                    background: "linear-gradient(180deg,#0b2e4a,#082035)",
+                    border: "1.5px solid #7fd8ff",
+                    borderRadius: 10,
+                    boxShadow: "0 0 14px rgba(127,216,255,0.7), inset 0 0 6px rgba(180,235,255,0.4)",
+                    cursor: canEnter || inEvent ? "pointer" : "not-allowed",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    
+                  }}
+                >
+                  <img
+                    src={assetUrlFromJson(eventPenguinAsset)}
+                    alt="Evento Gelius"
+                    width={34}
+                    height={34}
+                    style={{ filter: "drop-shadow(0 0 6px rgba(127,216,255,0.9))" }}
+                    draggable={false}
+                  />
+                  <span style={{ fontSize: 9, color: "#d0f0ff", fontWeight: 800, lineHeight: 1 }}>{timeStr}</span>
+                  <span style={{ fontSize: 8, color: "#7fd8ff", fontWeight: 700, lineHeight: 1 }}>{gi.phase === "phase1" ? "ONDA 1" : "ONDA 2"}</span>
+                </button>
+              );
+            })()}
             {(() => {
               const orbUntil = idle.buffs.orbUntil ?? 0;
               const remain = orbUntil - Date.now();
@@ -6865,6 +6979,13 @@ function IdlePage() {
                 nucleo_primordial: [
                   { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
                   { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
+                ],
+                // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
+                gelius1: [
+                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7fd8ff" },
+                ],
+                gelius2: [
+                  { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
