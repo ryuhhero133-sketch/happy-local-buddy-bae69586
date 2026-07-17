@@ -2117,8 +2117,8 @@ function IdlePage() {
   const [rankRows, setRankRows] = useState<RankRow[]>([]);
   const [rankLoading, setRankLoading] = useState(false);
   const [rankMode, setRankMode] = useState<RankMode>("trainer");
-  const RANK_CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 horas — snapshot global
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v2_real_level_${mode}`;
+  const RANK_CACHE_TTL_MS = 60 * 1000; // 1 minuto — mostra o nível atual da galera
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v3_live_level_${mode}`;
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
