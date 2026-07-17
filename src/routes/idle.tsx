@@ -3951,7 +3951,7 @@ function IdlePage() {
       // 🖤 GUARDIÕES ANTI-PARALISIA — Ditto Shiny / Scizor / Umbreon
       // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
       // Raridade varia de comum a mítico.
-      const GUARDIAN_MONS: Species[] = ["ditto_shiny", "scizor", "umbreon"];
+      const GUARDIAN_MONS: Species[] = ["ditto", "ditto_shiny", "scizor", "umbreon"];
       const guardianEligible = !isMythicRoamer && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
       const isGuardian = guardianEligible && Math.random() < 0.008;
       if (isGuardian) {
