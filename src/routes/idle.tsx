@@ -3997,8 +3997,24 @@ function IdlePage() {
       // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
       const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic", "darkrai"];
       const currentRoamers = enemies.filter((e) => e.eventLegendary && e.level >= 400).length;
-      const isMythicRoamer = currentRoamers === 0 && Math.random() < 0.004;
-      if (isMythicRoamer) {
+      // ✨ EVENTO ESPECIAL DIALGA — Lv 800, a cada 3 horas (persistente via localStorage)
+      // Máx 1 no mapa. Foge fácil, crit brutal, captura só via ultraball (super difícil).
+      const DIALGA_INTERVAL_MS = 3 * 60 * 60 * 1000;
+      const dialgaOnMap = enemies.some((e) => e.sp === "dialga");
+      let isDialgaEvent = false;
+      try {
+        const last = Number(localStorage.getItem("dialga_last_spawn_ms") || 0);
+        if (!dialgaOnMap && !currentRoamers && Date.now() - last >= DIALGA_INTERVAL_MS && Math.random() < 0.02) {
+          isDialgaEvent = true;
+          localStorage.setItem("dialga_last_spawn_ms", String(Date.now()));
+        }
+      } catch {}
+      const isMythicRoamer = !isDialgaEvent && currentRoamers === 0 && Math.random() < 0.004;
+      if (isDialgaEvent) {
+        sp = "dialga";
+        forcedRarity = "mythic_shiny";
+        mapLvRange = [800, 800];
+      } else if (isMythicRoamer) {
         sp = MYTHIC_ROAMERS[Math.floor(Math.random() * MYTHIC_ROAMERS.length)];
         forcedRarity = "mythic_shiny";
         mapLvRange = [500, 500];
