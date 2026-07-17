@@ -3911,14 +3911,34 @@ function IdlePage() {
         if (hardCap != null) lv = Math.min(lv, hardCap + 50); // riders podem passar do cap
         pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
       }
+      // 🖤 GUARDIÕES ANTI-PARALISIA — Ditto Shiny / Scizor / Umbreon
+      // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
+      // Raridade varia de comum a mítico.
+      const GUARDIAN_MONS: Species[] = ["ditto_shiny", "scizor", "umbreon"];
+      const guardianEligible = !isMythicRoamer && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
+      const isGuardian = guardianEligible && Math.random() < 0.008;
+      if (isGuardian) {
+        sp = GUARDIAN_MONS[Math.floor(Math.random() * GUARDIAN_MONS.length)];
+        const rarityRoll = Math.random();
+        const gRarity: Rarity =
+          rarityRoll < 0.35 ? "common" :
+          rarityRoll < 0.60 ? "uncommon" :
+          rarityRoll < 0.80 ? "rare" :
+          rarityRoll < 0.93 ? "epic" :
+          rarityRoll < 0.99 ? "legendary" : "mythic";
+        const gLv = Math.max(100, leaderLv + Math.floor(Math.random() * 20) - 5);
+        pet = makePet(sp, gLv, gRarity);
+        lv = gLv;
+      }
       const baseHp = calcIdleMaxHp(pet);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp);
+      const guardianHpMult = isGuardian ? 2.2 : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult);
       const isAggro = true; // todos os pokémon selvagens agora são agressivos
       const aggroR = elite ? 300 : 220 + Math.floor(Math.random() * 60);
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, eventLegendary: isMythicRoamer };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian, eventLegendary: isMythicRoamer };
 
     }
     return null;
