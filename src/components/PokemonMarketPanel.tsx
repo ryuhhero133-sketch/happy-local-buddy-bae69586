@@ -687,6 +687,22 @@ function CreateListing(props: {
             style={{ width: "100%", padding: "8px 10px", background: "#0b0510", border: "1px solid #3a2a4a", borderRadius: 8, color: "#eadfe8", fontFamily: "monospace", fontSize: 14, fontWeight: 900 }} />
         </div>
 
+        <label style={{
+          display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
+          background: offersOnly ? "#0f2b3d" : "#0b0510",
+          border: `1px solid ${offersOnly ? "#6bd4ff" : "#3a2a4a"}`,
+          borderRadius: 8, padding: "8px 10px",
+        }}>
+          <input type="checkbox" checked={offersOnly} onChange={e => setOffersOnly(e.target.checked)}
+            style={{ accentColor: "#6bd4ff", width: 16, height: 16 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: offersOnly ? "#6bd4ff" : "#c8b8d0" }}>💬 SOMENTE OFERTAS</div>
+            <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 2 }}>
+              Bloqueia compra direta. O preço vira apenas referência — só vende se você aceitar uma oferta.
+            </div>
+          </div>
+        </label>
+
         <div style={{ fontSize: 10, color: "#8a7a9c", lineHeight: 1.5 }}>
           • Aparece pra todos em <b style={{ color: "#f5cf6b" }}>3 minutos</b>.<br/>
           • Cancelar tranca novos anúncios por 5 min.<br/>
