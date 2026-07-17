@@ -360,6 +360,10 @@ import psyduckAsset from "@/assets/psyduck.gif.asset.json";
 import venonatAsset from "@/assets/venonat.gif.asset.json";
 import venomothAsset from "@/assets/venomoth.gif.asset.json";
 import zubatAsset from "@/assets/zubat.gif.asset.json";
+import infernapeAsset from "@/assets/infernape.gif.asset.json";
+import krookodileAsset from "@/assets/krookodile.gif.asset.json";
+import tyranitarAsset from "@/assets/tyranitar.gif.asset.json";
+import nidokingShinyAsset from "@/assets/nidoking-shiny.gif.asset.json";
 const abraGif = abraAsset.url, kadabraGif = kadabraAsset.url, arcanineGif = arcanineAsset.url,
   growlitheGif = growlitheAsset.url, bellsproutGif = bellsproutAsset.url, gloomGif = gloomAsset.url,
   oddishGif = oddishAsset.url, clefableGif = clefableAsset.url, clefairyGif = clefairyAsset.url,
@@ -370,7 +374,9 @@ const abraGif = abraAsset.url, kadabraGif = kadabraAsset.url, arcanineGif = arca
   nidorinaGif = nidorinaAsset.url, ninetalesGif = ninetalesAsset.url, parasGif = parasAsset.url,
   parasectGif = parasectAsset.url, poliwagGif = poliwagAsset.url, poliwhirlGif = poliwhirlAsset.url,
   poliwrathGif = poliwrathAsset.url, psyduckGif = psyduckAsset.url, venonatGif = venonatAsset.url,
-  venomothGif = venomothAsset.url, zubatGif = zubatAsset.url;
+  venomothGif = venomothAsset.url, zubatGif = zubatAsset.url,
+  infernapeGif = infernapeAsset.url, krookodileGif = krookodileAsset.url,
+  tyranitarGif = tyranitarAsset.url, nidokingShinyGif = nidokingShinyAsset.url;
 import introHero from "@/assets/intro-hero.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 import npcGhetsisSprite from "@/assets/npc-ghetsis.gif";
