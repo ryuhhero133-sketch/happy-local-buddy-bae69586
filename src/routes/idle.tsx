@@ -3420,8 +3420,8 @@ function IdlePage() {
       pushChat(`✦ Vá até a aba Início e escolha uma skin premium para desbloquear com o ticket.`, "info");
     } else if (id === "incenso_mel") {
       const nowT = Date.now();
-      if ((idle.buffs.honeyUntil ?? 0) > nowT) {
-        pushChat(`Já há um Incenso de Mel ativo. Espere o tempo acabar.`, "info");
+      if ((idle.buffs.honeyUntil ?? 0) > nowT || (idle.buffs.honeyRareUntil ?? 0) > nowT) {
+        pushChat(`Já há um Incenso ativo. Espere o tempo acabar.`, "info");
         return;
       }
       setIdle((s) => ({
@@ -3431,6 +3431,19 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, "🍯 MEL +10% · 1h", "capture");
       pushChat(`🍯 Incenso de Mel ativado! +10% drop/xp/def/velocidade por 1 hora.`, "cap");
+    } else if (id === "incenso_mel_raro") {
+      const nowT = Date.now();
+      if ((idle.buffs.honeyUntil ?? 0) > nowT || (idle.buffs.honeyRareUntil ?? 0) > nowT) {
+        pushChat(`Já há um Incenso ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, incenso_mel_raro: (s.items.incenso_mel_raro ?? 0) - 1 },
+        buffs: { ...s.buffs, honeyRareUntil: nowT + HONEY_DURATION_MS },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "✨ MEL RARO +20% · 1h", "capture");
+      pushChat(`✨🍯 Incenso Raro ativado! +20% drop/xp/def/velocidade por 1 hora (dobro do normal).`, "cap");
     }
   };
 
