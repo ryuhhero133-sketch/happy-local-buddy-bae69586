@@ -4080,7 +4080,7 @@ function IdlePage() {
         { sp: "skarmory",       minLv: 350, rarityFloor: "legendary" },
       ];
       const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
-      const apexEligible = !isMythicRoamer && !isRider && !isGuardian && apexPool.length > 0;
+      const apexEligible = !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && apexPool.length > 0;
       // 0.6% chance quando elegível (aparição escassa)
       const isApex = apexEligible && Math.random() < 0.006;
       if (isApex) {
