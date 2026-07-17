@@ -224,11 +224,12 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
     pack.xpMult += u; pack.goldMult += u; pack.dmgMult += u; pack.defMult += u;
     pack.effects.push(`🐉 Dragão ×${c("dragao")} — +${Math.round(u*100)}% em tudo`);
   }
-  // Fada — regen + def
+  // Fada — regen + def + pequena resistência a paralisia
   if (c("fada") > 0) {
     pack.regenPct += tier(c("fada"), [0.005, 0.01, 0.02, 0.03, 0.04]);
     pack.defMult  += tier(c("fada"), [0.05, 0.10, 0.15, 0.20, 0.30]);
-    pack.effects.push(`🧚 Fada ×${c("fada")} — proteção mágica`);
+    pack.paraResist += tier(c("fada"), [0.03, 0.07, 0.12, 0.18, 0.25]);
+    pack.effects.push(`🧚 Fada ×${c("fada")} — proteção mágica · anti-paralisia`);
   }
 
   // ===== Combos cruzados =====
