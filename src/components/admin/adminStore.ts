@@ -15,8 +15,10 @@ export const SECRET_REWARD_CODE = "__DISABLED_REWARD__";
 export const SECRET_ADMIN_CODE = "__DISABLED_ADMIN__";
 export const SECRET_BETA_CODE = "__DISABLED_BETA__";
 export const SECRET_MASTERBALL_CODE = "__DISABLED_MASTER__";
+export const SECRET_ULTRA200_CODE = "ULTRA200";
 export const BETA_KEY = "rubym.betaCodeUsed";
 export const MASTERBALL_KEY = "rubym.masterballCodeUsed";
+export const ULTRA200_KEY = "rubym.ultra200CodeUsed";
 
 export type BoundMap = Record<string, number>;
 export type AdminLog = {
@@ -275,6 +277,25 @@ export function grantMasterballBundle(): Reward[] {
   return bundle;
 }
 
+export const isUltra200Used = () => safeGet<boolean>(ULTRA200_KEY, false);
+export const setUltra200Used = () => safeSet(ULTRA200_KEY, true);
+
+/** Grants 200 Ultra Balls. One-time per account. */
+export function grantUltra200Bundle(): Reward[] {
+  const bundle: Reward[] = [{ id: "ultraball", label: "Ultra Ball", qty: 200, rare: true }];
+  patchSave((s) => {
+    s.balls = s.balls ?? {};
+    s.balls.ultraball = (s.balls.ultraball ?? 0) + 200;
+    addBound("ultraball", 200);
+  });
+  setUltra200Used();
+  pushLog({ actor: "system", action: "ultra200_code_redeemed", detail: "200x Ultra Ball" });
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new StorageEvent("storage", { key: SAVE_KEY }));
+  }
+  return bundle;
+}
+
 export function tryRedeemCode(code: string):
   | { kind: "reward"; bundle: Reward[] }
   | { kind: "beta"; bundle: Reward[] }
@@ -294,6 +315,10 @@ export function tryRedeemCode(code: string):
   if (c === SECRET_MASTERBALL_CODE) {
     if (isMasterballUsed()) return { kind: "already-used" };
     return { kind: "masterball", bundle: grantMasterballBundle() };
+  }
+  if (c === SECRET_ULTRA200_CODE) {
+    if (isUltra200Used()) return { kind: "already-used" };
+    return { kind: "masterball", bundle: grantUltra200Bundle() };
   }
   if (c === SECRET_ADMIN_CODE) {
     setAdmin(true);
