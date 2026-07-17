@@ -4050,6 +4050,16 @@ function IdlePage() {
         }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
+        // Evento Gelius: rosters específicos, sobrescreve pool
+        if (idle.currentMap === "gelius1") {
+          pool = [...GELIUS_PHASE1_POOL].filter(hasGif) as Species[];
+          if (pool.length === 0) pool = ["magmar", "gengar", "ditto"] as Species[];
+          mapLvRange = [50, 200];
+        } else if (idle.currentMap === "gelius2") {
+          pool = [...GELIUS_PHASE2_POOL].filter(hasGif) as Species[];
+          if (pool.length === 0) pool = ["gengar", "magmar", "tyranitar"] as Species[];
+          mapLvRange = [400, 1000];
+        }
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
 
