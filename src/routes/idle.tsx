@@ -7402,7 +7402,8 @@ function IdlePage() {
               </div>
               <button
                 onClick={() => {
-                  const pet = livePet ?? makePet(sp, displayLevel, entry.rarity);
+                  const basePet = livePet ?? makePet(sp, displayLevel, entry.rarity);
+                  const pet = { ...basePet, traits: entry.traits ?? basePet.traits ?? [] };
                   setStatsCardPet(pet);
                   setColecaoDetailUid(null);
                 }}
@@ -7410,25 +7411,25 @@ function IdlePage() {
                 style={{
                   marginTop: 16, width: "100%",
                   position: "relative",
-                  background: "linear-gradient(180deg, #1a1024 0%, #120a1c 100%)",
-                  color: "#f5ecd7",
-                  border: "1px solid #c9a24a",
+                  background: "linear-gradient(180deg, #f0e2c2 0%, #e2d0a4 100%)",
+                  color: "#3a2a10",
+                  border: "1px solid #b8862a",
                   borderRadius: 10,
                   padding: "14px 16px",
                   fontWeight: 700,
                   fontSize: 12,
                   letterSpacing: 4,
                   cursor: "pointer",
-                  boxShadow: "0 2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
+                  boxShadow: "0 2px 0 rgba(120,80,20,0.25), inset 0 1px 0 rgba(255,255,255,0.55)",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
                   transition: "border-color 160ms, transform 120ms",
                   fontFamily: "ui-serif, Georgia, serif",
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                  <path d="M5 4h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" stroke="#c9a24a" strokeWidth="1.4" strokeLinejoin="round"/>
-                  <path d="M16 4v3h3" stroke="#c9a24a" strokeWidth="1.4" strokeLinejoin="round"/>
-                  <path d="M8 11h8M8 14h8M8 17h5" stroke="#c9a24a" strokeWidth="1.2" strokeLinecap="round"/>
+                  <path d="M5 4h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" stroke="#7a5410" strokeWidth="1.4" strokeLinejoin="round"/>
+                  <path d="M16 4v3h3" stroke="#7a5410" strokeWidth="1.4" strokeLinejoin="round"/>
+                  <path d="M8 11h8M8 14h8M8 17h5" stroke="#7a5410" strokeWidth="1.2" strokeLinecap="round"/>
                 </svg>
                 <span>Ver Ficha Completa</span>
               </button>
