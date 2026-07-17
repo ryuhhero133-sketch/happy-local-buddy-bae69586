@@ -164,18 +164,23 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
               <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2, color: "#c084fc", marginBottom: 8 }}>
                 ✨ TRAITS ({pet.traits.length})
               </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {pet.traits.map((id) => {
                   const t = TRAITS[id]; if (!t) return null;
                   const col = TIER_COLOR[t.tier];
                   return (
-                    <div key={id} title={t.desc} style={{
-                      fontSize: 10, padding: "6px 10px", borderRadius: 8,
-                      background: `${col}22`, border: `1px solid ${col}aa`, color: col,
-                      fontWeight: 900, letterSpacing: 0.5, display: "flex", flexDirection: "column", gap: 2,
+                    <div key={id} style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      padding: "6px 10px 6px 6px", borderRadius: 10,
+                      background: `linear-gradient(135deg, ${col}22, rgba(0,0,0,0.35))`,
+                      border: `1px solid ${col}88`,
+                      minWidth: 160, flex: "1 1 220px",
                     }}>
-                      <span>{t.icon} {t.name}</span>
-                      <span style={{ fontSize: 8, fontWeight: 600, opacity: 0.9 }}>{t.desc}</span>
+                      <TraitIcon id={id} size={38} />
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                        <span style={{ fontSize: 11, fontWeight: 900, color: col, letterSpacing: 0.5 }}>{t.name}</span>
+                        <span style={{ fontSize: 9, fontWeight: 600, color: "#c8b8d0", lineHeight: 1.3 }}>{t.desc}</span>
+                      </div>
                     </div>
                   );
                 })}
