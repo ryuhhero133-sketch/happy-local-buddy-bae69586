@@ -7153,6 +7153,19 @@ function IdlePage() {
           100% { transform: translateY(-36px) scale(0.9); opacity: 0; }
         }
         .fxpop { animation: fxpop 1.2s ease-out forwards; }
+        @keyframes lvToastIn {
+          0%   { opacity: 0; transform: translate(-50%, -14px) scale(0.94); }
+          60%  { opacity: 1; transform: translate(-50%, 2px) scale(1.02); }
+          100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        }
+        @keyframes lvToastOut {
+          0%   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+          100% { opacity: 0; transform: translate(-50%, -10px) scale(0.98); }
+        }
+        @keyframes lvShine {
+          0%   { left: -80px; }
+          100% { left: 110%; }
+        }
         @keyframes shakex { 0%,100%{transform: scaleX(-1) translateX(0)} 25%{transform:scaleX(-1) translateX(-3px)} 75%{transform:scaleX(-1) translateX(3px)} }
         @keyframes attackbob { 0%,100% { transform: scaleX(var(--face-scale, 1)) translateX(0) } 50% { transform: scaleX(var(--face-scale, 1)) translateX(12px) } }
         .attackbob { animation: attackbob 0.8s ease-in-out infinite; }
