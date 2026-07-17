@@ -4251,6 +4251,24 @@ function IdlePage() {
       };
     });
   };
+  // Bundle de Ultra Ball pago em cristais: 1000 💎 = 20 unidades
+  const buyUltraBundle = () => {
+    setIdle((s) => {
+      const COST = 1000;
+      const QTY = 20;
+      if (s.bank.crystals < COST) {
+        pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info");
+        return s;
+      }
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${QTY} Ultra Ball`, "capture");
+      pushChat(`Comprou ${QTY} Ultra Ball por ${COST} 💎.`, "cap");
+      return {
+        ...s,
+        bank: { ...s.bank, crystals: s.bank.crystals - COST },
+        items: { ...s.items, ultraball: (s.items.ultraball ?? 0) + QTY },
+      };
+    });
+  };
   // ===== Carteira: câmbio ouro ↔ cristal =====
   // 1 💎 = 1000 ouro (compra); vende 1 💎 por 800 ouro (spread do câmbio)
   const exchange = (dir: "g2c" | "c2g", amount: number) => {
