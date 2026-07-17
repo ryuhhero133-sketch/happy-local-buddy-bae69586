@@ -111,6 +111,7 @@ import { currentGeliusInfo, isGeliusActive, getGeliusEntries, canEnterGelius, co
 import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
+import mapPantanoFogoAsset from "@/assets/map-pantano-fogo.png.asset.json";
 import mapFantasmaAsset from "@/assets/map-fantasma.jpg.asset.json";
 // Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
 import mapForestAsset from "@/assets/map-forest.png.asset.json";
@@ -288,6 +289,7 @@ const mapN3Url = assetUrlFromJson(mapN3Asset);
 const hornetCocoonUrl = assetUrlFromJson(hornetCocoonAsset);
 const fireLakeUrl = assetUrlFromJson(fireLakeAsset);
 const mapVenofogoOrangeUrl = assetUrlFromJson(mapVenofogoOrangeAsset);
+const mapPantanoFogoUrl = assetUrlFromJson(mapPantanoFogoAsset);
 const mapFantasmaUrl = assetUrlFromJson(mapFantasmaAsset);
 // URLs dos 10 novos mapas endgame
 const mapForestUrl = assetUrlFromJson(mapForestAsset);
@@ -351,7 +353,7 @@ const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
-  | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
+  | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "pantano_fogo" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   | "gelius1" | "gelius2"
   // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
@@ -371,6 +373,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   terry:    { name: "Terras de Terry",         diff: "Elite",     bg: mapTerryUrl,     rate: 3.2, minLevel: 200, maxLevel: 400, element: "Terra", stars: 4, entryCrystals: 8 },
   n2:       { name: "Planície de Terry",        diff: "Elite+",    bg: mapN2Url,        rate: 3.8, minLevel: 350, maxLevel: 550, element: "Terra", stars: 5, entryCrystals: 20 },
   n3:       { name: "Confins de Terry",         diff: "Lendário",  bg: mapN3Url,        rate: 4.5, minLevel: 500, maxLevel: 700, element: "Terra", stars: 5, entryCrystals: 20 },
+  pantano_fogo: { name: "Pântano de Fogo",      diff: "PRIMORDIAL",bg: mapPantanoFogoUrl,rate: 12.0, minLevel: 800, maxLevel: 1200, element: "Fogo/Veneno", stars: 8, entryCrystals: 400 },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
   venofogo: { name: "Pântano em Chamas",       diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
 
@@ -4111,6 +4114,18 @@ function IdlePage() {
           pool = ["gyarados", "arcanine", "machamp", "nidoking", "ursaring", "hariyama", "arbok", "venomoth", "kadabra", "dragonair", "clefable", "magmortar", "raichu"] as Species[];
           mapLvRange = [500, 700];
         }
+        if (idle.currentMap === "pantano_fogo") {
+          // Pântano de Fogo — PRIMORDIAL Lv 800-1200. Pool multi-elemento p/ sinergias fortes.
+          // Fogo + Dragão + Lutador + Voador + Veneno + Pedra — combos brutais.
+          pool = [
+            "charizard", "charizard_shiny", "blaziken", "magmortar", "arcanine", "moltres",
+            "dragonite", "dragonite_shiny", "dragonair", "gyarados",
+            "tyranitar", "infernape", "krookodile", "machamp", "nidoking", "nidoking_shiny",
+            "rapidash", "rapidash_shiny", "skarmory", "ho_oh", "groudon",
+            "ursaring", "hariyama", "primeape",
+          ] as Species[];
+          mapLvRange = [800, 1200];
+        }
         if (idle.currentMap === "deserto_purpura") {
           // Areias de Anúbis — deserto tóxico continuação do Ninho de Marimbondo
           pool = ["ekans", "arbok", "sandshrew", "sandslash", "cubone", "nidoran_f", "nidorina", "nidoking", "beedrill", "kakuna", "weedle", "diglett", "meowth", "persian"] as Species[];
@@ -7027,6 +7042,10 @@ function IdlePage() {
                 ],
                 n3: [
                   { key: "to-n2", target: "n2", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
+                  { key: "to-pantano_fogo", target: "pantano_fogo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
+                ],
+                pantano_fogo: [
+                  { key: "to-n3", target: "n3", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e8b878" },
                 ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
