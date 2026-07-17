@@ -617,10 +617,11 @@ function CreateListing(props: {
   selUid: string; setSelUid: (u: string) => void;
   price: number; setPrice: (n: number) => void;
   currency: Currency; setCurrency: (c: Currency) => void;
+  offersOnly: boolean; setOffersOnly: (b: boolean) => void;
   isVip: boolean; cooldownMs: number;
   onSubmit: () => void;
 }) {
-  const { collection, gifOf, selUid, setSelUid, price, setPrice, currency, setCurrency, isVip, cooldownMs, onSubmit } = props;
+  const { collection, gifOf, selUid, setSelUid, price, setPrice, currency, setCurrency, offersOnly, setOffersOnly, isVip, cooldownMs, onSubmit } = props;
   const sorted = useMemo(() => [...collection].sort((a, b) => b.level - a.level), [collection]);
   const selected = collection.find(c => c.uid === selUid);
   return (
