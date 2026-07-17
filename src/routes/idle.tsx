@@ -4681,6 +4681,36 @@ function IdlePage() {
                 </div>
               );
             })()}
+            {(() => {
+              const honeyUntil = idle.buffs.honeyUntil ?? 0;
+              const remain = honeyUntil - Date.now();
+              if (remain <= 0) return null;
+              const mins = Math.floor(remain / 60000);
+              const secs = Math.floor((remain % 60000) / 1000);
+              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+              return (
+                <div
+                  title={`Incenso de Mel ativo: +10% drop/xp/def/velocidade · ${timeStr}`}
+                  style={{
+                    marginTop: 4,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 2,
+                    padding: "3px 5px",
+                    background: "rgba(40,25,5,0.85)",
+                    border: "1px solid #ffb84d",
+                    borderRadius: 6,
+                    boxShadow: "0 0 8px rgba(255,184,77,0.55)",
+                  }}
+                >
+                  <span style={{ fontSize: 18, lineHeight: 1, filter: "drop-shadow(0 0 4px rgba(255,214,80,0.9))" }}>🍯</span>
+                  <span style={{ fontSize: 9, color: "#ffe9a8", fontWeight: 700, lineHeight: 1, whiteSpace: "nowrap" }}>
+                    {timeStr}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
 
 
