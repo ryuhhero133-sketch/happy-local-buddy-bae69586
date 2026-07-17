@@ -5313,7 +5313,7 @@ function IdlePage() {
                     boxShadow: "0 0 14px rgba(127,216,255,0.7), inset 0 0 6px rgba(180,235,255,0.4)",
                     cursor: canEnter || inEvent ? "pointer" : "not-allowed",
                     display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-                    animation: "penguinPulse 1.6s ease-in-out infinite",
+                    
                   }}
                 >
                   <img
