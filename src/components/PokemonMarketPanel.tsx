@@ -144,6 +144,15 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
         setRows(cur => cur.map(r => (fresh as ListingRow[]).find(f => f.id === r.id) ?? r));
       }
     }
+
+    // Ofertas relacionadas a mim (como vendedor OU comprador)
+    const { data: offData } = await supabase
+      .from("pokemon_market_offers")
+      .select("*")
+      .or(`seller_id.eq.${identity.id},buyer_id.eq.${identity.id}`)
+      .order("created_at", { ascending: false })
+      .limit(300);
+    setOffers((offData ?? []) as OfferRow[]);
   };
 
   useEffect(() => {
