@@ -7400,26 +7400,6 @@ function IdlePage() {
               <div style={{ marginTop: 10, fontSize: 11, color: "#6b4a10" }}>
                 Ouro por derrota: <b>{base.goldRange[0]}-{base.goldRange[1]}</b> · Nível mínimo: <b>{base.minLv}</b>
               </div>
-              {(entry.traits && entry.traits.length > 0) && (
-                <div style={{ marginTop: 12, background: "linear-gradient(135deg, rgba(192,132,252,0.12), rgba(255,255,255,0.55))", border: "1px solid #c084fc66", borderRadius: 10, padding: 10 }}>
-                  <div style={{ fontWeight: 900, fontSize: 11, color: "#7c3aed", letterSpacing: 2, marginBottom: 8 }}>✨ TRAITS ({entry.traits.length})</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {entry.traits.map((tid) => {
-                      const t = TRAITS[tid]; if (!t) return null;
-                      const tcol = TIER_COLOR[t.tier];
-                      return (
-                        <div key={tid} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 8px 4px 4px", borderRadius: 8, background: `linear-gradient(90deg, ${tcol}22, transparent)`, border: `1px solid ${tcol}55` }}>
-                          <TraitIcon id={tid} size={30} />
-                          <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                            <span style={{ fontSize: 11, fontWeight: 900, color: tcol, letterSpacing: 0.5 }}>{t.name}</span>
-                            <span style={{ fontSize: 10, color: "#4a3010", lineHeight: 1.3 }}>{t.desc}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
               <button
                 onClick={() => {
                   const pet = livePet ?? makePet(sp, displayLevel, entry.rarity);
@@ -7428,32 +7408,31 @@ function IdlePage() {
                 }}
                 className="card-status-btn"
                 style={{
-                  marginTop: 14, width: "100%",
-                  position: "relative", overflow: "hidden",
-                  background: "linear-gradient(135deg, #6a0dad 0%, #c084fc 40%, #ffd66b 70%, #b8862a 100%)",
-                  color: "#0b0510",
-                  border: "2px solid #ffe084",
-                  borderRadius: 12,
-                  padding: "12px 14px",
-                  fontWeight: 900,
-                  fontSize: 13,
-                  letterSpacing: 2,
+                  marginTop: 16, width: "100%",
+                  position: "relative",
+                  background: "linear-gradient(180deg, #1a1024 0%, #120a1c 100%)",
+                  color: "#f5ecd7",
+                  border: "1px solid #c9a24a",
+                  borderRadius: 10,
+                  padding: "14px 16px",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  letterSpacing: 4,
                   cursor: "pointer",
-                  boxShadow: "0 6px 18px rgba(106,13,173,0.45), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.25)",
-                  textShadow: "0 1px 0 rgba(255,255,255,0.5)",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                  boxShadow: "0 2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+                  transition: "border-color 160ms, transform 120ms",
+                  fontFamily: "ui-serif, Georgia, serif",
                 }}
               >
-                <span style={{
-                  fontSize: 18, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))",
-                }}>💠</span>
-                <span>CARD STATUS</span>
-                <span style={{
-                  fontSize: 9, background: "rgba(11,5,16,0.75)", color: "#ffd66b",
-                  padding: "2px 6px", borderRadius: 6, letterSpacing: 1.5,
-                  border: "1px solid #ffd66b55",
-                }}>RPG</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M5 4h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" stroke="#c9a24a" strokeWidth="1.4" strokeLinejoin="round"/>
+                  <path d="M16 4v3h3" stroke="#c9a24a" strokeWidth="1.4" strokeLinejoin="round"/>
+                  <path d="M8 11h8M8 14h8M8 17h5" stroke="#c9a24a" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+                <span>Ver Ficha Completa</span>
               </button>
+
               {!isCurrent && (
                 <button
                   onClick={() => { onPickTeamFromColecao(entry); setColecaoDetailUid(null); }}
