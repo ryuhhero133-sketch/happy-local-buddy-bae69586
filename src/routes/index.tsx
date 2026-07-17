@@ -377,6 +377,12 @@ const abraGif = abraAsset.url, kadabraGif = kadabraAsset.url, arcanineGif = arca
   venomothGif = venomothAsset.url, zubatGif = zubatAsset.url,
   infernapeGif = infernapeAsset.url, krookodileGif = krookodileAsset.url,
   tyranitarGif = tyranitarAsset.url, nidokingShinyGif = nidokingShinyAsset.url;
+import dialgaAsset from "@/assets/dialga.gif.asset.json";
+import rapidashAsset from "@/assets/rapidash.gif.asset.json";
+import rapidashShinyAsset from "@/assets/rapidash-shiny.gif.asset.json";
+import skarmoryAsset from "@/assets/skarmory.gif.asset.json";
+const dialgaGif = dialgaAsset.url, rapidashGif = rapidashAsset.url,
+  rapidashShinyGif = rapidashShinyAsset.url, skarmoryGif = skarmoryAsset.url;
 import introHero from "@/assets/intro-hero.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 import npcGhetsisSprite from "@/assets/npc-ghetsis.gif";
