@@ -304,7 +304,7 @@ const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
-  | "arena" | "terra" | "deserto_purpura" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
+  | "arena" | "terra" | "deserto_purpura" | "terry" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
   | "vulcao_ativo" | "nucleo_primordial";
