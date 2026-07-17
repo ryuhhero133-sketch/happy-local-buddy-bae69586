@@ -1582,7 +1582,7 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; disguise?: Species; revealed?: boolean };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
@@ -2683,6 +2683,8 @@ function IdlePage() {
           moltres:   { crit: 0.42, para: 0.20, flee: 0.10 },
           zapdos:    { crit: 0.38, para: 0.45, flee: 0.10 },
           articuno:  { crit: 0.35, para: 0.30, flee: 0.12 },
+          ditto:     { crit: 0, para: 0.10, flee: 0 },
+          ditto_shiny: { crit: 0, para: 0.10, flee: 0 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
@@ -2696,13 +2698,18 @@ function IdlePage() {
             if (resist > 0 && Math.random() < resist) {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
-              const baseDur = target.sp === "lugia" ? 120_000 : 60_000;
+              const baseDur = target.sp === "lugia" ? 120_000
+                : (target.sp === "ditto" || target.sp === "ditto_shiny") ? 10_000
+                : 60_000;
+              const isDittoSleep = target.sp === "ditto" || target.sp === "ditto_shiny";
               // paraResist não só resiste — reduz duração proporcionalmente
               const durReduction = Math.min(0.85, synNow.paraResist);
               const dur = Math.floor(baseDur * (1 - durReduction));
               paralyzedUntilRef.current = Date.now() + dur;
               setParalyzedUntil(paralyzedUntilRef.current);
-              if (durReduction > 0.1) {
+              if (isDittoSleep) {
+                pushChat(`💤 ${target.sp === "ditto_shiny" ? "DITTO ✨" : "DITTO"} usou SONÍFERO — seu Pokémon dormiu por ${Math.round(dur/1000)}s!`, "hit");
+              } else if (durReduction > 0.1) {
                 pushChat(`⚡ Paralisia! Reduzida em ${Math.round(durReduction*100)}% pelos Guardiões — ${Math.round(dur/1000)}s.`, "hit");
               } else {
                 pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
@@ -2767,9 +2774,14 @@ function IdlePage() {
         });
 
 
-        const next = prev.map((e) => e.id === target.id
-          ? { ...e, hp: e.hp - dmg, face: (trainerPos.x < e.x ? "left" : "right") as "left" | "right" }
-          : e);
+        const next = prev.map((e) => {
+          if (e.id !== target.id) return e;
+          const wasCamou = !!(e.disguise && !e.revealed);
+          if (wasCamou) {
+            pushChat(`🎭 A camuflagem falhou! Era um ${e.sp === "ditto_shiny" ? "DITTO ✨ SHINY" : "DITTO"}!`, "info");
+          }
+          return { ...e, hp: e.hp - dmg, revealed: e.disguise ? true : e.revealed, face: (trainerPos.x < e.x ? "left" : "right") as "left" | "right" };
+        });
         const killedNow = next.find((e) => e.id === target.id && e.hp <= 0);
         if (killedNow) {
           const expActive = !!(idle.buffs.expMultUntil && Date.now() < idle.buffs.expMultUntil);
@@ -2931,7 +2943,8 @@ function IdlePage() {
                 captured = usedBall.id === "ultraball" ? Math.random() < 0.02 : false;
               } else {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
-                const guardMult = target.guardian ? 0.40 : 1;
+                const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
+                const guardMult = target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult;
               }
               if (captured) {
@@ -3450,7 +3463,8 @@ function IdlePage() {
     } else {
       const base = 0.08 + (1 - hpPct) * 0.37;
       // 🖤 Guardiões anti-paralisia: um pouco mais difíceis de capturar
-      const guardMult = target.guardian ? 0.40 : 1;
+      const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
+      const guardMult = target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
       chance = Math.min(0.95, base * usedBall.captureMult * guardMult);
     }
     const success = Math.random() < chance;
@@ -3937,7 +3951,7 @@ function IdlePage() {
       // 🖤 GUARDIÕES ANTI-PARALISIA — Ditto Shiny / Scizor / Umbreon
       // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
       // Raridade varia de comum a mítico.
-      const GUARDIAN_MONS: Species[] = ["ditto_shiny", "scizor", "umbreon"];
+      const GUARDIAN_MONS: Species[] = ["ditto", "ditto_shiny", "scizor", "umbreon"];
       const guardianEligible = !isMythicRoamer && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
       const isGuardian = guardianEligible && Math.random() < 0.008;
       if (isGuardian) {
@@ -3961,7 +3975,19 @@ function IdlePage() {
       const isAggro = true; // todos os pokémon selvagens agora são agressivos
       const aggroR = elite ? 300 : 220 + Math.floor(Math.random() * 60);
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian, eventLegendary: isMythicRoamer };
+      // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
+      let disguise: Species | undefined = undefined;
+      if (isGuardian && (sp === "ditto" || sp === "ditto_shiny")) {
+        const DISGUISE_POOL: Species[] = [
+          "rattata_f","pidgeotto","oddish","bellsprout","zubat","weedle",
+          "paras","meowth","psyduck","poliwag","abra",
+          "diglett","cubone","nidoran_f","sandshrew","clefairy","growlithe",
+        ];
+        disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
+      }
+
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian, eventLegendary: isMythicRoamer, disguise, revealed: false };
+
 
     }
     return null;
@@ -5606,8 +5632,10 @@ function IdlePage() {
 
             {/* Inimigos espalhados pelo mapa */}
             {enemies.map((e) => {
-              const src = GIF[e.sp];
+              const showSp: Species = (e.disguise && !e.revealed) ? e.disguise : e.sp;
+              const src = GIF[showSp];
               if (!src) return null;
+              const camouflaged = !!(e.disguise && !e.revealed);
               const dead = e.hp <= 0;
               const face = e.face ?? "left";
               const sx = face === "left" ? 1 : -1;
@@ -5626,7 +5654,7 @@ function IdlePage() {
               const auraColor = rarityAura[e.rarity];
               const isRareUp = e.rarity !== "common" && e.rarity !== "uncommon";
               const crystal = isRareUp ? "🔴" : "🟢";
-              const showAura = e.rarity !== "common";
+              const showAura = e.rarity !== "common" && !camouflaged;
               const auraStrength = e.rarity === "mythic" || e.rarity === "mythic_shiny" ? 22
                 : e.rarity === "legendary" ? 18
                 : e.rarity === "epic" ? 14
@@ -5637,7 +5665,7 @@ function IdlePage() {
                 rare: "★", epic: "★★",
                 legendary: "★★★", mythic: "★★★★", mythic_shiny: "✦★★★★",
               };
-              const stars = rarityStars[e.rarity];
+              const stars = camouflaged ? "" : rarityStars[e.rarity];
               const starColor = e.rarity === "mythic_shiny" ? "#ff97e1"
                 : e.rarity === "mythic" ? "#ff6b3d"
                 : e.rarity === "legendary" ? "#f5cf6b"
@@ -5691,7 +5719,7 @@ function IdlePage() {
                       animation: "pulse 1.2s ease-in-out infinite",
                     }}>✦</div>
                   )}
-                  {e.guardian && !e.rider && (
+                  {e.guardian && !e.rider && !camouflaged && (
                     <div style={{
                       position: "absolute", top: -38, left: "50%",
                       transform: `translateX(-50%) scaleX(${sx})`,
