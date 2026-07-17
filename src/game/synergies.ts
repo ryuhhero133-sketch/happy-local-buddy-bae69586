@@ -94,10 +94,13 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   ursaring: ["normal"],
   // Guardiões Anti-Paralisia
   ditto: ["normal"],
+  ditto_shiny: ["normal"],
   electabuzz: ["eletrico"],
   gengar: ["fantasma","veneno"],
   hitmontop: ["lutador"],
   magneton: ["eletrico"],
+  scizor: ["inseto","lutador"],
+  umbreon: ["psiquico"],
 };
 
 export function elementsOf(sp: Species): Element[] {
@@ -275,7 +278,7 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
   // ===== GUARDIÕES ANTI-PARALISIA — squad especial =====
   // Ditto, Electabuzz, Gengar, Hitmontop e Magneton dão paraResist massivo,
   // escalando por raridade. Com os 5 no time, imunidade quase total.
-  const GUARDIANS: Species[] = ["ditto","electabuzz","gengar","hitmontop","magneton"];
+  const GUARDIANS: Species[] = ["ditto","ditto_shiny","electabuzz","gengar","hitmontop","magneton","scizor","umbreon"];
   const rarityParaBoost: Record<Rarity, number> = {
     common: 0.08, uncommon: 0.10, rare: 0.18, epic: 0.28,
     legendary: 0.40, mythic: 0.55, mythic_shiny: 0.75,

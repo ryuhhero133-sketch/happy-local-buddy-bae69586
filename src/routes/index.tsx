@@ -259,11 +259,17 @@ import electabuzzAsset from "@/assets/electabuzz.gif.asset.json";
 import gengarAsset from "@/assets/gengar.gif.asset.json";
 import hitmontopAsset from "@/assets/hitmontop.gif.asset.json";
 import magnetonAsset from "@/assets/magneton.gif.asset.json";
+import dittoShinyAsset from "@/assets/ditto-shiny.gif.asset.json";
+import scizorAsset from "@/assets/scizor.gif.asset.json";
+import umbreonAsset from "@/assets/umbreon.gif.asset.json";
 const dittoGif = assetUrlFromJson(dittoAsset);
 const electabuzzGif = assetUrlFromJson(electabuzzAsset);
 const gengarGif = assetUrlFromJson(gengarAsset);
 const hitmontopGif = assetUrlFromJson(hitmontopAsset);
 const magnetonGif = assetUrlFromJson(magnetonAsset);
+const dittoShinyGif = assetUrlFromJson(dittoShinyAsset);
+const scizorGif = assetUrlFromJson(scizorAsset);
+const umbreonGif = assetUrlFromJson(umbreonAsset);
 
 
 const laprasGif = laprasAsset.url;
@@ -558,6 +564,7 @@ const SPECIES_GIF: Record<Species, string> = {
   darkrai: darkraiGif, ho_oh: hoOhGif, magmortar: magmortarGif,
   lugia: lugiaGif, hariyama: hariyamaGif, ursaring: ursaringGif,
   ditto: dittoGif, electabuzz: electabuzzGif, gengar: gengarGif, hitmontop: hitmontopGif, magneton: magnetonGif,
+  ditto_shiny: dittoShinyGif, scizor: scizorGif, umbreon: umbreonGif,
 };
 
 
@@ -603,6 +610,7 @@ const SPECIES_NAME: Record<Species, string> = {
   darkrai: "DARKRAI ✦", ho_oh: "HO-OH", magmortar: "MAGMORTAR",
   lugia: "LUGIA ✦", hariyama: "HARIYAMA", ursaring: "URSARING",
   ditto: "DITTO", electabuzz: "ELECTABUZZ", gengar: "GENGAR", hitmontop: "HITMONTOP", magneton: "MAGNETON",
+  ditto_shiny: "DITTO ✦", scizor: "SCIZOR", umbreon: "UMBREON",
 };
 
 

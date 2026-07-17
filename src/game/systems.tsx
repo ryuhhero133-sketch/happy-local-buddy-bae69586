@@ -142,7 +142,8 @@ export type Species =
   // Evento Lugia + reforços
   | "lugia" | "hariyama" | "ursaring"
   // Guardiões Anti-Paralisia
-  | "ditto" | "electabuzz" | "gengar" | "hitmontop" | "magneton";
+  | "ditto" | "electabuzz" | "gengar" | "hitmontop" | "magneton"
+  | "ditto_shiny" | "scizor" | "umbreon";
 
 
 
@@ -373,6 +374,9 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   gengar:          { hp: 60, atk: 65, def: 60, spa: 130, spd: 75, spe: 110, rarity: "epic", goldRange: [55, 95], crystalChance: 0.25, catchMod: 1.7, minLv: 32 },
   hitmontop:       { hp: 50, atk: 95, def: 95, spa: 35, spd: 110, spe: 70, rarity: "rare", goldRange: [26, 48], crystalChance: 0.13, catchMod: 1.35, minLv: 22 },
   magneton:        { hp: 50, atk: 60, def: 95, spa: 120, spd: 70, spe: 70, rarity: "epic", goldRange: [50, 88], crystalChance: 0.22, catchMod: 1.6, minLv: 28 },
+  ditto_shiny:     { hp: 48, atk: 48, def: 48, spa: 48, spd: 48, spe: 48, rarity: "mythic_shiny", goldRange: [420, 720], crystalChance: 0.85, catchMod: 4.2, minLv: 100 },
+  scizor:          { hp: 70, atk: 130, def: 100, spa: 55, spd: 80, spe: 65, rarity: "epic", goldRange: [90, 160], crystalChance: 0.4, catchMod: 2.0, minLv: 100 },
+  umbreon:         { hp: 95, atk: 65, def: 110, spa: 60, spd: 130, spe: 65, rarity: "epic", goldRange: [95, 170], crystalChance: 0.42, catchMod: 2.1, minLv: 100 },
 
 
 };

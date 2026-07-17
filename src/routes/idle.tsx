@@ -228,6 +228,9 @@ import electabuzzAsset from "@/assets/electabuzz.gif.asset.json";
 import gengarAsset from "@/assets/gengar.gif.asset.json";
 import hitmontopAsset from "@/assets/hitmontop.gif.asset.json";
 import magnetonAsset from "@/assets/magneton.gif.asset.json";
+import dittoShinyAsset from "@/assets/ditto-shiny.gif.asset.json";
+import scizorAsset from "@/assets/scizor.gif.asset.json";
+import umbreonAsset from "@/assets/umbreon.gif.asset.json";
 const lugiaUrl = assetUrlFromJson(lugiaAsset);
 const hariyamaUrl = assetUrlFromJson(hariyamaAsset);
 const ursaringUrl = assetUrlFromJson(ursaringAsset);
@@ -236,6 +239,9 @@ const electabuzzUrl = assetUrlFromJson(electabuzzAsset);
 const gengarUrl = assetUrlFromJson(gengarAsset);
 const hitmontopUrl = assetUrlFromJson(hitmontopAsset);
 const magnetonUrl = assetUrlFromJson(magnetonAsset);
+const dittoShinyUrl = assetUrlFromJson(dittoShinyAsset);
+const scizorUrl = assetUrlFromJson(scizorAsset);
+const umbreonUrl = assetUrlFromJson(umbreonAsset);
 const moltresUrl = assetUrlFromJson(moltresAsset);
 const zapdosUrl = assetUrlFromJson(zapdosAsset);
 const articunoUrl = assetUrlFromJson(articunoAsset);
@@ -414,6 +420,7 @@ const GIF: Partial<Record<Species, string>> = {
   darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
   lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
   ditto: dittoUrl, electabuzz: electabuzzUrl, gengar: gengarUrl, hitmontop: hitmontopUrl, magneton: magnetonUrl,
+  ditto_shiny: dittoShinyUrl, scizor: scizorUrl, umbreon: umbreonUrl,
   moltres: moltresUrl, zapdos: zapdosUrl, articuno: articunoUrl,
 };
 
@@ -486,6 +493,8 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Guardiões Anti-Paralisia
   ditto: "normal", electabuzz: "electric", magneton: "electric",
   gengar: "poison", hitmontop: "fighting",
+  ditto_shiny: "normal", scizor: "fighting", umbreon: "psychic",
+
 
 } as Record<string, ElementFx>;
 
@@ -1573,7 +1582,7 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
@@ -2668,10 +2677,17 @@ function IdlePage() {
             if (resist > 0 && Math.random() < resist) {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
-              const dur = target.sp === "lugia" ? 120_000 : 60_000;
+              const baseDur = target.sp === "lugia" ? 120_000 : 60_000;
+              // paraResist não só resiste — reduz duração proporcionalmente
+              const durReduction = Math.min(0.85, synNow.paraResist);
+              const dur = Math.floor(baseDur * (1 - durReduction));
               paralyzedUntilRef.current = Date.now() + dur;
               setParalyzedUntil(paralyzedUntilRef.current);
-              pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+              if (durReduction > 0.1) {
+                pushChat(`⚡ Paralisia! Reduzida em ${Math.round(durReduction*100)}% pelos Guardiões — ${Math.round(dur/1000)}s.`, "hit");
+              } else {
+                pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+              }
             }
           }
           if (spec.flee > 0 && Math.random() < spec.flee) {
