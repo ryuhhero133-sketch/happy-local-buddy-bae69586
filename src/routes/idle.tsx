@@ -2256,6 +2256,13 @@ function IdlePage() {
     setAttackTargetId(null);
     setEnemies([]);
     pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
+    if (p.to === "terra") {
+      setTimeout(() => {
+        pushChat(`🧙 SÁBIO DAS COLMEIAS: "Bem-vindo, treinador! Aqui vivem Guardiões Anti-Paralisia..."`, "info");
+        pushChat(`🧙 "Ditto, Ditto ✦, Electabuzz, Gengar, Hitmontop, Magneton, Scizor e Umbreon."`, "info");
+        pushChat(`🧙 "Basta 2 deles no seu time para ativar a Muralha Elétrica. Quanto mais raros, mais imune à paralisia — reduz até 85% da duração!"`, "info");
+      }, 800);
+    }
   };
 
 
