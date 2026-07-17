@@ -5640,7 +5640,7 @@ function IdlePage() {
               const auraColor = rarityAura[e.rarity];
               const isRareUp = e.rarity !== "common" && e.rarity !== "uncommon";
               const crystal = isRareUp ? "🔴" : "🟢";
-              const showAura = e.rarity !== "common";
+              const showAura = e.rarity !== "common" && !camouflaged;
               const auraStrength = e.rarity === "mythic" || e.rarity === "mythic_shiny" ? 22
                 : e.rarity === "legendary" ? 18
                 : e.rarity === "epic" ? 14
@@ -5651,7 +5651,7 @@ function IdlePage() {
                 rare: "★", epic: "★★",
                 legendary: "★★★", mythic: "★★★★", mythic_shiny: "✦★★★★",
               };
-              const stars = rarityStars[e.rarity];
+              const stars = camouflaged ? "" : rarityStars[e.rarity];
               const starColor = e.rarity === "mythic_shiny" ? "#ff97e1"
                 : e.rarity === "mythic" ? "#ff6b3d"
                 : e.rarity === "legendary" ? "#f5cf6b"
