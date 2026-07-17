@@ -3627,6 +3627,11 @@ function IdlePage() {
           else if (leaderLv < 250) mapLvRange = [leaderLv + 12, leaderLv + 32];
           else mapLvRange = [Math.max(250, leaderLv - 2), leaderLv + 18];
         }
+        if (idle.currentMap === "deserto_purpura") {
+          // Areias de Anúbis — deserto tóxico continuação do Ninho de Marimbondo
+          pool = ["ekans", "arbok", "sandshrew", "sandslash", "cubone", "nidoran_f", "nidorina", "nidoking", "beedrill", "kakuna", "weedle", "diglett", "meowth", "persian"] as Species[];
+          mapLvRange = [Math.max(20, leaderLv - 3), Math.min(55, leaderLv + 8)];
+        }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
         sp = pool[Math.floor(Math.random() * pool.length)];
