@@ -2939,6 +2939,12 @@ function IdlePage() {
         });
         const killedNow = next.find((e) => e.id === target.id && e.hp <= 0);
         if (killedNow) {
+          // Se o inimigo que paralisou morreu, libera o efeito.
+          if (paralyzedByEnemyIdRef.current === killedNow.id) {
+            paralyzedUntilRef.current = 0;
+            paralyzedByEnemyIdRef.current = null;
+            setParalyzedUntil(0);
+          }
           const expActive = !!(idle.buffs.expMultUntil && Date.now() < idle.buffs.expMultUntil);
           const orbActive = !!(idle.buffs.orbUntil && Date.now() < idle.buffs.orbUntil);
           const totalExpBoost = (expActive ? idle.buffs.expMult : 0) + (orbActive ? (idle.buffs.orbMult ?? 0) : 0);
