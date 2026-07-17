@@ -1364,12 +1364,41 @@ function IdlePage() {
 
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
   const honeyUntilRef = useRef<number>(idle.buffs.honeyUntil ?? 0);
+  const honeyRareUntilRef = useRef<number>(idle.buffs.honeyRareUntil ?? 0);
   useEffect(() => { honeyUntilRef.current = idle.buffs.honeyUntil ?? 0; }, [idle.buffs.honeyUntil]);
-  const [honeyShop, setHoneyShop] = useState<null | { x: number; y: number }>(null);
-  const HONEY_PRICE = 3000;
+  useEffect(() => { honeyRareUntilRef.current = idle.buffs.honeyRareUntil ?? 0; }, [idle.buffs.honeyRareUntil]);
+  const [honeyShop, setHoneyShop] = useState<null | { cocoonKey: string; x: number; y: number }>(null);
   const HONEY_DURATION_MS = 60 * 60 * 1000; // 1 hora por incenso ativado
-  const HONEY_BONUS = 0.10; // +10% drop, xp, def, velocidade
-  const HONEY_BUY_LIMIT = 20; // limite de compras (vitalício)
+  const HONEY_BONUS_NORMAL = 0.10; // +10% drop, xp, def, velocidade
+  const HONEY_BONUS_RARE = 0.20;   // +20% (dobrado) para o incenso raro
+  const honeyBonusNow = () => {
+    const now = Date.now();
+    if (now < honeyRareUntilRef.current) return HONEY_BONUS_RARE;
+    if (now < honeyUntilRef.current) return HONEY_BONUS_NORMAL;
+    return 0;
+  };
+  // Compat: HONEY_BONUS antigo — mantido para pequenos usos legados; call sites principais agora usam honeyBonusNow()
+  const HONEY_BONUS = HONEY_BONUS_NORMAL;
+  // ===== Colmeias (produção passiva no Ninho de Marimbondo) =====
+  const HIVE_PRODUCTION_MS = 10 * 60 * 1000; // 10 minutos por ciclo
+  const HIVE_SLOTS_PER_COCOON = 3;
+  const HIVE_YIELD_PER_BEEDRILL = 2; // 2 incensos por Beedrill por ciclo
+  const RARITY_TIER: Record<string, number> = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, mythic: 5, mythic_shiny: 6 };
+  const isRareTierPokemon = (r?: string | null) => (RARITY_TIER[r ?? "common"] ?? 0) >= 3; // epic+
+  const uidsAssignedToHives = (): Set<string> => {
+    const set = new Set<string>();
+    const hives = idle.hives ?? {};
+    for (const k of Object.keys(hives)) {
+      for (const slot of hives[k].slots ?? []) if (slot?.uid) set.add(slot.uid);
+    }
+    return set;
+  };
+  // Re-render a cada 1s para atualizar contadores das colmeias e do incenso
+  const [, forceHiveTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => forceHiveTick((n) => (n + 1) % 1_000_000), 1000);
+    return () => clearInterval(t);
+  }, []);
   // ===== Escolha do inicial (declarada cedo p/ gatear loops do jogo) =====
   const [starterChosen, setStarterChosen] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
