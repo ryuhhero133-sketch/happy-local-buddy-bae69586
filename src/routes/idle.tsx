@@ -3473,6 +3473,7 @@ function IdlePage() {
     return () => { clearTimeout(warn1); clearTimeout(kick); };
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const geliusReturnMapRef = useRef<IdleMapId | null>(null);
   // ==== EVENTO GELIUS — tick 1s: troca fase aos 5min, expulsa aos 10min ====
   useEffect(() => {
     const iv = setInterval(() => {
