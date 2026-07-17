@@ -4699,7 +4699,21 @@ function IdlePage() {
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
-      {levelToast && (
+      {(() => {
+        const cornerOrn = (pos: "tl"|"tr"|"bl"|"br"): React.CSSProperties => ({
+          position: "absolute", width: 10, height: 10,
+          borderColor: "#d4af5a", borderStyle: "solid", borderWidth: 0,
+          ...(pos==="tl" ? { top: -1, left: -1, borderTopWidth: 2, borderLeftWidth: 2 } : {}),
+          ...(pos==="tr" ? { top: -1, right: -1, borderTopWidth: 2, borderRightWidth: 2 } : {}),
+          ...(pos==="bl" ? { bottom: -1, left: -1, borderBottomWidth: 2, borderLeftWidth: 2 } : {}),
+          ...(pos==="br" ? { bottom: -1, right: -1, borderBottomWidth: 2, borderRightWidth: 2 } : {}),
+        });
+        const goldRule = (): React.CSSProperties => ({
+          display: "inline-block", width: 34, height: 1,
+          background: "linear-gradient(90deg, transparent, #d4af5a, transparent)",
+        });
+        return levelToast && (
+
         <div
           key={levelToast.ts}
           style={{
