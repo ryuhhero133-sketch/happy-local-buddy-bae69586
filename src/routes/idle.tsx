@@ -4125,7 +4125,7 @@ function IdlePage() {
           mapLvRange = [500, 700];
         }
         if (idle.currentMap === "pantano_fogo") {
-          // Pântano de Fogo — PRIMORDIAL Lv 800-1200. Pool multi-elemento p/ sinergias fortes.
+          // Pântano em Chamas — PRIMORDIAL Lv 700-1200. Pool multi-elemento p/ sinergias fortes.
           // Fogo + Dragão + Lutador + Voador + Veneno + Pedra — combos brutais.
           pool = [
             "charizard", "charizard_shiny", "blaziken", "magmortar", "arcanine", "moltres",
@@ -4134,7 +4134,7 @@ function IdlePage() {
             "rapidash", "rapidash_shiny", "skarmory", "ho_oh", "groudon",
             "ursaring", "hariyama", "primeape",
           ] as Species[];
-          mapLvRange = [800, 1200];
+          mapLvRange = [700, 1200];
         }
         if (idle.currentMap === "deserto_purpura") {
           // Areias de Anúbis — deserto tóxico continuação do Ninho de Marimbondo
