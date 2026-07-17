@@ -3145,7 +3145,10 @@ function IdlePage() {
     const trigger = () => {
       // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial)
       if (currentMapRef.current === "arena") return;
-      const pick = LEGEND_ROSTER[Math.floor(Math.random() * LEGEND_ROSTER.length)];
+      const totalW = LEGEND_ROSTER.reduce((s, r) => s + r.w, 0);
+      let rw = Math.random() * totalW;
+      let pick = LEGEND_ROSTER[0];
+      for (const r of LEGEND_ROSTER) { rw -= r.w; if (rw <= 0) { pick = r; break; } }
       legendIdxRef.current++;
       const until = Date.now() + LEGEND_DURATION_MS;
       setLegendUntil({ until, weather: pick.weather });
