@@ -3271,14 +3271,8 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, [team, trainerPos, leaderHp]);
 
-  useEffect(() => {
-    const trLv = idle.trainerLevel ?? 1;
-    const portal = WORLD_PORTALS.find((p) => p.from === idle.currentMap && Math.hypot(trainerPos.x - p.x, trainerPos.y - p.y) <= 58);
-    // Só entra em portal desbloqueado — bloqueados são silenciosamente ignorados
-    // para o auto continuar caçando sem travar com "🔒" a cada passo.
-    if (portal && (!portal.reqLevel || trLv >= portal.reqLevel)) enterWorldPortal(portal);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trainerPos.x, trainerPos.y, idle.currentMap]);
+  // Portais NÃO entram mais automaticamente ao caminhar por cima —
+  // agora só viajam com clique explícito no portal (evita gastar ouro/cristal sem querer).
 
 
   useEffect(() => { saveIdle(idle); }, [idle]);
