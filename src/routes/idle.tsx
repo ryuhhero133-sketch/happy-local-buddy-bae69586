@@ -1612,7 +1612,7 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
@@ -2865,6 +2865,15 @@ function IdlePage() {
           }
         }
 
+        // 💀 PERIGO ABISSAL — dano brutal, pode matar em 3 hits
+        if (target.menace) {
+          eDmg = Math.floor(eDmg * 3.2);
+          if (Math.random() < 0.7) {
+            eDmg = Math.floor(eDmg * 1.9);
+            pushChat(`💀 PERIGO ABISSAL desferiu um GOLPE DEVASTADOR!`, "hit");
+          }
+        }
+
         setTimeout(() => {
           setEnemyAttackAnim({
             id: attackAnimIdRef.current++,
@@ -3078,7 +3087,13 @@ function IdlePage() {
               setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
               newItems[usedBall.id] = (newItems[usedBall.id] ?? 0) - 1;
               const baseChance = 0.035; // difícil: 3.5% base (com bola comum)
-              if (isEventLeg && usedBall.id === "greatball") {
+              if (target.menace) {
+                // 💀 PERIGO ABISSAL — impossível capturar. Ao ser atacado com pokébola, vira agressivo.
+                captured = false;
+                pushFxAt(target.x, target.y - 70, "IMPOSSÍVEL CAPTURAR", "enemyDmg");
+                pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
+                setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
+              } else if (isEventLeg && usedBall.id === "greatball") {
                 captured = false; // Great sempre falha em lendários do evento
               } else if (isEventLeg && usedBall.id === "masterball") {
                 captured = true; // Master captura garantido
@@ -3633,6 +3648,12 @@ function IdlePage() {
     const hpPct = target.hp / target.maxHp;
     // chance manual: base 8%, escala até 45% conforme hp% baixa; multiplicada pelo bônus da bola
     let chance: number;
+    if (target.menace) {
+      // 💀 PERIGO ABISSAL — impossível capturar; ficará agressivo após o lançamento
+      chance = 0;
+      pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
+      setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
+    } else
     if (isEventLeg && usedBall.id === "greatball") {
       chance = 0; // Great sempre falha em lendários do evento
     } else if (isEventLeg && usedBall.id === "masterball") {
@@ -4212,13 +4233,39 @@ function IdlePage() {
         pet = makePet(sp, aLv, aRarity);
         lv = aLv;
       }
+      // 💀 PERIGO ABISSAL — criatura mítica não identificada. Aparece 1x por mapa
+      // a cada ~1h. Nível 500-900, HP monstruoso, dá crítico devastador (3-hit-kill).
+      // Não tem aggro, não foge. Ao ser atacada com pokébola vira agressiva.
+      // Impossível de capturar.
+      const MENACE_INTERVAL_MS = 55 * 60 * 1000;
+      const menaceOnMap = enemies.some((en) => en.menace);
+      let isMenace = false;
+      try {
+        const last = Number(localStorage.getItem("menace_last_spawn_ms") || 0);
+        if (!menaceOnMap && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && !isApex
+            && leaderLv >= 400
+            && Date.now() - last >= MENACE_INTERVAL_MS
+            && Math.random() < 0.015) {
+          isMenace = true;
+          localStorage.setItem("menace_last_spawn_ms", String(Date.now()));
+          setTimeout(() => pushChat(`💀 UMA PRESENÇA ABISSAL NÃO IDENTIFICADA SURGIU NO MAPA... TENHA CUIDADO!`, "cap"), 100);
+        }
+      } catch {}
+      if (isMenace) {
+        const MENACE_POOL: Species[] = ["tyranitar","dragonite","gengar","machamp","gyarados","nidoking_shiny","darkrai","groudon","krookodile","infernape"];
+        const filtered = MENACE_POOL.filter(hasGif);
+        sp = (filtered.length ? filtered : MENACE_POOL)[Math.floor(Math.random() * (filtered.length || MENACE_POOL.length))];
+        lv = 500 + Math.floor(Math.random() * 401); // 500..900
+        pet = makePet(sp, lv, "mythic_shiny");
+      }
       const baseHp = calcIdleMaxHp(pet);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : isDialgaEvent ? 12 : 1;
       const guardianHpMult = isGuardian ? 2.2 : 1;
       const apexHpMult = isApex ? 4.5 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult);
-      const isAggro = true; // todos os pokémon selvagens agora são agressivos
+      const menaceHpMult = isMenace ? 18 : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult);
+      const isAggro = isMenace ? false : true; // menace começa passivo
       const aggroR = elite ? 300 : isApex ? 360 : 220 + Math.floor(Math.random() * 60);
 
       // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
@@ -4232,7 +4279,7 @@ function IdlePage() {
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
       }
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent, disguise, revealed: false };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace, disguise, revealed: false, menace: isMenace };
 
 
     }
@@ -6059,9 +6106,11 @@ function IdlePage() {
                   transform: `translate(-50%, -50%) scaleX(${sx})`,
                   opacity: dead ? 0 : 1,
                   transition: "opacity 400ms, transform 160ms",
-                  filter: showAura
-                    ? `drop-shadow(0 0 ${auraStrength}px ${auraColor}) drop-shadow(0 0 ${auraStrength / 2}px ${auraColor}) drop-shadow(0 3px 2px rgba(0,0,0,0.55))`
-                    : (e.aggressive ? "drop-shadow(0 0 6px rgba(255,60,60,0.9)) drop-shadow(0 3px 2px rgba(0,0,0,0.55))" : "drop-shadow(0 3px 2px rgba(0,0,0,0.55))"),
+                  filter: e.menace
+                    ? "drop-shadow(0 0 22px rgba(120,0,180,0.95)) drop-shadow(0 0 44px rgba(0,0,0,0.9)) drop-shadow(0 3px 2px rgba(0,0,0,0.7))"
+                    : (showAura
+                      ? `drop-shadow(0 0 ${auraStrength}px ${auraColor}) drop-shadow(0 0 ${auraStrength / 2}px ${auraColor}) drop-shadow(0 3px 2px rgba(0,0,0,0.55))`
+                      : (e.aggressive ? "drop-shadow(0 0 6px rgba(255,60,60,0.9)) drop-shadow(0 3px 2px rgba(0,0,0,0.55))" : "drop-shadow(0 3px 2px rgba(0,0,0,0.55))")),
                   zIndex: Math.round(e.y),
                   cursor: dead ? "default" : "pointer",
                 }}>
@@ -6083,7 +6132,50 @@ function IdlePage() {
                       }} />
                     </>
                   )}
+                  {e.menace && (
+                    <>
+                      {/* Aura preta com miolo púrpura */}
+                      <div style={{
+                        position: "absolute", inset: -80, borderRadius: "50%",
+                        background: "radial-gradient(circle, rgba(60,0,90,0.55) 0%, rgba(0,0,0,0.75) 45%, transparent 78%)",
+                        filter: "blur(6px)",
+                        animation: "pulse 1.6s ease-in-out infinite",
+                        pointerEvents: "none", zIndex: -1,
+                      }} />
+                      {/* Anel de estrelas girando */}
+                      <div style={{
+                        position: "absolute", inset: -46, borderRadius: "50%",
+                        border: "2px solid rgba(180,120,255,0.55)",
+                        boxShadow: "0 0 30px rgba(0,0,0,0.9), inset 0 0 30px rgba(80,0,120,0.6)",
+                        animation: "spin 6s linear infinite",
+                        pointerEvents: "none", zIndex: -1,
+                      }} />
+                      {/* Estrelas orbitando */}
+                      {[0,1,2,3,4,5,6,7].map((i) => (
+                        <div key={`ms${i}`} style={{
+                          position: "absolute", left: "50%", top: "50%",
+                          transform: `translate(-50%,-50%) rotate(${i*45}deg) translateY(-46px)`,
+                          color: "#e0b3ff", fontSize: 12, fontWeight: 900,
+                          textShadow: "0 0 4px #000, 0 0 8px #7a00b8",
+                          pointerEvents: "none", zIndex: -1,
+                          animation: "pulse 1.2s ease-in-out infinite",
+                        }}>✦</div>
+                      ))}
+                    </>
+                  )}
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
+                  {e.menace && (
+                    <div style={{
+                      position: "absolute", top: -52, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      color: "#e0b3ff",
+                      fontSize: 12, fontWeight: 900, lineHeight: 1,
+                      textShadow: "1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000, 0 0 10px #7a00b8",
+                      whiteSpace: "nowrap", pointerEvents: "none",
+                      filter: "drop-shadow(0 0 4px #000)",
+                      animation: "pulse 1s ease-in-out infinite",
+                    }}>✦✦✦✦✦✦✦✦✦✦<br/><span style={{ fontSize: 9, color: "#ffb3ff" }}>? ? ?</span></div>
+                  )}
 
                   {e.rider && (
                     <div style={{
