@@ -100,6 +100,7 @@ import mapCaveAsset from "@/assets/map-cave1.png.asset.json";
 import mapStoneAsset from "@/assets/map-stone.jpg.asset.json";
 import mapTerraAsset from "@/assets/map-terra-hornet.jpg.asset.json";
 import mapDesertoPurpuraAsset from "@/assets/map-deserto-purpura.jpg.asset.json";
+import mapTerryAsset from "@/assets/map-terry.png.asset.json";
 import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
