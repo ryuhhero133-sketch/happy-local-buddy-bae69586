@@ -2290,7 +2290,13 @@ function IdlePage() {
         // Alvos candidatos: baús fechados (prioridade se mais próximos) + inimigos vivos
         const openChests = chests.filter((c) => !c.opened);
         const leaderLvNow = team[0]?.level ?? 1;
-        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
+        // Portais bloqueados por nível do TREINADOR: ignora alvos próximos deles
+        // para não travar tentando atravessar. Se estiver liberado, pode alcançar.
+        const trLv = idle.trainerLevel ?? 1;
+        const lockedPortals = WORLD_PORTALS.filter((p) => p.from === idle.currentMap && (p.reqLevel ?? 0) > trLv);
+        const nearLockedPortal = (x: number, y: number) =>
+          lockedPortals.some((p) => Math.hypot(x - p.x, y - p.y) < 200);
+        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id) && !nearLockedPortal(e.x, e.y));
         // Líder pode atacar qualquer Pokémon do mapa — ganhos serão nerfados se muito acima.
         const alive = aliveAll;
         const enemyPool = alive.length > 0 ? alive : [];
@@ -2918,8 +2924,11 @@ function IdlePage() {
   }, [team, trainerPos, leaderHp]);
 
   useEffect(() => {
+    const trLv = idle.trainerLevel ?? 1;
     const portal = WORLD_PORTALS.find((p) => p.from === idle.currentMap && Math.hypot(trainerPos.x - p.x, trainerPos.y - p.y) <= 58);
-    if (portal) enterWorldPortal(portal);
+    // Só entra em portal desbloqueado — bloqueados são silenciosamente ignorados
+    // para o auto continuar caçando sem travar com "🔒" a cada passo.
+    if (portal && (!portal.reqLevel || trLv >= portal.reqLevel)) enterWorldPortal(portal);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trainerPos.x, trainerPos.y, idle.currentMap]);
 
@@ -3582,6 +3591,10 @@ function IdlePage() {
       }
       if (!ok) continue;
       if (collidesWithAny(x, y)) continue;
+      // Nunca spawnar pokémon "atrás"/em cima de portais — evita que o treinador
+      // fique preso tentando alcançar inimigos do outro lado de um portal bloqueado.
+      const nearPortal = WORLD_PORTALS.some((p) => p.from === idle.currentMap && Math.hypot(x - p.x, y - p.y) < 240);
+      if (nearPortal) continue;
       placed.push({ x, y });
 
       const elite = Math.random() < 0.40;
