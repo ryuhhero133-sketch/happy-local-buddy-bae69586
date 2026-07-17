@@ -3604,7 +3604,7 @@ function IdlePage() {
     // Incomuns
     { sp: "sandshrew" as Species,  w: 7, forcedRarity: "uncommon" },
     { sp: "mankey" as Species,     w: 7, forcedRarity: "uncommon" },
-    { sp: "venonat" as Species,    w: 7, forcedRarity: "uncommon" },
+    { sp: "venonat" as Species,    w: 2, forcedRarity: "uncommon" },
     { sp: "paras" as Species,      w: 7, forcedRarity: "uncommon" },
     { sp: "poliwag" as Species,    w: 7, forcedRarity: "uncommon" },
     { sp: "nidoran_f" as Species,  w: 6, forcedRarity: "uncommon" },
