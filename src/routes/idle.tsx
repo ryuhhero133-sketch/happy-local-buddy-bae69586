@@ -2243,8 +2243,59 @@ function IdlePage() {
       saveIdle(next);
       return next;
     });
-    if (starterChosenRef.current) setEnemies(spawnEnemies());
+    if (starterChosenRef.current) {
+      // Tenta restaurar cena de batalha (inimigos + timers de status) se o
+      // jogador acabou de dar F5 no mesmo mapa. Impede abuso de reload
+      // para zerar paralisia/veneno/debuff.
+      try {
+        const snap = loadBattleScene(idle.currentMap);
+        if (snap && Array.isArray(snap.enemies) && snap.enemies.length > 0) {
+          const restored = snap.enemies as Enemy[];
+          setEnemies(restored);
+          const maxId = restored.reduce((m, e) => Math.max(m, e.id ?? 0), 0);
+          if (maxId >= enemyIdRef.current) enemyIdRef.current = maxId + 1;
+          const now = Date.now();
+          if (snap.paralyzedUntil > now) {
+            paralyzedUntilRef.current = snap.paralyzedUntil;
+            setParalyzedUntil(snap.paralyzedUntil);
+          }
+          if (snap.atkDebuffUntil > now) atkDebuffUntilRef.current = snap.atkDebuffUntil;
+          if (snap.poisonUntil > now) poisonUntilRef.current = snap.poisonUntil;
+        } else {
+          setEnemies(spawnEnemies());
+        }
+      } catch {
+        setEnemies(spawnEnemies());
+      }
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persiste a cena de batalha continuamente (inimigos + timers de status).
+  // Salvamos a cada 1s e também em visibilitychange/beforeunload.
+  useEffect(() => {
+    const persist = () => {
+      try {
+        saveBattleScene({
+          mapId: idle.currentMap,
+          savedAt: Date.now(),
+          enemies: enemies as unknown[],
+          paralyzedUntil: paralyzedUntilRef.current,
+          atkDebuffUntil: atkDebuffUntilRef.current,
+          poisonUntil: poisonUntilRef.current,
+        });
+      } catch { /* quota */ }
+    };
+    const iv = setInterval(persist, 1000);
+    const onHide = () => { if (document.visibilityState === "hidden") persist(); };
+    window.addEventListener("beforeunload", persist);
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      clearInterval(iv);
+      window.removeEventListener("beforeunload", persist);
+      document.removeEventListener("visibilitychange", onHide);
+      persist();
+    };
+  }, [enemies, idle.currentMap]);
 
   // ---- Movimento do treinador: caça o inimigo mais próximo ----
   const stuckRef = useRef<{ id: number; count: number }>({ id: 0, count: 0 });
