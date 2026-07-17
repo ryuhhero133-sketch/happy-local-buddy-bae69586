@@ -2319,6 +2319,7 @@ function IdlePage() {
     setWalkingTo(null);
     setAttackTargetId(null);
     setEnemies([]);
+    clearBattleScene();
     pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
     if (p.to === "terra") {
       setTimeout(() => {
