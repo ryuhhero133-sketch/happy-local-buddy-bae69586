@@ -3055,8 +3055,13 @@ function IdlePage() {
               } else if (isEventLeg && usedBall.id === "masterball") {
                 captured = true; // Master captura garantido
               } else if (isEventLeg) {
-                // Ultra: chance muito baixa (~2%) contra lendários do evento
-                captured = usedBall.id === "ultraball" ? Math.random() < 0.02 : false;
+                // Dialga: pokémon com a menor chance do jogo (1% fixo, só ultra)
+                if (target.sp === "dialga") {
+                  captured = usedBall.id === "ultraball" ? Math.random() < 0.01 : false;
+                } else {
+                  // Ultra: chance muito baixa (~2%) contra lendários do evento
+                  captured = usedBall.id === "ultraball" ? Math.random() < 0.02 : false;
+                }
               } else {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
