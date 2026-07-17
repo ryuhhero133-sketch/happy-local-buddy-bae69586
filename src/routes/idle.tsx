@@ -3473,6 +3473,35 @@ function IdlePage() {
     return () => { clearTimeout(warn1); clearTimeout(kick); };
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ==== EVENTO GELIUS — tick 1s: troca fase aos 5min, expulsa aos 10min ====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const gi = currentGeliusInfo();
+      const cm = idle.currentMap;
+      if (cm !== "gelius1" && cm !== "gelius2") return;
+      if (gi.phase === "closed") {
+        setIdle((s) => ({ ...s, currentMap: "arena" }));
+        setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+        setEnemies([]);
+        pushChat(`🐧 Evento Gelius terminou — retornando à Arena.`, "info");
+        return;
+      }
+      if (gi.phase === "phase1" && cm === "gelius2") {
+        setIdle((s) => ({ ...s, currentMap: "gelius1" }));
+        setEnemies([]);
+        pushChat(`🐧 Voltando à Onda 1 do Gelius.`, "info");
+      } else if (gi.phase === "phase2" && cm === "gelius1") {
+        setIdle((s) => ({ ...s, currentMap: "gelius2" }));
+        setEnemies([]);
+        pushChat(`🐧 GELIUS — Onda 2 iniciou! Pokémons mais fortes agora.`, "cap");
+        playBonus();
+      }
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
+
   // ==== Peçonha (Terry) — DoT enquanto poisonUntilRef ativo ====
   useEffect(() => {
     const iv = setInterval(() => {
