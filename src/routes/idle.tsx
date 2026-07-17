@@ -99,6 +99,7 @@ import mapDesertAsset from "@/assets/map-desert.png.asset.json";
 import mapCaveAsset from "@/assets/map-cave1.png.asset.json";
 import mapStoneAsset from "@/assets/map-stone.jpg.asset.json";
 import mapTerraAsset from "@/assets/map-terra-hornet.jpg.asset.json";
+import mapDesertoPurpuraAsset from "@/assets/map-deserto-purpura.jpg.asset.json";
 import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
@@ -234,6 +235,7 @@ const mapDesertUrl = assetUrlFromJson(mapDesertAsset);
 const mapCaveUrl = assetUrlFromJson(mapCaveAsset);
 const mapStoneUrl = assetUrlFromJson(mapStoneAsset);
 const mapTerraUrl = assetUrlFromJson(mapTerraAsset);
+const mapDesertoPurpuraUrl = assetUrlFromJson(mapDesertoPurpuraAsset);
 const hornetCocoonUrl = assetUrlFromJson(hornetCocoonAsset);
 const fireLakeUrl = assetUrlFromJson(fireLakeAsset);
 const mapVenofogoOrangeUrl = assetUrlFromJson(mapVenofogoOrangeAsset);
@@ -300,7 +302,7 @@ const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
-  | "arena" | "terra" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
+  | "arena" | "terra" | "deserto_purpura" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
   | "vulcao_ativo" | "nucleo_primordial";
@@ -310,10 +312,12 @@ type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
   element: string; stars?: number; overlay?: string;
   cycle?: { cycleMs: number; openMs: number };
+  entryCrystals?: number;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
+  deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
   venofogo: { name: "Pântano em Chamas",       diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
 
@@ -3623,6 +3627,11 @@ function IdlePage() {
           else if (leaderLv < 250) mapLvRange = [leaderLv + 12, leaderLv + 32];
           else mapLvRange = [Math.max(250, leaderLv - 2), leaderLv + 18];
         }
+        if (idle.currentMap === "deserto_purpura") {
+          // Areias de Anúbis — deserto tóxico continuação do Ninho de Marimbondo
+          pool = ["ekans", "arbok", "sandshrew", "sandslash", "cubone", "nidoran_f", "nidorina", "nidoking", "beedrill", "kakuna", "weedle", "diglett", "meowth", "persian"] as Species[];
+          mapLvRange = [Math.max(20, leaderLv - 3), Math.min(55, leaderLv + 8)];
+        }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
         sp = pool[Math.floor(Math.random() * pool.length)];
@@ -6126,6 +6135,10 @@ function IdlePage() {
                   { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
                   { key: "to-venofogo", target: "venofogo", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,           color: "#ff5c2e" },
                   { key: "to-fantasma", target: "fantasma", x: 60,          y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a259ff" },
+                  { key: "to-deserto_purpura", target: "deserto_purpura", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#b45adc" },
+                ],
+                deserto_purpura: [
+                  { key: "to-terra", target: "terra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9873a" },
                 ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
@@ -6191,6 +6204,15 @@ function IdlePage() {
                     pushChat(`⛰ ${targetMap.name} fechada. Abre em ${fmtMS(w.msUntilChange)}.`, "info");
                     return;
                   }
+                }
+                if (targetMap.entryCrystals && idle.currentMap !== g.target) {
+                  const cost = targetMap.entryCrystals;
+                  if (idle.bank.crystals < cost) {
+                    pushChat(`💎 ${targetMap.name} exige ${cost} cristais para entrar (você tem ${idle.bank.crystals}).`, "info");
+                    return;
+                  }
+                  setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - cost } }));
+                  pushChat(`💎 Pagou ${cost} cristais para entrar em ${targetMap.name}.`, "cap");
                 }
                 playClick();
                 goTo(targetMap.name, g.x, g.y, () => {
@@ -7378,14 +7400,60 @@ function IdlePage() {
               <div style={{ marginTop: 10, fontSize: 11, color: "#6b4a10" }}>
                 Ouro por derrota: <b>{base.goldRange[0]}-{base.goldRange[1]}</b> · Nível mínimo: <b>{base.minLv}</b>
               </div>
+              {(entry.traits && entry.traits.length > 0) && (
+                <div style={{ marginTop: 12, background: "linear-gradient(135deg, rgba(192,132,252,0.12), rgba(255,255,255,0.55))", border: "1px solid #c084fc66", borderRadius: 10, padding: 10 }}>
+                  <div style={{ fontWeight: 900, fontSize: 11, color: "#7c3aed", letterSpacing: 2, marginBottom: 8 }}>✨ TRAITS ({entry.traits.length})</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {entry.traits.map((tid) => {
+                      const t = TRAITS[tid]; if (!t) return null;
+                      const tcol = TIER_COLOR[t.tier];
+                      return (
+                        <div key={tid} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 8px 4px 4px", borderRadius: 8, background: `linear-gradient(90deg, ${tcol}22, transparent)`, border: `1px solid ${tcol}55` }}>
+                          <TraitIcon id={tid} size={30} />
+                          <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                            <span style={{ fontSize: 11, fontWeight: 900, color: tcol, letterSpacing: 0.5 }}>{t.name}</span>
+                            <span style={{ fontSize: 10, color: "#4a3010", lineHeight: 1.3 }}>{t.desc}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => {
                   const pet = livePet ?? makePet(sp, displayLevel, entry.rarity);
                   setStatsCardPet(pet);
                   setColecaoDetailUid(null);
                 }}
-                style={{ marginTop: 12, width: "100%", background: "linear-gradient(180deg,#f5cf6b,#b8862a)", color: "#1a0f26", border: "1px solid #0b0510", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer", letterSpacing: 1 }}
-              >⚡ VER FICHA COMPLETA (CARD RPG)</button>
+                className="card-status-btn"
+                style={{
+                  marginTop: 14, width: "100%",
+                  position: "relative", overflow: "hidden",
+                  background: "linear-gradient(135deg, #6a0dad 0%, #c084fc 40%, #ffd66b 70%, #b8862a 100%)",
+                  color: "#0b0510",
+                  border: "2px solid #ffe084",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  fontWeight: 900,
+                  fontSize: 13,
+                  letterSpacing: 2,
+                  cursor: "pointer",
+                  boxShadow: "0 6px 18px rgba(106,13,173,0.45), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.25)",
+                  textShadow: "0 1px 0 rgba(255,255,255,0.5)",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                }}
+              >
+                <span style={{
+                  fontSize: 18, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))",
+                }}>💠</span>
+                <span>CARD STATUS</span>
+                <span style={{
+                  fontSize: 9, background: "rgba(11,5,16,0.75)", color: "#ffd66b",
+                  padding: "2px 6px", borderRadius: 6, letterSpacing: 1.5,
+                  border: "1px solid #ffd66b55",
+                }}>RPG</span>
+              </button>
               {!isCurrent && (
                 <button
                   onClick={() => { onPickTeamFromColecao(entry); setColecaoDetailUid(null); }}
