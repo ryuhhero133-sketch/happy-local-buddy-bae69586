@@ -140,7 +140,9 @@ export type Species =
   // Novos pokémons
   | "ho_oh" | "magmortar"
   // Evento Lugia + reforços
-  | "lugia" | "hariyama" | "ursaring";
+  | "lugia" | "hariyama" | "ursaring"
+  // Guardiões Anti-Paralisia
+  | "ditto" | "electabuzz" | "gengar" | "hitmontop" | "magneton";
 
 
 
