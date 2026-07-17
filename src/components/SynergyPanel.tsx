@@ -57,7 +57,7 @@ export function SynergyPanel({ team }: { team: PetInstance[] }) {
         {syn.critChance > 0    && <div>✦ Crit <b style={{ color: "#ff97e1" }}>{Math.round(syn.critChance*100)}%</b></div>}
         {syn.dodgeChance > 0   && <div>💨 Esquiva <b style={{ color: "#c9c1ff" }}>{Math.round(syn.dodgeChance*100)}%</b></div>}
         {syn.lifeSteal > 0     && <div>🩸 Life <b style={{ color: "#ff5ec7" }}>{Math.round(syn.lifeSteal*100)}%</b></div>}
-        {syn.paraResist > 0    && <div>🧲 Anti-paralisia <b style={{ color: "#ffe27a" }}>{Math.round(Math.min(0.95,syn.paraResist)*100)}%</b></div>}
+        {syn.paraResist > 0    && <div>🧲 Anti-paralisia <b style={{ color: "#ffe27a" }}>{Math.round(Math.min(0.99,syn.paraResist)*100)}%</b></div>}
       </div>
 
       {syn.combos.length > 0 && (
