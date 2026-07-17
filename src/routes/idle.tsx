@@ -3966,7 +3966,7 @@ function IdlePage() {
       if (isGuardian && (sp === "ditto" || sp === "ditto_shiny")) {
         const DISGUISE_POOL: Species[] = [
           "rattata_f","pidgeotto","oddish","bellsprout","zubat","weedle",
-          "paras","meowth","psyduck","poliwag","magikarp","abra",
+          "paras","meowth","psyduck","poliwag","abra",
           "diglett","cubone","nidoran_f","sandshrew","clefairy","growlithe",
         ];
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
