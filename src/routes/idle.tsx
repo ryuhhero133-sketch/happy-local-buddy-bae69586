@@ -2930,7 +2930,9 @@ function IdlePage() {
                 // Ultra: chance muito baixa (~2%) contra lendários do evento
                 captured = usedBall.id === "ultraball" ? Math.random() < 0.02 : false;
               } else {
-                captured = Math.random() < baseChance * usedBall.captureMult;
+                // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
+                const guardMult = target.guardian ? 0.55 : 1;
+                captured = Math.random() < baseChance * usedBall.captureMult * guardMult;
               }
               if (captured) {
                 const rolled = rollTraits(target.rarity);
@@ -3447,7 +3449,9 @@ function IdlePage() {
       }
     } else {
       const base = 0.08 + (1 - hpPct) * 0.37;
-      chance = Math.min(0.95, base * usedBall.captureMult);
+      // 🖤 Guardiões anti-paralisia: um pouco mais difíceis de capturar
+      const guardMult = target.guardian ? 0.55 : 1;
+      chance = Math.min(0.95, base * usedBall.captureMult * guardMult);
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
