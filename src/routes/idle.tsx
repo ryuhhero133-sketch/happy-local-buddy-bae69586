@@ -4031,8 +4031,9 @@ function IdlePage() {
         lv = Math.max(lo, Math.min(hi, lv));
       }
       const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
-      if (hardCap != null && !isMythicRoamer) lv = Math.min(lv, hardCap);
+      if (hardCap != null && !isMythicRoamer && !isDialgaEvent) lv = Math.min(lv, hardCap);
       if (isMythicRoamer) lv = 500;
+      if (isDialgaEvent) lv = 800;
       // Épico só aparece quando o líder chega ao nível 50.
       const allowEpic = leaderLv >= 50;
       if (forcedRarity === "epic" && !allowEpic) forcedRarity = "rare";
