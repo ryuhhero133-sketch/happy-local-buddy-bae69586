@@ -2943,7 +2943,8 @@ function IdlePage() {
                 captured = usedBall.id === "ultraball" ? Math.random() < 0.02 : false;
               } else {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
-                const guardMult = target.guardian ? 0.40 : 1;
+                const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
+                const guardMult = target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult;
               }
               if (captured) {
