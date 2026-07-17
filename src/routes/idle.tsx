@@ -2664,7 +2664,7 @@ function IdlePage() {
           }
           if (Math.random() < spec.para) {
             const synNow = computeTeamSynergies(teamRef.current);
-            const resist = Math.min(0.95, synNow.paraResist);
+            const resist = Math.min(0.99, synNow.paraResist);
             if (resist > 0 && Math.random() < resist) {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
