@@ -144,6 +144,7 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
   const pack: SynergyPack = {
     xpMult: 0, goldMult: 0, dmgMult: 0, defMult: 0, hpMult: 0,
     atkSpeedMult: 0, regenPct: 0, critChance: 0, dodgeChance: 0, lifeSteal: 0,
+    paraResist: 0,
     effects: [], byElement, combos: [],
   };
 
