@@ -537,6 +537,66 @@ function ListingCard(props: {
           padding: "3px 7px", borderRadius: 999,
           background: "rgba(0,0,0,0.6)", border: "1px solid #6bd4ff66", color: "#6bd4ff" }}>{badge}</div>
       )}
+      {footer && <div style={{ marginTop: 10, position: "relative" }}>{footer}</div>}
+    </div>
+  );
+}
+
+// ============ OFERTAS ============
+function OfferBox(props: {
+  r: ListingRow;
+  myOffer?: OfferRow;
+  onOffer: (amount: number) => void;
+  onCancel: () => void;
+}) {
+  const { r, myOffer, onOffer, onCancel } = props;
+  const suggested = Math.max(1, Math.floor(r.price * 0.7));
+  const [val, setVal] = useState<number>(suggested);
+  if (myOffer) {
+    return (
+      <div style={{ background: "#0e0818", border: "1px dashed #6bd4ff55", borderRadius: 8, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+        <div style={{ fontSize: 10, color: "#c8b8d0" }}>
+          Sua oferta: <b style={{ color: myOffer.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>{myOffer.amount.toLocaleString()}</b>
+        </div>
+        <button onClick={onCancel} style={{ ...btnRed, padding: "4px 8px", fontSize: 9 }}>Cancelar</button>
+      </div>
+    );
+  }
+  return (
+    <div style={{ background: "#0e0818", border: "1px solid #3a2a4a", borderRadius: 8, padding: 8, display: "flex", gap: 6, alignItems: "center" }}>
+      <input type="number" min={1} max={r.price - 1} value={val}
+        onChange={e => setVal(Math.max(1, Math.floor(Number(e.target.value) || 0)))}
+        style={{ flex: 1, minWidth: 0, padding: "5px 8px", background: "#0b0510", border: "1px solid #3a2a4a", borderRadius: 6, color: "#eadfe8", fontFamily: "monospace", fontWeight: 900, fontSize: 12 }} />
+      <button onClick={() => onOffer(val)} style={{ ...btnBlue, padding: "5px 10px", fontSize: 10 }}>💬 OFERTAR</button>
+    </div>
+  );
+}
+
+function OffersReceived(props: {
+  offers: OfferRow[];
+  listing: ListingRow;
+  onAccept: (o: OfferRow) => void;
+  onReject: (o: OfferRow) => void;
+}) {
+  const { offers, onAccept, onReject } = props;
+  if (offers.length === 0) {
+    return <div style={{ fontSize: 10, color: "#8a7a9c", fontStyle: "italic", padding: "6px 4px" }}>Nenhuma oferta ainda.</div>;
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <div style={{ fontSize: 9, letterSpacing: 2, color: "#f5cf6b", fontWeight: 900 }}>💬 OFERTAS ({offers.length})</div>
+      {offers.map(o => (
+        <div key={o.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#0e0818", border: "1px solid #3a2a4a", borderRadius: 6, padding: "4px 6px" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.buyer_name}</div>
+            <div style={{ fontSize: 11, fontWeight: 900, color: o.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>
+              {o.currency === "gold" ? "💰" : "💎"} {o.amount.toLocaleString()}
+            </div>
+          </div>
+          <button onClick={() => onAccept(o)} title="Aceitar" style={{ ...btnGold, padding: "3px 7px", fontSize: 9 }}>✓</button>
+          <button onClick={() => onReject(o)} title="Recusar" style={{ ...btnRed, padding: "3px 7px", fontSize: 9 }}>✕</button>
+        </div>
+      ))}
     </div>
   );
 }
