@@ -104,6 +104,10 @@ import mapDesertoPurpuraAsset from "@/assets/map-deserto-purpura.jpg.asset.json"
 import mapTerryAsset from "@/assets/map-terry.png.asset.json";
 import mapN2Asset from "@/assets/map-n2.png.asset.json";
 import mapN3Asset from "@/assets/map-n3.png.asset.json";
+import mapGelius1Asset from "@/assets/map-gelius-1.png.asset.json";
+import mapGelius2Asset from "@/assets/map-gelius-2.png.asset.json";
+import eventPenguinAsset from "@/assets/event-penguin-badge.png.asset.json";
+import { currentGeliusInfo, isGeliusActive, getGeliusEntries, canEnterGelius, consumeGeliusEntry, GELIUS_CAPTURABLE, GELIUS_PHASE1_POOL, GELIUS_PHASE2_POOL } from "@/game/geliusEvent";
 import hornetCocoonAsset from "@/assets/hornet-cocoon.png.asset.json";
 import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
