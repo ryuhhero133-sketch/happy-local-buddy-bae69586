@@ -5293,9 +5293,11 @@ function IdlePage() {
                 <button
                   onClick={() => {
                     if (inEvent) { pushChat(`🐧 Evento Gelius — ${gi.phase === "phase1" ? "Onda 1" : "Onda 2"} · ${timeStr}`, "info"); return; }
+                    if (!isGeliusActive()) { pushChat(`🐧 Evento encerrado — aguarde o próximo ciclo.`, "info"); return; }
                     if (entriesLeft <= 0) { pushChat(`🐧 Você já usou suas 3 entradas de hoje no Gelius.`, "info"); return; }
                     consumeGeliusEntry();
                     const target: IdleMapId = gi.phase === "phase2" ? "gelius2" : "gelius1";
+                    geliusReturnMapRef.current = idle.currentMap;
                     setIdle((s) => ({ ...s, currentMap: target }));
                     setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
                     setEnemies([]);
