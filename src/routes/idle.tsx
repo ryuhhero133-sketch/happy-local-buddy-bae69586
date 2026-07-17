@@ -2988,9 +2988,12 @@ function IdlePage() {
           const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
           const cm = idle.currentMap;
           const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
-          const ultraChance = isTerryMap ? 0.65 : 0.30;
-          if (ultraEligible && Math.random() < ultraChance) drops.push("ultraball");
+          const isGeliusMap = cm === "gelius1" || cm === "gelius2";
+          const ultraChance = isGeliusMap ? 0.85 : isTerryMap ? 0.65 : 0.30;
+          if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
           if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
+          // Evento Gelius: chance alta de cristal extra
+          if (isGeliusMap && Math.random() < 0.35) drops.push("crystal");
 
           // XP para o líder + drena energia de TODOS do time
           setTeam((tm) => {
