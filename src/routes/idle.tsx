@@ -1506,7 +1506,7 @@ function IdlePage() {
         setLeaderHp(calcIdleMaxHp(p));
         return [p, ...arr];
       }
-      if (tm.length >= 5) {
+      if (tm.length >= 6) {
         const arr = tm.slice(0, 4);
         setLeaderHp(calcIdleMaxHp(newPet));
         return [newPet, ...arr];
@@ -3709,7 +3709,7 @@ function IdlePage() {
     });
     // Adiciona ao time se houver vaga (mesma regra da captura)
     setTeam((tm) => {
-      if (tm.length >= 5) {
+      if (tm.length >= 6) {
         pushChat(`Time cheio (5/5). ${String(sp).toUpperCase()} foi para a Coleção.`, "info");
         return tm;
       }
@@ -4483,7 +4483,7 @@ function IdlePage() {
     setRestingBench((b) => b.filter((x) => x.uid !== uid));
     setTeam((tm) => {
       if (tm.some((x) => x.uid === uid)) return tm.map((x) => x.uid === uid ? refreshed : x);
-      if (tm.length >= 5) return tm;
+      if (tm.length >= 6) return tm;
       const next = [...tm, refreshed];
       if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
       return next;
@@ -4543,7 +4543,7 @@ function IdlePage() {
       setRestingBench((b) => b.filter((x) => x.uid !== uid));
       setTeam((tm) => {
         if (tm.some((x) => x.uid === uid)) return tm;
-        if (tm.length >= 5) return tm;
+        if (tm.length >= 6) return tm;
         const next = [...tm, refreshed];
         if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
         return next;
