@@ -2290,7 +2290,13 @@ function IdlePage() {
         // Alvos candidatos: baús fechados (prioridade se mais próximos) + inimigos vivos
         const openChests = chests.filter((c) => !c.opened);
         const leaderLvNow = team[0]?.level ?? 1;
-        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
+        // Portais bloqueados por nível do TREINADOR: ignora alvos próximos deles
+        // para não travar tentando atravessar. Se estiver liberado, pode alcançar.
+        const trLv = idle.trainerLevel ?? 1;
+        const lockedPortals = WORLD_PORTALS.filter((p) => p.from === idle.currentMap && (p.reqLevel ?? 0) > trLv);
+        const nearLockedPortal = (x: number, y: number) =>
+          lockedPortals.some((p) => Math.hypot(x - p.x, y - p.y) < 200);
+        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id) && !nearLockedPortal(e.x, e.y));
         // Líder pode atacar qualquer Pokémon do mapa — ganhos serão nerfados se muito acima.
         const alive = aliveAll;
         const enemyPool = alive.length > 0 ? alive : [];
