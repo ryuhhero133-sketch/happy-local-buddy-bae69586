@@ -3013,7 +3013,7 @@ function IdlePage() {
               } else {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
-                const guardMult = target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
+                const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult;
               }
               if (captured) {
