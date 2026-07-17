@@ -4248,6 +4248,7 @@ function IdlePage() {
             && Math.random() < 0.015) {
           isMenace = true;
           localStorage.setItem("menace_last_spawn_ms", String(Date.now()));
+          setTimeout(() => pushChat(`💀 UMA PRESENÇA ABISSAL NÃO IDENTIFICADA SURGIU NO MAPA... TENHA CUIDADO!`, "cap"), 100);
         }
       } catch {}
       if (isMenace) {
