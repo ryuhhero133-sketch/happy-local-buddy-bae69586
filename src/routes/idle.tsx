@@ -2681,8 +2681,7 @@ function IdlePage() {
           const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
           const totalBonus = rarityBonus + synergyBonus;
           const totalMult = goldMult * (1 + totalBonus);
-          const honeyActiveKill = Date.now() < (idle.buffs.honeyUntil ?? 0);
-          const honeyMult = honeyActiveKill ? 1 + HONEY_BONUS : 1;
+          const honeyMult = 1 + honeyBonusNow();
           // Multiplicador pela raridade DO INIMIGO derrotado
           const enemyRarityMultMap: Record<Rarity, number> = {
             common: 1, uncommon: 1.6, rare: 2.6, epic: 4.5, legendary: 8, mythic: 14, mythic_shiny: 22,
