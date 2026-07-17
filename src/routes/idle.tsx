@@ -3265,7 +3265,7 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, [team]); // eslint-disable-line react-hooks/exhaustive-deps
 
-
+  // ==== EVENTO PÁSSAROS LENDÁRIOS: Moltres / Zapdos / Articuno a cada 2h ====
   // Extremamente fortes, agressivos ao ver, captura minúscula (só ULTRA/MASTER).
   const BIRD_ROSTER: { sp: Species; label: string; icon: string; color: string; level: number }[] = [
     { sp: "moltres",  label: "MOLTRES",  icon: "🔥", color: "#ff7a2a", level: 400 },
