@@ -894,12 +894,11 @@ function highLevelEnemyDamageMult(enemyLevel: number, leaderLevel: number) {
   return mult;
 }
 
-function playerDamageVsHighLevelMult(leaderLevel: number, enemyLevel: number) {
-  if (enemyLevel < 250) return enemyLevel >= 200 && leaderLevel + 40 < enemyLevel ? 0.85 : 1;
-  const gap = enemyLevel - leaderLevel;
-  if (gap <= 0) return 1;
-  return Math.max(0.35, 1 - gap * 0.035);
+function playerDamageVsHighLevelMult(_leaderLevel: number, _enemyLevel: number) {
+  // Sem restrição por diferença de nível — jogador causa dano cheio em qualquer alvo.
+  return 1;
 }
+
 
 // ===== Energia por raridade =====
 // Regen passivo (0→100) SÓ conta quando o pokémon está fora do time (na coleção).
@@ -1754,94 +1753,10 @@ function IdlePage() {
   const redeemCrystalCode = () => {
     const raw = normalizeCode(codeInput);
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
-
-    const redeemOnce = (
-      key: string,
-      apply: (s: IdleState) => IdleState,
-      chatText: string,
-      okText: string,
-    ) => {
-      if (localStorage.getItem(key) === "1") {
-        setCodeMsg({ kind: "err", text: "Este código já foi resgatado nesta conta." });
-        return true;
-      }
-      setIdle((s) => apply(s));
-      localStorage.setItem(key, "1");
-      pushChat(chatText, "cap");
-      setCodeMsg({ kind: "ok", text: okText });
-      setCodeInput("");
-      return true;
-    };
-
-    if (raw === "MYTHICEGG2026") {
-      redeemOnce(
-        MYTHIC_EGG_CODE_KEY,
-        (s) => ({
-          ...s,
-          bank: { ...s.bank, crystals: (s.bank?.crystals ?? 0) + 1000 },
-          items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
-        }),
-        "🎁 Código resgatado: +1 Ovo Aura (mítico) e +1000 cristais!",
-        "Recompensa: 1× Ovo Aura + 1000 cristais.",
-      );
-      return;
-    }
-    if (raw === "AURAEGG2026") {
-      redeemOnce(
-        MYTHIC_EGG2_CODE_KEY,
-        (s) => ({
-          ...s,
-          bank: { ...s.bank, crystals: (s.bank?.crystals ?? 0) + 1000 },
-          items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
-        }),
-        "🎁 Código resgatado: +1 Ovo Aura (mítico) e +1000 cristais!",
-        "Recompensa: 1× Ovo Aura + 1000 cristais.",
-      );
-      return;
-    }
-    if (raw === "CHARIZARDEGG2026") {
-      redeemOnce(
-        CHARIZARD_EGG_CODE_KEY,
-        (s) => ({
-          ...s,
-          items: { ...s.items, egg_charizard: (s.items.egg_charizard ?? 0) + 1 },
-        }),
-        "🔥 Código resgatado: +1 Ovo do Charizard (mítico)!",
-        "Recompensa: 1× Ovo do Charizard (mítico).",
-      );
-      return;
-    }
-    if (["ULTRA2026", "ULTRA200", "ULTRABALL200X"].includes(raw)) {
-      redeemOnce(
-        ULTRA200_CODE_KEY,
-        (s) => ({
-          ...s,
-          items: { ...s.items, ultraball: (s.items.ultraball ?? 0) + 200 },
-        }),
-        "🎁 Código resgatado: +200 Ultra Balls!",
-        "Recompensa: 200× Ultra Ball.",
-      );
-      return;
-    }
-    if (["CHARBUNDLE2026", "CHARIZARDBUNDLE", "CHARPACK2026"].includes(raw)) {
-      redeemOnce(
-        "lovable.code.charBundle2026",
-        (s) => ({
-          ...s,
-          items: {
-            ...s.items,
-            egg_charizard: (s.items.egg_charizard ?? 0) + 1,
-            ultraball: (s.items.ultraball ?? 0) + 30,
-            greatball: (s.items.greatball ?? 0) + 20,
-          },
-        }),
-        "🔥 Código resgatado: +1 Ovo do Charizard (mítico), +30 Ultra Balls e +20 Great Balls!",
-        "Recompensa: 1× Ovo Charizard + 30× Ultra Ball + 20× Great Ball.",
-      );
-      return;
-    }
-    setCodeMsg({ kind: "err", text: "Código inválido." });
+    // Todos os códigos promocionais foram encerrados.
+    setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
+
 
 
 
@@ -3746,8 +3661,9 @@ function IdlePage() {
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : 1;
       const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp);
-      const isAggro = elite || Math.random() < 0.18;
-      const aggroR = elite ? 260 : 170 + Math.floor(Math.random() * 60);
+      const isAggro = true; // todos os pokémon selvagens agora são agressivos
+      const aggroR = elite ? 300 : 220 + Math.floor(Math.random() * 60);
+
       return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, eventLegendary: isMythicRoamer };
 
     }
