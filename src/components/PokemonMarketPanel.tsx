@@ -231,6 +231,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       price, currency,
       status: "pending",
       activate_at: activate,
+      offers_only: offersOnly,
     };
     const { error } = await supabase.from("pokemon_market").insert(payload);
     if (error) {
