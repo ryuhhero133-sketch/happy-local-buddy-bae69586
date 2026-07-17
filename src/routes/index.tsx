@@ -8544,8 +8544,8 @@ function RankedOverlay({ players, me, speciesGif, onClose }: {
       setLoading(false);
     };
     void load();
-    // Snapshot global do ranking atualiza a cada 3 horas (countdown continua em 1s).
-    const t = setInterval(load, 3 * 60 * 60 * 1000);
+    // Ranking atualiza a cada 60s para refletir o nível atual dos treinadores.
+    const t = setInterval(load, 60 * 1000);
     const c = setInterval(() => setNow(Date.now()), 1000);
     return () => { active = false; clearInterval(t); clearInterval(c); };
   }, [me.id, me.name, me.trainer_level, me.craft_points, me.leader_species, players]);
