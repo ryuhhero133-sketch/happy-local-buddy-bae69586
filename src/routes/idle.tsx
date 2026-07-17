@@ -2837,14 +2837,17 @@ function IdlePage() {
             if (resist > 0 && Math.random() < resist) {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
-              const baseDur = target.sp === "lugia" ? 120_000
-                : (target.sp === "ditto" || target.sp === "ditto_shiny") ? 10_000
-                : 60_000;
+              // Duração enxuta — paralisia de minuto travava o jogador.
+              // Dialga (evento) mantém peso maior; Ditto usa Sonífero curto.
+              const baseDur = target.sp === "dialga" ? 15_000
+                : (target.sp === "ditto" || target.sp === "ditto_shiny") ? 8_000
+                : 10_000;
               const isDittoSleep = target.sp === "ditto" || target.sp === "ditto_shiny";
               // paraResist não só resiste — reduz duração proporcionalmente
               const durReduction = Math.min(0.85, synNow.paraResist);
               const dur = Math.floor(baseDur * (1 - durReduction));
               paralyzedUntilRef.current = Date.now() + dur;
+              paralyzedByEnemyIdRef.current = target.id;
               setParalyzedUntil(paralyzedUntilRef.current);
               if (isDittoSleep) {
                 pushChat(`💤 ${target.sp === "ditto_shiny" ? "DITTO ✨" : "DITTO"} usou SONÍFERO — seu Pokémon dormiu por ${Math.round(dur/1000)}s!`, "hit");
