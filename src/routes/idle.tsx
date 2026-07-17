@@ -228,6 +228,9 @@ import electabuzzAsset from "@/assets/electabuzz.gif.asset.json";
 import gengarAsset from "@/assets/gengar.gif.asset.json";
 import hitmontopAsset from "@/assets/hitmontop.gif.asset.json";
 import magnetonAsset from "@/assets/magneton.gif.asset.json";
+import dittoShinyAsset from "@/assets/ditto-shiny.gif.asset.json";
+import scizorAsset from "@/assets/scizor.gif.asset.json";
+import umbreonAsset from "@/assets/umbreon.gif.asset.json";
 const lugiaUrl = assetUrlFromJson(lugiaAsset);
 const hariyamaUrl = assetUrlFromJson(hariyamaAsset);
 const ursaringUrl = assetUrlFromJson(ursaringAsset);
@@ -236,6 +239,9 @@ const electabuzzUrl = assetUrlFromJson(electabuzzAsset);
 const gengarUrl = assetUrlFromJson(gengarAsset);
 const hitmontopUrl = assetUrlFromJson(hitmontopAsset);
 const magnetonUrl = assetUrlFromJson(magnetonAsset);
+const dittoShinyUrl = assetUrlFromJson(dittoShinyAsset);
+const scizorUrl = assetUrlFromJson(scizorAsset);
+const umbreonUrl = assetUrlFromJson(umbreonAsset);
 const moltresUrl = assetUrlFromJson(moltresAsset);
 const zapdosUrl = assetUrlFromJson(zapdosAsset);
 const articunoUrl = assetUrlFromJson(articunoAsset);
@@ -414,6 +420,7 @@ const GIF: Partial<Record<Species, string>> = {
   darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
   lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
   ditto: dittoUrl, electabuzz: electabuzzUrl, gengar: gengarUrl, hitmontop: hitmontopUrl, magneton: magnetonUrl,
+  ditto_shiny: dittoShinyUrl, scizor: scizorUrl, umbreon: umbreonUrl,
   moltres: moltresUrl, zapdos: zapdosUrl, articuno: articunoUrl,
 };
 
@@ -486,6 +493,8 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Guardiões Anti-Paralisia
   ditto: "normal", electabuzz: "electric", magneton: "electric",
   gengar: "poison", hitmontop: "fighting",
+  ditto_shiny: "normal", scizor: "fighting", umbreon: "psychic",
+
 
 } as Record<string, ElementFx>;
 
@@ -1573,7 +1582,7 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
@@ -2247,6 +2256,13 @@ function IdlePage() {
     setAttackTargetId(null);
     setEnemies([]);
     pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
+    if (p.to === "terra") {
+      setTimeout(() => {
+        pushChat(`🧙 SÁBIO DAS COLMEIAS: "Bem-vindo, treinador! Aqui vivem Guardiões Anti-Paralisia..."`, "info");
+        pushChat(`🧙 "Ditto, Ditto ✦, Electabuzz, Gengar, Hitmontop, Magneton, Scizor e Umbreon."`, "info");
+        pushChat(`🧙 "Basta 2 deles no seu time para ativar a Muralha Elétrica. Quanto mais raros, mais imune à paralisia — reduz até 85% da duração!"`, "info");
+      }, 800);
+    }
   };
 
 
@@ -2668,10 +2684,17 @@ function IdlePage() {
             if (resist > 0 && Math.random() < resist) {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
-              const dur = target.sp === "lugia" ? 120_000 : 60_000;
+              const baseDur = target.sp === "lugia" ? 120_000 : 60_000;
+              // paraResist não só resiste — reduz duração proporcionalmente
+              const durReduction = Math.min(0.85, synNow.paraResist);
+              const dur = Math.floor(baseDur * (1 - durReduction));
               paralyzedUntilRef.current = Date.now() + dur;
               setParalyzedUntil(paralyzedUntilRef.current);
-              pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+              if (durReduction > 0.1) {
+                pushChat(`⚡ Paralisia! Reduzida em ${Math.round(durReduction*100)}% pelos Guardiões — ${Math.round(dur/1000)}s.`, "hit");
+              } else {
+                pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
+              }
             }
           }
           if (spec.flee > 0 && Math.random() < spec.flee) {
@@ -3895,14 +3918,34 @@ function IdlePage() {
         if (hardCap != null) lv = Math.min(lv, hardCap + 50); // riders podem passar do cap
         pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
       }
+      // 🖤 GUARDIÕES ANTI-PARALISIA — Ditto Shiny / Scizor / Umbreon
+      // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
+      // Raridade varia de comum a mítico.
+      const GUARDIAN_MONS: Species[] = ["ditto_shiny", "scizor", "umbreon"];
+      const guardianEligible = !isMythicRoamer && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
+      const isGuardian = guardianEligible && Math.random() < 0.008;
+      if (isGuardian) {
+        sp = GUARDIAN_MONS[Math.floor(Math.random() * GUARDIAN_MONS.length)];
+        const rarityRoll = Math.random();
+        const gRarity: Rarity =
+          rarityRoll < 0.35 ? "common" :
+          rarityRoll < 0.60 ? "uncommon" :
+          rarityRoll < 0.80 ? "rare" :
+          rarityRoll < 0.93 ? "epic" :
+          rarityRoll < 0.99 ? "legendary" : "mythic";
+        const gLv = Math.max(100, leaderLv + Math.floor(Math.random() * 20) - 5);
+        pet = makePet(sp, gLv, gRarity);
+        lv = gLv;
+      }
       const baseHp = calcIdleMaxHp(pet);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp);
+      const guardianHpMult = isGuardian ? 2.2 : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult);
       const isAggro = true; // todos os pokémon selvagens agora são agressivos
       const aggroR = elite ? 300 : 220 + Math.floor(Math.random() * 60);
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, eventLegendary: isMythicRoamer };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian, eventLegendary: isMythicRoamer };
 
     }
     return null;
@@ -5630,6 +5673,18 @@ function IdlePage() {
                       whiteSpace: "nowrap", pointerEvents: "none",
                       filter: "drop-shadow(0 0 6px #ff5ec7) drop-shadow(0 0 12px #ff5ec7aa)",
                       animation: "pulse 1.2s ease-in-out infinite",
+                    }}>✦</div>
+                  )}
+                  {e.guardian && !e.rider && (
+                    <div style={{
+                      position: "absolute", top: -38, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      color: "#111",
+                      fontSize: 20, fontWeight: 900, lineHeight: 1,
+                      textShadow: "1px 1px 0 #fff, -1px 1px 0 #fff, 1px -1px 0 #fff, -1px -1px 0 #fff, 0 0 10px #000",
+                      whiteSpace: "nowrap", pointerEvents: "none",
+                      filter: "drop-shadow(0 0 4px #000)",
+                      animation: "pulse 1.6s ease-in-out infinite",
                     }}>✦</div>
                   )}
                   {stars && !e.rider && (
