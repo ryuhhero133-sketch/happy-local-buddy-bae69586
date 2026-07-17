@@ -2366,14 +2366,23 @@ function IdlePage() {
       }
       return;
     }
-    setIdle((s) => ({ ...s, currentMap: p.to }));
+    const TELEPORT_COST = 1000;
+    if ((idle.bank.gold ?? 0) < TELEPORT_COST) {
+      const now = Date.now();
+      if (now - overCapMsgRef.current > 4000) {
+        overCapMsgRef.current = now;
+        pushChat(`💰 Teleporte custa ${TELEPORT_COST} ouro — você não tem o suficiente.`, "info");
+      }
+      return;
+    }
+    setIdle((s) => ({ ...s, currentMap: p.to, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - TELEPORT_COST) } }));
     setTrainerPos({ x: p.arriveX, y: p.arriveY });
     walkTargetRef.current = null;
     setWalkingTo(null);
     setAttackTargetId(null);
     setEnemies([]);
     clearBattleScene();
-    pushChat(`Chegou em ${IDLE_MAPS[p.to].name}!`, "cap");
+    pushChat(`Chegou em ${IDLE_MAPS[p.to].name}! (-${TELEPORT_COST} 🪙)`, "cap");
     if (p.to === "terra") {
       setTimeout(() => {
         pushChat(`🧙 SÁBIO DAS COLMEIAS: "Bem-vindo, treinador! Aqui vivem Guardiões Anti-Paralisia..."`, "info");
@@ -2876,15 +2885,18 @@ function IdlePage() {
           if (nh <= 0) {
             pushFxAt(followerAtX, followerAtY - 70, "DESMAIOU!", "enemyDmg");
             pushChat(`Seu Pokémon desmaiou!`, "hit");
-            // n3: penalidade — perde 1 nível do líder e ouro
+            // Penalidade por desmaio — perde ouro sempre
+            const deathPct = idle.currentMap === "n3" ? 0.10 : 0.05;
             if (idle.currentMap === "n3") {
               setTeam((tm) => tm.map((p, idx) => idx === 0 && p.level > 1 ? { ...p, level: p.level - 1, xp: 0 } : p));
-              setIdle((s) => {
-                const lose = Math.floor((s.bank.gold ?? 0) * 0.10);
-                pushChat(`💀 Confins de Terry: -1 nível e -${lose} ouro pela derrota.`, "hit");
-                return { ...s, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - lose) } };
-              });
             }
+            setIdle((s) => {
+              const lose = Math.floor((s.bank.gold ?? 0) * deathPct);
+              if (lose > 0) {
+                pushChat(`💀 Você desmaiou — perdeu ${lose} 🪙${idle.currentMap === "n3" ? " e -1 nível" : ""}.`, "hit");
+              }
+              return { ...s, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - lose) } };
+            });
           }
           return nh;
         });
