@@ -4031,6 +4031,30 @@ function IdlePage() {
         pet = makePet(sp, gLv, gRarity);
         lv = gLv;
       }
+      // 🔥 APEX BOSSES — Infernape / Krookodile / Tyranitar / Nidoking Shiny
+      // Aparição rara em mapas de nv 300+. Fortes, crit alto, muito difíceis de capturar.
+      const APEX_MONS: Array<{ sp: Species; minLv: number; rarityFloor: Rarity }> = [
+        { sp: "infernape",      minLv: 300, rarityFloor: "epic" },
+        { sp: "krookodile",     minLv: 350, rarityFloor: "epic" },
+        { sp: "tyranitar",      minLv: 500, rarityFloor: "legendary" },
+        { sp: "nidoking_shiny", minLv: 600, rarityFloor: "mythic" },
+      ];
+      const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
+      const apexEligible = !isMythicRoamer && !isRider && !isGuardian && apexPool.length > 0;
+      // 0.6% chance quando elegível (aparição escassa)
+      const isApex = apexEligible && Math.random() < 0.006;
+      if (isApex) {
+        const pick = apexPool[Math.floor(Math.random() * apexPool.length)];
+        sp = pick.sp;
+        const rarityRoll = Math.random();
+        const aRarity: Rarity =
+          pick.rarityFloor === "mythic"    ? (rarityRoll < 0.75 ? "mythic" : "mythic_shiny") :
+          pick.rarityFloor === "legendary" ? (rarityRoll < 0.60 ? "legendary" : rarityRoll < 0.92 ? "mythic" : "mythic_shiny") :
+          /* epic */                         (rarityRoll < 0.50 ? "epic" : rarityRoll < 0.85 ? "legendary" : rarityRoll < 0.98 ? "mythic" : "mythic_shiny");
+        const aLv = Math.max(pick.minLv, Math.min(700, leaderLv + Math.floor(Math.random() * 40) - 10));
+        pet = makePet(sp, aLv, aRarity);
+        lv = aLv;
+      }
       const baseHp = calcIdleMaxHp(pet);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : 1;
