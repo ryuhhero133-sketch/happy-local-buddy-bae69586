@@ -102,6 +102,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   const [selUid, setSelUid] = useState<string>("");
   const [price, setPrice] = useState<number>(1000);
   const [currency, setCurrency] = useState<Currency>("gold");
+  const [offersOnly, setOffersOnly] = useState<boolean>(false);
   // Dedup: IDs de anúncio já processados nesta sessão (compra ou payout).
   // Evita que o useEffect abaixo reentregue o pokémon quando o refresh
   // vê a linha ainda com buyer_claimed=false por causa da latência do UPDATE.
