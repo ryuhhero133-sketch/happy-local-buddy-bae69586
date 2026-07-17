@@ -3192,7 +3192,51 @@ function IdlePage() {
   // ==== EVENTO LUGIA: DESATIVADO a pedido do jogador ====
   useEffect(() => {
     setEnemies((prev) => prev.filter((e) => e.sp !== "lugia"));
+
+  // ==== EVENTO PÁSSAROS LENDÁRIOS: Moltres / Zapdos / Articuno a cada 2h ====
+  // Extremamente fortes, agressivos ao ver, captura minúscula (só ULTRA/MASTER).
+  const BIRD_ROSTER: { sp: Species; label: string; icon: string; color: string; level: number }[] = [
+    { sp: "moltres",  label: "MOLTRES",  icon: "🔥", color: "#ff7a2a", level: 400 },
+    { sp: "zapdos",   label: "ZAPDOS",   icon: "⚡", color: "#ffd23a", level: 420 },
+    { sp: "articuno", label: "ARTICUNO", icon: "❄", color: "#8ecbff", level: 380 },
+  ];
+  const BIRD_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 horas
+  const BIRD_WARN_MS = 5 * 60 * 1000; // aviso 5min antes
+  useEffect(() => {
+    const spawnBird = () => {
+      if (currentMapRef.current === "arena") return;
+      const pick = BIRD_ROSTER[Math.floor(Math.random() * BIRD_ROSTER.length)];
+      setEnemies((prev) => {
+        if (prev.some((e) => e.sp === pick.sp)) return prev;
+        let x = 300, y = 300, tries = 0;
+        do {
+          x = 200 + Math.random() * (WORLD_W - 400);
+          y = 200 + Math.random() * (WORLD_H - 400);
+          tries++;
+        } while (collidesWithAny(x, y) && tries < 20);
+        const petA = makePet(pick.sp, pick.level);
+        const hp = Math.floor(calcIdleMaxHp(petA) * 5);
+        return [
+          ...prev,
+          { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left",
+            aggressive: true, aggroR: 520, elite: true, level: pick.level,
+            rarity: "mythic" as Rarity, eventLegendary: true } as Enemy,
+        ];
+      });
+      pushEvent(pick.icon, "PÁSSARO LENDÁRIO", `${pick.label} desceu dos céus! Cuidado — ele ATACA à distância.`, pick.color);
+      pushChat(`⚠ ${pick.icon} ${pick.label} apareceu! MUITO FORTE, agressivo e quase impossível de capturar (ULTRA/MASTER).`, "cap");
+    };
+    const warn = () => {
+      pushChat(`⚠ Um PÁSSARO LENDÁRIO se aproxima... prepare-se! (em ~5min)`, "info");
+    };
+    const firstWarn = setTimeout(warn, Math.max(1000, BIRD_INTERVAL_MS - BIRD_WARN_MS));
+    const firstSpawn = setTimeout(spawnBird, BIRD_INTERVAL_MS);
+    const ivWarn = setInterval(warn, BIRD_INTERVAL_MS);
+    const ivSpawn = setInterval(spawnBird, BIRD_INTERVAL_MS);
+    return () => { clearTimeout(firstWarn); clearTimeout(firstSpawn); clearInterval(ivWarn); clearInterval(ivSpawn); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+
 
 
 
