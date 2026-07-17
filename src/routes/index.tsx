@@ -578,6 +578,7 @@ const SPECIES_GIF: Record<Species, string> = {
   ditto: dittoGif, electabuzz: electabuzzGif, gengar: gengarGif, hitmontop: hitmontopGif, magneton: magnetonGif,
   ditto_shiny: dittoShinyGif, scizor: scizorGif, umbreon: umbreonGif,
   infernape: infernapeGif, krookodile: krookodileGif, tyranitar: tyranitarGif, nidoking_shiny: nidokingShinyGif,
+  dialga: dialgaGif, rapidash: rapidashGif, rapidash_shiny: rapidashShinyGif, skarmory: skarmoryGif,
 };
 
 
