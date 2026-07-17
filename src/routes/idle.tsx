@@ -4779,7 +4779,8 @@ function IdlePage() {
             </div>
           </div>
         </div>
-      )}
+      )};
+      })()}
 
 
       <div className="idle-grid" style={{
