@@ -396,8 +396,21 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       {mode === "browse" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
           {vitrine.length === 0 && <div style={{ color: "#8a7a9c", gridColumn: "1 / -1", padding: 24, textAlign: "center" }}>Nenhum Pokémon à venda no momento.</div>}
-          {vitrine.map(r => <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
-            action={<button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>} />)}
+          {vitrine.map(r => {
+            const myOffer = offers.find(o => o.listing_id === r.id && o.buyer_id === (identity?.id ?? "") && o.status === "pending");
+            return (
+              <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
+                action={<button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>}
+                footer={
+                  <OfferBox
+                    r={r} myOffer={myOffer}
+                    onOffer={(amt) => void doMakeOffer(r, amt)}
+                    onCancel={() => myOffer && void doCancelOffer(myOffer)}
+                  />
+                }
+              />
+            );
+          })}
         </div>
       )}
 
@@ -406,19 +419,30 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
           {myListings.length === 0 && mySold.length === 0 && (
             <div style={{ color: "#8a7a9c", padding: 24, textAlign: "center" }}>Você não tem anúncios ativos.</div>
           )}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
             {myListings.map(r => {
               const activateMs = new Date(r.activate_at).getTime() - now;
               const isPending = r.status === "pending" || activateMs > 0;
+              const listingOffers = offers.filter(o => o.listing_id === r.id && o.status === "pending");
               return (
                 <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
                   badge={isPending ? `⏳ Ativa em ${fmtTime(activateMs)}` : "✅ Ao vivo"}
-                  action={<button onClick={() => void doCancel(r)} style={btnRed}>✖ CANCELAR</button>} />
+                  action={<button onClick={() => void doCancel(r)} style={btnRed}>✖ CANCELAR</button>}
+                  footer={
+                    <OffersReceived
+                      offers={listingOffers}
+                      listing={r}
+                      onAccept={(o) => void doAcceptOffer(o, r)}
+                      onReject={(o) => void doRejectOffer(o)}
+                    />
+                  }
+                />
               );
             })}
           </div>
         </div>
       )}
+
 
       {mode === "create" && (
         <CreateListing
