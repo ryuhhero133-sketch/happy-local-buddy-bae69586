@@ -2605,6 +2605,25 @@ function IdlePage() {
         const honeyDef = honeyBonusNow();
         let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
 
+        // ==== Efeitos por mapa (Terry / n2 / n3) ====
+        const mapNow = idle.currentMap;
+        if (mapNow === "terry" && Math.random() < 0.28) {
+          // Peçonha: se def do jogador for baixa, aplica DoT por 6s
+          const defTotal = (idle.buffs.def ?? 0) + honeyDef;
+          if (defTotal < 0.35) {
+            poisonUntilRef.current = Date.now() + 6000;
+            pushChat(`☠ Seu Pokémon foi ENVENENADO!`, "hit");
+          }
+        }
+        if (mapNow === "n2" && Math.random() < 0.20) {
+          atkDebuffUntilRef.current = Date.now() + 8000;
+          pushChat(`⬇ Ataque reduzido em 40% por 8s!`, "hit");
+        }
+        if (mapNow === "n3") {
+          eDmg = Math.floor(eDmg * 1.5);
+        }
+
+
         // ✦ Habilidades especiais de espécies fortes (crit / paralisar / fugir)
         const SPECIAL_ABILITY: Partial<Record<Species, { crit: number; para: number; flee: number }>> = {
           lugia:     { crit: 0.45, para: 0.35, flee: 0.14 },
