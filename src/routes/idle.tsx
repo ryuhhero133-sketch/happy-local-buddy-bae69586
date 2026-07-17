@@ -3961,7 +3961,19 @@ function IdlePage() {
       const isAggro = true; // todos os pokémon selvagens agora são agressivos
       const aggroR = elite ? 300 : 220 + Math.floor(Math.random() * 60);
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian, eventLegendary: isMythicRoamer };
+      // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
+      let disguise: Species | undefined = undefined;
+      if (isGuardian && (sp === "ditto" || sp === "ditto_shiny")) {
+        const DISGUISE_POOL: Species[] = [
+          "rattata_f","pidgeotto","oddish","bellsprout","zubat","weedle",
+          "paras","meowth","psyduck","poliwag","magikarp","abra",
+          "diglett","cubone","nidoran_f","sandshrew","clefairy","growlithe",
+        ];
+        disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
+      }
+
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian, eventLegendary: isMythicRoamer, disguise, revealed: false };
+
 
     }
     return null;
