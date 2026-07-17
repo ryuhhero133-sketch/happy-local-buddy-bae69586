@@ -2700,7 +2700,7 @@ function IdlePage() {
         }
         return [...prev, ne];
       });
-    }, 9000 + Math.floor(Math.random() * 4000)); // 9-13s entre spawns
+    }, 2000 + Math.floor(Math.random() * 1500)); // 2-3.5s entre spawns (rápido, evita mapa vazio)
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
