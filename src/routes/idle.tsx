@@ -4053,6 +4053,9 @@ function IdlePage() {
         { sp: "krookodile",     minLv: 350, rarityFloor: "epic" },
         { sp: "tyranitar",      minLv: 500, rarityFloor: "legendary" },
         { sp: "nidoking_shiny", minLv: 600, rarityFloor: "mythic" },
+        { sp: "rapidash",       minLv: 300, rarityFloor: "epic" },
+        { sp: "rapidash_shiny", minLv: 400, rarityFloor: "legendary" },
+        { sp: "skarmory",       minLv: 350, rarityFloor: "legendary" },
       ];
       const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
       const apexEligible = !isMythicRoamer && !isRider && !isGuardian && apexPool.length > 0;
