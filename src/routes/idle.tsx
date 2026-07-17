@@ -3234,7 +3234,38 @@ function IdlePage() {
     setEnemies((prev) => prev.filter((e) => e.sp !== "lugia"));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ==== EVENTO PÁSSAROS LENDÁRIOS: Moltres / Zapdos / Articuno a cada 2h ====
+  // ==== Timer de permanência em n2/n3 (máx 3h → volta para Terry) ====
+  useEffect(() => {
+    mapEnterAtRef.current = Date.now();
+    atkDebuffUntilRef.current = 0;
+    poisonUntilRef.current = 0;
+    if (idle.currentMap !== "n2" && idle.currentMap !== "n3") return;
+    const cm = idle.currentMap;
+    const warn1 = setTimeout(() => pushChat(`⏳ ${IDLE_MAPS[cm].name}: 30min para você ser levado de volta a Terras de Terry.`, "info"), 2.5 * 60 * 60 * 1000);
+    const kick = setTimeout(() => {
+      setIdle((s) => ({ ...s, currentMap: "terry" }));
+      setTrainerPos({ x: 200, y: WORLD_H / 2 });
+      setEnemies([]);
+      pushChat(`⌛ Você excedeu 3h em ${IDLE_MAPS[cm].name}. Retornado para Terras de Terry.`, "cap");
+    }, 3 * 60 * 60 * 1000);
+    return () => { clearTimeout(warn1); clearTimeout(kick); };
+  }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ==== Peçonha (Terry) — DoT enquanto poisonUntilRef ativo ====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (Date.now() >= poisonUntilRef.current) return;
+      const leader = team[0]; if (!leader) return;
+      const maxHp = calcIdleMaxHp(leader);
+      const tick = Math.max(2, Math.floor(maxHp * 0.03));
+      setLeaderHp((h) => Math.max(0, h - tick));
+      const fx = followerStateRef.current;
+      pushFxAt(fx.x, fx.y - 30, `☠ -${tick}`, "enemyDmg");
+    }, 1500);
+    return () => clearInterval(iv);
+  }, [team]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
   // Extremamente fortes, agressivos ao ver, captura minúscula (só ULTRA/MASTER).
   const BIRD_ROSTER: { sp: Species; label: string; icon: string; color: string; level: number }[] = [
     { sp: "moltres",  label: "MOLTRES",  icon: "🔥", color: "#ff7a2a", level: 400 },
