@@ -2683,6 +2683,8 @@ function IdlePage() {
           moltres:   { crit: 0.42, para: 0.20, flee: 0.10 },
           zapdos:    { crit: 0.38, para: 0.45, flee: 0.10 },
           articuno:  { crit: 0.35, para: 0.30, flee: 0.12 },
+          ditto:     { crit: 0, para: 0.10, flee: 0 },
+          ditto_shiny: { crit: 0, para: 0.10, flee: 0 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
