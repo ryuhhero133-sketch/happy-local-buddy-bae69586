@@ -8175,7 +8175,7 @@ function TabOverlay({
                     background: "rgba(245,207,107,0.15)", border: "1px solid rgba(245,207,107,0.4)",
                     padding: "4px 12px", borderRadius: 999, color: "#f5cf6b",
                     fontSize: 12, fontWeight: 900, letterSpacing: 1,
-                  }}>{team.length}/5</div>
+                  }}>{team.length}/6</div>
                 </div>
 
                 <SynergyPanel team={team} />
