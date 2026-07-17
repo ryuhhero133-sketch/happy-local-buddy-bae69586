@@ -3480,10 +3480,12 @@ function IdlePage() {
       const cm = idle.currentMap;
       if (cm !== "gelius1" && cm !== "gelius2") return;
       if (gi.phase === "closed") {
-        setIdle((s) => ({ ...s, currentMap: "arena" }));
+        const ret = (geliusReturnMapRef.current ?? "arena") as IdleMapId;
+        setIdle((s) => ({ ...s, currentMap: ret }));
         setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
         setEnemies([]);
-        pushChat(`🐧 Evento Gelius terminou — retornando à Arena.`, "info");
+        geliusReturnMapRef.current = null;
+        pushChat(`🐧 Evento Gelius encerrado — teleportado de volta para ${IDLE_MAPS[ret].name}.`, "info");
         return;
       }
       if (gi.phase === "phase1" && cm === "gelius2") {
