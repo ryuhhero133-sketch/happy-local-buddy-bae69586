@@ -3582,6 +3582,10 @@ function IdlePage() {
       }
       if (!ok) continue;
       if (collidesWithAny(x, y)) continue;
+      // Nunca spawnar pokémon "atrás"/em cima de portais — evita que o treinador
+      // fique preso tentando alcançar inimigos do outro lado de um portal bloqueado.
+      const nearPortal = WORLD_PORTALS.some((p) => p.from === idle.currentMap && Math.hypot(x - p.x, y - p.y) < 240);
+      if (nearPortal) continue;
       placed.push({ x, y });
 
       const elite = Math.random() < 0.40;
