@@ -2695,6 +2695,15 @@ function IdlePage() {
           if (nh <= 0) {
             pushFxAt(followerAtX, followerAtY - 70, "DESMAIOU!", "enemyDmg");
             pushChat(`Seu Pokémon desmaiou!`, "hit");
+            // n3: penalidade — perde 1 nível do líder e ouro
+            if (idle.currentMap === "n3") {
+              setTeam((tm) => tm.map((p, idx) => idx === 0 && p.level > 1 ? { ...p, level: p.level - 1, xp: 0 } : p));
+              setIdle((s) => {
+                const lose = Math.floor((s.bank.gold ?? 0) * 0.10);
+                pushChat(`💀 Confins de Terry: -1 nível e -${lose} ouro pela derrota.`, "hit");
+                return { ...s, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - lose) } };
+              });
+            }
           }
           return nh;
         });
