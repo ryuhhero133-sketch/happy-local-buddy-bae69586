@@ -5618,8 +5618,10 @@ function IdlePage() {
 
             {/* Inimigos espalhados pelo mapa */}
             {enemies.map((e) => {
-              const src = GIF[e.sp];
+              const showSp: Species = (e.disguise && !e.revealed) ? e.disguise : e.sp;
+              const src = GIF[showSp];
               if (!src) return null;
+              const camouflaged = !!(e.disguise && !e.revealed);
               const dead = e.hp <= 0;
               const face = e.face ?? "left";
               const sx = face === "left" ? 1 : -1;
