@@ -3648,6 +3648,12 @@ function IdlePage() {
     const hpPct = target.hp / target.maxHp;
     // chance manual: base 8%, escala até 45% conforme hp% baixa; multiplicada pelo bônus da bola
     let chance: number;
+    if (target.menace) {
+      // 💀 PERIGO ABISSAL — impossível capturar; ficará agressivo após o lançamento
+      chance = 0;
+      pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
+      setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
+    } else
     if (isEventLeg && usedBall.id === "greatball") {
       chance = 0; // Great sempre falha em lendários do evento
     } else if (isEventLeg && usedBall.id === "masterball") {
