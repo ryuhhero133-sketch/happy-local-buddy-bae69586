@@ -41,6 +41,19 @@ type ListingRow = {
   sold_at: string | null;
   payout_claimed: boolean;
   buyer_claimed: boolean;
+  via_offer?: boolean;
+  created_at: string;
+};
+
+type OfferRow = {
+  id: string;
+  listing_id: string;
+  seller_id: string;
+  buyer_id: string;
+  buyer_name: string;
+  amount: number;
+  currency: Currency;
+  status: "pending" | "accepted" | "rejected" | "cancelled";
   created_at: string;
 };
 
@@ -93,6 +106,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   // vê a linha ainda com buyer_claimed=false por causa da latência do UPDATE.
   const claimedBuyerRef = useRef<Set<string>>(new Set());
   const claimedSellerRef = useRef<Set<string>>(new Set());
+  const [offers, setOffers] = useState<OfferRow[]>([]);
 
   useEffect(() => {
     const iv = setInterval(() => setNow(Date.now()), 1000);
@@ -130,6 +144,15 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
         setRows(cur => cur.map(r => (fresh as ListingRow[]).find(f => f.id === r.id) ?? r));
       }
     }
+
+    // Ofertas relacionadas a mim (como vendedor OU comprador)
+    const { data: offData } = await supabase
+      .from("pokemon_market_offers")
+      .select("*")
+      .or(`seller_id.eq.${identity.id},buyer_id.eq.${identity.id}`)
+      .order("created_at", { ascending: false })
+      .limit(300);
+    setOffers((offData ?? []) as OfferRow[]);
   };
 
   useEffect(() => {
@@ -152,9 +175,18 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (!identity?.id) return;
     for (const r of myBought) {
       if (claimedBuyerRef.current.has(r.id)) continue;
+      // Vendas via oferta ainda não descontaram do comprador — descontar agora.
+      if (r.via_offer) {
+        const have = r.currency === "gold" ? gold : crystals;
+        if (have < r.price) {
+          // Deixa pra tentar depois quando o jogador tiver saldo.
+          continue;
+        }
+        onSpend(r.currency, r.price);
+      }
       claimedBuyerRef.current.add(r.id);
       const entry: CollectionEntry = {
-        uid: r.pokemon.uid ? `bought-${r.id}` : `bought-${r.id}`,
+        uid: `bought-${r.id}`,
         species: r.pokemon.species,
         level: r.pokemon.level,
         rarity: r.pokemon.rarity,
@@ -164,7 +196,9 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       };
       onReturned(entry);
       supabase.from("pokemon_market").update({ buyer_claimed: true }).eq("id", r.id).then(() => {
-        pushChat(`📦 Recebeu ${r.pokemon.species} do Marketplace.`, "cap");
+        pushChat(r.via_offer
+          ? `🤝 Oferta aceita! Recebeu ${r.pokemon.species} por ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"}.`
+          : `📦 Recebeu ${r.pokemon.species} do Marketplace.`, "cap");
       });
     }
     for (const r of mySold) {
@@ -176,7 +210,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows]);
+  }, [rows, gold, crystals]);
 
   const doList = async () => {
     if (!identity?.id) { pushChat("Faça login pra anunciar.", "info"); return; }
@@ -259,6 +293,68 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     void refresh();
   };
 
+  const doMakeOffer = async (r: ListingRow, amount: number) => {
+    if (!identity?.id) { pushChat("Faça login pra ofertar.", "info"); return; }
+    if (r.seller_id === identity.id) return;
+    if (amount < 1 || amount > 100_000_000) { pushChat("Valor inválido.", "info"); return; }
+    if (amount >= r.price) { pushChat(`Oferta precisa ser menor que ${r.price.toLocaleString()}.`, "info"); return; }
+    const have = r.currency === "gold" ? gold : crystals;
+    if (have < amount) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente pra cobrir a oferta.`, "info"); return; }
+    // Só uma oferta pending por comprador+anúncio
+    const existing = offers.find(o => o.listing_id === r.id && o.buyer_id === identity.id && o.status === "pending");
+    if (existing) { pushChat("Você já tem uma oferta ativa nesse anúncio. Cancele antes de refazer.", "info"); return; }
+    const { error } = await supabase.from("pokemon_market_offers").insert({
+      listing_id: r.id, seller_id: r.seller_id,
+      buyer_id: identity.id, buyer_name: identity.name || "Treinador",
+      amount, currency: r.currency, status: "pending",
+    });
+    if (error) {
+      const msg = String(error.message || "");
+      if (/does not exist|relation.*pokemon_market_offers/i.test(msg)) {
+        pushChat("⚠ Ofertas ainda não ativadas no banco. Rode o SQL SUPABASE_MARKETPLACE_OFFERS.sql.", "info");
+      } else {
+        pushChat(`Falha ao ofertar: ${msg}`, "info");
+      }
+      return;
+    }
+    pushChat(`💬 Oferta de ${amount.toLocaleString()} ${r.currency === "gold" ? "ouro" : "cristal"} enviada.`, "cap");
+    void refresh();
+  };
+
+  const doAcceptOffer = async (o: OfferRow, r: ListingRow) => {
+    if (!identity?.id || r.seller_id !== identity.id) return;
+    // Aceita a oferta E marca o anúncio vendido, tudo num só passo por linha.
+    const { data: sold, error: e1 } = await supabase.from("pokemon_market").update({
+      status: "sold",
+      buyer_id: o.buyer_id,
+      buyer_name: o.buyer_name,
+      price: o.amount,
+      sold_at: new Date().toISOString(),
+      via_offer: true,
+    }).eq("id", r.id).eq("status", "active").is("buyer_id", null).select("id").maybeSingle();
+    if (e1 || !sold) { pushChat("Não foi possível aceitar (anúncio pode ter sido vendido).", "info"); void refresh(); return; }
+    await supabase.from("pokemon_market_offers").update({ status: "accepted" }).eq("id", o.id);
+    // rejeita as outras ofertas do mesmo anúncio
+    await supabase.from("pokemon_market_offers").update({ status: "rejected" })
+      .eq("listing_id", r.id).eq("status", "pending").neq("id", o.id);
+    pushChat(`✅ Oferta de ${o.buyer_name} aceita por ${o.amount.toLocaleString()} ${o.currency === "gold" ? "ouro" : "cristal"}.`, "cap");
+    void refresh();
+  };
+
+  const doRejectOffer = async (o: OfferRow) => {
+    if (!identity?.id || o.seller_id !== identity.id) return;
+    await supabase.from("pokemon_market_offers").update({ status: "rejected" }).eq("id", o.id).eq("status", "pending");
+    pushChat(`Oferta de ${o.buyer_name} recusada.`, "info");
+    void refresh();
+  };
+
+  const doCancelOffer = async (o: OfferRow) => {
+    if (!identity?.id || o.buyer_id !== identity.id) return;
+    await supabase.from("pokemon_market_offers").update({ status: "cancelled" }).eq("id", o.id).eq("status", "pending");
+    pushChat("Oferta cancelada.", "info");
+    void refresh();
+  };
+
   return (
     <div style={{ maxWidth: 1000 }}>
       <div style={{ background: "linear-gradient(180deg,#0f2b3d,#02141e)", border: "2px solid #6bd4ff66", borderRadius: 12, padding: 14, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
@@ -300,8 +396,21 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       {mode === "browse" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
           {vitrine.length === 0 && <div style={{ color: "#8a7a9c", gridColumn: "1 / -1", padding: 24, textAlign: "center" }}>Nenhum Pokémon à venda no momento.</div>}
-          {vitrine.map(r => <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
-            action={<button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>} />)}
+          {vitrine.map(r => {
+            const myOffer = offers.find(o => o.listing_id === r.id && o.buyer_id === (identity?.id ?? "") && o.status === "pending");
+            return (
+              <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
+                action={<button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>}
+                footer={
+                  <OfferBox
+                    r={r} myOffer={myOffer}
+                    onOffer={(amt) => void doMakeOffer(r, amt)}
+                    onCancel={() => myOffer && void doCancelOffer(myOffer)}
+                  />
+                }
+              />
+            );
+          })}
         </div>
       )}
 
@@ -310,19 +419,30 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
           {myListings.length === 0 && mySold.length === 0 && (
             <div style={{ color: "#8a7a9c", padding: 24, textAlign: "center" }}>Você não tem anúncios ativos.</div>
           )}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
             {myListings.map(r => {
               const activateMs = new Date(r.activate_at).getTime() - now;
               const isPending = r.status === "pending" || activateMs > 0;
+              const listingOffers = offers.filter(o => o.listing_id === r.id && o.status === "pending");
               return (
                 <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
                   badge={isPending ? `⏳ Ativa em ${fmtTime(activateMs)}` : "✅ Ao vivo"}
-                  action={<button onClick={() => void doCancel(r)} style={btnRed}>✖ CANCELAR</button>} />
+                  action={<button onClick={() => void doCancel(r)} style={btnRed}>✖ CANCELAR</button>}
+                  footer={
+                    <OffersReceived
+                      offers={listingOffers}
+                      listing={r}
+                      onAccept={(o) => void doAcceptOffer(o, r)}
+                      onReject={(o) => void doRejectOffer(o)}
+                    />
+                  }
+                />
               );
             })}
           </div>
         </div>
       )}
+
 
       {mode === "create" && (
         <CreateListing
@@ -341,9 +461,9 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
 // ============ CARDS ============
 function ListingCard(props: {
   r: ListingRow; gifOf: (sp: Species) => string | undefined; now: number;
-  action?: React.ReactNode; badge?: string;
+  action?: React.ReactNode; badge?: string; footer?: React.ReactNode;
 }) {
-  const { r, gifOf, action, badge } = props;
+  const { r, gifOf, action, badge, footer } = props;
   const rc = RARITY_COLOR[r.pokemon.rarity] ?? "#c8b8d0";
   const elems = elementsOf(r.pokemon.species);
   const em = ELEMENT_META[elems[0]];
@@ -417,6 +537,66 @@ function ListingCard(props: {
           padding: "3px 7px", borderRadius: 999,
           background: "rgba(0,0,0,0.6)", border: "1px solid #6bd4ff66", color: "#6bd4ff" }}>{badge}</div>
       )}
+      {footer && <div style={{ marginTop: 10, position: "relative" }}>{footer}</div>}
+    </div>
+  );
+}
+
+// ============ OFERTAS ============
+function OfferBox(props: {
+  r: ListingRow;
+  myOffer?: OfferRow;
+  onOffer: (amount: number) => void;
+  onCancel: () => void;
+}) {
+  const { r, myOffer, onOffer, onCancel } = props;
+  const suggested = Math.max(1, Math.floor(r.price * 0.7));
+  const [val, setVal] = useState<number>(suggested);
+  if (myOffer) {
+    return (
+      <div style={{ background: "#0e0818", border: "1px dashed #6bd4ff55", borderRadius: 8, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+        <div style={{ fontSize: 10, color: "#c8b8d0" }}>
+          Sua oferta: <b style={{ color: myOffer.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>{myOffer.amount.toLocaleString()}</b>
+        </div>
+        <button onClick={onCancel} style={{ ...btnRed, padding: "4px 8px", fontSize: 9 }}>Cancelar</button>
+      </div>
+    );
+  }
+  return (
+    <div style={{ background: "#0e0818", border: "1px solid #3a2a4a", borderRadius: 8, padding: 8, display: "flex", gap: 6, alignItems: "center" }}>
+      <input type="number" min={1} max={r.price - 1} value={val}
+        onChange={e => setVal(Math.max(1, Math.floor(Number(e.target.value) || 0)))}
+        style={{ flex: 1, minWidth: 0, padding: "5px 8px", background: "#0b0510", border: "1px solid #3a2a4a", borderRadius: 6, color: "#eadfe8", fontFamily: "monospace", fontWeight: 900, fontSize: 12 }} />
+      <button onClick={() => onOffer(val)} style={{ ...btnBlue, padding: "5px 10px", fontSize: 10 }}>💬 OFERTAR</button>
+    </div>
+  );
+}
+
+function OffersReceived(props: {
+  offers: OfferRow[];
+  listing: ListingRow;
+  onAccept: (o: OfferRow) => void;
+  onReject: (o: OfferRow) => void;
+}) {
+  const { offers, onAccept, onReject } = props;
+  if (offers.length === 0) {
+    return <div style={{ fontSize: 10, color: "#8a7a9c", fontStyle: "italic", padding: "6px 4px" }}>Nenhuma oferta ainda.</div>;
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <div style={{ fontSize: 9, letterSpacing: 2, color: "#f5cf6b", fontWeight: 900 }}>💬 OFERTAS ({offers.length})</div>
+      {offers.map(o => (
+        <div key={o.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#0e0818", border: "1px solid #3a2a4a", borderRadius: 6, padding: "4px 6px" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.buyer_name}</div>
+            <div style={{ fontSize: 11, fontWeight: 900, color: o.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>
+              {o.currency === "gold" ? "💰" : "💎"} {o.amount.toLocaleString()}
+            </div>
+          </div>
+          <button onClick={() => onAccept(o)} title="Aceitar" style={{ ...btnGold, padding: "3px 7px", fontSize: 9 }}>✓</button>
+          <button onClick={() => onReject(o)} title="Recusar" style={{ ...btnRed, padding: "3px 7px", fontSize: 9 }}>✕</button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -523,4 +703,10 @@ const btnRed: React.CSSProperties = {
   padding: "8px 14px", fontSize: 11, fontWeight: 900, letterSpacing: 1,
   background: "linear-gradient(180deg, #ff5a5a, #8a1a1a)", color: "#fff",
   border: "1px solid #ffb8b8", borderRadius: 8, cursor: "pointer",
+};
+const btnBlue: React.CSSProperties = {
+  padding: "8px 14px", fontSize: 11, fontWeight: 900, letterSpacing: 1,
+  background: "linear-gradient(180deg, #6bd4ff, #1a5a8a)", color: "#0b0510",
+  border: "1px solid #b8ecff", borderRadius: 8, cursor: "pointer",
+  boxShadow: "0 3px 8px rgba(26,90,138,0.5)",
 };
