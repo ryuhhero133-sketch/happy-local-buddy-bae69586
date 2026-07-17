@@ -2749,6 +2749,11 @@ function IdlePage() {
           articuno:  { crit: 0.35, para: 0.30, flee: 0.12 },
           ditto:     { crit: 0, para: 0.10, flee: 0 },
           ditto_shiny: { crit: 0, para: 0.10, flee: 0 },
+          // Apex bosses — crítico brutal, chance leve de para (nidoking shiny é o mais letal)
+          infernape:      { crit: 0.35, para: 0.05, flee: 0 },
+          krookodile:     { crit: 0.40, para: 0.08, flee: 0 },
+          tyranitar:      { crit: 0.48, para: 0.12, flee: 0 },
+          nidoking_shiny: { crit: 0.55, para: 0.20, flee: 0.05 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
