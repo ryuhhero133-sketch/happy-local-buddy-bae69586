@@ -1742,61 +1742,85 @@ function IdlePage() {
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [codeMsg, setCodeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
-  const CRYSTAL_CODE_KEY = "rubym.idlerbmCode.used";
-  const GOLD_CODE_KEY = "rubym.goldrbmCode.used";
-  const MYTHIC2_CODE_KEY = "rubym.mythic2Code.used";
-  const MYTHIC3_CODE_KEY = "rubym.mythic3Code.used";
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
+  const ULTRA200_CODE_KEY = "rubym.ultra200CodeUsed";
+  const normalizeCode = (value: string) => value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
   const redeemCrystalCode = () => {
-    const raw = codeInput.trim().toUpperCase();
+    const raw = normalizeCode(codeInput);
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
-    if (raw === "MYTHICEGG2026") {
-      if (localStorage.getItem(MYTHIC_EGG_CODE_KEY) === "1") {
+
+    const redeemOnce = (
+      key: string,
+      apply: (s: IdleState) => IdleState,
+      chatText: string,
+      okText: string,
+    ) => {
+      if (localStorage.getItem(key) === "1") {
         setCodeMsg({ kind: "err", text: "Este código já foi resgatado nesta conta." });
-        return;
+        return true;
       }
-      setIdle((s) => ({
-        ...s,
-        bank: { ...s.bank, crystals: (s.bank?.crystals ?? 0) + 1000 },
-        items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
-      }));
-      localStorage.setItem(MYTHIC_EGG_CODE_KEY, "1");
-      pushChat("🎁 Código resgatado: +1 Ovo Aura (mítico) e +1000 cristais!", "cap");
-      setCodeMsg({ kind: "ok", text: "Recompensa: 1× Ovo Aura + 1000 cristais." });
+      setIdle((s) => apply(s));
+      localStorage.setItem(key, "1");
+      pushChat(chatText, "cap");
+      setCodeMsg({ kind: "ok", text: okText });
       setCodeInput("");
+      return true;
+    };
+
+    if (raw === "MYTHICEGG2026") {
+      redeemOnce(
+        MYTHIC_EGG_CODE_KEY,
+        (s) => ({
+          ...s,
+          bank: { ...s.bank, crystals: (s.bank?.crystals ?? 0) + 1000 },
+          items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
+        }),
+        "🎁 Código resgatado: +1 Ovo Aura (mítico) e +1000 cristais!",
+        "Recompensa: 1× Ovo Aura + 1000 cristais.",
+      );
       return;
     }
     if (raw === "AURAEGG2026") {
-      if (localStorage.getItem(MYTHIC_EGG2_CODE_KEY) === "1") {
-        setCodeMsg({ kind: "err", text: "Este código já foi resgatado nesta conta." });
-        return;
-      }
-      setIdle((s) => ({
-        ...s,
-        bank: { ...s.bank, crystals: (s.bank?.crystals ?? 0) + 1000 },
-        items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
-      }));
-      localStorage.setItem(MYTHIC_EGG2_CODE_KEY, "1");
-      pushChat("🎁 Código resgatado: +1 Ovo Aura (mítico) e +1000 cristais!", "cap");
-      setCodeMsg({ kind: "ok", text: "Recompensa: 1× Ovo Aura + 1000 cristais." });
-      setCodeInput("");
+      redeemOnce(
+        MYTHIC_EGG2_CODE_KEY,
+        (s) => ({
+          ...s,
+          bank: { ...s.bank, crystals: (s.bank?.crystals ?? 0) + 1000 },
+          items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
+        }),
+        "🎁 Código resgatado: +1 Ovo Aura (mítico) e +1000 cristais!",
+        "Recompensa: 1× Ovo Aura + 1000 cristais.",
+      );
       return;
     }
     if (raw === "CHARIZARDEGG2026") {
-      if (localStorage.getItem(CHARIZARD_EGG_CODE_KEY) === "1") {
-        setCodeMsg({ kind: "err", text: "Este código já foi resgatado nesta conta." });
-        return;
-      }
-      setIdle((s) => ({
-        ...s,
-        items: { ...s.items, egg_charizard: (s.items.egg_charizard ?? 0) + 1 },
-      }));
-      localStorage.setItem(CHARIZARD_EGG_CODE_KEY, "1");
-      pushChat("🔥 Código resgatado: +1 Ovo do Charizard (mítico)!", "cap");
-      setCodeMsg({ kind: "ok", text: "Recompensa: 1× Ovo do Charizard (mítico)." });
-      setCodeInput("");
+      redeemOnce(
+        CHARIZARD_EGG_CODE_KEY,
+        (s) => ({
+          ...s,
+          items: { ...s.items, egg_charizard: (s.items.egg_charizard ?? 0) + 1 },
+        }),
+        "🔥 Código resgatado: +1 Ovo do Charizard (mítico)!",
+        "Recompensa: 1× Ovo do Charizard (mítico).",
+      );
+      return;
+    }
+    if (["ULTRA2026", "ULTRA200", "ULTRABALL200X"].includes(raw)) {
+      redeemOnce(
+        ULTRA200_CODE_KEY,
+        (s) => ({
+          ...s,
+          items: { ...s.items, ultraball: (s.items.ultraball ?? 0) + 200 },
+        }),
+        "🎁 Código resgatado: +200 Ultra Balls!",
+        "Recompensa: 200× Ultra Ball.",
+      );
       return;
     }
     setCodeMsg({ kind: "err", text: "Código inválido." });
