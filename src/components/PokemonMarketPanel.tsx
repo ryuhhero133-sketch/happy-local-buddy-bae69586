@@ -42,6 +42,7 @@ type ListingRow = {
   payout_claimed: boolean;
   buyer_claimed: boolean;
   via_offer?: boolean;
+  offers_only?: boolean;
   created_at: string;
 };
 
@@ -101,6 +102,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   const [selUid, setSelUid] = useState<string>("");
   const [price, setPrice] = useState<number>(1000);
   const [currency, setCurrency] = useState<Currency>("gold");
+  const [offersOnly, setOffersOnly] = useState<boolean>(false);
   // Dedup: IDs de anúncio já processados nesta sessão (compra ou payout).
   // Evita que o useEffect abaixo reentregue o pokémon quando o refresh
   // vê a linha ainda com buyer_claimed=false por causa da latência do UPDATE.
@@ -229,6 +231,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       price, currency,
       status: "pending",
       activate_at: activate,
+      offers_only: offersOnly,
     };
     const { error } = await supabase.from("pokemon_market").insert(payload);
     if (error) {
@@ -269,6 +272,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   const doBuy = async (r: ListingRow) => {
     if (!identity?.id) return;
     if (r.seller_id === identity.id) return;
+    if (r.offers_only) { pushChat("Este anúncio aceita apenas ofertas.", "info"); return; }
     if (claimedBuyerRef.current.has(r.id)) return; // já processado nesta sessão
     const have = r.currency === "gold" ? gold : crystals;
     if (have < r.price) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente.`, "info"); return; }
@@ -297,7 +301,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (!identity?.id) { pushChat("Faça login pra ofertar.", "info"); return; }
     if (r.seller_id === identity.id) return;
     if (amount < 1 || amount > 100_000_000) { pushChat("Valor inválido.", "info"); return; }
-    if (amount >= r.price) { pushChat(`Oferta precisa ser menor que ${r.price.toLocaleString()}.`, "info"); return; }
+    if (!r.offers_only && amount >= r.price) { pushChat(`Oferta precisa ser menor que ${r.price.toLocaleString()}.`, "info"); return; }
     const have = r.currency === "gold" ? gold : crystals;
     if (have < amount) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente pra cobrir a oferta.`, "info"); return; }
     // Só uma oferta pending por comprador+anúncio
@@ -400,7 +404,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
             const myOffer = offers.find(o => o.listing_id === r.id && o.buyer_id === (identity?.id ?? "") && o.status === "pending");
             return (
               <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
-                action={<button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>}
+                badge={r.offers_only ? "💬 Só ofertas" : undefined}
+                action={r.offers_only
+                  ? <div style={{ fontSize: 10, color: "#6bd4ff", fontWeight: 900, letterSpacing: 1, textAlign: "right" }}>SOMENTE<br/>OFERTAS</div>
+                  : <button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>}
                 footer={
                   <OfferBox
                     r={r} myOffer={myOffer}
@@ -450,6 +457,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
           selUid={selUid} setSelUid={setSelUid}
           price={price} setPrice={setPrice}
           currency={currency} setCurrency={setCurrency}
+          offersOnly={offersOnly} setOffersOnly={setOffersOnly}
           isVip={isVip} cooldownMs={cancelRemaining}
           onSubmit={() => void doList()}
         />
@@ -609,10 +617,11 @@ function CreateListing(props: {
   selUid: string; setSelUid: (u: string) => void;
   price: number; setPrice: (n: number) => void;
   currency: Currency; setCurrency: (c: Currency) => void;
+  offersOnly: boolean; setOffersOnly: (b: boolean) => void;
   isVip: boolean; cooldownMs: number;
   onSubmit: () => void;
 }) {
-  const { collection, gifOf, selUid, setSelUid, price, setPrice, currency, setCurrency, isVip, cooldownMs, onSubmit } = props;
+  const { collection, gifOf, selUid, setSelUid, price, setPrice, currency, setCurrency, offersOnly, setOffersOnly, isVip, cooldownMs, onSubmit } = props;
   const sorted = useMemo(() => [...collection].sort((a, b) => b.level - a.level), [collection]);
   const selected = collection.find(c => c.uid === selUid);
   return (
@@ -677,6 +686,22 @@ function CreateListing(props: {
           <input type="number" min={1} max={100000000} value={price} onChange={e => setPrice(Math.max(1, Math.floor(Number(e.target.value) || 0)))}
             style={{ width: "100%", padding: "8px 10px", background: "#0b0510", border: "1px solid #3a2a4a", borderRadius: 8, color: "#eadfe8", fontFamily: "monospace", fontSize: 14, fontWeight: 900 }} />
         </div>
+
+        <label style={{
+          display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
+          background: offersOnly ? "#0f2b3d" : "#0b0510",
+          border: `1px solid ${offersOnly ? "#6bd4ff" : "#3a2a4a"}`,
+          borderRadius: 8, padding: "8px 10px",
+        }}>
+          <input type="checkbox" checked={offersOnly} onChange={e => setOffersOnly(e.target.checked)}
+            style={{ accentColor: "#6bd4ff", width: 16, height: 16 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: offersOnly ? "#6bd4ff" : "#c8b8d0" }}>💬 SOMENTE OFERTAS</div>
+            <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 2 }}>
+              Bloqueia compra direta. O preço vira apenas referência — só vende se você aceitar uma oferta.
+            </div>
+          </div>
+        </label>
 
         <div style={{ fontSize: 10, color: "#8a7a9c", lineHeight: 1.5 }}>
           • Aparece pra todos em <b style={{ color: "#f5cf6b" }}>3 minutos</b>.<br/>
