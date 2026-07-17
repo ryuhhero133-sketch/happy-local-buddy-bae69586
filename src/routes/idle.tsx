@@ -3669,11 +3669,15 @@ function IdlePage() {
         mapLvRange = [1, 30];
       } else {
         if (idle.currentMap === "terra" && maxTeamLv >= 30) {
-          pool = ["beedrill", "butterfree", "blaziken", "pinsir", "golem", "jolteon", "lapras"] as Species[];
+          // blaziken removido do pool comum (aparece raramente via evento/spawn épico)
+          pool = ["beedrill", "butterfree", "pinsir", "golem", "jolteon", "lapras"] as Species[];
         }
         if (idle.currentMap === "venofogo") {
-          pool = ["blaziken", "charmander", "charmeleon", "charizard", "magmar", "arcanine", "growlithe",
-                  "ekans", "arbok", "zubat", "venonat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
+          // blaziken/venonat com presença reduzida (só entram via chance pequena abaixo)
+          pool = ["charmander", "charmeleon", "charizard", "magmar", "arcanine", "growlithe",
+                  "ekans", "arbok", "zubat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
+          if (Math.random() < 0.05) pool = ["blaziken"] as Species[];
+          else if (Math.random() < 0.05) pool = ["venonat"] as Species[];
           // Pântano em Chamas: pokémons sempre 10-15 níveis acima do líder (zona de risco).
           mapLvRange = [leaderLv + 10, leaderLv + 15];
         }
