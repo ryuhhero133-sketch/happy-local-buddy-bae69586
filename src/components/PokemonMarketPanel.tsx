@@ -461,9 +461,9 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
 // ============ CARDS ============
 function ListingCard(props: {
   r: ListingRow; gifOf: (sp: Species) => string | undefined; now: number;
-  action?: React.ReactNode; badge?: string;
+  action?: React.ReactNode; badge?: string; footer?: React.ReactNode;
 }) {
-  const { r, gifOf, action, badge } = props;
+  const { r, gifOf, action, badge, footer } = props;
   const rc = RARITY_COLOR[r.pokemon.rarity] ?? "#c8b8d0";
   const elems = elementsOf(r.pokemon.species);
   const em = ELEMENT_META[elems[0]];
