@@ -289,6 +289,7 @@ const mapN3Url = assetUrlFromJson(mapN3Asset);
 const hornetCocoonUrl = assetUrlFromJson(hornetCocoonAsset);
 const fireLakeUrl = assetUrlFromJson(fireLakeAsset);
 const mapVenofogoOrangeUrl = assetUrlFromJson(mapVenofogoOrangeAsset);
+const mapPantanoFogoUrl = assetUrlFromJson(mapPantanoFogoAsset);
 const mapFantasmaUrl = assetUrlFromJson(mapFantasmaAsset);
 // URLs dos 10 novos mapas endgame
 const mapForestUrl = assetUrlFromJson(mapForestAsset);
