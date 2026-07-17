@@ -2611,6 +2611,9 @@ function IdlePage() {
           lapras_shiny: { crit: 0.25, para: 0.25, flee: 0.08 },
           hariyama:  { crit: 0.20, para: 0.10, flee: 0 },
           ursaring:  { crit: 0.22, para: 0.06, flee: 0 },
+          moltres:   { crit: 0.42, para: 0.20, flee: 0.10 },
+          zapdos:    { crit: 0.38, para: 0.45, flee: 0.10 },
+          articuno:  { crit: 0.35, para: 0.30, flee: 0.12 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
