@@ -3684,7 +3684,7 @@ function IdlePage() {
         if (idle.currentMap === "fantasma") {
           // Cemitério Assombrado: zona endgame nível 200+.
           // Até 249 o mapa empurra acima do líder; a partir de 250 exige parear níveis.
-          pool = ["zubat", "venomoth", "venonat", "gloom", "ekans", "arbok", "abra", "kadabra", "meowth", "persian"] as Species[];
+          pool = ["zubat", "venomoth", "gloom", "ekans", "arbok", "abra", "kadabra", "meowth", "persian"] as Species[];
           if (leaderLv < 200) mapLvRange = [200, 225];
           else if (leaderLv < 250) mapLvRange = [leaderLv + 12, leaderLv + 32];
           else mapLvRange = [Math.max(250, leaderLv - 2), leaderLv + 18];
