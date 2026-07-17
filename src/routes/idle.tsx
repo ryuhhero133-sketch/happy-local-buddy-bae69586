@@ -3192,6 +3192,7 @@ function IdlePage() {
   // ==== EVENTO LUGIA: DESATIVADO a pedido do jogador ====
   useEffect(() => {
     setEnemies((prev) => prev.filter((e) => e.sp !== "lugia"));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ==== EVENTO PÁSSAROS LENDÁRIOS: Moltres / Zapdos / Articuno a cada 2h ====
   // Extremamente fortes, agressivos ao ver, captura minúscula (só ULTRA/MASTER).
