@@ -2564,9 +2564,16 @@ function IdlePage() {
           }
           if (spec.flee > 0 && Math.random() < spec.flee) {
             const fleeId = target.id;
+            const fleeSp = target.sp;
             setTimeout(() => {
               setEnemies((cur) => cur.filter((e) => e.id !== fleeId));
-              pushChat(`💨 ${target.sp.replace(/_/g," ").toUpperCase()} fugiu do combate!`, "info");
+              // Ao fugir, remove efeitos de status que o inimigo causou (paralisia)
+              // senão o treinador ficaria travado sem alvo por até 2min.
+              paralyzedUntilRef.current = 0;
+              setParalyzedUntil(0);
+              blacklistRef.current.delete(fleeId);
+              setAttackTargetId((c) => (c === fleeId ? null : c));
+              pushChat(`💨 ${fleeSp.replace(/_/g," ").toUpperCase()} fugiu do combate!`, "info");
             }, 900);
           }
         }
