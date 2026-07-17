@@ -175,9 +175,18 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (!identity?.id) return;
     for (const r of myBought) {
       if (claimedBuyerRef.current.has(r.id)) continue;
+      // Vendas via oferta ainda não descontaram do comprador — descontar agora.
+      if (r.via_offer) {
+        const have = r.currency === "gold" ? gold : crystals;
+        if (have < r.price) {
+          // Deixa pra tentar depois quando o jogador tiver saldo.
+          continue;
+        }
+        onSpend(r.currency, r.price);
+      }
       claimedBuyerRef.current.add(r.id);
       const entry: CollectionEntry = {
-        uid: r.pokemon.uid ? `bought-${r.id}` : `bought-${r.id}`,
+        uid: `bought-${r.id}`,
         species: r.pokemon.species,
         level: r.pokemon.level,
         rarity: r.pokemon.rarity,
@@ -187,7 +196,9 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       };
       onReturned(entry);
       supabase.from("pokemon_market").update({ buyer_claimed: true }).eq("id", r.id).then(() => {
-        pushChat(`📦 Recebeu ${r.pokemon.species} do Marketplace.`, "cap");
+        pushChat(r.via_offer
+          ? `🤝 Oferta aceita! Recebeu ${r.pokemon.species} por ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"}.`
+          : `📦 Recebeu ${r.pokemon.species} do Marketplace.`, "cap");
       });
     }
     for (const r of mySold) {
@@ -199,7 +210,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows]);
+  }, [rows, gold, crystals]);
 
   const doList = async () => {
     if (!identity?.id) { pushChat("Faça login pra anunciar.", "info"); return; }
