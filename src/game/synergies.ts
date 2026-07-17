@@ -92,7 +92,12 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   lugia: ["psiquico","voador"],
   hariyama: ["lutador"],
   ursaring: ["normal"],
-
+  // Guardiões Anti-Paralisia
+  ditto: ["normal"],
+  electabuzz: ["eletrico"],
+  gengar: ["fantasma","veneno"],
+  hitmontop: ["lutador"],
+  magneton: ["eletrico"],
 };
 
 export function elementsOf(sp: Species): Element[] {
@@ -267,7 +272,40 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
     pack.dmgMult += 0.15; pack.goldMult += 0.05; pack.combos.push("🐲 Fúria Dracônica");
   }
 
+  // ===== GUARDIÕES ANTI-PARALISIA — squad especial =====
+  // Ditto, Electabuzz, Gengar, Hitmontop e Magneton dão paraResist massivo,
+  // escalando por raridade. Com os 5 no time, imunidade quase total.
+  const GUARDIANS: Species[] = ["ditto","electabuzz","gengar","hitmontop","magneton"];
+  const rarityParaBoost: Record<Rarity, number> = {
+    common: 0.08, uncommon: 0.10, rare: 0.18, epic: 0.28,
+    legendary: 0.40, mythic: 0.55, mythic_shiny: 0.75,
+  };
+  let guardiansIn = 0;
+  let guardParaAdd = 0;
+  const guardianLabels: string[] = [];
+  for (const p of team) {
+    if (GUARDIANS.includes(p.species)) {
+      guardiansIn++;
+      const boost = rarityParaBoost[p.rarity] ?? 0.10;
+      guardParaAdd += boost;
+      guardianLabels.push(`${p.species.toUpperCase()} (+${Math.round(boost*100)}%)`);
+    }
+  }
+  if (guardiansIn > 0) {
+    // bônus escalonado extra por quantidade no time
+    const stack = [0, 0.05, 0.12, 0.20, 0.30, 0.45][Math.min(5, guardiansIn)];
+    pack.paraResist += guardParaAdd + stack;
+    pack.effects.push(`🧲 Guardiões Anti-Paralisia ×${guardiansIn} — ${guardianLabels.join(" · ")}`);
+    if (guardiansIn >= 5) {
+      pack.paraResist += 0.20;
+      pack.combos.push("🛡️✨ Escudo Inquebrável (Guardiões ×5) — imunidade quase total à paralisia");
+    } else if (guardiansIn >= 3) {
+      pack.combos.push(`🧲 Muralha Elétrica (Guardiões ×${guardiansIn})`);
+    }
+  }
+
   // ===== GACHA — bônus por raridade dos membros do time =====
+
   // Não altera stats base; só some no pacote de sinergia (XP/Ouro/Dano).
   // Escala: rare/epic/legendary/mythic/mythic_shiny.
   const gachaWeight: Partial<Record<Rarity, { xp: number; gold: number; dmg: number; label: string }>> = {

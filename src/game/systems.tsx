@@ -140,7 +140,9 @@ export type Species =
   // Novos pokémons
   | "ho_oh" | "magmortar"
   // Evento Lugia + reforços
-  | "lugia" | "hariyama" | "ursaring";
+  | "lugia" | "hariyama" | "ursaring"
+  // Guardiões Anti-Paralisia
+  | "ditto" | "electabuzz" | "gengar" | "hitmontop" | "magneton";
 
 
 
@@ -365,6 +367,12 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   lugia:           { hp: 200, atk: 170, def: 155, spa: 190, spd: 220, spe: 130, rarity: "mythic_shiny", goldRange: [1500, 2800], crystalChance: 1.0, catchMod: 6.5, minLv: 600 },
   hariyama:        { hp: 144, atk: 120, def: 60, spa: 40, spd: 60, spe: 50, rarity: "legendary", goldRange: [220, 380], crystalChance: 0.6, catchMod: 2.6, minLv: 250 },
   ursaring:        { hp: 130, atk: 140, def: 75, spa: 55, spd: 75, spe: 55, rarity: "mythic", goldRange: [320, 520], crystalChance: 0.75, catchMod: 3.2, minLv: 340 },
+  // Guardiões Anti-Paralisia
+  ditto:           { hp: 48, atk: 48, def: 48, spa: 48, spd: 48, spe: 48, rarity: "rare", goldRange: [30, 55], crystalChance: 0.15, catchMod: 1.4, minLv: 15 },
+  electabuzz:      { hp: 65, atk: 83, def: 57, spa: 95, spd: 85, spe: 105, rarity: "rare", goldRange: [28, 50], crystalChance: 0.14, catchMod: 1.35, minLv: 20 },
+  gengar:          { hp: 60, atk: 65, def: 60, spa: 130, spd: 75, spe: 110, rarity: "epic", goldRange: [55, 95], crystalChance: 0.25, catchMod: 1.7, minLv: 32 },
+  hitmontop:       { hp: 50, atk: 95, def: 95, spa: 35, spd: 110, spe: 70, rarity: "rare", goldRange: [26, 48], crystalChance: 0.13, catchMod: 1.35, minLv: 22 },
+  magneton:        { hp: 50, atk: 60, def: 95, spa: 120, spd: 70, spe: 70, rarity: "epic", goldRange: [50, 88], crystalChance: 0.22, catchMod: 1.6, minLv: 28 },
 
 
 };

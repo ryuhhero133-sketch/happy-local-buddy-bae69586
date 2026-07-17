@@ -223,9 +223,19 @@ import ursaringAsset from "@/assets/ursaring.gif.asset.json";
 import moltresAsset from "@/assets/moltres.gif.asset.json";
 import zapdosAsset from "@/assets/zapdos.gif.asset.json";
 import articunoAsset from "@/assets/articuno.gif.asset.json";
+import dittoAsset from "@/assets/ditto.gif.asset.json";
+import electabuzzAsset from "@/assets/electabuzz.gif.asset.json";
+import gengarAsset from "@/assets/gengar.gif.asset.json";
+import hitmontopAsset from "@/assets/hitmontop.gif.asset.json";
+import magnetonAsset from "@/assets/magneton.gif.asset.json";
 const lugiaUrl = assetUrlFromJson(lugiaAsset);
 const hariyamaUrl = assetUrlFromJson(hariyamaAsset);
 const ursaringUrl = assetUrlFromJson(ursaringAsset);
+const dittoUrl = assetUrlFromJson(dittoAsset);
+const electabuzzUrl = assetUrlFromJson(electabuzzAsset);
+const gengarUrl = assetUrlFromJson(gengarAsset);
+const hitmontopUrl = assetUrlFromJson(hitmontopAsset);
+const magnetonUrl = assetUrlFromJson(magnetonAsset);
 const moltresUrl = assetUrlFromJson(moltresAsset);
 const zapdosUrl = assetUrlFromJson(zapdosAsset);
 const articunoUrl = assetUrlFromJson(articunoAsset);
@@ -403,6 +413,7 @@ const GIF: Partial<Record<Species, string>> = {
   deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl, charizard_shiny: charizardShinyUrl,
   darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
   lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
+  ditto: dittoUrl, electabuzz: electabuzzUrl, gengar: gengarUrl, hitmontop: hitmontopUrl, magneton: magnetonUrl,
   moltres: moltresUrl, zapdos: zapdosUrl, articuno: articunoUrl,
 };
 
@@ -472,6 +483,9 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   deoxys: "psychic", groudon: "fire", lapras_shiny: "water",
   darkrai: "psychic", ho_oh: "fire", magmortar: "fire",
   lugia: "psychic", hariyama: "fighting", ursaring: "normal",
+  // Guardiões Anti-Paralisia
+  ditto: "normal", electabuzz: "electric", magneton: "electric",
+  gengar: "poison", hitmontop: "fighting",
 
 } as Record<string, ElementFx>;
 
@@ -2650,7 +2664,7 @@ function IdlePage() {
           }
           if (Math.random() < spec.para) {
             const synNow = computeTeamSynergies(teamRef.current);
-            const resist = Math.min(0.95, synNow.paraResist);
+            const resist = Math.min(0.99, synNow.paraResist);
             if (resist > 0 && Math.random() < resist) {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
