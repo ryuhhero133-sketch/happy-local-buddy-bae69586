@@ -232,6 +232,10 @@ import magnetonAsset from "@/assets/magneton.gif.asset.json";
 import dittoShinyAsset from "@/assets/ditto-shiny.gif.asset.json";
 import scizorAsset from "@/assets/scizor.gif.asset.json";
 import umbreonAsset from "@/assets/umbreon.gif.asset.json";
+import infernapeAsset from "@/assets/infernape.gif.asset.json";
+import krookodileAsset from "@/assets/krookodile.gif.asset.json";
+import tyranitarAsset from "@/assets/tyranitar.gif.asset.json";
+import nidokingShinyAsset from "@/assets/nidoking-shiny.gif.asset.json";
 const lugiaUrl = assetUrlFromJson(lugiaAsset);
 const hariyamaUrl = assetUrlFromJson(hariyamaAsset);
 const ursaringUrl = assetUrlFromJson(ursaringAsset);
@@ -243,6 +247,10 @@ const magnetonUrl = assetUrlFromJson(magnetonAsset);
 const dittoShinyUrl = assetUrlFromJson(dittoShinyAsset);
 const scizorUrl = assetUrlFromJson(scizorAsset);
 const umbreonUrl = assetUrlFromJson(umbreonAsset);
+const infernapeUrl = assetUrlFromJson(infernapeAsset);
+const krookodileUrl = assetUrlFromJson(krookodileAsset);
+const tyranitarUrl = assetUrlFromJson(tyranitarAsset);
+const nidokingShinyUrl = assetUrlFromJson(nidokingShinyAsset);
 const moltresUrl = assetUrlFromJson(moltresAsset);
 const zapdosUrl = assetUrlFromJson(zapdosAsset);
 const articunoUrl = assetUrlFromJson(articunoAsset);
@@ -422,6 +430,7 @@ const GIF: Partial<Record<Species, string>> = {
   lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
   ditto: dittoUrl, electabuzz: electabuzzUrl, gengar: gengarUrl, hitmontop: hitmontopUrl, magneton: magnetonUrl,
   ditto_shiny: dittoShinyUrl, scizor: scizorUrl, umbreon: umbreonUrl,
+  infernape: infernapeUrl, krookodile: krookodileUrl, tyranitar: tyranitarUrl, nidoking_shiny: nidokingShinyUrl,
   moltres: moltresUrl, zapdos: zapdosUrl, articuno: articunoUrl,
 };
 
@@ -495,6 +504,8 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   ditto: "normal", electabuzz: "electric", magneton: "electric",
   gengar: "poison", hitmontop: "fighting",
   ditto_shiny: "normal", scizor: "fighting", umbreon: "psychic",
+  // Apex bosses
+  infernape: "fire", krookodile: "rock", tyranitar: "rock", nidoking_shiny: "poison",
 
 
 } as Record<string, ElementFx>;
@@ -1583,7 +1594,7 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; disguise?: Species; revealed?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
@@ -2738,6 +2749,11 @@ function IdlePage() {
           articuno:  { crit: 0.35, para: 0.30, flee: 0.12 },
           ditto:     { crit: 0, para: 0.10, flee: 0 },
           ditto_shiny: { crit: 0, para: 0.10, flee: 0 },
+          // Apex bosses — crítico brutal, chance leve de para (nidoking shiny é o mais letal)
+          infernape:      { crit: 0.35, para: 0.05, flee: 0 },
+          krookodile:     { crit: 0.40, para: 0.08, flee: 0 },
+          tyranitar:      { crit: 0.48, para: 0.12, flee: 0 },
+          nidoking_shiny: { crit: 0.55, para: 0.20, flee: 0.05 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
@@ -2997,7 +3013,7 @@ function IdlePage() {
               } else {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
-                const guardMult = target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
+                const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult;
               }
               if (captured) {
@@ -3517,7 +3533,7 @@ function IdlePage() {
       const base = 0.08 + (1 - hpPct) * 0.37;
       // 🖤 Guardiões anti-paralisia: um pouco mais difíceis de capturar
       const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
-      const guardMult = target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
+      const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
       chance = Math.min(0.95, base * usedBall.captureMult * guardMult);
     }
     const success = Math.random() < chance;
@@ -4020,13 +4036,38 @@ function IdlePage() {
         pet = makePet(sp, gLv, gRarity);
         lv = gLv;
       }
+      // 🔥 APEX BOSSES — Infernape / Krookodile / Tyranitar / Nidoking Shiny
+      // Aparição rara em mapas de nv 300+. Fortes, crit alto, muito difíceis de capturar.
+      const APEX_MONS: Array<{ sp: Species; minLv: number; rarityFloor: Rarity }> = [
+        { sp: "infernape",      minLv: 300, rarityFloor: "epic" },
+        { sp: "krookodile",     minLv: 350, rarityFloor: "epic" },
+        { sp: "tyranitar",      minLv: 500, rarityFloor: "legendary" },
+        { sp: "nidoking_shiny", minLv: 600, rarityFloor: "mythic" },
+      ];
+      const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
+      const apexEligible = !isMythicRoamer && !isRider && !isGuardian && apexPool.length > 0;
+      // 0.6% chance quando elegível (aparição escassa)
+      const isApex = apexEligible && Math.random() < 0.006;
+      if (isApex) {
+        const pick = apexPool[Math.floor(Math.random() * apexPool.length)];
+        sp = pick.sp;
+        const rarityRoll = Math.random();
+        const aRarity: Rarity =
+          pick.rarityFloor === "mythic"    ? (rarityRoll < 0.75 ? "mythic" : "mythic_shiny") :
+          pick.rarityFloor === "legendary" ? (rarityRoll < 0.60 ? "legendary" : rarityRoll < 0.92 ? "mythic" : "mythic_shiny") :
+          /* epic */                         (rarityRoll < 0.50 ? "epic" : rarityRoll < 0.85 ? "legendary" : rarityRoll < 0.98 ? "mythic" : "mythic_shiny");
+        const aLv = Math.max(pick.minLv, Math.min(700, leaderLv + Math.floor(Math.random() * 40) - 10));
+        pet = makePet(sp, aLv, aRarity);
+        lv = aLv;
+      }
       const baseHp = calcIdleMaxHp(pet);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : 1;
       const guardianHpMult = isGuardian ? 2.2 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult);
+      const apexHpMult = isApex ? 4.5 : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult);
       const isAggro = true; // todos os pokémon selvagens agora são agressivos
-      const aggroR = elite ? 300 : 220 + Math.floor(Math.random() * 60);
+      const aggroR = elite ? 300 : isApex ? 360 : 220 + Math.floor(Math.random() * 60);
 
       // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
       let disguise: Species | undefined = undefined;
@@ -4039,7 +4080,7 @@ function IdlePage() {
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
       }
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian, eventLegendary: isMythicRoamer, disguise, revealed: false };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex, apex: isApex, eventLegendary: isMythicRoamer, disguise, revealed: false };
 
 
     }
