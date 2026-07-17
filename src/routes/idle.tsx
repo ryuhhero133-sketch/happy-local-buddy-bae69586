@@ -2584,6 +2584,8 @@ function IdlePage() {
         const isCrit = Math.random() < critChance;
         let dmg = Math.floor((5 + leader.level * 0.8 + base.atk * 0.12 + Math.random() * 5) * (1 + idle.buffs.atk));
         if (isCrit) dmg = Math.floor(dmg * 1.8);
+        // n2 debuff: enquanto ativo, reduz -40% do ataque do jogador
+        if (Date.now() < atkDebuffUntilRef.current) dmg = Math.floor(dmg * 0.6);
         dmg = Math.max(1, Math.floor(dmg * playerDamageVsHighLevelMult(leader.level, target.level)));
 
         // Lunge: pokémon avança em direção ao inimigo
