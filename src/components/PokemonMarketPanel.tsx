@@ -301,7 +301,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (!identity?.id) { pushChat("Faça login pra ofertar.", "info"); return; }
     if (r.seller_id === identity.id) return;
     if (amount < 1 || amount > 100_000_000) { pushChat("Valor inválido.", "info"); return; }
-    if (amount >= r.price) { pushChat(`Oferta precisa ser menor que ${r.price.toLocaleString()}.`, "info"); return; }
+    if (!r.offers_only && amount >= r.price) { pushChat(`Oferta precisa ser menor que ${r.price.toLocaleString()}.`, "info"); return; }
     const have = r.currency === "gold" ? gold : crystals;
     if (have < amount) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente pra cobrir a oferta.`, "info"); return; }
     // Só uma oferta pending por comprador+anúncio
