@@ -6874,6 +6874,13 @@ function IdlePage() {
                   { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
                   { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
                 ],
+                // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
+                gelius1: [
+                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7fd8ff" },
+                ],
+                gelius2: [
+                  { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
