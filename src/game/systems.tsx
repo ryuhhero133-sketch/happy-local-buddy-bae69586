@@ -379,6 +379,11 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   ditto_shiny:     { hp: 48, atk: 48, def: 48, spa: 48, spd: 48, spe: 48, rarity: "mythic_shiny", goldRange: [420, 720], crystalChance: 0.85, catchMod: 4.2, minLv: 100 },
   scizor:          { hp: 70, atk: 130, def: 100, spa: 55, spd: 80, spe: 65, rarity: "epic", goldRange: [90, 160], crystalChance: 0.4, catchMod: 2.0, minLv: 100 },
   umbreon:         { hp: 95, atk: 65, def: 110, spa: 60, spd: 130, spe: 65, rarity: "epic", goldRange: [95, 170], crystalChance: 0.42, catchMod: 2.1, minLv: 100 },
+  // Apex — bosses raros Lv 300-700 (crit alto, difícil de capturar)
+  infernape:       { hp: 76,  atk: 104, def: 71,  spa: 104, spd: 71,  spe: 108, rarity: "epic",         goldRange: [320, 540], crystalChance: 0.70, catchMod: 3.2, minLv: 300 },
+  krookodile:      { hp: 95,  atk: 117, def: 80,  spa: 65,  spd: 70,  spe: 92,  rarity: "legendary",    goldRange: [440, 720], crystalChance: 0.80, catchMod: 3.6, minLv: 350 },
+  tyranitar:       { hp: 100, atk: 134, def: 110, spa: 95,  spd: 100, spe: 61,  rarity: "mythic",       goldRange: [620, 980], crystalChance: 0.90, catchMod: 4.2, minLv: 500 },
+  nidoking_shiny:  { hp: 81,  atk: 122, def: 87,  spa: 105, spd: 85,  spe: 95,  rarity: "mythic_shiny", goldRange: [950, 1500],crystalChance: 0.98, catchMod: 5.2, minLv: 600 },
 
 
 };
