@@ -168,11 +168,12 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
     pack.defMult += tier(c("agua"), [0.08, 0.16, 0.25, 0.35, 0.50]);
     pack.effects.push(`💧 Água ×${c("agua")} — +${Math.round(tier(c("agua"),[8,16,25,35,50]))}% def`);
   }
-  // Elétrico — atk speed + crit
+  // Elétrico — atk speed + crit + resistência a paralisia (aterramento)
   if (c("eletrico") > 0) {
     pack.atkSpeedMult += tier(c("eletrico"), [0.15, 0.25, 0.40, 0.55, 0.75]);
     pack.critChance   += tier(c("eletrico"), [0.03, 0.06, 0.10, 0.15, 0.22]);
-    pack.effects.push(`⚡ Elétrico ×${c("eletrico")} — +${Math.round(tier(c("eletrico"),[15,25,40,55,75]))}% velocidade`);
+    pack.paraResist   += tier(c("eletrico"), [0.15, 0.30, 0.50, 0.70, 0.90]);
+    pack.effects.push(`⚡ Elétrico ×${c("eletrico")} — +${Math.round(tier(c("eletrico"),[15,25,40,55,75]))}% vel · ${Math.round(tier(c("eletrico"),[15,30,50,70,90]))}% resist. paralisia`);
   }
   // Pedra — hp
   if (c("pedra") > 0) {
