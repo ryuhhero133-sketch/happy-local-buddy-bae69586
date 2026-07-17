@@ -59,6 +59,7 @@ import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
 import { computeTeamSynergies, computePower } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
+import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import { PokemonMarketPanel } from "@/components/PokemonMarketPanel";
@@ -8455,16 +8456,10 @@ function TabOverlay({
                       Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
                     </div>
                     {entry.traits && entry.traits.length > 0 && (
-                      <div style={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap", marginTop: 2 }} title={entry.traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ")}>
-                        {entry.traits.slice(0, 4).map((id) => {
-                          const t = TRAITS[id]; if (!t) return null;
-                          const col = TIER_COLOR[t.tier];
-                          return (
-                            <span key={id} title={`${t.name} — ${t.desc}`} style={{ fontSize: 11, padding: "1px 4px", borderRadius: 4, background: `${col}33`, border: `1px solid ${col}`, lineHeight: 1 }}>
-                              {t.icon}
-                            </span>
-                          );
-                        })}
+                      <div style={{ display: "flex", gap: 3, justifyContent: "center", flexWrap: "wrap", marginTop: 3 }} title={entry.traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ")}>
+                        {entry.traits.slice(0, 4).map((id) => (
+                          <TraitIcon key={id} id={id} size={22} />
+                        ))}
                       </div>
                     )}
                     <button
