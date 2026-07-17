@@ -175,10 +175,11 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
     pack.paraResist   += tier(c("eletrico"), [0.15, 0.30, 0.50, 0.70, 0.90]);
     pack.effects.push(`⚡ Elétrico ×${c("eletrico")} — +${Math.round(tier(c("eletrico"),[15,25,40,55,75]))}% vel · ${Math.round(tier(c("eletrico"),[15,30,50,70,90]))}% resist. paralisia`);
   }
-  // Pedra — hp
+  // Pedra — hp + resistência a paralisia (aterramento)
   if (c("pedra") > 0) {
     pack.hpMult += tier(c("pedra"), [0.20, 0.40, 0.60, 0.80, 1.20]);
-    pack.effects.push(`🪨 Pedra ×${c("pedra")} — +${Math.round(tier(c("pedra"),[20,40,60,80,120]))}% HP`);
+    pack.paraResist += tier(c("pedra"), [0.05, 0.10, 0.18, 0.28, 0.40]);
+    pack.effects.push(`🪨 Pedra ×${c("pedra")} — +${Math.round(tier(c("pedra"),[20,40,60,80,120]))}% HP · aterramento`);
   }
   // Veneno — dano crescente
   if (c("veneno") > 0) {
