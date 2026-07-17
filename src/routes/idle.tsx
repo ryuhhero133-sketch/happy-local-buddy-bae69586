@@ -5668,6 +5668,18 @@ function IdlePage() {
                       animation: "pulse 1.2s ease-in-out infinite",
                     }}>✦</div>
                   )}
+                  {e.guardian && !e.rider && (
+                    <div style={{
+                      position: "absolute", top: -38, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      color: "#111",
+                      fontSize: 20, fontWeight: 900, lineHeight: 1,
+                      textShadow: "1px 1px 0 #fff, -1px 1px 0 #fff, 1px -1px 0 #fff, -1px -1px 0 #fff, 0 0 10px #000",
+                      whiteSpace: "nowrap", pointerEvents: "none",
+                      filter: "drop-shadow(0 0 4px #000)",
+                      animation: "pulse 1.6s ease-in-out infinite",
+                    }}>✦</div>
+                  )}
                   {stars && !e.rider && (
                     <div style={{
                       position: "absolute", top: -26, left: "50%",
