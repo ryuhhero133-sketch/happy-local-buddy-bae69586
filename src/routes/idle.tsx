@@ -3843,6 +3843,7 @@ function IdlePage() {
     pokeball: 200, greatball: 1800, ultraball: 3500,
     chest_amulet: 900, potion: 40,
     berry: 60, revive: 300, key: 500,
+    incenso_mel: 2500, incenso_mel_raro: 9000,
   };
   // ===== Mercado P2P (Supabase) =====
   const isVip = () => {
