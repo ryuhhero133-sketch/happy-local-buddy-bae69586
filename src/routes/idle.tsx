@@ -2229,7 +2229,7 @@ function IdlePage() {
         if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
         if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
-        const speed = 14 * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+        const speed = 14 * (1 + honeyBonusNow());
         const stepX = (dx / mag) * speed;
         const stepY = (dy / mag) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -2273,7 +2273,7 @@ function IdlePage() {
             return tp;
           }
           if (!moving) setMoving(true);
-          const speed = 14 * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+          const speed = 14 * (1 + honeyBonusNow());
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
           const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -2375,7 +2375,7 @@ function IdlePage() {
           const wdx = w.x - tp.x, wdy = w.y - tp.y;
           const wd = Math.hypot(wdx, wdy) || 1;
           if (!moving) setMoving(true);
-          const spd = 16 * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+          const spd = 16 * (1 + honeyBonusNow());
           const wnd: Dir = Math.abs(wdx) > Math.abs(wdy)
             ? (wdx > 0 ? "right" : "left")
             : (wdy > 0 ? "down" : "up");
@@ -2425,7 +2425,7 @@ function IdlePage() {
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 12 * distBoost * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+        const speed = 12 * distBoost * (1 + honeyBonusNow());
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
