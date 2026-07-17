@@ -3130,12 +3130,12 @@ function IdlePage() {
   // ==== Evento Lendário: 5 pokémon raros aparecem a cada 30 min (rotativo) ====
   const LEGEND_INTERVAL_MS = 30 * 60 * 1000;
   const LEGEND_DURATION_MS = 3 * 60 * 1000;
-  const LEGEND_ROSTER: { sp: Species; label: string; rarity: Rarity; level: number; icon: string; color: string; weather?: "snow" | "rain" }[] = [
-    { sp: "virizion",      label: "VIRIZION",      rarity: "epic",         level: 80, icon: "🌿", color: "#7ef2a2" },
-    { sp: "raikou",        label: "RAIKOU",        rarity: "epic",         level: 82, icon: "⚡", color: "#f5cf6b" },
-    { sp: "luxray_f",      label: "LUXRAY ♀",      rarity: "epic",         level: 78, icon: "⚡", color: "#5ec2ff" },
-    { sp: "suicune",       label: "SUICUNE",       rarity: "mythic",       level: 88, icon: "❄", color: "#8ec5ff", weather: "rain" },
-    { sp: "suicune_shiny", label: "SUICUNE ✦",     rarity: "mythic_shiny", level: 92, icon: "💠", color: "#ff97e1", weather: "snow" },
+  const LEGEND_ROSTER: { sp: Species; label: string; rarity: Rarity; level: number; icon: string; color: string; weather?: "snow" | "rain"; w: number }[] = [
+    { sp: "virizion",      label: "VIRIZION",      rarity: "epic",         level: 80, icon: "🌿", color: "#7ef2a2", w: 10 },
+    { sp: "luxray_f",      label: "LUXRAY ♀",      rarity: "epic",         level: 78, icon: "⚡", color: "#5ec2ff", w: 10 },
+    { sp: "raikou",        label: "RAIKOU",        rarity: "epic",         level: 82, icon: "⚡", color: "#f5cf6b", w: 2 },
+    { sp: "suicune",       label: "SUICUNE",       rarity: "mythic",       level: 88, icon: "❄", color: "#8ec5ff", weather: "rain", w: 2 },
+    { sp: "suicune_shiny", label: "SUICUNE ✦",     rarity: "mythic_shiny", level: 92, icon: "💠", color: "#ff97e1", weather: "snow", w: 1 },
   ];
   const legendIdxRef = useRef(0);
   const [legendUntil, setLegendUntil] = useState<{ until: number; weather?: "snow" | "rain" } | null>(null);
