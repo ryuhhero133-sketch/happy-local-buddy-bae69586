@@ -3533,7 +3533,7 @@ function IdlePage() {
       const base = 0.08 + (1 - hpPct) * 0.37;
       // 🖤 Guardiões anti-paralisia: um pouco mais difíceis de capturar
       const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
-      const guardMult = target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
+      const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
       chance = Math.min(0.95, base * usedBall.captureMult * guardMult);
     }
     const success = Math.random() < chance;
