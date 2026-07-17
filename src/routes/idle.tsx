@@ -690,12 +690,14 @@ type IdleState = {
   craftPoints?: number; // pontos obtidos ao fragmentar pokémons da coleção
   items: Record<string, number>;
   bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string }; // livros de xp/vip são temporários (1h); honey = incenso de mel 10min; orb = boost independente (stack com livro)
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro)
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
+  // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
+  hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[] };
@@ -838,7 +840,7 @@ function freshIdle(): IdleState {
     craftPoints: 0,
     items: { premium_box: 1 },
     bank: { gold: 0, crystals: 30 },
-    buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0, orbMult: 0, orbUntil: 0, orbId: "" },
+    buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0, honeyRareUntil: 0, orbMult: 0, orbUntil: 0, orbId: "" },
     autoHeal: { enabled: true, threshold: 0.5 },
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
     trainerLevel: 1,
@@ -1362,12 +1364,41 @@ function IdlePage() {
 
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
   const honeyUntilRef = useRef<number>(idle.buffs.honeyUntil ?? 0);
+  const honeyRareUntilRef = useRef<number>(idle.buffs.honeyRareUntil ?? 0);
   useEffect(() => { honeyUntilRef.current = idle.buffs.honeyUntil ?? 0; }, [idle.buffs.honeyUntil]);
-  const [honeyShop, setHoneyShop] = useState<null | { x: number; y: number }>(null);
-  const HONEY_PRICE = 3000;
+  useEffect(() => { honeyRareUntilRef.current = idle.buffs.honeyRareUntil ?? 0; }, [idle.buffs.honeyRareUntil]);
+  const [honeyShop, setHoneyShop] = useState<null | { cocoonKey: string; x: number; y: number }>(null);
   const HONEY_DURATION_MS = 60 * 60 * 1000; // 1 hora por incenso ativado
-  const HONEY_BONUS = 0.10; // +10% drop, xp, def, velocidade
-  const HONEY_BUY_LIMIT = 20; // limite de compras (vitalício)
+  const HONEY_BONUS_NORMAL = 0.10; // +10% drop, xp, def, velocidade
+  const HONEY_BONUS_RARE = 0.20;   // +20% (dobrado) para o incenso raro
+  const honeyBonusNow = () => {
+    const now = Date.now();
+    if (now < honeyRareUntilRef.current) return HONEY_BONUS_RARE;
+    if (now < honeyUntilRef.current) return HONEY_BONUS_NORMAL;
+    return 0;
+  };
+  // Compat: HONEY_BONUS antigo — mantido para pequenos usos legados; call sites principais agora usam honeyBonusNow()
+  const HONEY_BONUS = HONEY_BONUS_NORMAL;
+  // ===== Colmeias (produção passiva no Ninho de Marimbondo) =====
+  const HIVE_PRODUCTION_MS = 10 * 60 * 1000; // 10 minutos por ciclo
+  const HIVE_SLOTS_PER_COCOON = 3;
+  const HIVE_YIELD_PER_BEEDRILL = 2; // 2 incensos por Beedrill por ciclo
+  const RARITY_TIER: Record<string, number> = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, mythic: 5, mythic_shiny: 6 };
+  const isRareTierPokemon = (r?: string | null) => (RARITY_TIER[r ?? "common"] ?? 0) >= 3; // epic+
+  const uidsAssignedToHives = (): Set<string> => {
+    const set = new Set<string>();
+    const hives = idle.hives ?? {};
+    for (const k of Object.keys(hives)) {
+      for (const slot of hives[k].slots ?? []) if (slot?.uid) set.add(slot.uid);
+    }
+    return set;
+  };
+  // Re-render a cada 1s para atualizar contadores das colmeias e do incenso
+  const [, forceHiveTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => forceHiveTick((n) => (n + 1) % 1_000_000), 1000);
+    return () => clearInterval(t);
+  }, []);
   // ===== Escolha do inicial (declarada cedo p/ gatear loops do jogo) =====
   const [starterChosen, setStarterChosen] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
@@ -2198,7 +2229,7 @@ function IdlePage() {
         if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
         if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
-        const speed = 14 * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+        const speed = 14 * (1 + honeyBonusNow());
         const stepX = (dx / mag) * speed;
         const stepY = (dy / mag) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -2242,7 +2273,7 @@ function IdlePage() {
             return tp;
           }
           if (!moving) setMoving(true);
-          const speed = 14 * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+          const speed = 14 * (1 + honeyBonusNow());
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
           const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -2344,7 +2375,7 @@ function IdlePage() {
           const wdx = w.x - tp.x, wdy = w.y - tp.y;
           const wd = Math.hypot(wdx, wdy) || 1;
           if (!moving) setMoving(true);
-          const spd = 16 * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+          const spd = 16 * (1 + honeyBonusNow());
           const wnd: Dir = Math.abs(wdx) > Math.abs(wdy)
             ? (wdx > 0 ? "right" : "left")
             : (wdy > 0 ? "down" : "up");
@@ -2394,7 +2425,7 @@ function IdlePage() {
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 12 * distBoost * (Date.now() < honeyUntilRef.current ? 1 + HONEY_BONUS : 1);
+        const speed = 12 * distBoost * (1 + honeyBonusNow());
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -2550,8 +2581,7 @@ function IdlePage() {
         // Contra-ataque do inimigo: dano no meu pokémon (reduzido pelo buff de def)
         const eBase = SPECIES_BASE[target.sp];
         const eliteMult = target.elite ? 2.5 : 1;
-        const honeyActive = Date.now() < (idle.buffs.honeyUntil ?? 0);
-        const honeyDef = honeyActive ? HONEY_BONUS : 0;
+        const honeyDef = honeyBonusNow();
         let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
 
         // ✦ Habilidades especiais de espécies fortes (crit / paralisar / fugir)
@@ -2651,8 +2681,7 @@ function IdlePage() {
           const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
           const totalBonus = rarityBonus + synergyBonus;
           const totalMult = goldMult * (1 + totalBonus);
-          const honeyActiveKill = Date.now() < (idle.buffs.honeyUntil ?? 0);
-          const honeyMult = honeyActiveKill ? 1 + HONEY_BONUS : 1;
+          const honeyMult = 1 + honeyBonusNow();
           // Multiplicador pela raridade DO INIMIGO derrotado
           const enemyRarityMultMap: Record<Rarity, number> = {
             common: 1, uncommon: 1.6, rare: 2.6, epic: 4.5, legendary: 8, mythic: 14, mythic_shiny: 22,
@@ -3391,8 +3420,8 @@ function IdlePage() {
       pushChat(`✦ Vá até a aba Início e escolha uma skin premium para desbloquear com o ticket.`, "info");
     } else if (id === "incenso_mel") {
       const nowT = Date.now();
-      if ((idle.buffs.honeyUntil ?? 0) > nowT) {
-        pushChat(`Já há um Incenso de Mel ativo. Espere o tempo acabar.`, "info");
+      if ((idle.buffs.honeyUntil ?? 0) > nowT || (idle.buffs.honeyRareUntil ?? 0) > nowT) {
+        pushChat(`Já há um Incenso ativo. Espere o tempo acabar.`, "info");
         return;
       }
       setIdle((s) => ({
@@ -3402,6 +3431,19 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, "🍯 MEL +10% · 1h", "capture");
       pushChat(`🍯 Incenso de Mel ativado! +10% drop/xp/def/velocidade por 1 hora.`, "cap");
+    } else if (id === "incenso_mel_raro") {
+      const nowT = Date.now();
+      if ((idle.buffs.honeyUntil ?? 0) > nowT || (idle.buffs.honeyRareUntil ?? 0) > nowT) {
+        pushChat(`Já há um Incenso ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, incenso_mel_raro: (s.items.incenso_mel_raro ?? 0) - 1 },
+        buffs: { ...s.buffs, honeyRareUntil: nowT + HONEY_DURATION_MS },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "✨ MEL RARO +20% · 1h", "capture");
+      pushChat(`✨🍯 Incenso Raro ativado! +20% drop/xp/def/velocidade por 1 hora (dobro do normal).`, "cap");
     }
   };
 
@@ -3801,6 +3843,7 @@ function IdlePage() {
     pokeball: 200, greatball: 1800, ultraball: 3500,
     chest_amulet: 900, potion: 40,
     berry: 60, revive: 300, key: 500,
+    incenso_mel: 2500, incenso_mel_raro: 9000,
   };
   // ===== Mercado P2P (Supabase) =====
   const isVip = () => {
@@ -4692,15 +4735,20 @@ function IdlePage() {
               );
             })()}
             {(() => {
-              const honeyUntil = idle.buffs.honeyUntil ?? 0;
-              const remain = honeyUntil - Date.now();
+              const rareUntil = idle.buffs.honeyRareUntil ?? 0;
+              const normalUntil = idle.buffs.honeyUntil ?? 0;
+              const isRare = rareUntil > Date.now();
+              const until = isRare ? rareUntil : normalUntil;
+              const remain = until - Date.now();
               if (remain <= 0) return null;
               const mins = Math.floor(remain / 60000);
               const secs = Math.floor((remain % 60000) / 1000);
               const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+              const pct = isRare ? 20 : 10;
+              const icon = isRare ? "✨🍯" : "🍯";
               return (
                 <div
-                  title={`Incenso de Mel ativo: +10% drop/xp/def/velocidade · ${timeStr}`}
+                  title={`Incenso ${isRare ? "Raro" : "de Mel"} ativo: +${pct}% drop/xp/def/velocidade · ${timeStr}`}
                   style={{
                     marginTop: 4,
                     display: "flex",
@@ -4708,13 +4756,13 @@ function IdlePage() {
                     alignItems: "center",
                     gap: 2,
                     padding: "3px 5px",
-                    background: "rgba(40,25,5,0.85)",
-                    border: "1px solid #ffb84d",
+                    background: isRare ? "rgba(50,30,5,0.9)" : "rgba(40,25,5,0.85)",
+                    border: `1px solid ${isRare ? "#ffd94d" : "#ffb84d"}`,
                     borderRadius: 6,
-                    boxShadow: "0 0 8px rgba(255,184,77,0.55)",
+                    boxShadow: `0 0 ${isRare ? 12 : 8}px rgba(255,${isRare ? 217 : 184},${isRare ? 77 : 77},0.65)`,
                   }}
                 >
-                  <span style={{ fontSize: 18, lineHeight: 1, filter: "drop-shadow(0 0 4px rgba(255,214,80,0.9))" }}>🍯</span>
+                  <span style={{ fontSize: 16, lineHeight: 1, filter: "drop-shadow(0 0 4px rgba(255,214,80,0.9))" }}>{icon}</span>
                   <span style={{ fontSize: 9, color: "#ffe9a8", fontWeight: 700, lineHeight: 1, whiteSpace: "nowrap" }}>
                     {timeStr}
                   </span>
@@ -4818,35 +4866,36 @@ function IdlePage() {
               }} />
             ))}
 
-            {/* Clique nos casulos (Ninho de Marimbondo) — só se tiver Pokémon abelha */}
+            {/* Clique nos casulos (Ninho de Marimbondo) — abre painel de Colmeia p/ posicionar Beedrills */}
             {idle.currentMap === "terra" && obstacles.filter((o) => o.src === hornetCocoonUrl).map((o) => {
-              const beeIds: Species[] = ["weedle", "weedle_shiny", "kakuna", "kakuna_shiny", "beedrill"];
-              const hasBee = team.some((p) => beeIds.includes(p.species)) || idle.caughtSpecies.some((s) => beeIds.includes(s));
+              const cocoonKey = `terra:${Math.round(o.x)}:${Math.round(o.y)}`;
+              const beedrillCount = (idle.collection ?? []).filter((c) => c.species === "beedrill").length;
+              const canUse = beedrillCount > 0;
               return (
                 <button
                   key={`cocoon-btn-${o.id}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (!hasBee) {
-                      pushChat("🐝 Precisa de um Pokémon abelha (Weedle, Kakuna ou Beedrill) para se aproximar do casulo!", "info");
+                    if (!canUse) {
+                      pushChat("🐝 Você precisa ter pelo menos 1 Beedrill na coleção para usar a colmeia!", "info");
                       return;
                     }
-                    setHoneyShop({ x: o.x, y: o.y - o.h });
+                    setHoneyShop({ cocoonKey, x: o.x, y: o.y - o.h });
                   }}
-                  title={hasBee ? "Ninho de Marimbondo — Comprar Incenso de Mel" : "Requer Pokémon abelha"}
+                  title={canUse ? "Colmeia — posicionar Beedrills p/ produzir Incenso" : "Requer Beedrill na coleção"}
                   style={{
                     position: "absolute",
                     left: o.x - o.w / 2,
                     top: o.y - o.h + 8,
                     width: o.w, height: o.h,
                     background: "transparent",
-                    border: hasBee ? "2px dashed rgba(255,214,80,0.85)" : "2px dashed rgba(255,255,255,0.25)",
+                    border: canUse ? "2px dashed rgba(255,214,80,0.85)" : "2px dashed rgba(255,255,255,0.25)",
                     borderRadius: 12,
-                    cursor: hasBee ? "pointer" : "not-allowed",
+                    cursor: canUse ? "pointer" : "not-allowed",
                     zIndex: Math.round(o.y) + 1,
                     padding: 0,
-                    boxShadow: hasBee ? "0 0 12px rgba(255,214,80,0.55)" : "none",
-                    animation: hasBee ? "lvglow 1.6s ease-in-out infinite" : "none",
+                    boxShadow: canUse ? "0 0 12px rgba(255,214,80,0.55)" : "none",
+                    animation: canUse ? "lvglow 1.6s ease-in-out infinite" : "none",
                   }}
                 />
               );
@@ -4983,103 +5032,165 @@ function IdlePage() {
               document.body
             )}
 
-            {/* Popup do Incenso de Mel */}
-            {honeyShop && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  position: "absolute",
-                  left: Math.max(20, Math.min(WORLD_W - 300, honeyShop.x - 140)),
-                  top: Math.max(20, honeyShop.y - 40),
-                  width: 280,
-                  background: "linear-gradient(180deg, #2a1a0a, #3d2410)",
-                  border: "2px solid #ffd94d",
-                  borderRadius: 12,
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.7), 0 0 20px rgba(255,214,80,0.35)",
-                  padding: 14,
-                  zIndex: 999999,
-                  color: "#ffe9a8",
-                  fontFamily: "inherit",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: "#ffd94d" }}>🍯 Incenso de Mel</div>
-                  <button onClick={() => setHoneyShop(null)} style={{ background: "transparent", border: "none", color: "#ffe9a8", cursor: "pointer", fontSize: 18 }}>×</button>
+            {/* Painel de Colmeia — posicionar Beedrills p/ produzir Incenso de Mel */}
+            {honeyShop && (() => {
+              const cocoonKey = honeyShop.cocoonKey;
+              const hive = idle.hives?.[cocoonKey] ?? { slots: Array(HIVE_SLOTS_PER_COCOON).fill(null) };
+              const slots = hive.slots ?? [];
+              const assigned = uidsAssignedToHives();
+              const beedrills = (idle.collection ?? []).filter((c) => c.species === "beedrill");
+              const availableBeedrills = beedrills.filter((b) => !assigned.has(b.uid));
+              const now = Date.now();
+
+              const assignBeedrill = (slotIdx: number, uid: string) => {
+                setIdle((s) => {
+                  const cur = s.hives?.[cocoonKey] ?? { slots: Array(HIVE_SLOTS_PER_COCOON).fill(null) };
+                  const newSlots = [...cur.slots];
+                  while (newSlots.length < HIVE_SLOTS_PER_COCOON) newSlots.push(null);
+                  newSlots[slotIdx] = { uid, startedAt: Date.now() };
+                  return { ...s, hives: { ...(s.hives ?? {}), [cocoonKey]: { slots: newSlots } } };
+                });
+                pushChat("🐝 Beedrill posicionado na colmeia! Produção iniciada (10 min).", "info");
+              };
+              const removeBeedrill = (slotIdx: number) => {
+                setIdle((s) => {
+                  const cur = s.hives?.[cocoonKey];
+                  if (!cur) return s;
+                  const newSlots = [...cur.slots];
+                  newSlots[slotIdx] = null;
+                  return { ...s, hives: { ...(s.hives ?? {}), [cocoonKey]: { slots: newSlots } } };
+                });
+              };
+              const collectSlot = (slotIdx: number) => {
+                const slot = slots[slotIdx];
+                if (!slot) return;
+                const elapsed = Date.now() - slot.startedAt;
+                if (elapsed < HIVE_PRODUCTION_MS) return;
+                const entry = beedrills.find((b) => b.uid === slot.uid);
+                const rare = isRareTierPokemon(entry?.rarity);
+                const itemId = rare ? "incenso_mel_raro" : "incenso_mel";
+                setIdle((s) => {
+                  const cur = s.hives?.[cocoonKey];
+                  if (!cur) return s;
+                  const newSlots = [...cur.slots];
+                  newSlots[slotIdx] = { uid: slot.uid, startedAt: Date.now() }; // reinicia ciclo
+                  return {
+                    ...s,
+                    items: { ...s.items, [itemId]: (s.items[itemId] ?? 0) + HIVE_YIELD_PER_BEEDRILL },
+                    hives: { ...(s.hives ?? {}), [cocoonKey]: { slots: newSlots } },
+                  };
+                });
+                pushChat(`🍯 Coletou ${HIVE_YIELD_PER_BEEDRILL}x ${rare ? "Incenso Raro ✨" : "Incenso de Mel"}!`, "cap");
+              };
+
+              const [picker, setPicker] = [] as unknown as [number | null, (v: number | null) => void]; // placeholder: usa state controlado abaixo
+              return (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: "absolute",
+                    left: Math.max(20, Math.min(WORLD_W - 340, honeyShop.x - 160)),
+                    top: Math.max(20, honeyShop.y - 60),
+                    width: 320,
+                    background: "linear-gradient(180deg, #2a1a0a, #3d2410)",
+                    border: "2px solid #ffd94d",
+                    borderRadius: 12,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.7), 0 0 20px rgba(255,214,80,0.35)",
+                    padding: 14,
+                    zIndex: 999999,
+                    color: "#ffe9a8",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ fontWeight: 800, fontSize: 15, color: "#ffd94d" }}>🐝 Colmeia de Beedrill</div>
+                    <button onClick={() => setHoneyShop(null)} style={{ background: "transparent", border: "none", color: "#ffe9a8", cursor: "pointer", fontSize: 18 }}>×</button>
+                  </div>
+                  <div style={{ fontSize: 11, lineHeight: 1.4, marginBottom: 10, opacity: 0.85 }}>
+                    Coloque até <b>3 Beedrills</b> nesta colmeia. Cada um produz <b>2 Incensos</b> a cada <b>10 min</b>.
+                    Beedrills <b>Épicos+</b> geram <b>Incenso Raro</b> (dobra o bônus e vende por mais).
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {Array.from({ length: HIVE_SLOTS_PER_COCOON }).map((_, i) => {
+                      const slot = slots[i] ?? null;
+                      if (!slot) {
+                        return (
+                          <div key={`hslot-${i}`} style={{ border: "1px dashed rgba(255,214,80,0.4)", borderRadius: 8, padding: 8, background: "rgba(0,0,0,0.25)" }}>
+                            <div style={{ fontSize: 11, opacity: 0.75, marginBottom: 6 }}>Slot {i + 1} — vazio</div>
+                            {availableBeedrills.length === 0 ? (
+                              <div style={{ fontSize: 11, color: "#c8b8d0" }}>Nenhum Beedrill disponível.</div>
+                            ) : (
+                              <select
+                                onChange={(e) => { if (e.target.value) assignBeedrill(i, e.target.value); }}
+                                defaultValue=""
+                                style={{
+                                  width: "100%", padding: "6px 8px", borderRadius: 6,
+                                  background: "#1a0f05", color: "#ffe9a8",
+                                  border: "1px solid rgba(255,214,80,0.5)", fontSize: 12,
+                                }}
+                              >
+                                <option value="">+ Selecionar Beedrill…</option>
+                                {availableBeedrills.map((b) => (
+                                  <option key={b.uid} value={b.uid}>
+                                    Beedrill Lv.{b.level} · {b.rarity}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
+                        );
+                      }
+                      const entry = beedrills.find((b) => b.uid === slot.uid);
+                      const elapsed = now - slot.startedAt;
+                      const pct = Math.min(1, elapsed / HIVE_PRODUCTION_MS);
+                      const remainMs = Math.max(0, HIVE_PRODUCTION_MS - elapsed);
+                      const mm = Math.floor(remainMs / 60000);
+                      const ss = String(Math.floor((remainMs % 60000) / 1000)).padStart(2, "0");
+                      const ready = pct >= 1;
+                      const rare = isRareTierPokemon(entry?.rarity);
+                      return (
+                        <div key={`hslot-${i}`} style={{ border: `1px solid ${rare ? "#ff97e1" : "rgba(255,214,80,0.6)"}`, borderRadius: 8, padding: 8, background: "rgba(0,0,0,0.35)" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                            <img src={beedrillGif} alt="Beedrill" style={{ width: 34, height: 34, imageRendering: "pixelated" }} />
+                            <div style={{ flex: 1, fontSize: 12 }}>
+                              <div style={{ fontWeight: 700 }}>Beedrill Lv.{entry?.level ?? "?"}</div>
+                              <div style={{ fontSize: 10, opacity: 0.8, color: rare ? "#ff97e1" : "#ffe9a8" }}>
+                                {entry?.rarity ?? "?"}{rare ? " · produz raro ✨" : ""}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => removeBeedrill(i)}
+                              title="Remover"
+                              style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.25)", color: "#ffe9a8", borderRadius: 6, cursor: "pointer", fontSize: 10, padding: "3px 6px" }}
+                            >
+                              Remover
+                            </button>
+                          </div>
+                          <div style={{ height: 8, background: "rgba(0,0,0,0.5)", borderRadius: 4, overflow: "hidden", marginBottom: 6 }}>
+                            <div style={{ width: `${pct * 100}%`, height: "100%", background: ready ? "linear-gradient(90deg,#5ec26a,#8bffb0)" : "linear-gradient(90deg,#ffd94d,#d99b1a)", transition: "width 0.4s linear" }} />
+                          </div>
+                          {ready ? (
+                            <button
+                              onClick={() => collectSlot(i)}
+                              style={{ width: "100%", padding: "8px 10px", background: "linear-gradient(180deg,#5ec26a,#3fa050)", color: "#0b0510", border: "none", borderRadius: 6, fontWeight: 800, cursor: "pointer", fontSize: 12 }}
+                            >
+                              🍯 Coletar {HIVE_YIELD_PER_BEEDRILL}x {rare ? "Incenso Raro ✨" : "Incenso"}
+                            </button>
+                          ) : (
+                            <div style={{ fontSize: 11, textAlign: "center", opacity: 0.85 }}>
+                              ⏳ {mm}:{ss} restantes
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ fontSize: 10, opacity: 0.7, marginTop: 8, textAlign: "center" }}>
+                    Estoque: {idle.items.incenso_mel ?? 0}x Mel · {idle.items.incenso_mel_raro ?? 0}x Raro
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, lineHeight: 1.45, marginBottom: 10, opacity: 0.9 }}>
-                  Compra o Incenso e leva pra <b>Mochila</b>. Ative quando quiser — dura <b>1 hora</b>:<br />
-                  • +10% Drop • +10% EXP<br />
-                  • +10% Defesa • +10% Velocidade
-                </div>
-                {(() => {
-                  const active = Date.now() < (idle.buffs.honeyUntil ?? 0);
-                  const remaining = Math.max(0, Math.ceil(((idle.buffs.honeyUntil ?? 0) - Date.now()) / 1000));
-                  const mm = Math.floor(remaining / 60);
-                  const ss = String(remaining % 60).padStart(2, "0");
-                  return active ? (
-                    <div style={{ fontSize: 12, marginBottom: 8, color: "#8bffb0" }}>
-                      ✨ Buff ativo — {mm}:{ss} restantes
-                    </div>
-                  ) : null;
-                })()}
-                {(() => {
-                  const bought = idle.items._honey_bought ?? 0;
-                  const remainingBuys = Math.max(0, HONEY_BUY_LIMIT - bought);
-                  const stock = idle.items.incenso_mel ?? 0;
-                  const canBuy = remainingBuys > 0;
-                  return (
-                    <>
-                      <div style={{ fontSize: 11, marginBottom: 6, display: "flex", justifyContent: "space-between", opacity: 0.9 }}>
-                        <span>Na mochila: <b>{stock}</b></span>
-                        <span>Restantes: <b>{remainingBuys}/{HONEY_BUY_LIMIT}</b></span>
-                      </div>
-                      <button
-                        disabled={!canBuy}
-                        onClick={() => {
-                          setIdle((s) => {
-                            const alreadyBought = s.items._honey_bought ?? 0;
-                            if (alreadyBought >= HONEY_BUY_LIMIT) {
-                              pushChat(`Limite de ${HONEY_BUY_LIMIT} incensos atingido.`, "info");
-                              return s;
-                            }
-                            if (s.bank.gold < HONEY_PRICE) {
-                              pushChat(`Ouro insuficiente. Preço: ${HONEY_PRICE} 🪙`, "info");
-                              return s;
-                            }
-                            pushChat(`🍯 Incenso de Mel comprado! Ative pela Mochila (dura 1h).`, "info");
-                            return {
-                              ...s,
-                              bank: { ...s.bank, gold: s.bank.gold - HONEY_PRICE },
-                              items: {
-                                ...s.items,
-                                incenso_mel: (s.items.incenso_mel ?? 0) + 1,
-                                _honey_bought: alreadyBought + 1,
-                              },
-                            };
-                          });
-                        }}
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          background: canBuy ? "linear-gradient(180deg, #ffd94d, #d99b1a)" : "linear-gradient(180deg, #665544, #443322)",
-                          color: canBuy ? "#2a1a0a" : "#8a7a6a",
-                          border: "none",
-                          borderRadius: 8,
-                          fontWeight: 700,
-                          cursor: canBuy ? "pointer" : "not-allowed",
-                          fontSize: 13,
-                        }}
-                      >
-                        {canBuy ? `Comprar por ${HONEY_PRICE} 🪙` : "LIMITE ATINGIDO"}
-                      </button>
-                    </>
-                  );
-                })()}
-                <div style={{ fontSize: 11, opacity: 0.7, marginTop: 6, textAlign: "center" }}>
-                  Ouro no banco: {Math.floor(idle.bank.gold)} 🪙
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
 
 
@@ -7746,7 +7857,7 @@ function TabOverlay({
   onPickTeam: (entry: CollectionEntry) => void;
   onUseItem: (id: string) => void;
   bank: { gold: number; crystals: number };
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number };
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number };
   onBuyBall: (b: ShopBall) => void;
   onBuyBook: (bk: ShopBook) => void;
   onBuyPotion: (qty?: number) => void;
@@ -8199,7 +8310,7 @@ function TabOverlay({
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard",
-          incenso_mel: "Incenso de Mel 🍯",
+          incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
@@ -8913,9 +9024,10 @@ function TabOverlay({
         const bookActive = !!(buffs?.expMultUntil && nowMs < buffs.expMultUntil);
         const orbActive = !!(buffs?.orbUntil && nowMs < buffs.orbUntil);
         const honeyActive = !!(buffs?.honeyUntil && nowMs < buffs.honeyUntil);
+        const honeyRareActive = !!(buffs?.honeyRareUntil && nowMs < buffs.honeyRareUntil);
         const bookPct = bookActive ? Math.round((buffs?.expMult ?? 0) * 100) : 0;
         const orbPct = orbActive ? Math.round((buffs?.orbMult ?? 0) * 100) : 0;
-        const honeyPct = honeyActive ? 10 : 0;
+        const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
         const totalExpPct = bookPct + orbPct + honeyPct;
         const fmtTime = (ms: number) => {
           const s = Math.max(0, Math.floor(ms / 1000));
@@ -8930,7 +9042,7 @@ function TabOverlay({
               <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
-            {(bookActive || orbActive || honeyActive) && (
+            {(bookActive || orbActive || honeyActive || honeyRareActive) && (
               <div style={{ background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 8, padding: 10, marginBottom: 14 }}>
                 <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Composição EXP:</div>
                 {bookActive && (
@@ -8945,10 +9057,15 @@ function TabOverlay({
                     <span style={{ color: "#c084fc", fontWeight: 700 }}>+{orbPct}%</span>
                   </div>
                 )}
-                {honeyActive && (
+                {honeyRareActive ? (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#fff0c8", padding: "3px 0" }}>
+                    <span>✨🍯 Incenso Raro <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyRareUntil! - nowMs)})</span></span>
+                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+20% drop/xp/def/vel</span>
+                  </div>
+                ) : honeyActive && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#ffe9a8", padding: "3px 0" }}>
                     <span>🍯 Incenso de Mel <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyUntil! - nowMs)})</span></span>
-                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+{honeyPct}% drop/xp/def/vel</span>
+                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+10% drop/xp/def/vel</span>
                   </div>
                 )}
                 <div style={{ borderTop: "1px solid #3a2e58", marginTop: 6, paddingTop: 6, display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
