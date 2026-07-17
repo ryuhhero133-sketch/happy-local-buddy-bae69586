@@ -2745,9 +2745,13 @@ function IdlePage() {
             if (it.id === "pokeball") continue;
             if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
           }
-          // Ultra Ball: apenas raro+ (rare/epic/legendary/mythic/mythic_shiny), 30% chance
+          // Ultra Ball: raro+, 30% padrão. Mapas Terry/n2/n3 têm chance elevada e Great Ball extra.
           const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
-          if (ultraEligible && Math.random() < 0.30) drops.push("ultraball");
+          const cm = idle.currentMap;
+          const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
+          const ultraChance = isTerryMap ? 0.65 : 0.30;
+          if (ultraEligible && Math.random() < ultraChance) drops.push("ultraball");
+          if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
 
           // XP para o líder + drena energia de TODOS do time
           setTeam((tm) => {
