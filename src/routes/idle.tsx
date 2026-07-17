@@ -220,9 +220,15 @@ const magmortarUrl = assetUrlFromJson(magmortarAsset);
 import lugiaAsset from "@/assets/lugia.gif.asset.json";
 import hariyamaAsset from "@/assets/hariyama.gif.asset.json";
 import ursaringAsset from "@/assets/ursaring.gif.asset.json";
+import moltresAsset from "@/assets/moltres.gif.asset.json";
+import zapdosAsset from "@/assets/zapdos.gif.asset.json";
+import articunoAsset from "@/assets/articuno.gif.asset.json";
 const lugiaUrl = assetUrlFromJson(lugiaAsset);
 const hariyamaUrl = assetUrlFromJson(hariyamaAsset);
 const ursaringUrl = assetUrlFromJson(ursaringAsset);
+const moltresUrl = assetUrlFromJson(moltresAsset);
+const zapdosUrl = assetUrlFromJson(zapdosAsset);
+const articunoUrl = assetUrlFromJson(articunoAsset);
 
 
 
@@ -397,6 +403,7 @@ const GIF: Partial<Record<Species, string>> = {
   deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl, charizard_shiny: charizardShinyUrl,
   darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
   lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
+  moltres: moltresUrl, zapdos: zapdosUrl, articuno: articunoUrl,
 };
 
 
@@ -2604,6 +2611,9 @@ function IdlePage() {
           lapras_shiny: { crit: 0.25, para: 0.25, flee: 0.08 },
           hariyama:  { crit: 0.20, para: 0.10, flee: 0 },
           ursaring:  { crit: 0.22, para: 0.06, flee: 0 },
+          moltres:   { crit: 0.42, para: 0.20, flee: 0.10 },
+          zapdos:    { crit: 0.38, para: 0.45, flee: 0.10 },
+          articuno:  { crit: 0.35, para: 0.30, flee: 0.12 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
@@ -3123,12 +3133,12 @@ function IdlePage() {
   // ==== Evento Lendário: 5 pokémon raros aparecem a cada 30 min (rotativo) ====
   const LEGEND_INTERVAL_MS = 30 * 60 * 1000;
   const LEGEND_DURATION_MS = 3 * 60 * 1000;
-  const LEGEND_ROSTER: { sp: Species; label: string; rarity: Rarity; level: number; icon: string; color: string; weather?: "snow" | "rain" }[] = [
-    { sp: "virizion",      label: "VIRIZION",      rarity: "epic",         level: 80, icon: "🌿", color: "#7ef2a2" },
-    { sp: "raikou",        label: "RAIKOU",        rarity: "epic",         level: 82, icon: "⚡", color: "#f5cf6b" },
-    { sp: "luxray_f",      label: "LUXRAY ♀",      rarity: "epic",         level: 78, icon: "⚡", color: "#5ec2ff" },
-    { sp: "suicune",       label: "SUICUNE",       rarity: "mythic",       level: 88, icon: "❄", color: "#8ec5ff", weather: "rain" },
-    { sp: "suicune_shiny", label: "SUICUNE ✦",     rarity: "mythic_shiny", level: 92, icon: "💠", color: "#ff97e1", weather: "snow" },
+  const LEGEND_ROSTER: { sp: Species; label: string; rarity: Rarity; level: number; icon: string; color: string; weather?: "snow" | "rain"; w: number }[] = [
+    { sp: "virizion",      label: "VIRIZION",      rarity: "epic",         level: 80, icon: "🌿", color: "#7ef2a2", w: 10 },
+    { sp: "luxray_f",      label: "LUXRAY ♀",      rarity: "epic",         level: 78, icon: "⚡", color: "#5ec2ff", w: 10 },
+    { sp: "raikou",        label: "RAIKOU",        rarity: "epic",         level: 82, icon: "⚡", color: "#f5cf6b", w: 2 },
+    { sp: "suicune",       label: "SUICUNE",       rarity: "mythic",       level: 88, icon: "❄", color: "#8ec5ff", weather: "rain", w: 2 },
+    { sp: "suicune_shiny", label: "SUICUNE ✦",     rarity: "mythic_shiny", level: 92, icon: "💠", color: "#ff97e1", weather: "snow", w: 1 },
   ];
   const legendIdxRef = useRef(0);
   const [legendUntil, setLegendUntil] = useState<{ until: number; weather?: "snow" | "rain" } | null>(null);
@@ -3138,7 +3148,10 @@ function IdlePage() {
     const trigger = () => {
       // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial)
       if (currentMapRef.current === "arena") return;
-      const pick = LEGEND_ROSTER[Math.floor(Math.random() * LEGEND_ROSTER.length)];
+      const totalW = LEGEND_ROSTER.reduce((s, r) => s + r.w, 0);
+      let rw = Math.random() * totalW;
+      let pick = LEGEND_ROSTER[0];
+      for (const r of LEGEND_ROSTER) { rw -= r.w; if (rw <= 0) { pick = r; break; } }
       legendIdxRef.current++;
       const until = Date.now() + LEGEND_DURATION_MS;
       setLegendUntil({ until, weather: pick.weather });
@@ -3183,6 +3196,51 @@ function IdlePage() {
   useEffect(() => {
     setEnemies((prev) => prev.filter((e) => e.sp !== "lugia"));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ==== EVENTO PÁSSAROS LENDÁRIOS: Moltres / Zapdos / Articuno a cada 2h ====
+  // Extremamente fortes, agressivos ao ver, captura minúscula (só ULTRA/MASTER).
+  const BIRD_ROSTER: { sp: Species; label: string; icon: string; color: string; level: number }[] = [
+    { sp: "moltres",  label: "MOLTRES",  icon: "🔥", color: "#ff7a2a", level: 400 },
+    { sp: "zapdos",   label: "ZAPDOS",   icon: "⚡", color: "#ffd23a", level: 420 },
+    { sp: "articuno", label: "ARTICUNO", icon: "❄", color: "#8ecbff", level: 380 },
+  ];
+  const BIRD_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 horas
+  const BIRD_WARN_MS = 5 * 60 * 1000; // aviso 5min antes
+  useEffect(() => {
+    const spawnBird = () => {
+      if (currentMapRef.current === "arena") return;
+      const pick = BIRD_ROSTER[Math.floor(Math.random() * BIRD_ROSTER.length)];
+      setEnemies((prev) => {
+        if (prev.some((e) => e.sp === pick.sp)) return prev;
+        let x = 300, y = 300, tries = 0;
+        do {
+          x = 200 + Math.random() * (WORLD_W - 400);
+          y = 200 + Math.random() * (WORLD_H - 400);
+          tries++;
+        } while (collidesWithAny(x, y) && tries < 20);
+        const petA = makePet(pick.sp, pick.level);
+        const hp = Math.floor(calcIdleMaxHp(petA) * 5);
+        return [
+          ...prev,
+          { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left",
+            aggressive: true, aggroR: 520, elite: true, level: pick.level,
+            rarity: "mythic" as Rarity, eventLegendary: true } as Enemy,
+        ];
+      });
+      pushEvent(pick.icon, "PÁSSARO LENDÁRIO", `${pick.label} desceu dos céus! Cuidado — ele ATACA à distância.`, pick.color);
+      pushChat(`⚠ ${pick.icon} ${pick.label} apareceu! MUITO FORTE, agressivo e quase impossível de capturar (ULTRA/MASTER).`, "cap");
+    };
+    const warn = () => {
+      pushChat(`⚠ Um PÁSSARO LENDÁRIO se aproxima... prepare-se! (em ~5min)`, "info");
+    };
+    const firstWarn = setTimeout(warn, Math.max(1000, BIRD_INTERVAL_MS - BIRD_WARN_MS));
+    const firstSpawn = setTimeout(spawnBird, BIRD_INTERVAL_MS);
+    const ivWarn = setInterval(warn, BIRD_INTERVAL_MS);
+    const ivSpawn = setInterval(spawnBird, BIRD_INTERVAL_MS);
+    return () => { clearTimeout(firstWarn); clearTimeout(firstSpawn); clearInterval(ivWarn); clearInterval(ivSpawn); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+
 
 
 
@@ -3597,7 +3655,7 @@ function IdlePage() {
     // Incomuns
     { sp: "sandshrew" as Species,  w: 7, forcedRarity: "uncommon" },
     { sp: "mankey" as Species,     w: 7, forcedRarity: "uncommon" },
-    { sp: "venonat" as Species,    w: 7, forcedRarity: "uncommon" },
+    { sp: "venonat" as Species,    w: 2, forcedRarity: "uncommon" },
     { sp: "paras" as Species,      w: 7, forcedRarity: "uncommon" },
     { sp: "poliwag" as Species,    w: 7, forcedRarity: "uncommon" },
     { sp: "nidoran_f" as Species,  w: 6, forcedRarity: "uncommon" },
@@ -3662,18 +3720,22 @@ function IdlePage() {
         mapLvRange = [1, 30];
       } else {
         if (idle.currentMap === "terra" && maxTeamLv >= 30) {
-          pool = ["beedrill", "butterfree", "blaziken", "pinsir", "golem", "jolteon", "lapras"] as Species[];
+          // blaziken removido do pool comum (aparece raramente via evento/spawn épico)
+          pool = ["beedrill", "butterfree", "pinsir", "golem", "jolteon", "lapras"] as Species[];
         }
         if (idle.currentMap === "venofogo") {
-          pool = ["blaziken", "charmander", "charmeleon", "charizard", "magmar", "arcanine", "growlithe",
-                  "ekans", "arbok", "zubat", "venonat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
+          // blaziken/venonat com presença reduzida (só entram via chance pequena abaixo)
+          pool = ["charmander", "charmeleon", "charizard", "magmar", "arcanine", "growlithe",
+                  "ekans", "arbok", "zubat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
+          if (Math.random() < 0.05) pool = ["blaziken"] as Species[];
+          else if (Math.random() < 0.05) pool = ["venonat"] as Species[];
           // Pântano em Chamas: pokémons sempre 10-15 níveis acima do líder (zona de risco).
           mapLvRange = [leaderLv + 10, leaderLv + 15];
         }
         if (idle.currentMap === "fantasma") {
           // Cemitério Assombrado: zona endgame nível 200+.
           // Até 249 o mapa empurra acima do líder; a partir de 250 exige parear níveis.
-          pool = ["zubat", "venomoth", "venonat", "gloom", "ekans", "arbok", "abra", "kadabra", "meowth", "persian"] as Species[];
+          pool = ["zubat", "venomoth", "gloom", "ekans", "arbok", "abra", "kadabra", "meowth", "persian"] as Species[];
           if (leaderLv < 200) mapLvRange = [200, 225];
           else if (leaderLv < 250) mapLvRange = [leaderLv + 12, leaderLv + 32];
           else mapLvRange = [Math.max(250, leaderLv - 2), leaderLv + 18];
