@@ -237,6 +237,7 @@ const mapCaveUrl = assetUrlFromJson(mapCaveAsset);
 const mapStoneUrl = assetUrlFromJson(mapStoneAsset);
 const mapTerraUrl = assetUrlFromJson(mapTerraAsset);
 const mapDesertoPurpuraUrl = assetUrlFromJson(mapDesertoPurpuraAsset);
+const mapTerryUrl = assetUrlFromJson(mapTerryAsset);
 const hornetCocoonUrl = assetUrlFromJson(hornetCocoonAsset);
 const fireLakeUrl = assetUrlFromJson(fireLakeAsset);
 const mapVenofogoOrangeUrl = assetUrlFromJson(mapVenofogoOrangeAsset);
