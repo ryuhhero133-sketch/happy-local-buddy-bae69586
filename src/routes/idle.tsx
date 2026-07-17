@@ -3740,6 +3740,21 @@ function IdlePage() {
           else if (leaderLv < 250) mapLvRange = [leaderLv + 12, leaderLv + 32];
           else mapLvRange = [Math.max(250, leaderLv - 2), leaderLv + 18];
         }
+        if (idle.currentMap === "terry") {
+          // Terras de Terry — Elite Lv 200-400 com pokémons peçonhentos
+          pool = ["arbok", "ekans", "venomoth", "venonat", "beedrill", "nidoking", "nidorina", "gloom", "oddish", "primeape", "machamp", "hariyama", "ursaring"] as Species[];
+          mapLvRange = [200, 400];
+        }
+        if (idle.currentMap === "n2") {
+          // Planície de Terry — Elite+ Lv 350-550, criaturas com debuff de ataque
+          pool = ["arbok", "venomoth", "nidoking", "machamp", "hariyama", "ursaring", "primeape", "gyarados", "arcanine", "kadabra", "persian"] as Species[];
+          mapLvRange = [350, 550];
+        }
+        if (idle.currentMap === "n3") {
+          // Confins de Terry — Lendário Lv 500-700, ataques fortes
+          pool = ["gyarados", "arcanine", "machamp", "nidoking", "ursaring", "hariyama", "arbok", "venomoth", "kadabra", "dragonair", "clefable", "magmortar", "raichu"] as Species[];
+          mapLvRange = [500, 700];
+        }
         if (idle.currentMap === "deserto_purpura") {
           // Areias de Anúbis — deserto tóxico continuação do Ninho de Marimbondo
           pool = ["ekans", "arbok", "sandshrew", "sandslash", "cubone", "nidoran_f", "nidorina", "nidoking", "beedrill", "kakuna", "weedle", "diglett", "meowth", "persian"] as Species[];
