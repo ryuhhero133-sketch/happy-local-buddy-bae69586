@@ -2698,13 +2698,18 @@ function IdlePage() {
             if (resist > 0 && Math.random() < resist) {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
-              const baseDur = target.sp === "lugia" ? 120_000 : 60_000;
+              const baseDur = target.sp === "lugia" ? 120_000
+                : (target.sp === "ditto" || target.sp === "ditto_shiny") ? 10_000
+                : 60_000;
+              const isDittoSleep = target.sp === "ditto" || target.sp === "ditto_shiny";
               // paraResist não só resiste — reduz duração proporcionalmente
               const durReduction = Math.min(0.85, synNow.paraResist);
               const dur = Math.floor(baseDur * (1 - durReduction));
               paralyzedUntilRef.current = Date.now() + dur;
               setParalyzedUntil(paralyzedUntilRef.current);
-              if (durReduction > 0.1) {
+              if (isDittoSleep) {
+                pushChat(`💤 ${target.sp === "ditto_shiny" ? "DITTO ✨" : "DITTO"} usou SONÍFERO — seu Pokémon dormiu por ${Math.round(dur/1000)}s!`, "hit");
+              } else if (durReduction > 0.1) {
                 pushChat(`⚡ Paralisia! Reduzida em ${Math.round(durReduction*100)}% pelos Guardiões — ${Math.round(dur/1000)}s.`, "hit");
               } else {
                 pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
