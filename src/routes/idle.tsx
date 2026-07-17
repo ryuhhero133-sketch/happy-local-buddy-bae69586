@@ -4700,24 +4700,69 @@ function IdlePage() {
       overflow: "hidden",
     }}>
       {levelToast && (
-        <div style={{
-          position: "fixed", top: 90, left: "50%", transform: "translateX(-50%)",
-          zIndex: 9999, pointerEvents: "none",
-          background: "linear-gradient(135deg, rgba(61,43,82,0.98), rgba(106,61,138,0.98))",
-          border: "2px solid #f5cf6b",
-          borderRadius: 12, padding: "12px 20px",
-          boxShadow: "0 8px 40px rgba(245,207,107,0.5), 0 0 60px rgba(126,242,122,0.4)",
-          textAlign: "center", minWidth: 260,
-          animation: "lvToastIn 300ms ease-out",
-        }}>
-          <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 20, letterSpacing: 1, textShadow: "0 2px 6px #000" }}>
-            ⬆ NÍVEL {levelToast.level}!
-          </div>
-          <div style={{ color: "#7ef27a", fontSize: 13, fontWeight: 700, marginTop: 6 }}>
-            {levelToast.gains.join("  ·  ")}
-          </div>
-          <div style={{ color: "#f5cf6b", fontSize: 12, marginTop: 4 }}>
-            ✨ Bônus extra: <strong>+{levelToast.bonus}</strong>
+        <div
+          key={levelToast.ts}
+          style={{
+            position: "fixed", top: 72, left: "50%",
+            zIndex: 9999, pointerEvents: "none",
+            animation: "lvToastIn 420ms cubic-bezier(.2,.9,.25,1) forwards, lvToastOut 500ms ease-in 2.4s forwards",
+            transformOrigin: "top center",
+          }}
+        >
+          <div style={{
+            position: "relative",
+            padding: "10px 22px 11px",
+            minWidth: 240,
+            textAlign: "center",
+            background: "linear-gradient(180deg, #1a1220 0%, #0d0810 100%)",
+            border: "1px solid rgba(212,175,90,0.55)",
+            borderRadius: 4,
+            boxShadow:
+              "0 0 0 1px rgba(0,0,0,0.6), 0 10px 28px rgba(0,0,0,0.55), 0 0 24px rgba(212,175,90,0.18)",
+            fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
+          }}>
+            {/* gold corner ornaments */}
+            <span style={cornerOrn("tl")} /><span style={cornerOrn("tr")} />
+            <span style={cornerOrn("bl")} /><span style={cornerOrn("br")} />
+            {/* shine sweep */}
+            <span style={{
+              position: "absolute", inset: 0, overflow: "hidden", borderRadius: 4, pointerEvents: "none",
+            }}>
+              <span style={{
+                position: "absolute", top: 0, bottom: 0, width: 60,
+                background: "linear-gradient(90deg, transparent, rgba(255,235,180,0.22), transparent)",
+                transform: "skewX(-20deg)",
+                animation: "lvShine 1.4s ease-out 0.15s 1",
+              }} />
+            </span>
+
+            <div style={{
+              fontSize: 10, letterSpacing: 4, color: "#d4af5a",
+              textTransform: "uppercase", marginBottom: 2, opacity: 0.9,
+            }}>
+              Ascensão
+            </div>
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              color: "#f4e4b8", fontSize: 18, fontWeight: 700, letterSpacing: 2,
+              textShadow: "0 1px 0 #000, 0 0 12px rgba(212,175,90,0.35)",
+            }}>
+              <span style={goldRule()} />
+              <span>NÍVEL {levelToast.level}</span>
+              <span style={goldRule()} />
+            </div>
+            <div style={{
+              marginTop: 6, fontSize: 11, letterSpacing: 0.5,
+              color: "#c9c0a8", fontFamily: "'Trebuchet MS', system-ui, sans-serif",
+            }}>
+              {levelToast.gains.join(" · ")}
+            </div>
+            <div style={{
+              marginTop: 3, fontSize: 10.5, color: "#e8c76a",
+              fontFamily: "'Trebuchet MS', system-ui, sans-serif",
+            }}>
+              ✦ Bônus <strong style={{ color: "#fff2c2" }}>+{levelToast.bonus}</strong>
+            </div>
           </div>
         </div>
       )}
