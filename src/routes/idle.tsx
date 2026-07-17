@@ -1084,6 +1084,9 @@ function IdlePage() {
   const attackTargetIdRef = useRef<number | null>(null);
   const paralyzedUntilRef = useRef<number>(0);
   const [paralyzedUntil, setParalyzedUntil] = useState<number>(0);
+  const atkDebuffUntilRef = useRef<number>(0);
+  const poisonUntilRef = useRef<number>(0);
+  const mapEnterAtRef = useRef<number>(Date.now());
 
   useEffect(() => { attackTargetIdRef.current = attackTargetId; }, [attackTargetId]);
   // Ao trocar de líder (ou seu nível mudar muito), inimigos fora da faixa
