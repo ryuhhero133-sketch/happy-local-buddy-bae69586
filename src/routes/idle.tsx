@@ -52,6 +52,7 @@ import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/comp
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
+import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
 import { fetchTopRanked, recordRankedScore, type RankedRow } from "@/lib/rankedApi";
