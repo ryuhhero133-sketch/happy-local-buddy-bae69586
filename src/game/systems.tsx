@@ -387,6 +387,11 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   krookodile:      { hp: 95,  atk: 117, def: 80,  spa: 65,  spd: 70,  spe: 92,  rarity: "legendary",    goldRange: [440, 720], crystalChance: 0.80, catchMod: 3.6, minLv: 350 },
   tyranitar:       { hp: 100, atk: 134, def: 110, spa: 95,  spd: 100, spe: 61,  rarity: "mythic",       goldRange: [620, 980], crystalChance: 0.90, catchMod: 4.2, minLv: 500 },
   nidoking_shiny:  { hp: 81,  atk: 122, def: 87,  spa: 105, spd: 85,  spe: 95,  rarity: "mythic_shiny", goldRange: [950, 1500],crystalChance: 0.98, catchMod: 5.2, minLv: 600 },
+  rapidash:        { hp: 65,  atk: 100, def: 70,  spa: 80,  spd: 80,  spe: 105, rarity: "epic",         goldRange: [340, 560], crystalChance: 0.72, catchMod: 3.2, minLv: 300 },
+  rapidash_shiny:  { hp: 65,  atk: 100, def: 70,  spa: 80,  spd: 80,  spe: 105, rarity: "legendary",    goldRange: [500, 820], crystalChance: 0.85, catchMod: 3.8, minLv: 400 },
+  skarmory:        { hp: 65,  atk: 80,  def: 140, spa: 40,  spd: 70,  spe: 70,  rarity: "legendary",    goldRange: [460, 760], crystalChance: 0.80, catchMod: 3.6, minLv: 350 },
+  // Edição especial — Dialga (evento 3h em 3h, Lv 800)
+  dialga:          { hp: 100, atk: 120, def: 120, spa: 150, spd: 100, spe: 90,  rarity: "mythic_shiny", goldRange: [2400, 4000], crystalChance: 1.0, catchMod: 8.0, minLv: 800 },
 
 
 };
