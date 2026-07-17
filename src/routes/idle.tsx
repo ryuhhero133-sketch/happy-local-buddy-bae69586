@@ -220,9 +220,15 @@ const magmortarUrl = assetUrlFromJson(magmortarAsset);
 import lugiaAsset from "@/assets/lugia.gif.asset.json";
 import hariyamaAsset from "@/assets/hariyama.gif.asset.json";
 import ursaringAsset from "@/assets/ursaring.gif.asset.json";
+import moltresAsset from "@/assets/moltres.gif.asset.json";
+import zapdosAsset from "@/assets/zapdos.gif.asset.json";
+import articunoAsset from "@/assets/articuno.gif.asset.json";
 const lugiaUrl = assetUrlFromJson(lugiaAsset);
 const hariyamaUrl = assetUrlFromJson(hariyamaAsset);
 const ursaringUrl = assetUrlFromJson(ursaringAsset);
+const moltresUrl = assetUrlFromJson(moltresAsset);
+const zapdosUrl = assetUrlFromJson(zapdosAsset);
+const articunoUrl = assetUrlFromJson(articunoAsset);
 
 
 
