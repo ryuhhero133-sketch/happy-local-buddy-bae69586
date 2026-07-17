@@ -515,6 +515,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   ditto_shiny: "normal", scizor: "fighting", umbreon: "psychic",
   // Apex bosses
   infernape: "fire", krookodile: "rock", tyranitar: "rock", nidoking_shiny: "poison",
+  dialga: "psychic", rapidash: "fire", rapidash_shiny: "fire", skarmory: "flying",
 
 
 } as Record<string, ElementFx>;
