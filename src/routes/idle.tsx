@@ -5904,56 +5904,53 @@ function IdlePage() {
               );
             })()}
 
-            {/* Slash / impacto de ataque */}
+            {/* Slash / impacto de ataque — glow radial (sem borda quadrada) */}
             {attackAnim && (() => {
               const dt = Math.min(1, (Date.now() - attackAnim.ts) / 380);
-              const opacity = dt < 0.6 ? 1 : 1 - (dt - 0.6) / 0.4;
-              const scale = 0.6 + dt * 0.8;
-              const size = attackAnim.crit ? 104 : 78;
-              const el = attackAnim.element;
-              const src = ELEMENT_FX_IMG[el];
-              const glow = ELEMENT_FX_GLOW[el];
-              const rot = attackAnim.crit ? dt * 180 : dt * 60;
+              const opacity = (dt < 0.5 ? dt / 0.5 : 1 - (dt - 0.5) / 0.5) * 0.9;
+              const scale = 0.6 + dt * 0.9;
+              const size = attackAnim.crit ? 96 : 68;
+              const glow = ELEMENT_FX_GLOW[attackAnim.element];
               return (
-                <img key={attackAnim.id} src={src} alt="" style={{
+                <div key={attackAnim.id} style={{
                   position: "absolute",
                   left: attackAnim.toX, top: attackAnim.toY,
                   width: size, height: size,
-                  transform: `translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`,
+                  transform: `translate(-50%, -50%) scale(${scale})`,
                   opacity,
                   pointerEvents: "none",
-                  filter: attackAnim.crit
-                    ? `drop-shadow(0 0 14px ${glow}) drop-shadow(0 0 8px #ffd94d)`
-                    : `drop-shadow(0 0 10px ${glow})`,
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, ${glow} 0%, ${glow}aa 25%, ${glow}55 45%, ${glow}00 70%)`,
+                  filter: attackAnim.crit ? `drop-shadow(0 0 12px ${glow})` : `drop-shadow(0 0 6px ${glow})`,
                   mixBlendMode: "screen",
                   zIndex: 7,
                 }} />
               );
             })()}
 
-            {/* FX de contra-ataque do inimigo (elemento do alvo → em cima do meu poke) */}
+            {/* FX de contra-ataque do inimigo — glow radial */}
             {enemyAttackAnim && (() => {
               const dt = Math.min(1, (Date.now() - enemyAttackAnim.ts) / 380);
-              const opacity = dt < 0.6 ? 1 : 1 - (dt - 0.6) / 0.4;
-              const scale = 0.55 + dt * 0.7;
-              const el = enemyAttackAnim.element;
-              const src = ELEMENT_FX_IMG[el];
-              const glow = ELEMENT_FX_GLOW[el];
-              const rot = -dt * 60;
+              const opacity = (dt < 0.5 ? dt / 0.5 : 1 - (dt - 0.5) / 0.5) * 0.85;
+              const scale = 0.55 + dt * 0.75;
+              const glow = ELEMENT_FX_GLOW[enemyAttackAnim.element];
               return (
-                <img key={enemyAttackAnim.id} src={src} alt="" style={{
+                <div key={enemyAttackAnim.id} style={{
                   position: "absolute",
                   left: enemyAttackAnim.toX, top: enemyAttackAnim.toY,
-                  width: 72, height: 72,
-                  transform: `translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`,
+                  width: 62, height: 62,
+                  transform: `translate(-50%, -50%) scale(${scale})`,
                   opacity,
                   pointerEvents: "none",
-                  filter: `drop-shadow(0 0 10px ${glow}) drop-shadow(0 0 4px #ff3b3b)`,
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, ${glow} 0%, ${glow}99 30%, ${glow}44 50%, ${glow}00 72%)`,
+                  filter: `drop-shadow(0 0 6px ${glow})`,
                   mixBlendMode: "screen",
                   zIndex: 7,
                 }} />
               );
             })()}
+
 
 
             {/* Efeitos flutuantes (coords do mundo) */}
