@@ -2181,6 +2181,9 @@ function IdlePage() {
   const viewH = viewSize.h / zoom;
   const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
   const camY = Math.max(0, Math.min(Math.max(0, WORLD_H - viewH), trainerPos.y - viewH / 2));
+  // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
+  const renderCamX = Math.round(camX * zoom) / zoom;
+  const renderCamY = Math.round(camY * zoom) / zoom;
 
   // ---- Offline catch-up (uma vez ao montar) ----
   useEffect(() => {
@@ -4782,8 +4785,8 @@ function IdlePage() {
             if (!rect) return;
             const sx = e.clientX - rect.left;
             const sy = e.clientY - rect.top;
-            const wx = camX + sx / zoom;
-            const wy = camY + sy / zoom;
+            const wx = renderCamX + sx / zoom;
+            const wy = renderCamY + sy / zoom;
             walkTargetRef.current = { x: wx, y: wy, label: "destino", resumeAuto: autoRef.current };
             setWalkingTo("destino");
             setAuto(false);
@@ -4994,15 +4997,36 @@ function IdlePage() {
             position: "absolute",
             left: 0, top: 0,
             width: WORLD_W, height: WORLD_H,
-            transform: `scale(${zoom}) translate3d(${-camX}px, ${-camY}px, 0)`,
+            transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
             transformOrigin: "0 0",
-            transition: "transform 120ms linear",
+            transition: "none",
             backgroundColor: viewportBg,
-            backgroundImage: `url(${map.bg})`,
-            backgroundSize: `${WORLD_W}px ${WORLD_H}px`,
-            backgroundRepeat: "no-repeat",
-            imageRendering: "pixelated",
+            overflow: "hidden",
+            contain: "layout paint style",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
           }}>
+
+            {/* Fundo do mapa em <img> e com renderização suave: evita artefatos verdes/quadrados no zoom baixo. */}
+            <img
+              src={map.bg}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "fill",
+                pointerEvents: "none",
+                userSelect: "none",
+                imageRendering: "auto",
+                transform: "translateZ(0)",
+                backfaceVisibility: "hidden",
+                zIndex: 0,
+              }}
+            />
 
             {/* Obstáculos (árvores, pedras) — z-index pela BASE (y) para o treinador passar por trás */}
             {obstacles.map((o) => (
