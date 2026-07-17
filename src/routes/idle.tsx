@@ -2866,6 +2866,7 @@ function IdlePage() {
               // Ao fugir, remove efeitos de status que o inimigo causou (paralisia)
               // senão o treinador ficaria travado sem alvo por até 2min.
               paralyzedUntilRef.current = 0;
+              paralyzedByEnemyIdRef.current = null;
               setParalyzedUntil(0);
               blacklistRef.current.delete(fleeId);
               setAttackTargetId((c) => (c === fleeId ? null : c));
