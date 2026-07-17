@@ -430,6 +430,7 @@ const GIF: Partial<Record<Species, string>> = {
   lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
   ditto: dittoUrl, electabuzz: electabuzzUrl, gengar: gengarUrl, hitmontop: hitmontopUrl, magneton: magnetonUrl,
   ditto_shiny: dittoShinyUrl, scizor: scizorUrl, umbreon: umbreonUrl,
+  infernape: infernapeUrl, krookodile: krookodileUrl, tyranitar: tyranitarUrl, nidoking_shiny: nidokingShinyUrl,
   moltres: moltresUrl, zapdos: zapdosUrl, articuno: articunoUrl,
 };
 
