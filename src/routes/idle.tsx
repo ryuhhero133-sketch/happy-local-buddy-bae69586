@@ -7402,7 +7402,7 @@ function IdlePage() {
                   )}
 
                   {pendingGate && (() => {
-                    const tm = IDLE_MAPS[pendingGate.target];
+                    const tm = IDLE_MAPS[pendingGate.target as keyof typeof IDLE_MAPS];
                     const trainerLv = idle.trainerLevel ?? 1;
                     const lvOk = trainerLv >= tm.minLevel;
                     const cost = tm.entryCrystals ?? 0;
