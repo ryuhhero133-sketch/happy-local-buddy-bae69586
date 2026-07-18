@@ -7270,7 +7270,7 @@ function IdlePage() {
                     return (
                       <button
                         key={g.key}
-                        onClick={interactive ? () => { travelToGate(g); if (big) setBigMapOpen(false); } : undefined}
+                        onClick={interactive ? () => { setPendingGate({ target: g.target, gate: g, fromBig: big }); } : undefined}
                         title={label}
                         className={interactive && unlocked ? "map-pulse-dot" : undefined}
                         style={{
