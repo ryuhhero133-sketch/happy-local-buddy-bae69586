@@ -357,7 +357,9 @@ type IdleMapId =
   | "gelius1" | "gelius2"
   // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
-  | "vulcao_ativo" | "nucleo_primordial";
+  | "vulcao_ativo" | "nucleo_primordial"
+  // Cadeia Abissal — 5 mapas 1000-3000, recolores do Pântano em Chamas
+  | "abismo_gelo" | "abismo_veneno" | "abismo_raio" | "abismo_sombra" | "abismo_dragao";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -374,6 +376,12 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   n2:       { name: "Planície de Terry",        diff: "Elite+",    bg: mapN2Url,        rate: 3.8, minLevel: 350, maxLevel: 550, element: "Terra", stars: 5, entryCrystals: 20 },
   n3:       { name: "Confins de Terry",         diff: "Lendário",  bg: mapN3Url,        rate: 4.5, minLevel: 500, maxLevel: 700, element: "Terra", stars: 5, entryCrystals: 20 },
   pantano_fogo: { name: "Pântano em Chamas",   diff: "PRIMORDIAL",bg: mapPantanoFogoUrl,rate: 12.0, minLevel: 700, maxLevel: 1200, element: "Fogo/Veneno", stars: 8, entryCrystals: 400 },
+  // ═══ CADEIA ABISSAL — Lv 1000 a 3000 (5 mapas recolorizados do Pântano) ═══
+  abismo_gelo:   { name: "Abismo Gélido",      diff: "ABISSAL",   bg: mapPantanoFogoUrl, rate: 14.0, minLevel: 1000, maxLevel: 1500, element: "Gelo",     stars: 8, entryCrystals: 800,  overlay: "rgba(120,200,255,0.55)" },
+  abismo_veneno: { name: "Abismo Tóxico",      diff: "ABISSAL+",  bg: mapPantanoFogoUrl, rate: 16.0, minLevel: 1400, maxLevel: 2000, element: "Veneno",   stars: 9, entryCrystals: 1200, overlay: "rgba(170,80,220,0.55)" },
+  abismo_raio:   { name: "Abismo do Trovão",   diff: "APOCALIP.", bg: mapPantanoFogoUrl, rate: 18.0, minLevel: 1800, maxLevel: 2400, element: "Elétrico", stars: 9, entryCrystals: 1600, overlay: "rgba(255,220,80,0.50)" },
+  abismo_sombra: { name: "Abismo Sombrio",     diff: "APOCALIP.", bg: mapPantanoFogoUrl, rate: 20.0, minLevel: 2200, maxLevel: 2700, element: "Sombra",   stars: 10, entryCrystals: 2200, overlay: "rgba(40,20,60,0.65)" },
+  abismo_dragao: { name: "Abismo do Dragão",   diff: "ABSOLUTO",  bg: mapPantanoFogoUrl, rate: 22.0, minLevel: 2500, maxLevel: 3000, element: "Dragão",   stars: 10, entryCrystals: 3000, overlay: "rgba(255,150,40,0.55)" },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
   venofogo: { name: "Pântano Ardente",         diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
 
@@ -933,7 +941,7 @@ function applyTrainerXp(s: IdleState, gained: number): { state: IdleState; level
   const startLv = s.trainerLevel ?? 1;
   let lv = startLv;
   let xp = (s.trainerXp ?? 0) + Math.max(0, Math.floor(gained));
-  while (lv < 999 && xp >= trainerXpToNext(lv)) { xp -= trainerXpToNext(lv); lv += 1; }
+  while (lv < 10000 && xp >= trainerXpToNext(lv)) { xp -= trainerXpToNext(lv); lv += 1; }
   return {
     state: { ...s, trainerLevel: lv, trainerXp: xp },
     leveledTo: lv > startLv ? lv : null,
@@ -4136,6 +4144,27 @@ function IdlePage() {
           ] as Species[];
           mapLvRange = [700, 1200];
         }
+        // ═══ CADEIA ABISSAL — Lv 1000-3000 ═══
+        if (idle.currentMap === "abismo_gelo") {
+          pool = ["lapras", "lapras_shiny", "articuno", "dragonair", "dragonite", "dragonite_shiny", "gyarados", "skarmory", "tyranitar", "machamp", "ursaring"] as Species[];
+          mapLvRange = [1000, 1500];
+        }
+        if (idle.currentMap === "abismo_veneno") {
+          pool = ["arbok", "venomoth", "nidoking", "nidoking_shiny", "gengar", "tyranitar", "ursaring", "hariyama", "krookodile", "machamp", "dragonite"] as Species[];
+          mapLvRange = [1400, 2000];
+        }
+        if (idle.currentMap === "abismo_raio") {
+          pool = ["raichu", "jolteon", "electabuzz", "magneton", "zapdos", "dragonite", "dragonite_shiny", "skarmory", "tyranitar", "gyarados", "scizor"] as Species[];
+          mapLvRange = [1800, 2400];
+        }
+        if (idle.currentMap === "abismo_sombra") {
+          pool = ["gengar", "umbreon", "darkrai", "krookodile", "tyranitar", "dialga", "ho_oh", "dragonite_shiny", "nidoking_shiny", "gyarados", "infernape"] as Species[];
+          mapLvRange = [2200, 2700];
+        }
+        if (idle.currentMap === "abismo_dragao") {
+          pool = ["dragonite", "dragonite_shiny", "dragonair", "charizard", "charizard_shiny", "dialga", "ho_oh", "groudon", "tyranitar", "rapidash_shiny", "gyarados", "infernape", "moltres"] as Species[];
+          mapLvRange = [2500, 3000];
+        }
         if (idle.currentMap === "deserto_purpura") {
           // Areias de Anúbis — deserto tóxico continuação do Ninho de Marimbondo
           pool = ["ekans", "arbok", "sandshrew", "sandslash", "cubone", "nidoran_f", "nidorina", "nidoking", "beedrill", "kakuna", "weedle", "diglett", "meowth", "persian"] as Species[];
@@ -7084,6 +7113,26 @@ function IdlePage() {
                 ],
                 pantano_fogo: [
                   { key: "to-n3", target: "n3", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e8b878" },
+                  { key: "to-abismo_gelo", target: "abismo_gelo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
+                ],
+                abismo_gelo: [
+                  { key: "ag-back", target: "pantano_fogo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
+                  { key: "ag-next", target: "abismo_veneno", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
+                ],
+                abismo_veneno: [
+                  { key: "av-back", target: "abismo_gelo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
+                  { key: "av-next", target: "abismo_raio", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
+                ],
+                abismo_raio: [
+                  { key: "ar-back", target: "abismo_veneno", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
+                  { key: "ar-next", target: "abismo_sombra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#28143c" },
+                ],
+                abismo_sombra: [
+                  { key: "as-back", target: "abismo_raio", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
+                  { key: "as-next", target: "abismo_dragao", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9628" },
+                ],
+                abismo_dragao: [
+                  { key: "ad-back", target: "abismo_sombra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#28143c" },
                 ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
