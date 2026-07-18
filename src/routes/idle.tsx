@@ -1871,6 +1871,7 @@ function IdlePage() {
   const walkTargetRef = useRef<{ x: number; y: number; label: string; onArrive?: () => void; resumeAuto?: boolean } | null>(null);
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
+  const [pendingGate, setPendingGate] = useState<null | { target: string; gate: any; fromBig: boolean }>(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [codeMsg, setCodeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
