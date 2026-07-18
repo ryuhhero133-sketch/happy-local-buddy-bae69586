@@ -7400,6 +7400,96 @@ function IdlePage() {
                       </div>
                     </div>
                   )}
+
+                  {pendingGate && (() => {
+                    const tm = IDLE_MAPS[pendingGate.target];
+                    const trainerLv = idle.trainerLevel ?? 1;
+                    const lvOk = trainerLv >= tm.minLevel;
+                    const cost = tm.entryCrystals ?? 0;
+                    const gold = 1000;
+                    const crystalOk = cost === 0 || idle.bank.crystals >= cost;
+                    const goldOk = idle.bank.gold >= gold;
+                    const canGo = lvOk && crystalOk;
+                    const close = () => setPendingGate(null);
+                    return (
+                      <div
+                        onClick={close}
+                        style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.82)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}
+                      >
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            background: "linear-gradient(160deg, #1a0f26 0%, #0b0510 100%)",
+                            border: "3px solid #f5cf6b", borderRadius: 16, padding: 20,
+                            maxWidth: 420, width: "100%", cursor: "default",
+                            boxShadow: "0 0 80px rgba(245,207,107,0.5), inset 0 0 30px rgba(245,207,107,0.08)",
+                          }}
+                        >
+                          <div style={{ textAlign: "center", color: "#f5cf6b", fontSize: 12, letterSpacing: 3, fontWeight: 900, marginBottom: 4 }}>PORTAL DE VIAGEM</div>
+                          <div style={{ textAlign: "center", color: "#fff", fontSize: 22, fontWeight: 900, marginBottom: 2, textShadow: "0 0 12px rgba(245,207,107,0.6)" }}>
+                            {tm.name}
+                          </div>
+                          <div style={{ textAlign: "center", color: "#c8b8d0", fontSize: 11, marginBottom: 14 }}>
+                            {tm.diff} {tm.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(tm.stars)}</span> : null} · {tm.element ?? "—"}
+                          </div>
+
+                          <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${lvOk ? "#7ef27a" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
+                              <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🎖 Nível exigido</span>
+                              <span style={{ color: lvOk ? "#7ef27a" : "#ff8888", fontWeight: 900 }}>
+                                Lv {tm.minLevel} {lvOk ? "✓" : `(você: ${trainerLv})`}
+                              </span>
+                            </div>
+                            {cost > 0 && (
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${crystalOk ? "#7fd8ff" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
+                                <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>💎 Custo de entrada</span>
+                                <span style={{ color: crystalOk ? "#7fd8ff" : "#ff8888", fontWeight: 900 }}>
+                                  {cost} cristais {crystalOk ? "" : `(você: ${idle.bank.crystals})`}
+                                </span>
+                              </div>
+                            )}
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${goldOk ? "#f5cf6b" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
+                              <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🪙 Taxa de teleporte</span>
+                              <span style={{ color: goldOk ? "#f5cf6b" : "#ff8888", fontWeight: 900 }}>
+                                {gold} ouro {goldOk ? "" : `(você: ${idle.bank.gold})`}
+                              </span>
+                            </div>
+                            {tm.maxLevel && (
+                              <div style={{ textAlign: "center", color: "#8a7a9c", fontSize: 10 }}>
+                                Pokémon selvagens: Lv {tm.minLevel}–{tm.maxLevel}
+                              </div>
+                            )}
+                          </div>
+
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button
+                              onClick={close}
+                              style={{ flex: 1, background: "#2a1a2e", border: "1px solid #6a4a70", color: "#c8b8d0", borderRadius: 8, padding: "10px", fontWeight: 800, cursor: "pointer", fontSize: 12, letterSpacing: 1 }}
+                            >CANCELAR</button>
+                            <button
+                              disabled={!canGo}
+                              onClick={() => {
+                                const g = pendingGate.gate;
+                                const wasBig = pendingGate.fromBig;
+                                setPendingGate(null);
+                                travelToGate(g);
+                                if (wasBig) setBigMapOpen(false);
+                              }}
+                              style={{
+                                flex: 2,
+                                background: canGo ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "#3a2a2a",
+                                border: `2px solid ${canGo ? "#fff2b8" : "#5a3a3a"}`,
+                                color: canGo ? "#1a0f26" : "#6a5a5a",
+                                borderRadius: 8, padding: "10px", fontWeight: 900, cursor: canGo ? "pointer" : "not-allowed",
+                                fontSize: 13, letterSpacing: 1,
+                                boxShadow: canGo ? "0 0 20px rgba(245,207,107,0.5)" : "none",
+                              }}
+                            >{lvOk ? (crystalOk ? "✓ VIAJAR" : "💎 CRISTAIS INSUFICIENTES") : "🔒 NÍVEL INSUFICIENTE"}</button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </>
               );
             })()}
