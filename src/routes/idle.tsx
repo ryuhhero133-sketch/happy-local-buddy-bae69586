@@ -9113,9 +9113,9 @@ function TabOverlay({
   onUseItem: (id: string) => void;
   bank: { gold: number; crystals: number };
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number };
-  onBuyBall: (b: ShopBall) => void;
-  onBuyUltraBundle: () => void;
-  onBuyTeleportScroll: () => void;
+  onBuyBall: (b: ShopBall, qty?: number) => void;
+  onBuyUltraBundle: (qty?: number) => void;
+  onBuyTeleportScroll: (qty?: number) => void;
   onBuyBook: (bk: ShopBook) => void;
   onBuyPotion: (qty?: number) => void;
   onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
