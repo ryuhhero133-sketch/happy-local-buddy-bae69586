@@ -148,7 +148,11 @@ export type Species =
   | "infernape" | "krookodile" | "tyranitar" | "nidoking_shiny"
   | "rapidash" | "rapidash_shiny" | "skarmory"
   // Edição especial — Dialga (Lv 800, evento 3h em 3h)
-  | "dialga";
+  | "dialga"
+  // ═══ MTC — Míticos Brilhantes Lv 500-1000 (só Ultra Ball, 40-80 tentativas típicas) ═══
+  | "abomasnow" | "cloyster" | "cloyster_shiny" | "exeggutor" | "exeggutor_shiny"
+  | "feraligatr" | "heracross" | "heracross_shiny" | "hitmonchan_shiny"
+  | "kangaskhan" | "meganium" | "meganium_shiny" | "moltres_shiny" | "onix_shiny";
 
 
 
