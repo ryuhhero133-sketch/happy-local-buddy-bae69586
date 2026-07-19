@@ -7616,6 +7616,8 @@ function IdlePage() {
                               >✕</button>
                             </div>
                           </div>
+                          <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: "2px solid #7a5a20", boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)" }}>
+                            <img
                               src={assetUrlFromJson(worldMapGlobeAsset)}
                               alt="Mapa Mundi"
                               loading="lazy"
