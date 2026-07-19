@@ -10230,17 +10230,15 @@ function TabOverlay({
                   <div style={{ fontSize: 11, color: "#b8c8dc", textAlign: "center" }}>Teleporte instantâneo no Mapa Mundi — sem taxa de ouro, sem custo de cristais</div>
                   <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
                   <div style={{ fontSize: 11, color: "#8aa0b8" }}>Você tem: {owned}</div>
-                  <button
-                    onClick={() => onBuyTeleportScroll()}
-                    disabled={!canBuy}
-                    style={{
-                      width: "100%", padding: "8px 10px", fontWeight: 800,
-                      background: canBuy ? color : "#2a344a",
-                      color: canBuy ? "#0b0510" : "#5a6a7c",
-                      border: "none", borderRadius: 6,
-                      cursor: canBuy ? "pointer" : "not-allowed",
-                    }}
-                  >{canBuy ? "COMPRAR" : "SEM CRISTAIS"}</button>
+                  <QtyBuy
+                    presets={[1, 5, 10, 25]}
+                    max={999}
+                    unitLabel="pergaminho"
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.crystals >= 100 * n}
+                    onBuy={(n) => onBuyTeleportScroll(n)}
+                    disabledLabel="SEM CRISTAIS"
+                  />
                 </div>
               );
             })()}
