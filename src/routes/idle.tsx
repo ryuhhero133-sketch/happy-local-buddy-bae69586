@@ -4479,40 +4479,44 @@ function IdlePage() {
   };
 
   // ===== Loja =====
-  const buyBall = (b: ShopBall) => {
+  const buyBall = (b: ShopBall, qty: number = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
-      if (s.bank.gold < b.price) {
-        pushChat(`Ouro insuficiente para ${b.name}.`, "info");
+      const totalCost = b.price * n;
+      if (s.bank.gold < totalCost) {
+        pushChat(`Ouro insuficiente para ${n}× ${b.name} (precisa ${totalCost}).`, "info");
         return s;
       }
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `+1 ${b.name}`, "capture");
-      pushChat(`Comprou 1 ${b.name} por ${b.price} ouro.`, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} ${b.name}`, "capture");
+      pushChat(`Comprou ${n}× ${b.name} por ${totalCost} ouro.`, "cap");
       return {
         ...s,
-        bank: { ...s.bank, gold: s.bank.gold - b.price },
-        items: { ...s.items, [b.id]: (s.items[b.id] ?? 0) + 1 },
+        bank: { ...s.bank, gold: s.bank.gold - totalCost },
+        items: { ...s.items, [b.id]: (s.items[b.id] ?? 0) + n },
       };
     });
   };
   // Pergaminho de Teleporte — 100 💎 por unidade. Consumido para teleporte instantâneo no mapa mundi.
-  const buyTeleportScroll = () => {
+  const buyTeleportScroll = (qty: number = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
-      const COST = 100;
+      const COST = 100 * n;
       if (s.bank.crystals < COST) { pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info"); return s; }
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `+1 Pergaminho de Teleporte`, "capture");
-      pushChat(`Comprou 1 Pergaminho de Teleporte por ${COST} 💎.`, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} Pergaminho de Teleporte`, "capture");
+      pushChat(`Comprou ${n}× Pergaminho de Teleporte por ${COST} 💎.`, "cap");
       return {
         ...s,
         bank: { ...s.bank, crystals: s.bank.crystals - COST },
-        items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) + 1 },
+        items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) + n },
       };
     });
   };
   // Bundle de Ultra Ball pago em cristais: 1000 💎 = 20 unidades
-  const buyUltraBundle = () => {
+  const buyUltraBundle = (qty: number = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
-      const COST = 1000;
-      const QTY = 20;
+      const COST = 1000 * n;
+      const QTY = 20 * n;
       if (s.bank.crystals < COST) {
         pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info");
         return s;
@@ -9084,6 +9088,45 @@ const zoomBtn: React.CSSProperties = {
   padding: 0, lineHeight: 1,
 };
 
+// Widget de compra com quantidade: presets + input custom + botão comprar.
+function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disabledLabel = "SEM RECURSO" }:
+  { presets: number[]; max: number; unitLabel: string; buttonColor: string; canBuyFn: (n: number) => boolean; onBuy: (n: number) => void; disabledLabel?: string }) {
+  const [qty, setQty] = useState<number>(1);
+  const clamp = (v: number) => Math.max(1, Math.min(Math.max(1, max), Math.floor(v || 1)));
+  const q = clamp(qty);
+  const ok = canBuyFn(q);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "center" }}>
+        {presets.map((p) => (
+          <button key={p} onClick={() => setQty(p)} style={{
+            padding: "3px 8px", fontSize: 11, fontWeight: 800, borderRadius: 5,
+            border: `1px solid ${qty === p ? buttonColor : "#4a3a52"}`,
+            background: qty === p ? `${buttonColor}22` : "#1a0f26",
+            color: qty === p ? buttonColor : "#b8a8c8", cursor: "pointer",
+          }}>×{p}</button>
+        ))}
+        <button onClick={() => setQty(clamp(Math.max(...presets)))} style={{
+          padding: "3px 8px", fontSize: 11, fontWeight: 800, borderRadius: 5,
+          border: `1px solid #4a3a52`, background: "#1a0f26", color: "#b8a8c8", cursor: "pointer",
+        }}>MAX</button>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <button onClick={() => setQty(clamp(q - 1))} style={{ width: 28, height: 30, background: "#2a1a3a", border: "1px solid #4a3a52", color: "#eadfe8", borderRadius: 5, cursor: "pointer", fontWeight: 900 }}>−</button>
+        <input type="number" min={1} max={max} value={qty}
+          onChange={(e) => setQty(clamp(parseInt(e.target.value, 10)))}
+          style={{ flex: 1, height: 30, textAlign: "center", background: "#0f0819", border: "1px solid #4a3a52", color: "#eadfe8", borderRadius: 5, fontWeight: 800, fontSize: 13 }} />
+        <button onClick={() => setQty(clamp(q + 1))} style={{ width: 28, height: 30, background: "#2a1a3a", border: "1px solid #4a3a52", color: "#eadfe8", borderRadius: 5, cursor: "pointer", fontWeight: 900 }}>+</button>
+      </div>
+      <button onClick={() => ok && onBuy(q)} disabled={!ok} style={{
+        width: "100%", padding: "8px 10px", fontWeight: 800, fontSize: 12,
+        background: ok ? buttonColor : "#3a2a4a", color: ok ? "#0b0510" : "#6a5a7c",
+        border: "none", borderRadius: 6, cursor: ok ? "pointer" : "not-allowed",
+      }}>{ok ? `COMPRAR ×${q} ${unitLabel}` : disabledLabel}</button>
+    </div>
+  );
+}
+
 // ============ Overlay das abas ============
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
@@ -9109,9 +9152,9 @@ function TabOverlay({
   onUseItem: (id: string) => void;
   bank: { gold: number; crystals: number };
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number };
-  onBuyBall: (b: ShopBall) => void;
-  onBuyUltraBundle: () => void;
-  onBuyTeleportScroll: () => void;
+  onBuyBall: (b: ShopBall, qty?: number) => void;
+  onBuyUltraBundle: (qty?: number) => void;
+  onBuyTeleportScroll: (qty?: number) => void;
   onBuyBook: (bk: ShopBook) => void;
   onBuyPotion: (qty?: number) => void;
   onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
@@ -10088,18 +10131,16 @@ function TabOverlay({
               <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● {POTION_PRICE} ouro cada</div>
               <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {items.potion ?? 0}</div>
             </div>
-            <div style={{ display: "flex", gap: 6 }}>
-              {[1, 5, 20].map((q) => (
-                <button key={q} onClick={() => onBuyPotion(q)}
-                  disabled={bank.gold < POTION_PRICE * q}
-                  style={{
-                    padding: "8px 12px", fontWeight: 800, borderRadius: 6, border: "none",
-                    background: bank.gold >= POTION_PRICE * q ? "#6bd4ff" : "#3a2a4a",
-                    color: bank.gold >= POTION_PRICE * q ? "#06121e" : "#6a5a7c",
-                    cursor: bank.gold >= POTION_PRICE * q ? "pointer" : "not-allowed",
-                  }}
-                >+{q}</button>
-              ))}
+            <div style={{ minWidth: 220 }}>
+              <QtyBuy
+                presets={[1, 10, 50, 100]}
+                max={9999}
+                unitLabel="poção"
+                buttonColor="#6bd4ff"
+                canBuyFn={(n) => bank.gold >= POTION_PRICE * n}
+                onBuy={(n) => onBuyPotion(n)}
+                disabledLabel="SEM OURO"
+              />
             </div>
           </div>
 
@@ -10123,17 +10164,15 @@ function TabOverlay({
                   <div style={{ fontSize: 11, color: "#b8a8c8" }}>Chance de captura x{b.captureMult}</div>
                   <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● {b.price} ouro</div>
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
-                  <button
-                    onClick={() => onBuyBall(b)}
-                    disabled={!canBuy}
-                    style={{
-                      width: "100%", padding: "8px 10px", fontWeight: 800,
-                      background: canBuy ? color : "#3a2a4a",
-                      color: canBuy ? "#0b0510" : "#6a5a7c",
-                      border: "none", borderRadius: 6,
-                      cursor: canBuy ? "pointer" : "not-allowed",
-                    }}
-                  >{canBuy ? "COMPRAR" : "SEM OURO"}</button>
+                  <QtyBuy
+                    presets={[1, 10, 50, 100]}
+                    max={9999}
+                    unitLabel={b.name}
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.gold >= b.price * n}
+                    onBuy={(n) => onBuyBall(b, n)}
+                    disabledLabel="SEM OURO"
+                  />
                 </div>
               );
             })}
@@ -10159,17 +10198,15 @@ function TabOverlay({
                   <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>20 Ultra Ball — captura x3.5</div>
                   <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned} Ultra Ball</div>
-                  <button
-                    onClick={() => onBuyUltraBundle()}
-                    disabled={!canBuy}
-                    style={{
-                      width: "100%", padding: "8px 10px", fontWeight: 800,
-                      background: canBuy ? color : "#3a2a4a",
-                      color: canBuy ? "#0b0510" : "#6a5a7c",
-                      border: "none", borderRadius: 6,
-                      cursor: canBuy ? "pointer" : "not-allowed",
-                    }}
-                  >{canBuy ? "COMPRAR" : "SEM CRISTAIS"}</button>
+                  <QtyBuy
+                    presets={[1, 5, 10, 25]}
+                    max={999}
+                    unitLabel="pacote"
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.crystals >= 1000 * n}
+                    onBuy={(n) => onBuyUltraBundle(n)}
+                    disabledLabel="SEM CRISTAIS"
+                  />
                 </div>
               );
             })()}
@@ -10191,17 +10228,15 @@ function TabOverlay({
                   <div style={{ fontSize: 11, color: "#b8c8dc", textAlign: "center" }}>Teleporte instantâneo no Mapa Mundi — sem taxa de ouro, sem custo de cristais</div>
                   <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
                   <div style={{ fontSize: 11, color: "#8aa0b8" }}>Você tem: {owned}</div>
-                  <button
-                    onClick={() => onBuyTeleportScroll()}
-                    disabled={!canBuy}
-                    style={{
-                      width: "100%", padding: "8px 10px", fontWeight: 800,
-                      background: canBuy ? color : "#2a344a",
-                      color: canBuy ? "#0b0510" : "#5a6a7c",
-                      border: "none", borderRadius: 6,
-                      cursor: canBuy ? "pointer" : "not-allowed",
-                    }}
-                  >{canBuy ? "COMPRAR" : "SEM CRISTAIS"}</button>
+                  <QtyBuy
+                    presets={[1, 5, 10, 25]}
+                    max={999}
+                    unitLabel="pergaminho"
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.crystals >= 100 * n}
+                    onBuy={(n) => onBuyTeleportScroll(n)}
+                    disabledLabel="SEM CRISTAIS"
+                  />
                 </div>
               );
             })()}
