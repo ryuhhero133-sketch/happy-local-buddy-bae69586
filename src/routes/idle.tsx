@@ -2630,7 +2630,7 @@ function IdlePage() {
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 12 * distBoost * (1 + honeyBonusNow());
+        const speed = 6 * distBoost * (1 + honeyBonusNow());
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
