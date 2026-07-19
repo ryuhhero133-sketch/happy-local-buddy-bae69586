@@ -731,10 +731,10 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
         {mode === "reset" && resetStep === "code" && (
           <>
             <Field
-              label="Código do E-mail (6 dígitos)"
+              label="Código Único de Recuperação"
               value={resetCode}
-              onChange={(v) => setResetCode(v.replace(/\D+/g, "").slice(0, 6))}
-              placeholder="Ex: 123456"
+              onChange={(v) => setResetCode(v.slice(0, 20))}
+              placeholder="Digite o código informado pelo suporte"
               autoComplete="one-time-code"
             />
             <Field
