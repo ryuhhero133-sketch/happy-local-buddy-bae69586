@@ -2673,7 +2673,7 @@ function IdlePage() {
           const dist = Math.hypot(dx, dy);
           const aggroR = ne.aggroR ?? 180;
           if (dist < 50 || dist > aggroR) return ne;
-          const speed = 6;
+          const speed = 3;
           const nx = ne.x + (dx / dist) * speed;
           const ny = ne.y + (dy / dist) * speed;
           if (collidesWithAny(nx, ny)) return ne;
