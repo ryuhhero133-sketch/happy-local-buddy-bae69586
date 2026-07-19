@@ -23,7 +23,13 @@ export const masterResetPassword = createServerFn({ method: "POST" })
     if (data.code.trim().toLowerCase() !== MASTER_CODE) {
       throw new Error("Código inválido.");
     }
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let supabaseAdmin: (typeof import("@/integrations/supabase/client.server"))["supabaseAdmin"];
+    try {
+      ({ supabaseAdmin } = await import("@/integrations/supabase/client.server"));
+    } catch (error) {
+      console.error("[auth] reset admin client unavailable", error);
+      throw new Error("Reset indisponível: falta configurar a chave admin do Supabase no servidor.");
+    }
 
     // Find user by email
     let userId: string | null = null;
@@ -31,7 +37,7 @@ export const masterResetPassword = createServerFn({ method: "POST" })
     const target = data.email.trim().toLowerCase();
     while (page <= 20 && !userId) {
       const { data: list, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
-      if (error) throw error;
+      if (error) throw new Error("Não consegui buscar a conta no Supabase. Verifique a chave admin do servidor.");
       const found = list.users.find((u) => (u.email ?? "").toLowerCase() === target);
       if (found) userId = found.id;
       if (list.users.length < 200) break;
@@ -42,6 +48,6 @@ export const masterResetPassword = createServerFn({ method: "POST" })
     const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       password: data.newPassword,
     });
-    if (updErr) throw updErr;
+    if (updErr) throw new Error("Não consegui trocar a senha dessa conta no Supabase.");
     return { ok: true };
   });
