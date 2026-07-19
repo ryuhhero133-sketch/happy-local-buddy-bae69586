@@ -8863,6 +8863,27 @@ function TabOverlay({
   const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string }>(null);
   const [orbPickerSel, setOrbPickerSel] = useState<Set<string>>(new Set());
   const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
+  // Coleção: filtros + cadeado (persistidos em localStorage)
+  const LOCK_KEY = "rubym.colecao.locked.v1";
+  const [lockedSet, setLockedSet] = useState<Set<string>>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem(LOCK_KEY) : null;
+      if (!raw) return new Set<string>();
+      return new Set(JSON.parse(raw) as string[]);
+    } catch { return new Set<string>(); }
+  });
+  const toggleLock = (uid: string) => {
+    setLockedSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(uid)) next.delete(uid); else next.add(uid);
+      try { localStorage.setItem(LOCK_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  const [colFilterRarity, setColFilterRarity] = useState<"all" | Rarity>("all");
+  const [colFilterName, setColFilterName] = useState("");
+  const [colSort, setColSort] = useState<"recent" | "level_desc" | "level_asc" | "rarity" | "name">("recent");
+  const [colOnlyLocked, setColOnlyLocked] = useState(false);
   return (
     <div style={{
       position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
