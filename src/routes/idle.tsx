@@ -4372,6 +4372,27 @@ function IdlePage() {
         pet = makePet(sp, aLv, aRarity);
         lv = aLv;
       }
+      // ✦ MTC — Míticos Brilhantes (Lv 500-1000)
+      // Aparecem em qualquer mapa quando o líder tem Lv >= 500.
+      // Todos rarity "mythic_shiny". Só capturáveis com ULTRA BALL.
+      // Chance de captura ~1.7% por ultra (média ~60 tentativas, cauda pode passar de 200).
+      const MTC_MONS: Species[] = [
+        "abomasnow","cloyster","cloyster_shiny","exeggutor","exeggutor_shiny",
+        "feraligatr","heracross","heracross_shiny","hitmonchan_shiny",
+        "kangaskhan","meganium","meganium_shiny","moltres_shiny","onix_shiny",
+      ];
+      let isMtcBoss = false;
+      if (!isApex && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && leaderLv >= 500) {
+        // ~1% dos spawns em Lv 500+; sobe levemente com o nível do líder
+        const chance = Math.min(0.025, 0.01 + (leaderLv - 500) * 0.00002);
+        if (Math.random() < chance) {
+          isMtcBoss = true;
+          sp = MTC_MONS[Math.floor(Math.random() * MTC_MONS.length)];
+          lv = 500 + Math.floor(Math.random() * 501); // 500..1000
+          pet = makePet(sp, lv, "mythic_shiny");
+          setTimeout(() => pushChat(`✦ Um MÍTICO BRILHANTE surgiu! (${sp.replace(/_/g," ").toUpperCase()} Lv ${lv}) — só Ultra Ball funciona.`, "cap"), 60);
+        }
+      }
       // 💀 PERIGO ABISSAL — criatura mítica não identificada. Aparece 1x por mapa
       // a cada ~1h. Nível 500-900, HP monstruoso, dá crítico devastador (3-hit-kill).
       // Não tem aggro, não foge. Ao ser atacada com pokébola vira agressiva.
