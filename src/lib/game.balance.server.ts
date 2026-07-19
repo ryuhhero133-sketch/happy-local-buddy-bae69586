@@ -48,8 +48,8 @@ export const CAPTURE_RATES: Record<Rarity, Record<string, number>> = {
   rare:         { pokeball: 0.18, greatball: 0.35, ultraball: 0.55, masterball: 1.0 },
   epic:         { pokeball: 0.08, greatball: 0.18, ultraball: 0.35, masterball: 1.0 },
   legendary:    { pokeball: 0.03, greatball: 0.08, ultraball: 0.18, masterball: 1.0 },
-  mythic:       { pokeball: 0.01, greatball: 0.03, ultraball: 0.08, masterball: 1.0 },
-  mythic_shiny: { pokeball: 0.005, greatball: 0.015, ultraball: 0.04, masterball: 1.0 },
+  mythic:       { pokeball: 0.002, greatball: 0.008, ultraball: 0.028, masterball: 1.0 },
+  mythic_shiny: { pokeball: 0.001, greatball: 0.003, ultraball: 0.018, masterball: 1.0 },
 };
 
 // Level cap por mapa — servidor valida.
