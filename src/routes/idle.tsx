@@ -274,6 +274,21 @@ const skarmoryUrl = assetUrlFromJson(skarmoryAsset);
 const moltresUrl = assetUrlFromJson(moltresAsset);
 const zapdosUrl = assetUrlFromJson(zapdosAsset);
 const articunoUrl = assetUrlFromJson(articunoAsset);
+// ═══ MTC — Míticos Brilhantes ═══
+import abomasnowGif from "@/assets/abomasnow.gif";
+import cloysterGif from "@/assets/cloyster.gif";
+import cloysterShinyGif from "@/assets/cloyster-shiny.gif";
+import exeggutorGif from "@/assets/exeggutor.gif";
+import exeggutorShinyGif from "@/assets/exeggutor-shiny.gif";
+import feraligatrGif from "@/assets/feraligatr.gif";
+import heracrossGif from "@/assets/heracross.gif";
+import heracrossShinyGif from "@/assets/heracross-shiny.gif";
+import hitmonchanShinyGif from "@/assets/hitmonchan-shiny.gif";
+import kangaskhanGif from "@/assets/kangaskhan.gif";
+import meganiumGif from "@/assets/meganium.gif";
+import meganiumShinyGif from "@/assets/meganium-shiny.gif";
+import moltresShinyGif from "@/assets/moltres-shiny.gif";
+import onixShinyGif from "@/assets/onix-shiny.gif";
 
 
 
@@ -494,6 +509,12 @@ const GIF: Partial<Record<Species, string>> = {
   infernape: infernapeUrl, krookodile: krookodileUrl, tyranitar: tyranitarUrl, nidoking_shiny: nidokingShinyUrl,
   dialga: dialgaUrl, rapidash: rapidashUrl, rapidash_shiny: rapidashShinyUrl, skarmory: skarmoryUrl,
   moltres: moltresUrl, zapdos: zapdosUrl, articuno: articunoUrl,
+  abomasnow: abomasnowGif, cloyster: cloysterGif, cloyster_shiny: cloysterShinyGif,
+  exeggutor: exeggutorGif, exeggutor_shiny: exeggutorShinyGif,
+  feraligatr: feraligatrGif, heracross: heracrossGif, heracross_shiny: heracrossShinyGif,
+  hitmonchan_shiny: hitmonchanShinyGif, kangaskhan: kangaskhanGif,
+  meganium: meganiumGif, meganium_shiny: meganiumShinyGif,
+  moltres_shiny: moltresShinyGif, onix_shiny: onixShinyGif,
 };
 
 
@@ -540,7 +561,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   abra: "psychic", kadabra: "psychic", alakazam: "psychic",
   mew: "psychic", mewtwo: "psychic",
   // Gelo
-  articuno: "ice",
+  articuno: "ice", abomasnow: "ice", cloyster: "ice", cloyster_shiny: "ice",
   // Pedra / terra
   diglett: "rock", dugtrio: "rock",
   sandshrew: "rock", sandslash: "rock",
@@ -1660,7 +1681,7 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
@@ -3131,6 +3152,14 @@ function IdlePage() {
                 pushFxAt(target.x, target.y - 70, "IMPOSSÍVEL CAPTURAR", "enemyDmg");
                 pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
                 setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
+              } else if (target.mtcBoss) {
+                // ✦ MTC — só ultra ball; ~1.7% por lançamento (média ~60 tentativas)
+                if (usedBall.id !== "ultraball") {
+                  captured = false;
+                  pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
+                } else {
+                  captured = Math.random() < 0.017;
+                }
               } else if (isEventLeg && usedBall.id === "greatball") {
                 captured = false; // Great sempre falha em lendários do evento
               } else if (isEventLeg && usedBall.id === "masterball") {
@@ -3708,6 +3737,14 @@ function IdlePage() {
       chance = 0;
       pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
       setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
+    } else
+    if (target.mtcBoss) {
+      if (usedBall.id !== "ultraball") {
+        chance = 0;
+        pushFxAt(target.x, target.y - 40, "Só Ultra Ball!", "enemyDmg");
+      } else {
+        chance = 0.017;
+      }
     } else
     if (isEventLeg && usedBall.id === "greatball") {
       chance = 0; // Great sempre falha em lendários do evento
@@ -4351,6 +4388,27 @@ function IdlePage() {
         pet = makePet(sp, aLv, aRarity);
         lv = aLv;
       }
+      // ✦ MTC — Míticos Brilhantes (Lv 500-1000)
+      // Aparecem em qualquer mapa quando o líder tem Lv >= 500.
+      // Todos rarity "mythic_shiny". Só capturáveis com ULTRA BALL.
+      // Chance de captura ~1.7% por ultra (média ~60 tentativas, cauda pode passar de 200).
+      const MTC_MONS: Species[] = [
+        "abomasnow","cloyster","cloyster_shiny","exeggutor","exeggutor_shiny",
+        "feraligatr","heracross","heracross_shiny","hitmonchan_shiny",
+        "kangaskhan","meganium","meganium_shiny","moltres_shiny","onix_shiny",
+      ];
+      let isMtcBoss = false;
+      if (!isApex && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && leaderLv >= 500) {
+        // ~1% dos spawns em Lv 500+; sobe levemente com o nível do líder
+        const chance = Math.min(0.025, 0.01 + (leaderLv - 500) * 0.00002);
+        if (Math.random() < chance) {
+          isMtcBoss = true;
+          sp = MTC_MONS[Math.floor(Math.random() * MTC_MONS.length)];
+          lv = 500 + Math.floor(Math.random() * 501); // 500..1000
+          pet = makePet(sp, lv, "mythic_shiny");
+          setTimeout(() => pushChat(`✦ Um MÍTICO BRILHANTE surgiu! (${sp.replace(/_/g," ").toUpperCase()} Lv ${lv}) — só Ultra Ball funciona.`, "cap"), 60);
+        }
+      }
       // 💀 PERIGO ABISSAL — criatura mítica não identificada. Aparece 1x por mapa
       // a cada ~1h. Nível 500-900, HP monstruoso, dá crítico devastador (3-hit-kill).
       // Não tem aggro, não foge. Ao ser atacada com pokébola vira agressiva.
@@ -4398,7 +4456,7 @@ function IdlePage() {
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
       }
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent, disguise, revealed: false, menace: isMenace };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss };
 
 
     }

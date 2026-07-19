@@ -211,6 +211,21 @@ import articunoAsset from "@/assets/articuno.gif.asset.json";
 const moltresGif = moltresAsset.url;
 const zapdosGif = zapdosAsset.url;
 const articunoGif = articunoAsset.url;
+// ═══ MTC — Míticos Brilhantes (sprites) ═══
+import abomasnowGif from "@/assets/abomasnow.gif";
+import cloysterGif from "@/assets/cloyster.gif";
+import cloysterShinyGif from "@/assets/cloyster-shiny.gif";
+import exeggutorGif from "@/assets/exeggutor.gif";
+import exeggutorShinyGif from "@/assets/exeggutor-shiny.gif";
+import feraligatrGif from "@/assets/feraligatr.gif";
+import heracrossGif from "@/assets/heracross.gif";
+import heracrossShinyGif from "@/assets/heracross-shiny.gif";
+import hitmonchanShinyGif from "@/assets/hitmonchan-shiny.gif";
+import kangaskhanGif from "@/assets/kangaskhan.gif";
+import meganiumGif from "@/assets/meganium.gif";
+import meganiumShinyGif from "@/assets/meganium-shiny.gif";
+import moltresShinyGif from "@/assets/moltres-shiny.gif";
+import onixShinyGif from "@/assets/onix-shiny.gif";
 import virizionAsset from "@/assets/legends/virizion.gif.asset.json";
 import raikouAsset from "@/assets/legends/raikou.gif.asset.json";
 import suicuneAsset from "@/assets/legends/suicune.gif.asset.json";
@@ -579,6 +594,13 @@ const SPECIES_GIF: Record<Species, string> = {
   ditto_shiny: dittoShinyGif, scizor: scizorGif, umbreon: umbreonGif,
   infernape: infernapeGif, krookodile: krookodileGif, tyranitar: tyranitarGif, nidoking_shiny: nidokingShinyGif,
   dialga: dialgaGif, rapidash: rapidashGif, rapidash_shiny: rapidashShinyGif, skarmory: skarmoryGif,
+  // MTC — Míticos Brilhantes Lv 500-1000
+  abomasnow: abomasnowGif, cloyster: cloysterGif, cloyster_shiny: cloysterShinyGif,
+  exeggutor: exeggutorGif, exeggutor_shiny: exeggutorShinyGif,
+  feraligatr: feraligatrGif, heracross: heracrossGif, heracross_shiny: heracrossShinyGif,
+  hitmonchan_shiny: hitmonchanShinyGif, kangaskhan: kangaskhanGif,
+  meganium: meganiumGif, meganium_shiny: meganiumShinyGif,
+  moltres_shiny: moltresShinyGif, onix_shiny: onixShinyGif,
 };
 
 
@@ -627,6 +649,12 @@ const SPECIES_NAME: Record<Species, string> = {
   ditto_shiny: "DITTO ✦", scizor: "SCIZOR", umbreon: "UMBREON",
   infernape: "INFERNAPE", krookodile: "KROOKODILE", tyranitar: "TYRANITAR", nidoking_shiny: "NIDOKING ✦",
   dialga: "DIALGA ✦", rapidash: "RAPIDASH", rapidash_shiny: "RAPIDASH ✦", skarmory: "SKARMORY",
+  abomasnow: "ABOMASNOW ✦", cloyster: "CLOYSTER ✦", cloyster_shiny: "CLOYSTER ✧",
+  exeggutor: "EXEGGUTOR ✦", exeggutor_shiny: "EXEGGUTOR ✧",
+  feraligatr: "FERALIGATR ✦", heracross: "HERACROSS ✦", heracross_shiny: "HERACROSS ✧",
+  hitmonchan_shiny: "HITMONCHAN ✧", kangaskhan: "KANGASKHAN ✦",
+  meganium: "MEGANIUM ✦", meganium_shiny: "MEGANIUM ✧",
+  moltres_shiny: "MOLTRES ✧", onix_shiny: "ONIX ✧",
 };
 
 
