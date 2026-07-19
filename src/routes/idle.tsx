@@ -7099,6 +7099,7 @@ function IdlePage() {
               buffs={idle.buffs}
               onBuyBall={buyBall}
               onBuyUltraBundle={buyUltraBundle}
+              onBuyTeleportScroll={buyTeleportScroll}
               onBuyBook={buyBook}
               orbTrades={ORB_TRADES}
               onTradeOrb={tradeForOrb}
