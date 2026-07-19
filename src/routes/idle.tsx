@@ -456,6 +456,15 @@ function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: n
   return { open: false, msUntilChange: c.cycleMs - t };
 }
 
+// Evento Mítico Shiny — abre 5 minutos a cada 1 hora.
+function mythEventInfo(now: number = Date.now()): { open: boolean; msUntilChange: number } {
+  const CYCLE = 60 * 60 * 1000;
+  const OPEN = 5 * 60 * 1000;
+  const t = now % CYCLE;
+  if (t < OPEN) return { open: true, msUntilChange: OPEN - t };
+  return { open: false, msUntilChange: CYCLE - t };
+}
+
 const GIF: Partial<Record<Species, string>> = {
   charizard: charizardGif, pikachu: pikachuGif,
   dragonite: dragoniteGif,
