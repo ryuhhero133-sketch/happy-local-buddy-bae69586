@@ -7337,7 +7337,22 @@ function IdlePage() {
                   <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
                     {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
                     {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
+                    <div style={{ marginTop: 6, display: "flex", justifyContent: "center" }}>
+                      <button
+                        onClick={() => { playClick(); setWorldMapOpen(true); }}
+                        style={{
+                          background: "linear-gradient(135deg, #2a1a3e, #4a2b62)",
+                          border: "1px solid #f5cf6b",
+                          color: "#f5cf6b",
+                          borderRadius: 6, padding: "3px 10px",
+                          fontSize: 10, fontWeight: 900, letterSpacing: 1,
+                          cursor: "pointer",
+                          boxShadow: "0 0 8px rgba(245,207,107,0.35)",
+                        }}
+                      >🌍 MAPA MUNDI</button>
+                    </div>
                   </div>
+
 
                   {bigMapOpen && (
                     <div
