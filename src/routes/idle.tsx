@@ -4488,8 +4488,20 @@ function IdlePage() {
       };
     });
   };
-  // Bundle de Ultra Ball pago em cristais: 1000 💎 = 20 unidades
-  const buyUltraBundle = () => {
+  // Pergaminho de Teleporte — 100 💎 por unidade. Consumido para teleporte instantâneo no mapa mundi.
+  const buyTeleportScroll = () => {
+    setIdle((s) => {
+      const COST = 100;
+      if (s.bank.crystals < COST) { pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info"); return s; }
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+1 Pergaminho de Teleporte`, "capture");
+      pushChat(`Comprou 1 Pergaminho de Teleporte por ${COST} 💎.`, "cap");
+      return {
+        ...s,
+        bank: { ...s.bank, crystals: s.bank.crystals - COST },
+        items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) + 1 },
+      };
+    });
+  };
     setIdle((s) => {
       const COST = 1000;
       const QTY = 20;
