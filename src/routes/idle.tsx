@@ -7396,6 +7396,132 @@ function IdlePage() {
                     </div>
                   )}
 
+                  {worldMapOpen && (() => {
+                    const WORLD_PINS: Array<{ id: IdleMapId; x: number; y: number }> = [
+                      { id: "arena", x: 15, y: 22 },
+                      { id: "terra", x: 32, y: 16 },
+                      { id: "deserto_purpura", x: 54, y: 20 },
+                      { id: "pantano_fogo", x: 87, y: 26 },
+                      { id: "praia", x: 12, y: 60 },
+                      { id: "venofogo", x: 26, y: 42 },
+                      { id: "terry", x: 40, y: 44 },
+                      { id: "n2", x: 47, y: 52 },
+                      { id: "n3", x: 53, y: 58 },
+                      { id: "fantasma", x: 60, y: 46 },
+                      { id: "caverna", x: 78, y: 52 },
+                      { id: "vale_rochas", x: 20, y: 78 },
+                      { id: "neve", x: 36, y: 74 },
+                      { id: "deserto", x: 48, y: 30 },
+                      { id: "abismo_gelo", x: 58, y: 82 },
+                      { id: "abismo_veneno", x: 66, y: 86 },
+                      { id: "abismo_dragao", x: 74, y: 88 },
+                      { id: "gelius1", x: 90, y: 84 },
+                    ];
+                    const trainerLv = idle.trainerLevel ?? 1;
+                    return (
+                      <div
+                        onClick={() => setWorldMapOpen(false)}
+                        style={{
+                          position: "fixed", inset: 0, zIndex: 9998,
+                          background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center",
+                          padding: 16, cursor: "pointer",
+                        }}
+                      >
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            background: "#0b0510",
+                            border: "3px solid #f5cf6b",
+                            borderRadius: 16,
+                            padding: 12,
+                            maxWidth: 1100, width: "100%",
+                            cursor: "default",
+                            boxShadow: "0 0 80px rgba(245,207,107,0.5)",
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px" }}>
+                            <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 15, letterSpacing: 2 }}>
+                              🌍 MAPA MUNDI · UNIVERSO POKÉMON
+                            </div>
+                            <button
+                              onClick={() => setWorldMapOpen(false)}
+                              style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 12px", fontWeight: 800, cursor: "pointer" }}
+                            >✕</button>
+                          </div>
+                          <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: "2px solid #7a5a20", boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)" }}>
+                            <img
+                              src={assetUrlFromJson(worldMapGlobeAsset)}
+                              alt="Mapa Mundi"
+                              loading="lazy"
+                              width={1536}
+                              height={1024}
+                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                            />
+                            {WORLD_PINS.map((pin) => {
+                              const m = IDLE_MAPS[pin.id];
+                              if (!m) return null;
+                              const ok = trainerLv >= m.minLevel;
+                              const current = idle.currentMap === pin.id;
+                              return (
+                                <button
+                                  key={pin.id}
+                                  title={`${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}`}
+                                  onClick={() => {
+                                    if (current) { setWorldMapOpen(false); return; }
+                                    playClick();
+                                    const synthGate = {
+                                      key: `world-${pin.id}`,
+                                      target: pin.id,
+                                      x: WORLD_W / 2, y: WORLD_H / 2,
+                                      arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
+                                      color: "#f5cf6b",
+                                    };
+                                    setWorldMapOpen(false);
+                                    setPendingGate({ target: pin.id, gate: synthGate, fromBig: false });
+                                  }}
+                                  style={{
+                                    position: "absolute",
+                                    left: `${pin.x}%`, top: `${pin.y}%`,
+                                    transform: "translate(-50%,-50%)",
+                                    background: current
+                                      ? "linear-gradient(135deg, #7ef27a, #4ec26a)"
+                                      : ok
+                                        ? "linear-gradient(135deg, rgba(245,207,107,0.95), rgba(217,164,65,0.95))"
+                                        : "rgba(30,20,40,0.85)",
+                                    border: `2px solid ${current ? "#fff" : ok ? "#fff2b8" : "#6a5a70"}`,
+                                    color: current ? "#0b1a0b" : ok ? "#1a0f26" : "#8a7a9c",
+                                    borderRadius: 20,
+                                    padding: "4px 10px",
+                                    fontSize: 10,
+                                    fontWeight: 900,
+                                    letterSpacing: 0.3,
+                                    cursor: "pointer",
+                                    boxShadow: current
+                                      ? "0 0 16px rgba(126,242,122,0.9), 0 0 4px #fff"
+                                      : ok
+                                        ? "0 0 12px rgba(245,207,107,0.7)"
+                                        : "0 2px 4px rgba(0,0,0,0.6)",
+                                    whiteSpace: "nowrap",
+                                    animation: current ? "worldPinPulse 1.6s ease-in-out infinite" : undefined,
+                                  }}
+                                >
+                                  {current ? "📍 " : ok ? "● " : "🔒 "}{m.name} <span style={{ opacity: 0.75, fontWeight: 700 }}>Lv{m.minLevel}{m.maxLevel ? `-${m.maxLevel}` : ""}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div style={{ marginTop: 10, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", fontSize: 11, color: "#c8b8d0" }}>
+                            <span>📍 Você está em <b style={{ color: "#7ef27a" }}>{map.name}</b></span>
+                            <span>🎖 Treinador Lv <b style={{ color: "#f5cf6b" }}>{trainerLv}</b></span>
+                            <span style={{ color: "#8a7a9c" }}>Clique num destino para viajar (🪙 1000 + 💎 taxa se houver).</span>
+                          </div>
+                          <style>{`@keyframes worldPinPulse { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.12); } }`}</style>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+
                   {pendingGate && (() => {
                     const tm = IDLE_MAPS[pendingGate.target as keyof typeof IDLE_MAPS];
                     const trainerLv = idle.trainerLevel ?? 1;
