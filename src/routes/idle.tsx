@@ -114,6 +114,12 @@ import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
 import mapPantanoFogoAsset from "@/assets/map-pantano-fogo.png.asset.json";
 import worldMapGlobeAsset from "@/assets/world-map-globe.jpg.asset.json";
 import mapFantasmaAsset from "@/assets/map-fantasma.jpg.asset.json";
+import mapCadeiaAbAsset from "@/assets/map-cadeia-ab.png.asset.json";
+import mapCadeiaAb1Asset from "@/assets/map-cadeia-ab1.png.asset.json";
+import mapCadeiaF1Asset from "@/assets/map-cadeia-f1.png.asset.json";
+import mapMythshinyEventAsset from "@/assets/map-mythshiny-event.png.asset.json";
+import iceBallIconAsset from "@/assets/ice-pokeball-icon.png.asset.json";
+import scrollTeleportAsset from "@/assets/scroll-teleport.png.asset.json";
 // Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
 import mapForestAsset from "@/assets/map-forest.png.asset.json";
 import mapFlorestaSecretaAsset from "@/assets/map-floresta-secreta.png.asset.json";
