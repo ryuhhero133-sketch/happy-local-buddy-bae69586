@@ -4234,7 +4234,7 @@ function IdlePage() {
           mapLvRange = [4000, 6000];
         } else if (idle.currentMap === "evento_myth") {
           // Domínio Mítico Shiny — variedade grande, todos serão forçados a mythic_shiny
-          pool = ["charizard_shiny", "dragonite_shiny", "nidoking_shiny", "rapidash_shiny", "lapras_shiny", "suicune_shiny", "ditto_shiny", "jolteon_shiny", "flareon", "vaporeon", "blastoise", "butterfree", "wartortle", "sandslash", "sandshrew_shiny", "kakuna_shiny", "weedle_shiny", "metapod_shiny", "magikarp_shiny", "gyarados", "dialga", "ho_oh", "groudon", "darkrai", "moltres", "zapdos", "articuno", "lugia"] as Species[];
+          pool = ["charizard_shiny", "dragonite_shiny", "nidoking_shiny", "rapidash_shiny", "lapras_shiny", "suicune_shiny", "ditto_shiny", "jolteon_shiny", "sandshrew_shiny", "kakuna_shiny", "weedle_shiny", "metapod_shiny", "magikarp_shiny", "flareon_shiny", "vaporeon_shiny", "blastoise_shiny", "butterfree_shiny", "wartortle_shiny", "sandslash_shiny", "dragonite_shiny"] as Species[];
           pool = pool.filter(hasGif);
           if (pool.length === 0) pool = ["charizard_shiny", "dragonite_shiny"] as Species[];
           // Pareia com o líder — grande variação para não ficar previsível
