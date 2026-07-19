@@ -5450,6 +5450,52 @@ function IdlePage() {
               );
             })()}
             {(() => {
+              const mi = mythEventInfo();
+              if (!mi.open) return null;
+              const mins = Math.floor(mi.msUntilChange / 60000);
+              const secs = Math.floor((mi.msUntilChange % 60000) / 1000);
+              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+              const inEvent = idle.currentMap === "evento_myth";
+              return (
+                <button
+                  onClick={() => {
+                    if (inEvent) { pushChat(`❄ Evento Mítico Shiny — ${timeStr} restante`, "info"); return; }
+                    mythEventReturnMapRef.current = idle.currentMap;
+                    mythEventEnteredAtRef.current = Date.now();
+                    setIdle((s) => ({ ...s, currentMap: "evento_myth" }));
+                    setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+                    setEnemies([]);
+                    pushChat(`❄ Entrou no DOMÍNIO MÍTICO SHINY! Somente Ultra Ball captura aqui. 5min de sessão.`, "cap");
+                    playBonus();
+                  }}
+                  title={inEvent ? `Evento ativo — ${timeStr} restante` : `Evento Mítico Shiny aberto — ${timeStr}`}
+                  style={{
+                    marginTop: 6,
+                    padding: 3,
+                    background: "linear-gradient(180deg,#0e3a55,#052030)",
+                    border: "1.5px solid #9be7ff",
+                    borderRadius: 10,
+                    boxShadow: "0 0 16px rgba(155,231,255,0.85), inset 0 0 6px rgba(200,240,255,0.4)",
+                    cursor: "pointer",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    animation: "iceBallPulse 1.8s ease-in-out infinite",
+                  }}
+                >
+                  <img
+                    src={iceBallIconUrl}
+                    alt="Evento Mítico Shiny"
+                    width={34}
+                    height={34}
+                    style={{ filter: "drop-shadow(0 0 8px rgba(155,231,255,0.95))" }}
+                    draggable={false}
+                  />
+                  <span style={{ fontSize: 9, color: "#e0f6ff", fontWeight: 800, lineHeight: 1 }}>{timeStr}</span>
+                  <span style={{ fontSize: 8, color: "#9be7ff", fontWeight: 700, lineHeight: 1 }}>MYTH.SHINY</span>
+                  <style>{`@keyframes iceBallPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }`}</style>
+                </button>
+              );
+            })()}
+            {(() => {
               const orbUntil = idle.buffs.orbUntil ?? 0;
               const remain = orbUntil - Date.now();
               if (remain <= 0) return null;
