@@ -1889,59 +1889,8 @@ function IdlePage() {
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
     const used = (idleRef.current as any).redeemedCodes ?? [];
     if (used.includes(raw)) { setCodeMsg({ kind: "err", text: "Código já utilizado." }); return; }
-    if (raw === "SHINYCHARI2026") {
-      setIdle((s) => ({
-        ...s,
-        bank: { ...s.bank, crystals: Math.min(1000000, (s.bank?.crystals ?? 0) + 1000) },
-        items: { ...s.items, ultraball: (s.items.ultraball ?? 0) + 100, egg_charizard: (s.items.egg_charizard ?? 0) + 1 },
-        redeemedCodes: [...((s as any).redeemedCodes ?? []), raw],
-      } as any));
-      setCodeInput("");
-      setCodeMsg({ kind: "ok", text: "🎉 +1 Ovo Mítico Charizard Shiny, +1000 Cristais e +100 Ultra Balls!" });
-      return;
-    }
-    if (raw === "EPICEGGVIP4X") {
-      // Código exclusivo — 4 primeiros usuários (contador local best-effort)
-      const GLOBAL_KEY = "code.EPICEGGVIP4X.uses";
-      const uses = Number(localStorage.getItem(GLOBAL_KEY) || 0);
-      if (uses >= 4) { setCodeMsg({ kind: "err", text: "Código já atingiu o limite de 4 usos." }); return; }
-      localStorage.setItem(GLOBAL_KEY, String(uses + 1));
-      const now = Date.now();
-      const VIP_MS = 30 * 24 * 60 * 60 * 1000; // 30 dias
-      setIdle((s) => {
-        const currentUntil = s.buffs?.expMultUntil && s.buffs.expMultUntil > now ? s.buffs.expMultUntil : now;
-        return {
-          ...s,
-          items: {
-            ...s.items,
-            ultraball: (s.items.ultraball ?? 0) + 25,
-            greatball: (s.items.greatball ?? 0) + 25,
-            egg_charizard: (s.items.egg_charizard ?? 0) + 1,
-          },
-          buffs: {
-            ...s.buffs,
-            expMult: Math.max(s.buffs?.expMult ?? 1, 1.3),
-            expMultUntil: currentUntil + VIP_MS,
-            goldMult: Math.max(s.buffs?.goldMult ?? 1, 1.3),
-            goldMultUntil: (s.buffs?.goldMultUntil && s.buffs.goldMultUntil > now ? s.buffs.goldMultUntil : now) + VIP_MS,
-          },
-          redeemedCodes: [...((s as any).redeemedCodes ?? []), raw],
-        } as any;
-      });
-      setCodeInput("");
-      setCodeMsg({ kind: "ok", text: "🎉 Livro VIP 30 dias, +1 Ovo Charizard Épico, +25 Ultra Ball e +25 Great Ball!" });
-      return;
-    }
-    if (raw === "LUGIAEGG200") {
-      setIdle((s) => ({
-        ...s,
-        items: { ...s.items, egg_lugia: ((s.items as any).egg_lugia ?? 0) + 1 },
-        redeemedCodes: [...((s as any).redeemedCodes ?? []), raw],
-      } as any));
-      setCodeInput("");
-      setCodeMsg({ kind: "ok", text: "🥚 +1 Ovo de Lugia Mítico (Lv 200)!" });
-      return;
-    }
+    // Códigos removidos — todos retornam inválido
+
     setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
 
