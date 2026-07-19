@@ -396,6 +396,21 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   skarmory:        { hp: 65,  atk: 80,  def: 140, spa: 40,  spd: 70,  spe: 70,  rarity: "legendary",    goldRange: [460, 760], crystalChance: 0.80, catchMod: 3.6, minLv: 350 },
   // Edição especial — Dialga (evento 3h em 3h, Lv 800)
   dialga:          { hp: 100, atk: 120, def: 120, spa: 150, spd: 100, spe: 90,  rarity: "mythic_shiny", goldRange: [2400, 4000], crystalChance: 1.0, catchMod: 8.0, minLv: 800 },
+  // ═══ MTC — Míticos Brilhantes (aparecem Lv 500-1000, só ultra ball) ═══
+  abomasnow:       { hp: 90,  atk: 92,  def: 75,  spa: 92,  spd: 85,  spe: 60,  rarity: "mythic_shiny", goldRange: [1200, 2000], crystalChance: 0.95, catchMod: 6.0, minLv: 500 },
+  cloyster:        { hp: 50,  atk: 95,  def: 180, spa: 85,  spd: 45,  spe: 70,  rarity: "mythic_shiny", goldRange: [1300, 2100], crystalChance: 0.95, catchMod: 6.0, minLv: 500 },
+  cloyster_shiny:  { hp: 50,  atk: 95,  def: 180, spa: 85,  spd: 45,  spe: 70,  rarity: "mythic_shiny", goldRange: [1500, 2400], crystalChance: 0.98, catchMod: 6.5, minLv: 550 },
+  exeggutor:       { hp: 95,  atk: 95,  def: 85,  spa: 125, spd: 75,  spe: 55,  rarity: "mythic_shiny", goldRange: [1200, 2000], crystalChance: 0.95, catchMod: 6.0, minLv: 500 },
+  exeggutor_shiny: { hp: 95,  atk: 95,  def: 85,  spa: 125, spd: 75,  spe: 55,  rarity: "mythic_shiny", goldRange: [1500, 2400], crystalChance: 0.98, catchMod: 6.5, minLv: 550 },
+  feraligatr:      { hp: 85,  atk: 105, def: 100, spa: 79,  spd: 83,  spe: 78,  rarity: "mythic_shiny", goldRange: [1400, 2200], crystalChance: 0.96, catchMod: 6.2, minLv: 550 },
+  heracross:       { hp: 80,  atk: 125, def: 75,  spa: 40,  spd: 95,  spe: 85,  rarity: "mythic_shiny", goldRange: [1300, 2100], crystalChance: 0.95, catchMod: 6.0, minLv: 500 },
+  heracross_shiny: { hp: 80,  atk: 125, def: 75,  spa: 40,  spd: 95,  spe: 85,  rarity: "mythic_shiny", goldRange: [1600, 2500], crystalChance: 0.98, catchMod: 6.5, minLv: 600 },
+  hitmonchan_shiny:{ hp: 50,  atk: 105, def: 79,  spa: 35,  spd: 110, spe: 76,  rarity: "mythic_shiny", goldRange: [1400, 2200], crystalChance: 0.96, catchMod: 6.2, minLv: 550 },
+  kangaskhan:      { hp: 105, atk: 95,  def: 80,  spa: 40,  spd: 80,  spe: 90,  rarity: "mythic_shiny", goldRange: [1300, 2100], crystalChance: 0.95, catchMod: 6.0, minLv: 500 },
+  meganium:        { hp: 80,  atk: 82,  def: 100, spa: 83,  spd: 100, spe: 80,  rarity: "mythic_shiny", goldRange: [1300, 2100], crystalChance: 0.95, catchMod: 6.0, minLv: 500 },
+  meganium_shiny:  { hp: 80,  atk: 82,  def: 100, spa: 83,  spd: 100, spe: 80,  rarity: "mythic_shiny", goldRange: [1600, 2500], crystalChance: 0.98, catchMod: 6.5, minLv: 600 },
+  moltres_shiny:   { hp: 90,  atk: 100, def: 90,  spa: 125, spd: 85,  spe: 90,  rarity: "mythic_shiny", goldRange: [1800, 2800], crystalChance: 0.99, catchMod: 7.0, minLv: 700 },
+  onix_shiny:      { hp: 35,  atk: 45,  def: 180, spa: 30,  spd: 45,  spe: 70,  rarity: "mythic_shiny", goldRange: [1400, 2200], crystalChance: 0.96, catchMod: 6.2, minLv: 550 },
 
 
 };
