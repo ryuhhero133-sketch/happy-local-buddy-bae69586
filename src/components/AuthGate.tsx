@@ -764,7 +764,7 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
               className="text-[10px] tracking-[2px] underline"
               style={{ color: "#fde68a" }}
             >
-              REENVIAR CÓDIGO PARA OUTRO E-MAIL
+              USAR OUTRO E-MAIL
             </button>
           </>
         )}
