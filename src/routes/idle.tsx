@@ -2999,7 +2999,8 @@ function IdlePage() {
           const riderMult = isRiderKill ? 8 : 1; // rider dá MUITO xp
           const riderGoldMult = isRiderKill ? 4 : 1;
           const elemSyn = computeTeamSynergies(team);
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult);
+          const mythEventXpMult = idle.currentMap === "evento_myth" ? 6 : 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -3146,7 +3147,9 @@ function IdlePage() {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
-                captured = Math.random() < baseChance * usedBall.captureMult * guardMult;
+                // 💠 Míticos selvagens: MUITO difíceis mesmo com ultra
+                const rarityMult = target.rarity === "mythic_shiny" ? 0.05 : target.rarity === "mythic" ? 0.10 : target.rarity === "legendary" ? 0.35 : 1;
+                captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult;
               }
               if (captured) {
                 const rolled = rollTraits(target.rarity);
@@ -3236,7 +3239,8 @@ function IdlePage() {
             const overCap = Math.max(0, trLv - mapCap);
             const capPenalty = overCap > 0 ? Math.max(0.05, 1 - overCap * 0.2) : 1;
             const finalScale = lvScale * capPenalty;
-            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3));
+            const mythEvKillMult = idle.currentMap === "evento_myth" ? 6 : 1;
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult));
             const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3)) : 0;
             const totalTrainerXp = killTrainerXp + captureTrainerXp;
             const applied = applyTrainerXp(s, totalTrainerXp);
@@ -3728,7 +3732,9 @@ function IdlePage() {
       // 🖤 Guardiões anti-paralisia: um pouco mais difíceis de capturar
       const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
       const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
-      chance = Math.min(0.85, base * usedBall.captureMult * guardMult);
+      // 💠 Míticos selvagens: taxa muito baixa mesmo lançando dezenas de ultra
+      const rarityMult = target.rarity === "mythic_shiny" ? 0.05 : target.rarity === "mythic" ? 0.10 : target.rarity === "legendary" ? 0.35 : 1;
+      chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult);
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
@@ -4228,7 +4234,7 @@ function IdlePage() {
           mapLvRange = [4000, 6000];
         } else if (idle.currentMap === "evento_myth") {
           // Domínio Mítico Shiny — variedade grande, todos serão forçados a mythic_shiny
-          pool = ["charizard_shiny", "dragonite_shiny", "nidoking_shiny", "rapidash_shiny", "lapras_shiny", "suicune_shiny", "ditto_shiny", "jolteon_shiny", "flareon", "vaporeon", "blastoise", "butterfree", "wartortle", "sandslash", "sandshrew_shiny", "kakuna_shiny", "weedle_shiny", "metapod_shiny", "magikarp_shiny", "gyarados", "dialga", "ho_oh", "groudon", "darkrai", "moltres", "zapdos", "articuno", "lugia"] as Species[];
+          pool = ["charizard_shiny", "dragonite_shiny", "nidoking_shiny", "rapidash_shiny", "lapras_shiny", "suicune_shiny", "ditto_shiny", "jolteon_shiny", "sandshrew_shiny", "kakuna_shiny", "weedle_shiny", "metapod_shiny", "magikarp_shiny", "flareon_shiny", "vaporeon_shiny", "blastoise_shiny", "butterfree_shiny", "wartortle_shiny", "sandslash_shiny", "dragonite_shiny"] as Species[];
           pool = pool.filter(hasGif);
           if (pool.length === 0) pool = ["charizard_shiny", "dragonite_shiny"] as Species[];
           // Pareia com o líder — grande variação para não ficar previsível
@@ -7570,9 +7576,11 @@ function IdlePage() {
                       { id: "cadeia_ab", x: 80, y: 76 },
                       { id: "cadeia_ab1", x: 86, y: 68 },
                       { id: "cadeia_f1", x: 92, y: 58 },
-                      { id: "gelius1", x: 90, y: 84 },
+                      // gelius1 só aparece durante o evento (a cada 2h)
+                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 90, y: 84 }] : []),
                     ];
                     const trainerLv = idle.trainerLevel ?? 1;
+                    const scrollsAvail = idle.items?.scroll_teleport ?? 0;
                     return (
                       <div
                         onClick={() => setWorldMapOpen(false)}
@@ -7594,14 +7602,19 @@ function IdlePage() {
                             boxShadow: "0 0 80px rgba(245,207,107,0.5)",
                           }}
                         >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px", gap: 8 }}>
                             <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 15, letterSpacing: 2 }}>
                               🌍 MAPA MUNDI · UNIVERSO POKÉMON
                             </div>
-                            <button
-                              onClick={() => setWorldMapOpen(false)}
-                              style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 12px", fontWeight: 800, cursor: "pointer" }}
-                            >✕</button>
+                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                              <span style={{ background: scrollsAvail > 0 ? "linear-gradient(135deg,#3d2a08,#5a3d10)" : "#1a1420", border: `1px solid ${scrollsAvail > 0 ? "#f5cf6b" : "#4a3a52"}`, color: scrollsAvail > 0 ? "#ffe08a" : "#7a6a82", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 900 }}>
+                                📜 Pergaminho: {scrollsAvail}
+                              </span>
+                              <button
+                                onClick={() => setWorldMapOpen(false)}
+                                style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 12px", fontWeight: 800, cursor: "pointer" }}
+                              >✕</button>
+                            </div>
                           </div>
                           <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: "2px solid #7a5a20", boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)" }}>
                             <img
