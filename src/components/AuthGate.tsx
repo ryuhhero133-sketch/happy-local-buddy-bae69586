@@ -193,33 +193,47 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Single-session enforcement: newer login kicks the older one.
+  // Single-session enforcement: só derruba se o OUTRO login for mais novo.
+  // Antes qualquer broadcast (inclusive eco/queue de reconexão do realtime)
+  // derrubava a aba recém-logada — bug de "cadastro ok, ao entrar volta pro login".
   const [kicked, setKicked] = useState(false);
   useEffect(() => {
     if (!session?.user) return;
     const uid = session.user.id;
+    const myTs = Date.now();
     let myToken = "";
     try {
-      myToken = sessionStorage.getItem(SESSION_TOKEN_KEY) || "";
-      if (!myToken) {
-        myToken = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-        sessionStorage.setItem(SESSION_TOKEN_KEY, myToken);
-      }
+      // token novo a cada login pra o timestamp refletir a sessão atual
+      const rand = crypto.randomUUID?.() ?? `${Math.random()}`;
+      myToken = `${myTs}|${rand}`;
+      sessionStorage.setItem(SESSION_TOKEN_KEY, myToken);
     } catch { /* ignore */ }
+    const parseTs = (t: string) => Number(t.split("|")[0]) || 0;
+    const myRealTs = parseTs(myToken) || myTs;
+    const subscribedAt = Date.now();
 
     const ch = supabase.channel(`presence-user-${uid}`, {
       config: { broadcast: { self: false } },
     });
     ch.on("broadcast", { event: "takeover" }, (payload) => {
       const other = (payload.payload as { token?: string } | undefined)?.token;
-      if (other && other !== myToken) {
-        setKicked(true);
-        supabase.auth.signOut().catch(() => {});
-      }
+      if (!other || other === myToken) return;
+      // Grace period: ignora broadcasts nos primeiros 4s (eco/queue).
+      if (Date.now() - subscribedAt < 4000) return;
+      // Só é kick se o outro for MAIS NOVO que nós.
+      const otherTs = parseTs(other);
+      if (otherTs <= myRealTs) return;
+      setKicked(true);
+      supabase.auth.signOut().catch(() => {});
     });
     ch.subscribe((status) => {
       if (status === "SUBSCRIBED") {
-        ch.send({ type: "broadcast", event: "takeover", payload: { token: myToken } });
+        // Pequeno delay pra deixar uma eventual aba antiga ouvir antes.
+        setTimeout(() => {
+          try {
+            ch.send({ type: "broadcast", event: "takeover", payload: { token: myToken } });
+          } catch { /* ignore */ }
+        }, 600);
       }
     });
     return () => { supabase.removeChannel(ch); };
