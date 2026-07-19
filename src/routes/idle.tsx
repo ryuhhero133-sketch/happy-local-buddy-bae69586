@@ -7507,7 +7507,7 @@ function IdlePage() {
                                     animation: current ? "worldPinPulse 1.6s ease-in-out infinite" : undefined,
                                   }}
                                 >
-                                  {current ? "📍 " : ok ? "● " : "🔒 "}{m.name} <span style={{ opacity: 0.75, fontWeight: 700 }}>Lv{m.minLevel}{m.maxLevel ? `-${m.maxLevel}` : ""}</span>
+                                  {current ? "📍 " : ok ? "● " : "🔒 "}{m.name} <span style={{ opacity: 0.75, fontWeight: 700, color: m.raid ? "#ff8ad6" : undefined }}>{m.raid ? "RAID" : `Lv${m.minLevel}${m.maxLevel ? `-${m.maxLevel}` : ""}`}</span>
                                 </button>
                               );
                             })}
