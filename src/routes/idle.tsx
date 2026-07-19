@@ -4264,6 +4264,11 @@ function IdlePage() {
         forcedRarity = "mythic_shiny";
         mapLvRange = [500, 500];
       }
+      // Domínio Mítico Shiny — força a raridade e nível alto próximo do líder
+      const isMythShinyEvent = idle.currentMap === "evento_myth";
+      if (isMythShinyEvent) {
+        forcedRarity = "mythic_shiny";
+      }
 
       const rareStrong = Math.random() < 0.05;
       const offset = rareStrong
