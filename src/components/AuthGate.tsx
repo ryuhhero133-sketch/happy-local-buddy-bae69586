@@ -134,7 +134,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
           }
         }
       } catch { /* ignore */ }
-      if (window.location.hash.includes("type=recovery")) {
+      if (
+        window.location.hash.includes("type=recovery") ||
+        window.location.search.includes("recovery=1")
+      ) {
         setRecoveryMode(true);
       }
     }
