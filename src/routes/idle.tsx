@@ -7577,7 +7577,11 @@ function IdlePage() {
                                 {gold} ouro {goldOk ? "" : `(você: ${idle.bank.gold})`}
                               </span>
                             </div>
-                            {tm.maxLevel && (
+                            {tm.raid ? (
+                              <div style={{ textAlign: "center", color: "#ff8ad6", fontSize: 10, fontWeight: 900, letterSpacing: 1.2 }}>
+                                ☠ ZONA DE RAID · chefes de níveis variados (não é faixa de progressão)
+                              </div>
+                            ) : tm.maxLevel && (
                               <div style={{ textAlign: "center", color: "#8a7a9c", fontSize: 10 }}>
                                 Pokémon selvagens: Lv {tm.minLevel}–{tm.maxLevel}
                               </div>
