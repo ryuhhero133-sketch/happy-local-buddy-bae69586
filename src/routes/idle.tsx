@@ -9091,7 +9091,7 @@ const zoomBtn: React.CSSProperties = {
 // Widget de compra com quantidade: presets + input custom + botão comprar.
 function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disabledLabel = "SEM RECURSO" }:
   { presets: number[]; max: number; unitLabel: string; buttonColor: string; canBuyFn: (n: number) => boolean; onBuy: (n: number) => void; disabledLabel?: string }) {
-  const [qty, setQty] = React.useState<number>(1);
+  const [qty, setQty] = useState<number>(1);
   const clamp = (v: number) => Math.max(1, Math.min(Math.max(1, max), Math.floor(v || 1)));
   const q = clamp(qty);
   const ok = canBuyFn(q);
