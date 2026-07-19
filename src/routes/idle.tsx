@@ -114,6 +114,12 @@ import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
 import mapPantanoFogoAsset from "@/assets/map-pantano-fogo.png.asset.json";
 import worldMapGlobeAsset from "@/assets/world-map-globe.jpg.asset.json";
 import mapFantasmaAsset from "@/assets/map-fantasma.jpg.asset.json";
+import mapCadeiaAbAsset from "@/assets/map-cadeia-ab.png.asset.json";
+import mapCadeiaAb1Asset from "@/assets/map-cadeia-ab1.png.asset.json";
+import mapCadeiaF1Asset from "@/assets/map-cadeia-f1.png.asset.json";
+import mapMythshinyEventAsset from "@/assets/map-mythshiny-event.png.asset.json";
+import iceBallIconAsset from "@/assets/ice-pokeball-icon.png.asset.json";
+import scrollTeleportAsset from "@/assets/scroll-teleport.png.asset.json";
 // Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
 import mapForestAsset from "@/assets/map-forest.png.asset.json";
 import mapFlorestaSecretaAsset from "@/assets/map-floresta-secreta.png.asset.json";
@@ -292,6 +298,12 @@ const fireLakeUrl = assetUrlFromJson(fireLakeAsset);
 const mapVenofogoOrangeUrl = assetUrlFromJson(mapVenofogoOrangeAsset);
 const mapPantanoFogoUrl = assetUrlFromJson(mapPantanoFogoAsset);
 const mapFantasmaUrl = assetUrlFromJson(mapFantasmaAsset);
+const mapCadeiaAbUrl = assetUrlFromJson(mapCadeiaAbAsset);
+const mapCadeiaAb1Url = assetUrlFromJson(mapCadeiaAb1Asset);
+const mapCadeiaF1Url = assetUrlFromJson(mapCadeiaF1Asset);
+const mapMythshinyEventUrl = assetUrlFromJson(mapMythshinyEventAsset);
+const iceBallIconUrl = assetUrlFromJson(iceBallIconAsset);
+const scrollTeleportUrl = assetUrlFromJson(scrollTeleportAsset);
 // URLs dos 10 novos mapas endgame
 const mapForestUrl = assetUrlFromJson(mapForestAsset);
 const mapFlorestaSecretaUrl = assetUrlFromJson(mapFlorestaSecretaAsset);
@@ -360,7 +372,11 @@ type IdleMapId =
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
   | "vulcao_ativo" | "nucleo_primordial"
   // Cadeia Abissal — 5 mapas 1000-3000, recolores do Pântano em Chamas
-  | "abismo_gelo" | "abismo_veneno" | "abismo_raio" | "abismo_sombra" | "abismo_dragao";
+  | "abismo_gelo" | "abismo_veneno" | "abismo_raio" | "abismo_sombra" | "abismo_dragao"
+  // Cadeia estendida — Lv 3000 até 6000, continuação natural do Abismo do Dragão
+  | "cadeia_ab" | "cadeia_ab1" | "cadeia_f1"
+  // Evento Mítico Shiny — abre 5min a cada 1h
+  | "evento_myth";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -385,6 +401,12 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   abismo_raio:   { name: "Abismo do Trovão",   diff: "APOCALIP.", bg: mapPantanoFogoUrl, rate: 18.0, minLevel: 1800, maxLevel: 2400, element: "Elétrico", stars: 9, entryCrystals: 1600, overlay: "rgba(255,220,80,0.50)" },
   abismo_sombra: { name: "Abismo Sombrio",     diff: "APOCALIP.", bg: mapPantanoFogoUrl, rate: 20.0, minLevel: 2200, maxLevel: 2700, element: "Sombra",   stars: 10, entryCrystals: 2200, overlay: "rgba(40,20,60,0.65)" },
   abismo_dragao: { name: "Abismo do Dragão",   diff: "ABSOLUTO",  bg: mapPantanoFogoUrl, rate: 22.0, minLevel: 2500, maxLevel: 3000, element: "Dragão",   stars: 10, entryCrystals: 3000, overlay: "rgba(255,150,40,0.55)" },
+  // ═══ CADEIA ESTENDIDA — continuação após Abismo do Dragão (3000→6000) ═══
+  cadeia_ab:  { name: "Fenda Estelar",          diff: "TRANSC.",   bg: mapCadeiaAbUrl,  rate: 26.0, minLevel: 3000, maxLevel: 3500, element: "Estelar", stars: 10, entryCrystals: 4000 },
+  cadeia_ab1: { name: "Cripta Etérea",          diff: "TRANSC.+",  bg: mapCadeiaAb1Url, rate: 30.0, minLevel: 3500, maxLevel: 5000, element: "Etéreo",  stars: 10, entryCrystals: 6000 },
+  cadeia_f1:  { name: "Chamas do Fim",          diff: "COSMICO",   bg: mapCadeiaF1Url,  rate: 34.0, minLevel: 4000, maxLevel: 6000, element: "Fogo/Cosmico", stars: 10, entryCrystals: 8000 },
+  // ═══ EVENTO MÍTICO SHINY — abre 5min a cada 1h ═══
+  evento_myth: { name: "Domínio Mítico Shiny",  diff: "EVENTO",    bg: mapMythshinyEventUrl, rate: 40.0, minLevel: 1, maxLevel: 9999, element: "Todos", stars: 10 },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
   venofogo: { name: "Pântano Ardente",         diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
 
@@ -432,6 +454,15 @@ function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: n
   const t = now % c.cycleMs;
   if (t < c.openMs) return { open: true, msUntilChange: c.openMs - t };
   return { open: false, msUntilChange: c.cycleMs - t };
+}
+
+// Evento Mítico Shiny — abre 5 minutos a cada 1 hora.
+function mythEventInfo(now: number = Date.now()): { open: boolean; msUntilChange: number } {
+  const CYCLE = 60 * 60 * 1000;
+  const OPEN = 5 * 60 * 1000;
+  const t = now % CYCLE;
+  if (t < OPEN) return { open: true, msUntilChange: OPEN - t };
+  return { open: false, msUntilChange: CYCLE - t };
 }
 
 const GIF: Partial<Record<Species, string>> = {
@@ -3489,6 +3520,26 @@ function IdlePage() {
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const geliusReturnMapRef = useRef<IdleMapId | null>(null);
+  const mythEventReturnMapRef = useRef<IdleMapId | null>(null);
+  const mythEventEnteredAtRef = useRef<number>(0);
+  // ==== EVENTO MÍTICO SHINY — tick: expulsa aos 5min OU quando janela fecha ====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (idle.currentMap !== "evento_myth") return;
+      const mi = mythEventInfo();
+      const sessionExpired = Date.now() - mythEventEnteredAtRef.current >= 5 * 60 * 1000;
+      if (!mi.open || sessionExpired) {
+        const ret = (mythEventReturnMapRef.current ?? "arena") as IdleMapId;
+        setIdle((s) => ({ ...s, currentMap: ret }));
+        setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+        setEnemies([]);
+        mythEventReturnMapRef.current = null;
+        pushChat(`❄ Domínio Mítico Shiny fechou — teleportado de volta para ${IDLE_MAPS[ret].name}.`, "info");
+      }
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ==== EVENTO GELIUS — tick 1s: troca fase aos 5min, expulsa aos 10min ====
   useEffect(() => {
     const iv = setInterval(() => {
@@ -4165,6 +4216,25 @@ function IdlePage() {
           if (pool.length === 0) pool = ["gengar", "magmar", "tyranitar"] as Species[];
           mapLvRange = [400, 1000];
         }
+        // Cadeia estendida (3000→6000) — reaproveita pool do abismo do dragão / míticos
+        if (idle.currentMap === "cadeia_ab") {
+          pool = ["dragonite", "dragonite_shiny", "charizard", "charizard_shiny", "tyranitar", "gyarados", "rapidash_shiny", "infernape", "nidoking_shiny", "krookodile", "gengar", "umbreon"] as Species[];
+          mapLvRange = [3000, 3500];
+        } else if (idle.currentMap === "cadeia_ab1") {
+          pool = ["dialga", "ho_oh", "groudon", "darkrai", "dragonite_shiny", "tyranitar", "nidoking_shiny", "rapidash_shiny", "charizard_shiny", "moltres", "krookodile"] as Species[];
+          mapLvRange = [3500, 5000];
+        } else if (idle.currentMap === "cadeia_f1") {
+          pool = ["dialga", "ho_oh", "groudon", "darkrai", "moltres", "zapdos", "articuno", "dragonite_shiny", "charizard_shiny", "rapidash_shiny", "nidoking_shiny", "tyranitar"] as Species[];
+          mapLvRange = [4000, 6000];
+        } else if (idle.currentMap === "evento_myth") {
+          // Domínio Mítico Shiny — variedade grande, todos serão forçados a mythic_shiny
+          pool = ["charizard_shiny", "dragonite_shiny", "nidoking_shiny", "rapidash_shiny", "lapras_shiny", "suicune_shiny", "ditto_shiny", "jolteon_shiny", "flareon", "vaporeon", "blastoise", "butterfree", "wartortle", "sandslash", "sandshrew_shiny", "kakuna_shiny", "weedle_shiny", "metapod_shiny", "magikarp_shiny", "gyarados", "dialga", "ho_oh", "groudon", "darkrai", "moltres", "zapdos", "articuno", "lugia"] as Species[];
+          pool = pool.filter(hasGif);
+          if (pool.length === 0) pool = ["charizard_shiny", "dragonite_shiny"] as Species[];
+          // Pareia com o líder — grande variação para não ficar previsível
+          const leadForRange = Math.max(1, leaderLv);
+          mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
+        }
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
 
@@ -4193,6 +4263,11 @@ function IdlePage() {
         sp = MYTHIC_ROAMERS[Math.floor(Math.random() * MYTHIC_ROAMERS.length)];
         forcedRarity = "mythic_shiny";
         mapLvRange = [500, 500];
+      }
+      // Domínio Mítico Shiny — força a raridade e nível alto próximo do líder
+      const isMythShinyEvent = idle.currentMap === "evento_myth";
+      if (isMythShinyEvent) {
+        forcedRarity = "mythic_shiny";
       }
 
       const rareStrong = Math.random() < 0.05;
@@ -4301,9 +4376,10 @@ function IdlePage() {
       const guardianHpMult = isGuardian ? 2.2 : 1;
       const apexHpMult = isApex ? 4.5 : 1;
       const menaceHpMult = isMenace ? 18 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult);
+      const mythEventHpMult = isMythShinyEvent ? 3.5 : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult);
       const isAggro = isMenace ? false : true; // menace começa passivo
-      const aggroR = elite ? 300 : isApex ? 360 : 220 + Math.floor(Math.random() * 60);
+      const aggroR = elite ? 300 : isApex ? 360 : isMythShinyEvent ? 480 : 220 + Math.floor(Math.random() * 60);
 
       // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
       let disguise: Species | undefined = undefined;
@@ -4316,7 +4392,7 @@ function IdlePage() {
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
       }
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace, disguise, revealed: false, menace: isMenace };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent, disguise, revealed: false, menace: isMenace };
 
 
     }
@@ -4409,6 +4485,20 @@ function IdlePage() {
         ...s,
         bank: { ...s.bank, gold: s.bank.gold - b.price },
         items: { ...s.items, [b.id]: (s.items[b.id] ?? 0) + 1 },
+      };
+    });
+  };
+  // Pergaminho de Teleporte — 100 💎 por unidade. Consumido para teleporte instantâneo no mapa mundi.
+  const buyTeleportScroll = () => {
+    setIdle((s) => {
+      const COST = 100;
+      if (s.bank.crystals < COST) { pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info"); return s; }
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+1 Pergaminho de Teleporte`, "capture");
+      pushChat(`Comprou 1 Pergaminho de Teleporte por ${COST} 💎.`, "cap");
+      return {
+        ...s,
+        bank: { ...s.bank, crystals: s.bank.crystals - COST },
+        items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) + 1 },
       };
     });
   };
@@ -5415,6 +5505,52 @@ function IdlePage() {
                   />
                   <span style={{ fontSize: 9, color: "#d0f0ff", fontWeight: 800, lineHeight: 1 }}>{timeStr}</span>
                   <span style={{ fontSize: 8, color: "#7fd8ff", fontWeight: 700, lineHeight: 1 }}>{gi.phase === "phase1" ? "ONDA 1" : "ONDA 2"}</span>
+                </button>
+              );
+            })()}
+            {(() => {
+              const mi = mythEventInfo();
+              if (!mi.open) return null;
+              const mins = Math.floor(mi.msUntilChange / 60000);
+              const secs = Math.floor((mi.msUntilChange % 60000) / 1000);
+              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+              const inEvent = idle.currentMap === "evento_myth";
+              return (
+                <button
+                  onClick={() => {
+                    if (inEvent) { pushChat(`❄ Evento Mítico Shiny — ${timeStr} restante`, "info"); return; }
+                    mythEventReturnMapRef.current = idle.currentMap;
+                    mythEventEnteredAtRef.current = Date.now();
+                    setIdle((s) => ({ ...s, currentMap: "evento_myth" }));
+                    setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+                    setEnemies([]);
+                    pushChat(`❄ Entrou no DOMÍNIO MÍTICO SHINY! Somente Ultra Ball captura aqui. 5min de sessão.`, "cap");
+                    playBonus();
+                  }}
+                  title={inEvent ? `Evento ativo — ${timeStr} restante` : `Evento Mítico Shiny aberto — ${timeStr}`}
+                  style={{
+                    marginTop: 6,
+                    padding: 3,
+                    background: "linear-gradient(180deg,#0e3a55,#052030)",
+                    border: "1.5px solid #9be7ff",
+                    borderRadius: 10,
+                    boxShadow: "0 0 16px rgba(155,231,255,0.85), inset 0 0 6px rgba(200,240,255,0.4)",
+                    cursor: "pointer",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    animation: "iceBallPulse 1.8s ease-in-out infinite",
+                  }}
+                >
+                  <img
+                    src={iceBallIconUrl}
+                    alt="Evento Mítico Shiny"
+                    width={34}
+                    height={34}
+                    style={{ filter: "drop-shadow(0 0 8px rgba(155,231,255,0.95))" }}
+                    draggable={false}
+                  />
+                  <span style={{ fontSize: 9, color: "#e0f6ff", fontWeight: 800, lineHeight: 1 }}>{timeStr}</span>
+                  <span style={{ fontSize: 8, color: "#9be7ff", fontWeight: 700, lineHeight: 1 }}>MYTH.SHINY</span>
+                  <style>{`@keyframes iceBallPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }`}</style>
                 </button>
               );
             })()}
@@ -6963,6 +7099,7 @@ function IdlePage() {
               buffs={idle.buffs}
               onBuyBall={buyBall}
               onBuyUltraBundle={buyUltraBundle}
+              onBuyTeleportScroll={buyTeleportScroll}
               onBuyBook={buyBook}
               orbTrades={ORB_TRADES}
               onTradeOrb={tradeForOrb}
@@ -7116,7 +7253,20 @@ function IdlePage() {
                 ],
                 abismo_dragao: [
                   { key: "ad-back", target: "abismo_sombra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#28143c" },
+                  { key: "ad-next", target: "cadeia_ab", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
                 ],
+                cadeia_ab: [
+                  { key: "cab-back", target: "abismo_dragao", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9628" },
+                  { key: "cab-next", target: "cadeia_ab1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                ],
+                cadeia_ab1: [
+                  { key: "cab1-back", target: "cadeia_ab", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
+                  { key: "cab1-next", target: "cadeia_f1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
+                ],
+                cadeia_f1: [
+                  { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                ],
+                evento_myth: [],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
@@ -7417,6 +7567,9 @@ function IdlePage() {
                       { id: "abismo_gelo", x: 58, y: 82 },
                       { id: "abismo_veneno", x: 66, y: 86 },
                       { id: "abismo_dragao", x: 74, y: 88 },
+                      { id: "cadeia_ab", x: 80, y: 76 },
+                      { id: "cadeia_ab1", x: 86, y: 68 },
+                      { id: "cadeia_f1", x: 92, y: 58 },
                       { id: "gelius1", x: 90, y: 84 },
                     ];
                     const trainerLv = idle.trainerLevel ?? 1;
@@ -7478,6 +7631,15 @@ function IdlePage() {
                                       arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
                                       color: "#f5cf6b",
                                     };
+                                    // Pergaminho de Teleporte — se tiver e o mapa for elegível (nível OK), teleporta instantâneo sem custo
+                                    const scrolls = idle.items?.scroll_teleport ?? 0;
+                                    if (scrolls > 0 && (idle.trainerLevel ?? 1) >= m.minLevel) {
+                                      setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
+                                      setWorldMapOpen(false);
+                                      travelToGate(synthGate);
+                                      pushChat(`📜 Pergaminho de Teleporte consumido — viagem instantânea para ${m.name}.`, "cap");
+                                      return;
+                                    }
                                     setWorldMapOpen(false);
                                     setPendingGate({ target: pin.id, gate: synthGate, fromBig: false });
                                   }}
@@ -8912,7 +9074,7 @@ const zoomBtn: React.CSSProperties = {
 // ============ Overlay das abas ============
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
-  bank, buffs, onBuyBall, onBuyUltraBundle, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
+  bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode,
 
 }: {
@@ -8936,6 +9098,7 @@ function TabOverlay({
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number };
   onBuyBall: (b: ShopBall) => void;
   onBuyUltraBundle: () => void;
+  onBuyTeleportScroll: () => void;
   onBuyBook: (bk: ShopBook) => void;
   onBuyPotion: (qty?: number) => void;
   onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
@@ -9997,7 +10160,40 @@ function TabOverlay({
                 </div>
               );
             })()}
+            {(() => {
+              const COST = 100;
+              const owned = items.scroll_teleport ?? 0;
+              const canBuy = bank.crystals >= COST;
+              const color = "#8ec5ff";
+              return (
+                <div style={{
+                  background: "linear-gradient(160deg, #0f1a2e 0%, #142238 100%)",
+                  border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                }}>
+                  <img src={scrollTeleportUrl} alt="" width={64} height={64}
+                    style={{ filter: `drop-shadow(0 0 10px ${color}bb)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>Pergaminho de Teleporte</div>
+                  <div style={{ fontSize: 11, color: "#b8c8dc", textAlign: "center" }}>Teleporte instantâneo no Mapa Mundi — sem taxa de ouro, sem custo de cristais</div>
+                  <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
+                  <div style={{ fontSize: 11, color: "#8aa0b8" }}>Você tem: {owned}</div>
+                  <button
+                    onClick={() => onBuyTeleportScroll()}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800,
+                      background: canBuy ? color : "#2a344a",
+                      color: canBuy ? "#0b0510" : "#5a6a7c",
+                      border: "none", borderRadius: 6,
+                      cursor: canBuy ? "pointer" : "not-allowed",
+                    }}
+                  >{canBuy ? "COMPRAR" : "SEM CRISTAIS"}</button>
+                </div>
+              );
+            })()}
           </div>
+
 
 
           <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>🥚 Ovos — chocam Pokémon com raridade aleatória</h3>
