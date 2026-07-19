@@ -274,6 +274,21 @@ const skarmoryUrl = assetUrlFromJson(skarmoryAsset);
 const moltresUrl = assetUrlFromJson(moltresAsset);
 const zapdosUrl = assetUrlFromJson(zapdosAsset);
 const articunoUrl = assetUrlFromJson(articunoAsset);
+// ═══ MTC — Míticos Brilhantes ═══
+import abomasnowGif from "@/assets/abomasnow.gif";
+import cloysterGif from "@/assets/cloyster.gif";
+import cloysterShinyGif from "@/assets/cloyster-shiny.gif";
+import exeggutorGif from "@/assets/exeggutor.gif";
+import exeggutorShinyGif from "@/assets/exeggutor-shiny.gif";
+import feraligatrGif from "@/assets/feraligatr.gif";
+import heracrossGif from "@/assets/heracross.gif";
+import heracrossShinyGif from "@/assets/heracross-shiny.gif";
+import hitmonchanShinyGif from "@/assets/hitmonchan-shiny.gif";
+import kangaskhanGif from "@/assets/kangaskhan.gif";
+import meganiumGif from "@/assets/meganium.gif";
+import meganiumShinyGif from "@/assets/meganium-shiny.gif";
+import moltresShinyGif from "@/assets/moltres-shiny.gif";
+import onixShinyGif from "@/assets/onix-shiny.gif";
 
 
 
