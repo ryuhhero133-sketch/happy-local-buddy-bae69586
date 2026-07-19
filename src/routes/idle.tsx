@@ -10151,7 +10151,40 @@ function TabOverlay({
                 </div>
               );
             })()}
+            {(() => {
+              const COST = 100;
+              const owned = items.scroll_teleport ?? 0;
+              const canBuy = bank.crystals >= COST;
+              const color = "#8ec5ff";
+              return (
+                <div style={{
+                  background: "linear-gradient(160deg, #0f1a2e 0%, #142238 100%)",
+                  border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                }}>
+                  <img src={scrollTeleportUrl} alt="" width={64} height={64}
+                    style={{ filter: `drop-shadow(0 0 10px ${color}bb)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>Pergaminho de Teleporte</div>
+                  <div style={{ fontSize: 11, color: "#b8c8dc", textAlign: "center" }}>Teleporte instantâneo no Mapa Mundi — sem taxa de ouro, sem custo de cristais</div>
+                  <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
+                  <div style={{ fontSize: 11, color: "#8aa0b8" }}>Você tem: {owned}</div>
+                  <button
+                    onClick={() => onBuyTeleportScroll()}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800,
+                      background: canBuy ? color : "#2a344a",
+                      color: canBuy ? "#0b0510" : "#5a6a7c",
+                      border: "none", borderRadius: 6,
+                      cursor: canBuy ? "pointer" : "not-allowed",
+                    }}
+                  >{canBuy ? "COMPRAR" : "SEM CRISTAIS"}</button>
+                </div>
+              );
+            })()}
           </div>
+
 
 
           <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>🥚 Ovos — chocam Pokémon com raridade aleatória</h3>
