@@ -585,6 +585,12 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Fluxo de reset por CÓDIGO (OTP de 6 dígitos vindo no e-mail)
+  const [resetStep, setResetStep] = useState<"email" | "code">("email");
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+
   // Normaliza telefone: somente dígitos, máx 20.
   const normalizePhone = (v: string) => v.replace(/\D+/g, "").slice(0, 20);
 
@@ -595,11 +601,21 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
     return stripped.length >= 12;
   };
 
+  const switchMode = (m: Mode) => {
+    setMode(m);
+    setError(null);
+    setInfo(null);
+    setResetStep("email");
+    setResetCode("");
+    setNewPassword("");
+    setNewPasswordConfirm("");
+  };
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setInfo(null);
-    if (!email.trim()) return setError("Informe seu e-mail.");
+    if (!email.trim() && mode !== "reset") return setError("Informe seu e-mail.");
     setBusy(true);
     try {
       if (mode === "login") {
@@ -643,19 +659,43 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
           );
           setMode("login");
         }
-        // Se já há sessão, o useEffect do AuthGate cuida do profile.
       } else if (mode === "reset") {
-        // Sempre redireciona para o domínio publicado estável (previews expiram e ficam "offline")
-        const PUBLISHED_URL = "https://happy-local-buddy.lovable.app";
-        const host = typeof window !== "undefined" ? window.location.hostname : "";
-        const isStable =
-          host.endsWith(".lovable.app") && !host.includes("id-preview--") && !host.includes("-dev.lovable.app");
-        const redirectBase = isStable ? window.location.origin : PUBLISHED_URL;
-        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: `${redirectBase}/?recovery=1`,
-        });
-        if (error) throw error;
-        setInfo("Enviamos um link de recuperação para o seu e-mail.");
+        if (resetStep === "email") {
+          if (!email.trim()) throw new Error("Informe seu e-mail.");
+          // Envia o e-mail com CÓDIGO de 6 dígitos (o Supabase inclui token OTP
+          // no template padrão de recuperação junto com o link). O link também
+          // funciona, mas nosso fluxo prioriza o código digitado na própria tela.
+          const PUBLISHED_URL = "https://happy-local-buddy.lovable.app";
+          const host = typeof window !== "undefined" ? window.location.hostname : "";
+          const isStable =
+            host.endsWith(".lovable.app") && !host.includes("id-preview--") && !host.includes("-dev.lovable.app");
+          const redirectBase = isStable ? window.location.origin : PUBLISHED_URL;
+          const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+            redirectTo: `${redirectBase}/?recovery=1`,
+          });
+          if (error) throw error;
+          setInfo("Enviamos um código de 6 dígitos para o seu e-mail. Cole o código abaixo.");
+          setResetStep("code");
+        } else {
+          // Verifica o código OTP e já define a nova senha na mesma tela.
+          const code = resetCode.replace(/\D+/g, "").trim();
+          if (code.length < 6) throw new Error("Digite o código de 6 dígitos recebido no e-mail.");
+          if (newPassword.length < 6) throw new Error("A nova senha precisa ter ao menos 6 caracteres.");
+          if (newPassword !== newPasswordConfirm) throw new Error("As senhas não conferem.");
+
+          const { error: otpErr } = await supabase.auth.verifyOtp({
+            email: email.trim(),
+            token: code,
+            type: "recovery",
+          });
+          if (otpErr) throw new Error("Código inválido ou expirado. Peça um novo e tente novamente.");
+
+          const { error: updErr } = await supabase.auth.updateUser({ password: newPassword });
+          if (updErr) throw updErr;
+
+          setInfo("Senha redefinida com sucesso! Você já está logado.");
+          // A sessão criada pelo verifyOtp já dispara o fluxo normal do AuthGate.
+        }
       }
     } catch (err) {
       warn("auth submit error", err);
@@ -667,10 +707,26 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
 
   const title = mode === "login" ? "ENTRAR" : mode === "signup" ? "CRIAR CONTA" : "RECUPERAR SENHA";
 
+  const primaryLabel =
+    mode === "login"
+      ? "ENTRAR"
+      : mode === "signup"
+      ? "CRIAR CONTA"
+      : resetStep === "email"
+      ? "ENVIAR CÓDIGO"
+      : "CONFIRMAR E ENTRAR";
+
   return (
     <PanelShell title={title}>
       <form onSubmit={submit} className="space-y-3">
-        <Field label="E-mail" value={email} onChange={setEmail} type="email" autoComplete="email" />
+        <Field
+          label="E-mail"
+          value={email}
+          onChange={setEmail}
+          type="email"
+          autoComplete="email"
+          disabled={mode === "reset" && resetStep === "code"}
+        />
         {mode !== "reset" && (
           <Field
             label="Senha"
@@ -679,6 +735,47 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
             type="password"
             autoComplete={mode === "signup" ? "new-password" : "current-password"}
           />
+        )}
+
+        {mode === "reset" && resetStep === "code" && (
+          <>
+            <Field
+              label="Código do E-mail (6 dígitos)"
+              value={resetCode}
+              onChange={(v) => setResetCode(v.replace(/\D+/g, "").slice(0, 6))}
+              placeholder="Ex: 123456"
+              autoComplete="one-time-code"
+            />
+            <Field
+              label="Nova senha"
+              value={newPassword}
+              onChange={setNewPassword}
+              type="password"
+              autoComplete="new-password"
+            />
+            <Field
+              label="Confirmar nova senha"
+              value={newPasswordConfirm}
+              onChange={setNewPasswordConfirm}
+              type="password"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setResetStep("email");
+                setResetCode("");
+                setNewPassword("");
+                setNewPasswordConfirm("");
+                setError(null);
+                setInfo(null);
+              }}
+              className="text-[10px] tracking-[2px] underline"
+              style={{ color: "#fde68a" }}
+            >
+              REENVIAR CÓDIGO PARA OUTRO E-MAIL
+            </button>
+          </>
         )}
 
         {mode === "signup" && (
@@ -705,21 +802,21 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
         <InfoBox message={info} />
 
         <PrimaryButton disabled={busy}>
-          {busy ? "AGUARDE..." : mode === "login" ? "ENTRAR" : mode === "signup" ? "CRIAR CONTA" : "ENVIAR LINK"}
+          {busy ? "AGUARDE..." : primaryLabel}
         </PrimaryButton>
 
         <div className="flex justify-between text-[10px] tracking-[2px]" style={{ color: "#fecaca" }}>
           {mode !== "login" ? (
-            <button type="button" onClick={() => setMode("login")} className="underline">
+            <button type="button" onClick={() => switchMode("login")} className="underline">
               JÁ TENHO CONTA
             </button>
           ) : (
-            <button type="button" onClick={() => setMode("signup")} className="underline">
+            <button type="button" onClick={() => switchMode("signup")} className="underline">
               CRIAR CONTA
             </button>
           )}
           {mode !== "reset" ? (
-            <button type="button" onClick={() => setMode("reset")} className="underline">
+            <button type="button" onClick={() => switchMode("reset")} className="underline">
               ESQUECI A SENHA
             </button>
           ) : (
@@ -755,6 +852,7 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
     </PanelShell>
   );
 }
+
 
 
 function ResetPasswordScreen({ onDone }: { onDone: () => void }) {
