@@ -298,6 +298,12 @@ const fireLakeUrl = assetUrlFromJson(fireLakeAsset);
 const mapVenofogoOrangeUrl = assetUrlFromJson(mapVenofogoOrangeAsset);
 const mapPantanoFogoUrl = assetUrlFromJson(mapPantanoFogoAsset);
 const mapFantasmaUrl = assetUrlFromJson(mapFantasmaAsset);
+const mapCadeiaAbUrl = assetUrlFromJson(mapCadeiaAbAsset);
+const mapCadeiaAb1Url = assetUrlFromJson(mapCadeiaAb1Asset);
+const mapCadeiaF1Url = assetUrlFromJson(mapCadeiaF1Asset);
+const mapMythshinyEventUrl = assetUrlFromJson(mapMythshinyEventAsset);
+const iceBallIconUrl = assetUrlFromJson(iceBallIconAsset);
+const scrollTeleportUrl = assetUrlFromJson(scrollTeleportAsset);
 // URLs dos 10 novos mapas endgame
 const mapForestUrl = assetUrlFromJson(mapForestAsset);
 const mapFlorestaSecretaUrl = assetUrlFromJson(mapFlorestaSecretaAsset);
