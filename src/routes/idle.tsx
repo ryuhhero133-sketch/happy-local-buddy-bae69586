@@ -2682,7 +2682,7 @@ function IdlePage() {
         });
         return changed ? next : prev;
       });
-    }, 120);
+    }, 60);
     return () => clearInterval(iv);
   }, [enemies, moving, obstacles, chests]);
 
