@@ -4479,40 +4479,44 @@ function IdlePage() {
   };
 
   // ===== Loja =====
-  const buyBall = (b: ShopBall) => {
+  const buyBall = (b: ShopBall, qty: number = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
-      if (s.bank.gold < b.price) {
-        pushChat(`Ouro insuficiente para ${b.name}.`, "info");
+      const totalCost = b.price * n;
+      if (s.bank.gold < totalCost) {
+        pushChat(`Ouro insuficiente para ${n}× ${b.name} (precisa ${totalCost}).`, "info");
         return s;
       }
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `+1 ${b.name}`, "capture");
-      pushChat(`Comprou 1 ${b.name} por ${b.price} ouro.`, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} ${b.name}`, "capture");
+      pushChat(`Comprou ${n}× ${b.name} por ${totalCost} ouro.`, "cap");
       return {
         ...s,
-        bank: { ...s.bank, gold: s.bank.gold - b.price },
-        items: { ...s.items, [b.id]: (s.items[b.id] ?? 0) + 1 },
+        bank: { ...s.bank, gold: s.bank.gold - totalCost },
+        items: { ...s.items, [b.id]: (s.items[b.id] ?? 0) + n },
       };
     });
   };
   // Pergaminho de Teleporte — 100 💎 por unidade. Consumido para teleporte instantâneo no mapa mundi.
-  const buyTeleportScroll = () => {
+  const buyTeleportScroll = (qty: number = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
-      const COST = 100;
+      const COST = 100 * n;
       if (s.bank.crystals < COST) { pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info"); return s; }
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `+1 Pergaminho de Teleporte`, "capture");
-      pushChat(`Comprou 1 Pergaminho de Teleporte por ${COST} 💎.`, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} Pergaminho de Teleporte`, "capture");
+      pushChat(`Comprou ${n}× Pergaminho de Teleporte por ${COST} 💎.`, "cap");
       return {
         ...s,
         bank: { ...s.bank, crystals: s.bank.crystals - COST },
-        items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) + 1 },
+        items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) + n },
       };
     });
   };
   // Bundle de Ultra Ball pago em cristais: 1000 💎 = 20 unidades
-  const buyUltraBundle = () => {
+  const buyUltraBundle = (qty: number = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
-      const COST = 1000;
-      const QTY = 20;
+      const COST = 1000 * n;
+      const QTY = 20 * n;
       if (s.bank.crystals < COST) {
         pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info");
         return s;
