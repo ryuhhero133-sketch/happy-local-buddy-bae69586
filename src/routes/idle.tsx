@@ -3146,7 +3146,9 @@ function IdlePage() {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
-                captured = Math.random() < baseChance * usedBall.captureMult * guardMult;
+                // 💠 Míticos selvagens: MUITO difíceis mesmo com ultra
+                const rarityMult = target.rarity === "mythic_shiny" ? 0.05 : target.rarity === "mythic" ? 0.10 : target.rarity === "legendary" ? 0.35 : 1;
+                captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult;
               }
               if (captured) {
                 const rolled = rollTraits(target.rarity);
