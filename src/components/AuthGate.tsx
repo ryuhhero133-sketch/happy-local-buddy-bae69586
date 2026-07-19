@@ -299,6 +299,7 @@ function Field({
   type = "text",
   placeholder,
   autoComplete,
+  disabled,
 }: {
   label: string;
   value: string;
@@ -306,6 +307,7 @@ function Field({
   type?: string;
   placeholder?: string;
   autoComplete?: string;
+  disabled?: boolean;
 }) {
   return (
     <label className="block">
@@ -318,12 +320,14 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="w-full px-3 py-2 rounded outline-none text-sm"
+        disabled={disabled}
+        className="w-full px-3 py-2 rounded outline-none text-sm disabled:opacity-60"
         style={{ background: "#120406", color: "#fff5f5", border: "2px solid #7f1d1d" }}
       />
     </label>
   );
 }
+
 
 function StarField() {
   // Deterministic pseudo-random stars so SSR/client match
