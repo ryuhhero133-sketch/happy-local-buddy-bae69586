@@ -561,7 +561,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   abra: "psychic", kadabra: "psychic", alakazam: "psychic",
   mew: "psychic", mewtwo: "psychic",
   // Gelo
-  articuno: "ice",
+  articuno: "ice", abomasnow: "ice", cloyster: "ice", cloyster_shiny: "ice",
   // Pedra / terra
   diglett: "rock", dugtrio: "rock",
   sandshrew: "rock", sandslash: "rock",
