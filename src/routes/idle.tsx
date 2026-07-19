@@ -7602,17 +7602,20 @@ function IdlePage() {
                             boxShadow: "0 0 80px rgba(245,207,107,0.5)",
                           }}
                         >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px", gap: 8 }}>
                             <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 15, letterSpacing: 2 }}>
                               🌍 MAPA MUNDI · UNIVERSO POKÉMON
                             </div>
-                            <button
-                              onClick={() => setWorldMapOpen(false)}
-                              style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 12px", fontWeight: 800, cursor: "pointer" }}
-                            >✕</button>
+                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                              <span style={{ background: scrollsAvail > 0 ? "linear-gradient(135deg,#3d2a08,#5a3d10)" : "#1a1420", border: `1px solid ${scrollsAvail > 0 ? "#f5cf6b" : "#4a3a52"}`, color: scrollsAvail > 0 ? "#ffe08a" : "#7a6a82", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 900 }}>
+                                📜 Pergaminho: {scrollsAvail}
+                              </span>
+                              <button
+                                onClick={() => setWorldMapOpen(false)}
+                                style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 12px", fontWeight: 800, cursor: "pointer" }}
+                              >✕</button>
+                            </div>
                           </div>
-                          <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: "2px solid #7a5a20", boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)" }}>
-                            <img
                               src={assetUrlFromJson(worldMapGlobeAsset)}
                               alt="Mapa Mundi"
                               loading="lazy"
