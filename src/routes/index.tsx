@@ -594,6 +594,13 @@ const SPECIES_GIF: Record<Species, string> = {
   ditto_shiny: dittoShinyGif, scizor: scizorGif, umbreon: umbreonGif,
   infernape: infernapeGif, krookodile: krookodileGif, tyranitar: tyranitarGif, nidoking_shiny: nidokingShinyGif,
   dialga: dialgaGif, rapidash: rapidashGif, rapidash_shiny: rapidashShinyGif, skarmory: skarmoryGif,
+  // MTC — Míticos Brilhantes Lv 500-1000
+  abomasnow: abomasnowGif, cloyster: cloysterGif, cloyster_shiny: cloysterShinyGif,
+  exeggutor: exeggutorGif, exeggutor_shiny: exeggutorShinyGif,
+  feraligatr: feraligatrGif, heracross: heracrossGif, heracross_shiny: heracrossShinyGif,
+  hitmonchan_shiny: hitmonchanShinyGif, kangaskhan: kangaskhanGif,
+  meganium: meganiumGif, meganium_shiny: meganiumShinyGif,
+  moltres_shiny: moltresShinyGif, onix_shiny: onixShinyGif,
 };
 
 
