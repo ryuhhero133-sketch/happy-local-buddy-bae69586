@@ -368,6 +368,8 @@ type IdleMapDef = {
   element: string; stars?: number; overlay?: string;
   cycle?: { cycleMs: number; openMs: number };
   entryCrystals?: number;
+  /** Mapa de RAID: níveis exibidos não indicam progressão de treinador, e sim faixa dos chefes/encontros. */
+  raid?: boolean;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
@@ -390,7 +392,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo", stars: 2 },
   caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra", stars: 3,
               cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
-  fantasma: { name: "Cemitério Assombrado",    diff: "Lendário",  bg: mapFantasmaUrl,  rate: 4.0, minLevel: 1,  maxLevel: 9999, element: "Fantasma", stars: 4 },
+  fantasma: { name: "Cemitério Assombrado",    diff: "RAID",      bg: mapFantasmaUrl,  rate: 4.0, minLevel: 1,  maxLevel: 9999, element: "Fantasma", stars: 4, raid: true },
   // ═══ ENDGAME — cadeia progressiva, portal visível mas exige nível de treinador ═══
   vale_rochas:       { name: "Vale das Rochas",   diff: "Lendário",   bg: mapPedreiraCavernaUrl, rate: 6.0, minLevel: 50,  maxLevel: 150, element: "Pedra",  stars: 4 },
   vale_planta:       { name: "Vale Esmeralda",    diff: "Lendário+",  bg: mapPedreiraCavernaUrl, rate: 6.5, minLevel: 120, maxLevel: 220, element: "Planta", stars: 5, overlay: "rgba(70,210,90,0.42)" },
@@ -7465,7 +7467,7 @@ function IdlePage() {
                               return (
                                 <button
                                   key={pin.id}
-                                  title={`${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}`}
+                                  title={m.raid ? `${m.name} · RAID (chefes Lv variados)` : `${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}`}
                                   onClick={() => {
                                     if (current) { setWorldMapOpen(false); return; }
                                     playClick();
@@ -7505,7 +7507,7 @@ function IdlePage() {
                                     animation: current ? "worldPinPulse 1.6s ease-in-out infinite" : undefined,
                                   }}
                                 >
-                                  {current ? "📍 " : ok ? "● " : "🔒 "}{m.name} <span style={{ opacity: 0.75, fontWeight: 700 }}>Lv{m.minLevel}{m.maxLevel ? `-${m.maxLevel}` : ""}</span>
+                                  {current ? "📍 " : ok ? "● " : "🔒 "}{m.name} <span style={{ opacity: 0.75, fontWeight: 700, color: m.raid ? "#ff8ad6" : undefined }}>{m.raid ? "RAID" : `Lv${m.minLevel}${m.maxLevel ? `-${m.maxLevel}` : ""}`}</span>
                                 </button>
                               );
                             })}
@@ -7575,7 +7577,11 @@ function IdlePage() {
                                 {gold} ouro {goldOk ? "" : `(você: ${idle.bank.gold})`}
                               </span>
                             </div>
-                            {tm.maxLevel && (
+                            {tm.raid ? (
+                              <div style={{ textAlign: "center", color: "#ff8ad6", fontSize: 10, fontWeight: 900, letterSpacing: 1.2 }}>
+                                ☠ ZONA DE RAID · chefes de níveis variados (não é faixa de progressão)
+                              </div>
+                            ) : tm.maxLevel && (
                               <div style={{ textAlign: "center", color: "#8a7a9c", fontSize: 10 }}>
                                 Pokémon selvagens: Lv {tm.minLevel}–{tm.maxLevel}
                               </div>
