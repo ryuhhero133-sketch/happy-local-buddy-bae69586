@@ -10131,18 +10131,17 @@ function TabOverlay({
               <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● {POTION_PRICE} ouro cada</div>
               <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {items.potion ?? 0}</div>
             </div>
-            <div style={{ display: "flex", gap: 6 }}>
-              {[1, 5, 20].map((q) => (
-                <button key={q} onClick={() => onBuyPotion(q)}
-                  disabled={bank.gold < POTION_PRICE * q}
-                  style={{
-                    padding: "8px 12px", fontWeight: 800, borderRadius: 6, border: "none",
-                    background: bank.gold >= POTION_PRICE * q ? "#6bd4ff" : "#3a2a4a",
-                    color: bank.gold >= POTION_PRICE * q ? "#06121e" : "#6a5a7c",
-                    cursor: bank.gold >= POTION_PRICE * q ? "pointer" : "not-allowed",
-                  }}
-                >+{q}</button>
-              ))}
+            <div style={{ minWidth: 220 }}>
+              <QtyBuy
+                presets={[1, 10, 50, 100]}
+                max={9999}
+                unitLabel="poção"
+                buttonColor="#6bd4ff"
+                canBuyFn={(n) => bank.gold >= POTION_PRICE * n}
+                onBuy={(n) => onBuyPotion(n)}
+                disabledLabel="SEM OURO"
+              />
+            </div>
             </div>
           </div>
 
