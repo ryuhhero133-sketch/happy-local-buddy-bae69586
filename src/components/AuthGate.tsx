@@ -666,39 +666,26 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
       } else if (mode === "reset") {
         if (resetStep === "email") {
           if (!email.trim()) throw new Error("Informe seu e-mail.");
-          // Envia o e-mail com CÓDIGO de 6 dígitos (o Supabase inclui token OTP
-          // no template padrão de recuperação junto com o link). O link também
-          // funciona, mas nosso fluxo prioriza o código digitado na própria tela.
-          const PUBLISHED_URL = "https://happy-local-buddy.lovable.app";
-          const host = typeof window !== "undefined" ? window.location.hostname : "";
-          const isStable =
-            host.endsWith(".lovable.app") && !host.includes("id-preview--") && !host.includes("-dev.lovable.app");
-          const redirectBase = isStable ? window.location.origin : PUBLISHED_URL;
-          const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-            redirectTo: `${redirectBase}/?recovery=1`,
-          });
-          if (error) throw error;
-          setInfo("Enviamos um código de 6 dígitos para o seu e-mail. Cole o código abaixo.");
+          setInfo("Digite o código único de recuperação e sua nova senha.");
           setResetStep("code");
         } else {
-          // Verifica o código OTP e já define a nova senha na mesma tela.
-          const code = resetCode.replace(/\D+/g, "").trim();
-          if (code.length < 6) throw new Error("Digite o código de 6 dígitos recebido no e-mail.");
+          const code = resetCode.trim();
+          if (!code) throw new Error("Digite o código de recuperação.");
           if (newPassword.length < 6) throw new Error("A nova senha precisa ter ao menos 6 caracteres.");
           if (newPassword !== newPasswordConfirm) throw new Error("As senhas não conferem.");
 
-          const { error: otpErr } = await supabase.auth.verifyOtp({
-            email: email.trim(),
-            token: code,
-            type: "recovery",
+          const { masterResetPassword } = await import("@/lib/auth.functions");
+          await masterResetPassword({
+            data: { email: email.trim(), code, newPassword },
           });
-          if (otpErr) throw new Error("Código inválido ou expirado. Peça um novo e tente novamente.");
 
-          const { error: updErr } = await supabase.auth.updateUser({ password: newPassword });
-          if (updErr) throw updErr;
+          const { error: signErr } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password: newPassword,
+          });
+          if (signErr) throw signErr;
 
           setInfo("Senha redefinida com sucesso! Você já está logado.");
-          // A sessão criada pelo verifyOtp já dispara o fluxo normal do AuthGate.
         }
       }
     } catch (err) {
