@@ -3945,6 +3945,8 @@ function IdlePage() {
       sp = (Math.random() < 0.5 ? "lucario" : "mew") as Species;
     } else if (eggId === "egg_charizard") {
       sp = "charizard_shiny" as Species;
+    } else if (eggId === "egg_lugia") {
+      sp = "lugia" as Species;
     } else {
       const unlocked = speciesUnlockedFor(leaderLv).filter((x) => !!GIF[x]);
       const fallback = (Object.keys(GIF) as Species[]);
@@ -3952,7 +3954,8 @@ function IdlePage() {
       sp = pickFrom[Math.floor(Math.random() * pickFrom.length)] as Species;
     }
     const rarity = rollEggRarity(eggId);
-    const pet = makePet(sp, Math.max(1, leaderLv), rarity as Rarity);
+    const fixedLv = eggId === "egg_lugia" ? 200 : Math.max(1, leaderLv);
+    const pet = makePet(sp, fixedLv, rarity as Rarity);
 
     setIdle((s) => {
       const prev = s.collection ?? [];
