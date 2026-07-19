@@ -7631,6 +7631,15 @@ function IdlePage() {
                                       arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
                                       color: "#f5cf6b",
                                     };
+                                    // Pergaminho de Teleporte — se tiver e o mapa for elegível (nível OK), teleporta instantâneo sem custo
+                                    const scrolls = idle.items?.scroll_teleport ?? 0;
+                                    if (scrolls > 0 && (idle.trainerLevel ?? 1) >= m.minLevel) {
+                                      setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
+                                      setWorldMapOpen(false);
+                                      travelToGate(synthGate);
+                                      pushChat(`📜 Pergaminho de Teleporte consumido — viagem instantânea para ${m.name}.`, "cap");
+                                      return;
+                                    }
                                     setWorldMapOpen(false);
                                     setPendingGate({ target: pin.id, gate: synthGate, fromBig: false });
                                   }}
