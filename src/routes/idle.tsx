@@ -1932,6 +1932,16 @@ function IdlePage() {
       setCodeMsg({ kind: "ok", text: "🎉 Livro VIP 30 dias, +1 Ovo Charizard Épico, +25 Ultra Ball e +25 Great Ball!" });
       return;
     }
+    if (raw === "LUGIAEGG200") {
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, egg_lugia: ((s.items as any).egg_lugia ?? 0) + 1 },
+        redeemedCodes: [...((s as any).redeemedCodes ?? []), raw],
+      } as any));
+      setCodeInput("");
+      setCodeMsg({ kind: "ok", text: "🥚 +1 Ovo de Lugia Mítico (Lv 200)!" });
+      return;
+    }
     setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
 
@@ -3861,7 +3871,7 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `VIP +${Math.round(cfg.add*100)}% · ${cfg.label}`, "capture");
       pushChat(`Livro VIP usado (+${Math.round(cfg.add*100)}% ouro e EXP por ${cfg.label}).`, "cap");
-    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard") {
+    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia") {
       openEgg(id as EggId);
     } else if (id === "premium_box") {
       setIdle((s) => ({
@@ -3917,7 +3927,7 @@ function IdlePage() {
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
-  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard";
+  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
     egg_common: { weights: { common: 70, uncommon: 25, rare: 5 } },
     egg_rare:   { weights: { uncommon: 20, rare: 55, epic: 22, legendary: 3 } },
@@ -3925,6 +3935,7 @@ function IdlePage() {
     egg_mystic: { weights: { common: 25, uncommon: 25, rare: 22, epic: 16, legendary: 9, mythic: 2, mythic_shiny: 1 } },
     egg_aura:   { weights: { mythic: 100 } },
     egg_charizard: { weights: { mythic: 100 } },
+    egg_lugia:  { weights: { mythic: 100 } },
   };
 
   const rollEggRarity = (tier: EggId): Rarity => {
@@ -3944,6 +3955,8 @@ function IdlePage() {
       sp = (Math.random() < 0.5 ? "lucario" : "mew") as Species;
     } else if (eggId === "egg_charizard") {
       sp = "charizard_shiny" as Species;
+    } else if (eggId === "egg_lugia") {
+      sp = "lugia" as Species;
     } else {
       const unlocked = speciesUnlockedFor(leaderLv).filter((x) => !!GIF[x]);
       const fallback = (Object.keys(GIF) as Species[]);
@@ -3951,7 +3964,8 @@ function IdlePage() {
       sp = pickFrom[Math.floor(Math.random() * pickFrom.length)] as Species;
     }
     const rarity = rollEggRarity(eggId);
-    const pet = makePet(sp, Math.max(1, leaderLv), rarity as Rarity);
+    const fixedLv = eggId === "egg_lugia" ? 200 : Math.max(1, leaderLv);
+    const pet = makePet(sp, fixedLv, rarity as Rarity);
 
     setIdle((s) => {
       const prev = s.collection ?? [];
@@ -8826,8 +8840,8 @@ function TabOverlay({
   onBuyUltraBundle: () => void;
   onBuyBook: (bk: ShopBook) => void;
   onBuyPotion: (qty?: number) => void;
-  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
-  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
+  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
+  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
 
   onBuyChestAmulet: () => void;
 
@@ -9295,10 +9309,10 @@ function TabOverlay({
           chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
-          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯",
         };
-        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d" };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
           if (id === "potion" || id === "revive" || id === "berry") return "potions";
