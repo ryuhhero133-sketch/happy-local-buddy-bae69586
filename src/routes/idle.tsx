@@ -1932,6 +1932,16 @@ function IdlePage() {
       setCodeMsg({ kind: "ok", text: "🎉 Livro VIP 30 dias, +1 Ovo Charizard Épico, +25 Ultra Ball e +25 Great Ball!" });
       return;
     }
+    if (raw === "LUGIAEGG200") {
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, egg_lugia: ((s.items as any).egg_lugia ?? 0) + 1 },
+        redeemedCodes: [...((s as any).redeemedCodes ?? []), raw],
+      } as any));
+      setCodeInput("");
+      setCodeMsg({ kind: "ok", text: "🥚 +1 Ovo de Lugia Mítico (Lv 200)!" });
+      return;
+    }
     setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
 
