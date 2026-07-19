@@ -372,7 +372,11 @@ type IdleMapId =
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
   | "vulcao_ativo" | "nucleo_primordial"
   // Cadeia Abissal — 5 mapas 1000-3000, recolores do Pântano em Chamas
-  | "abismo_gelo" | "abismo_veneno" | "abismo_raio" | "abismo_sombra" | "abismo_dragao";
+  | "abismo_gelo" | "abismo_veneno" | "abismo_raio" | "abismo_sombra" | "abismo_dragao"
+  // Cadeia estendida — Lv 3000 até 6000, continuação natural do Abismo do Dragão
+  | "cadeia_ab" | "cadeia_ab1" | "cadeia_f1"
+  // Evento Mítico Shiny — abre 5min a cada 1h
+  | "evento_myth";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
