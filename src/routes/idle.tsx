@@ -9088,6 +9088,45 @@ const zoomBtn: React.CSSProperties = {
   padding: 0, lineHeight: 1,
 };
 
+// Widget de compra com quantidade: presets + input custom + botão comprar.
+function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disabledLabel = "SEM RECURSO" }:
+  { presets: number[]; max: number; unitLabel: string; buttonColor: string; canBuyFn: (n: number) => boolean; onBuy: (n: number) => void; disabledLabel?: string }) {
+  const [qty, setQty] = React.useState<number>(1);
+  const clamp = (v: number) => Math.max(1, Math.min(Math.max(1, max), Math.floor(v || 1)));
+  const q = clamp(qty);
+  const ok = canBuyFn(q);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "center" }}>
+        {presets.map((p) => (
+          <button key={p} onClick={() => setQty(p)} style={{
+            padding: "3px 8px", fontSize: 11, fontWeight: 800, borderRadius: 5,
+            border: `1px solid ${qty === p ? buttonColor : "#4a3a52"}`,
+            background: qty === p ? `${buttonColor}22` : "#1a0f26",
+            color: qty === p ? buttonColor : "#b8a8c8", cursor: "pointer",
+          }}>×{p}</button>
+        ))}
+        <button onClick={() => setQty(clamp(Math.max(...presets)))} style={{
+          padding: "3px 8px", fontSize: 11, fontWeight: 800, borderRadius: 5,
+          border: `1px solid #4a3a52`, background: "#1a0f26", color: "#b8a8c8", cursor: "pointer",
+        }}>MAX</button>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <button onClick={() => setQty(clamp(q - 1))} style={{ width: 28, height: 30, background: "#2a1a3a", border: "1px solid #4a3a52", color: "#eadfe8", borderRadius: 5, cursor: "pointer", fontWeight: 900 }}>−</button>
+        <input type="number" min={1} max={max} value={qty}
+          onChange={(e) => setQty(clamp(parseInt(e.target.value, 10)))}
+          style={{ flex: 1, height: 30, textAlign: "center", background: "#0f0819", border: "1px solid #4a3a52", color: "#eadfe8", borderRadius: 5, fontWeight: 800, fontSize: 13 }} />
+        <button onClick={() => setQty(clamp(q + 1))} style={{ width: 28, height: 30, background: "#2a1a3a", border: "1px solid #4a3a52", color: "#eadfe8", borderRadius: 5, cursor: "pointer", fontWeight: 900 }}>+</button>
+      </div>
+      <button onClick={() => ok && onBuy(q)} disabled={!ok} style={{
+        width: "100%", padding: "8px 10px", fontWeight: 800, fontSize: 12,
+        background: ok ? buttonColor : "#3a2a4a", color: ok ? "#0b0510" : "#6a5a7c",
+        border: "none", borderRadius: 6, cursor: ok ? "pointer" : "not-allowed",
+      }}>{ok ? `COMPRAR ×${q} ${unitLabel}` : disabledLabel}</button>
+    </div>
+  );
+}
+
 // ============ Overlay das abas ============
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
