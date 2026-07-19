@@ -4502,6 +4502,8 @@ function IdlePage() {
       };
     });
   };
+  // Bundle de Ultra Ball pago em cristais: 1000 💎 = 20 unidades
+  const buyUltraBundle = () => {
     setIdle((s) => {
       const COST = 1000;
       const QTY = 20;
