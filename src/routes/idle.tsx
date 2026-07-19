@@ -3738,6 +3738,14 @@ function IdlePage() {
       pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
       setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
     } else
+    if (target.mtcBoss) {
+      if (usedBall.id !== "ultraball") {
+        chance = 0;
+        pushFxAt(target.x, target.y - 40, "Só Ultra Ball!", "enemyDmg");
+      } else {
+        chance = 0.017;
+      }
+    } else
     if (isEventLeg && usedBall.id === "greatball") {
       chance = 0; // Great sempre falha em lendários do evento
     } else if (isEventLeg && usedBall.id === "masterball") {
