@@ -134,7 +134,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
           }
         }
       } catch { /* ignore */ }
-      if (window.location.hash.includes("type=recovery")) {
+      if (
+        window.location.hash.includes("type=recovery") ||
+        window.location.search.includes("recovery=1")
+      ) {
         setRecoveryMode(true);
       }
     }
@@ -642,8 +645,14 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
         }
         // Se já há sessão, o useEffect do AuthGate cuida do profile.
       } else if (mode === "reset") {
+        // Sempre redireciona para o domínio publicado estável (previews expiram e ficam "offline")
+        const PUBLISHED_URL = "https://happy-local-buddy.lovable.app";
+        const host = typeof window !== "undefined" ? window.location.hostname : "";
+        const isStable =
+          host.endsWith(".lovable.app") && !host.includes("id-preview--") && !host.includes("-dev.lovable.app");
+        const redirectBase = isStable ? window.location.origin : PUBLISHED_URL;
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: window.location.origin,
+          redirectTo: `${redirectBase}/?recovery=1`,
         });
         if (error) throw error;
         setInfo("Enviamos um link de recuperação para o seu e-mail.");
