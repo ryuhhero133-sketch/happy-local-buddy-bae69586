@@ -4216,6 +4216,25 @@ function IdlePage() {
           if (pool.length === 0) pool = ["gengar", "magmar", "tyranitar"] as Species[];
           mapLvRange = [400, 1000];
         }
+        // Cadeia estendida (3000→6000) — reaproveita pool do abismo do dragão / míticos
+        if (idle.currentMap === "cadeia_ab") {
+          pool = ["dragonite", "dragonite_shiny", "charizard", "charizard_shiny", "tyranitar", "gyarados", "rapidash_shiny", "infernape", "nidoking_shiny", "krookodile", "gengar", "umbreon"] as Species[];
+          mapLvRange = [3000, 3500];
+        } else if (idle.currentMap === "cadeia_ab1") {
+          pool = ["dialga", "ho_oh", "groudon", "darkrai", "dragonite_shiny", "tyranitar", "nidoking_shiny", "rapidash_shiny", "charizard_shiny", "moltres", "krookodile"] as Species[];
+          mapLvRange = [3500, 5000];
+        } else if (idle.currentMap === "cadeia_f1") {
+          pool = ["dialga", "ho_oh", "groudon", "darkrai", "moltres", "zapdos", "articuno", "dragonite_shiny", "charizard_shiny", "rapidash_shiny", "nidoking_shiny", "tyranitar"] as Species[];
+          mapLvRange = [4000, 6000];
+        } else if (idle.currentMap === "evento_myth") {
+          // Domínio Mítico Shiny — variedade grande, todos serão forçados a mythic_shiny
+          pool = ["charizard_shiny", "dragonite_shiny", "nidoking_shiny", "rapidash_shiny", "lapras_shiny", "suicune_shiny", "ditto_shiny", "jolteon_shiny", "flareon", "vaporeon", "blastoise", "butterfree", "wartortle", "sandslash", "sandshrew_shiny", "kakuna_shiny", "weedle_shiny", "metapod_shiny", "magikarp_shiny", "gyarados", "dialga", "ho_oh", "groudon", "darkrai", "moltres", "zapdos", "articuno", "lugia"] as Species[];
+          pool = pool.filter(hasGif);
+          if (pool.length === 0) pool = ["charizard_shiny", "dragonite_shiny"] as Species[];
+          // Pareia com o líder — grande variação para não ficar previsível
+          const leadForRange = Math.max(1, leaderLv);
+          mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
+        }
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
 
