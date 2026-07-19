@@ -3730,7 +3730,9 @@ function IdlePage() {
       // 🖤 Guardiões anti-paralisia: um pouco mais difíceis de capturar
       const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
       const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
-      chance = Math.min(0.85, base * usedBall.captureMult * guardMult);
+      // 💠 Míticos selvagens: taxa muito baixa mesmo lançando dezenas de ultra
+      const rarityMult = target.rarity === "mythic_shiny" ? 0.05 : target.rarity === "mythic" ? 0.10 : target.rarity === "legendary" ? 0.35 : 1;
+      chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult);
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
