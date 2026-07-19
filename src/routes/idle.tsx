@@ -3861,7 +3861,7 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `VIP +${Math.round(cfg.add*100)}% · ${cfg.label}`, "capture");
       pushChat(`Livro VIP usado (+${Math.round(cfg.add*100)}% ouro e EXP por ${cfg.label}).`, "cap");
-    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard") {
+    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia") {
       openEgg(id as EggId);
     } else if (id === "premium_box") {
       setIdle((s) => ({
