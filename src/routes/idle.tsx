@@ -2999,7 +2999,8 @@ function IdlePage() {
           const riderMult = isRiderKill ? 8 : 1; // rider dá MUITO xp
           const riderGoldMult = isRiderKill ? 4 : 1;
           const elemSyn = computeTeamSynergies(team);
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult);
+          const mythEventXpMult = idle.currentMap === "evento_myth" ? 6 : 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
