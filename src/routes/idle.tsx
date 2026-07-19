@@ -9535,13 +9535,76 @@ function TabOverlay({
               </div>
             </div>
           </div>
+          {/* Filtros */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12, padding: "8px 10px", background: "rgba(107,74,16,0.12)", borderRadius: 10, border: "1px dashed rgba(107,74,16,0.35)" }}>
+            <input
+              value={colFilterName}
+              onChange={(e) => setColFilterName(e.target.value)}
+              placeholder="🔍 Buscar por nome..."
+              style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}
+            />
+            <select value={colFilterRarity} onChange={(e) => setColFilterRarity(e.target.value as "all" | Rarity)}
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              <option value="all">Todas raridades</option>
+              <option value="common">Comum</option>
+              <option value="uncommon">Incomum</option>
+              <option value="rare">Raro</option>
+              <option value="epic">Épico</option>
+              <option value="legendary">Lendário</option>
+              <option value="mythic">Mítico</option>
+              <option value="mythic_shiny">Mítico Brilhante</option>
+            </select>
+            <select value={colSort} onChange={(e) => setColSort(e.target.value as typeof colSort)}
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              <option value="recent">Mais recentes</option>
+              <option value="level_desc">Nível ↓</option>
+              <option value="level_asc">Nível ↑</option>
+              <option value="rarity">Raridade</option>
+              <option value="name">Nome</option>
+            </select>
+            <button
+              onClick={() => setColOnlyLocked((v) => !v)}
+              style={{
+                padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
+                border: "1px solid #b8862a", cursor: "pointer",
+                background: colOnlyLocked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
+                color: colOnlyLocked ? "#4a3010" : "#8b6a30",
+              }}
+              title="Mostrar somente Pokémon travados"
+            >🔒 {colOnlyLocked ? "SÓ TRAVADOS" : "TRAVADOS"}</button>
+            <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 800 }}>
+              🔒 {lockedSet.size} travados
+            </div>
+          </div>
+
           {collection.length === 0 ? (
             <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
               Nenhum Pokémon capturado ainda. Continue a jornada — a taxa de captura é baixa (5%).
             </div>
-          ) : (
+          ) : (() => {
+            const rarityOrder: Record<Rarity, number> = {
+              common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, mythic: 5, mythic_shiny: 6,
+            } as Record<Rarity, number>;
+            const q = colFilterName.trim().toLowerCase();
+            const filtered = collection.filter((e) => {
+              if (colFilterRarity !== "all" && e.rarity !== colFilterRarity) return false;
+              if (q && !e.species.toLowerCase().includes(q)) return false;
+              if (colOnlyLocked && !lockedSet.has(e.uid)) return false;
+              return true;
+            });
+            filtered.sort((a, b) => {
+              if (colSort === "recent") return b.capturedAt - a.capturedAt;
+              if (colSort === "level_desc") return b.level - a.level;
+              if (colSort === "level_asc") return a.level - b.level;
+              if (colSort === "rarity") return (rarityOrder[b.rarity] ?? 0) - (rarityOrder[a.rarity] ?? 0);
+              return a.species.localeCompare(b.species);
+            });
+            if (filtered.length === 0) {
+              return <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
+            }
+            return (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
-              {collection.slice().sort((a, b) => b.capturedAt - a.capturedAt).map((entry, i) => {
+              {filtered.map((entry, i) => {
                 const sp = entry.species;
                 const isCurrent = leader?.species === sp && leader?.uid === entry.uid;
                 const teamPet = team.find((p) => p.uid === entry.uid);
@@ -9553,15 +9616,18 @@ function TabOverlay({
                 };
                 const rColor = rarityColor[entry.rarity] ?? "#8b6a30";
                 const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
+                const locked = lockedSet.has(entry.uid);
                 return (
                   <div
                     key={entry.uid}
                     style={{
-                      background: "linear-gradient(180deg, #fff8e5, #f5e6c8)",
-                      border: `2px solid ${isCurrent ? "#5ec26a" : "#b8862a"}`,
+                      background: locked
+                        ? "linear-gradient(180deg, #fff4c8, #f7dc9a)"
+                        : "linear-gradient(180deg, #fff8e5, #f5e6c8)",
+                      border: `2px solid ${locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a")}`,
                       borderRadius: 10, padding: 10, textAlign: "center",
                       position: "relative",
-                      boxShadow: `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22`,
+                      boxShadow: `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}`,
                       display: "flex", flexDirection: "column", gap: 4,
                     }}
                   >
@@ -9571,6 +9637,19 @@ function TabOverlay({
                     {inTeam && (
                       <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#3d7a4a" }}>★ TIME</div>
                     )}
+                    {/* Botão cadeado */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleLock(entry.uid); }}
+                      title={locked ? "Destravar (permite fragmentar)" : "Travar (protege de fragmentar)"}
+                      style={{
+                        position: "absolute", top: 22, right: 4,
+                        width: 24, height: 24, borderRadius: "50%",
+                        border: "1px solid #b8862a", cursor: "pointer",
+                        background: locked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
+                        color: locked ? "#4a3010" : "#8b6a30",
+                        fontSize: 12, fontWeight: 900, padding: 0,
+                      }}
+                    >{locked ? "🔒" : "🔓"}</button>
                     <button
                       onClick={() => onOpenColecaoDetail(entry.uid)}
                       style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
@@ -9595,23 +9674,25 @@ function TabOverlay({
                     <button
                       onClick={() => {
                         if (inTeam) { alert("Retire do time antes de fragmentar."); return; }
+                        if (locked) { alert("Este Pokémon está TRAVADO 🔒. Destrave para fragmentar."); return; }
                         if (!confirm(`Fragmentar ${sp.toUpperCase()} (Nv.${entry.level}) por +${gain} pts de craft?`)) return;
                         onFragmentCollection(entry.uid);
                       }}
-                      disabled={inTeam}
+                      disabled={inTeam || locked}
                       style={{
                         marginTop: 2, padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                        background: inTeam ? "#c8b8a0" : "linear-gradient(180deg,#7c3aed,#4f26a4)",
+                        background: (inTeam || locked) ? "#c8b8a0" : "linear-gradient(180deg,#7c3aed,#4f26a4)",
                         color: "#fff", border: "none", borderRadius: 6,
-                        cursor: inTeam ? "not-allowed" : "pointer", letterSpacing: 0.5,
+                        cursor: (inTeam || locked) ? "not-allowed" : "pointer", letterSpacing: 0.5,
                       }}
-                      title={inTeam ? "No time — não pode fragmentar" : `+${gain} pts de craft`}
-                    >⚒️ FRAGMENTAR +{gain}</button>
+                      title={inTeam ? "No time — não pode fragmentar" : locked ? "Travado — destrave para fragmentar" : `+${gain} pts de craft`}
+                    >{locked ? "🔒 TRAVADO" : `⚒️ FRAGMENTAR +${gain}`}</button>
                   </div>
                 );
               })}
             </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
