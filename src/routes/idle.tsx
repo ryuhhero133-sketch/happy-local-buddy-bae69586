@@ -3152,6 +3152,14 @@ function IdlePage() {
                 pushFxAt(target.x, target.y - 70, "IMPOSSÍVEL CAPTURAR", "enemyDmg");
                 pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
                 setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
+              } else if (target.mtcBoss) {
+                // ✦ MTC — só ultra ball; ~1.7% por lançamento (média ~60 tentativas)
+                if (usedBall.id !== "ultraball") {
+                  captured = false;
+                  pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
+                } else {
+                  captured = Math.random() < 0.017;
+                }
               } else if (isEventLeg && usedBall.id === "greatball") {
                 captured = false; // Great sempre falha em lendários do evento
               } else if (isEventLeg && usedBall.id === "masterball") {
