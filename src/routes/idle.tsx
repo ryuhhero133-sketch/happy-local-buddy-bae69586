@@ -7452,6 +7452,9 @@ function IdlePage() {
                       { id: "abismo_gelo", x: 58, y: 82 },
                       { id: "abismo_veneno", x: 66, y: 86 },
                       { id: "abismo_dragao", x: 74, y: 88 },
+                      { id: "cadeia_ab", x: 80, y: 76 },
+                      { id: "cadeia_ab1", x: 86, y: 68 },
+                      { id: "cadeia_f1", x: 92, y: 58 },
                       { id: "gelius1", x: 90, y: 84 },
                     ];
                     const trainerLv = idle.trainerLevel ?? 1;
