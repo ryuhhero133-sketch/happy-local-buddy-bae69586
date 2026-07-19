@@ -1947,7 +1947,7 @@ function IdlePage() {
   // ===== Follower (pokémon líder) segue o treinador com trilha suave =====
   const trailRef = useRef<Array<{ x: number; y: number }>>([{ x: WORLD_W / 2, y: WORLD_H / 2 }]);
   const [followerState, setFollowerState] = useState<{ x: number; y: number; dir: Dir; moving: boolean }>({
-    x: WORLD_W / 2 - 40, y: WORLD_H / 2 + 30, dir: "right", moving: false,
+    x: WORLD_W / 2 - 88, y: WORLD_H / 2 + 44, dir: "right", moving: false,
   });
   const followerStateRef = useRef(followerState);
   useEffect(() => { followerStateRef.current = followerState; }, [followerState]);
@@ -1956,17 +1956,28 @@ function IdlePage() {
   useEffect(() => {
     const trail = trailRef.current;
     const last = trail[trail.length - 1];
+    if (last && Math.hypot(last.x - trainerPos.x, last.y - trainerPos.y) > 220) {
+      const dirOffset = walkDirRef.current === "left" ? { x: 88, y: 28 }
+        : walkDirRef.current === "right" ? { x: -88, y: 28 }
+        : walkDirRef.current === "up" ? { x: 0, y: 92 }
+        : { x: 0, y: -92 };
+      const next = { x: trainerPos.x + dirOffset.x, y: trainerPos.y + dirOffset.y, dir: walkDirRef.current, moving: false };
+      trailRef.current = [{ x: next.x, y: next.y }, { x: trainerPos.x, y: trainerPos.y }];
+      followerStateRef.current = next;
+      setFollowerState(next);
+      return;
+    }
     if (!last || Math.hypot(last.x - trainerPos.x, last.y - trainerPos.y) > 2) {
       trail.push({ x: trainerPos.x, y: trainerPos.y });
       if (trail.length > 240) trail.shift();
     }
   }, [trainerPos]);
 
-  // Loop de animação: follower persegue ponto ~46px atrás do treinador na trilha
+  // Loop de animação: follower persegue um ponto distante atrás do treinador na trilha
   useEffect(() => {
     let raf = 0;
-    const FOLLOW_DIST = 48;
-    const MAX_SPEED = 5.2; // px por frame
+    const FOLLOW_DIST = 88;
+    const MAX_SPEED = 6.6; // px por frame
     const loop = () => {
       const trail = trailRef.current;
       if (trail.length > 0) {
@@ -2296,6 +2307,10 @@ function IdlePage() {
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * zoom) / zoom;
   const renderCamY = Math.round(camY * zoom) / zoom;
+  const renderTrainerX = Math.round(trainerPos.x * zoom) / zoom;
+  const renderTrainerY = Math.round(trainerPos.y * zoom) / zoom;
+  const renderFollowerX = Math.round(followerState.x * zoom) / zoom;
+  const renderFollowerY = Math.round(followerState.y * zoom) / zoom;
 
   // ---- Offline catch-up (uma vez ao montar) ----
   useEffect(() => {
@@ -6357,12 +6372,12 @@ function IdlePage() {
             {/* Treinador */}
             <div style={{
               position: "absolute",
-              left: trainerPos.x, top: trainerPos.y,
+              left: renderTrainerX, top: renderTrainerY,
               width: 56, height: 56,
               transform: "translate(-50%, -50%)",
-              transition: "left 120ms linear, top 120ms linear",
               filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
               zIndex: Math.round(trainerPos.y),
+              willChange: "left, top",
             }}>
               {/* Nickname acima da cabeça */}
               {identity?.name && (
@@ -6515,8 +6530,8 @@ function IdlePage() {
                 lungeX = (attackAnim.toX - attackAnim.fromX) * 0.45 * wave;
                 lungeY = (attackAnim.toY - attackAnim.fromY) * 0.45 * wave;
               }
-              const leaderX = followerX + lungeX;
-              const leaderY = followerY + lungeY;
+              const leaderX = renderFollowerX + lungeX;
+              const leaderY = renderFollowerY + lungeY;
               return (
                 <div style={{
                   position: "absolute",
