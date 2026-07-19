@@ -3520,6 +3520,26 @@ function IdlePage() {
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const geliusReturnMapRef = useRef<IdleMapId | null>(null);
+  const mythEventReturnMapRef = useRef<IdleMapId | null>(null);
+  const mythEventEnteredAtRef = useRef<number>(0);
+  // ==== EVENTO MÍTICO SHINY — tick: expulsa aos 5min OU quando janela fecha ====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (idle.currentMap !== "evento_myth") return;
+      const mi = mythEventInfo();
+      const sessionExpired = Date.now() - mythEventEnteredAtRef.current >= 5 * 60 * 1000;
+      if (!mi.open || sessionExpired) {
+        const ret = (mythEventReturnMapRef.current ?? "arena") as IdleMapId;
+        setIdle((s) => ({ ...s, currentMap: ret }));
+        setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+        setEnemies([]);
+        mythEventReturnMapRef.current = null;
+        pushChat(`❄ Domínio Mítico Shiny fechou — teleportado de volta para ${IDLE_MAPS[ret].name}.`, "info");
+      }
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ==== EVENTO GELIUS — tick 1s: troca fase aos 5min, expulsa aos 10min ====
   useEffect(() => {
     const iv = setInterval(() => {
