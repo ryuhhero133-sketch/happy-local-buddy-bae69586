@@ -2434,7 +2434,7 @@ function IdlePage() {
         if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
         if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
-        const speed = 14 * (1 + honeyBonusNow());
+        const speed = 7 * (1 + honeyBonusNow());
         const stepX = (dx / mag) * speed;
         const stepY = (dy / mag) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -2478,7 +2478,7 @@ function IdlePage() {
             return tp;
           }
           if (!moving) setMoving(true);
-          const speed = 14 * (1 + honeyBonusNow());
+          const speed = 7 * (1 + honeyBonusNow());
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
           const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -2630,7 +2630,7 @@ function IdlePage() {
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 12 * distBoost * (1 + honeyBonusNow());
+        const speed = 6 * distBoost * (1 + honeyBonusNow());
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -2673,7 +2673,7 @@ function IdlePage() {
           const dist = Math.hypot(dx, dy);
           const aggroR = ne.aggroR ?? 180;
           if (dist < 50 || dist > aggroR) return ne;
-          const speed = 6;
+          const speed = 3;
           const nx = ne.x + (dx / dist) * speed;
           const ny = ne.y + (dy / dist) * speed;
           if (collidesWithAny(nx, ny)) return ne;
@@ -2682,7 +2682,7 @@ function IdlePage() {
         });
         return changed ? next : prev;
       });
-    }, 120);
+    }, 60);
     return () => clearInterval(iv);
   }, [enemies, moving, obstacles, chests]);
 

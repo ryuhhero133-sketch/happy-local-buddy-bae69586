@@ -193,51 +193,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Single-session enforcement: só derruba se o OUTRO login for mais novo.
-  // Antes qualquer broadcast (inclusive eco/queue de reconexão do realtime)
-  // derrubava a aba recém-logada — bug de "cadastro ok, ao entrar volta pro login".
-  const [kicked, setKicked] = useState(false);
-  useEffect(() => {
-    if (!session?.user) return;
-    const uid = session.user.id;
-    const myTs = Date.now();
-    let myToken = "";
-    try {
-      // token novo a cada login pra o timestamp refletir a sessão atual
-      const rand = crypto.randomUUID?.() ?? `${Math.random()}`;
-      myToken = `${myTs}|${rand}`;
-      sessionStorage.setItem(SESSION_TOKEN_KEY, myToken);
-    } catch { /* ignore */ }
-    const parseTs = (t: string) => Number(t.split("|")[0]) || 0;
-    const myRealTs = parseTs(myToken) || myTs;
-    const subscribedAt = Date.now();
-
-    const ch = supabase.channel(`presence-user-${uid}`, {
-      config: { broadcast: { self: false } },
-    });
-    ch.on("broadcast", { event: "takeover" }, (payload) => {
-      const other = (payload.payload as { token?: string } | undefined)?.token;
-      if (!other || other === myToken) return;
-      // Grace period: ignora broadcasts nos primeiros 4s (eco/queue).
-      if (Date.now() - subscribedAt < 4000) return;
-      // Só é kick se o outro for MAIS NOVO que nós.
-      const otherTs = parseTs(other);
-      if (otherTs <= myRealTs) return;
-      setKicked(true);
-      supabase.auth.signOut().catch(() => {});
-    });
-    ch.subscribe((status) => {
-      if (status === "SUBSCRIBED") {
-        // Pequeno delay pra deixar uma eventual aba antiga ouvir antes.
-        setTimeout(() => {
-          try {
-            ch.send({ type: "broadcast", event: "takeover", payload: { token: myToken } });
-          } catch { /* ignore */ }
-        }, 600);
-      }
-    });
-    return () => { supabase.removeChannel(ch); };
-  }, [session?.user?.id]);
+  // Single-session enforcement DESATIVADO — estava causando loop de login
+  // no preview (2 iframes / F5) e depois de cadastros. Enquanto o Supabase
+  // Realtime estiver sob quota, mantemos o login estável sem auto-kick.
+  const [kicked] = useState(false);
 
 
   // Quando logado: garante profile, decide se precisa criar treinador,
