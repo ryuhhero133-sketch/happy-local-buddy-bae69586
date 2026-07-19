@@ -7467,7 +7467,7 @@ function IdlePage() {
                               return (
                                 <button
                                   key={pin.id}
-                                  title={`${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}`}
+                                  title={m.raid ? `${m.name} · RAID (chefes Lv variados)` : `${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}`}
                                   onClick={() => {
                                     if (current) { setWorldMapOpen(false); return; }
                                     playClick();
