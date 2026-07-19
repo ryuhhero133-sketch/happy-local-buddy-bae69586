@@ -2434,7 +2434,7 @@ function IdlePage() {
         if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
         if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
-        const speed = 14 * (1 + honeyBonusNow());
+        const speed = 7 * (1 + honeyBonusNow());
         const stepX = (dx / mag) * speed;
         const stepY = (dy / mag) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
