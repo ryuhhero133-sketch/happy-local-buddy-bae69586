@@ -7576,9 +7576,11 @@ function IdlePage() {
                       { id: "cadeia_ab", x: 80, y: 76 },
                       { id: "cadeia_ab1", x: 86, y: 68 },
                       { id: "cadeia_f1", x: 92, y: 58 },
-                      { id: "gelius1", x: 90, y: 84 },
+                      // gelius1 só aparece durante o evento (a cada 2h)
+                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 90, y: 84 }] : []),
                     ];
                     const trainerLv = idle.trainerLevel ?? 1;
+                    const scrollsAvail = idle.items?.scroll_teleport ?? 0;
                     return (
                       <div
                         onClick={() => setWorldMapOpen(false)}
