@@ -7138,7 +7138,20 @@ function IdlePage() {
                 ],
                 abismo_dragao: [
                   { key: "ad-back", target: "abismo_sombra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#28143c" },
+                  { key: "ad-next", target: "cadeia_ab", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
                 ],
+                cadeia_ab: [
+                  { key: "cab-back", target: "abismo_dragao", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9628" },
+                  { key: "cab-next", target: "cadeia_ab1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                ],
+                cadeia_ab1: [
+                  { key: "cab1-back", target: "cadeia_ab", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
+                  { key: "cab1-next", target: "cadeia_f1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
+                ],
+                cadeia_f1: [
+                  { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                ],
+                evento_myth: [],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
