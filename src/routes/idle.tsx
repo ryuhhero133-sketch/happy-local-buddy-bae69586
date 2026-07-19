@@ -2478,7 +2478,7 @@ function IdlePage() {
             return tp;
           }
           if (!moving) setMoving(true);
-          const speed = 14 * (1 + honeyBonusNow());
+          const speed = 7 * (1 + honeyBonusNow());
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
           const nd: Dir = Math.abs(dx) > Math.abs(dy)
