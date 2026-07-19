@@ -4376,9 +4376,10 @@ function IdlePage() {
       const guardianHpMult = isGuardian ? 2.2 : 1;
       const apexHpMult = isApex ? 4.5 : 1;
       const menaceHpMult = isMenace ? 18 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult);
+      const mythEventHpMult = isMythShinyEvent ? 3.5 : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult);
       const isAggro = isMenace ? false : true; // menace começa passivo
-      const aggroR = elite ? 300 : isApex ? 360 : 220 + Math.floor(Math.random() * 60);
+      const aggroR = elite ? 300 : isApex ? 360 : isMythShinyEvent ? 480 : 220 + Math.floor(Math.random() * 60);
 
       // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
       let disguise: Species | undefined = undefined;
