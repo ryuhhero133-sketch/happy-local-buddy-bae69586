@@ -649,6 +649,12 @@ const SPECIES_NAME: Record<Species, string> = {
   ditto_shiny: "DITTO ✦", scizor: "SCIZOR", umbreon: "UMBREON",
   infernape: "INFERNAPE", krookodile: "KROOKODILE", tyranitar: "TYRANITAR", nidoking_shiny: "NIDOKING ✦",
   dialga: "DIALGA ✦", rapidash: "RAPIDASH", rapidash_shiny: "RAPIDASH ✦", skarmory: "SKARMORY",
+  abomasnow: "ABOMASNOW ✦", cloyster: "CLOYSTER ✦", cloyster_shiny: "CLOYSTER ✧",
+  exeggutor: "EXEGGUTOR ✦", exeggutor_shiny: "EXEGGUTOR ✧",
+  feraligatr: "FERALIGATR ✦", heracross: "HERACROSS ✦", heracross_shiny: "HERACROSS ✧",
+  hitmonchan_shiny: "HITMONCHAN ✧", kangaskhan: "KANGASKHAN ✦",
+  meganium: "MEGANIUM ✦", meganium_shiny: "MEGANIUM ✧",
+  moltres_shiny: "MOLTRES ✧", onix_shiny: "ONIX ✧",
 };
 
 
