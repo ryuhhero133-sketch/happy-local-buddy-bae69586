@@ -10200,17 +10200,15 @@ function TabOverlay({
                   <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>20 Ultra Ball — captura x3.5</div>
                   <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned} Ultra Ball</div>
-                  <button
-                    onClick={() => onBuyUltraBundle()}
-                    disabled={!canBuy}
-                    style={{
-                      width: "100%", padding: "8px 10px", fontWeight: 800,
-                      background: canBuy ? color : "#3a2a4a",
-                      color: canBuy ? "#0b0510" : "#6a5a7c",
-                      border: "none", borderRadius: 6,
-                      cursor: canBuy ? "pointer" : "not-allowed",
-                    }}
-                  >{canBuy ? "COMPRAR" : "SEM CRISTAIS"}</button>
+                  <QtyBuy
+                    presets={[1, 5, 10, 25]}
+                    max={999}
+                    unitLabel="pacote"
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.crystals >= 1000 * n}
+                    onBuy={(n) => onBuyUltraBundle(n)}
+                    disabledLabel="SEM CRISTAIS"
+                  />
                 </div>
               );
             })()}
