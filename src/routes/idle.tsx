@@ -1883,6 +1883,9 @@ function IdlePage() {
   // Aqui despachamos toasts/chat sincronizados: T-5min, T-1min, ABERTO, FECHADO.
   // ============================================================
   const oddishAnnouncedRef = useRef<Set<string>>(new Set());
+  // Guarda o mapa de origem antes do jogador entrar na Odisséia Oddish;
+  // ao fechar o portal, devolvemos ele pra esse mapa automaticamente.
+  const oddishReturnMapRef = useRef<IdleMapId | null>(null);
   useEffect(() => {
     if (!ODDISH_EVENT.enabled || ODDISH_EVENT.startedAt === 0) return;
     const check = () => {
@@ -1913,6 +1916,16 @@ function IdlePage() {
       if (st.phase === "open" && st.msUntilChange <= 60 * 1000 && st.msUntilChange > 30 * 1000 && !seen.has(key("closing"))) {
         seen.add(key("closing"));
         pushChat(`⏳ ODISSÉIA ODDISH — Portal fecha em 1 minuto!`, "hit");
+      }
+      // Auto-retorno: portal fechou e o jogador ainda está no mapa do evento.
+      if (st.phase !== "open") {
+        setIdle((s) => {
+          if (s.currentMap !== "oddish_o1" && s.currentMap !== "oddish_o2") return s;
+          const back = oddishReturnMapRef.current ?? "arena";
+          oddishReturnMapRef.current = null;
+          try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Portal fechado", body: "Você foi teletransportado de volta.", tone: "info" } })); } catch {}
+          return { ...s, currentMap: back };
+        });
       }
     };
     check();
@@ -8382,8 +8395,25 @@ function IdlePage() {
             >✦ ABRIR LOJINHA ✦</button>
           </div>
 
-          {/* BANNER — Evento em breve */}
+          {/* BANNER — Evento Odisséia Oddish (clique para entrar quando aberto) */}
           <div
+            onClick={() => {
+              const st = oddishEventStatus();
+              if (st.phase !== "open") {
+                const msg = st.phase === "closed" ? `Portal fechado. Abre em ${fmtOddishMs(st.msUntilChange)}.`
+                  : st.phase === "finished" ? "Evento encerrado."
+                  : "Evento em breve.";
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: msg, tone: "warn" } })); } catch {}
+                return;
+              }
+              const target = oddishMapForCycle();
+              setIdle((s) => {
+                if (s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2") return s;
+                oddishReturnMapRef.current = s.currentMap;
+                return { ...s, currentMap: target };
+              });
+              try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 ODISSÉIA ODDISH", body: "Você entrou no portal!", tone: "success" } })); } catch {}
+            }}
             style={{
               position: "relative",
               marginTop: 2,
@@ -8395,8 +8425,10 @@ function IdlePage() {
               alignItems: "center",
               gap: 12,
               overflow: "hidden",
+              cursor: "pointer",
               boxShadow: "0 4px 18px rgba(255,138,198,0.28), inset 0 0 24px rgba(255,138,198,0.12)",
             }}
+            title="Clique para entrar no evento (quando aberto)"
           >
             <div style={{
               position: "absolute", inset: 0, pointerEvents: "none",
