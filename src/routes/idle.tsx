@@ -14,6 +14,8 @@ import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
 import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
 import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
+import iconWorldGlobe from "@/assets/icon-world-globe.png.asset.json";
+import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
 import chestOpenImg from "@/assets/icons/chest-open.png";
@@ -7653,21 +7655,36 @@ function IdlePage() {
                   <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
                     {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
                     {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
-                    <div style={{ marginTop: 6, display: "flex", justifyContent: "center" }}>
+                    <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
                       <button
                         onClick={() => { playClick(); setWorldMapOpen(true); }}
+                        className="world-globe-btn"
+                        title="Abrir Mapa Mundi"
                         style={{
-                          background: "linear-gradient(135deg, #2a1a3e, #4a2b62)",
+                          background: "linear-gradient(135deg, #1a1230 0%, #3a2560 55%, #1a1230 100%)",
                           border: "1px solid #f5cf6b",
                           color: "#f5cf6b",
-                          borderRadius: 6, padding: "3px 10px",
-                          fontSize: 10, fontWeight: 900, letterSpacing: 1,
+                          borderRadius: 10, padding: "6px 14px 6px 8px",
+                          fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
                           cursor: "pointer",
-                          boxShadow: "0 0 8px rgba(245,207,107,0.35)",
+                          boxShadow: "0 0 14px rgba(245,207,107,0.4), inset 0 1px 0 rgba(255,240,180,0.25)",
+                          display: "inline-flex", alignItems: "center", gap: 6,
+                          textShadow: "0 1px 0 rgba(0,0,0,0.5)",
                         }}
-                      >🌍 MAPA MUNDI</button>
+                      >
+                        <img
+                          src={iconWorldGlobe.url}
+                          alt=""
+                          width={28}
+                          height={28}
+                          className="world-globe-spin"
+                          style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.6))" }}
+                        />
+                        MAPA MUNDI
+                      </button>
                     </div>
                   </div>
+
 
 
                   {bigMapOpen && (
@@ -7998,30 +8015,79 @@ function IdlePage() {
 
 
 
-          {/* Botão de Tarefas — abre overlay com a lista completa */}
-          <button
-            onClick={() => { playClick(); setTab("tarefas"); }}
+          {/* PACOTES ESPECIAIS — Cash Shop (bloqueado / em breve) */}
+          <div
             style={{
-              background: "linear-gradient(135deg, #3d2b52, #6a3d8a)",
+              position: "relative",
+              background: "linear-gradient(160deg, #1a1030 0%, #2a1650 55%, #3d1e6a 100%)",
               border: "2px solid #f5cf6b",
-              borderRadius: 10, padding: "10px 12px", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-              color: "#fff", fontWeight: 800, letterSpacing: 0.5,
+              borderRadius: 12,
+              padding: 12,
+              boxShadow: "0 4px 18px rgba(245,207,107,0.25), inset 0 0 30px rgba(167,139,250,0.15)",
+              overflow: "hidden",
             }}
           >
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <img src={crystalRedImg} alt="" style={{ width: 20, imageRendering: "pixelated" }} />
-              TAREFAS
-            </span>
-            <span style={{ fontSize: 11, color: "#f5cf6b", fontWeight: 700 }}>
-              {idle.tasks.filter((t) => t.done).length}/{idle.tasks.length} pronto{idle.tasks.length === 1 ? "" : "s"}
-            </span>
-          </button>
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: "radial-gradient(circle at 70% 20%, rgba(255,215,120,0.25), transparent 55%), radial-gradient(circle at 20% 80%, rgba(167,139,250,0.22), transparent 60%)",
+            }} />
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              marginBottom: 8, position: "relative",
+            }}>
+              <span style={{
+                color: "#ffe08a", fontWeight: 900, fontSize: 12, letterSpacing: 1.2,
+                textShadow: "0 1px 0 rgba(0,0,0,0.6)",
+              }}>✦ PACOTES ESPECIAIS</span>
+              <span style={{
+                fontSize: 9, fontWeight: 900, letterSpacing: 1,
+                background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
+                color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
+                boxShadow: "0 0 8px rgba(245,207,107,0.5)",
+              }}>EM BREVE</span>
+            </div>
 
-          <Panel title="PROGRESSO GLOBAL" accent="#3d2b52">
-            <ProgressRow icon="🔴" label="Pokémon Capturados" value={idle.totals.captured} target={151} />
-            <ProgressRow icon="🗺" label="Mapas Desbloqueados" value={idle.mapsUnlocked} target={25} />
-          </Panel>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
+              <div style={{
+                width: 62, height: 62, flexShrink: 0,
+                background: "radial-gradient(circle, rgba(245,207,107,0.35) 0%, transparent 65%)",
+                display: "grid", placeItems: "center",
+                filter: "drop-shadow(0 0 10px rgba(245,207,107,0.6))",
+              }}>
+                <img
+                  src={iconCashPackage.url}
+                  alt=""
+                  width={58}
+                  height={58}
+                  className="cash-pack-float"
+                  style={{ objectFit: "contain" }}
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", letterSpacing: 0.5, lineHeight: 1.2 }}>
+                  Lojinha Cash
+                </div>
+                <div style={{ fontSize: 10, color: "#d0b8f0", marginTop: 3, lineHeight: 1.35 }}>
+                  Pacotes premium com cristais, ovos míticos, VIP e cosméticos.
+                </div>
+              </div>
+            </div>
+
+            <button
+              disabled
+              style={{
+                marginTop: 10, width: "100%",
+                background: "linear-gradient(135deg, rgba(70,50,110,0.6), rgba(45,30,80,0.6))",
+                border: "1px dashed #a78bfa",
+                color: "#c8b8e8", fontWeight: 900, fontSize: 10, letterSpacing: 1.5,
+                borderRadius: 8, padding: "8px", cursor: "not-allowed",
+                textShadow: "0 1px 0 rgba(0,0,0,0.5)",
+                position: "relative",
+              }}
+              title="Loja em desenvolvimento — em breve"
+            >🔒 DESBLOQUEIO EM BREVE</button>
+          </div>
+
 
           <div style={{
             background: "linear-gradient(135deg, #7a1c1c, #c92a2a)",
