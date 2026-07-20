@@ -9473,6 +9473,38 @@ function TabOverlay({
   const [colFilterName, setColFilterName] = useState("");
   const [colSort, setColSort] = useState<"recent" | "level_desc" | "level_asc" | "rarity" | "name">("recent");
   const [colOnlyLocked, setColOnlyLocked] = useState(false);
+  // Fragmentar: modo bulk + modal de confirmação bonito
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkSel, setBulkSel] = useState<Set<string>>(new Set());
+  const [fragConfirm, setFragConfirm] = useState<null | {
+    entries: Array<{ uid: string; species: Species; level: number; rarity: Rarity; gain: number }>;
+    totalGain: number;
+  }>(null);
+  const teamUidSet = useMemo(() => new Set(team.map((p) => p.uid)), [team]);
+  const toggleBulk = (uid: string) => {
+    setBulkSel((prev) => {
+      const next = new Set(prev);
+      if (next.has(uid)) next.delete(uid); else next.add(uid);
+      return next;
+    });
+  };
+  const openFragConfirm = (uids: string[]) => {
+    const entries = uids
+      .map((uid) => collection.find((e) => e.uid === uid))
+      .filter((e): e is CollectionEntry => !!e)
+      .filter((e) => !teamUidSet.has(e.uid) && !lockedSet.has(e.uid))
+      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: CRAFT_BY_RARITY[e.rarity] ?? 1 }));
+    if (entries.length === 0) return;
+    const totalGain = entries.reduce((s, e) => s + e.gain, 0);
+    setFragConfirm({ entries, totalGain });
+  };
+  const confirmFrag = () => {
+    if (!fragConfirm) return;
+    fragConfirm.entries.forEach((e) => onFragmentCollection(e.uid));
+    setBulkSel(new Set());
+    setBulkMode(false);
+    setFragConfirm(null);
+  };
   return (
     <div style={{
       position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
