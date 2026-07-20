@@ -152,7 +152,9 @@ export type Species =
   // ═══ MTC — Míticos Brilhantes Lv 500-1000 (só Ultra Ball, 40-80 tentativas típicas) ═══
   | "abomasnow" | "cloyster" | "cloyster_shiny" | "exeggutor" | "exeggutor_shiny"
   | "feraligatr" | "heracross" | "heracross_shiny" | "hitmonchan_shiny"
-  | "kangaskhan" | "meganium" | "meganium_shiny" | "moltres_shiny" | "onix_shiny";
+  | "kangaskhan" | "meganium" | "meganium_shiny" | "moltres_shiny" | "onix_shiny"
+  // Evento Odisséia Oddish — Lickitung (sonífero) + Mewtwo (mítico plus)
+  | "lickitung" | "lickitung_shiny" | "mewtwo_event";
 
 
 
@@ -411,8 +413,10 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   meganium_shiny:  { hp: 80,  atk: 82,  def: 100, spa: 83,  spd: 100, spe: 80,  rarity: "mythic_shiny", goldRange: [1600, 2500], crystalChance: 0.98, catchMod: 6.5, minLv: 600 },
   moltres_shiny:   { hp: 90,  atk: 100, def: 90,  spa: 125, spd: 85,  spe: 90,  rarity: "mythic_shiny", goldRange: [1800, 2800], crystalChance: 0.99, catchMod: 7.0, minLv: 700 },
   onix_shiny:      { hp: 35,  atk: 45,  def: 180, spa: 30,  spd: 45,  spe: 70,  rarity: "mythic_shiny", goldRange: [1400, 2200], crystalChance: 0.96, catchMod: 6.2, minLv: 550 },
-
-
+  // Odisséia Oddish
+  lickitung:        { hp: 90,  atk: 55,  def: 75,  spa: 60,  spd: 75,  spe: 30,  rarity: "epic",         goldRange: [70, 130],   crystalChance: 0.30, catchMod: 1.8, minLv: 20 },
+  lickitung_shiny:  { hp: 90,  atk: 55,  def: 75,  spa: 60,  spd: 75,  spe: 30,  rarity: "legendary",    goldRange: [220, 380],  crystalChance: 0.60, catchMod: 2.6, minLv: 40 },
+  mewtwo_event:     { hp: 106, atk: 110, def: 90,  spa: 154, spd: 90,  spe: 130, rarity: "mythic_shiny", goldRange: [3000, 5000],crystalChance: 1.0,  catchMod: 9.0, minLv: 300 },
 };
 
 const RARITY_WEIGHT: Record<Rarity, number> = {

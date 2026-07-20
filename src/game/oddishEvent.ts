@@ -12,10 +12,10 @@
 // ============================================================
 
 export const ODDISH_EVENT = {
-  /** LIGAR AQUI quando o dono mandar "abra". Também setar startedAt = Date.now() na mesma edição. */
-  enabled: false,
-  /** Timestamp de abertura oficial (ms). Preenchido junto com enabled=true. */
-  startedAt: 0,
+  /** Evento ATIVO — 48h a partir de startedAt. */
+  enabled: true,
+  /** Timestamp de abertura oficial (ms) — 20/07/2026 ~23:22 UTC. */
+  startedAt: 1784589700000,
   /** Encerra após 48h desde startedAt. */
   durationHours: 48,
   /** Ciclo entre aberturas (2h). */
@@ -66,10 +66,16 @@ export function oddishMapForCycle(now: number = Date.now()): "oddish_o1" | "oddi
   return idx % 2 === 0 ? "oddish_o1" : "oddish_o2";
 }
 
-/** Espécies do pool de spawn — todos épicos, escala com o nível do treinador. */
-export const ODDISH_EVENT_POOL = ["oddish", "gloom", "vileplume"] as const;
-// TODO: adicionar "lickitung" quando o dono subir o asset.
+/** Espécies do pool de spawn base — épicos, escala com o nível do treinador.
+ *  Lickitung/lickitung_shiny entram no pool com peso reduzido (sonífero).
+ *  Mewtwo é rolado à parte com chance ~0.5% e regras próprias. */
+export const ODDISH_EVENT_POOL = ["oddish", "gloom", "vileplume", "lickitung", "lickitung_shiny"] as const;
 export type OddishEventSpecies = typeof ODDISH_EVENT_POOL[number];
+
+/** Chance de spawnar Mewtwo (evento) a cada tentativa de spawn no mapa do evento. */
+export const MEWTWO_EVENT_CHANCE = 0.006;
+/** Mínimo de bolas necessárias antes de o Mewtwo do evento poder ser capturado. */
+export const MEWTWO_MIN_BALLS = 1500;
 
 /** Safira Verde ganha ao FRAGMENTAR um pokémon capturado no evento. */
 export const SAFIRA_VERDE_BY_RARITY: Record<string, number> = {
