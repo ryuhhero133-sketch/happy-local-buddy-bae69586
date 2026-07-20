@@ -315,7 +315,7 @@ function ProductTile({ p, onBuy, onBuyBRL, canAfford }: { p: CashProduct; onBuy:
   );
 }
 
-function RightPacotes({ products, onBuy }: { products: CashProduct[]; onBuy: (p: CashProduct) => void }) {
+function RightPacotes({ products, onBuy, onBuyBRL }: { products: CashProduct[]; onBuy: (p: CashProduct) => void; onBuyBRL: (p: CashProduct) => void }) {
   const pkgs = products.filter(p => p.category === "package" || p.category === "premium").slice(0, 3);
   return (
     <div style={cardBox("#2a1a4a", "#6b47c9")}>
