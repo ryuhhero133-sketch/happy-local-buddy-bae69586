@@ -1290,3 +1290,12 @@ html, body, #root {
   50% { rotate: 6deg; }
   100% { rotate: -6deg; }
 }
+
+@keyframes cat-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-2px) scale(1.08); }
+}
+@keyframes item-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-3px) rotate(1deg); }
+}
