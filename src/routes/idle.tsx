@@ -4831,11 +4831,19 @@ function IdlePage() {
   const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => {
     const trade = ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
+    // Dedup imediato de UIDs (defensivo — evita orb infinito por seleção duplicada)
+    const uniqUids = Array.from(new Set(uids));
     setIdle((s) => {
       const col = s.collection ?? [];
-      const selected = col.filter((c) => uids.includes(c.uid) && c.rarity === trade.rarity);
+      const teamUids = new Set((s.team ?? []).map((p) => p.uid));
+      const selected = col.filter(
+        (c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity && !teamUids.has(c.uid),
+      );
       if (selected.length !== trade.count) {
-        pushChat(`Selecione exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} para essa troca.`, "info");
+        pushChat(
+          `Não foi possível trocar: selecione exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} fora do time.`,
+          "info",
+        );
         return s;
       }
       const removeSet = new Set(selected.map((c) => c.uid));
@@ -4850,6 +4858,7 @@ function IdlePage() {
       };
     });
   };
+
 
 
 
