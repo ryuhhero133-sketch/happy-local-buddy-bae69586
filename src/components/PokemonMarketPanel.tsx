@@ -185,47 +185,85 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   const mySold = rows.filter(r => r.seller_id === (identity?.id ?? "") && r.status === "sold" && !r.payout_claimed);
   const myBought = rows.filter(r => r.buyer_id === (identity?.id ?? "") && r.status === "sold" && !r.buyer_claimed);
 
+  // Locks in-memory sincronos pra evitar reentrância antes do await terminar.
+  const inflightBuyerRef = useRef<Set<string>>(new Set());
+  const inflightSellerRef = useRef<Set<string>>(new Set());
+
   // Após render, se houver compras não reclamadas, aplicar automaticamente no próximo tick.
   useEffect(() => {
     if (!identity?.id) return;
-    for (const r of myBought) {
-      if (claimedBuyerRef.current.has(r.id)) continue;
-      // Vendas via oferta ainda não descontaram do comprador — descontar agora.
-      if (r.via_offer) {
-        const have = r.currency === "gold" ? gold : crystals;
-        if (have < r.price) {
-          // Deixa pra tentar depois quando o jogador tiver saldo.
+    (async () => {
+      for (const r of myBought) {
+        if (claimedBuyerRef.current.has(r.id)) continue;
+        if (inflightBuyerRef.current.has(r.id)) continue;
+        // Para vendas via oferta o comprador só é debitado agora — precisa de saldo.
+        if (r.via_offer) {
+          const have = r.currency === "gold" ? gold : crystals;
+          if (have < r.price) continue;
+        }
+        inflightBuyerRef.current.add(r.id);
+        // Claim atômico: só o primeiro UPDATE que encontrar buyer_claimed=false vence.
+        // Se a RLS bloquear ou já estiver claimed, `data` vem vazio e NÃO cobramos.
+        const { data, error } = await supabase
+          .from("pokemon_market")
+          .update({ buyer_claimed: true })
+          .eq("id", r.id)
+          .eq("buyer_claimed", false)
+          .select("id");
+        if (error || !data || data.length === 0) {
+          inflightBuyerRef.current.delete(r.id);
+          // Marca localmente pra não ficar tentando em loop e cobrar de novo se
+          // por qualquer motivo o servidor considerar já entregue.
+          if (!error) {
+            claimedBuyerRef.current.add(r.id);
+            writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
+          }
           continue;
         }
-        onSpend(r.currency, r.price);
-      }
-      claimedBuyerRef.current.add(r.id);
-      writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
-      const entry: CollectionEntry = {
-        uid: `bought-${r.id}`,
-        species: r.pokemon.species,
-        level: r.pokemon.level,
-        rarity: r.pokemon.rarity,
-        xp: r.pokemon.xp ?? 0,
-        traits: r.pokemon.traits ?? [],
-        capturedAt: Date.now(),
-      };
-      onReturned(entry);
-      supabase.from("pokemon_market").update({ buyer_claimed: true }).eq("id", r.id).then(() => {
+        // Só agora cobra e entrega — garantido único.
+        if (r.via_offer) onSpend(r.currency, r.price);
+        claimedBuyerRef.current.add(r.id);
+        writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
+        const entry: CollectionEntry = {
+          uid: `bought-${r.id}`,
+          species: r.pokemon.species,
+          level: r.pokemon.level,
+          rarity: r.pokemon.rarity,
+          xp: r.pokemon.xp ?? 0,
+          traits: r.pokemon.traits ?? [],
+          capturedAt: Date.now(),
+        };
+        onReturned(entry);
         pushChat(r.via_offer
           ? `🤝 Oferta aceita! Recebeu ${r.pokemon.species} por ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"}.`
           : `📦 Recebeu ${r.pokemon.species} do Marketplace.`, "cap");
-      });
-    }
-    for (const r of mySold) {
-      if (claimedSellerRef.current.has(r.id)) continue;
-      claimedSellerRef.current.add(r.id);
-      writeClaimSet(claimedSellerKey(identity.id), claimedSellerRef.current);
-      onEarn(r.currency, r.price);
-      supabase.from("pokemon_market").update({ payout_claimed: true }).eq("id", r.id).then(() => {
+        inflightBuyerRef.current.delete(r.id);
+      }
+      for (const r of mySold) {
+        if (claimedSellerRef.current.has(r.id)) continue;
+        if (inflightSellerRef.current.has(r.id)) continue;
+        inflightSellerRef.current.add(r.id);
+        const { data, error } = await supabase
+          .from("pokemon_market")
+          .update({ payout_claimed: true })
+          .eq("id", r.id)
+          .eq("payout_claimed", false)
+          .select("id");
+        if (error || !data || data.length === 0) {
+          inflightSellerRef.current.delete(r.id);
+          if (!error) {
+            claimedSellerRef.current.add(r.id);
+            writeClaimSet(claimedSellerKey(identity.id), claimedSellerRef.current);
+          }
+          continue;
+        }
+        onEarn(r.currency, r.price);
+        claimedSellerRef.current.add(r.id);
+        writeClaimSet(claimedSellerKey(identity.id), claimedSellerRef.current);
         pushChat(`💸 Recebeu ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"} da venda de ${r.pokemon.species}.`, "cap");
-      });
-    }
+        inflightSellerRef.current.delete(r.id);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, gold, crystals]);
 
