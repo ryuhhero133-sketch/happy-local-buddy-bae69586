@@ -1917,6 +1917,16 @@ function IdlePage() {
         seen.add(key("closing"));
         pushChat(`⏳ ODISSÉIA ODDISH — Portal fecha em 1 minuto!`, "hit");
       }
+      // Auto-retorno: portal fechou e o jogador ainda está no mapa do evento.
+      if (st.phase !== "open") {
+        setIdle((s) => {
+          if (s.currentMap !== "oddish_o1" && s.currentMap !== "oddish_o2") return s;
+          const back = oddishReturnMapRef.current ?? "arena";
+          oddishReturnMapRef.current = null;
+          try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Portal fechado", body: "Você foi teletransportado de volta.", tone: "info" } })); } catch {}
+          return { ...s, currentMap: back };
+        });
+      }
     };
     check();
     const iv = setInterval(check, 10_000);
