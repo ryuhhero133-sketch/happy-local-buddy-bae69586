@@ -10369,11 +10369,19 @@ function TabOverlay({
 
         return (
           <div style={{
-            background: `linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)`,
+            background: `
+              radial-gradient(circle at 50% 40%, rgba(255,220,140,0.35), transparent 55%),
+              url(${bagBgGlowUrl}) center/cover no-repeat,
+              linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)
+            `,
             border: `3px solid ${P.goldDark}`, borderRadius: 16, padding: 14,
-            boxShadow: `inset 0 0 0 2px ${P.goldLight}80, inset 0 0 40px rgba(184,134,42,0.18), 0 8px 28px rgba(0,0,0,0.45)`,
+            boxShadow: `inset 0 0 0 2px ${P.goldLight}80, inset 0 0 60px rgba(255,200,90,0.25), 0 8px 28px rgba(0,0,0,0.55)`,
             fontFamily: '"Pixelify Sans", ui-monospace, monospace',
+            position: "relative",
           }}>
+            <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
+              background: "radial-gradient(ellipse at 50% 0%, rgba(255,240,180,0.18), transparent 60%)" }} />
+
             {/* CABEÇALHO — pergaminho dourado */}
             <div style={{
               display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
