@@ -433,6 +433,7 @@ export function CashShopModal(props: CashShopModalProps) {
   const [dbError, setDbError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [dbWallet, setDbWallet] = useState<Partial<Wallet>>({});
+  const [brlProduct, setBrlProduct] = useState<CashProduct | null>(null);
 
   useEffect(() => { setIsAdmin(readIsAdmin()); }, [open]);
 
