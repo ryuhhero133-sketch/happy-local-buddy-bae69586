@@ -135,6 +135,7 @@ import mapVenenoAsset from "@/assets/map-veneno.png.asset.json";
 import orbXpMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
 import orbXpMajorAsset from "@/assets/orb-xp-major.png.asset.json";
 import orbXpSupremeAsset from "@/assets/orb-xp-supreme.png.asset.json";
+import orbXpTeamAsset from "@/assets/orb-xp-team.png.asset.json";
 import redLakeAsset from "@/assets/red-lake.png.asset.json";
 import volcanoAsset from "@/assets/volcano.png.asset.json";
 import mapBeachUrl from "@/assets/map-beach-idle.png";
@@ -334,6 +335,7 @@ const mapVenenoUrl = assetUrlFromJson(mapVenenoAsset);
 const orbXpMinorUrl = assetUrlFromJson(orbXpMinorAsset);
 const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
 const orbXpSupremeUrl = assetUrlFromJson(orbXpSupremeAsset);
+const orbXpTeamUrl = assetUrlFromJson(orbXpTeamAsset);
 const npcTraderUrl = assetUrlFromJson(npcTraderAsset);
 const redLakeUrl = assetUrlFromJson(redLakeAsset);
 const volcanoUrl = assetUrlFromJson(volcanoAsset);
@@ -825,7 +827,7 @@ type IdleState = {
   craftPoints?: number; // pontos obtidos ao fragmentar pokémons da coleção
   items: Record<string, number>;
   bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro)
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro); teamOrb = distribui EXP para todo o time por 1h
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
@@ -876,7 +878,7 @@ const ITEM_IMG: Record<string, string> = {
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
   premium_box: premiumBoxImg,
-  orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl,
+  orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -901,7 +903,7 @@ const ALL_BALLS: ShopBall[] = [
   { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
 ];
 
-type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
+type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
 const SHOP_BOOKS: ShopBook[] = [
   { id: "book_atk", name: "Livro de Ataque", desc: "+10% de dano permanente por uso", price: 20, img: bookAtkImg },
   { id: "book_def", name: "Livro de Defesa", desc: "-10% de dano recebido por uso",  price: 20, img: bookDefImg },
@@ -911,6 +913,8 @@ const SHOP_BOOKS: ShopBook[] = [
   { id: "book_vip_60", name: "Livro VIP 60d ✦✦✦", desc: "+40% ouro e +40% EXP por 60 DIAS", price: 1000, img: bookExpImg },
   // ═══ ORB DE XP FRACO — único vendido; os fortes vêm da troca com NPC ═══
   { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo, stack com livro)", price: 100,  img: orbXpMinorUrl,   currency: "crystals", priceGold: 50000 },
+  // ═══ ORB DE TIME — distribui EXP para todos os pokémons do time por 1 hora ═══
+  { id: "orb_team",       name: "Orb de Time ✦✦✦",     desc: "Todo o time ganha EXP nas batalhas por 1 hora (sem +% de EXP)", price: 1000, img: orbXpTeamUrl,   currency: "crystals" },
 ];
 
 
@@ -3137,15 +3141,18 @@ function IdlePage() {
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
-          // XP para o líder + drena energia de TODOS do time
+          // XP para o líder + drena energia. Se ORB DE TIME estiver ativo, TODOS ganham EXP.
+          const teamOrbActive = !!(idle.buffs.teamOrbUntil && Date.now() < idle.buffs.teamOrbUntil);
           setTeam((tm) => {
             if (tm.length === 0) return tm;
             const now = Date.now();
             return tm.map((p, idx) => {
-              if (idx !== 0) return p; // apenas o líder drena por kill
-              const curE = petCurrentEnergy(p, now, { active: true });
-              const drainKill = energyDrainPerKill(p.rarity);
-              const newE = drainKill === 0 ? ENERGY_MAX : Math.max(0, curE - drainKill);
+              const isLeader = idx === 0;
+              const gainsXp = isLeader || teamOrbActive;
+              if (!gainsXp) return p;
+              const curE = petCurrentEnergy(p, now, { active: isLeader });
+              const drainKill = isLeader ? energyDrainPerKill(p.rarity) : 0;
+              const newE = drainKill === 0 ? (isLeader ? ENERGY_MAX : curE) : Math.max(0, curE - drainKill);
               const newXp = (p.xp ?? 0) + xp;
               let lv = p.level;
               let remaining = newXp;
@@ -3153,8 +3160,8 @@ function IdlePage() {
               if (lv >= 10000) remaining = 0;
               return {
                 ...p, level: lv, xp: remaining,
-                hp: Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })),
-                energy: newE, energyRegenAt: now,
+                hp: isLeader ? Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })) : Math.min(p.hp, calcIdleMaxHp({ ...p, level: lv })),
+                energy: newE, energyRegenAt: isLeader ? now : ((p as PetEnergyExt).energyRegenAt ?? now),
               } as PetInstance;
             });
           });
@@ -3970,6 +3977,20 @@ function IdlePage() {
       pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · 1h`, "capture");
       pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por 1 hora`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
       pushChat(`✦ ${label} usado — +${pct}% EXP por 1 hora.`, "cap");
+    } else if (id === "orb_team") {
+      const nowT = Date.now();
+      if ((idle.buffs.teamOrbUntil ?? 0) > nowT) {
+        pushChat(`Orb de Time já está ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, [id]: have - 1 },
+        buffs: { ...s.buffs, teamOrbUntil: nowT + 3600_000 },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `TIME EXP · 1h`, "capture");
+      pushEvent("✦", "ORB DE TIME ATIVO", "Todo o time ganha EXP por 1 hora", "#ffd94d");
+      pushChat(`✦ Orb de Time ativado — todos os pokémons do time ganham EXP por 1 hora.`, "cap");
     } else if (id === "book_vip" || id === "book_vip_30" || id === "book_vip_60") {
       const cfg = id === "book_vip_60"
         ? { add: 0.40, ms: 60 * 24 * 3600_000, label: "60 dias" }
