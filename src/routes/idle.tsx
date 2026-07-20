@@ -9364,6 +9364,20 @@ function HudBall({ img, count, color }: { img: string; count: number; color: str
   );
 }
 
+// ── Pill de status do perfil de treinador
+function pillStyle(color: string): React.CSSProperties {
+  return {
+    display: "inline-flex", alignItems: "center", gap: 3,
+    padding: "2px 7px", borderRadius: 999,
+    background: `linear-gradient(180deg, ${color}22, rgba(0,0,0,0.4))`,
+    border: `1px solid ${color}66`,
+    color, fontSize: 10, fontWeight: 900, letterSpacing: 0.3,
+    textShadow: "0 1px 0 #000", whiteSpace: "nowrap",
+  };
+}
+
+
+
 // ── HUD superior: nicho clássico para OURO / CRISTAIS
 function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React.ReactNode; value: string; title: string }) {
   return (
