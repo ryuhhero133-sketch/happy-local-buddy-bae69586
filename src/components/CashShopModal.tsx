@@ -730,6 +730,316 @@ export function CashShopModal(props: CashShopModalProps) {
 
 export default CashShopModal;
 
+// ============ Purchase BRL Modal (pagamento manual) ============
+function PurchaseBRLModal({ product, identity, onClose }: {
+  product: CashProduct;
+  identity: { id: string; name: string } | null;
+  onClose: () => void;
+}) {
+  const [txRef, setTxRef] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [step, setStep] = useState<"pay" | "sent">("pay");
+
+  const openPayment = () => {
+    if (product.payment_link_url) window.open(product.payment_link_url, "_blank", "noopener,noreferrer");
+  };
+
+  const confirm = useCallback(async () => {
+    if (!identity?.id) { setMsg({ kind: "err", text: "Faça login primeiro." }); return; }
+    setBusy(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from("pending_purchases").insert({
+        user_id: identity.id,
+        username: identity.name,
+        product_id: product.id,
+        product_name: product.name,
+        price_brl: product.price_brl,
+        payment_method: product.payment_method ?? null,
+        payment_link_url: product.payment_link_url ?? null,
+        transaction_ref: txRef.trim() || null,
+        grants: product.grants ?? {},
+      });
+      if (error) throw error;
+      setStep("sent");
+      setMsg({ kind: "ok", text: "✅ Compra enviada! Aguarde a aprovação do admin (até 10 min)." });
+    } catch (e) { setMsg({ kind: "err", text: `Erro: ${(e as Error).message}` }); }
+    finally { setBusy(false); }
+  }, [identity, product, txRef]);
+
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: "fixed", inset: 0, zIndex: 10001,
+        background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)",
+        display: "grid", placeItems: "center", padding: 16,
+      }}>
+      <div style={{
+        width: "min(480px, 96vw)",
+        background: "linear-gradient(160deg,#0f2038,#0a1424)",
+        border: "3px solid #22c55e", borderRadius: 16,
+        boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 30px #22c55e33",
+        padding: 20, color: "#fff",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#86efac", letterSpacing: 1 }}>💵 PAGAR COM DINHEIRO REAL</div>
+          <button onClick={onClose} style={{
+            width: 30, height: 30, borderRadius: 8, background: "#ef4444", color: "#fff",
+            border: "none", fontWeight: 900, cursor: "pointer",
+          }}>✕</button>
+        </div>
+
+        <div style={{
+          background: "rgba(0,0,0,0.4)", border: "1.5px solid #22c55e55",
+          borderRadius: 10, padding: 12, marginBottom: 14, display: "flex", gap: 12, alignItems: "center",
+        }}>
+          {product.image_url && (
+            <img src={product.image_url} alt="" style={{
+              width: 64, height: 64, objectFit: "contain", imageRendering: "pixelated",
+              background: "rgba(255,255,255,0.05)", borderRadius: 8,
+            }} />
+          )}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 900, color: "#f5cf6b" }}>{product.name}</div>
+            {product.description && <div style={{ fontSize: 11, color: "#c8d6f0", marginTop: 2 }}>{product.description}</div>}
+            <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900, color: "#86efac" }}>
+              R$ {product.price_brl?.toFixed(2).replace(".", ",")}
+            </div>
+          </div>
+        </div>
+
+        {step === "pay" ? (
+          <>
+            <div style={{ fontSize: 12, color: "#c8d6f0", lineHeight: 1.6, marginBottom: 12 }}>
+              <b style={{ color: "#f5cf6b" }}>Como funciona:</b><br />
+              1️⃣ Clique em <b>ABRIR PAGAMENTO</b> e conclua a compra ({product.payment_method?.toUpperCase() ?? "PIX/CARTÃO"}).<br />
+              2️⃣ Volte aqui e cole o <b>ID da transação</b> ou <b>comprovante</b> abaixo.<br />
+              3️⃣ Sua compra fica <b style={{ color: "#f5cf6b" }}>Em análise por 10 min</b>. Após aprovação do admin, o item é entregue automaticamente.
+            </div>
+
+            <button onClick={openPayment} style={{
+              width: "100%", padding: "12px",
+              background: "linear-gradient(180deg,#22c55e,#15803d)",
+              border: "2px solid #86efac", color: "#fff",
+              fontWeight: 900, fontSize: 14, letterSpacing: 1,
+              borderRadius: 10, cursor: "pointer", marginBottom: 12,
+              boxShadow: "0 3px 0 #0a3a1a",
+            }}>🔗 ABRIR PAGAMENTO ({product.payment_method?.toUpperCase() ?? "LINK"})</button>
+
+            <label style={{ display: "block", fontSize: 11, fontWeight: 800, color: "#c8d6f0", marginBottom: 4 }}>
+              ID DA TRANSAÇÃO / COMPROVANTE (opcional)
+            </label>
+            <input value={txRef} onChange={e => setTxRef(e.target.value)}
+              placeholder="ex: TX-abc123 ou cole o ID do PicPay"
+              style={{
+                width: "100%", padding: "10px 12px", marginBottom: 12,
+                background: "rgba(0,0,0,0.5)", border: "1.5px solid #3a5a98",
+                color: "#fff", borderRadius: 8, fontSize: 13, boxSizing: "border-box",
+              }} />
+
+            <button onClick={confirm} disabled={busy} style={{
+              width: "100%", padding: "12px",
+              background: "linear-gradient(180deg,#f7c14a,#d99a2a)",
+              border: "2px solid #ffe08a", color: "#3a1e05",
+              fontWeight: 900, fontSize: 14, letterSpacing: 1,
+              borderRadius: 10, cursor: busy ? "wait" : "pointer",
+              boxShadow: "0 3px 0 #7a4c0f",
+            }}>{busy ? "ENVIANDO..." : "✅ JÁ PAGUEI — ENVIAR PARA ANÁLISE"}</button>
+          </>
+        ) : (
+          <div style={{
+            padding: 20, textAlign: "center",
+            background: "rgba(34,197,94,0.15)", border: "2px solid #22c55e",
+            borderRadius: 10,
+          }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>⏳</div>
+            <div style={{ fontSize: 15, fontWeight: 900, color: "#86efac", marginBottom: 6 }}>Enviado para análise!</div>
+            <div style={{ fontSize: 12, color: "#c8d6f0", lineHeight: 1.5 }}>
+              O admin tem até 10 minutos para aprovar.<br />
+              Assim que aprovado, o item aparece na sua conta automaticamente.
+            </div>
+            <button onClick={onClose} style={{
+              marginTop: 12, padding: "8px 20px",
+              background: "linear-gradient(180deg,#22c55e,#15803d)",
+              border: "2px solid #86efac", color: "#fff",
+              fontWeight: 900, borderRadius: 8, cursor: "pointer",
+            }}>FECHAR</button>
+          </div>
+        )}
+        {msg && step === "pay" && (
+          <div style={{ marginTop: 8, fontSize: 12, color: msg.kind === "ok" ? "#86efac" : "#fca5a5" }}>{msg.text}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============ Admin: Pagamentos Pendentes ============
+function AdminPendingPanel({ identity, onGrantCoins, onGrantCrystals, onGrantItem, onGrantPokemon }: {
+  identity: { id: string; name: string } | null;
+  onGrantCoins?: (n: number) => void;
+  onGrantCrystals?: (n: number) => void;
+  onGrantItem?: (id: string, qty: number) => void;
+  onGrantPokemon?: (species: string, rarity?: string) => void;
+}) {
+  const [rows, setRows] = useState<PendingPurchase[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from("pending_purchases")
+        .select("*")
+        .in("status", ["analise", "approved", "rejected"])
+        .order("created_at", { ascending: false })
+        .limit(40);
+      setRows((data as PendingPurchase[]) ?? []);
+    } finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    const r = setInterval(refresh, 15000);
+    return () => { clearInterval(t); clearInterval(r); };
+  }, [refresh]);
+
+  const approve = useCallback(async (row: PendingPurchase) => {
+    try {
+      // Entrega os grants via admin_gifts (a lógica do jogo consome automaticamente)
+      const entries = Object.entries(row.grants ?? {});
+      for (const [k, v] of entries) {
+        const qty = Number(v);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any).from("admin_gifts").insert({
+          recipient_user_id: row.user_id,
+          recipient_username: row.username,
+          kind: k === "coins" || k === "crystals" ? "currency" : "item",
+          item_id: k, qty,
+          sender: identity?.name || "ADMIN",
+          note: `compra R$ ${row.product_name} (${row.id.slice(0, 8)})`,
+        });
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from("pending_purchases")
+        .update({ status: "approved", approved_by: identity?.name || "ADMIN", resolved_at: new Date().toISOString() })
+        .eq("id", row.id);
+      setMsg(`✅ Aprovado: ${row.username} — ${row.product_name}`);
+      refresh();
+    } catch (e) { setMsg(`Erro: ${(e as Error).message}`); }
+  }, [identity, refresh]);
+
+  const reject = useCallback(async (row: PendingPurchase) => {
+    const note = prompt(`Motivo da rejeição para ${row.username}?`, "Pagamento não localizado");
+    if (note === null) return;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from("pending_purchases")
+        .update({ status: "rejected", admin_note: note, approved_by: identity?.name || "ADMIN", resolved_at: new Date().toISOString() })
+        .eq("id", row.id);
+      setMsg(`❌ Rejeitado: ${row.username}`);
+      refresh();
+    } catch (e) { setMsg(`Erro: ${(e as Error).message}`); }
+  }, [identity, refresh]);
+
+  // Também suprimimos os grants via callbacks locais quando o admin aprova para o próprio user
+  const grantLocalIfSelf = (row: PendingPurchase) => {
+    if (identity?.id !== row.user_id) return;
+    for (const [k, v] of Object.entries(row.grants ?? {})) {
+      const qty = Number(v);
+      if (k === "coins") onGrantCoins?.(qty);
+      else if (k === "crystals") onGrantCrystals?.(qty);
+      else if (k === "pokemon") onGrantPokemon?.(String(v));
+      else onGrantItem?.(k, qty);
+    }
+  };
+
+  const analise = rows.filter(r => r.status === "analise");
+  const historico = rows.filter(r => r.status !== "analise").slice(0, 10);
+
+  return (
+    <div style={{
+      marginTop: 12, background: "linear-gradient(160deg,#0f3d1a,#0a2412)",
+      border: "2px solid #22c55e", borderRadius: 12, padding: 12,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ color: "#86efac", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>
+          💵 PAGAMENTOS PENDENTES {analise.length > 0 && <span style={{ background: "#f7c14a", color: "#3a1e05", padding: "2px 8px", borderRadius: 10, marginLeft: 6, fontSize: 10 }}>{analise.length}</span>}
+        </div>
+        <button onClick={refresh} disabled={loading} style={{
+          fontSize: 10, padding: "4px 10px", background: "#0a2412", color: "#86efac",
+          border: "1px solid #22c55e", borderRadius: 6, cursor: "pointer", fontWeight: 800,
+        }}>{loading ? "..." : "↻"}</button>
+      </div>
+
+      {analise.length === 0 && (
+        <div style={{ fontSize: 11, color: "#86efac99", textAlign: "center", padding: 10 }}>Nenhuma compra pendente.</div>
+      )}
+
+      {analise.map(row => {
+        const expiresMs = new Date(row.expires_at).getTime() - now;
+        const mm = Math.max(0, Math.floor(expiresMs / 60000));
+        const ss = Math.max(0, Math.floor((expiresMs % 60000) / 1000));
+        const expired = expiresMs <= 0;
+        return (
+          <div key={row.id} style={{
+            background: "rgba(0,0,0,0.4)", border: `1.5px solid ${expired ? "#ef4444" : "#22c55e77"}`,
+            borderRadius: 8, padding: 10, marginBottom: 8, display: "grid",
+            gridTemplateColumns: "1fr auto auto", gap: 8, alignItems: "center",
+          }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: "#f5cf6b" }}>
+                {row.username} <span style={{ color: "#7aa5ff", fontWeight: 600 }}>→ {row.product_name}</span>
+              </div>
+              <div style={{ fontSize: 10, color: "#c8d6f0", marginTop: 2 }}>
+                💰 R$ {row.price_brl?.toFixed(2).replace(".", ",") ?? "—"} · {row.payment_method?.toUpperCase() ?? "LINK"}
+                {row.transaction_ref && <> · <b>TX:</b> {row.transaction_ref}</>}
+              </div>
+              <div style={{ fontSize: 10, color: expired ? "#fca5a5" : "#86efac", marginTop: 2, fontWeight: 800 }}>
+                {expired ? "⚠️ EXPIROU" : `⏳ ${mm}:${String(ss).padStart(2, "0")}`}
+              </div>
+            </div>
+            <button onClick={() => { grantLocalIfSelf(row); approve(row); }} style={{
+              padding: "8px 12px", background: "linear-gradient(180deg,#22c55e,#15803d)",
+              border: "1.5px solid #86efac", color: "#fff", fontWeight: 900, fontSize: 11,
+              borderRadius: 6, cursor: "pointer",
+            }}>✓ APROVAR</button>
+            <button onClick={() => reject(row)} style={{
+              padding: "8px 10px", background: "linear-gradient(180deg,#ef4444,#b91c1c)",
+              border: "1.5px solid #fca5a5", color: "#fff", fontWeight: 900, fontSize: 11,
+              borderRadius: 6, cursor: "pointer",
+            }}>✕</button>
+          </div>
+        );
+      })}
+
+      {historico.length > 0 && (
+        <>
+          <div style={{ marginTop: 10, fontSize: 10, color: "#86efac99", fontWeight: 800, letterSpacing: 1 }}>HISTÓRICO</div>
+          {historico.map(row => (
+            <div key={row.id} style={{
+              fontSize: 10, color: row.status === "approved" ? "#86efac" : "#fca5a5",
+              padding: "4px 8px", borderBottom: "1px dashed #22c55e33",
+              display: "flex", justifyContent: "space-between",
+            }}>
+              <span>{row.status === "approved" ? "✓" : "✕"} {row.username} · {row.product_name}</span>
+              <span style={{ opacity: 0.7 }}>R$ {row.price_brl?.toFixed(2).replace(".", ",")}</span>
+            </div>
+          ))}
+        </>
+      )}
+      {msg && <div style={{ marginTop: 8, fontSize: 11, color: "#86efac" }}>{msg}</div>}
+    </div>
+  );
+}
+
+
+
 // ============ Shared style helpers ============
 const cardBox = (bg: string, border: string): React.CSSProperties => ({
   background: `linear-gradient(160deg, ${bg}, rgba(5,10,25,0.9))`,
