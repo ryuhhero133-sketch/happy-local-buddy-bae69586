@@ -19,16 +19,16 @@ export const ODDISH_EVENT: {
   windowMinutes: number;
   queueSeconds: number;
 } = {
-  /** Evento ATIVO — 48h a partir de startedAt. */
+  /** Evento ATIVO — portal permanentemente aberto durante a duração. */
   enabled: true,
-  /** Timestamp de abertura oficial (ms) — ABERTURA IMEDIATA PRA GERAL. */
+  /** Timestamp de abertura oficial (ms). */
   startedAt: 1784591072789,
   /** Encerra após 48h desde startedAt. */
   durationHours: 48,
   /** Ciclo entre aberturas (2h). */
   cycleHours: 2,
-  /** Duração da janela aberta (30 min). */
-  windowMinutes: 30,
+  /** Janela aberta = ciclo inteiro (portal sempre aberto). */
+  windowMinutes: 120,
   /** Fila de entrada em segundos (5 min). */
   queueSeconds: 5 * 60,
 };
