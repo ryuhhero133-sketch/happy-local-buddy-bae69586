@@ -17,6 +17,7 @@ import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
 import iconWorldGlobe from "@/assets/icon-world-globe-v2.png.asset.json";
 import iconCrystalBlue from "@/assets/icon-crystal-blue-diamond.png.asset.json";
 import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
+import eventBannerImg from "@/assets/event-banner.png.asset.json";
 import trainerAvatarAsset from "@/assets/trainer-avatar.png.asset.json";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
