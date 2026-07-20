@@ -827,7 +827,7 @@ type IdleState = {
   craftPoints?: number; // pontos obtidos ao fragmentar pokémons da coleção
   items: Record<string, number>;
   bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro)
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro); teamOrb = distribui EXP para todo o time por 1h
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
