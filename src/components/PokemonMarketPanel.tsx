@@ -302,6 +302,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     // Marca como processado ANTES de qualquer entrega, pra bloquear o useEffect
     // de reentregar o mesmo pokémon caso o refresh chegue antes do buyer_claimed.
     claimedBuyerRef.current.add(r.id);
+    writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
     onSpend(r.currency, r.price);
     onReturned({
       uid: `bought-${r.id}`, species: r.pokemon.species, level: r.pokemon.level,
