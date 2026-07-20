@@ -8395,8 +8395,25 @@ function IdlePage() {
             >✦ ABRIR LOJINHA ✦</button>
           </div>
 
-          {/* BANNER — Evento em breve */}
+          {/* BANNER — Evento Odisséia Oddish (clique para entrar quando aberto) */}
           <div
+            onClick={() => {
+              const st = oddishEventStatus();
+              if (st.phase !== "open") {
+                const msg = st.phase === "closed" ? `Portal fechado. Abre em ${fmtOddishMs(st.msUntilChange)}.`
+                  : st.phase === "finished" ? "Evento encerrado."
+                  : "Evento em breve.";
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: msg, tone: "warn" } })); } catch {}
+                return;
+              }
+              const target = oddishMapForCycle();
+              setIdle((s) => {
+                if (s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2") return s;
+                oddishReturnMapRef.current = s.currentMap;
+                return { ...s, currentMap: target };
+              });
+              try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 ODISSÉIA ODDISH", body: "Você entrou no portal!", tone: "success" } })); } catch {}
+            }}
             style={{
               position: "relative",
               marginTop: 2,
@@ -8408,8 +8425,10 @@ function IdlePage() {
               alignItems: "center",
               gap: 12,
               overflow: "hidden",
+              cursor: "pointer",
               boxShadow: "0 4px 18px rgba(255,138,198,0.28), inset 0 0 24px rgba(255,138,198,0.12)",
             }}
+            title="Clique para entrar no evento (quando aberto)"
           >
             <div style={{
               position: "absolute", inset: 0, pointerEvents: "none",
