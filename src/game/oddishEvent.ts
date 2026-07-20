@@ -11,10 +11,17 @@
 // Fila de entrada: 5 min (client-side, cancelável).
 // ============================================================
 
-export const ODDISH_EVENT = {
+export const ODDISH_EVENT: {
+  enabled: boolean;
+  startedAt: number;
+  durationHours: number;
+  cycleHours: number;
+  windowMinutes: number;
+  queueSeconds: number;
+} = {
   /** Evento ATIVO — 48h a partir de startedAt. */
   enabled: true,
-  /** Timestamp de abertura oficial (ms) — 20/07/2026 ~23:22 UTC. */
+  /** Timestamp de abertura oficial (ms) — 20/07/2026. */
   startedAt: 1784589700000,
   /** Encerra após 48h desde startedAt. */
   durationHours: 48,
@@ -24,7 +31,7 @@ export const ODDISH_EVENT = {
   windowMinutes: 30,
   /** Fila de entrada em segundos (5 min). */
   queueSeconds: 5 * 60,
-} as const;
+};
 
 export type OddishPhase =
   | "disabled"     // evento não ligado
