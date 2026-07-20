@@ -335,6 +335,7 @@ const mapVenenoUrl = assetUrlFromJson(mapVenenoAsset);
 const orbXpMinorUrl = assetUrlFromJson(orbXpMinorAsset);
 const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
 const orbXpSupremeUrl = assetUrlFromJson(orbXpSupremeAsset);
+const orbXpTeamUrl = assetUrlFromJson(orbXpTeamAsset);
 const npcTraderUrl = assetUrlFromJson(npcTraderAsset);
 const redLakeUrl = assetUrlFromJson(redLakeAsset);
 const volcanoUrl = assetUrlFromJson(volcanoAsset);
