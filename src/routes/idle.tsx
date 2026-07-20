@@ -133,8 +133,14 @@ import mapCadeiaAbAsset from "@/assets/map-cadeia-ab.png.asset.json";
 import mapCadeiaAb1Asset from "@/assets/map-cadeia-ab1.png.asset.json";
 import mapCadeiaF1Asset from "@/assets/map-cadeia-f1.png.asset.json";
 import mapMythshinyEventAsset from "@/assets/map-mythshiny-event.png.asset.json";
+import mapOddish1Asset from "@/assets/map-oddish-1.png.asset.json";
+import mapOddish2Asset from "@/assets/map-oddish-2.png.asset.json";
+import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
+import oddishEventGifAsset from "@/assets/oddish-event.gif.asset.json";
+import oddishShinyGifAsset from "@/assets/oddish-shiny.gif.asset.json";
 import iceBallIconAsset from "@/assets/ice-pokeball-icon.png.asset.json";
 import scrollTeleportAsset from "@/assets/scroll-teleport.png.asset.json";
+import { ODDISH_EVENT, oddishEventStatus, oddishMapForCycle, ODDISH_EVENT_POOL, SAFIRA_VERDE_BY_RARITY, fmtMs as fmtOddishMs } from "@/game/oddishEvent";
 // Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
 import mapForestAsset from "@/assets/map-forest.png.asset.json";
 import mapFlorestaSecretaAsset from "@/assets/map-floresta-secreta.png.asset.json";
@@ -414,7 +420,9 @@ type IdleMapId =
   // Cadeia estendida — Lv 3000 até 6000, continuação natural do Abismo do Dragão
   | "cadeia_ab" | "cadeia_ab1" | "cadeia_f1"
   // Evento Mítico Shiny — abre 5min a cada 1h
-  | "evento_myth";
+  | "evento_myth"
+  // Evento Oddish Odyssey — 48h, abre 30min a cada 2h
+  | "oddish_o1" | "oddish_o2";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -464,6 +472,9 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   // ═══ EVENTO GELIUS (a cada 2h, 10min de duração, troca de fase aos 5min) ═══
   gelius1: { name: "Gelius — Onda 1", diff: "EVENTO", bg: assetUrlFromJson(mapGelius1Asset), rate: 5.0, minLevel: 1,   maxLevel: 200,  element: "Gelo/Evento", stars: 5 },
   gelius2: { name: "Gelius — Onda 2", diff: "EVENTO", bg: assetUrlFromJson(mapGelius2Asset), rate: 7.0, minLevel: 400, maxLevel: 1000, element: "Gelo/Evento", stars: 8 },
+  // ═══ EVENTO ODDISH ODYSSEY — 48h, abre 30min a cada 2h ═══
+  oddish_o1: { name: "Odisséia Oddish — Bosque",   diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
+  oddish_o2: { name: "Odisséia Oddish — Clareira", diff: "EVENTO", bg: assetUrlFromJson(mapOddish2Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -859,7 +870,7 @@ type IdleState = {
   redeemedCodes?: Record<string, boolean>;
 };
 
-export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[] };
+export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
 
 export const MAX_COLLECTION = 500;
 
@@ -900,6 +911,7 @@ const ITEM_IMG: Record<string, string> = {
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
   premium_box: premiumBoxImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
+  safira_verde: assetUrlFromJson(safiraVerdeAsset),
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -3958,11 +3970,13 @@ function IdlePage() {
           queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
           return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
         }
+        const isOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2";
+        const finalLevel = isOddishEvent ? 1 : np.level;
         return {
           ...s,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
-          collection: [...prev, { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now(), traits: rolled }],
+          collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled, ...(isOddishEvent ? { event: "oddish_odyssey" } : {}) }],
         };
       });
     } else {
@@ -4243,12 +4257,18 @@ function IdlePage() {
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
       const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
-      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft).`, "cap");
+      const isEvent = entry.event === "oddish_odyssey";
+      const safiraGain = isEvent ? (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1) : 0;
+      const bonus = safiraGain > 0 ? ` +${safiraGain} 💚 Safira Verde` : "";
+      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft${bonus}).`, "cap");
       consumedUidsRef.current.add(uid);
       return {
         ...s,
         collection: col.filter((e) => e.uid !== uid),
         craftPoints: (s.craftPoints ?? 0) + gain,
+        items: safiraGain > 0
+          ? { ...s.items, safira_verde: (s.items?.safira_verde ?? 0) + safiraGain }
+          : s.items,
       };
     });
     // Defesa: se por algum motivo estiver no bench, também remove
@@ -4445,6 +4465,12 @@ function IdlePage() {
           // Pareia com o líder — grande variação para não ficar previsível
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
+        } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2") {
+          // Odisséia Oddish — pool só do evento; TODOS épicos; nível escala com o treinador.
+          pool = ([...ODDISH_EVENT_POOL] as Species[]).filter(hasGif);
+          if (pool.length === 0) pool = ["oddish"] as Species[];
+          forcedRarity = "epic";
+          mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
         }
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
@@ -7598,6 +7624,8 @@ function IdlePage() {
                   { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
                 ],
                 evento_myth: [],
+                oddish_o1: [],
+                oddish_o2: [],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
@@ -10335,6 +10363,7 @@ function TabOverlay({
           skin_ticket: "Ticket de Skin ✦",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯",
+          safira_verde: "Safira Verde 💚",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
