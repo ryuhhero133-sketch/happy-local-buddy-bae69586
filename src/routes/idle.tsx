@@ -5347,108 +5347,127 @@ function IdlePage() {
 
         {/* ============ COLUNA ESQUERDA ============ */}
         <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
-          {/* --- PERFIL DE TREINADOR (clássico) --- */}
           {(() => {
             const trainerLv = idle.trainerLevel ?? 1;
             const nextAt = trainerXpToNext(trainerLv);
             const curXp = idle.trainerXp ?? 0;
             const xpPct = Math.max(0, Math.min(100, (curXp / nextAt) * 100));
-            const name = (identity?.name || "Treinador").slice(0, 16);
+            const name = (identity?.name || "Treinador").slice(0, 14);
             const vip = isVip();
+            const accent = vip ? "#ffd66b" : "#c9b8ff";
             return (
               <div style={{
                 position: "relative",
-                padding: "8px 10px 8px 8px",
-                background: "linear-gradient(180deg, #241528 0%, #120a1a 100%)",
-                border: "1px solid #f5cf6b",
-                borderRadius: 12,
-                boxShadow: "0 4px 14px rgba(0,0,0,0.55), inset 0 1px 0 rgba(245,207,107,0.35), 0 0 18px rgba(245,207,107,0.12)",
-                display: "flex", alignItems: "center", gap: 10,
+                padding: "7px 9px 7px 7px",
+                background:
+                  "linear-gradient(180deg, rgba(36,20,44,0.96) 0%, rgba(14,8,22,0.98) 100%)",
+                border: `1px solid ${accent}55`,
+                borderRadius: 10,
+                boxShadow:
+                  `0 3px 12px rgba(0,0,0,0.55), inset 0 1px 0 ${accent}33, 0 0 14px ${accent}18`,
+                display: "flex", alignItems: "center", gap: 9,
+                overflow: "hidden",
               }}>
-                {/* Cantos ornamentais */}
-                <span style={{ position: "absolute", top: -2, left: -2, width: 10, height: 10, borderTop: "2px solid #ffd66b", borderLeft: "2px solid #ffd66b", borderTopLeftRadius: 10 }} />
-                <span style={{ position: "absolute", top: -2, right: -2, width: 10, height: 10, borderTop: "2px solid #ffd66b", borderRight: "2px solid #ffd66b", borderTopRightRadius: 10 }} />
-                <span style={{ position: "absolute", bottom: -2, left: -2, width: 10, height: 10, borderBottom: "2px solid #ffd66b", borderLeft: "2px solid #ffd66b", borderBottomLeftRadius: 10 }} />
-                <span style={{ position: "absolute", bottom: -2, right: -2, width: 10, height: 10, borderBottom: "2px solid #ffd66b", borderRight: "2px solid #ffd66b", borderBottomRightRadius: 10 }} />
+                {/* linha superior dourada muito fina */}
+                <span style={{
+                  position: "absolute", top: 0, left: 8, right: 8, height: 1,
+                  background: `linear-gradient(90deg, transparent, ${accent}bb, transparent)`,
+                }} />
 
-                {/* Retrato / medalhão */}
+                {/* Avatar */}
                 <div style={{
-                  width: 54, height: 54, borderRadius: "50%",
-                  background: "conic-gradient(from 220deg, #ffd66b, #7a4f18, #ffd66b, #4a2e08, #ffd66b)",
-                  padding: 2, flexShrink: 0,
-                  boxShadow: "0 0 14px rgba(245,207,107,0.55), inset 0 0 6px rgba(0,0,0,0.6)",
+                  width: 46, height: 46, flexShrink: 0,
+                  borderRadius: 10,
+                  background: `linear-gradient(160deg, ${accent}66, rgba(0,0,0,0.6))`,
+                  padding: 1.5,
+                  boxShadow: `0 0 10px ${accent}55, inset 0 0 4px rgba(0,0,0,0.5)`,
                   position: "relative",
                 }}>
                   <div style={{
-                    width: "100%", height: "100%", borderRadius: "50%",
-                    background: "radial-gradient(circle at 30% 25%, #6a3ea8 0%, #2a1638 55%, #0b0510 100%)",
-                    display: "grid", placeItems: "center",
-                    border: "1px solid #2a1638",
+                    width: "100%", height: "100%", borderRadius: 8,
+                    background: "radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)",
+                    display: "grid", placeItems: "center", overflow: "hidden",
+                    border: "1px solid rgba(0,0,0,0.6)",
                   }}>
-                    <span style={{ fontSize: 24, filter: "drop-shadow(0 2px 0 #000)" }}>{vip ? "👑" : "🎓"}</span>
+                    <img
+                      src={assetUrlFromJson(trainerAvatarAsset)}
+                      alt=""
+                      width={44} height={44}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.6))" }}
+                    />
                   </div>
                   {/* Selo de nível */}
                   <div style={{
-                    position: "absolute", bottom: -4, right: -4,
-                    minWidth: 22, height: 22, padding: "0 5px",
-                    background: "radial-gradient(circle at 30% 30%, #fff2b8, #d9a733 55%, #6b3d0a)",
-                    color: "#2a1a0a", fontWeight: 900, fontSize: 11,
-                    borderRadius: 999, border: "2px solid #0b0510",
+                    position: "absolute", bottom: -3, right: -3,
+                    minWidth: 20, height: 18, padding: "0 4px",
+                    background: "linear-gradient(180deg, #ffe89a, #c48e2a 55%, #6b3d0a)",
+                    color: "#231407", fontWeight: 900, fontSize: 10,
+                    borderRadius: 6, border: "1.5px solid #0b0510",
                     display: "grid", placeItems: "center",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.7)",
-                    fontFamily: "'Cinzel', Georgia, serif",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.7)",
+                    fontFamily: "'Cinzel', Georgia, serif", lineHeight: 1,
                   }}>{trainerLv}</div>
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+                  {/* Nome + VIP */}
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 5,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {vip && (
+                      <span style={{
+                        fontSize: 8, fontWeight: 900, letterSpacing: 1,
+                        padding: "1px 5px", borderRadius: 3,
+                        background: "linear-gradient(180deg, #ffd66b, #b8862a)",
+                        color: "#231407", border: "1px solid rgba(0,0,0,0.4)",
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.5)", flexShrink: 0,
+                      }}>VIP</span>
+                    )}
                     <span style={{
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       fontFamily: "'Cinzel', Georgia, serif",
-                      fontSize: 13, fontWeight: 900, letterSpacing: 0.6,
-                      color: vip ? "#ffe89a" : "#f7ecf7",
-                      textShadow: "0 1px 0 #000, 0 0 6px rgba(245,207,107,0.35)",
-                    }}>
-                      {vip && <span style={{ color: "#ffd66b" }}>✦ </span>}{name}
-                    </span>
-                    <span style={{
-                      fontSize: 9, fontWeight: 900, letterSpacing: 1,
-                      padding: "2px 7px", borderRadius: 999,
-                      background: "linear-gradient(180deg, #ffd66b, #b8862a)", color: "#2a1a0a",
-                      border: "1px solid rgba(0,0,0,0.5)",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.5)",
-                    }}>NV {trainerLv}</span>
+                      fontSize: 12.5, fontWeight: 900, letterSpacing: 0.5,
+                      color: "#f7ecf7",
+                      textShadow: "0 1px 0 #000",
+                    }}>{name}</span>
                   </div>
-                  {/* Barra de XP com moldura */}
+
+                  {/* Barra de XP fina */}
                   <div style={{
-                    marginTop: 4,
-                    height: 8, background: "#0b0510", borderRadius: 4,
-                    border: "1px solid #6b3d0a",
-                    boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)",
-                    position: "relative", overflow: "hidden",
+                    marginTop: 4, position: "relative",
+                    height: 5, background: "#0b0510", borderRadius: 3,
+                    border: "1px solid rgba(245,207,107,0.25)",
+                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)",
+                    overflow: "hidden",
                   }}>
                     <div style={{
                       width: `${xpPct}%`, height: "100%",
-                      background: "linear-gradient(180deg, #ffe89a 0%, #ffd66b 45%, #b8862a 100%)",
-                      boxShadow: "0 0 8px rgba(245,207,107,0.7)",
+                      background: "linear-gradient(180deg, #ffe89a 0%, #ffd66b 50%, #b8862a 100%)",
+                      boxShadow: "0 0 5px rgba(245,207,107,0.6)",
                       transition: "width 400ms",
                     }} />
-                    <span style={{
-                      position: "absolute", inset: 0, display: "grid", placeItems: "center",
-                      fontSize: 9, fontWeight: 900, color: "#fff",
-                      textShadow: "0 1px 2px #000", letterSpacing: 0.6,
-                    }}>{curXp} / {nextAt} XP</span>
                   </div>
+                  <div style={{
+                    marginTop: 2, fontSize: 8.5, letterSpacing: 0.4,
+                    color: "#a8a0b8", fontFamily: "monospace",
+                    display: "flex", justifyContent: "space-between",
+                  }}>
+                    <span>XP</span>
+                    <span style={{ color: "#e8d089" }}>{curXp} / {nextAt}</span>
+                  </div>
+
                   {/* Pills de status */}
-                  <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "nowrap" }}>
+                  <div style={{ display: "flex", gap: 3, marginTop: 4, flexWrap: "nowrap" }}>
                     <span style={pillStyle("#ffd66b")}>🪙 {fmtK(idle.totals.gold)}</span>
-                    <span style={pillStyle("#ff97e1")}>★ {idle.totals.captured}/151</span>
+                    <span style={pillStyle("#ff97e1")}>★ {idle.totals.captured}</span>
                     <span style={pillStyle("#8fd0ff")}>⚔ {team.length}/6</span>
                   </div>
                 </div>
               </div>
             );
           })()}
+
 
 
           <Panel title="SUA EQUIPE" accent="#c92a2a">
