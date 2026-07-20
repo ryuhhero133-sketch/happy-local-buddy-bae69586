@@ -1948,6 +1948,7 @@ function IdlePage() {
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [codeMsg, setCodeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [cashShopOpen, setCashShopOpen] = useState(false);
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
@@ -8223,18 +8224,19 @@ function IdlePage() {
             </div>
 
             <button
-              disabled
+              onClick={() => setCashShopOpen(true)}
               style={{
                 marginTop: 10, width: "100%",
-                background: "linear-gradient(135deg, rgba(70,50,110,0.6), rgba(45,30,80,0.6))",
-                border: "1px dashed #a78bfa",
-                color: "#c8b8e8", fontWeight: 900, fontSize: 10, letterSpacing: 1.5,
-                borderRadius: 8, padding: "8px", cursor: "not-allowed",
-                textShadow: "0 1px 0 rgba(0,0,0,0.5)",
+                background: "linear-gradient(135deg, #f5cf6b 0%, #ffe08a 50%, #d9a441 100%)",
+                border: "1.5px solid #ffe08a",
+                color: "#1a0a26", fontWeight: 900, fontSize: 11, letterSpacing: 1.5,
+                borderRadius: 8, padding: "9px", cursor: "pointer",
+                textShadow: "0 1px 0 rgba(255,255,255,0.4)",
+                boxShadow: "0 3px 12px rgba(245,207,107,0.5), inset 0 1px 0 rgba(255,255,255,0.3)",
                 position: "relative",
               }}
-              title="Loja em desenvolvimento — em breve"
-            >🔒 DESBLOQUEIO EM BREVE</button>
+              title="Abrir Lojinha Cash"
+            >✦ ABRIR LOJINHA ✦</button>
           </div>
 
           {/* BANNER — Evento em breve */}
