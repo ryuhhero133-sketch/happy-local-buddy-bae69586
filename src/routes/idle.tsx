@@ -11067,7 +11067,11 @@ function TabOverlay({
           </div>
 
           {orbPicker && (() => {
-            const eligible = collection.filter((c) => c.rarity === orbPicker.rarity);
+            // Exclui Pokémon do time e travados — evita "não consome / orb infinito"
+            // quando o jogador tenta trocar um Pokémon que está em uso.
+            const eligible = collection.filter((c) =>
+              c.rarity === orbPicker.rarity && !teamUidSet.has(c.uid) && !lockedSet.has(c.uid),
+            );
             const selCount = orbPickerSel.size;
             const canConfirm = selCount === orbPicker.count;
             return (
