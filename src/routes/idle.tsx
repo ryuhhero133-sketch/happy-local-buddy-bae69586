@@ -17,6 +17,7 @@ import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
 import iconWorldGlobe from "@/assets/icon-world-globe-v2.png.asset.json";
 import iconCrystalBlue from "@/assets/icon-crystal-blue-diamond.png.asset.json";
 import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
+import eventBannerImg from "@/assets/event-banner.png.asset.json";
 import trainerAvatarAsset from "@/assets/trainer-avatar.png.asset.json";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
@@ -8212,6 +8213,66 @@ function IdlePage() {
               title="Loja em desenvolvimento — em breve"
             >🔒 DESBLOQUEIO EM BREVE</button>
           </div>
+
+          {/* BANNER — Evento em breve */}
+          <div
+            style={{
+              position: "relative",
+              marginTop: 2,
+              background: "linear-gradient(135deg, #1b0f2e 0%, #2a1548 55%, #4a1c6e 100%)",
+              border: "2px solid #ff8ac6",
+              borderRadius: 12,
+              padding: "10px 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              overflow: "hidden",
+              boxShadow: "0 4px 18px rgba(255,138,198,0.28), inset 0 0 24px rgba(255,138,198,0.12)",
+            }}
+          >
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: "radial-gradient(circle at 85% 30%, rgba(255,180,220,0.28), transparent 55%), radial-gradient(circle at 10% 80%, rgba(140,90,220,0.25), transparent 60%)",
+            }} />
+            <div style={{
+              width: 58, height: 58, flexShrink: 0, borderRadius: "50%",
+              overflow: "hidden",
+              border: "2px solid #ffd6ec",
+              boxShadow: "0 0 12px rgba(255,138,198,0.6), inset 0 0 8px rgba(0,0,0,0.4)",
+              background: "#1a0a26",
+              position: "relative",
+            }}>
+              <img
+                src={assetUrlFromJson(eventBannerImg)}
+                alt="Evento"
+                width={58}
+                height={58}
+                className="cash-pack-float"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            </div>
+            <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
+              <div style={{
+                fontSize: 11, fontWeight: 900, color: "#ffd6ec",
+                letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
+              }}>✦ EVENTO ESPECIAL</div>
+              <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", marginTop: 2, lineHeight: 1.2 }}>
+                Em breve — Abertura
+              </div>
+              <div style={{ fontSize: 9.5, color: "#e6c8f0", marginTop: 3, lineHeight: 1.3 }}>
+                Um novo evento está sendo preparado. Fique atento!
+              </div>
+            </div>
+            <span style={{
+              position: "absolute", top: 6, right: 8,
+              fontSize: 9, fontWeight: 900, letterSpacing: 1,
+              background: "linear-gradient(135deg, #ff8ac6, #b464e6)",
+              color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
+              boxShadow: "0 0 8px rgba(255,138,198,0.6)",
+            }}>EM BREVE</span>
+          </div>
+
+
 
 
 
