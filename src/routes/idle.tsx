@@ -10193,6 +10193,29 @@ function TabOverlay({
               }}
               title="Mostrar somente Pokémon travados"
             >🔒 {colOnlyLocked ? "SÓ TRAVADOS" : "TRAVADOS"}</button>
+            <button
+              onClick={() => { setBulkMode((v) => !v); setBulkSel(new Set()); }}
+              style={{
+                padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
+                border: "1px solid #6b21a8", cursor: "pointer",
+                background: bulkMode ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#f3e8ff",
+                color: bulkMode ? "#fff" : "#5b21b6",
+                boxShadow: bulkMode ? "0 0 10px rgba(167,139,250,0.6)" : "none",
+              }}
+              title="Selecionar vários para fragmentar de uma vez"
+            >☑ {bulkMode ? "SELECIONANDO" : "SELECIONAR"}</button>
+            {bulkMode && bulkSel.size > 0 && (
+              <button
+                onClick={() => openFragConfirm([...bulkSel])}
+                style={{
+                  padding: "6px 14px", fontSize: 12, fontWeight: 900, borderRadius: 8,
+                  border: "1px solid #3b0f7a", cursor: "pointer",
+                  background: "linear-gradient(180deg,#c084fc,#6b21a8)",
+                  color: "#fff",
+                  boxShadow: "0 0 12px rgba(192,132,252,0.7)",
+                }}
+              >⚒️ FRAGMENTAR {bulkSel.size}</button>
+            )}
             <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 800 }}>
               🔒 {lockedSet.size} travados
             </div>
