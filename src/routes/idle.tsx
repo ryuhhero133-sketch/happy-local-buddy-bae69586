@@ -11150,10 +11150,15 @@ function TabOverlay({
                     >CANCELAR</button>
                     <button
                       disabled={!canConfirm}
-                      onClick={() => {
-                        onTradeOrb(orbPicker.orbId, Array.from(orbPickerSel));
+                      onClick={(e) => {
+                        const btn = e.currentTarget;
+                        if (btn.dataset.busy === "1") return;
+                        btn.dataset.busy = "1";
+                        btn.disabled = true;
+                        const uids = Array.from(orbPickerSel);
                         setOrbPicker(null);
                         setOrbPickerSel(new Set());
+                        onTradeOrb(orbPicker.orbId, uids);
                       }}
                       style={{
                         flex: 2, padding: "10px", fontWeight: 900,
