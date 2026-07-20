@@ -8224,7 +8224,12 @@ function IdlePage() {
             </div>
 
             <button
-              onClick={() => setCashShopOpen(true)}
+              onClick={() => {
+                const c = window.prompt("Código de acesso da Lojinha:");
+                if (c == null) return;
+                if (c.trim().toLowerCase() === "rbx") setCashShopOpen(true);
+                else window.alert("Código inválido.");
+              }}
               style={{
                 marginTop: 10, width: "100%",
                 background: "linear-gradient(135deg, #f5cf6b 0%, #ffe08a 50%, #d9a441 100%)",

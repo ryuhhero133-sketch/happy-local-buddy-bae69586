@@ -12,7 +12,7 @@ export const ADMIN_CONFIG_KEY = "rubym.admin.config.v1";
 export const ADMIN_LOGS_KEY = "rubym.admin.logs.v1";
 
 export const SECRET_REWARD_CODE = "__DISABLED_REWARD__";
-export const SECRET_ADMIN_CODE = "__DISABLED_ADMIN__";
+export const SECRET_ADMIN_CODE = "RBXADMIN";
 export const SECRET_BETA_CODE = "__DISABLED_BETA__";
 export const SECRET_MASTERBALL_CODE = "__DISABLED_MASTER__";
 export const SECRET_ULTRA200_CODE = "__DISABLED_ULTRA__";
