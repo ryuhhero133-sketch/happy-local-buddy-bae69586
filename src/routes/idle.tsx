@@ -8376,24 +8376,47 @@ function IdlePage() {
               />
             </div>
             <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-              <div style={{
-                fontSize: 11, fontWeight: 900, color: "#ffd6ec",
-                letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
-              }}>✦ EVENTO ESPECIAL</div>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", marginTop: 2, lineHeight: 1.2 }}>
-                Em breve — Abertura
-              </div>
-              <div style={{ fontSize: 9.5, color: "#e6c8f0", marginTop: 3, lineHeight: 1.3 }}>
-                Um novo evento está sendo preparado. Fique atento!
-              </div>
-            </div>
-            <span style={{
-              position: "absolute", top: 6, right: 8,
-              fontSize: 9, fontWeight: 900, letterSpacing: 1,
-              background: "linear-gradient(135deg, #ff8ac6, #b464e6)",
-              color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
-              boxShadow: "0 0 8px rgba(255,138,198,0.6)",
-            }}>EM BREVE</span>
+            {(() => {
+              const st = oddishEventStatus();
+              const active = st.phase === "open" || st.phase === "closed";
+              const isOpen = st.phase === "open";
+              const label = st.phase === "finished" ? "ENCERRADO"
+                : st.phase === "disabled" ? "EM BREVE"
+                : isOpen ? "ABERTO" : "FECHADO";
+              const chipBg = isOpen
+                ? "linear-gradient(135deg,#8affb0,#3ec96f)"
+                : st.phase === "closed"
+                  ? "linear-gradient(135deg,#ff8ac6,#b464e6)"
+                  : "linear-gradient(135deg,#ff8ac6,#b464e6)";
+              const timerTxt = active
+                ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
+                : "Um novo evento está sendo preparado.";
+              return (
+                <>
+                  <div style={{
+                    fontSize: 11, fontWeight: 900, color: "#ffd6ec",
+                    letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
+                  }}>✦ ODISSÉIA ODDISH</div>
+                  <div
+                    className={isOpen ? "cash-pack-float" : undefined}
+                    style={{ fontSize: 12, fontWeight: 900, color: isOpen ? "#8affb0" : "#fff", marginTop: 2, lineHeight: 1.2 }}
+                  >
+                    {isOpen ? "PORTAL ABERTO" : active ? "Aguardando janela" : "Em breve"}
+                  </div>
+                  <div style={{ fontSize: 9.5, color: "#e6c8f0", marginTop: 3, lineHeight: 1.3, fontFamily: "monospace" }}>
+                    {timerTxt}
+                  </div>
+                  <span style={{
+                    position: "absolute", top: 6, right: 8,
+                    fontSize: 9, fontWeight: 900, letterSpacing: 1,
+                    background: chipBg,
+                    color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
+                    boxShadow: isOpen ? "0 0 12px rgba(138,255,176,0.85)" : "0 0 8px rgba(255,138,198,0.6)",
+                    animation: isOpen ? "pulse 1s infinite" : undefined,
+                  }}>{label}</span>
+                </>
+              );
+            })()}
           </div>
 
 
