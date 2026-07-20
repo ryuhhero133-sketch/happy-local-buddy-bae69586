@@ -135,6 +135,7 @@ import mapVenenoAsset from "@/assets/map-veneno.png.asset.json";
 import orbXpMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
 import orbXpMajorAsset from "@/assets/orb-xp-major.png.asset.json";
 import orbXpSupremeAsset from "@/assets/orb-xp-supreme.png.asset.json";
+import orbXpTeamAsset from "@/assets/orb-xp-team.png.asset.json";
 import redLakeAsset from "@/assets/red-lake.png.asset.json";
 import volcanoAsset from "@/assets/volcano.png.asset.json";
 import mapBeachUrl from "@/assets/map-beach-idle.png";
