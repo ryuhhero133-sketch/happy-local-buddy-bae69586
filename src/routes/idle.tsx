@@ -4257,12 +4257,18 @@ function IdlePage() {
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
       const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
-      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft).`, "cap");
+      const isEvent = entry.event === "oddish_odyssey";
+      const safiraGain = isEvent ? (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1) : 0;
+      const bonus = safiraGain > 0 ? ` +${safiraGain} 💚 Safira Verde` : "";
+      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft${bonus}).`, "cap");
       consumedUidsRef.current.add(uid);
       return {
         ...s,
         collection: col.filter((e) => e.uid !== uid),
         craftPoints: (s.craftPoints ?? 0) + gain,
+        items: safiraGain > 0
+          ? { ...s.items, safira_verde: (s.items?.safira_verde ?? 0) + safiraGain }
+          : s.items,
       };
     });
     // Defesa: se por algum motivo estiver no bench, também remove
@@ -10357,6 +10363,7 @@ function TabOverlay({
           skin_ticket: "Ticket de Skin ✦",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯",
+          safira_verde: "Safira Verde 💚",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
