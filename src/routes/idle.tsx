@@ -4831,11 +4831,19 @@ function IdlePage() {
   const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => {
     const trade = ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
+    // Dedup imediato de UIDs (defensivo — evita orb infinito por seleção duplicada)
+    const uniqUids = Array.from(new Set(uids));
     setIdle((s) => {
       const col = s.collection ?? [];
-      const selected = col.filter((c) => uids.includes(c.uid) && c.rarity === trade.rarity);
+      const teamUids = new Set((teamRef.current ?? []).map((p) => p.uid));
+      const selected = col.filter(
+        (c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity && !teamUids.has(c.uid),
+      );
       if (selected.length !== trade.count) {
-        pushChat(`Selecione exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} para essa troca.`, "info");
+        pushChat(
+          `Não foi possível trocar: selecione exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} fora do time.`,
+          "info",
+        );
         return s;
       }
       const removeSet = new Set(selected.map((c) => c.uid));
@@ -4850,6 +4858,7 @@ function IdlePage() {
       };
     });
   };
+
 
 
 
@@ -11067,7 +11076,11 @@ function TabOverlay({
           </div>
 
           {orbPicker && (() => {
-            const eligible = collection.filter((c) => c.rarity === orbPicker.rarity);
+            // Exclui Pokémon do time e travados — evita "não consome / orb infinito"
+            // quando o jogador tenta trocar um Pokémon que está em uso.
+            const eligible = collection.filter((c) =>
+              c.rarity === orbPicker.rarity && !teamUidSet.has(c.uid) && !lockedSet.has(c.uid),
+            );
             const selCount = orbPickerSel.size;
             const canConfirm = selCount === orbPicker.count;
             return (
@@ -11146,10 +11159,15 @@ function TabOverlay({
                     >CANCELAR</button>
                     <button
                       disabled={!canConfirm}
-                      onClick={() => {
-                        onTradeOrb(orbPicker.orbId, Array.from(orbPickerSel));
+                      onClick={(e) => {
+                        const btn = e.currentTarget;
+                        if (btn.dataset.busy === "1") return;
+                        btn.dataset.busy = "1";
+                        btn.disabled = true;
+                        const uids = Array.from(orbPickerSel);
                         setOrbPicker(null);
                         setOrbPickerSel(new Set());
+                        onTradeOrb(orbPicker.orbId, uids);
                       }}
                       style={{
                         flex: 2, padding: "10px", fontWeight: 900,

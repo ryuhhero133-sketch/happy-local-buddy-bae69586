@@ -64,12 +64,20 @@ const RARITY_COLOR: Record<string, string> = {
 };
 
 const cooldownKey = (uid: string) => `rubym.market.cancelUntil.${uid}`;
+const claimedBuyerKey = (uid: string) => `rubym.market.claimedBuyer.${uid}`;
+const claimedSellerKey = (uid: string) => `rubym.market.claimedSeller.${uid}`;
 
 function readCancelUntil(uid: string): number {
   try { return Number(localStorage.getItem(cooldownKey(uid)) ?? 0); } catch { return 0; }
 }
 function writeCancelUntil(uid: string, ts: number) {
   try { localStorage.setItem(cooldownKey(uid), String(ts)); } catch { /* noop */ }
+}
+function readClaimSet(key: string): Set<string> {
+  try { const r = localStorage.getItem(key); return new Set(r ? (JSON.parse(r) as string[]) : []); } catch { return new Set(); }
+}
+function writeClaimSet(key: string, s: Set<string>) {
+  try { localStorage.setItem(key, JSON.stringify(Array.from(s).slice(-500))); } catch { /* noop */ }
 }
 
 function fmtTime(ms: number) {
@@ -103,11 +111,16 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   const [price, setPrice] = useState<number>(1000);
   const [currency, setCurrency] = useState<Currency>("gold");
   const [offersOnly, setOffersOnly] = useState<boolean>(false);
-  // Dedup: IDs de anúncio já processados nesta sessão (compra ou payout).
-  // Evita que o useEffect abaixo reentregue o pokémon quando o refresh
-  // vê a linha ainda com buyer_claimed=false por causa da latência do UPDATE.
+  // Dedup: IDs de anúncio já processados. Persistido em localStorage por usuário
+  // pra sobreviver a F5 — caso o UPDATE de buyer_claimed/payout_claimed seja
+  // bloqueado pela RLS, o cliente não reprocessa (não cobra de novo, não duplica).
   const claimedBuyerRef = useRef<Set<string>>(new Set());
   const claimedSellerRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!identity?.id) return;
+    claimedBuyerRef.current = readClaimSet(claimedBuyerKey(identity.id));
+    claimedSellerRef.current = readClaimSet(claimedSellerKey(identity.id));
+  }, [identity?.id]);
   const [offers, setOffers] = useState<OfferRow[]>([]);
 
   useEffect(() => {
@@ -187,6 +200,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
         onSpend(r.currency, r.price);
       }
       claimedBuyerRef.current.add(r.id);
+      writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
       const entry: CollectionEntry = {
         uid: `bought-${r.id}`,
         species: r.pokemon.species,
@@ -206,6 +220,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     for (const r of mySold) {
       if (claimedSellerRef.current.has(r.id)) continue;
       claimedSellerRef.current.add(r.id);
+      writeClaimSet(claimedSellerKey(identity.id), claimedSellerRef.current);
       onEarn(r.currency, r.price);
       supabase.from("pokemon_market").update({ payout_claimed: true }).eq("id", r.id).then(() => {
         pushChat(`💸 Recebeu ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"} da venda de ${r.pokemon.species}.`, "cap");
@@ -287,6 +302,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     // Marca como processado ANTES de qualquer entrega, pra bloquear o useEffect
     // de reentregar o mesmo pokémon caso o refresh chegue antes do buyer_claimed.
     claimedBuyerRef.current.add(r.id);
+    writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
     onSpend(r.currency, r.price);
     onReturned({
       uid: `bought-${r.id}`, species: r.pokemon.species, level: r.pokemon.level,
