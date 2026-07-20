@@ -10425,7 +10425,7 @@ function TabOverlay({
             </div>
 
             {/* GRID LAYOUT — sidebar categorias + grade */}
-            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "168px minmax(0, 1fr)", gap: 12 }}>
+            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12 }}>
               {/* SIDEBAR CATEGORIAS */}
               <div style={{
                 background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
