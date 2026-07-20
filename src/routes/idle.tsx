@@ -1943,9 +1943,36 @@ function IdlePage() {
   const redeemCrystalCode = () => {
     const raw = normalizeCode(codeInput);
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
-    const used = (idleRef.current as any).redeemedCodes ?? [];
-    if (used.includes(raw)) { setCodeMsg({ kind: "err", text: "Código já utilizado." }); return; }
-    // Códigos removidos — todos retornam inválido
+    const codeKey = `rubym.code.${raw}.used`;
+    try { if (localStorage.getItem(codeKey) === "1") { setCodeMsg({ kind: "err", text: "Código já utilizado." }); return; } } catch {}
+
+    if (raw === "MYTHVIP30") {
+      const nowT = Date.now();
+      const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
+        buffs: {
+          ...s.buffs,
+          expMult: Math.max(s.buffs.expMult ?? 0, 0.3),
+          expMultUntil: Math.max(s.buffs.expMultUntil ?? 0, nowT + THIRTY_D),
+          goldMult: Math.max(s.buffs.goldMult ?? 0, 0.3),
+          goldMultUntil: Math.max(s.buffs.goldMultUntil ?? 0, nowT + THIRTY_D),
+        },
+      }));
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "✦ Ovo Mítico + VIP 30 dias entregues!" });
+      pushChat(`🎉 Código MYTHVIP30: 1× Ovo Mítico ✦ + VIP 30 dias (+30% XP/Gold).`, "cap");
+      return;
+    }
+
+    if (raw === "CRYSTAL20K") {
+      setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + 20000 } }));
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "💎 +20 000 Cristais entregues!" });
+      pushChat(`🎉 Código CRYSTAL20K: +20 000 💎 Cristais.`, "cap");
+      return;
+    }
 
     setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
