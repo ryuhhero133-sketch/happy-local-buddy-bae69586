@@ -11675,6 +11675,39 @@ function TabOverlay({
           </div>
         );
       })()}
+
+      {/* ============ LOJINHA CASH ============ */}
+      <CashShopModal
+        open={cashShopOpen}
+        onClose={() => setCashShopOpen(false)}
+        identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
+        wallet={{
+          coins: idle.bank.gold,
+          crystals: idle.bank.crystals,
+        }}
+        onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
+        onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
+        onGrantItem={(id, qty) => {
+          try {
+            const raw = localStorage.getItem("rubym.save.v2");
+            if (!raw) return;
+            const save = JSON.parse(raw);
+            if (id === "pokeball" || id === "greatball" || id === "ultraball" || id === "masterball" || id === "fastball") {
+              save.balls = save.balls ?? {};
+              save.balls[id] = (save.balls[id] ?? 0) + qty;
+            } else {
+              save.inventory = save.inventory ?? {};
+              save.inventory[id] = (save.inventory[id] ?? 0) + qty;
+            }
+            localStorage.setItem("rubym.save.v2", JSON.stringify(save));
+            window.dispatchEvent(new StorageEvent("storage", { key: "rubym.save.v2" }));
+          } catch { /* ignore */ }
+        }}
+        codeInput={codeInput}
+        setCodeInput={setCodeInput}
+        codeMsg={codeMsg}
+        onRedeemCode={() => redeemCrystalCode()}
+      />
     </div>
   );
 }
