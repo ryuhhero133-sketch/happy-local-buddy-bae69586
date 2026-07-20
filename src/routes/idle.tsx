@@ -10464,14 +10464,14 @@ function TabOverlay({
                       <img
                         src={c.icon}
                         alt=""
-                        width={28}
-                        height={28}
+                        width={44}
+                        height={44}
                         style={{
                           imageRendering: "pixelated", flexShrink: 0,
                           filter: active
-                            ? "drop-shadow(0 0 4px rgba(255,220,120,0.9)) drop-shadow(0 2px 2px rgba(0,0,0,0.35))"
-                            : "drop-shadow(0 1px 1px rgba(0,0,0,0.3))",
-                          animation: active ? "cat-bounce 1.4s ease-in-out infinite" : undefined,
+                            ? "drop-shadow(0 0 8px rgba(212,162,255,0.95)) drop-shadow(0 2px 3px rgba(0,0,0,0.55))"
+                            : "drop-shadow(0 0 4px rgba(168,85,247,0.4)) drop-shadow(0 1px 2px rgba(0,0,0,0.55))",
+                          animation: active ? "cat-bounce 1.4s ease-in-out infinite" : "cat-bounce 3.2s ease-in-out infinite",
                         }}
                       />
                       <span style={{ flex: 1 }}>{c.label}</span>
