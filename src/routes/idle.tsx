@@ -11150,6 +11150,146 @@ function TabOverlay({
       {statsCardPet && (
         <PokemonStatsCard pet={statsCardPet} team={team} gifSrc={gifMap[statsCardPet.species]} onClose={() => setStatsCardPet(null)} />
       )}
+
+      {fragConfirm && (() => {
+        const rarityColor: Partial<Record<Rarity, string>> = {
+          common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
+          epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
+        };
+        const list = fragConfirm.entries;
+        const isBulk = list.length > 1;
+        return (
+          <div
+            onClick={() => setFragConfirm(null)}
+            style={{ position: "fixed", inset: 0, zIndex: 10001, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(6px)", display: "grid", placeItems: "center", padding: 16 }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "min(560px, 100%)", maxHeight: "88vh", overflowY: "auto",
+                background: "linear-gradient(160deg, #2a0f4a 0%, #1a0526 55%, #0b0510 100%)",
+                border: "3px solid #a78bfa",
+                borderRadius: 18,
+                boxShadow: "0 20px 60px rgba(0,0,0,0.85), 0 0 40px rgba(167,139,250,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
+                position: "relative", overflow: "hidden",
+              }}
+            >
+              <div style={{
+                position: "absolute", inset: 0, pointerEvents: "none",
+                background: "radial-gradient(circle at 50% 10%, rgba(196,181,253,0.28), transparent 55%)",
+              }} />
+              <div style={{
+                padding: "16px 18px", display: "flex", alignItems: "center", gap: 14,
+                borderBottom: "2px solid rgba(167,139,250,0.35)", position: "relative",
+              }}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  width: 56, height: 56, borderRadius: "50%",
+                  background: "radial-gradient(circle at 40% 35%, rgba(255,255,255,0.5), rgba(196,181,253,0.15) 55%, transparent 75%)",
+                  boxShadow: "0 0 18px rgba(233,213,255,0.9), inset 0 0 10px rgba(124,58,237,0.4)",
+                }}>
+                  <img src={iconFragmentCrystal.url} alt="" width={44} height={44}
+                    style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(233,213,255,0.9))" }} />
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "#f7ecf7", letterSpacing: 2, textShadow: "0 2px 0 #000" }}>
+                    ⚒️ FRAGMENTAR {isBulk ? `${list.length} POKÉMON` : "POKÉMON"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#c8b8d0", marginTop: 2, fontStyle: "italic" }}>
+                    Ação permanente — converte em pontos de craft.
+                  </div>
+                </div>
+                <button onClick={() => setFragConfirm(null)} style={{
+                  width: 32, height: 32, borderRadius: 8, border: "1px solid #6a5a7c",
+                  background: "#2a1638", color: "#f7ecf7", fontSize: 16, fontWeight: 900, cursor: "pointer",
+                }}>✕</button>
+              </div>
+
+              <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: isBulk ? "repeat(auto-fill, minmax(120px, 1fr))" : "1fr",
+                  gap: 10, maxHeight: 320, overflowY: "auto", padding: 4,
+                }}>
+                  {list.map((e) => {
+                    const rc = rarityColor[e.rarity] ?? "#8b6a30";
+                    return (
+                      <div key={e.uid} style={{
+                        background: "linear-gradient(180deg, rgba(30,15,50,0.85), rgba(11,5,16,0.9))",
+                        border: `2px solid ${rc}88`,
+                        borderRadius: 12, padding: 10, textAlign: "center",
+                        boxShadow: `inset 0 0 12px ${rc}33, 0 2px 8px rgba(0,0,0,0.4)`,
+                      }}>
+                        {gifMap[e.species] && (
+                          <img src={gifMap[e.species]} alt="" style={{ width: 56, height: 56, imageRendering: "pixelated" }} />
+                        )}
+                        <div style={{ fontSize: 10, fontWeight: 900, color: "#f7ecf7", letterSpacing: 1, marginTop: 2 }}>
+                          {e.species.replace(/_/g, " ").toUpperCase()}
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 8, background: rc, color: "#0b0510", fontWeight: 900, letterSpacing: 1 }}>
+                            {e.rarity.toUpperCase()}
+                          </span>
+                          <span style={{ fontSize: 9, color: "#f5cf6b", fontWeight: 900 }}>Lv {e.level}</span>
+                        </div>
+                        <div style={{
+                          marginTop: 6, fontSize: 11, fontWeight: 900,
+                          color: "#e9d5ff", letterSpacing: 0.5,
+                          display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                        }}>
+                          <img src={iconFragmentCrystal.url} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
+                          +{e.gain}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{
+                  marginTop: 4, padding: "12px 14px", borderRadius: 12,
+                  background: "linear-gradient(90deg, rgba(139,92,246,0.25), rgba(196,181,253,0.15), rgba(139,92,246,0.25))",
+                  border: "1.5px solid #a78bfa88",
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: "#c8b8d0", letterSpacing: 2 }}>GANHO TOTAL</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <img src={iconFragmentCrystal.url} alt="" width={26} height={26}
+                      style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(233,213,255,0.9))" }} />
+                    <span style={{
+                      fontSize: 26, fontWeight: 900, fontFamily: "monospace",
+                      background: "linear-gradient(180deg, #f5d0fe, #a78bfa)",
+                      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                    }}>+{fragConfirm.totalGain}</span>
+                    <span style={{ fontSize: 10, color: "#c8b8d0", fontWeight: 800, letterSpacing: 1 }}>PTS CRAFT</span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                  <button
+                    onClick={() => setFragConfirm(null)}
+                    style={{
+                      flex: 1, padding: "12px 14px", fontSize: 12, fontWeight: 900, letterSpacing: 1,
+                      background: "linear-gradient(180deg, #3a2450, #241634)", color: "#eadfe8",
+                      border: "1px solid #5a3d78", borderRadius: 10, cursor: "pointer",
+                    }}
+                  >CANCELAR</button>
+                  <button
+                    onClick={confirmFrag}
+                    style={{
+                      flex: 1.4, padding: "12px 14px", fontSize: 13, fontWeight: 900, letterSpacing: 1,
+                      background: "linear-gradient(180deg,#c4b5fd 0%,#8b5cf6 45%,#5b21b6 100%)",
+                      color: "#fff",
+                      border: "1px solid #3b0f7a", borderRadius: 10, cursor: "pointer",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 0 16px rgba(167,139,250,0.75)",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                    }}
+                  >⚒️ CONFIRMAR</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
