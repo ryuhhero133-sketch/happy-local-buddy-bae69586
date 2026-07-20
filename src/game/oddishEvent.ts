@@ -21,8 +21,8 @@ export const ODDISH_EVENT: {
 } = {
   /** Evento ATIVO — 48h a partir de startedAt. */
   enabled: true,
-  /** Timestamp de abertura oficial (ms) — 20/07/2026. */
-  startedAt: 1784589700000,
+  /** Timestamp de abertura oficial (ms) — ABERTURA IMEDIATA PRA GERAL. */
+  startedAt: 1784591072789,
   /** Encerra após 48h desde startedAt. */
   durationHours: 48,
   /** Ciclo entre aberturas (2h). */
