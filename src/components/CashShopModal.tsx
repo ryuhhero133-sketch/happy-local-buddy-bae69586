@@ -69,10 +69,25 @@ function fmt(n: number): string {
 
 // ============ Panels ============
 
+function CardHeader({ icon, title, color }: { icon: string; title: string; color: string }) {
+  return (
+    <div style={{
+      padding: "10px 12px",
+      background: `linear-gradient(180deg, ${color}22, transparent)`,
+      borderBottom: `1.5px solid ${color}55`,
+      color, fontWeight: 900, fontSize: 12, letterSpacing: 1.5,
+      display: "flex", alignItems: "center", gap: 8,
+    }}>
+      <span style={{ fontSize: 16 }}>{icon}</span>
+      <span>{title}</span>
+    </div>
+  );
+}
+
 function LeftCarteira({ w }: { w: Partial<Wallet> }) {
   return (
     <div style={cardBox("#1e2a4a", "#3d5aa8")}>
-      <div style={cardHeader("💼", "CARTEIRA", "#7aa5ff")} />
+      <CardHeader icon="💼" title="CARTEIRA" color="#7aa5ff" />
       <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px 12px" }}>
         <ResourceRow icon="🪙" color="#f5cf6b" value={w.coins ?? 0} />
         <ResourceRow icon="💎" color="#7dd3fc" value={w.crystals ?? 0} action="+" />
