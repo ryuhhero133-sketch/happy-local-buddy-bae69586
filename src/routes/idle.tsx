@@ -9330,20 +9330,32 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
         }} />
       )}
 
-      {/* Retrato simples e clássico */}
+      {/* Retrato circular clássico com moldura dourada */}
       <div style={{
-        width: 42, height: 42, borderRadius: 8, flexShrink: 0,
+        width: 46, height: 46, flexShrink: 0,
+        borderRadius: "50%",
         background: exhausted
-          ? "linear-gradient(160deg, #1a1420, #0b0510)"
-          : `linear-gradient(160deg, ${hexToRgba(rColor, 0.35)} 0%, #0b0510 78%)`,
-        border: `1px solid ${exhausted ? "#333" : hexToRgba(rColor, 0.55)}`,
-        boxShadow: exhausted ? "none" : `inset 0 0 6px ${hexToRgba(rColor, 0.25)}, 0 1px 3px rgba(0,0,0,0.6)`,
-        display: "grid", placeItems: "center", overflow: "hidden",
+          ? "linear-gradient(160deg, #3a3040, #1a141c)"
+          : `conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)`,
+        padding: 1.5,
+        boxShadow: exhausted
+          ? "0 1px 3px rgba(0,0,0,0.5)"
+          : `0 2px 5px rgba(0,0,0,0.65), 0 0 8px ${hexToRgba(rColor, 0.5)}, inset 0 0 2px rgba(0,0,0,0.4)`,
         position: "relative",
       }}>
-        <img src={src} alt="" style={{ width: "88%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.7))" }} />
-        {resting && <span style={{ position: "absolute", top: -2, right: -2, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
-        {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 16, textShadow: "0 0 4px #000" }}>🔒</span>}
+        <div style={{
+          width: "100%", height: "100%", borderRadius: "50%",
+          background: exhausted
+            ? "radial-gradient(circle at 50% 35%, #1a1420 0%, #0b0510 78%)"
+            : `radial-gradient(circle at 50% 35%, ${hexToRgba(rColor, 0.35)} 0%, #0b0510 78%)`,
+          border: "1.5px solid #0b0510",
+          boxShadow: "inset 0 0 5px rgba(0,0,0,0.75)",
+          display: "grid", placeItems: "center", overflow: "hidden",
+        }}>
+          <img src={src} alt="" style={{ width: "82%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
+          {resting && <span style={{ position: "absolute", top: -2, right: -2, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
+          {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 15, textShadow: "0 0 4px #000" }}>🔒</span>}
+        </div>
       </div>
 
 
