@@ -9389,6 +9389,9 @@ function IdlePage() {
         wallet={{
           coins: idle.bank.gold,
           crystals: idle.bank.crystals,
+          level: idle.trainerLevel ?? 1,
+          xp: idle.trainerXp ?? 0,
+          xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
         }}
         onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
         onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
