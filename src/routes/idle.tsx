@@ -10545,7 +10545,22 @@ function TabOverlay({
                             boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 10px ${color}44`,
                             position: "relative", overflow: "hidden",
                           }}>
-                            <ItemPixelIcon id={id} size={52} color={color} />
+                            {img ? (
+                              <img
+                                src={img}
+                                alt=""
+                                width={52}
+                                height={52}
+                                loading="lazy"
+                                style={{
+                                  imageRendering: "pixelated",
+                                  filter: `drop-shadow(0 0 6px ${color}aa) drop-shadow(0 2px 2px rgba(0,0,0,0.45))`,
+                                  animation: "item-float 2.4s ease-in-out infinite",
+                                }}
+                              />
+                            ) : (
+                              <ItemPixelIcon id={id} size={52} color={color} />
+                            )}
                           </div>
                           <div style={{
                             fontSize: 10.5, fontWeight: 900, color: P.ink, letterSpacing: 0.2, lineHeight: 1.15,
