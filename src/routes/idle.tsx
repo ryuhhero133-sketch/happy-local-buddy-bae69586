@@ -9482,19 +9482,50 @@ function BallSlot({ img, count, tint }: { img: string; count: number; tint: stri
   const empty = count <= 0;
   return (
     <div style={{
-      display: "inline-flex", alignItems: "center", gap: 3,
-      padding: "2px 6px 2px 3px",
+      display: "inline-flex", alignItems: "center", gap: 5,
+      padding: "3px 9px 3px 4px",
       borderRadius: 999,
-      background: empty ? "rgba(0,0,0,0.35)" : `linear-gradient(180deg, ${tint}30, rgba(0,0,0,0.35))`,
-      border: `1px solid ${empty ? "rgba(255,255,255,0.08)" : tint + "88"}`,
-      boxShadow: empty ? "none" : `0 0 8px ${tint}44, inset 0 0 4px ${tint}30`,
-      opacity: empty ? 0.5 : 1,
+      background: empty
+        ? "linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25))"
+        : `linear-gradient(180deg, ${tint}38, rgba(0,0,0,0.4))`,
+      border: `1px solid ${empty ? "rgba(255,255,255,0.10)" : tint + "aa"}`,
+      boxShadow: empty
+        ? "inset 0 1px 2px rgba(0,0,0,0.5)"
+        : `0 0 10px ${tint}55, inset 0 1px 0 ${tint}55, inset 0 -1px 2px rgba(0,0,0,0.4)`,
+      opacity: empty ? 0.55 : 1,
+      transition: "transform 120ms ease",
     }}>
-      <img src={img} alt="" width={18} height={18} style={{ imageRendering: "pixelated", filter: empty ? "grayscale(0.7)" : `drop-shadow(0 0 3px ${tint}aa)` }} />
-      <span style={{ fontSize: 11, fontWeight: 900, color: "#fff", textShadow: "0 1px 0 #000", minWidth: 12, textAlign: "center" }}>{count}</span>
+      <span style={{
+        width: 22, height: 22, borderRadius: "50%",
+        display: "grid", placeItems: "center", flexShrink: 0,
+        background: empty ? "rgba(0,0,0,0.4)" : `radial-gradient(circle at 35% 30%, ${tint}66, transparent 70%)`,
+        boxShadow: empty ? "none" : `0 0 6px ${tint}88`,
+      }}>
+        <img
+          src={img}
+          alt=""
+          width={20}
+          height={20}
+          style={{
+            imageRendering: "pixelated",
+            filter: empty
+              ? "grayscale(0.8) brightness(0.7)"
+              : `drop-shadow(0 0 3px ${tint}dd) drop-shadow(0 1px 1px rgba(0,0,0,0.8))`,
+          }}
+        />
+      </span>
+      <span style={{
+        fontSize: 11.5, fontWeight: 900,
+        color: empty ? "#8a7a9c" : "#fff",
+        textShadow: "0 1px 0 #000",
+        fontFamily: "'Cinzel', Georgia, serif",
+        letterSpacing: 0.3,
+        minWidth: 14, textAlign: "center",
+      }}>{count}</span>
     </div>
   );
 }
+
 
 // ============ estilos ============
 const smallBtn: React.CSSProperties = {
