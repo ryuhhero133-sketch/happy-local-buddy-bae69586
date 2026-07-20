@@ -21,6 +21,29 @@ export type CashProduct = {
   active: boolean;
   sort: number | null;
   badge: string | null;
+  // Pagamento manual (PicPay/Stripe Link/MercadoPago)
+  payment_link_url?: string | null;
+  price_brl?: number | null;
+  payment_method?: string | null;
+};
+
+export type PendingPurchase = {
+  id: string;
+  user_id: string;
+  username: string;
+  product_id: string;
+  product_name: string;
+  price_brl: number | null;
+  payment_method: string | null;
+  payment_link_url: string | null;
+  transaction_ref: string | null;
+  grants: Record<string, number>;
+  status: "analise" | "approved" | "rejected" | "expired";
+  admin_note: string | null;
+  approved_by: string | null;
+  created_at: string;
+  expires_at: string;
+  resolved_at: string | null;
 };
 
 export type Wallet = {
