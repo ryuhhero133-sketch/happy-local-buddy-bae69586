@@ -4487,10 +4487,21 @@ function IdlePage() {
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2") {
           // Odisséia Oddish — pool só do evento; TODOS épicos; nível escala com o treinador.
-          pool = ([...ODDISH_EVENT_POOL] as Species[]).filter(hasGif);
-          if (pool.length === 0) pool = ["oddish"] as Species[];
-          forcedRarity = "epic";
-          mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
+          // Lickitung(_shiny) entra com peso menor. Mewtwo é rolado à parte (mítico plus).
+          if (Math.random() < MEWTWO_EVENT_CHANCE && !enemies.some((e) => e.sp === "mewtwo_event")) {
+            pool = ["mewtwo_event"] as Species[];
+            forcedRarity = "mythic_shiny";
+            mapLvRange = [Math.max(300, leaderLv), Math.max(300, leaderLv) + 10];
+          } else {
+            // 60% oddish/gloom/vileplume, 40% lickitung(_shiny)
+            const useSleeper = Math.random() < 0.4;
+            const sleepers = (["lickitung", "lickitung_shiny"] as Species[]).filter(hasGif);
+            const base = (["oddish", "gloom", "vileplume"] as Species[]).filter(hasGif);
+            pool = useSleeper && sleepers.length ? sleepers : (base.length ? base : ([...ODDISH_EVENT_POOL] as Species[]).filter(hasGif));
+            if (pool.length === 0) pool = ["oddish"] as Species[];
+            forcedRarity = "epic";
+            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
+          }
         }
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
