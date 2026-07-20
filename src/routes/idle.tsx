@@ -2005,6 +2005,22 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "LUCARIOEGG") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, egg_aura: (base.items.egg_aura ?? 0) + 1 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "✦ Ovo da Aura (Lucario) entregue!" });
+      setCodeInput("");
+      pushChat(`🎉 Código LUCARIOEGG: 1× Ovo da Aura ✦ (Lucario).`, "cap");
+      return;
+    }
+
     setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
 
