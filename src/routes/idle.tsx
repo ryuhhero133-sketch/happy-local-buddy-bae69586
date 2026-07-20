@@ -3977,6 +3977,20 @@ function IdlePage() {
       pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · 1h`, "capture");
       pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por 1 hora`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
       pushChat(`✦ ${label} usado — +${pct}% EXP por 1 hora.`, "cap");
+    } else if (id === "orb_team") {
+      const nowT = Date.now();
+      if ((idle.buffs.teamOrbUntil ?? 0) > nowT) {
+        pushChat(`Orb de Time já está ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, [id]: have - 1 },
+        buffs: { ...s.buffs, teamOrbUntil: nowT + 3600_000 },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `TIME EXP · 1h`, "capture");
+      pushEvent("✦", "ORB DE TIME ATIVO", "Todo o time ganha EXP por 1 hora", "#ffd94d");
+      pushChat(`✦ Orb de Time ativado — todos os pokémons do time ganham EXP por 1 hora.`, "cap");
     } else if (id === "book_vip" || id === "book_vip_30" || id === "book_vip_60") {
       const cfg = id === "book_vip_60"
         ? { add: 0.40, ms: 60 * 24 * 3600_000, label: "60 dias" }
