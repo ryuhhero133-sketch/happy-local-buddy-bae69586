@@ -5374,38 +5374,39 @@ function IdlePage() {
                   background: `linear-gradient(90deg, transparent, ${accent}bb, transparent)`,
                 }} />
 
-                {/* Avatar */}
+                {/* Medalhão circular do avatar */}
                 <div style={{
-                  width: 46, height: 46, flexShrink: 0,
-                  borderRadius: 10,
-                  background: `linear-gradient(160deg, ${accent}66, rgba(0,0,0,0.6))`,
-                  padding: 1.5,
-                  boxShadow: `0 0 10px ${accent}55, inset 0 0 4px rgba(0,0,0,0.5)`,
+                  width: 52, height: 52, flexShrink: 0,
+                  borderRadius: "50%",
+                  background: `conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)`,
+                  padding: 2,
+                  boxShadow: `0 3px 8px rgba(0,0,0,0.65), 0 0 14px ${accent}55, inset 0 0 3px rgba(0,0,0,0.4)`,
                   position: "relative",
                 }}>
                   <div style={{
-                    width: "100%", height: "100%", borderRadius: 8,
+                    width: "100%", height: "100%", borderRadius: "50%",
                     background: "radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)",
                     display: "grid", placeItems: "center", overflow: "hidden",
-                    border: "1px solid rgba(0,0,0,0.6)",
+                    border: "1.5px solid #0b0510",
+                    boxShadow: "inset 0 0 6px rgba(0,0,0,0.8)",
                   }}>
                     <img
                       src={assetUrlFromJson(trainerAvatarAsset)}
                       alt=""
-                      width={44} height={44}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.6))" }}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                   </div>
-                  {/* Selo de nível */}
+                  {/* Selo de nível — pendurado no medalhão */}
                   <div style={{
-                    position: "absolute", bottom: -3, right: -3,
-                    minWidth: 20, height: 18, padding: "0 4px",
+                    position: "absolute", bottom: -4, right: -4,
+                    minWidth: 22, height: 20, padding: "0 5px",
                     background: "linear-gradient(180deg, #ffe89a, #c48e2a 55%, #6b3d0a)",
-                    color: "#231407", fontWeight: 900, fontSize: 10,
-                    borderRadius: 6, border: "1.5px solid #0b0510",
+                    color: "#231407", fontWeight: 900, fontSize: 10.5,
+                    borderRadius: "50%", border: "2px solid #0b0510",
                     display: "grid", placeItems: "center",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.7)",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.35)",
                     fontFamily: "'Cinzel', Georgia, serif", lineHeight: 1,
+                    letterSpacing: 0.2,
                   }}>{trainerLv}</div>
                 </div>
 
