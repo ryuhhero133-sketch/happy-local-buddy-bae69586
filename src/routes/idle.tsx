@@ -14,7 +14,8 @@ import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
 import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
 import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
-import iconWorldGlobe from "@/assets/icon-world-globe.png.asset.json";
+import iconWorldGlobe from "@/assets/icon-world-globe-v2.png.asset.json";
+import iconCrystalBlue from "@/assets/icon-crystal-blue-diamond.png.asset.json";
 import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
 import trainerAvatarAsset from "@/assets/trainer-avatar.png.asset.json";
 
@@ -146,9 +147,9 @@ import mapBeachUrl from "@/assets/map-beach-idle.png";
 import collectIconImg from "@/assets/icons/collect-icon.png";
 import rubyGemAsset from "@/assets/ruby-gem.png.asset.json";
 import crystalRedAsset from "@/assets/items/icon-crystal-red.png.asset.json";
-const crystalRedImg = crystalRedAsset.url;
+const crystalRedImg = assetUrlFromJson(crystalRedAsset);
 import crystalGreenAsset from "@/assets/items/icon-crystal-green.png.asset.json";
-const crystalGreenImg = crystalGreenAsset.url;
+const crystalGreenImg = assetUrlFromJson(iconCrystalBlue);
 import treeOakAsset from "@/assets/tree-oak.png.asset.json";
 import treePineAsset from "@/assets/tree-pine.png.asset.json";
 import rockBoulderAsset from "@/assets/rock-boulder.png.asset.json";
@@ -7751,12 +7752,12 @@ function IdlePage() {
                         }}
                       >
                         <img
-                          src={iconWorldGlobe.url}
+                          src={assetUrlFromJson(iconWorldGlobe)}
                           alt=""
                           width={28}
                           height={28}
                           className="world-globe-spin"
-                          style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.6))" }}
+                          style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
                         />
                         MAPA MUNDI
                       </button>
