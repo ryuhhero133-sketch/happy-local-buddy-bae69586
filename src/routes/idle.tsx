@@ -10342,12 +10342,12 @@ function TabOverlay({
           return "other";
         };
         const CATS: { id: "all" | "balls" | "potions" | "books" | "eggs" | "other"; label: string; icon: string }[] = [
-          { id: "all", label: "Tudo", icon: "🎒" },
-          { id: "balls", label: "Bolas", icon: "⚪" },
-          { id: "potions", label: "Poções", icon: "🧪" },
-          { id: "books", label: "Livros", icon: "📖" },
-          { id: "eggs", label: "Ovos", icon: "🥚" },
-          { id: "other", label: "Outros", icon: "✨" },
+          { id: "all", label: "Tudo", icon: catAllUrl },
+          { id: "balls", label: "Bolas", icon: catBallsUrl },
+          { id: "potions", label: "Poções", icon: catPotionsUrl },
+          { id: "books", label: "Livros", icon: catBooksUrl },
+          { id: "eggs", label: "Ovos", icon: catEggsUrl },
+          { id: "other", label: "Outros", icon: catOtherUrl },
         ];
         // filtra chaves internas de contagem (não devem aparecer na mochila)
         const entries = Object.entries(items).filter(([id, n]) => n > 0 && !id.startsWith("_"));
