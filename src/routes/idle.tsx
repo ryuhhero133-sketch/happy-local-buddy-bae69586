@@ -10271,6 +10271,59 @@ function TabOverlay({
             <span style={{ color: "#c084fc" }}>💎 Cristais: {Math.floor(bank.crystals)}</span>
           </div>
 
+          {(() => {
+            const bk = SHOP_BOOKS.find((x) => x.id === "orb_team")!;
+            const owned = items[bk.id] ?? 0;
+            const canBuy = bank.crystals >= bk.price;
+            const activeUntil = buffs.teamOrbUntil ?? 0;
+            const isActive = activeUntil > Date.now();
+            const color = ITEM_COLORS[bk.id] ?? "#ff97e1";
+            return (
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>✦ Destaque da Loja — Orb de Time</h3>
+                <div style={{
+                  display: "grid", gridTemplateColumns: "minmax(92px, 120px) 1fr minmax(180px, 220px)", gap: 14,
+                  alignItems: "center", padding: 16,
+                  background: "linear-gradient(135deg, rgba(255,151,225,0.18), rgba(26,15,38,0.96) 42%, rgba(40,20,58,0.96))",
+                  border: `2px solid ${color}`,
+                  borderRadius: 14,
+                  boxShadow: `0 0 22px ${color}44, inset 0 1px 0 rgba(255,255,255,0.14)`,
+                }}>
+                  <div style={{
+                    width: 92, height: 92, borderRadius: 18,
+                    background: `radial-gradient(circle at 35% 25%, ${color}66, rgba(11,5,16,0.8) 72%)`,
+                    border: `1px solid ${color}99`, display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: `0 0 18px ${color}55, inset 0 0 18px rgba(255,255,255,0.08)`,
+                  }}>
+                    <img src={bk.img} alt="Orb de Time" width={72} height={72} style={{ filter: `drop-shadow(0 0 10px ${color})` }} />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: "#fff0fb", fontSize: 18, fontWeight: 900, letterSpacing: 1 }}>{bk.name}</div>
+                    <div style={{ color: "#eac6df", fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>{bk.desc}</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+                      <span style={{ color: "#c084fc", fontSize: 12, fontWeight: 900 }}>💎 {bk.price} cristais</span>
+                      <span style={{ color: "#8a7a9c", fontSize: 12 }}>Você tem: {owned}</span>
+                      {isActive && <span style={{ color: "#7ef2a2", fontSize: 12, fontWeight: 900 }}>ATIVO</span>}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => onBuyBook(bk)}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "11px 12px", fontWeight: 900, letterSpacing: 1,
+                      background: canBuy ? `linear-gradient(180deg, ${color}, #c84aa4)` : "#3a2a4a",
+                      color: canBuy ? "#120713" : "#6a5a7c",
+                      border: canBuy ? "1px solid #ffd9f5" : "1px solid #4a3a5a",
+                      borderRadius: 8,
+                      cursor: canBuy ? "pointer" : "not-allowed",
+                      boxShadow: canBuy ? `0 0 12px ${color}55` : "none",
+                    }}
+                  >{canBuy ? "COMPRAR ORB" : "SEM CRISTAIS"}</button>
+                </div>
+              </div>
+            );
+          })()}
+
           <h3 style={{ color: "#6bd4ff", fontSize: 15, margin: "6px 0 10px" }}>Poções — pagas em ouro</h3>
           <div style={{
             background: "linear-gradient(160deg, #0f1f2e 0%, #16324a 100%)",
