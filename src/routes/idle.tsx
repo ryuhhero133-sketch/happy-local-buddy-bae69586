@@ -20,6 +20,13 @@ import iconCrystalBlue from "@/assets/icon-crystal-blue-diamond.png.asset.json";
 import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
 import eventBannerImg from "@/assets/event-banner.png.asset.json";
 import trainerAvatarAsset from "@/assets/trainer-avatar.png.asset.json";
+import bagBgGlowAsset from "@/assets/bag-bg-glow.jpg.asset.json";
+import catAllAsset from "@/assets/cat-all.png.asset.json";
+import catBallsAsset from "@/assets/cat-balls.png.asset.json";
+import catPotionsAsset from "@/assets/cat-potions.png.asset.json";
+import catBooksAsset from "@/assets/cat-books.png.asset.json";
+import catEggsAsset from "@/assets/cat-eggs.png.asset.json";
+import catOtherAsset from "@/assets/cat-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
