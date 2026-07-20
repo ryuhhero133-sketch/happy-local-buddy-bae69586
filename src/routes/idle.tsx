@@ -345,6 +345,13 @@ const mapEliteRouteUrl = assetUrlFromJson(mapEliteRouteAsset);
 const mapVictoryRoadUrl = assetUrlFromJson(mapVictoryRoadAsset);
 const mapViridianUrl = assetUrlFromJson(mapViridianAsset);
 const mapVenenoUrl = assetUrlFromJson(mapVenenoAsset);
+const bagBgGlowUrl = assetUrlFromJson(bagBgGlowAsset);
+const catAllUrl = assetUrlFromJson(catAllAsset);
+const catBallsUrl = assetUrlFromJson(catBallsAsset);
+const catPotionsUrl = assetUrlFromJson(catPotionsAsset);
+const catBooksUrl = assetUrlFromJson(catBooksAsset);
+const catEggsUrl = assetUrlFromJson(catEggsAsset);
+const catOtherUrl = assetUrlFromJson(catOtherAsset);
 // URLs dos orbs (sprites transparentes)
 const orbXpMinorUrl = assetUrlFromJson(orbXpMinorAsset);
 const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
