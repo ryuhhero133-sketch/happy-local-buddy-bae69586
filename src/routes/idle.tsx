@@ -10263,22 +10263,32 @@ function TabOverlay({
                 const locked = lockedSet.has(entry.uid);
                 const traits = entry.traits ?? [];
                 const fragDisabled = inTeam || locked;
+                const isSelected = bulkSel.has(entry.uid);
+                const canBulkPick = !inTeam && !locked;
                 return (
                   <div
                     key={entry.uid}
+                    onClick={() => {
+                      if (!bulkMode) return;
+                      if (!canBulkPick) return;
+                      toggleBulk(entry.uid);
+                    }}
                     style={{
                       background: locked
                         ? "linear-gradient(180deg, #fff4c8, #f7dc9a)"
-                        : "linear-gradient(180deg, #fff8e5, #f5e6c8)",
-                      border: `2px solid ${locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a")}`,
+                        : isSelected
+                          ? "linear-gradient(180deg, #ede9fe, #c4b5fd)"
+                          : "linear-gradient(180deg, #fff8e5, #f5e6c8)",
+                      border: `2px solid ${isSelected ? "#7c3aed" : locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a")}`,
                       borderRadius: 10, padding: 10, textAlign: "center",
                       position: "relative",
-                      boxShadow: `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}`,
+                      boxShadow: `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(124,58,237,0.7)" : ""}`,
                       display: "grid",
                       gridTemplateRows: "auto auto auto 28px 36px",
                       gap: 4,
                       alignItems: "center",
                       minHeight: 220,
+                      cursor: bulkMode ? (canBulkPick ? "pointer" : "not-allowed") : "default",
                     }}
                   >
                     <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1, zIndex: 2 }}>
@@ -10286,6 +10296,19 @@ function TabOverlay({
                     </div>
                     {inTeam && (
                       <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#3d7a4a", zIndex: 2 }}>★ TIME</div>
+                    )}
+                    {/* Checkbox de bulk select */}
+                    {bulkMode && canBulkPick && (
+                      <div style={{
+                        position: "absolute", top: 6, left: 26,
+                        width: 22, height: 22, borderRadius: 6,
+                        border: `2px solid ${isSelected ? "#7c3aed" : "#8b6a30"}`,
+                        background: isSelected ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#fff8e5",
+                        color: "#fff", fontSize: 14, fontWeight: 900,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        boxShadow: isSelected ? "0 0 8px rgba(124,58,237,0.7)" : "none",
+                        zIndex: 3,
+                      }}>{isSelected ? "✓" : ""}</div>
                     )}
                     {/* Botão cadeado */}
                     <button
@@ -10303,9 +10326,9 @@ function TabOverlay({
 
                     {/* Sprite + nome */}
                     <button
-                      onClick={() => onOpenColecaoDetail(entry.uid)}
+                      onClick={(e) => { e.stopPropagation(); if (bulkMode) { if (canBulkPick) toggleBulk(entry.uid); return; } onOpenColecaoDetail(entry.uid); }}
                       style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
-                      title="Ver detalhes"
+                      title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
                     >
                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6 }} />}
                       <div style={{ fontSize: 11, marginTop: 2, color: "#4a3010", fontWeight: 800 }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
@@ -10336,45 +10359,56 @@ function TabOverlay({
 
                     {/* Botão fragmentar (ícone cristal) */}
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (inTeam) { alert("Retire do time antes de fragmentar."); return; }
                         if (locked) { alert("Este Pokémon está TRAVADO 🔒. Destrave para fragmentar."); return; }
-                        if (!confirm(`Fragmentar ${sp.toUpperCase()} (Nv.${entry.level}) por +${gain} pts de craft?`)) return;
-                        onFragmentCollection(entry.uid);
+                        if (bulkMode) { toggleBulk(entry.uid); return; }
+                        openFragConfirm([entry.uid]);
                       }}
                       disabled={fragDisabled}
                       style={{
-                        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                        padding: "4px 8px", height: 34,
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        padding: "4px 10px", height: 36,
                         background: fragDisabled
                           ? "linear-gradient(180deg,#d9c8a8,#b8a680)"
-                          : "linear-gradient(180deg,#a78bfa,#5b21b6)",
-                        color: "#fff", fontWeight: 900, fontSize: 11, letterSpacing: 0.5,
+                          : "linear-gradient(180deg,#c4b5fd 0%,#8b5cf6 45%,#5b21b6 100%)",
+                        color: "#fff", fontWeight: 900, fontSize: 12, letterSpacing: 0.5,
                         border: fragDisabled ? "1px solid #96835a" : "1px solid #3b0f7a",
-                        borderRadius: 8,
+                        borderRadius: 9,
                         boxShadow: fragDisabled
                           ? "inset 0 -2px 0 rgba(0,0,0,0.15)"
-                          : "inset 0 -2px 0 rgba(0,0,0,0.3), 0 0 10px rgba(167,139,250,0.5)",
+                          : "inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.35), 0 0 14px rgba(167,139,250,0.75)",
                         cursor: fragDisabled ? "not-allowed" : "pointer",
                         opacity: fragDisabled ? 0.75 : 1,
                         transition: "transform 90ms, filter 120ms",
+                        textShadow: "0 1px 2px rgba(0,0,0,0.5)",
                       }}
-                      onMouseEnter={(e) => { if (!fragDisabled) (e.currentTarget as HTMLButtonElement).style.filter = "brightness(1.12)"; }}
+                      onMouseEnter={(e) => { if (!fragDisabled) (e.currentTarget as HTMLButtonElement).style.filter = "brightness(1.15)"; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; }}
                       title={inTeam ? "No time — não pode fragmentar" : locked ? "Travado — destrave para fragmentar" : `Fragmentar por +${gain} pts de craft`}
                     >
-                      {locked ? (
+                      {inTeam ? (
+                        <span style={{ fontWeight: 900 }}>★ NO TIME</span>
+                      ) : locked ? (
                         <span style={{ fontWeight: 900 }}>🔒 TRAVADO</span>
                       ) : (
                         <>
-                          <img
-                            src={iconFragmentCrystal.url}
-                            alt=""
-                            width={26}
-                            height={26}
-                            style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}
-                          />
-                          <span>+{gain}</span>
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", justifyContent: "center",
+                            width: 34, height: 34, borderRadius: "50%",
+                            background: "radial-gradient(circle at 40% 35%, rgba(255,255,255,0.55), rgba(196,181,253,0.15) 55%, transparent 75%)",
+                            boxShadow: "0 0 10px rgba(233,213,255,0.8), inset 0 0 8px rgba(124,58,237,0.35)",
+                          }}>
+                            <img
+                              src={iconFragmentCrystal.url}
+                              alt=""
+                              width={30}
+                              height={30}
+                              style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(233,213,255,0.9)) drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }}
+                            />
+                          </span>
+                          <span style={{ fontSize: 13 }}>+{gain}</span>
                         </>
                       )}
                     </button>
