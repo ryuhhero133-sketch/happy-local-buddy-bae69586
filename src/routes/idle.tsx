@@ -3970,11 +3970,13 @@ function IdlePage() {
           queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
           return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
         }
+        const isOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2";
+        const finalLevel = isOddishEvent ? 1 : np.level;
         return {
           ...s,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
-          collection: [...prev, { uid: np.uid, species: np.species, level: np.level, rarity: np.rarity, capturedAt: Date.now(), traits: rolled }],
+          collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled, ...(isOddishEvent ? { event: "oddish_odyssey" } : {}) }],
         };
       });
     } else {
@@ -4457,6 +4459,12 @@ function IdlePage() {
           // Pareia com o líder — grande variação para não ficar previsível
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
+        } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2") {
+          // Odisséia Oddish — pool só do evento; TODOS épicos; nível escala com o treinador.
+          pool = ([...ODDISH_EVENT_POOL] as Species[]).filter(hasGif);
+          if (pool.length === 0) pool = ["oddish"] as Species[];
+          forcedRarity = "epic";
+          mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
         }
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
