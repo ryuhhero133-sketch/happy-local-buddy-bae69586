@@ -138,9 +138,12 @@ import mapOddish2Asset from "@/assets/map-oddish-2.png.asset.json";
 import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
 import oddishEventGifAsset from "@/assets/oddish-event.gif.asset.json";
 import oddishShinyGifAsset from "@/assets/oddish-shiny.gif.asset.json";
+import lickitungGifAsset from "@/assets/lickitung.gif.asset.json";
+import lickitungShinyGifAsset from "@/assets/lickitung-shiny.gif.asset.json";
+import mewtwoEventGifAsset from "@/assets/mewtwo-event.gif.asset.json";
 import iceBallIconAsset from "@/assets/ice-pokeball-icon.png.asset.json";
 import scrollTeleportAsset from "@/assets/scroll-teleport.png.asset.json";
-import { ODDISH_EVENT, oddishEventStatus, oddishMapForCycle, ODDISH_EVENT_POOL, SAFIRA_VERDE_BY_RARITY, fmtMs as fmtOddishMs } from "@/game/oddishEvent";
+import { ODDISH_EVENT, oddishEventStatus, oddishMapForCycle, ODDISH_EVENT_POOL, SAFIRA_VERDE_BY_RARITY, MEWTWO_EVENT_CHANCE, MEWTWO_MIN_BALLS, fmtMs as fmtOddishMs } from "@/game/oddishEvent";
 // Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
 import mapForestAsset from "@/assets/map-forest.png.asset.json";
 import mapFlorestaSecretaAsset from "@/assets/map-floresta-secreta.png.asset.json";
