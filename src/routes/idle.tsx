@@ -9313,33 +9313,38 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
       position: "relative",
       overflow: "hidden",
     }}>
-      {/* Selo lateral dourado */}
+      {/* Selo lateral (barra fina de raridade) */}
       <span style={{
-        position: "absolute", left: 0, top: 0, bottom: 0, width: 3,
-        background: `linear-gradient(180deg, ${rColor}, ${hexToRgba(rColor, 0.4)})`,
-        boxShadow: `0 0 6px ${rColor}66`,
+        position: "absolute", left: 0, top: 6, bottom: 6, width: 2,
+        background: `linear-gradient(180deg, ${rColor}, ${hexToRgba(rColor, 0.3)})`,
+        borderRadius: 2,
+        boxShadow: `0 0 5px ${rColor}88`,
       }} />
+      {/* pulse animado quando saudável */}
+      {!exhausted && (
+        <span style={{
+          position: "absolute", inset: 0, borderRadius: 10, pointerEvents: "none",
+          boxShadow: `inset 0 0 12px ${hexToRgba(rColor, 0.15)}`,
+          animation: "teamPulse 2.6s ease-in-out infinite",
+        }} />
+      )}
 
-      {/* Retrato com moldura dourada */}
+      {/* Retrato simples e clássico */}
       <div style={{
-        width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-        padding: 2,
+        width: 42, height: 42, borderRadius: 8, flexShrink: 0,
         background: exhausted
-          ? "linear-gradient(135deg, #333, #555)"
-          : `conic-gradient(from 220deg, ${rColor}, #6b3d0a, ${rColor}, #2a1638, ${rColor})`,
-        boxShadow: exhausted ? "none" : `0 0 8px ${hexToRgba(rColor, 0.5)}, inset 0 0 4px rgba(0,0,0,0.5)`,
+          ? "linear-gradient(160deg, #1a1420, #0b0510)"
+          : `linear-gradient(160deg, ${hexToRgba(rColor, 0.35)} 0%, #0b0510 78%)`,
+        border: `1px solid ${exhausted ? "#333" : hexToRgba(rColor, 0.55)}`,
+        boxShadow: exhausted ? "none" : `inset 0 0 6px ${hexToRgba(rColor, 0.25)}, 0 1px 3px rgba(0,0,0,0.6)`,
+        display: "grid", placeItems: "center", overflow: "hidden",
         position: "relative",
       }}>
-        <div style={{
-          width: "100%", height: "100%", borderRadius: 8,
-          background: `radial-gradient(circle at 50% 55%, ${hexToRgba(rColor, 0.5)} 0%, #0b0510 78%)`,
-          display: "grid", placeItems: "center", overflow: "hidden",
-        }}>
-          <img src={src} alt="" style={{ width: "94%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 2px 2px rgba(0,0,0,0.7))" }} />
-        </div>
-        {resting && <span style={{ position: "absolute", top: -3, right: -3, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
+        <img src={src} alt="" style={{ width: "88%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.7))" }} />
+        {resting && <span style={{ position: "absolute", top: -2, right: -2, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
         {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 16, textShadow: "0 0 4px #000" }}>🔒</span>}
       </div>
+
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 4 }}>
