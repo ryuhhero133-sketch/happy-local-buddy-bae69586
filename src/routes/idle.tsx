@@ -138,9 +138,12 @@ import mapOddish2Asset from "@/assets/map-oddish-2.png.asset.json";
 import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
 import oddishEventGifAsset from "@/assets/oddish-event.gif.asset.json";
 import oddishShinyGifAsset from "@/assets/oddish-shiny.gif.asset.json";
+import lickitungGifAsset from "@/assets/lickitung.gif.asset.json";
+import lickitungShinyGifAsset from "@/assets/lickitung-shiny.gif.asset.json";
+import mewtwoEventGifAsset from "@/assets/mewtwo-event.gif.asset.json";
 import iceBallIconAsset from "@/assets/ice-pokeball-icon.png.asset.json";
 import scrollTeleportAsset from "@/assets/scroll-teleport.png.asset.json";
-import { ODDISH_EVENT, oddishEventStatus, oddishMapForCycle, ODDISH_EVENT_POOL, SAFIRA_VERDE_BY_RARITY, fmtMs as fmtOddishMs } from "@/game/oddishEvent";
+import { ODDISH_EVENT, oddishEventStatus, oddishMapForCycle, ODDISH_EVENT_POOL, SAFIRA_VERDE_BY_RARITY, MEWTWO_EVENT_CHANCE, MEWTWO_MIN_BALLS, fmtMs as fmtOddishMs } from "@/game/oddishEvent";
 // Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
 import mapForestAsset from "@/assets/map-forest.png.asset.json";
 import mapFlorestaSecretaAsset from "@/assets/map-floresta-secreta.png.asset.json";
@@ -549,6 +552,9 @@ const GIF: Partial<Record<Species, string>> = {
   hitmonchan_shiny: hitmonchanShinyGif, kangaskhan: kangaskhanGif,
   meganium: meganiumGif, meganium_shiny: meganiumShinyGif,
   moltres_shiny: moltresShinyGif, onix_shiny: onixShinyGif,
+  lickitung: assetUrlFromJson(lickitungGifAsset),
+  lickitung_shiny: assetUrlFromJson(lickitungShinyGifAsset),
+  mewtwo_event: assetUrlFromJson(mewtwoEventGifAsset),
 };
 
 
@@ -2332,6 +2338,8 @@ function IdlePage() {
 
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Contador de pokébolas arremessadas em cada Mewtwo do evento (por id de spawn).
+  const mewtwoBallsRef = useRef<Map<number, number>>(new Map());
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
@@ -3021,6 +3029,10 @@ function IdlePage() {
           skarmory:       { crit: 0.32, para: 0.10, flee: 0 },
           // Dialga — edição especial: crit devastador, paraliza, foge fácil
           dialga:         { crit: 0.65, para: 0.40, flee: 0.25 },
+          // Odisséia Oddish — lickitung usa SONÍFERO curto (2-3s); mewtwo é devastador
+          lickitung:        { crit: 0.05, para: 0.55, flee: 0 },
+          lickitung_shiny:  { crit: 0.08, para: 0.75, flee: 0 },
+          mewtwo_event:     { crit: 0.60, para: 0.50, flee: 0.05 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
@@ -3035,24 +3047,34 @@ function IdlePage() {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
               // Duração enxuta — paralisia de minuto travava o jogador.
-              // Dialga (evento) mantém peso maior; Ditto usa Sonífero curto.
+              // Dialga (evento) mantém peso maior; Ditto/Lickitung/Mewtwo usam Sonífero curto.
+              const isLickSleep = target.sp === "lickitung" || target.sp === "lickitung_shiny";
+              const isMewtwoSleep = target.sp === "mewtwo_event";
               const baseDur = target.sp === "dialga" ? 15_000
                 : (target.sp === "ditto" || target.sp === "ditto_shiny") ? 8_000
+                : isLickSleep ? (2000 + Math.floor(Math.random() * 1000))
+                : isMewtwoSleep ? 3000
                 : 10_000;
               const isDittoSleep = target.sp === "ditto" || target.sp === "ditto_shiny";
-              // paraResist não só resiste — reduz duração proporcionalmente
-              const durReduction = Math.min(0.85, synNow.paraResist);
+              const isSleep = isDittoSleep || isLickSleep || isMewtwoSleep;
+              // paraResist não só resiste — reduz duração proporcionalmente (sonífero curto ignora)
+              const durReduction = isLickSleep || isMewtwoSleep ? 0 : Math.min(0.85, synNow.paraResist);
               const dur = Math.floor(baseDur * (1 - durReduction));
               paralyzedUntilRef.current = Date.now() + dur;
               paralyzedByEnemyIdRef.current = target.id;
               setParalyzedUntil(paralyzedUntilRef.current);
-              if (isDittoSleep) {
+              if (isLickSleep) {
+                pushChat(`💤 ${target.sp === "lickitung_shiny" ? "LICKITUNG ✦" : "LICKITUNG"} usou SONÍFERO — seu Pokémon dormiu por ${Math.round(dur/1000)}s!`, "hit");
+              } else if (isMewtwoSleep) {
+                pushChat(`💤✦ MEWTWO ✦✧ arremessou uma onda psíquica — sono profundo por ${Math.round(dur/1000)}s!`, "hit");
+              } else if (isDittoSleep) {
                 pushChat(`💤 ${target.sp === "ditto_shiny" ? "DITTO ✨" : "DITTO"} usou SONÍFERO — seu Pokémon dormiu por ${Math.round(dur/1000)}s!`, "hit");
               } else if (durReduction > 0.1) {
                 pushChat(`⚡ Paralisia! Reduzida em ${Math.round(durReduction*100)}% pelos Guardiões — ${Math.round(dur/1000)}s.`, "hit");
               } else {
                 pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
               }
+              void isSleep;
             }
           }
           if (spec.flee > 0 && Math.random() < spec.flee) {
@@ -3310,6 +3332,23 @@ function IdlePage() {
                 pushFxAt(target.x, target.y - 70, "IMPOSSÍVEL CAPTURAR", "enemyDmg");
                 pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
                 setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
+              } else if (target.sp === "mewtwo_event") {
+                // ✦✧ MEWTWO do evento — precisa arremessar 1500+ bolas antes de qualquer chance.
+                const prev = mewtwoBallsRef.current.get(target.id) ?? 0;
+                const nowCount = prev + 1;
+                mewtwoBallsRef.current.set(target.id, nowCount);
+                if (nowCount < MEWTWO_MIN_BALLS) {
+                  captured = false;
+                  if (nowCount % 100 === 0) {
+                    pushChat(`✦✧ MEWTWO — ${nowCount}/${MEWTWO_MIN_BALLS} pokébolas arremessadas...`, "info");
+                  }
+                  pushFxAt(target.x, target.y - 70, `${nowCount}/${MEWTWO_MIN_BALLS}`, "enemyDmg");
+                } else {
+                  // Depois do umbral, ultra ball 0.4%, master garantido.
+                  if (usedBall.id === "masterball") captured = true;
+                  else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
+                  else captured = false;
+                }
               } else if (target.mtcBoss) {
                 // ✦ MTC — só ultra ball; ~1.7% por lançamento (média ~60 tentativas)
                 if (usedBall.id !== "ultraball") {
@@ -3318,6 +3357,7 @@ function IdlePage() {
                 } else {
                   captured = Math.random() < 0.017;
                 }
+              
               } else if (isEventLeg && usedBall.id === "greatball") {
                 captured = false; // Great sempre falha em lendários do evento
               } else if (isEventLeg && usedBall.id === "masterball") {
@@ -4467,10 +4507,21 @@ function IdlePage() {
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2") {
           // Odisséia Oddish — pool só do evento; TODOS épicos; nível escala com o treinador.
-          pool = ([...ODDISH_EVENT_POOL] as Species[]).filter(hasGif);
-          if (pool.length === 0) pool = ["oddish"] as Species[];
-          forcedRarity = "epic";
-          mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
+          // Lickitung(_shiny) entra com peso menor. Mewtwo é rolado à parte (mítico plus).
+          if (Math.random() < MEWTWO_EVENT_CHANCE && !enemies.some((e) => e.sp === "mewtwo_event")) {
+            pool = ["mewtwo_event"] as Species[];
+            forcedRarity = "mythic_shiny";
+            mapLvRange = [Math.max(300, leaderLv), Math.max(300, leaderLv) + 10];
+          } else {
+            // 60% oddish/gloom/vileplume, 40% lickitung(_shiny)
+            const useSleeper = Math.random() < 0.4;
+            const sleepers = (["lickitung", "lickitung_shiny"] as Species[]).filter(hasGif);
+            const base = (["oddish", "gloom", "vileplume"] as Species[]).filter(hasGif);
+            pool = useSleeper && sleepers.length ? sleepers : (base.length ? base : ([...ODDISH_EVENT_POOL] as Species[]).filter(hasGif));
+            if (pool.length === 0) pool = ["oddish"] as Species[];
+            forcedRarity = "epic";
+            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
+          }
         }
         sp = pool[Math.floor(Math.random() * pool.length)];
       }
@@ -8325,24 +8376,48 @@ function IdlePage() {
               />
             </div>
             <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-              <div style={{
-                fontSize: 11, fontWeight: 900, color: "#ffd6ec",
-                letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
-              }}>✦ EVENTO ESPECIAL</div>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", marginTop: 2, lineHeight: 1.2 }}>
-                Em breve — Abertura
-              </div>
-              <div style={{ fontSize: 9.5, color: "#e6c8f0", marginTop: 3, lineHeight: 1.3 }}>
-                Um novo evento está sendo preparado. Fique atento!
-              </div>
+            {(() => {
+              const st = oddishEventStatus();
+              const active = st.phase === "open" || st.phase === "closed";
+              const isOpen = st.phase === "open";
+              const label = st.phase === "finished" ? "ENCERRADO"
+                : st.phase === "disabled" ? "EM BREVE"
+                : isOpen ? "ABERTO" : "FECHADO";
+              const chipBg = isOpen
+                ? "linear-gradient(135deg,#8affb0,#3ec96f)"
+                : st.phase === "closed"
+                  ? "linear-gradient(135deg,#ff8ac6,#b464e6)"
+                  : "linear-gradient(135deg,#ff8ac6,#b464e6)";
+              const timerTxt = active
+                ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
+                : "Um novo evento está sendo preparado.";
+              return (
+                <>
+                  <div style={{
+                    fontSize: 11, fontWeight: 900, color: "#ffd6ec",
+                    letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
+                  }}>✦ ODISSÉIA ODDISH</div>
+                  <div
+                    className={isOpen ? "cash-pack-float" : undefined}
+                    style={{ fontSize: 12, fontWeight: 900, color: isOpen ? "#8affb0" : "#fff", marginTop: 2, lineHeight: 1.2 }}
+                  >
+                    {isOpen ? "PORTAL ABERTO" : active ? "Aguardando janela" : "Em breve"}
+                  </div>
+                  <div style={{ fontSize: 9.5, color: "#e6c8f0", marginTop: 3, lineHeight: 1.3, fontFamily: "monospace" }}>
+                    {timerTxt}
+                  </div>
+                  <span style={{
+                    position: "absolute", top: 6, right: 8,
+                    fontSize: 9, fontWeight: 900, letterSpacing: 1,
+                    background: chipBg,
+                    color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
+                    boxShadow: isOpen ? "0 0 12px rgba(138,255,176,0.85)" : "0 0 8px rgba(255,138,198,0.6)",
+                    animation: isOpen ? "pulse 1s infinite" : undefined,
+                  }}>{label}</span>
+                </>
+              );
+            })()}
             </div>
-            <span style={{
-              position: "absolute", top: 6, right: 8,
-              fontSize: 9, fontWeight: 900, letterSpacing: 1,
-              background: "linear-gradient(135deg, #ff8ac6, #b464e6)",
-              color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
-              boxShadow: "0 0 8px rgba(255,138,198,0.6)",
-            }}>EM BREVE</span>
           </div>
 
 
