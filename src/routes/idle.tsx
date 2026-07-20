@@ -4835,7 +4835,7 @@ function IdlePage() {
     const uniqUids = Array.from(new Set(uids));
     setIdle((s) => {
       const col = s.collection ?? [];
-      const teamUids = new Set((s.team ?? []).map((p) => p.uid));
+      const teamUids = new Set((teamRef.current ?? []).map((p) => p.uid));
       const selected = col.filter(
         (c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity && !teamUids.has(c.uid),
       );
