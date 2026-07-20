@@ -299,6 +299,48 @@ export function grantUltra200Bundle(): Reward[] {
   return bundle;
 }
 
+// ---------- MYTHVIP30 (ovo mítico + VIP 30d) ----------
+export const MYTHVIP30_KEY = "rubym.mythvip30CodeUsed";
+export const SECRET_MYTHVIP30_CODE = "MYTHVIP30";
+export const isMythVip30Used = () => safeGet<boolean>(MYTHVIP30_KEY, false);
+export const setMythVip30Used = () => safeSet(MYTHVIP30_KEY, true);
+export function grantMythVip30Bundle(): Reward[] {
+  const bundle: Reward[] = [
+    { id: "egg_aura", label: "Ovo Mítico ✦", qty: 1, rare: true },
+    { id: "vip-30d", label: "VIP 30 dias (+XP/Gold)", qty: 1, rare: true },
+  ];
+  patchSave((s) => {
+    s.inventory = s.inventory ?? {};
+    s.inventory.egg_aura = (s.inventory.egg_aura ?? 0) + 1;
+    addBound("egg_aura", 1);
+    const now = Date.now();
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const sExt = s as AnySave & { vipUntil?: number; xpBoostUntil?: number };
+    sExt.vipUntil = Math.max(sExt.vipUntil ?? 0, now + thirtyDays);
+    sExt.xpBoostUntil = Math.max(sExt.xpBoostUntil ?? 0, now + thirtyDays);
+  });
+  setMythVip30Used();
+  pushLog({ actor: "system", action: "mythvip30_code_redeemed", detail: "Ovo Mítico + VIP 30d" });
+  if (typeof window !== "undefined") window.dispatchEvent(new StorageEvent("storage", { key: SAVE_KEY }));
+  return bundle;
+}
+
+// ---------- CRYSTAL20K ----------
+export const CRYSTAL20K_KEY = "rubym.crystal20kCodeUsed";
+export const SECRET_CRYSTAL20K_CODE = "CRYSTAL20K";
+export const isCrystal20kUsed = () => safeGet<boolean>(CRYSTAL20K_KEY, false);
+export const setCrystal20kUsed = () => safeSet(CRYSTAL20K_KEY, true);
+export function grantCrystal20kBundle(): Reward[] {
+  const bundle: Reward[] = [{ id: "crystal", label: "Cristal", qty: 20000, rare: true }];
+  patchSave((s) => {
+    s.crystal = (s.crystal ?? 0) + 20000;
+  });
+  setCrystal20kUsed();
+  pushLog({ actor: "system", action: "crystal20k_code_redeemed", detail: "20000x Cristal" });
+  if (typeof window !== "undefined") window.dispatchEvent(new StorageEvent("storage", { key: SAVE_KEY }));
+  return bundle;
+}
+
 export function tryRedeemCode(code: string):
   | { kind: "reward"; bundle: Reward[] }
   | { kind: "beta"; bundle: Reward[] }
@@ -323,6 +365,14 @@ export function tryRedeemCode(code: string):
   if (ultraCodes.includes(c)) {
     if (isUltra200Used()) return { kind: "already-used" };
     return { kind: "masterball", bundle: grantUltra200Bundle() };
+  }
+  if (c === SECRET_MYTHVIP30_CODE) {
+    if (isMythVip30Used()) return { kind: "already-used" };
+    return { kind: "masterball", bundle: grantMythVip30Bundle() };
+  }
+  if (c === SECRET_CRYSTAL20K_CODE) {
+    if (isCrystal20kUsed()) return { kind: "already-used" };
+    return { kind: "masterball", bundle: grantCrystal20kBundle() };
   }
   if (c === SECRET_ADMIN_CODE) {
     setAdmin(true);
