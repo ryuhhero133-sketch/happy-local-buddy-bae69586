@@ -20,13 +20,13 @@ import iconCrystalBlue from "@/assets/icon-crystal-blue-diamond.png.asset.json";
 import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
 import eventBannerImg from "@/assets/event-banner.png.asset.json";
 import trainerAvatarAsset from "@/assets/trainer-avatar.png.asset.json";
-import bagBgGlowAsset from "@/assets/bag-bg-glow.jpg.asset.json";
-import catAllAsset from "@/assets/cat-all.png.asset.json";
-import catBallsAsset from "@/assets/cat-balls.png.asset.json";
-import catPotionsAsset from "@/assets/cat-potions.png.asset.json";
-import catBooksAsset from "@/assets/cat-books.png.asset.json";
-import catEggsAsset from "@/assets/cat-eggs.png.asset.json";
-import catOtherAsset from "@/assets/cat-other.png.asset.json";
+import bagBgGlowAsset from "@/assets/bag-bg-dark.jpg.asset.json";
+import catAllAsset from "@/assets/cat2-all.png.asset.json";
+import catBallsAsset from "@/assets/cat2-balls.png.asset.json";
+import catPotionsAsset from "@/assets/cat2-potions.png.asset.json";
+import catBooksAsset from "@/assets/cat2-books.png.asset.json";
+import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
+import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
@@ -10358,29 +10358,29 @@ function TabOverlay({
         const SLOTS_MIN = 24;
         const emptyCount = Math.max(0, SLOTS_MIN - filtered.length);
 
-        // Paleta parchment/rose — inspirada em RPGs clássicos
+        // Paleta obsidiana + violeta arcano — dark fantasy
         const P = {
-          bg1: "#f6ecd3", bg2: "#e9d9ad", bg3: "#d8c089",
-          ink: "#3a2416", inkSoft: "#6b4a2e",
-          gold: "#c9932a", goldLight: "#f5cf6b", goldDark: "#8a5f14",
-          rose: "#b8362a", roseSoft: "#e07a5f",
-          panel: "#fff8e4",
+          bg1: "#1a0d2a", bg2: "#120820", bg3: "#0a0416",
+          ink: "#f0e2ff", inkSoft: "#b39dd8",
+          gold: "#a855f7", goldLight: "#d4a2ff", goldDark: "#5b21b6",
+          rose: "#c026d3", roseSoft: "#e94dea",
+          panel: "#1e1030",
         };
 
         return (
           <div style={{
             background: `
-              radial-gradient(circle at 50% 40%, rgba(255,220,140,0.35), transparent 55%),
+              radial-gradient(circle at 50% 30%, rgba(168,85,247,0.28), transparent 55%),
               url(${bagBgGlowUrl}) center/cover no-repeat,
               linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)
             `,
-            border: `3px solid ${P.goldDark}`, borderRadius: 16, padding: 14,
-            boxShadow: `inset 0 0 0 2px ${P.goldLight}80, inset 0 0 60px rgba(255,200,90,0.25), 0 8px 28px rgba(0,0,0,0.55)`,
+            border: `3px solid ${P.gold}`, borderRadius: 16, padding: 14,
+            boxShadow: `inset 0 0 0 2px ${P.goldLight}55, inset 0 0 80px rgba(168,85,247,0.22), 0 8px 32px rgba(0,0,0,0.75)`,
             fontFamily: '"Pixelify Sans", ui-monospace, monospace',
             position: "relative",
           }}>
             <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
-              background: "radial-gradient(ellipse at 50% 0%, rgba(255,240,180,0.18), transparent 60%)" }} />
+              background: "radial-gradient(ellipse at 50% 0%, rgba(212,162,255,0.18), transparent 60%)" }} />
 
             {/* CABEÇALHO — pergaminho dourado */}
             <div style={{
@@ -10425,7 +10425,7 @@ function TabOverlay({
             </div>
 
             {/* GRID LAYOUT — sidebar categorias + grade */}
-            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "168px minmax(0, 1fr)", gap: 12 }}>
+            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12 }}>
               {/* SIDEBAR CATEGORIAS */}
               <div style={{
                 background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
@@ -10464,14 +10464,14 @@ function TabOverlay({
                       <img
                         src={c.icon}
                         alt=""
-                        width={28}
-                        height={28}
+                        width={44}
+                        height={44}
                         style={{
                           imageRendering: "pixelated", flexShrink: 0,
                           filter: active
-                            ? "drop-shadow(0 0 4px rgba(255,220,120,0.9)) drop-shadow(0 2px 2px rgba(0,0,0,0.35))"
-                            : "drop-shadow(0 1px 1px rgba(0,0,0,0.3))",
-                          animation: active ? "cat-bounce 1.4s ease-in-out infinite" : undefined,
+                            ? "drop-shadow(0 0 8px rgba(212,162,255,0.95)) drop-shadow(0 2px 3px rgba(0,0,0,0.55))"
+                            : "drop-shadow(0 0 4px rgba(168,85,247,0.4)) drop-shadow(0 1px 2px rgba(0,0,0,0.55))",
+                          animation: active ? "cat-bounce 1.4s ease-in-out infinite" : "cat-bounce 3.2s ease-in-out infinite",
                         }}
                       />
                       <span style={{ flex: 1 }}>{c.label}</span>
