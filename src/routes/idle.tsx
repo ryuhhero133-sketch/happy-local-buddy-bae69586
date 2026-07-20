@@ -9316,6 +9316,46 @@ function HudBall({ img, count, color }: { img: string; count: number; color: str
   );
 }
 
+// ── HUD superior: nicho clássico para OURO / CRISTAIS
+function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React.ReactNode; value: string; title: string }) {
+  return (
+    <div title={title} style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "5px 10px",
+      background: `linear-gradient(180deg, ${tint}22, rgba(0,0,0,0.35))`,
+      borderLeft: "1px solid rgba(245,207,107,0.25)",
+      borderRight: "1px solid rgba(245,207,107,0.25)",
+      boxShadow: `inset 0 0 10px ${tint}18`,
+    }}>
+      {icon}
+      <span style={{
+        color: tint, fontWeight: 900, fontSize: 12.5,
+        textShadow: "0 1px 0 #000",
+        fontFamily: "'Cinzel', Georgia, serif", letterSpacing: 0.4,
+      }}>{value}</span>
+    </div>
+  );
+}
+
+// ── HUD superior: slot elegante para cada Pokébola
+function BallSlot({ img, count, tint }: { img: string; count: number; tint: string }) {
+  const empty = count <= 0;
+  return (
+    <div style={{
+      display: "inline-flex", alignItems: "center", gap: 3,
+      padding: "2px 6px 2px 3px",
+      borderRadius: 999,
+      background: empty ? "rgba(0,0,0,0.35)" : `linear-gradient(180deg, ${tint}30, rgba(0,0,0,0.35))`,
+      border: `1px solid ${empty ? "rgba(255,255,255,0.08)" : tint + "88"}`,
+      boxShadow: empty ? "none" : `0 0 8px ${tint}44, inset 0 0 4px ${tint}30`,
+      opacity: empty ? 0.5 : 1,
+    }}>
+      <img src={img} alt="" width={18} height={18} style={{ imageRendering: "pixelated", filter: empty ? "grayscale(0.7)" : `drop-shadow(0 0 3px ${tint}aa)` }} />
+      <span style={{ fontSize: 11, fontWeight: 900, color: "#fff", textShadow: "0 1px 0 #000", minWidth: 12, textAlign: "center" }}>{count}</span>
+    </div>
+  );
+}
+
 // ============ estilos ============
 const smallBtn: React.CSSProperties = {
   background: "#2a1a3a", color: "#f3e5c5",
