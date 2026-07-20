@@ -10343,195 +10343,263 @@ function TabOverlay({
         const SLOTS_MIN = 24;
         const emptyCount = Math.max(0, SLOTS_MIN - filtered.length);
 
+        // Paleta parchment/rose — inspirada em RPGs clássicos
+        const P = {
+          bg1: "#f6ecd3", bg2: "#e9d9ad", bg3: "#d8c089",
+          ink: "#3a2416", inkSoft: "#6b4a2e",
+          gold: "#c9932a", goldLight: "#f5cf6b", goldDark: "#8a5f14",
+          rose: "#b8362a", roseSoft: "#e07a5f",
+          panel: "#fff8e4",
+        };
+
         return (
-          <div>
-            {/* Cabeçalho estilo MMO */}
+          <div style={{
+            background: `linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)`,
+            border: `3px solid ${P.goldDark}`, borderRadius: 16, padding: 14,
+            boxShadow: `inset 0 0 0 2px ${P.goldLight}80, inset 0 0 40px rgba(184,134,42,0.18), 0 8px 28px rgba(0,0,0,0.45)`,
+            fontFamily: '"Pixelify Sans", ui-monospace, monospace',
+          }}>
+            {/* CABEÇALHO — pergaminho dourado */}
             <div style={{
-              display: "flex", alignItems: "center", gap: 16, marginBottom: 14,
-              padding: "14px 18px",
-              background: "linear-gradient(135deg, #3a1f5c 0%, #2a1638 50%, #1a0f26 100%)",
-              border: "3px solid #ffd66b", borderRadius: 16,
-              boxShadow: "0 6px 22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,214,107,0.4), 0 0 24px rgba(255,214,107,0.15)",
-              position: "relative", overflow: "hidden",
+              display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
+              padding: "12px 16px",
+              background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
+              border: `2px solid ${P.goldDark}`, borderRadius: 12,
+              boxShadow: `inset 0 0 0 1px ${P.goldLight}, 0 3px 0 rgba(0,0,0,0.15)`,
             }}>
-              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 30%, rgba(255,214,107,0.15), transparent 60%)", pointerEvents: "none" }} />
               <div style={{
-                width: 72, height: 72, borderRadius: 16, flexShrink: 0,
-                background: "radial-gradient(circle at 35% 30%, #fff4d0, #ffd66b 65%, #b8862a)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.5)",
-                border: "2px solid #b8862a",
+                width: 60, height: 60, borderRadius: 12, flexShrink: 0,
+                background: `radial-gradient(circle at 35% 30%, #fff4d0, ${P.goldLight} 55%, ${P.goldDark})`,
+                display: "grid", placeItems: "center",
+                border: `2px solid ${P.goldDark}`,
+                boxShadow: `inset 0 2px 4px rgba(255,255,255,0.6), 0 3px 8px rgba(0,0,0,0.35)`,
               }}>
-                <img src={bagIconImg} alt="" width={48} height={48} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }} />
+                <img src={bagIconImg} alt="" width={40} height={40} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.4))" }} />
               </div>
-              <div style={{ flex: 1, position: "relative" }}>
-                <div style={{ color: "#ffd66b", fontSize: 22, fontWeight: 900, letterSpacing: 2, textShadow: "0 2px 0 #0b0510, 0 0 12px rgba(255,214,107,0.6)" }}>✦ MOCHILA ✦</div>
-                <div style={{ color: "#eadfe8", fontSize: 11, marginTop: 4, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <span style={{ background: "rgba(255,214,107,0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(255,214,107,0.3)" }}>
-                    <strong style={{ color: "#ffd66b" }}>{totalTypes}</strong> tipos
-                  </span>
-                  <span style={{ background: "rgba(255,214,107,0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(255,214,107,0.3)" }}>
-                    <strong style={{ color: "#ffd66b" }}>{totalCount}</strong> itens
-                  </span>
-                  <span style={{ background: "rgba(255,214,107,0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(255,214,107,0.3)" }}>
-                    💰 <strong style={{ color: "#ffd66b" }}>{bank.gold.toLocaleString()}</strong>
-                  </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  color: P.goldDark, fontSize: 22, fontWeight: 900, letterSpacing: 3, lineHeight: 1,
+                  textShadow: `0 1px 0 ${P.panel}, 0 2px 3px rgba(0,0,0,0.15)`,
+                }}>✦ MOCHILA ✦</div>
+                <div style={{ color: P.inkSoft, fontSize: 10.5, marginTop: 6, fontStyle: "italic" }}>
+                  "Um bom aventureiro carrega o mundo nas costas."
                 </div>
               </div>
-            </div>
-
-            {/* Abas de categoria */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-              {CATS.map((c) => {
-                const active = mochilaCat === c.id;
-                const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => setMochilaCat(c.id)}
-                    style={{
-                      padding: "8px 14px", fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
-                      background: active ? "linear-gradient(180deg, #ffd66b, #b8862a)" : "rgba(30,15,50,0.7)",
-                      color: active ? "#0b0510" : "#c8b8d0",
-                      border: active ? "2px solid #fff4d0" : "2px solid rgba(255,214,107,0.25)",
-                      borderRadius: 10, cursor: "pointer",
-                      boxShadow: active ? "0 4px 12px rgba(255,214,107,0.4)" : "none",
-                      display: "flex", alignItems: "center", gap: 6,
-                    }}
-                  >
-                    <span>{c.icon}</span> {c.label} <span style={{ opacity: 0.7, fontSize: 10 }}>({count})</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {filtered.length === 0 ? (
-              <div style={{
-                color: "#8a7a9c", fontSize: 13, padding: 40, textAlign: "center",
-                background: "rgba(20,10,35,0.55)", border: "2px dashed #4a3560", borderRadius: 14,
-              }}>
-                {entries.length === 0
-                  ? "Sua mochila está vazia. Derrote Pokémon, abra baús ou visite a Loja!"
-                  : "Nenhum item nesta categoria."}
+              <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-end" }}>
+                <div style={{
+                  background: `linear-gradient(180deg, ${P.panel}, ${P.bg2})`, color: P.ink,
+                  border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
+                  fontSize: 10.5, fontWeight: 900, letterSpacing: 0.5,
+                  boxShadow: `inset 0 0 0 1px ${P.goldLight}80`,
+                }}>{totalTypes} tipos · {totalCount} itens</div>
+                <div style={{
+                  background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`, color: P.ink,
+                  border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
+                  fontSize: 11, fontWeight: 900,
+                  boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+                }}>💰 {bank.gold.toLocaleString()}</div>
               </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
-                {filtered.map(([id, n]) => {
-                  const isEgg = id.startsWith("egg_");
-                  const color = isEgg ? (EGG_COLORS[id] ?? "#f5cf6b") : (ITEM_COLORS[id] ?? "#f5cf6b");
-                  const img = ITEM_IMG[id];
-                  const Icon = ITEM_ICONS[id] ?? Sparkles;
-                  const sellPrice = marketSellPrices[id] ?? 0;
+            </div>
+
+            {/* GRID LAYOUT — sidebar categorias + grade */}
+            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "168px minmax(0, 1fr)", gap: 12 }}>
+              {/* SIDEBAR CATEGORIAS */}
+              <div style={{
+                background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
+                border: `2px solid ${P.goldDark}`, borderRadius: 12,
+                boxShadow: `inset 0 0 0 1px ${P.goldLight}70`,
+                padding: 8, display: "flex", flexDirection: "column", gap: 6,
+              }}>
+                <div style={{
+                  textAlign: "center", fontSize: 10, fontWeight: 900, letterSpacing: 2,
+                  color: P.goldDark, padding: "4px 0 6px", borderBottom: `1px dashed ${P.goldDark}55`,
+                }}>CATEGORIAS</div>
+                {CATS.map((c) => {
+                  const active = mochilaCat === c.id;
+                  const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
                   return (
-                    <div key={id} style={{
-                      background: "linear-gradient(160deg, #1a0f26 0%, #2a1638 60%, #1a0f26 100%)",
-                      border: `2px solid ${color}66`, borderRadius: 12, padding: 10,
-                      textAlign: "center", position: "relative",
-                      boxShadow: `0 4px 14px rgba(0,0,0,0.55), inset 0 1px 0 ${color}33, 0 0 12px ${color}22`,
-                      display: "flex", flexDirection: "column", gap: 6, alignItems: "center",
-                      transition: "transform 120ms",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 8px 20px rgba(0,0,0,0.7), inset 0 1px 0 ${color}55, 0 0 20px ${color}55`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 4px 14px rgba(0,0,0,0.55), inset 0 1px 0 ${color}33, 0 0 12px ${color}22`; }}
+                    <button
+                      key={c.id}
+                      onClick={() => setMochilaCat(c.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        padding: "8px 10px", fontSize: 11.5, fontWeight: 900, letterSpacing: 0.3,
+                        background: active
+                          ? `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`
+                          : `linear-gradient(180deg, ${P.panel}, ${P.bg2})`,
+                        color: P.ink,
+                        border: `1.5px solid ${active ? P.goldDark : P.gold + "77"}`,
+                        borderRadius: 9, cursor: "pointer",
+                        boxShadow: active
+                          ? `inset 0 0 0 1px #fff8e4, 0 2px 0 rgba(0,0,0,0.25)`
+                          : `0 1px 0 rgba(0,0,0,0.1)`,
+                        transform: active ? "translateX(3px)" : "translateX(0)",
+                        transition: "all 120ms",
+                        textAlign: "left", width: "100%",
+                      }}
                     >
-                      {/* Badge quantidade */}
-                      <div style={{
-                        position: "absolute", top: 4, right: 4,
-                        background: color, color: "#0b0510",
-                        fontSize: 10, fontWeight: 900, padding: "2px 6px",
+                      <span style={{ fontSize: 15 }}>{c.icon}</span>
+                      <span style={{ flex: 1 }}>{c.label}</span>
+                      <span style={{
+                        background: active ? P.goldDark : P.ink + "22",
+                        color: active ? "#fff8e4" : P.inkSoft,
+                        fontSize: 10, fontWeight: 900, padding: "1px 7px",
                         borderRadius: 999, minWidth: 22, textAlign: "center",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                        border: "1px solid rgba(255,255,255,0.4)",
-                      }}>x{n}</div>
-                      {/* Ícone */}
-                      <div style={{
-                        width: 60, height: 60, borderRadius: 12, marginTop: 4,
-                        background: `radial-gradient(circle at 30% 30%, ${color}55, ${color}11 60%, transparent), rgba(0,0,0,0.35)`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        border: `1px solid ${color}66`,
-                        boxShadow: `inset 0 0 10px ${color}33`,
-                      }}>
-                        {isEgg ? (
-                          <div style={{
-                            width: 38, height: 44, borderRadius: "45% / 55%",
-                            background: `radial-gradient(circle at 30% 25%, #fff, ${color} 55%)`,
-                            border: `1.5px solid ${color}`, boxShadow: `0 0 10px ${color}aa`,
-                          }} />
-                        ) : img
-                          ? <img src={img} alt="" width={44} height={44} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.5))" }} />
-                          : <Icon size={32} color={color} strokeWidth={2.2} />}
-                      </div>
-                      <div style={{ fontSize: 11, fontWeight: 800, color: "#eadfe8", letterSpacing: 0.3, lineHeight: 1.1 }}>{NAMES[id] ?? id}</div>
-                      <div style={{ display: "flex", gap: 4, width: "100%" }}>
-                        <button
-                          onClick={() => onUseItem(id)}
-                          style={{
-                            flex: 1, padding: "6px 4px", fontSize: 10, fontWeight: 800,
-                            background: `linear-gradient(180deg, ${color}, ${color}bb)`, color: "#0b0510",
-                            border: "1px solid rgba(255,255,255,0.3)",
-                            borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
-                            boxShadow: `0 2px 6px ${color}55`,
-                          }}
-                        >{isEgg ? "CHOCAR" : "USAR"}</button>
-                        {sellPrice > 0 && (
-                          <button
-                            onClick={() => onSellItem(id, 1)}
-                            title={`Vender 1 por ${sellPrice} ouro`}
-                            style={{
-                              flex: 1, padding: "6px 4px", fontSize: 10, fontWeight: 800,
-                              background: "linear-gradient(180deg, #f5cf6b, #b8862a)", color: "#0b0510",
-                              border: "1px solid rgba(255,255,255,0.3)",
-                              borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
-                              boxShadow: "0 2px 6px rgba(184,134,42,0.5)",
-                            }}
-                          >💰 {sellPrice}</button>
-                        )}
-                      </div>
-                      {(() => {
-                        const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
-                          book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
-                          book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
-                          book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
-                          book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "VIP 60d" },
-                        };
-                        const rule = UP[id];
-                        if (!rule) return null;
-                        const okLv = trainerLevel >= rule.trainerLv;
-                        const okQty = n >= rule.cost;
-                        const enabled = okLv && okQty;
-                        const title = !okLv
-                          ? `Requer Treinador Lv.${rule.trainerLv}`
-                          : !okQty
-                            ? `Precisa de ${rule.cost}× (você tem ${n})`
-                            : `Forjar ${rule.label} usando ${rule.cost}×`;
-                        return (
-                          <button
-                            onClick={() => onUpgradeBook(id)}
-                            disabled={!enabled}
-                            title={title}
-                            style={{
-                              marginTop: 4, width: "100%", padding: "6px 4px", fontSize: 10, fontWeight: 800,
-                              background: enabled ? "linear-gradient(180deg, #8bffb0, #3a8a5a)" : "rgba(60,50,80,0.6)",
-                              color: enabled ? "#0b0510" : "#7a6a8c",
-                              border: "1px solid rgba(255,255,255,0.2)",
-                              borderRadius: 6, cursor: enabled ? "pointer" : "not-allowed", letterSpacing: 0.3,
-                            }}
-                          >⚒️ Forjar {rule.label} ({rule.cost}× · Lv.{rule.trainerLv})</button>
-                        );
-                      })()}
-                    </div>
+                      }}>{count}</span>
+                    </button>
                   );
                 })}
-                {/* Slots vazios decorativos */}
-                {Array.from({ length: emptyCount }).map((_, i) => (
-                  <div key={`empty-${i}`} style={{
-                    background: "rgba(20,10,35,0.4)",
-                    border: "2px dashed rgba(74,53,96,0.5)", borderRadius: 12,
-                    minHeight: 140,
-                  }} />
-                ))}
+                <div style={{ flex: 1 }} />
+                <div style={{
+                  marginTop: 4, padding: "6px 8px", fontSize: 9.5, fontWeight: 700,
+                  color: P.inkSoft, textAlign: "center", fontStyle: "italic",
+                  borderTop: `1px dashed ${P.goldDark}55`,
+                }}>
+                  {SLOTS_MIN - filtered.length > 0 ? `${SLOTS_MIN - filtered.length} slots livres` : "Mochila cheia"}
+                </div>
               </div>
-            )}
+
+              {/* GRADE DE ITENS */}
+              <div style={{
+                background: `linear-gradient(180deg, ${P.panel}dd, ${P.bg1}dd)`,
+                border: `2px solid ${P.goldDark}`, borderRadius: 12,
+                boxShadow: `inset 0 0 0 1px ${P.goldLight}70, inset 0 0 22px rgba(184,134,42,0.12)`,
+                padding: 12, minHeight: 360,
+              }}>
+                {filtered.length === 0 ? (
+                  <div style={{
+                    color: P.inkSoft, fontSize: 13, padding: 60, textAlign: "center", fontStyle: "italic",
+                  }}>
+                    {entries.length === 0
+                      ? "Sua mochila está vazia. Derrote Pokémon, abra baús ou visite a Loja!"
+                      : "Nenhum item nesta categoria."}
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(126px, 1fr))", gap: 10 }}>
+                    {filtered.map(([id, n]) => {
+                      const isEgg = id.startsWith("egg_");
+                      const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
+                      const img = ITEM_IMG[id];
+                      const Icon = ITEM_ICONS[id] ?? Sparkles;
+                      const sellPrice = marketSellPrices[id] ?? 0;
+                      return (
+                        <div key={id} style={{
+                          background: `linear-gradient(180deg, ${P.panel} 0%, ${P.bg1} 100%)`,
+                          border: `2px solid ${P.goldDark}`, borderRadius: 10, padding: 8,
+                          textAlign: "center", position: "relative",
+                          boxShadow: `inset 0 0 0 1px ${P.goldLight}88, 0 3px 0 rgba(0,0,0,0.18)`,
+                          display: "flex", flexDirection: "column", gap: 6, alignItems: "center",
+                          transition: "transform 120ms, box-shadow 120ms",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `inset 0 0 0 1px #fff8e4, 0 6px 14px rgba(0,0,0,0.35), 0 0 14px ${color}66`; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `inset 0 0 0 1px ${P.goldLight}88, 0 3px 0 rgba(0,0,0,0.18)`; }}
+                        >
+                          <div style={{
+                            position: "absolute", top: -6, right: -6,
+                            background: `linear-gradient(180deg, ${P.rose}, #7a1e12)`, color: "#fff8e4",
+                            fontSize: 10, fontWeight: 900, padding: "2px 7px",
+                            borderRadius: 999, minWidth: 24, textAlign: "center",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                            border: `1.5px solid ${P.panel}`,
+                          }}>x{n}</div>
+                          <div style={{
+                            width: 62, height: 62, borderRadius: 10, marginTop: 2,
+                            background: `radial-gradient(circle at 30% 30%, ${color}55, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
+                            display: "grid", placeItems: "center",
+                            border: `2px inset ${P.goldDark}aa`,
+                            boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25)`,
+                          }}>
+                            {isEgg ? (
+                              <div style={{
+                                width: 38, height: 44, borderRadius: "45% / 55%",
+                                background: `radial-gradient(circle at 30% 25%, #fff, ${color} 55%)`,
+                                border: `1.5px solid ${color}`, boxShadow: `0 0 10px ${color}aa`,
+                              }} />
+                            ) : img
+                              ? <img src={img} alt="" width={46} height={46} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.4))" }} />
+                              : <Icon size={32} color={color} strokeWidth={2.2} />}
+                          </div>
+                          <div style={{
+                            fontSize: 10.5, fontWeight: 900, color: P.ink, letterSpacing: 0.2, lineHeight: 1.15,
+                            minHeight: 24, display: "flex", alignItems: "center",
+                          }}>{NAMES[id] ?? id}</div>
+                          <div style={{ display: "flex", gap: 4, width: "100%" }}>
+                            <button
+                              onClick={() => onUseItem(id)}
+                              style={{
+                                flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
+                                background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
+                                color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                                borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
+                                boxShadow: `0 2px 0 ${P.goldDark}`,
+                              }}
+                            >{isEgg ? "CHOCAR" : "USAR"}</button>
+                            {sellPrice > 0 && (
+                              <button
+                                onClick={() => onSellItem(id, 1)}
+                                title={`Vender 1 por ${sellPrice} ouro`}
+                                style={{
+                                  flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
+                                  background: `linear-gradient(180deg, ${P.roseSoft}, ${P.rose})`,
+                                  color: "#fff8e4", border: `1.5px solid #7a1e12`,
+                                  borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
+                                  boxShadow: `0 2px 0 #7a1e12`,
+                                }}
+                              >💰{sellPrice}</button>
+                            )}
+                          </div>
+                          {(() => {
+                            const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+                              book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
+                              book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
+                              book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
+                              book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "VIP 60d" },
+                            };
+                            const rule = UP[id];
+                            if (!rule) return null;
+                            const okLv = trainerLevel >= rule.trainerLv;
+                            const okQty = n >= rule.cost;
+                            const enabled = okLv && okQty;
+                            const title = !okLv
+                              ? `Requer Treinador Lv.${rule.trainerLv}`
+                              : !okQty
+                                ? `Precisa de ${rule.cost}× (você tem ${n})`
+                                : `Forjar ${rule.label} usando ${rule.cost}×`;
+                            return (
+                              <button
+                                onClick={() => onUpgradeBook(id)}
+                                disabled={!enabled}
+                                title={title}
+                                style={{
+                                  marginTop: 2, width: "100%", padding: "5px 4px", fontSize: 9.5, fontWeight: 900,
+                                  background: enabled ? "linear-gradient(180deg, #8bffb0, #3a8a5a)" : `${P.bg3}88`,
+                                  color: enabled ? "#0b2010" : P.inkSoft,
+                                  border: `1.5px solid ${enabled ? "#2a5a3a" : P.gold + "77"}`,
+                                  borderRadius: 6, cursor: enabled ? "pointer" : "not-allowed", letterSpacing: 0.3,
+                                }}
+                              >⚒️ {rule.label}</button>
+                            );
+                          })()}
+                        </div>
+                      );
+                    })}
+                    {Array.from({ length: emptyCount }).map((_, i) => (
+                      <div key={`empty-${i}`} style={{
+                        background: `${P.bg2}55`,
+                        border: `2px dashed ${P.gold}66`, borderRadius: 10,
+                        minHeight: 150,
+                        boxShadow: `inset 0 0 12px ${P.gold}22`,
+                      }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <style>{`
+              @media (max-width: 720px) {
+                .mochila-body { grid-template-columns: 1fr !important; }
+              }
+            `}</style>
           </div>
         );
       })()}
