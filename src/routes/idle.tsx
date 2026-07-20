@@ -3330,6 +3330,23 @@ function IdlePage() {
                 pushFxAt(target.x, target.y - 70, "IMPOSSÍVEL CAPTURAR", "enemyDmg");
                 pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
                 setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
+              } else if (target.sp === "mewtwo_event") {
+                // ✦✧ MEWTWO do evento — precisa arremessar 1500+ bolas antes de qualquer chance.
+                const prev = mewtwoBallsRef.current.get(target.id) ?? 0;
+                const nowCount = prev + 1;
+                mewtwoBallsRef.current.set(target.id, nowCount);
+                if (nowCount < MEWTWO_MIN_BALLS) {
+                  captured = false;
+                  if (nowCount % 100 === 0) {
+                    pushChat(`✦✧ MEWTWO — ${nowCount}/${MEWTWO_MIN_BALLS} pokébolas arremessadas...`, "info");
+                  }
+                  pushFxAt(target.x, target.y - 70, `${nowCount}/${MEWTWO_MIN_BALLS}`, "enemyDmg");
+                } else {
+                  // Depois do umbral, ultra ball 0.4%, master garantido.
+                  if (usedBall.id === "masterball") captured = true;
+                  else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
+                  else captured = false;
+                }
               } else if (target.mtcBoss) {
                 // ✦ MTC — só ultra ball; ~1.7% por lançamento (média ~60 tentativas)
                 if (usedBall.id !== "ultraball") {
@@ -3338,6 +3355,7 @@ function IdlePage() {
                 } else {
                   captured = Math.random() < 0.017;
                 }
+              
               } else if (isEventLeg && usedBall.id === "greatball") {
                 captured = false; // Great sempre falha em lendários do evento
               } else if (isEventLeg && usedBall.id === "masterball") {
