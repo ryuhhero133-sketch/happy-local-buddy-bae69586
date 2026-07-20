@@ -20,6 +20,13 @@ import iconCrystalBlue from "@/assets/icon-crystal-blue-diamond.png.asset.json";
 import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
 import eventBannerImg from "@/assets/event-banner.png.asset.json";
 import trainerAvatarAsset from "@/assets/trainer-avatar.png.asset.json";
+import bagBgGlowAsset from "@/assets/bag-bg-glow.jpg.asset.json";
+import catAllAsset from "@/assets/cat-all.png.asset.json";
+import catBallsAsset from "@/assets/cat-balls.png.asset.json";
+import catPotionsAsset from "@/assets/cat-potions.png.asset.json";
+import catBooksAsset from "@/assets/cat-books.png.asset.json";
+import catEggsAsset from "@/assets/cat-eggs.png.asset.json";
+import catOtherAsset from "@/assets/cat-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
@@ -338,6 +345,13 @@ const mapEliteRouteUrl = assetUrlFromJson(mapEliteRouteAsset);
 const mapVictoryRoadUrl = assetUrlFromJson(mapVictoryRoadAsset);
 const mapViridianUrl = assetUrlFromJson(mapViridianAsset);
 const mapVenenoUrl = assetUrlFromJson(mapVenenoAsset);
+const bagBgGlowUrl = assetUrlFromJson(bagBgGlowAsset);
+const catAllUrl = assetUrlFromJson(catAllAsset);
+const catBallsUrl = assetUrlFromJson(catBallsAsset);
+const catPotionsUrl = assetUrlFromJson(catPotionsAsset);
+const catBooksUrl = assetUrlFromJson(catBooksAsset);
+const catEggsUrl = assetUrlFromJson(catEggsAsset);
+const catOtherUrl = assetUrlFromJson(catOtherAsset);
 // URLs dos orbs (sprites transparentes)
 const orbXpMinorUrl = assetUrlFromJson(orbXpMinorAsset);
 const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
@@ -10328,12 +10342,12 @@ function TabOverlay({
           return "other";
         };
         const CATS: { id: "all" | "balls" | "potions" | "books" | "eggs" | "other"; label: string; icon: string }[] = [
-          { id: "all", label: "Tudo", icon: "🎒" },
-          { id: "balls", label: "Bolas", icon: "⚪" },
-          { id: "potions", label: "Poções", icon: "🧪" },
-          { id: "books", label: "Livros", icon: "📖" },
-          { id: "eggs", label: "Ovos", icon: "🥚" },
-          { id: "other", label: "Outros", icon: "✨" },
+          { id: "all", label: "Tudo", icon: catAllUrl },
+          { id: "balls", label: "Bolas", icon: catBallsUrl },
+          { id: "potions", label: "Poções", icon: catPotionsUrl },
+          { id: "books", label: "Livros", icon: catBooksUrl },
+          { id: "eggs", label: "Ovos", icon: catEggsUrl },
+          { id: "other", label: "Outros", icon: catOtherUrl },
         ];
         // filtra chaves internas de contagem (não devem aparecer na mochila)
         const entries = Object.entries(items).filter(([id, n]) => n > 0 && !id.startsWith("_"));
@@ -10355,11 +10369,19 @@ function TabOverlay({
 
         return (
           <div style={{
-            background: `linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)`,
+            background: `
+              radial-gradient(circle at 50% 40%, rgba(255,220,140,0.35), transparent 55%),
+              url(${bagBgGlowUrl}) center/cover no-repeat,
+              linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)
+            `,
             border: `3px solid ${P.goldDark}`, borderRadius: 16, padding: 14,
-            boxShadow: `inset 0 0 0 2px ${P.goldLight}80, inset 0 0 40px rgba(184,134,42,0.18), 0 8px 28px rgba(0,0,0,0.45)`,
+            boxShadow: `inset 0 0 0 2px ${P.goldLight}80, inset 0 0 60px rgba(255,200,90,0.25), 0 8px 28px rgba(0,0,0,0.55)`,
             fontFamily: '"Pixelify Sans", ui-monospace, monospace',
+            position: "relative",
           }}>
+            <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
+              background: "radial-gradient(ellipse at 50% 0%, rgba(255,240,180,0.18), transparent 60%)" }} />
+
             {/* CABEÇALHO — pergaminho dourado */}
             <div style={{
               display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
@@ -10439,7 +10461,19 @@ function TabOverlay({
                         textAlign: "left", width: "100%",
                       }}
                     >
-                      <span style={{ fontSize: 15 }}>{c.icon}</span>
+                      <img
+                        src={c.icon}
+                        alt=""
+                        width={28}
+                        height={28}
+                        style={{
+                          imageRendering: "pixelated", flexShrink: 0,
+                          filter: active
+                            ? "drop-shadow(0 0 4px rgba(255,220,120,0.9)) drop-shadow(0 2px 2px rgba(0,0,0,0.35))"
+                            : "drop-shadow(0 1px 1px rgba(0,0,0,0.3))",
+                          animation: active ? "cat-bounce 1.4s ease-in-out infinite" : undefined,
+                        }}
+                      />
                       <span style={{ flex: 1 }}>{c.label}</span>
                       <span style={{
                         background: active ? P.goldDark : P.ink + "22",
@@ -10511,7 +10545,22 @@ function TabOverlay({
                             boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 10px ${color}44`,
                             position: "relative", overflow: "hidden",
                           }}>
-                            <ItemPixelIcon id={id} size={52} color={color} />
+                            {img ? (
+                              <img
+                                src={img}
+                                alt=""
+                                width={52}
+                                height={52}
+                                loading="lazy"
+                                style={{
+                                  imageRendering: "pixelated",
+                                  filter: `drop-shadow(0 0 6px ${color}aa) drop-shadow(0 2px 2px rgba(0,0,0,0.45))`,
+                                  animation: "item-float 2.4s ease-in-out infinite",
+                                }}
+                              />
+                            ) : (
+                              <ItemPixelIcon id={id} size={52} color={color} />
+                            )}
                           </div>
                           <div style={{
                             fontSize: 10.5, fontWeight: 900, color: P.ink, letterSpacing: 0.2, lineHeight: 1.15,
