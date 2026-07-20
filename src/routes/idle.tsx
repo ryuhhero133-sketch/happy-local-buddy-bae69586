@@ -7083,8 +7083,8 @@ function IdlePage() {
             />
 
             <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "5px 10px",
+              display: "inline-flex", alignItems: "center", gap: 4,
+              padding: "8px 14px 10px",
               background: "linear-gradient(180deg, rgba(255,110,110,0.10), rgba(0,0,0,0.35))",
               borderRadius: "4px 11px 11px 4px",
               borderLeft: "1px solid rgba(245,207,107,0.25)",
