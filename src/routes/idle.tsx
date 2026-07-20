@@ -9161,7 +9161,7 @@ function IdlePage() {
         const gif = GIF[tgt.sp];
         return (
           <div key={tgt.id} style={{
-            position: "fixed", top: 14, left: "50%", transform: "translateX(-50%)",
+            position: "fixed", top: 72, left: "50%", transform: "translateX(-50%)",
             zIndex: 9997, pointerEvents: "none",
             display: "flex", alignItems: "center", gap: 10,
             background: "linear-gradient(180deg, rgba(38,14,14,0.94) 0%, rgba(20,6,6,0.94) 100%)",
@@ -9172,6 +9172,7 @@ function IdlePage() {
             minWidth: 260,
             animation: "evt-slide 220ms cubic-bezier(.2,.9,.3,1.2)",
           }}>
+
             <div style={{
               width: 54, height: 54, flexShrink: 0, borderRadius: "50%",
               background: `radial-gradient(circle at 40% 35%, ${rColor}66 0%, #2a0a0a 75%)`,
