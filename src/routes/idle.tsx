@@ -3045,24 +3045,34 @@ function IdlePage() {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
               // Duração enxuta — paralisia de minuto travava o jogador.
-              // Dialga (evento) mantém peso maior; Ditto usa Sonífero curto.
+              // Dialga (evento) mantém peso maior; Ditto/Lickitung/Mewtwo usam Sonífero curto.
+              const isLickSleep = target.sp === "lickitung" || target.sp === "lickitung_shiny";
+              const isMewtwoSleep = target.sp === "mewtwo_event";
               const baseDur = target.sp === "dialga" ? 15_000
                 : (target.sp === "ditto" || target.sp === "ditto_shiny") ? 8_000
+                : isLickSleep ? (2000 + Math.floor(Math.random() * 1000))
+                : isMewtwoSleep ? 3000
                 : 10_000;
               const isDittoSleep = target.sp === "ditto" || target.sp === "ditto_shiny";
-              // paraResist não só resiste — reduz duração proporcionalmente
-              const durReduction = Math.min(0.85, synNow.paraResist);
+              const isSleep = isDittoSleep || isLickSleep || isMewtwoSleep;
+              // paraResist não só resiste — reduz duração proporcionalmente (sonífero curto ignora)
+              const durReduction = isLickSleep || isMewtwoSleep ? 0 : Math.min(0.85, synNow.paraResist);
               const dur = Math.floor(baseDur * (1 - durReduction));
               paralyzedUntilRef.current = Date.now() + dur;
               paralyzedByEnemyIdRef.current = target.id;
               setParalyzedUntil(paralyzedUntilRef.current);
-              if (isDittoSleep) {
+              if (isLickSleep) {
+                pushChat(`💤 ${target.sp === "lickitung_shiny" ? "LICKITUNG ✦" : "LICKITUNG"} usou SONÍFERO — seu Pokémon dormiu por ${Math.round(dur/1000)}s!`, "hit");
+              } else if (isMewtwoSleep) {
+                pushChat(`💤✦ MEWTWO ✦✧ arremessou uma onda psíquica — sono profundo por ${Math.round(dur/1000)}s!`, "hit");
+              } else if (isDittoSleep) {
                 pushChat(`💤 ${target.sp === "ditto_shiny" ? "DITTO ✨" : "DITTO"} usou SONÍFERO — seu Pokémon dormiu por ${Math.round(dur/1000)}s!`, "hit");
               } else if (durReduction > 0.1) {
                 pushChat(`⚡ Paralisia! Reduzida em ${Math.round(durReduction*100)}% pelos Guardiões — ${Math.round(dur/1000)}s.`, "hit");
               } else {
                 pushChat(`⚡ ${target.sp.replace(/_/g," ").toUpperCase()} paralisou seu Pokémon por ${Math.round(dur/1000)}s!`, "hit");
               }
+              void isSleep;
             }
           }
           if (spec.flee > 0 && Math.random() < spec.flee) {
