@@ -8133,7 +8133,7 @@ function IdlePage() {
                 filter: "drop-shadow(0 0 10px rgba(245,207,107,0.6))",
               }}>
                 <img
-                  src={iconCashPackage.url}
+                  src={assetUrlFromJson(iconCashPackage)}
                   alt=""
                   width={58}
                   height={58}
