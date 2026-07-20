@@ -2029,6 +2029,27 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "VIPCHAR30A" || raw === "VIPCHAR30B") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          book_vip_30: (base.items.book_vip_30 ?? 0) + 1,
+          ultraball: (base.items.ultraball ?? 0) + 25,
+          egg_epic: (base.items.egg_epic ?? 0) + 1,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "✦ Livro VIP 30d + 25 Ultra Balls + Ovo Épico entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: 1× Livro VIP 30d + 25× Ultra Ball + 1× Ovo Épico ✦.`, "cap");
+      return;
+    }
+
     setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
 
