@@ -8176,22 +8176,6 @@ function IdlePage() {
           </div>
 
 
-          <div style={{
-            background: "linear-gradient(135deg, #7a1c1c, #c92a2a)",
-            border: "2px solid #f5cf6b",
-            borderRadius: 10, padding: 10,
-            display: "flex", alignItems: "center", gap: 10,
-          }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, color: "#fff", fontSize: 12 }}>MODO IDLE ATIVO</div>
-              <div style={{ fontSize: 10, color: "#f5cf6b" }}>Ganhos continuam offline!</div>
-            </div>
-            <div style={{
-              width: 28, height: 28, borderRadius: "50%",
-              background: "radial-gradient(circle, #e94141 0 40%, #fff 40% 55%, #333 55%)",
-              flexShrink: 0,
-            }} />
-          </div>
 
           {/* Guia do Prof. Carvalho removido a pedido do usuário */}
 
