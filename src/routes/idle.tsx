@@ -1876,6 +1876,50 @@ function IdlePage() {
       return next.slice(-40);
     });
   };
+
+  // ============================================================
+  // AVISO GLOBAL — ODISSÉIA ODDISH
+  // O evento abre no mesmo horário pra todo mundo (startedAt fixo).
+  // Aqui despachamos toasts/chat sincronizados: T-5min, T-1min, ABERTO, FECHADO.
+  // ============================================================
+  const oddishAnnouncedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!ODDISH_EVENT.enabled || ODDISH_EVENT.startedAt === 0) return;
+    const check = () => {
+      const st = oddishEventStatus();
+      if (st.phase === "finished" || st.phase === "disabled") return;
+      const cycleMs = ODDISH_EVENT.cycleHours * 60 * 60 * 1000;
+      const cycleIndex = Math.floor(st.elapsedMs / cycleMs);
+      const key = (k: string) => `${cycleIndex}:${k}`;
+      const seen = oddishAnnouncedRef.current;
+      if (st.phase === "closed") {
+        const ms = st.msUntilChange;
+        if (ms <= 5 * 60 * 1000 && ms > 4 * 60 * 1000 && !seen.has(key("t5"))) {
+          seen.add(key("t5"));
+          pushChat(`🌿 ODISSÉIA ODDISH — Portal abre em 5 minutos! Prepare-se, treinador.`, "info");
+          try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: "Portal abre em 5 minutos!", tone: "info" } })); } catch {}
+        }
+        if (ms <= 60 * 1000 && ms > 30 * 1000 && !seen.has(key("t1"))) {
+          seen.add(key("t1"));
+          pushChat(`🌿 ODISSÉIA ODDISH — 1 MINUTO para a abertura!`, "hit");
+          try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: "1 minuto para abrir!", tone: "warn" } })); } catch {}
+        }
+      }
+      if (st.phase === "open" && !seen.has(key("open"))) {
+        seen.add(key("open"));
+        pushChat(`✦ PORTAL ABERTO — ODISSÉIA ODDISH! Janela de 30 min pra todos os treinadores. Corre! 🌿✨`, "cap");
+        try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 PORTAL ABERTO!", body: "ODISSÉIA ODDISH — janela de 30 min ativa pra geral!", tone: "success" } })); } catch {}
+      }
+      if (st.phase === "open" && st.msUntilChange <= 60 * 1000 && st.msUntilChange > 30 * 1000 && !seen.has(key("closing"))) {
+        seen.add(key("closing"));
+        pushChat(`⏳ ODISSÉIA ODDISH — Portal fecha em 1 minuto!`, "hit");
+      }
+    };
+    check();
+    const iv = setInterval(check, 10_000);
+    return () => clearInterval(iv);
+  }, []);
+
   // Chat global (cooldown 10 min por jogador)
   const [chatInput, setChatInput] = useState("");
   const [chatCooldownUntil, setChatCooldownUntil] = useState<number>(0);
