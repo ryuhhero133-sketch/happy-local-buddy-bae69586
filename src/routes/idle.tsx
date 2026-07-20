@@ -8411,8 +8411,31 @@ function IdlePage() {
           100% { opacity: 1; transform: translate(-50%, 0); }
         }
 
+        /* ===== Sidebar goodies ===== */
+        @keyframes world-globe-spin {
+          0%   { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .world-globe-spin {
+          animation: world-globe-spin 6s linear infinite;
+          transform-origin: 50% 50%;
+        }
+        .world-globe-btn:hover .world-globe-spin { animation-duration: 2.5s; }
+        .world-globe-btn { transition: transform 120ms, box-shadow 160ms; }
+        .world-globe-btn:hover { transform: translateY(-1px); box-shadow: 0 0 22px rgba(245,207,107,0.7), inset 0 1px 0 rgba(255,240,180,0.35); }
+
+        @keyframes cash-pack-float {
+          0%,100% { transform: translateY(0) rotate(-2deg); }
+          50%     { transform: translateY(-4px) rotate(2deg); }
+        }
+        .cash-pack-float {
+          animation: cash-pack-float 2.6s ease-in-out infinite;
+          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+        }
+
 
       `}</style>
+
 
       {identity && (
         <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100 }}>
