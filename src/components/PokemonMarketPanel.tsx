@@ -200,6 +200,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
         onSpend(r.currency, r.price);
       }
       claimedBuyerRef.current.add(r.id);
+      writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
       const entry: CollectionEntry = {
         uid: `bought-${r.id}`,
         species: r.pokemon.species,
@@ -219,6 +220,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     for (const r of mySold) {
       if (claimedSellerRef.current.has(r.id)) continue;
       claimedSellerRef.current.add(r.id);
+      writeClaimSet(claimedSellerKey(identity.id), claimedSellerRef.current);
       onEarn(r.currency, r.price);
       supabase.from("pokemon_market").update({ payout_claimed: true }).eq("id", r.id).then(() => {
         pushChat(`💸 Recebeu ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"} da venda de ${r.pokemon.species}.`, "cap");
