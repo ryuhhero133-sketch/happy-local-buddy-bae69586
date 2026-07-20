@@ -278,6 +278,13 @@ html, body, #root {
 }
 .price-pulse { animation: price-pulse 2.4s ease-in-out infinite; }
 
+@keyframes teamPulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+
+
 /* Critical hit label */
 @keyframes crit-pop {
   0%   { opacity: 0; transform: translate(-50%, 4px) scale(0.4) rotate(-10deg); }
