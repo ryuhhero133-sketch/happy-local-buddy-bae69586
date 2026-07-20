@@ -196,6 +196,18 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       for (const r of myBought) {
         if (claimedBuyerRef.current.has(r.id)) continue;
         if (inflightBuyerRef.current.has(r.id)) continue;
+        // Idempotência forte: se o pokémon já foi entregue nesta conta,
+        // considera claim finalizado — nunca cobra de novo, mesmo se a
+        // RLS bloquear o UPDATE de buyer_claimed no banco.
+        const alreadyDelivered = collection.some(c => c.uid === `bought-${r.id}`);
+        if (alreadyDelivered) {
+          claimedBuyerRef.current.add(r.id);
+          writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
+          // Tenta marcar no banco silenciosamente pra parar de reaparecer em myBought.
+          void supabase.from("pokemon_market").update({ buyer_claimed: true })
+            .eq("id", r.id).eq("buyer_claimed", false);
+          continue;
+        }
         // Para vendas via oferta o comprador só é debitado agora — precisa de saldo.
         if (r.via_offer) {
           const have = r.currency === "gold" ? gold : crystals;
@@ -212,12 +224,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
           .select("id");
         if (error || !data || data.length === 0) {
           inflightBuyerRef.current.delete(r.id);
-          // Marca localmente pra não ficar tentando em loop e cobrar de novo se
-          // por qualquer motivo o servidor considerar já entregue.
-          if (!error) {
-            claimedBuyerRef.current.add(r.id);
-            writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
-          }
+          // Sempre marca localmente após tentar — mesmo com erro RLS —
+          // pra bloquear qualquer chance de reprocessar/cobrar novamente.
+          claimedBuyerRef.current.add(r.id);
+          writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
           continue;
         }
         // Só agora cobra e entrega — garantido único.
