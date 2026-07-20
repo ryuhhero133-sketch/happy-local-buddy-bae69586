@@ -2050,6 +2050,23 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "CRYULTRA100") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 20000) },
+        items: { ...base.items, ultraball: (base.items.ultraball ?? 0) + 100 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "💎 +20 000 Cristais + 100× Ultra Ball entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código CRYULTRA100: +20 000 💎 Cristais + 100× Ultra Ball.`, "cap");
+      return;
+    }
+
     setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
 
