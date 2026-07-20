@@ -833,6 +833,7 @@ type IdleState = {
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
   // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
+  redeemedCodes?: Record<string, boolean>;
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[] };
@@ -981,6 +982,7 @@ function freshIdle(): IdleState {
     trainerLevel: 1,
     trainerXp: 0,
     unlockedSkins: ["default"],
+    redeemedCodes: {},
   };
 }
 function saveIdle(s: IdleState) {
@@ -1940,36 +1942,65 @@ function IdlePage() {
     .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
+  const scopedCodeKey = (raw: string) => `rubym.code.${identity?.id ?? "local"}.${raw}.used`;
+  const persistCodeReward = (next: IdleState) => {
+    idleRef.current = next;
+    saveIdle(next);
+    if (!identity?.id?.startsWith("guest-")) {
+      void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+    }
+  };
   const redeemCrystalCode = () => {
     const raw = normalizeCode(codeInput);
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
-    const codeKey = `rubym.code.${raw}.used`;
-    try { if (localStorage.getItem(codeKey) === "1") { setCodeMsg({ kind: "err", text: "Código já utilizado." }); return; } } catch {}
+    const codeKey = scopedCodeKey(raw);
+    const alreadyUsed = Boolean(idleRef.current.redeemedCodes?.[raw]);
+    try {
+      if (!alreadyUsed && localStorage.getItem(codeKey) === "1") {
+        setIdle((s) => ({ ...s, redeemedCodes: { ...(s.redeemedCodes ?? {}), [raw]: true } }));
+        setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." });
+        return;
+      }
+    } catch { /* ignore */ }
+    if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
 
     if (raw === "MYTHVIP30") {
       const nowT = Date.now();
       const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
-      setIdle((s) => ({
-        ...s,
-        items: { ...s.items, egg_aura: (s.items.egg_aura ?? 0) + 1 },
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, egg_aura: (base.items.egg_aura ?? 0) + 1 },
         buffs: {
-          ...s.buffs,
-          expMult: Math.max(s.buffs.expMult ?? 0, 0.3),
-          expMultUntil: Math.max(s.buffs.expMultUntil ?? 0, nowT + THIRTY_D),
-          goldMult: Math.max(s.buffs.goldMult ?? 0, 0.3),
-          goldMultUntil: Math.max(s.buffs.goldMultUntil ?? 0, nowT + THIRTY_D),
+          ...base.buffs,
+          expMult: Math.max(base.buffs.expMult ?? 0, 0.3),
+          expMultUntil: Math.max(base.buffs.expMultUntil ?? 0, nowT + THIRTY_D),
+          goldMult: Math.max(base.buffs.goldMult ?? 0, 0.3),
+          goldMultUntil: Math.max(base.buffs.goldMultUntil ?? 0, nowT + THIRTY_D),
         },
-      }));
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
       setCodeMsg({ kind: "ok", text: "✦ Ovo Mítico + VIP 30 dias entregues!" });
+      setCodeInput("");
       pushChat(`🎉 Código MYTHVIP30: 1× Ovo Mítico ✦ + VIP 30 dias (+30% XP/Gold).`, "cap");
       return;
     }
 
     if (raw === "CRYSTAL20K") {
-      setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + 20000 } }));
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 20000) },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
       setCodeMsg({ kind: "ok", text: "💎 +20 000 Cristais entregues!" });
+      setCodeInput("");
       pushChat(`🎉 Código CRYSTAL20K: +20 000 💎 Cristais.`, "cap");
       return;
     }
