@@ -677,17 +677,18 @@ export function CashShopModal(props: CashShopModalProps) {
                   gap: 12,
                 }}>
                   {visible.map(p => (
-                    <ProductTile key={p.id} p={p} onBuy={() => buy(p)} canAfford={canAfford(p)} />
+                    <ProductTile key={p.id} p={p} onBuy={() => buy(p)} onBuyBRL={() => setBrlProduct(p)} canAfford={canAfford(p)} />
                   ))}
                 </div>
               )}
               {isAdmin && <AdminPanel identity={identity} />}
+              {isAdmin && <AdminPendingPanel identity={identity} onGrantCoins={props.onGrantCoins} onGrantCrystals={props.onGrantCrystals} onGrantItem={props.onGrantItem} onGrantPokemon={props.onGrantPokemon} />}
             </div>
           </div>
 
           {/* RIGHT column */}
           <div className="loja-scroll" style={{ overflowY: "auto" }}>
-            <RightPacotes products={products} onBuy={buy} />
+            <RightPacotes products={products} onBuy={buy} onBuyBRL={(p) => setBrlProduct(p)} />
           </div>
         </div>
 
