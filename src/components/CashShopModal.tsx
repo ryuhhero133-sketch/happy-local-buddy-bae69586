@@ -248,8 +248,9 @@ function TrainerCard({ name, level, xp, xpNext, coins, crystals }: {
 }
 
 // Product tile — parchment / wooden card
-function ProductTile({ p, onBuy, canAfford }: { p: CashProduct; onBuy: () => void; canAfford: boolean }) {
+function ProductTile({ p, onBuy, onBuyBRL, canAfford }: { p: CashProduct; onBuy: () => void; onBuyBRL: () => void; canAfford: boolean }) {
   const price = p.discount_pct ? Math.floor(p.price * (1 - p.discount_pct / 100)) : p.price;
+  const hasBRL = !!p.payment_link_url && !!p.price_brl && p.price_brl > 0;
   return (
     <div style={{
       background: "linear-gradient(180deg, #f5e6b8 0%, #ecd18e 100%)",
@@ -297,6 +298,19 @@ function ProductTile({ p, onBuy, canAfford }: { p: CashProduct; onBuy: () => voi
         <span style={{ fontSize: 15, filter: `drop-shadow(0 0 4px ${p.currency === "crystals" || p.currency === "sapphires" ? "#7dd3fc" : "#f5cf6b"})` }}>{currencyIcon(p.currency)}</span>
         <span>{fmt(price)}</span>
       </button>
+      {hasBRL && (
+        <button onClick={onBuyBRL} style={{
+          background: "linear-gradient(180deg,#22c55e,#15803d)",
+          border: "2px solid #86efac", color: "#fff",
+          fontWeight: 900, fontSize: 12, letterSpacing: 0.5,
+          borderRadius: 8, padding: "6px 8px", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          boxShadow: "0 2px 0 #0a3a1a, inset 0 1px 0 rgba(255,255,255,0.2)",
+        }}>
+          <span style={{ fontSize: 14 }}>💵</span>
+          <span>R$ {p.price_brl!.toFixed(2).replace(".", ",")}</span>
+        </button>
+      )}
     </div>
   );
 }
