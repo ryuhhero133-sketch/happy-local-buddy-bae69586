@@ -716,6 +716,14 @@ export function CashShopModal(props: CashShopModalProps) {
           <span style={{ color: "#c8d6f0" }}>100% PROTEGIDO</span>
         </div>
       </div>
+
+      {brlProduct && (
+        <PurchaseBRLModal
+          product={brlProduct}
+          identity={identity}
+          onClose={() => setBrlProduct(null)}
+        />
+      )}
     </div>
   );
 }
