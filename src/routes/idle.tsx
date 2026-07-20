@@ -16,6 +16,7 @@ import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
 import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
 import iconWorldGlobe from "@/assets/icon-world-globe.png.asset.json";
 import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
+import trainerAvatarAsset from "@/assets/trainer-avatar.png.asset.json";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
 import chestOpenImg from "@/assets/icons/chest-open.png";
