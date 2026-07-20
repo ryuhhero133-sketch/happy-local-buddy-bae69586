@@ -13,6 +13,7 @@ import navLoja from "@/assets/icons/nav-loja.png";
 import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
 import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
+import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
 import chestOpenImg from "@/assets/icons/chest-open.png";
@@ -10116,6 +10117,8 @@ function TabOverlay({
                 const rColor = rarityColor[entry.rarity] ?? "#8b6a30";
                 const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
                 const locked = lockedSet.has(entry.uid);
+                const traits = entry.traits ?? [];
+                const fragDisabled = inTeam || locked;
                 return (
                   <div
                     key={entry.uid}
@@ -10127,14 +10130,18 @@ function TabOverlay({
                       borderRadius: 10, padding: 10, textAlign: "center",
                       position: "relative",
                       boxShadow: `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}`,
-                      display: "flex", flexDirection: "column", gap: 4,
+                      display: "grid",
+                      gridTemplateRows: "auto auto auto 28px 36px",
+                      gap: 4,
+                      alignItems: "center",
+                      minHeight: 220,
                     }}
                   >
-                    <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1 }}>
+                    <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1, zIndex: 2 }}>
                       #{String(i + 1).padStart(3, "0")}
                     </div>
                     {inTeam && (
-                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#3d7a4a" }}>★ TIME</div>
+                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#3d7a4a", zIndex: 2 }}>★ TIME</div>
                     )}
                     {/* Botão cadeado */}
                     <button
@@ -10146,9 +10153,11 @@ function TabOverlay({
                         border: "1px solid #b8862a", cursor: "pointer",
                         background: locked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
                         color: locked ? "#4a3010" : "#8b6a30",
-                        fontSize: 12, fontWeight: 900, padding: 0,
+                        fontSize: 12, fontWeight: 900, padding: 0, zIndex: 2,
                       }}
                     >{locked ? "🔒" : "🔓"}</button>
+
+                    {/* Sprite + nome */}
                     <button
                       onClick={() => onOpenColecaoDetail(entry.uid)}
                       style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
@@ -10157,19 +10166,31 @@ function TabOverlay({
                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6 }} />}
                       <div style={{ fontSize: 11, marginTop: 2, color: "#4a3010", fontWeight: 800 }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                     </button>
-                    <div style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: rColor, color: "#fff", alignSelf: "center", fontWeight: 800, letterSpacing: 1 }}>
+
+                    {/* Raridade */}
+                    <div style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: rColor, color: "#fff", justifySelf: "center", fontWeight: 800, letterSpacing: 1 }}>
                       {entry.rarity.toUpperCase()}
                     </div>
+
+                    {/* Nível */}
                     <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 900 }}>
                       Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
                     </div>
-                    {entry.traits && entry.traits.length > 0 && (
-                      <div style={{ display: "flex", gap: 3, justifyContent: "center", flexWrap: "wrap", marginTop: 3 }} title={entry.traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ")}>
-                        {entry.traits.slice(0, 4).map((id) => (
-                          <TraitIcon key={id} id={id} size={22} />
-                        ))}
-                      </div>
-                    )}
+
+                    {/* Traits (slot fixo — sempre reservado) */}
+                    <div
+                      style={{
+                        display: "flex", gap: 3, justifyContent: "center", alignItems: "center",
+                        flexWrap: "nowrap", height: 28, minHeight: 28,
+                      }}
+                      title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
+                    >
+                      {traits.length > 0
+                        ? traits.slice(0, 4).map((id) => <TraitIcon key={id} id={id} size={22} />)
+                        : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
+                    </div>
+
+                    {/* Botão fragmentar (ícone cristal) */}
                     <button
                       onClick={() => {
                         if (inTeam) { alert("Retire do time antes de fragmentar."); return; }
@@ -10177,15 +10198,42 @@ function TabOverlay({
                         if (!confirm(`Fragmentar ${sp.toUpperCase()} (Nv.${entry.level}) por +${gain} pts de craft?`)) return;
                         onFragmentCollection(entry.uid);
                       }}
-                      disabled={inTeam || locked}
+                      disabled={fragDisabled}
                       style={{
-                        marginTop: 2, padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                        background: (inTeam || locked) ? "#c8b8a0" : "linear-gradient(180deg,#7c3aed,#4f26a4)",
-                        color: "#fff", border: "none", borderRadius: 6,
-                        cursor: (inTeam || locked) ? "not-allowed" : "pointer", letterSpacing: 0.5,
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                        padding: "4px 8px", height: 34,
+                        background: fragDisabled
+                          ? "linear-gradient(180deg,#d9c8a8,#b8a680)"
+                          : "linear-gradient(180deg,#a78bfa,#5b21b6)",
+                        color: "#fff", fontWeight: 900, fontSize: 11, letterSpacing: 0.5,
+                        border: fragDisabled ? "1px solid #96835a" : "1px solid #3b0f7a",
+                        borderRadius: 8,
+                        boxShadow: fragDisabled
+                          ? "inset 0 -2px 0 rgba(0,0,0,0.15)"
+                          : "inset 0 -2px 0 rgba(0,0,0,0.3), 0 0 10px rgba(167,139,250,0.5)",
+                        cursor: fragDisabled ? "not-allowed" : "pointer",
+                        opacity: fragDisabled ? 0.75 : 1,
+                        transition: "transform 90ms, filter 120ms",
                       }}
-                      title={inTeam ? "No time — não pode fragmentar" : locked ? "Travado — destrave para fragmentar" : `+${gain} pts de craft`}
-                    >{locked ? "🔒 TRAVADO" : `⚒️ FRAGMENTAR +${gain}`}</button>
+                      onMouseEnter={(e) => { if (!fragDisabled) (e.currentTarget as HTMLButtonElement).style.filter = "brightness(1.12)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; }}
+                      title={inTeam ? "No time — não pode fragmentar" : locked ? "Travado — destrave para fragmentar" : `Fragmentar por +${gain} pts de craft`}
+                    >
+                      {locked ? (
+                        <span style={{ fontWeight: 900 }}>🔒 TRAVADO</span>
+                      ) : (
+                        <>
+                          <img
+                            src={iconFragmentCrystal.url}
+                            alt=""
+                            width={26}
+                            height={26}
+                            style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}
+                          />
+                          <span>+{gain}</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 );
               })}
