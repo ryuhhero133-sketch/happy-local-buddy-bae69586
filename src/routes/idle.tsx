@@ -420,7 +420,9 @@ type IdleMapId =
   // Cadeia estendida — Lv 3000 até 6000, continuação natural do Abismo do Dragão
   | "cadeia_ab" | "cadeia_ab1" | "cadeia_f1"
   // Evento Mítico Shiny — abre 5min a cada 1h
-  | "evento_myth";
+  | "evento_myth"
+  // Evento Oddish Odyssey — 48h, abre 30min a cada 2h
+  | "oddish_o1" | "oddish_o2";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -470,6 +472,9 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   // ═══ EVENTO GELIUS (a cada 2h, 10min de duração, troca de fase aos 5min) ═══
   gelius1: { name: "Gelius — Onda 1", diff: "EVENTO", bg: assetUrlFromJson(mapGelius1Asset), rate: 5.0, minLevel: 1,   maxLevel: 200,  element: "Gelo/Evento", stars: 5 },
   gelius2: { name: "Gelius — Onda 2", diff: "EVENTO", bg: assetUrlFromJson(mapGelius2Asset), rate: 7.0, minLevel: 400, maxLevel: 1000, element: "Gelo/Evento", stars: 8 },
+  // ═══ EVENTO ODDISH ODYSSEY — 48h, abre 30min a cada 2h ═══
+  oddish_o1: { name: "Odisséia Oddish — Bosque",   diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
+  oddish_o2: { name: "Odisséia Oddish — Clareira", diff: "EVENTO", bg: assetUrlFromJson(mapOddish2Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -865,7 +870,7 @@ type IdleState = {
   redeemedCodes?: Record<string, boolean>;
 };
 
-export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[] };
+export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
 
 export const MAX_COLLECTION = 500;
 
@@ -906,6 +911,7 @@ const ITEM_IMG: Record<string, string> = {
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
   premium_box: premiumBoxImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
+  safira_verde: assetUrlFromJson(safiraVerdeAsset),
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
