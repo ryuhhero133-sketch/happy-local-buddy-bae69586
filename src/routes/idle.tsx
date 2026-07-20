@@ -2338,6 +2338,8 @@ function IdlePage() {
 
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Contador de pokébolas arremessadas em cada Mewtwo do evento (por id de spawn).
+  const mewtwoBallsRef = useRef<Map<number, number>>(new Map());
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
