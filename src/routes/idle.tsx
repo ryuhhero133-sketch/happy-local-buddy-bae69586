@@ -6966,55 +6966,64 @@ function IdlePage() {
           </div>
 
           {/* ============ UI FIXA (não rola com o mapa) ============ */}
-          {/* Header do mapa — barra horizontal compacta */}
+          {/* Header do mapa — barra clássica dourada com nichos de recurso */}
           <div style={{
             position: "absolute", top: 8, left: 8,
-            display: "inline-flex", alignItems: "center", gap: 10,
-            background: "linear-gradient(90deg, rgba(11,5,16,0.9), rgba(20,10,30,0.78))",
-            padding: "6px 12px",
-            borderRadius: 10,
-            border: "1px solid rgba(245,207,107,0.3)",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.45)",
+            display: "inline-flex", alignItems: "stretch", gap: 0,
+            background: "linear-gradient(180deg, #2a1a0f 0%, #140a05 100%)",
+            padding: "3px",
+            borderRadius: 14,
+            border: "1px solid #f5cf6b",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(245,207,107,0.4), 0 0 22px rgba(245,207,107,0.15)",
             zIndex: 10,
             fontSize: 12,
             maxWidth: "calc(100% - 16px)",
           }}>
-            <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-              <div style={{ fontWeight: 800, fontSize: 14, color: "#f5cf6b", lineHeight: 1.1, whiteSpace: "nowrap" }}>
-                {map.name}
+            {/* Nome do mapa */}
+            <div style={{
+              display: "flex", flexDirection: "column", justifyContent: "center",
+              padding: "5px 12px",
+              background: "linear-gradient(180deg, rgba(245,207,107,0.10), rgba(0,0,0,0.35))",
+              borderRadius: "11px 4px 4px 11px",
+              borderRight: "1px solid rgba(245,207,107,0.25)",
+              minWidth: 0,
+            }}>
+              <div style={{
+                fontWeight: 900, fontSize: 13, color: "#ffe89a", lineHeight: 1.05,
+                whiteSpace: "nowrap", letterSpacing: 0.4,
+                textShadow: "0 1px 0 #000, 0 0 8px rgba(245,207,107,0.35)",
+                fontFamily: "'Cinzel', 'Georgia', serif",
+              }}>
+                ✦ {map.name}
               </div>
-              <div style={{ fontSize: 10, color: "#c8b8d0", lineHeight: 1.1, whiteSpace: "nowrap" }}>
-                {map.diff} · Lv {team[0]?.level ?? 1} · <span style={{ color: "#f5cf6b" }}>{fmtHMS(activeTime)}</span>
+              <div style={{ fontSize: 9.5, color: "#c8b8d0", lineHeight: 1.1, whiteSpace: "nowrap", marginTop: 2 }}>
+                {map.diff} · Lv {team[0]?.level ?? 1} · <span style={{ color: "#f5cf6b", fontWeight: 700 }}>{fmtHMS(activeTime)}</span>
               </div>
             </div>
 
-            <div style={{ width: 1, height: 26, background: "rgba(245,207,107,0.25)" }} />
+            <ResourceNiche
+              tint="#ffd66b"
+              icon={<span style={{ fontSize: 15, filter: "drop-shadow(0 0 4px #ffd66baa)" }}>🪙</span>}
+              value={fmtK(idle.bank.gold)}
+              title="Ouro"
+            />
+            <ResourceNiche
+              tint="#8fd0ff"
+              icon={<img src={crystalGreenImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px #8fd0ffaa)" }} />}
+              value={String(Math.floor(idle.bank.crystals))}
+              title="Cristais"
+            />
 
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, fontWeight: 700 }}>
-              <span title="Ouro" style={{ color: "#f4c430", display: "inline-flex", alignItems: "center", gap: 3 }}>
-                ●{fmtK(idle.bank.gold)}
-              </span>
-              <span title="Cristais" style={{ color: "#5eead4", display: "inline-flex", alignItems: "center", gap: 3 }}>
-                <img src={crystalGreenImg} alt="" width={14} height={14} style={{ imageRendering: "pixelated" }} />
-                {Math.floor(idle.bank.crystals)}
-              </span>
-            </div>
-
-            <div style={{ width: 1, height: 26, background: "rgba(245,207,107,0.25)" }} />
-
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <span title="Pokébola" style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 700 }}>
-                <img src={ballPokeImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
-                {idle.items.pokeball ?? 0}
-              </span>
-              <span title="Great Ball" style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 700 }}>
-                <img src={ballGreatImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
-                {idle.items.greatball ?? 0}
-              </span>
-              <span title="Ultra Ball" style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 700 }}>
-                <img src={ballUltraImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
-                {idle.items.ultraball ?? 0}
-              </span>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "5px 10px",
+              background: "linear-gradient(180deg, rgba(255,110,110,0.10), rgba(0,0,0,0.35))",
+              borderRadius: "4px 11px 11px 4px",
+              borderLeft: "1px solid rgba(245,207,107,0.25)",
+            }}>
+              <BallSlot img={ballPokeImg}  count={idle.items.pokeball ?? 0}  tint="#ff8080" />
+              <BallSlot img={ballGreatImg} count={idle.items.greatball ?? 0} tint="#7ec4ff" />
+              <BallSlot img={ballUltraImg} count={idle.items.ultraball ?? 0} tint="#ffd66b" />
             </div>
           </div>
 
