@@ -3027,6 +3027,10 @@ function IdlePage() {
           skarmory:       { crit: 0.32, para: 0.10, flee: 0 },
           // Dialga — edição especial: crit devastador, paraliza, foge fácil
           dialga:         { crit: 0.65, para: 0.40, flee: 0.25 },
+          // Odisséia Oddish — lickitung usa SONÍFERO curto (2-3s); mewtwo é devastador
+          lickitung:        { crit: 0.05, para: 0.55, flee: 0 },
+          lickitung_shiny:  { crit: 0.08, para: 0.75, flee: 0 },
+          mewtwo_event:     { crit: 0.60, para: 0.50, flee: 0.05 },
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
