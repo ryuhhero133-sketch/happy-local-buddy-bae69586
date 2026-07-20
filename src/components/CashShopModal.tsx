@@ -355,6 +355,15 @@ function RightPacotes({ products, onBuy, onBuyBRL }: { products: CashProduct[]; 
                 alignSelf: "flex-start",
                 boxShadow: "0 2px 0 #1e5a1e",
               }}>{currencyIcon(p.currency)} {fmt(p.discount_pct ? Math.floor(p.price*(1-p.discount_pct/100)) : p.price)}</button>
+              {p.payment_link_url && p.price_brl && p.price_brl > 0 && (
+                <button onClick={() => onBuyBRL(p)} style={{
+                  marginTop: 4, background: "linear-gradient(180deg,#22c55e,#15803d)",
+                  border: "1.5px solid #86efac", color: "#fff",
+                  fontWeight: 900, fontSize: 11, letterSpacing: 0.5,
+                  borderRadius: 6, padding: "6px 10px", cursor: "pointer",
+                  alignSelf: "flex-start", boxShadow: "0 2px 0 #0a3a1a",
+                }}>💵 R$ {p.price_brl.toFixed(2).replace(".", ",")}</button>
+              )}
             </div>
           </div>
         ))}
