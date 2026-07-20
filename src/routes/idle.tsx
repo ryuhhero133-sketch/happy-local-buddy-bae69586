@@ -10650,7 +10650,7 @@ function TabOverlay({
                             boxShadow: "0 0 10px rgba(233,213,255,0.8), inset 0 0 8px rgba(124,58,237,0.35)",
                           }}>
                             <img
-                              src={iconFragmentCrystal.url}
+                              src={assetUrlFromJson(iconFragmentCrystal)}
                               alt=""
                               width={30}
                               height={30}
@@ -11446,7 +11446,7 @@ function TabOverlay({
                   background: "radial-gradient(circle at 40% 35%, rgba(255,255,255,0.5), rgba(196,181,253,0.15) 55%, transparent 75%)",
                   boxShadow: "0 0 18px rgba(233,213,255,0.9), inset 0 0 10px rgba(124,58,237,0.4)",
                 }}>
-                  <img src={iconFragmentCrystal.url} alt="" width={44} height={44}
+                  <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={44} height={44}
                     style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(233,213,255,0.9))" }} />
                 </span>
                 <div style={{ flex: 1 }}>
@@ -11495,7 +11495,7 @@ function TabOverlay({
                           color: "#e9d5ff", letterSpacing: 0.5,
                           display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
                         }}>
-                          <img src={iconFragmentCrystal.url} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
+                          <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
                           +{e.gain}
                         </div>
                       </div>
@@ -11511,7 +11511,7 @@ function TabOverlay({
                 }}>
                   <div style={{ fontSize: 11, fontWeight: 900, color: "#c8b8d0", letterSpacing: 2 }}>GANHO TOTAL</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <img src={iconFragmentCrystal.url} alt="" width={26} height={26}
+                    <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={26} height={26}
                       style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(233,213,255,0.9))" }} />
                     <span style={{
                       fontSize: 26, fontWeight: 900, fontFamily: "monospace",
