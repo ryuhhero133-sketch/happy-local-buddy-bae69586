@@ -10504,20 +10504,13 @@ function TabOverlay({
                           }}>x{n}</div>
                           <div style={{
                             width: 62, height: 62, borderRadius: 10, marginTop: 2,
-                            background: `radial-gradient(circle at 30% 30%, ${color}55, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
+                            background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
                             display: "grid", placeItems: "center",
                             border: `2px inset ${P.goldDark}aa`,
-                            boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25)`,
+                            boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 10px ${color}44`,
+                            position: "relative", overflow: "hidden",
                           }}>
-                            {isEgg ? (
-                              <div style={{
-                                width: 38, height: 44, borderRadius: "45% / 55%",
-                                background: `radial-gradient(circle at 30% 25%, #fff, ${color} 55%)`,
-                                border: `1.5px solid ${color}`, boxShadow: `0 0 10px ${color}aa`,
-                              }} />
-                            ) : img
-                              ? <img src={img} alt="" width={46} height={46} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.4))" }} />
-                              : <Icon size={32} color={color} strokeWidth={2.2} />}
+                            <ItemPixelIcon id={id} size={52} color={color} />
                           </div>
                           <div style={{
                             fontSize: 10.5, fontWeight: 900, color: P.ink, letterSpacing: 0.2, lineHeight: 1.15,
