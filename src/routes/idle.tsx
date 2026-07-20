@@ -903,7 +903,7 @@ const ALL_BALLS: ShopBall[] = [
   { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
 ];
 
-type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
+type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
 const SHOP_BOOKS: ShopBook[] = [
   { id: "book_atk", name: "Livro de Ataque", desc: "+10% de dano permanente por uso", price: 20, img: bookAtkImg },
   { id: "book_def", name: "Livro de Defesa", desc: "-10% de dano recebido por uso",  price: 20, img: bookDefImg },
@@ -913,6 +913,8 @@ const SHOP_BOOKS: ShopBook[] = [
   { id: "book_vip_60", name: "Livro VIP 60d ✦✦✦", desc: "+40% ouro e +40% EXP por 60 DIAS", price: 1000, img: bookExpImg },
   // ═══ ORB DE XP FRACO — único vendido; os fortes vêm da troca com NPC ═══
   { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo, stack com livro)", price: 100,  img: orbXpMinorUrl,   currency: "crystals", priceGold: 50000 },
+  // ═══ ORB DE TIME — distribui EXP para todos os pokémons do time por 1 hora ═══
+  { id: "orb_team",       name: "Orb de Time ✦✦✦",     desc: "Todo o time ganha EXP nas batalhas por 1 hora (sem +% de EXP)", price: 1000, img: orbXpTeamUrl,   currency: "crystals" },
 ];
 
 
