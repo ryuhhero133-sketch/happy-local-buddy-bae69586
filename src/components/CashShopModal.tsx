@@ -125,7 +125,7 @@ function LeftConverter({ w, onConvert }: { w: Partial<Wallet>; onConvert: (from:
   const gotCoins = cryToCoins * 10;
   return (
     <div style={cardBox("#1e2a4a", "#3d5aa8")}>
-      <div style={cardHeader("🔄", "CONVERTER", "#7aa5ff")} />
+      <CardHeader icon="🔄" title="CONVERTER" color="#7aa5ff" />
       <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ fontSize: 10.5, color: "#b8c8f0", textAlign: "center", lineHeight: 1.4 }}>
           Converta moedas em cristais e cristais em moedas.
@@ -161,7 +161,7 @@ function LeftPromoCode({ codeInput, setCodeInput, onRedeem, msg }: {
 }) {
   return (
     <div style={cardBox("#2a1a4a", "#6b47c9")}>
-      <div style={cardHeader("🎁", "CÓDIGO PROMOCIONAL", "#c4a3ff")} />
+      <CardHeader icon="🎁" title="CÓDIGO PROMOCIONAL" color="#c4a3ff" />
       <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ fontSize: 10.5, color: "#d6c5ff", textAlign: "center", lineHeight: 1.4 }}>
           Resgate códigos e ganhe recompensas exclusivas!
@@ -282,7 +282,7 @@ function RightPacotes({ products, onBuy }: { products: CashProduct[]; onBuy: (p:
   const pkgs = products.filter(p => p.category === "package" || p.category === "premium").slice(0, 3);
   return (
     <div style={cardBox("#2a1a4a", "#6b47c9")}>
-      <div style={cardHeader("🎁", "PACOTES ESPECIAIS", "#c4a3ff")} />
+      <CardHeader icon="🎁" title="PACOTES ESPECIAIS" color="#c4a3ff" />
       <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: 10 }}>
         {pkgs.length === 0 && (
           <div style={{ padding: 12, color: "#c4a3ff", fontSize: 11, textAlign: "center" }}>
