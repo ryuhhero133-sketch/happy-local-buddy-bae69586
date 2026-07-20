@@ -10358,29 +10358,29 @@ function TabOverlay({
         const SLOTS_MIN = 24;
         const emptyCount = Math.max(0, SLOTS_MIN - filtered.length);
 
-        // Paleta parchment/rose — inspirada em RPGs clássicos
+        // Paleta obsidiana + violeta arcano — dark fantasy
         const P = {
-          bg1: "#f6ecd3", bg2: "#e9d9ad", bg3: "#d8c089",
-          ink: "#3a2416", inkSoft: "#6b4a2e",
-          gold: "#c9932a", goldLight: "#f5cf6b", goldDark: "#8a5f14",
-          rose: "#b8362a", roseSoft: "#e07a5f",
-          panel: "#fff8e4",
+          bg1: "#1a0d2a", bg2: "#120820", bg3: "#0a0416",
+          ink: "#f0e2ff", inkSoft: "#b39dd8",
+          gold: "#a855f7", goldLight: "#d4a2ff", goldDark: "#5b21b6",
+          rose: "#c026d3", roseSoft: "#e94dea",
+          panel: "#1e1030",
         };
 
         return (
           <div style={{
             background: `
-              radial-gradient(circle at 50% 40%, rgba(255,220,140,0.35), transparent 55%),
+              radial-gradient(circle at 50% 30%, rgba(168,85,247,0.28), transparent 55%),
               url(${bagBgGlowUrl}) center/cover no-repeat,
               linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)
             `,
-            border: `3px solid ${P.goldDark}`, borderRadius: 16, padding: 14,
-            boxShadow: `inset 0 0 0 2px ${P.goldLight}80, inset 0 0 60px rgba(255,200,90,0.25), 0 8px 28px rgba(0,0,0,0.55)`,
+            border: `3px solid ${P.gold}`, borderRadius: 16, padding: 14,
+            boxShadow: `inset 0 0 0 2px ${P.goldLight}55, inset 0 0 80px rgba(168,85,247,0.22), 0 8px 32px rgba(0,0,0,0.75)`,
             fontFamily: '"Pixelify Sans", ui-monospace, monospace',
             position: "relative",
           }}>
             <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
-              background: "radial-gradient(ellipse at 50% 0%, rgba(255,240,180,0.18), transparent 60%)" }} />
+              background: "radial-gradient(ellipse at 50% 0%, rgba(212,162,255,0.18), transparent 60%)" }} />
 
             {/* CABEÇALHO — pergaminho dourado */}
             <div style={{
