@@ -3161,7 +3161,7 @@ function IdlePage() {
               return {
                 ...p, level: lv, xp: remaining,
                 hp: isLeader ? Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })) : Math.min(p.hp, calcIdleMaxHp({ ...p, level: lv })),
-                energy: newE, energyRegenAt: isLeader ? now : p.energyRegenAt,
+                energy: newE, energyRegenAt: isLeader ? now : ((p as PetEnergyExt).energyRegenAt ?? now),
               } as PetInstance;
             });
           });
