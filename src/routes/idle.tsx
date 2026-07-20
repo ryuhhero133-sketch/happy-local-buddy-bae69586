@@ -10461,7 +10461,19 @@ function TabOverlay({
                         textAlign: "left", width: "100%",
                       }}
                     >
-                      <span style={{ fontSize: 15 }}>{c.icon}</span>
+                      <img
+                        src={c.icon}
+                        alt=""
+                        width={28}
+                        height={28}
+                        style={{
+                          imageRendering: "pixelated", flexShrink: 0,
+                          filter: active
+                            ? "drop-shadow(0 0 4px rgba(255,220,120,0.9)) drop-shadow(0 2px 2px rgba(0,0,0,0.35))"
+                            : "drop-shadow(0 1px 1px rgba(0,0,0,0.3))",
+                          animation: active ? "cat-bounce 1.4s ease-in-out infinite" : undefined,
+                        }}
+                      />
                       <span style={{ flex: 1 }}>{c.label}</span>
                       <span style={{
                         background: active ? P.goldDark : P.ink + "22",
