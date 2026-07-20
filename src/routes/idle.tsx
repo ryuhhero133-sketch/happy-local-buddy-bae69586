@@ -9278,42 +9278,95 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   };
   return (
     <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
-      display: "flex", gap: 6, alignItems: "center",
+      display: "flex", gap: 8, alignItems: "center",
       background: exhausted
-        ? "linear-gradient(135deg, #1a1a1a 0%, #241d24 100%)"
-        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.28)} 0%, ${hexToRgba(rColor, 0.10)} 100%)`,
-      padding: 4, borderRadius: 6, cursor: onClick ? "pointer" : undefined,
-      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #555" : `1px solid ${hexToRgba(rColor, 0.65)}`),
-      boxShadow: exhausted ? "none" : `0 0 0 1px ${hexToRgba(rColor, 0.15)} inset, 0 0 8px ${hexToRgba(rColor, 0.18)}`,
-      opacity: exhausted ? 0.65 : 1,
+        ? "linear-gradient(135deg, #14101a 0%, #1a1420 100%)"
+        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.22)} 0%, rgba(11,5,16,0.85) 100%)`,
+      padding: "5px 8px 5px 5px",
+      borderRadius: 10,
+      cursor: onClick ? "pointer" : undefined,
+      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #333" : `1px solid ${hexToRgba(rColor, 0.7)}`),
+      boxShadow: exhausted
+        ? "inset 0 1px 0 rgba(255,255,255,0.03)"
+        : `0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 ${hexToRgba(rColor, 0.28)}, 0 0 10px ${hexToRgba(rColor, 0.18)}`,
+      opacity: exhausted ? 0.6 : 1,
+      position: "relative",
+      overflow: "hidden",
     }}>
+      {/* Selo lateral dourado */}
+      <span style={{
+        position: "absolute", left: 0, top: 0, bottom: 0, width: 3,
+        background: `linear-gradient(180deg, ${rColor}, ${hexToRgba(rColor, 0.4)})`,
+        boxShadow: `0 0 6px ${rColor}66`,
+      }} />
+
+      {/* Retrato com moldura dourada */}
       <div style={{
-        width: 38, height: 38, background: `radial-gradient(circle at 50% 55%, ${hexToRgba(rColor, 0.55)} 0%, #0b0510 75%)`, borderRadius: 6,
-        display: "grid", placeItems: "center", overflow: "hidden", position: "relative", flexShrink: 0,
-        border: `1px solid ${hexToRgba(rColor, 0.5)}`,
+        width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+        padding: 2,
+        background: exhausted
+          ? "linear-gradient(135deg, #333, #555)"
+          : `conic-gradient(from 220deg, ${rColor}, #6b3d0a, ${rColor}, #2a1638, ${rColor})`,
+        boxShadow: exhausted ? "none" : `0 0 8px ${hexToRgba(rColor, 0.5)}, inset 0 0 4px rgba(0,0,0,0.5)`,
+        position: "relative",
       }}>
-        <img src={src} alt="" style={{ width: "92%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.7)" : undefined }} />
-        {resting && <span style={{ position: "absolute", top: 0, right: 1, fontSize: 9 }}>🏡</span>}
+        <div style={{
+          width: "100%", height: "100%", borderRadius: 8,
+          background: `radial-gradient(circle at 50% 55%, ${hexToRgba(rColor, 0.5)} 0%, #0b0510 78%)`,
+          display: "grid", placeItems: "center", overflow: "hidden",
+        }}>
+          <img src={src} alt="" style={{ width: "94%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 2px 2px rgba(0,0,0,0.7))" }} />
+        </div>
+        {resting && <span style={{ position: "absolute", top: -3, right: -3, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
         {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 16, textShadow: "0 0 4px #000" }}>🔒</span>}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, lineHeight: 1.15 }}>
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pet.species.replace(/_/g, " ").toUpperCase()}</span>
-          <span style={{ color: "#ffd94d", marginLeft: 4 }}>Lv{pet.level}</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 4 }}>
+          <span style={{
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            fontFamily: "'Cinzel', Georgia, serif",
+            fontSize: 11.5, fontWeight: 900, letterSpacing: 0.5,
+            color: rColor,
+            textShadow: "0 1px 0 #000",
+          }}>{pet.species.replace(/_/g, " ").toUpperCase()}</span>
+          <span style={{
+            fontSize: 9, fontWeight: 900, letterSpacing: 0.5,
+            padding: "1px 6px", borderRadius: 999,
+            background: "linear-gradient(180deg, #ffd66b, #b8862a)", color: "#2a1a0a",
+            border: "1px solid rgba(0,0,0,0.4)",
+          }}>LV {pet.level}</span>
         </div>
+        {/* HP */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+          <span style={{ fontSize: 9, color: "#ff9d9d", width: 10 }}>❤</span>
+          <div style={{
+            flex: 1, height: 6, background: "#1a0808", borderRadius: 3,
+            border: "1px solid #3a1010", overflow: "hidden",
+            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)",
+          }}>
+            <div style={{
+              width: `${pct}%`, height: "100%",
+              background: pct > 40 ? "linear-gradient(180deg, #a7f3a0, #3ea854)" : "linear-gradient(180deg, #ff9d9d, #a83030)",
+              boxShadow: pct > 40 ? "0 0 5px #5ec26a88" : "0 0 5px #e34a4a88",
+            }} />
+          </div>
+          <span style={{ fontSize: 8.5, color: "#f0d0d0", fontWeight: 700, minWidth: 44, textAlign: "right", fontFamily: "monospace" }}>{hp}/{maxHp}</span>
+        </div>
+        {/* Energia */}
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-          <div style={{ flex: 1, height: 4, background: "#3a1010", borderRadius: 2 }}>
-            <div style={{ width: `${pct}%`, height: "100%", background: pct > 40 ? "#5ec26a" : "#e34a4a", borderRadius: 2 }} />
+          <span style={{ fontSize: 9, color: "#8fd0ff", width: 10 }}>⚡</span>
+          <div style={{
+            flex: 1, height: 4, background: "#08131f", borderRadius: 2,
+            border: "1px solid #0e2438", overflow: "hidden",
+          }}>
+            <div style={{
+              width: `${infinite ? 100 : ePct}%`, height: "100%",
+              background: resting ? "linear-gradient(180deg, #a7d8ff, #4a9eff)" : (energy > 30 ? "linear-gradient(180deg, #8fd0ff, #2a6ec9)" : "linear-gradient(180deg, #ffb37a, #d95a1e)"),
+            }} />
           </div>
-          <span style={{ fontSize: 8, color: "#b8a8c8", minWidth: 42, textAlign: "right" }}>{hp}/{maxHp}</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 1 }}>
-          <div style={{ flex: 1, height: 3, background: "#0e2438", borderRadius: 2 }}>
-            <div style={{ width: `${infinite ? 100 : ePct}%`, height: "100%", background: resting ? "#7fc4ff" : (energy > 30 ? "#4a9eff" : "#ff7a3d"), borderRadius: 2 }} />
-          </div>
-          <span style={{ fontSize: 8, color: "#8fd0ff", minWidth: 42, textAlign: "right" }}>
-            ⚡{infinite ? "∞" : `${energy}`}
+          <span style={{ fontSize: 8.5, color: "#a5c8ff", minWidth: 30, textAlign: "right", fontWeight: 700 }}>
+            {infinite ? "∞" : `${energy}%`}
           </span>
         </div>
       </div>
