@@ -9482,45 +9482,67 @@ function BallSlot({ img, count, tint }: { img: string; count: number; tint: stri
   const empty = count <= 0;
   return (
     <div style={{
-      display: "inline-flex", alignItems: "center", gap: 5,
-      padding: "3px 9px 3px 4px",
-      borderRadius: 999,
-      background: empty
-        ? "linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25))"
-        : `linear-gradient(180deg, ${tint}38, rgba(0,0,0,0.4))`,
-      border: `1px solid ${empty ? "rgba(255,255,255,0.10)" : tint + "aa"}`,
-      boxShadow: empty
-        ? "inset 0 1px 2px rgba(0,0,0,0.5)"
-        : `0 0 10px ${tint}55, inset 0 1px 0 ${tint}55, inset 0 -1px 2px rgba(0,0,0,0.4)`,
-      opacity: empty ? 0.55 : 1,
+      position: "relative",
+      width: 34, height: 34,
+      margin: "0 6px",
+      display: "grid", placeItems: "center",
+      opacity: empty ? 0.5 : 1,
       transition: "transform 120ms ease",
     }}>
+      {/* halo colorido externo */}
+      {!empty && (
+        <span style={{
+          position: "absolute", inset: -3, borderRadius: "50%",
+          background: `radial-gradient(circle, ${tint}77 0%, transparent 65%)`,
+          filter: "blur(2px)", pointerEvents: "none",
+        }} />
+      )}
+      {/* moldura dourada circular */}
       <span style={{
-        width: 22, height: 22, borderRadius: "50%",
-        display: "grid", placeItems: "center", flexShrink: 0,
-        background: empty ? "rgba(0,0,0,0.4)" : `radial-gradient(circle at 35% 30%, ${tint}66, transparent 70%)`,
-        boxShadow: empty ? "none" : `0 0 6px ${tint}88`,
+        position: "absolute", inset: 0, borderRadius: "50%",
+        background: empty
+          ? "conic-gradient(from 45deg, #5a4a3a, #2a1a10, #4a3a2a, #5a4a3a)"
+          : "conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)",
+        padding: 1.5,
+        boxShadow: empty
+          ? "0 1px 2px rgba(0,0,0,0.6), inset 0 0 3px rgba(0,0,0,0.6)"
+          : `0 2px 4px rgba(0,0,0,0.7), inset 0 0 3px rgba(0,0,0,0.6), 0 0 8px ${tint}aa`,
       }}>
-        <img
-          src={img}
-          alt=""
-          width={20}
-          height={20}
-          style={{
-            imageRendering: "pixelated",
-            filter: empty
-              ? "grayscale(0.8) brightness(0.7)"
-              : `drop-shadow(0 0 3px ${tint}dd) drop-shadow(0 1px 1px rgba(0,0,0,0.8))`,
-          }}
-        />
+        <span style={{
+          display: "block", width: "100%", height: "100%", borderRadius: "50%",
+          background: `radial-gradient(circle at 35% 30%, ${empty ? "#1a121a" : tint + "55"} 0%, #0b0510 78%)`,
+          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.7)",
+        }} />
       </span>
+      {/* pokébola */}
+      <img
+        src={img}
+        alt=""
+        width={24}
+        height={24}
+        style={{
+          position: "relative", zIndex: 2,
+          imageRendering: "pixelated",
+          filter: empty
+            ? "grayscale(0.85) brightness(0.6)"
+            : `drop-shadow(0 0 3px ${tint}) drop-shadow(0 1px 1px rgba(0,0,0,0.9))`,
+        }}
+      />
+      {/* contador — tabuleta pendurada */}
       <span style={{
-        fontSize: 11.5, fontWeight: 900,
-        color: empty ? "#8a7a9c" : "#fff",
-        textShadow: "0 1px 0 #000",
+        position: "absolute", bottom: -7, right: -9, zIndex: 3,
+        minWidth: 22, height: 15, padding: "0 5px",
+        background: empty
+          ? "linear-gradient(180deg, #3a2a3a, #1a121a)"
+          : "linear-gradient(180deg, #1a1220 0%, #0b0510 100%)",
+        color: empty ? "#8a7a9c" : "#ffe89a",
+        fontSize: 10, fontWeight: 900, letterSpacing: 0.3,
         fontFamily: "'Cinzel', Georgia, serif",
-        letterSpacing: 0.3,
-        minWidth: 14, textAlign: "center",
+        border: `1px solid ${empty ? "#4a3a4a" : "#c48e2a"}`,
+        borderRadius: 8,
+        display: "grid", placeItems: "center",
+        boxShadow: "0 2px 3px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08)",
+        lineHeight: 1,
       }}>{count}</span>
     </div>
   );
