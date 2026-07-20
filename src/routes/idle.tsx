@@ -1883,6 +1883,9 @@ function IdlePage() {
   // Aqui despachamos toasts/chat sincronizados: T-5min, T-1min, ABERTO, FECHADO.
   // ============================================================
   const oddishAnnouncedRef = useRef<Set<string>>(new Set());
+  // Guarda o mapa de origem antes do jogador entrar na Odisséia Oddish;
+  // ao fechar o portal, devolvemos ele pra esse mapa automaticamente.
+  const oddishReturnMapRef = useRef<IdleMapId | null>(null);
   useEffect(() => {
     if (!ODDISH_EVENT.enabled || ODDISH_EVENT.startedAt === 0) return;
     const check = () => {
