@@ -1253,6 +1253,11 @@ function IdlePage() {
   useEffect(() => { idleRef.current = idle; }, [idle]);
   const teamRef = useRef(team);
   useEffect(() => { teamRef.current = team; }, [team]);
+  const benchRef = useRef(restingBench);
+  useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
+  // UIDs intencionalmente consumidos (fragmentar/trocador) — impede reconciliação
+  // de re-adicioná-los à coleção quando ainda estão em team/bench mid-cleanup.
+  const consumedUidsRef = useRef<Set<string>>(new Set());
 
   // ===== Regen passiva por sinergia Planta/Fada =====
   useEffect(() => {
@@ -3487,9 +3492,9 @@ function IdlePage() {
       const known = new Set(nextCol.map((e) => e.uid));
       const missing: CollectionEntry[] = [];
       for (const p of [...team, ...restingBench]) {
-        if (!known.has(p.uid)) {
-          missing.push({ uid: p.uid, species: p.species, level: p.level, xp: p.xp ?? 0, rarity: p.rarity, capturedAt: Date.now() });
-        }
+        if (known.has(p.uid)) continue;
+        if (consumedUidsRef.current.has(p.uid)) continue; // consumido intencionalmente
+        missing.push({ uid: p.uid, species: p.species, level: p.level, xp: p.xp ?? 0, rarity: p.rarity, capturedAt: Date.now() });
       }
       if (!changed && missing.length === 0) return s;
       return { ...s, collection: [...nextCol, ...missing] };
@@ -4211,18 +4216,26 @@ function IdlePage() {
 
   // Fragmentar Pokémon da coleção -> pontos de craft por raridade
   const fragmentCollection = (uid: string) => {
+    // Bloqueio duro: pokémon no time nunca pode ser fragmentado
+    if ((teamRef.current ?? []).some((p) => p.uid === uid)) {
+      pushChat("Retire o Pokémon do time antes de fragmentar.", "info");
+      return;
+    }
     setIdle((s) => {
       const col = s.collection ?? [];
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
       const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
       pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft).`, "cap");
+      consumedUidsRef.current.add(uid);
       return {
         ...s,
         collection: col.filter((e) => e.uid !== uid),
         craftPoints: (s.craftPoints ?? 0) + gain,
       };
     });
+    // Defesa: se por algum motivo estiver no bench, também remove
+    setRestingBench((b) => b.filter((p) => p.uid !== uid));
   };
 
 
@@ -4870,13 +4883,20 @@ function IdlePage() {
   const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => {
     const trade = ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
-    // Dedup imediato de UIDs (defensivo — evita orb infinito por seleção duplicada)
     const uniqUids = Array.from(new Set(uids));
+    const teamUids = new Set((teamRef.current ?? []).map((p) => p.uid));
+    const benchUids = new Set((benchRef.current ?? []).map((p) => p.uid));
+    // Bloqueio duro ANTES de mutar estado — evita orb infinito quando o
+    // pokémon está em uso (time/bench) e a reconciliação recolocaria na coleção.
+    const blocked = uniqUids.filter((u) => teamUids.has(u) || benchUids.has(u));
+    if (blocked.length > 0) {
+      pushChat("Retire os Pokémon do time/reserva antes de trocar por Orb.", "info");
+      return;
+    }
     setIdle((s) => {
       const col = s.collection ?? [];
-      const teamUids = new Set((teamRef.current ?? []).map((p) => p.uid));
       const selected = col.filter(
-        (c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity && !teamUids.has(c.uid),
+        (c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity,
       );
       if (selected.length !== trade.count) {
         pushChat(
@@ -4886,6 +4906,7 @@ function IdlePage() {
         return s;
       }
       const removeSet = new Set(selected.map((c) => c.uid));
+      removeSet.forEach((u) => consumedUidsRef.current.add(u));
       const newCol = col.filter((c) => !removeSet.has(c.uid));
       const cur = s.items[orbId] ?? 0;
       const orbName = orbId === "orb_xp_major" ? "Orb Maior ✦✦" : "Orb Supremo ✦✦✦";
@@ -7395,6 +7416,7 @@ function IdlePage() {
               onBuyBook={buyBook}
               orbTrades={ORB_TRADES}
               onTradeOrb={tradeForOrb}
+              benchUids={new Set(restingBench.map(p => p.uid))}
               onBuyPotion={buyPotion}
               onBuyEgg={buyEgg}
               shopEggs={SHOP_EGGS}
@@ -8693,7 +8715,9 @@ function IdlePage() {
 
               {worldTraderPick && (() => {
                 const pick = worldTraderPick;
-                const eligible = collection.filter((c) => c.rarity === pick.rarity);
+                const teamU = new Set(team.map((p) => p.uid));
+                const benchU = new Set(restingBench.map((p) => p.uid));
+                const eligible = collection.filter((c) => c.rarity === pick.rarity && !teamU.has(c.uid) && !benchU.has(c.uid));
                 const selCount = worldTraderSel.size;
                 const canConfirm = selCount === pick.count;
                 return (
@@ -9722,7 +9746,7 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
-  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode,
+  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
 
 }: {
   tab: string;
@@ -9779,6 +9803,7 @@ function TabOverlay({
   orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[];
   onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => void;
   pokemonMarketNode?: React.ReactNode;
+  benchUids: Set<string>;
 
 
 }) {
@@ -11162,7 +11187,7 @@ function TabOverlay({
             // Exclui Pokémon do time e travados — evita "não consome / orb infinito"
             // quando o jogador tenta trocar um Pokémon que está em uso.
             const eligible = collection.filter((c) =>
-              c.rarity === orbPicker.rarity && !teamUidSet.has(c.uid) && !lockedSet.has(c.uid),
+              c.rarity === orbPicker.rarity && !teamUidSet.has(c.uid) && !benchUids.has(c.uid) && !lockedSet.has(c.uid),
             );
             const selCount = orbPickerSel.size;
             const canConfirm = selCount === orbPicker.count;
