@@ -656,7 +656,7 @@ const SPECIES_NAME: Record<Species, string> = {
   hitmonchan_shiny: "HITMONCHAN ✧", kangaskhan: "KANGASKHAN ✦",
   meganium: "MEGANIUM ✦", meganium_shiny: "MEGANIUM ✧",
   moltres_shiny: "MOLTRES ✧", onix_shiny: "ONIX ✧",
-  lickitung: "LICKITUNG", lickitung_shiny: "LICKITUNG ✦", mewtwo_event: "MEWTWO ✦✧",
+  lickitung: "LICKITUNG", lickitung_shiny: "LICKITUNG ✦", mewtwo_event: "MEWTWO ✦✧", oddish_shiny: "ODDISH ✦",
 };
 
 
