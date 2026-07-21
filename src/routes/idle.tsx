@@ -5297,8 +5297,8 @@ function IdlePage() {
             luckyKind = "time";
           }
         }
-        const orbName = finalOrbId === "orb_xp_major" ? "Orb Maior ✦✦" : finalOrbId === "orb_xp_supreme" ? "Orb Supremo ✦✦✦" : "Orb de Time ✦✦✦";
-        const orbImg = finalOrbId === "orb_xp_major" ? orbXpMajorUrl : finalOrbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbXpTeamUrl;
+        const orbName = finalOrbId === "orb_xp_minor" ? "Orb Menor ✦" : finalOrbId === "orb_xp_major" ? "Orb Maior ✦✦" : finalOrbId === "orb_xp_supreme" ? "Orb Supremo ✦✦✦" : "Orb de Time ✦✦✦";
+        const orbImg = finalOrbId === "orb_xp_minor" ? orbXpMinorUrl : finalOrbId === "orb_xp_major" ? orbXpMajorUrl : finalOrbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbXpTeamUrl;
         setOrbAnim({ phase: "success", color: trade.color, label: orbName, img: orbImg, orbId: finalOrbId, extraHours, lucky: !!luckyKind });
         setIdle((s2) => ({ ...s2, items: { ...s2.items, [finalOrbId]: (s2.items[finalOrbId] ?? 0) + 1 } }));
         if (luckyKind === "upgrade") pushChat(`🌟 SORTE! Orb evoluiu para ${orbName}!`, "cap");
