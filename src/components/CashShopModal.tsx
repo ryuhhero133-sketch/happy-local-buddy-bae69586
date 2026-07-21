@@ -108,15 +108,38 @@ const PRODUCTS: Product[] = [
 ];
 
 // ---------- Estoque (localStorage) ----------
-const STOCK_KEY = "rubym.cashshop.blackmythic.stock.v1";
+// Total 30, 20 já vendidas — restam 10.
+const STOCK_TOTAL = 30;
+const STOCK_SOLD_INITIAL = 20;
+const STOCK_KEY = "rubym.cashshop.blackmythic.stock.v2";
 function readStock(): number {
   try {
     const v = localStorage.getItem(STOCK_KEY);
-    if (v == null) return 10;
+    if (v == null) return STOCK_TOTAL - STOCK_SOLD_INITIAL; // 10
     const n = parseInt(v, 10);
-    return Number.isFinite(n) ? Math.max(0, Math.min(10, n)) : 10;
-  } catch { return 10; }
+    return Number.isFinite(n) ? Math.max(0, Math.min(STOCK_TOTAL, n)) : (STOCK_TOTAL - STOCK_SOLD_INITIAL);
+  } catch { return STOCK_TOTAL - STOCK_SOLD_INITIAL; }
 }
+
+// ---------- Moeda Esmeralda (visível apenas neste painel) ----------
+const EMERALD_KEY = "rubym.cashshop.emerald.v1";
+function readEmerald(): number {
+  try {
+    const v = localStorage.getItem(EMERALD_KEY);
+    const n = v ? parseInt(v, 10) : 0;
+    return Number.isFinite(n) ? Math.max(0, n) : 0;
+  } catch { return 0; }
+}
+function writeEmerald(n: number) {
+  try { localStorage.setItem(EMERALD_KEY, String(Math.max(0, Math.floor(n)))); } catch { /* ignore */ }
+}
+
+// Taxas de conversão
+const SAFIRA_PER_EMERALD = 20;   // 20 Safiras Verdes → 1 Esmeralda
+const EMERALD_PER_ULTRAPACK = 3; // 3 Esmeraldas → 100 Ultra Balls
+const ULTRAPACK_SIZE = 100;
+
+
 
 // ---------- Chat suporte ----------
 type ChatMsg = { id: string; from: "user" | "support"; text: string; ts: number; image?: string };
