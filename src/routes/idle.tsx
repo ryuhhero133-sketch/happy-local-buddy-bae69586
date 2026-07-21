@@ -5205,9 +5205,14 @@ function IdlePage() {
     uncommon: { boost: 0.09, lucky: 0.04, color: "#5cd3ff", label: "INCOMUM" },
     rare:     { boost: 0.14, lucky: 0.06, color: "#c084fc", label: "RARO" },
   };
-  const ORB_TRADES: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[] = [
-    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 5, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 5 Pokémon RAROS · combustível aumenta chance",  baseSuccess: 0.55, upgradeTo: "orb_xp_supreme" },
-    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 5, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 5 Pokémon ÉPICOS · combustível aumenta chance", baseSuccess: 0.40, upgradeTo: "orb_team", requires: { itemId: "orb_xp_major", qty: 1, label: "Orb Maior" } },
+  type OrbForgeId = "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team";
+  const ORB_TRADES: { orbId: OrbForgeId; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: OrbForgeId; requires?: { itemId: string; qty: number; label: string } }[] = [
+    { orbId: "orb_xp_minor",   label: "Orb Menor ✦",     rarity: "common",    count: 5, color: "#8ae28a", img: orbXpMinorUrl,   desc: "Entregue 5 Pokémon COMUNS · chance base baixa",           baseSuccess: 0.35, upgradeTo: "orb_xp_major" },
+    { orbId: "orb_xp_minor",   label: "Orb Menor+ ✦",    rarity: "uncommon",  count: 5, color: "#5cd3ff", img: orbXpMinorUrl,   desc: "Entregue 5 Pokémon INCOMUNS · maior chance",              baseSuccess: 0.50, upgradeTo: "orb_xp_major" },
+    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",      count: 5, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 5 Pokémon RAROS · combustível aumenta chance",  baseSuccess: 0.65, upgradeTo: "orb_xp_supreme" },
+    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",      count: 5, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 5 Pokémon ÉPICOS · combustível aumenta chance", baseSuccess: 0.75, upgradeTo: "orb_team", requires: { itemId: "orb_xp_major", qty: 1, label: "Orb Maior" } },
+    { orbId: "orb_team",       label: "Orb de Time ✦✦✦", rarity: "legendary", count: 3, color: "#ff9adf", img: orbXpTeamUrl,    desc: "Entregue 3 Pokémon LENDÁRIOS · alta chance de sucesso",   baseSuccess: 0.85 },
+    { orbId: "orb_team",       label: "Orb de Time ✦✦✦", rarity: "mythic",    count: 2, color: "#ff6bd6", img: orbXpTeamUrl,    desc: "Entregue 2 Pokémon MÍTICOS · quase garantido",             baseSuccess: 0.95 },
   ];
   // Estado do NPC Trocador no mapa (modal na tela do mundo)
   const [worldTraderOpen, setWorldTraderOpen] = useState(false);
