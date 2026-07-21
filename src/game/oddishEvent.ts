@@ -22,7 +22,7 @@ export const ODDISH_EVENT: {
   /** Evento ATIVO — portal permanentemente aberto durante a duração. */
   enabled: true,
   /** Timestamp de abertura oficial (ms). */
-  startedAt: 1784591072789,
+  startedAt: 1784431051055,
   /** Encerra após 48h desde startedAt. */
   durationHours: 48,
   /** Ciclo entre aberturas (2h). */
