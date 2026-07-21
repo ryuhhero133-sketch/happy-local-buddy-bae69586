@@ -2994,7 +2994,7 @@ function IdlePage() {
           const label = ne.rarity === "mythic_shiny" ? "MÍTICO SHINY" : ne.rarity.toUpperCase();
           const color = ne.rarity === "mythic_shiny" ? "#ffd94d" : ne.rarity === "mythic" ? "#ff5252" : ne.rarity === "legendary" ? "#ff8b3d" : "#c084fc";
           pushEvent("★", `${label} À VISTA!`, `${ne.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
-          pushChat(`★ ${label}: ${ne.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa!`, "cap");
+          
         }
         return [...prev, ne];
       });
@@ -4849,7 +4849,7 @@ function IdlePage() {
       const label = r.rarity === "mythic_shiny" ? "MÍTICO SHINY" : r.rarity.toUpperCase();
       const color = r.rarity === "mythic_shiny" ? "#ffd94d" : r.rarity === "mythic" ? "#ff5252" : "#ff8b3d";
       pushEvent("★", `${label} À VISTA!`, `${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
-      pushChat(`★ ${label}: ${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa!`, "cap");
+      
     }
     return arr;
   }
