@@ -395,6 +395,7 @@ export function tryRedeemCode(code: string):
   if (c === SECRET_CRYSTAL20K_CODE) {
     if (isCrystal20kUsed()) return { kind: "already-used" };
     return { kind: "masterball", bundle: grantCrystal20kBundle() };
+  }
   if (c === SECRET_CHARIZ50_CODE) {
     if (isChariz50Used()) return { kind: "already-used" };
     return { kind: "masterball", bundle: grantChariz50Bundle() };
