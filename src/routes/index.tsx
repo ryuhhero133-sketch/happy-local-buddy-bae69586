@@ -1672,8 +1672,8 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
             intent = { dir: dirs[Math.floor(Math.random() * dirs.length)], ticks: 6 + Math.floor(Math.random() * 14) };
             intents[bot.id] = intent;
           }
-          if (Math.random() < 0.04) { intent.ticks--; return; } // brief pause
-          const speed = 12 + Math.floor(Math.random() * 5);
+          if (Math.random() < 0.08) { intent.ticks--; return; } // brief pause
+          const speed = 4 + Math.floor(Math.random() * 3);
           let { x, y } = next[bot.id];
           if (intent.dir === "up") y -= speed;
           if (intent.dir === "down") y += speed;
@@ -1688,7 +1688,7 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
         });
         return next;
       });
-    }, 120);
+    }, 160);
     return () => clearInterval(interval);
   }, []);
 
