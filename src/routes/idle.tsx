@@ -9026,7 +9026,9 @@ function IdlePage() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     {ORB_TRADES.map((t) => {
                       const available = collection.filter((c) => c.rarity === t.rarity).length;
-                      const canTrade = available >= t.count;
+                      const reqOk = !t.requires || (idle.items[t.requires.itemId] ?? 0) >= t.requires.qty;
+                      const reqOwned = t.requires ? (idle.items[t.requires.itemId] ?? 0) : 0;
+                      const canTrade = available >= t.count && reqOk;
                       const owned = idle.items[t.orbId] ?? 0;
                       return (
                         <div key={t.orbId} style={{
@@ -9034,18 +9036,24 @@ function IdlePage() {
                           border: `2px solid ${t.color}66`, borderRadius: 14, padding: 14,
                           display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
                           boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${t.color}33`,
+                          opacity: reqOk ? 1 : 0.85,
                         }}>
                           <img src={t.img} alt={t.label} width={72} height={72}
                             style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 12px ${t.color}bb)` }} />
                           <div style={{ fontWeight: 900, color: "#eadfe8", fontSize: 14 }}>{t.label}</div>
                           <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center", lineHeight: 1.4 }}>{t.desc}</div>
-                          <div style={{ fontSize: 11, color: canTrade ? "#8ae28a" : "#e28a8a", fontWeight: 700 }}>
+                          <div style={{ fontSize: 11, color: available >= t.count ? "#8ae28a" : "#e28a8a", fontWeight: 700 }}>
                             {t.rarity.toUpperCase()} na coleção: {available}/{t.count}
                           </div>
+                          {t.requires && (
+                            <div style={{ fontSize: 10, fontWeight: 800, color: reqOk ? "#8ae28a" : "#ff9a6b", background: reqOk ? "#0f2018" : "#2a1620", border: `1px solid ${reqOk ? "#8ae28a55" : "#ff9a6b55"}`, borderRadius: 6, padding: "3px 8px", textAlign: "center" }}>
+                              {reqOk ? "✓" : "🔒"} Requer {t.requires.qty}× {t.requires.label} ({reqOwned}/{t.requires.qty})
+                            </div>
+                          )}
                           <div style={{ fontSize: 10, color: "#8a7a9c" }}>Você tem: {owned}</div>
                           <button
                             disabled={!canTrade}
-                            onClick={() => { setWorldTraderPick(t); setWorldTraderSel(new Set()); }}
+                            onClick={() => { setWorldTraderPick(t); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); setWorldTraderFuelTab("common"); }}
                             style={{
                               width: "100%", padding: "8px 10px", fontWeight: 900, fontSize: 12,
                               background: canTrade ? t.color : "#3a2a4a",
@@ -9053,7 +9061,7 @@ function IdlePage() {
                               border: "none", borderRadius: 8,
                               cursor: canTrade ? "pointer" : "not-allowed",
                             }}
-                          >{canTrade ? "ESCOLHER POKÉMON" : `PRECISA ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                          >{!reqOk ? `FORJE 1 ${t.requires!.label.toUpperCase()} PRIMEIRO` : available >= t.count ? "ESCOLHER POKÉMON" : `PRECISA ${t.count} ${t.rarity.toUpperCase()}`}</button>
                         </div>
                       );
                     })}
