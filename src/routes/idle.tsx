@@ -11069,6 +11069,7 @@ function TabOverlay({
                       gridTemplateRows: "auto auto auto 28px 36px",
                       gap: 4,
                       alignItems: "center",
+                      justifyItems: "center",
                       minHeight: 220,
                       cursor: bulkMode ? (canBulkPick ? "pointer" : "not-allowed") : "default",
                     }}
@@ -11109,11 +11110,11 @@ function TabOverlay({
                     {/* Sprite + nome */}
                     <button
                       onClick={(e) => { e.stopPropagation(); if (bulkMode) { if (canBulkPick) toggleBulk(entry.uid); return; } onOpenColecaoDetail(entry.uid); }}
-                      style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
+                      style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%" }}
                       title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
                     >
-                      {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6 }} />}
-                      <div style={{ fontSize: 11, marginTop: 2, color: "#4a3010", fontWeight: 800 }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
+                      {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block" }} />}
+                      <div style={{ fontSize: 11, marginTop: 2, color: "#4a3010", fontWeight: 800, textAlign: "center" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                     </button>
 
                     {/* Raridade */}
