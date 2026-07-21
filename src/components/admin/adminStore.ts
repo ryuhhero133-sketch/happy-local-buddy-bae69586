@@ -341,6 +341,28 @@ export function grantCrystal20kBundle(): Reward[] {
   return bundle;
 }
 
+// ---------- CHARIZ50 (ovo Charizard Lv50 + 2k cristal) ----------
+export const CHARIZ50_KEY = "rubym.chariz50CodeUsed";
+export const SECRET_CHARIZ50_CODE = "CHARIZ50";
+export const isChariz50Used = () => safeGet<boolean>(CHARIZ50_KEY, false);
+export const setChariz50Used = () => safeSet(CHARIZ50_KEY, true);
+export function grantChariz50Bundle(): Reward[] {
+  const bundle: Reward[] = [
+    { id: "egg_charizard", label: "Ovo Mítico Charizard (Lv 50)", qty: 1, rare: true },
+    { id: "crystal", label: "Cristal", qty: 2000, rare: true },
+  ];
+  patchSave((s) => {
+    s.inventory = s.inventory ?? {};
+    s.inventory.egg_charizard = (s.inventory.egg_charizard ?? 0) + 1;
+    addBound("egg_charizard", 1);
+    s.crystal = (s.crystal ?? 0) + 2000;
+  });
+  setChariz50Used();
+  pushLog({ actor: "system", action: "chariz50_code_redeemed", detail: "Ovo Charizard Lv50 + 2k Cristal" });
+  if (typeof window !== "undefined") window.dispatchEvent(new StorageEvent("storage", { key: SAVE_KEY }));
+  return bundle;
+}
+
 export function tryRedeemCode(code: string):
   | { kind: "reward"; bundle: Reward[] }
   | { kind: "beta"; bundle: Reward[] }
