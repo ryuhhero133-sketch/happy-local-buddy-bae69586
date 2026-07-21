@@ -9074,11 +9074,18 @@ function IdlePage() {
                 const teamU = new Set(team.map((p) => p.uid));
                 const benchU = new Set(restingBench.map((p) => p.uid));
                 const eligible = collection.filter((c) => c.rarity === pick.rarity && !teamU.has(c.uid) && !benchU.has(c.uid));
-                const commons = collection.filter((c) => c.rarity === "common" && !teamU.has(c.uid) && !benchU.has(c.uid));
+                const fuelRarities: FuelRarity[] = (["common", "uncommon", "rare"] as FuelRarity[]).filter((r) => r !== pick.rarity);
+                const fuelPool = collection.filter((c) => (c.rarity === "common" || c.rarity === "uncommon" || c.rarity === "rare") && c.rarity !== pick.rarity && !teamU.has(c.uid) && !benchU.has(c.uid));
+                const activeTab: FuelRarity = fuelRarities.includes(worldTraderFuelTab) ? worldTraderFuelTab : fuelRarities[0];
+                const fuelOfTab = fuelPool.filter((c) => c.rarity === activeTab);
                 const selCount = worldTraderSel.size;
                 const fuelCount = worldTraderFuel.size;
                 const canConfirm = selCount === pick.count;
-                const { success, lucky } = computeOrbChances(pick, fuelCount);
+                const breakdown = getFuelBreakdown(worldTraderFuel);
+                const { success, lucky } = computeOrbChances(pick, breakdown);
+                // ~50% da sorte vai para "orb evolui" e 50% para "+tempo" (se houver upgrade); senão tudo vai pra tempo
+                const upgradeChance = pick.upgradeTo ? lucky * 0.5 : 0;
+                const timeChance = pick.upgradeTo ? lucky * 0.5 : lucky;
                 return (
                   <div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
@@ -9100,12 +9107,23 @@ function IdlePage() {
                       <div style={{ height: 8, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
                         <div style={{ width: `${success * 100}%`, height: "100%", background: `linear-gradient(90deg, #6bd66b, ${pick.color})`, transition: "width .3s" }} />
                       </div>
+                      {pick.upgradeTo && (
+                        <>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
+                            <span>✨ Orb EVOLUI (upgrade)</span>
+                            <b style={{ color: "#ff9adf" }}>{Math.round(upgradeChance * 100)}%</b>
+                          </div>
+                          <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                            <div style={{ width: `${upgradeChance * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff9adf, #ffd94d)" }} />
+                          </div>
+                        </>
+                      )}
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
-                        <span>🌟 SORTE (orb evolui / +tempo)</span>
-                        <b style={{ color: "#ffd94d" }}>{Math.round(lucky * 100)}%</b>
+                        <span>⏱️ +TEMPO extra (+1~2h)</span>
+                        <b style={{ color: "#ffd94d" }}>{Math.round(timeChance * 100)}%</b>
                       </div>
                       <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
-                        <div style={{ width: `${lucky * 100}%`, height: "100%", background: "linear-gradient(90deg, #ffd94d, #ff9adf)" }} />
+                        <div style={{ width: `${timeChance * 100}%`, height: "100%", background: "linear-gradient(90deg, #ffd94d, #8ae28a)" }} />
                       </div>
                     </div>
 
@@ -9117,7 +9135,7 @@ function IdlePage() {
                         Você não tem Pokémon {pick.rarity.toUpperCase()} na coleção.
                       </div>
                     ) : (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "26vh", overflowY: "auto", padding: 4 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "22vh", overflowY: "auto", padding: 4 }}>
                         {eligible.map((c) => {
                           const sel = worldTraderSel.has(c.uid);
                           const disabled = !sel && selCount >= pick.count;
@@ -9156,18 +9174,41 @@ function IdlePage() {
                       </div>
                     )}
 
-                    {/* Combustível: comuns extras */}
+                    {/* Combustível: filtros de raridade */}
                     <div style={{ marginTop: 10, padding: 8, background: "#0f0820", border: "1px dashed #3a2a4a", borderRadius: 10 }}>
-                      <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 6 }}>
-                        ⚡ Combustível (COMUNS · até {MAX_FUEL}) — +{Math.round(FUEL_BOOST * 100)}% sucesso e +{Math.round(LUCKY_FUEL * 100)}% sorte por unidade · usados: <b style={{ color: "#ffd94d" }}>{fuelCount}/{MAX_FUEL}</b>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, flexWrap: "wrap", gap: 6 }}>
+                        <div style={{ fontSize: 11, color: "#c8b8d0" }}>
+                          ⚡ Combustível — usados: <b style={{ color: "#ffd94d" }}>{fuelCount}/{MAX_FUEL}</b>
+                          {fuelCount > 0 && <span style={{ marginLeft: 6, fontSize: 10, color: "#8a7a9c" }}>
+                            ({breakdown.common > 0 && `${breakdown.common}C `}{breakdown.uncommon > 0 && `${breakdown.uncommon}I `}{breakdown.rare > 0 && `${breakdown.rare}R`})
+                          </span>}
+                        </div>
+                        <div style={{ display: "flex", gap: 4 }}>
+                          {fuelRarities.map((r) => {
+                            const tier = FUEL_TIERS[r];
+                            const active = activeTab === r;
+                            const count = fuelPool.filter((x) => x.rarity === r).length;
+                            return (
+                              <button key={r} onClick={() => setWorldTraderFuelTab(r)}
+                                style={{
+                                  fontSize: 10, fontWeight: 900, padding: "3px 8px", borderRadius: 6, cursor: "pointer",
+                                  background: active ? tier.color : "transparent",
+                                  color: active ? "#0b0510" : tier.color,
+                                  border: `1px solid ${tier.color}77`,
+                                }}
+                              >{tier.label} +{Math.round(tier.boost * 100)}% ({count})</button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      {commons.length === 0 ? (
-                        <div style={{ fontSize: 11, color: "#8a7a9c", padding: 8, textAlign: "center" }}>Nenhum COMUM disponível.</div>
+                      {fuelOfTab.length === 0 ? (
+                        <div style={{ fontSize: 11, color: "#8a7a9c", padding: 8, textAlign: "center" }}>Nenhum {FUEL_TIERS[activeTab].label} disponível.</div>
                       ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "18vh", overflowY: "auto" }}>
-                          {commons.map((c) => {
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "16vh", overflowY: "auto" }}>
+                          {fuelOfTab.map((c) => {
                             const sel = worldTraderFuel.has(c.uid);
                             const disabled = !sel && fuelCount >= MAX_FUEL;
+                            const tierColor = FUEL_TIERS[c.rarity as FuelRarity].color;
                             return (
                               <button
                                 key={c.uid}
@@ -9180,8 +9221,8 @@ function IdlePage() {
                                   });
                                 }}
                                 style={{
-                                  background: sel ? "linear-gradient(160deg, #6bd66b55, #6bd66b22)" : "#1a0f26",
-                                  border: sel ? "2px solid #6bd66b" : "1px solid #3a2a4a",
+                                  background: sel ? `linear-gradient(160deg, ${tierColor}55, ${tierColor}22)` : "#1a0f26",
+                                  border: sel ? `2px solid ${tierColor}` : "1px solid #3a2a4a",
                                   borderRadius: 8, padding: 3, cursor: disabled ? "not-allowed" : "pointer",
                                   opacity: disabled ? 0.4 : 1,
                                 }}
