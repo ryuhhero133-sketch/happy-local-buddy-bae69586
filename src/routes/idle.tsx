@@ -3808,7 +3808,7 @@ function IdlePage() {
       });
       const rarityLabel = pick.rarity === "mythic_shiny" ? "MÍTICO ✦" : pick.rarity === "mythic" ? "MÍTICO" : "ÉPICO";
       pushEvent(pick.icon, `EVENTO ${rarityLabel}`, `${pick.label} apareceu! Só ULTRA/MASTER captura.`, pick.color);
-      pushChat(`★ EVENTO ${rarityLabel}: ${pick.label} ${pick.icon} apareceu! Pokébola comum NÃO funciona, Great sempre falha — use ULTRA ou MASTER!`, "cap");
+      
     };
     const firstTo = setTimeout(trigger, 45_000);
     const iv = setInterval(trigger, LEGEND_INTERVAL_MS);
