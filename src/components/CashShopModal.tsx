@@ -58,6 +58,8 @@ type Props = {
 const PAYMENT_LINK_BLACK = "https://link.picpay.com/p/17846742186a5ff7aa48373";
 // PicPay — link dos demais pacotes (Ruby / Ruby+VIP)
 const PAYMENT_LINK_STANDARD = "https://link.picpay.com/p/17846738126a5ff61491b33";
+// PicPay — link exclusivo do pacote Ruby (2000 Rubys, R$75)
+const PAYMENT_LINK_RUBY = "https://link.picpay.com/p/17846511816a5f9dad66e61";
 
 type Product = {
   id: string;
