@@ -7346,6 +7346,14 @@ function IdlePage() {
               value={String(Math.floor(idle.bank.crystals))}
               title="Cristais"
             />
+            {(idle.items?.safira_verde ?? 0) > 0 && (
+              <ResourceNiche
+                tint="#6ee7a8"
+                icon={<img src={assetUrlFromJson(safiraVerdeAsset)} alt="" width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 5px #6ee7a8cc)" }} />}
+                value={String(idle.items!.safira_verde ?? 0)}
+                title="Safira Verde"
+              />
+            )}
 
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 4,
