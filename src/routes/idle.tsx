@@ -9036,28 +9036,50 @@ function IdlePage() {
                 const teamU = new Set(team.map((p) => p.uid));
                 const benchU = new Set(restingBench.map((p) => p.uid));
                 const eligible = collection.filter((c) => c.rarity === pick.rarity && !teamU.has(c.uid) && !benchU.has(c.uid));
+                const commons = collection.filter((c) => c.rarity === "common" && !teamU.has(c.uid) && !benchU.has(c.uid));
                 const selCount = worldTraderSel.size;
+                const fuelCount = worldTraderFuel.size;
                 const canConfirm = selCount === pick.count;
+                const { success, lucky } = computeOrbChances(pick, fuelCount);
                 return (
                   <div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <div style={{ fontWeight: 900, color: pick.color, fontSize: 14 }}>
-                        Escolha {pick.count} Pokémon {pick.rarity.toUpperCase()}
+                        Incubadora · {pick.count}× {pick.rarity.toUpperCase()}
                       </div>
                       <button
-                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); }}
                         style={{ background: "transparent", border: "1px solid #3a2a4a", color: "#eadfe8", cursor: "pointer", fontSize: 11, padding: "4px 10px", borderRadius: 6 }}
                       >← VOLTAR</button>
                     </div>
-                    <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 10 }}>
-                      Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{pick.count}</b> — Recompensa: <b style={{ color: pick.color }}>{pick.label}</b>
+
+                    {/* Barra de chances */}
+                    <div style={{ background: "#0f0820", border: "1px solid #3a2a4a", borderRadius: 10, padding: 10, marginBottom: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", marginBottom: 4 }}>
+                        <span>Chance de SUCESSO</span>
+                        <b style={{ color: success >= 0.75 ? "#8ae28a" : success >= 0.5 ? "#ffd94d" : "#ff9a6b" }}>{Math.round(success * 100)}%</b>
+                      </div>
+                      <div style={{ height: 8, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                        <div style={{ width: `${success * 100}%`, height: "100%", background: `linear-gradient(90deg, #6bd66b, ${pick.color})`, transition: "width .3s" }} />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
+                        <span>🌟 SORTE (orb evolui / +tempo)</span>
+                        <b style={{ color: "#ffd94d" }}>{Math.round(lucky * 100)}%</b>
+                      </div>
+                      <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                        <div style={{ width: `${lucky * 100}%`, height: "100%", background: "linear-gradient(90deg, #ffd94d, #ff9adf)" }} />
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 6 }}>
+                      Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{pick.count}</b>
                     </div>
                     {eligible.length === 0 ? (
                       <div style={{ color: "#e28a8a", fontSize: 12, padding: 24, textAlign: "center" }}>
                         Você não tem Pokémon {pick.rarity.toUpperCase()} na coleção.
                       </div>
                     ) : (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8, maxHeight: "48vh", overflowY: "auto", padding: 4 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "26vh", overflowY: "auto", padding: 4 }}>
                         {eligible.map((c) => {
                           const sel = worldTraderSel.has(c.uid);
                           const disabled = !sel && selCount >= pick.count;
@@ -9075,40 +9097,83 @@ function IdlePage() {
                               style={{
                                 background: sel ? `linear-gradient(160deg, ${pick.color}55, ${pick.color}22)` : "#1a0f26",
                                 border: sel ? `2px solid ${pick.color}` : "2px solid #3a2a4a",
-                                borderRadius: 10, padding: 6, cursor: disabled ? "not-allowed" : "pointer",
+                                borderRadius: 10, padding: 4, cursor: disabled ? "not-allowed" : "pointer",
                                 display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                                 opacity: disabled ? 0.4 : 1, position: "relative",
                               }}
                             >
                               {GIF[c.species] ? (
-                                <img src={GIF[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
+                                <img src={GIF[c.species]} alt="" style={{ width: 48, height: 48, imageRendering: "pixelated" }} />
                               ) : (
-                                <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
+                                <div style={{ width: 48, height: 48, background: "#2a1638", borderRadius: 8 }} />
                               )}
-                              <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
-                              <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
+                              <div style={{ fontSize: 9, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
+                              <div style={{ fontSize: 9, color: "#ffd94d" }}>Lv.{c.level}</div>
                               {sel && (
-                                <div style={{
-                                  position: "absolute", top: 2, right: 2, background: pick.color, color: "#0b0510",
-                                  width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
-                                }}>✓</div>
+                                <div style={{ position: "absolute", top: 2, right: 2, background: pick.color, color: "#0b0510", width: 16, height: 16, borderRadius: 999, fontSize: 10, fontWeight: 900, display: "grid", placeItems: "center" }}>✓</div>
                               )}
                             </button>
                           );
                         })}
                       </div>
                     )}
-                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+
+                    {/* Combustível: comuns extras */}
+                    <div style={{ marginTop: 10, padding: 8, background: "#0f0820", border: "1px dashed #3a2a4a", borderRadius: 10 }}>
+                      <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 6 }}>
+                        ⚡ Combustível (COMUNS · até {MAX_FUEL}) — +{Math.round(FUEL_BOOST * 100)}% sucesso e +{Math.round(LUCKY_FUEL * 100)}% sorte por unidade · usados: <b style={{ color: "#ffd94d" }}>{fuelCount}/{MAX_FUEL}</b>
+                      </div>
+                      {commons.length === 0 ? (
+                        <div style={{ fontSize: 11, color: "#8a7a9c", padding: 8, textAlign: "center" }}>Nenhum COMUM disponível.</div>
+                      ) : (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "18vh", overflowY: "auto" }}>
+                          {commons.map((c) => {
+                            const sel = worldTraderFuel.has(c.uid);
+                            const disabled = !sel && fuelCount >= MAX_FUEL;
+                            return (
+                              <button
+                                key={c.uid}
+                                disabled={disabled}
+                                onClick={() => {
+                                  setWorldTraderFuel((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(c.uid)) next.delete(c.uid); else next.add(c.uid);
+                                    return next;
+                                  });
+                                }}
+                                style={{
+                                  background: sel ? "linear-gradient(160deg, #6bd66b55, #6bd66b22)" : "#1a0f26",
+                                  border: sel ? "2px solid #6bd66b" : "1px solid #3a2a4a",
+                                  borderRadius: 8, padding: 3, cursor: disabled ? "not-allowed" : "pointer",
+                                  opacity: disabled ? 0.4 : 1,
+                                }}
+                              >
+                                {GIF[c.species] ? (
+                                  <img src={GIF[c.species]} alt="" style={{ width: 38, height: 38, imageRendering: "pixelated" }} />
+                                ) : <div style={{ width: 38, height: 38, background: "#2a1638", borderRadius: 6 }} />}
+                                <div style={{ fontSize: 8, color: "#c8b8d0" }}>Lv.{c.level}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                       <button
-                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); }}
                         style={{ flex: 1, padding: "10px", background: "#3a2a4a", color: "#eadfe8", border: "none", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
                       >CANCELAR</button>
                       <button
                         disabled={!canConfirm}
                         onClick={() => {
-                          tradeForOrb(pick.orbId, Array.from(worldTraderSel));
+                          const uids = Array.from(worldTraderSel);
+                          const fuel = Array.from(worldTraderFuel);
                           setWorldTraderPick(null);
                           setWorldTraderSel(new Set());
+                          setWorldTraderFuel(new Set());
+                          setWorldTraderOpen(false);
+                          tradeForOrb(pick.orbId, uids, fuel);
                         }}
                         style={{
                           flex: 2, padding: "10px", fontWeight: 900,
@@ -9116,11 +9181,12 @@ function IdlePage() {
                           color: canConfirm ? "#0b0510" : "#6a5a7c",
                           border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
                         }}
-                      >CONFIRMAR TROCA</button>
+                      >⚗️ INCUBAR</button>
                     </div>
                   </div>
                 );
               })()}
+
             </div>
           </div>
         );
