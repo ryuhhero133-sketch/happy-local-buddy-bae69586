@@ -11069,6 +11069,7 @@ function TabOverlay({
                       gridTemplateRows: "auto auto auto 28px 36px",
                       gap: 4,
                       alignItems: "center",
+                      justifyItems: "center",
                       minHeight: 220,
                       cursor: bulkMode ? (canBulkPick ? "pointer" : "not-allowed") : "default",
                     }}
