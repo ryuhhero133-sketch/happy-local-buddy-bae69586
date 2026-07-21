@@ -47,7 +47,7 @@ type Props = {
   onGrantItem: (id: string, qty: number) => void;
   codeInput: string;
   setCodeInput: (v: string) => void;
-  codeMsg: string;
+  codeMsg: string | { kind: "err" | "ok"; text: string } | null;
   onRedeemCode: () => void;
 };
 
