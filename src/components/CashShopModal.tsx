@@ -425,7 +425,7 @@ export function CashShopModal(props: Props) {
                 <div className="text-6xl font-black text-white leading-none" style={{ textShadow: "0 0 20px rgba(250,204,21,.7)" }}>
                   {String(blackStock).padStart(2, "0")}
                 </div>
-                <div className="text-[10px] tracking-widest text-white/60">de 10 unidades</div>
+                <div className="text-[10px] tracking-widest text-white/60">de {STOCK_TOTAL} unidades</div>
               </div>
             </div>
           </motion.div>
