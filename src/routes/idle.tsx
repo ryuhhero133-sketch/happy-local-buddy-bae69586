@@ -4665,7 +4665,7 @@ function IdlePage() {
           localStorage.setItem("dialga_last_spawn_ms", String(Date.now()));
         }
       } catch {}
-      const isMythicRoamer = !isDialgaEvent && currentRoamers === 0 && Math.random() < 0.004;
+      const isMythicRoamer = !isDialgaEvent && currentRoamers === 0 && Math.random() < 0.0015;
       if (isDialgaEvent) {
         sp = "dialga";
         forcedRarity = "mythic_shiny";
