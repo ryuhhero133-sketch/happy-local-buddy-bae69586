@@ -1888,10 +1888,19 @@ function IdlePage() {
   // ao fechar o portal, devolvemos ele pra esse mapa automaticamente.
   const oddishReturnMapRef = useRef<IdleMapId | null>(null);
   useEffect(() => {
-    if (!ODDISH_EVENT.enabled || ODDISH_EVENT.startedAt === 0) return;
     const check = () => {
       const st = oddishEventStatus();
-      if (st.phase === "finished" || st.phase === "disabled") return;
+      // Se o evento está desligado/encerrado, apenas retira quem ainda está no mapa.
+      if (!ODDISH_EVENT.enabled || st.phase === "finished" || st.phase === "disabled") {
+        setIdle((s) => {
+          if (s.currentMap !== "oddish_o1" && s.currentMap !== "oddish_o2") return s;
+          const back = oddishReturnMapRef.current ?? "arena";
+          oddishReturnMapRef.current = null;
+          try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Evento encerrado", body: "Odisséia Oddish acabou — de volta ao mapa anterior.", tone: "info" } })); } catch {}
+          return { ...s, currentMap: back };
+        });
+        return;
+      }
       const cycleMs = ODDISH_EVENT.cycleHours * 60 * 60 * 1000;
       const cycleIndex = Math.floor(st.elapsedMs / cycleMs);
       const key = (k: string) => `${cycleIndex}:${k}`;
