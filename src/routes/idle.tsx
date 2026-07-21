@@ -4743,7 +4743,7 @@ function IdlePage() {
       const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
       const apexEligible = !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && apexPool.length > 0;
       // 0.6% chance quando elegível (aparição escassa)
-      const isApex = apexEligible && Math.random() < 0.006;
+      const isApex = apexEligible && Math.random() < 0.0025;
       if (isApex) {
         const pick = apexPool[Math.floor(Math.random() * apexPool.length)];
         sp = pick.sp;
