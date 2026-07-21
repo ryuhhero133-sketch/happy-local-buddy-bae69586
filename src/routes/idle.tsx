@@ -3330,7 +3330,7 @@ function IdlePage() {
           const cm = idle.currentMap;
           const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
           const isGeliusMap = cm === "gelius1" || cm === "gelius2";
-          const ultraChance = isGeliusMap ? 0.85 : isTerryMap ? 0.65 : 0.30;
+          const ultraChance = isGeliusMap ? 0.35 : isTerryMap ? 0.20 : 0.08;
           if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
           if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
           // Evento Gelius: chance alta de cristal extra
