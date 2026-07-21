@@ -19,8 +19,8 @@ export const ODDISH_EVENT: {
   windowMinutes: number;
   queueSeconds: number;
 } = {
-  /** Evento ATIVO — portal permanentemente aberto durante a duração. */
-  enabled: true,
+  /** Evento ENCERRADO. */
+  enabled: false,
   /** Timestamp de abertura oficial (ms). */
   startedAt: 1784431051055,
   /** Encerra após 48h desde startedAt. */
