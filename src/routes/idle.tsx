@@ -2193,6 +2193,36 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "CHARIZ60" || raw === "CHARIZARD60" || raw === "CHAR60") {
+      const nowT = Date.now();
+      const SIXTY_D = 60 * 24 * 60 * 60 * 1000;
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 30000) },
+        items: {
+          ...base.items,
+          egg_charizard: (base.items.egg_charizard ?? 0) + 1,
+          book_vip_60: (base.items.book_vip_60 ?? 0) + 1,
+        },
+        buffs: {
+          ...base.buffs,
+          expMult: Math.max(base.buffs.expMult ?? 0, 0.3),
+          expMultUntil: Math.max(base.buffs.expMultUntil ?? 0, nowT + SIXTY_D),
+          goldMult: Math.max(base.buffs.goldMult ?? 0, 0.3),
+          goldMultUntil: Math.max(base.buffs.goldMultUntil ?? 0, nowT + SIXTY_D),
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🔥 Livro VIP 60d + Ovo Charizard Lv 50 + 30 000 Cristais entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código CHARIZ60: Livro VIP 60d + 1× Ovo Mítico Charizard Lv 50 + 30 000 💎 Cristais.`, "cap");
+      return;
+    }
+
     if (raw === "CHARIZA1" || raw === "CHARIZA2" || raw === "CHARIZA3") {
       const nowT = Date.now();
       const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
