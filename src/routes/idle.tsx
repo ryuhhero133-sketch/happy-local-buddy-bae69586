@@ -2166,6 +2166,35 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "CHARIZA1" || raw === "CHARIZA2" || raw === "CHARIZA3") {
+      const nowT = Date.now();
+      const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          book_vip_30: (base.items.book_vip_30 ?? 0) + 1,
+          egg_charizard: (base.items.egg_charizard ?? 0) + 1,
+        },
+        buffs: {
+          ...base.buffs,
+          expMult: Math.max(base.buffs.expMult ?? 0, 0.3),
+          expMultUntil: Math.max(base.buffs.expMultUntil ?? 0, nowT + THIRTY_D),
+          goldMult: Math.max(base.buffs.goldMult ?? 0, 0.3),
+          goldMultUntil: Math.max(base.buffs.goldMultUntil ?? 0, nowT + THIRTY_D),
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🔥 VIP 30d + Ovo do Charizard entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: VIP 30d + 1× Ovo do Charizard 🔥.`, "cap");
+      return;
+    }
+
     setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
   };
 
