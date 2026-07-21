@@ -11938,17 +11938,16 @@ function TabOverlay({
                   <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{bk.desc}</div>
                   <div style={{ fontSize: 12, color: useGold ? "#ffd94d" : "#c084fc", fontWeight: 700 }}>{useGold ? "🪙" : "💎"} {bk.price}</div>
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
-                  <button
-                    onClick={() => onBuyBook(bk)}
-                    disabled={!canBuy}
-                    style={{
-                      width: "100%", padding: "8px 10px", fontWeight: 800,
-                      background: canBuy ? color : "#3a2a4a",
-                      color: canBuy ? "#0b0510" : "#6a5a7c",
-                      border: "none", borderRadius: 6,
-                      cursor: canBuy ? "pointer" : "not-allowed",
-                    }}
-                  >{canBuy ? "COMPRAR" : "SEM CRISTAL"}</button>
+                  <QtyBuy
+                    presets={[1, 10, 50, 100]}
+                    max={9999}
+                    unitLabel={bk.name}
+                    buttonColor={color}
+                    canBuyFn={(n) => (useGold ? bank.gold >= bk.price * n : bank.crystals >= bk.price * n) && (!bk.priceGold || bank.gold >= bk.priceGold * n)}
+                    onBuy={(n) => onBuyBook(bk, n)}
+                    disabledLabel={useGold ? "SEM OURO" : "SEM CRISTAL"}
+                  />
+
                 </div>
               );
             })}
