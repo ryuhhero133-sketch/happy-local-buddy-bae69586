@@ -95,17 +95,18 @@ const PRODUCTS: Product[] = [
   {
     id: "black_mythic_plus",
     name: "BLACK MYTHIC PLUS",
-    subtitle: "Edição Limitada — 10 unidades",
+    subtitle: "Edição Limitada — 30 unidades",
     price: 347,
     image: blackEggImg,
     badge: "⭐ EDIÇÃO LIMITADA",
-    limited: 10,
+    limited: 30,
     description:
       "O ovo mais raro já lançado no IdleMon. Possui Pokémon exclusivos, nunca voltará à loja. Quem comprar fará parte da primeira geração de treinadores lendários.",
     link: PAYMENT_LINK,
     accent: "from-yellow-400 via-amber-500 to-yellow-600",
   },
 ];
+
 
 // ---------- Estoque (localStorage) ----------
 // Total 30, 20 já vendidas — restam 10.
