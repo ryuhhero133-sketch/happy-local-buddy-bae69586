@@ -9192,6 +9192,126 @@ function IdlePage() {
         );
       })()}
 
+      {/* Incubadora — animação de sucesso/falha */}
+      {orbAnim && (
+        <div
+          onClick={() => { if (orbAnim.phase !== "spinning") setOrbAnim(null); }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 10010, display: "grid", placeItems: "center", padding: 16 }}
+        >
+          <style>{`
+            @keyframes orb-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+            @keyframes orb-pulse { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 20px ${orbAnim.color}) } 50% { transform: scale(1.06); filter: drop-shadow(0 0 40px ${orbAnim.color}) } }
+            @keyframes orb-shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px) rotate(-2deg)} 40%{transform:translateX(6px) rotate(2deg)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+            @keyframes orb-drop { from { transform: translateY(-30px) scale(.4); opacity: 0 } to { transform: translateY(0) scale(1); opacity: 1 } }
+            @keyframes orb-crack { 0%{opacity:0;transform:scale(.6)} 30%{opacity:1;transform:scale(1.2)} 100%{opacity:0.8;transform:scale(1)} }
+            @keyframes orb-particle { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)} }
+          `}</style>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(420px,100%)", background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+              border: `2px solid ${orbAnim.color}`, borderRadius: 16, padding: 22, textAlign: "center",
+              boxShadow: `0 0 60px ${orbAnim.color}55`, position: "relative", overflow: "hidden",
+            }}
+          >
+            <div style={{ fontSize: 12, color: "#c8b8d0", letterSpacing: 2, fontWeight: 900, marginBottom: 8 }}>
+              {orbAnim.phase === "spinning" ? "⚗️  INCUBANDO..." : orbAnim.phase === "success" ? (orbAnim.lucky ? "🌟  SORTE!" : "✨  SUCESSO!") : "💥  FALHOU!"}
+            </div>
+            <div style={{ position: "relative", height: 240, display: "grid", placeItems: "center" }}>
+              {/* base incubadora */}
+              <img
+                src={orbIncubatorImg}
+                alt=""
+                width={200}
+                height={200}
+                style={{
+                  imageRendering: "pixelated",
+                  filter: orbAnim.phase === "fail" ? "grayscale(1) hue-rotate(-30deg) drop-shadow(0 0 12px #e94b3c)" : `drop-shadow(0 0 24px ${orbAnim.color})`,
+                  animation: orbAnim.phase === "spinning" ? "orb-pulse 1s ease-in-out infinite" : orbAnim.phase === "fail" ? "orb-shake .5s ease-in-out 2" : "orb-pulse 1.4s ease-in-out infinite",
+                  transition: "filter .3s",
+                }}
+              />
+              {/* aura girando */}
+              {orbAnim.phase === "spinning" && (
+                <div style={{
+                  position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none",
+                  animation: "orb-spin 1.2s linear infinite",
+                }}>
+                  <div style={{
+                    width: 160, height: 160, borderRadius: "50%",
+                    border: `3px dashed ${orbAnim.color}88`,
+                    boxShadow: `inset 0 0 30px ${orbAnim.color}55`,
+                  }} />
+                </div>
+              )}
+              {/* orb resultante */}
+              {orbAnim.phase === "success" && orbAnim.img && (
+                <img
+                  src={orbAnim.img}
+                  alt=""
+                  width={72}
+                  height={72}
+                  style={{
+                    position: "absolute", bottom: 30, imageRendering: "pixelated",
+                    filter: `drop-shadow(0 0 20px ${orbAnim.color})`,
+                    animation: "orb-drop .6s ease-out both, orb-pulse 2s ease-in-out infinite .6s",
+                  }}
+                />
+              )}
+              {/* rachadura fail */}
+              {orbAnim.phase === "fail" && (
+                <>
+                  <div style={{
+                    position: "absolute", fontSize: 96, animation: "orb-crack .8s ease-out both", pointerEvents: "none",
+                  }}>💔</div>
+                  {[0,1,2,3,4,5].map((i) => {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const dx = Math.cos(angle) * 80;
+                    const dy = Math.sin(angle) * 80;
+                    return (
+                      <div key={i} style={{
+                        position: "absolute", width: 8, height: 8, borderRadius: 999,
+                        background: "#e94b3c",
+                        ["--dx" as any]: `${dx}px`, ["--dy" as any]: `${dy}px`,
+                        animation: `orb-particle 1s ease-out ${i * 0.05}s forwards`,
+                      } as React.CSSProperties} />
+                    );
+                  })}
+                </>
+              )}
+            </div>
+            <div style={{ marginTop: 10, minHeight: 40 }}>
+              {orbAnim.phase === "spinning" && (
+                <div style={{ fontSize: 12, color: "#c8b8d0" }}>A energia se condensa... aguarde.</div>
+              )}
+              {orbAnim.phase === "success" && (
+                <>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: orbAnim.color }}>+1× {orbAnim.label}</div>
+                  {orbAnim.lucky && orbAnim.extraHours ? (
+                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! +{orbAnim.extraHours}h extras ao ativar</div>
+                  ) : orbAnim.lucky ? (
+                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! Orb evoluiu de raridade!</div>
+                  ) : null}
+                </>
+              )}
+              {orbAnim.phase === "fail" && (
+                <div style={{ fontSize: 12, color: "#e28a8a" }}>A instabilidade dispersou a energia. Pokémon perdidos.</div>
+              )}
+            </div>
+            {orbAnim.phase !== "spinning" && (
+              <button
+                onClick={() => setOrbAnim(null)}
+                style={{
+                  marginTop: 12, padding: "10px 20px", fontWeight: 900, fontSize: 12,
+                  background: orbAnim.color, color: "#0b0510", border: "none", borderRadius: 8, cursor: "pointer",
+                }}
+              >FECHAR</button>
+            )}
+          </div>
+        </div>
+      )}
+
+
       {/* Botão flutuante: resgatar código */}
       <button
         onClick={() => { setCodeOpen(true); setCodeMsg(null); }}
