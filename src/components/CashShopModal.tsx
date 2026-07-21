@@ -678,8 +678,10 @@ function PurchaseModal({
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState("");
+  const [step, setStep] = useState<"form" | "await">("form");
+  const [orderId, setOrderId] = useState<string>("");
 
-  const submit = () => {
+  const goToPayment = () => {
     if (!charName.trim() || !email.trim() || !fullName.trim()) {
       setError("Preencha todos os campos.");
       return;
@@ -689,23 +691,45 @@ function PurchaseModal({
       return;
     }
     setError("");
+    const id = crypto.randomUUID();
+    setOrderId(id);
     try { window.open(product.link, "_blank", "noopener,noreferrer"); } catch { /* ignore */ }
-    // registra pedido local (fallback quando backend não estiver ligado)
+    // registra pedido local com status "aguardando_pagamento"
     try {
       const key = "rubym.cashshop.orders.v1";
       const arr = JSON.parse(localStorage.getItem(key) ?? "[]");
       arr.push({
-        id: crypto.randomUUID(),
+        id,
         product_id: product.id,
         product_name: product.name,
         price_brl: product.price,
+        payment_link: product.link,
         char_name: charName, email, full_name: fullName,
         created_at: new Date().toISOString(),
         status: "aguardando_pagamento",
       });
       localStorage.setItem(key, JSON.stringify(arr));
     } catch { /* ignore */ }
+    setStep("await");
+  };
+
+  const markPaid = () => {
+    // move pedido para "em_analise"
+    try {
+      const key = "rubym.cashshop.orders.v1";
+      const arr = JSON.parse(localStorage.getItem(key) ?? "[]");
+      const idx = arr.findIndex((o: { id?: string }) => o?.id === orderId);
+      if (idx >= 0) {
+        arr[idx].status = "em_analise";
+        arr[idx].paid_at = new Date().toISOString();
+        localStorage.setItem(key, JSON.stringify(arr));
+      }
+    } catch { /* ignore */ }
     onConfirm();
+  };
+
+  const reopenLink = () => {
+    try { window.open(product.link, "_blank", "noopener,noreferrer"); } catch { /* ignore */ }
   };
 
   return (
@@ -728,24 +752,68 @@ function PurchaseModal({
           </div>
         </div>
 
-        <div className="space-y-3">
-          <Field label="Nome do Personagem" value={charName} onChange={setCharName} placeholder="Ex: AshKetchum" />
-          <Field label="Email (Gmail)" value={email} onChange={setEmail} placeholder="voce@gmail.com" type="email" />
-          <Field label="Nome Completo do Comprador" value={fullName} onChange={setFullName} placeholder="Ex: João da Silva" />
-          {error && <div className="text-xs text-red-400">{error}</div>}
-        </div>
+        {step === "form" && (
+          <>
+            <div className="space-y-3">
+              <Field label="Nome do Personagem" value={charName} onChange={setCharName} placeholder="Ex: AshKetchum" />
+              <Field label="Email (Gmail)" value={email} onChange={setEmail} placeholder="voce@gmail.com" type="email" />
+              <Field label="Nome Completo do Comprador" value={fullName} onChange={setFullName} placeholder="Ex: João da Silva" />
+              {error && <div className="text-xs text-red-400">{error}</div>}
+            </div>
 
-        <div className="mt-5 space-y-2">
-          <button
-            onClick={submit}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black tracking-wider hover:shadow-[0_0_30px_rgba(250,204,21,.7)] transition"
-          >
-            IR PARA PAGAMENTO →
-          </button>
-          <div className="text-[10px] text-white/50 text-center">
-            Após o pagamento, envie o comprovante no chat de suporte para receber o código do produto.
+            <div className="mt-5 space-y-2">
+              <button
+                onClick={goToPayment}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black tracking-wider hover:shadow-[0_0_30px_rgba(250,204,21,.7)] transition"
+              >
+                IR PARA PAGAMENTO (PicPay) →
+              </button>
+              <div className="text-[10px] text-white/50 text-center">
+                O link do PicPay abre em uma nova aba. Depois de pagar, volte aqui e clique em <span className="text-amber-300 font-bold">"Já paguei"</span>.
+              </div>
+            </div>
+          </>
+        )}
+
+        {step === "await" && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-amber-400/40 bg-black/50 p-4 text-center">
+              <div className="text-4xl mb-1">💳</div>
+              <div className="text-white font-black text-sm">Aguardando confirmação de pagamento</div>
+              <div className="text-white/60 text-[11px] mt-1">
+                O link do PicPay foi aberto em nova aba. Após concluir o pagamento, clique em "Já paguei" para colocar seu pedido em <span className="text-amber-300 font-bold">análise</span> e enviar o comprovante no chat.
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-white/[.03] p-3 text-[11px] text-white/70 space-y-1">
+              <div><span className="text-white/40">Pedido:</span> <span className="text-amber-300 font-mono">{orderId.slice(0, 8).toUpperCase()}</span></div>
+              <div><span className="text-white/40">Personagem:</span> <span className="text-white">{charName}</span></div>
+              <div><span className="text-white/40">Valor:</span> <span className="text-emerald-300 font-bold">R${product.price}</span></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={reopenLink}
+                className="py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white text-sm font-bold"
+              >
+                Reabrir link
+              </button>
+              <button
+                onClick={markPaid}
+                className="py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-cyan-500 text-black font-black text-sm tracking-wider hover:shadow-[0_0_30px_rgba(52,211,153,.6)] transition"
+              >
+                JÁ PAGUEI ✓
+              </button>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-full py-2 rounded-lg text-white/50 hover:text-white/80 text-xs"
+            >
+              Cancelar
+            </button>
           </div>
-        </div>
+        )}
       </motion.div>
     </motion.div>
   );
