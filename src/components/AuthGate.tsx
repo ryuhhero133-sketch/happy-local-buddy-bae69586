@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
@@ -204,13 +204,21 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   // Quando logado: garante profile, decide se precisa criar treinador,
   // pré-carrega save da nuvem.
+  // Bootstrap apenas quando o USER ID muda. O Supabase emite TOKEN_REFRESHED
+  // ao trocar de aba / voltar do minimizado, criando um novo objeto session
+  // — sem esse guard, o efeito re-executava, mostrava o splash e re-hidratava
+  // o save da nuvem por cima do estado atual (parecia um "refresh").
+  const bootstrappedUidRef = useRef<string | null>(null);
+  const currentUid = session?.user?.id ?? null;
   useEffect(() => {
-    if (!session?.user) return;
+    if (!currentUid) { bootstrappedUidRef.current = null; return; }
     if (recoveryMode) return;
+    if (bootstrappedUidRef.current === currentUid) return;
+    bootstrappedUidRef.current = currentUid;
     let cancelled = false;
     (async () => {
       setBootstrapping(true);
-      const uid = session.user.id;
+      const uid = currentUid;
       try {
         const username = await ensureProfile(uid);
         if (cancelled) return;
@@ -245,7 +253,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [session, recoveryMode]);
+  }, [currentUid, recoveryMode]);
+
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
 
