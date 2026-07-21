@@ -9157,6 +9157,17 @@ function IdlePage() {
                             </div>
                           )}
                           <div style={{ fontSize: 10, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                          {/* Barra de chance base — visível já na seleção */}
+                          <div style={{ width: "100%", background: "#0f0820", border: "1px solid #3a2a4a", borderRadius: 8, padding: "6px 8px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#c8b8d0", marginBottom: 3 }}>
+                              <span>Sucesso base</span>
+                              <b style={{ color: t.baseSuccess >= 0.75 ? "#8ae28a" : t.baseSuccess >= 0.5 ? "#ffd94d" : "#ff9a6b" }}>{Math.round(t.baseSuccess * 100)}%</b>
+                            </div>
+                            <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                              <div style={{ width: `${t.baseSuccess * 100}%`, height: "100%", background: `linear-gradient(90deg, #6bd66b, ${t.color})` }} />
+                            </div>
+                            <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 3, textAlign: "center" }}>+ combustível até 95%</div>
+                          </div>
                           <button
                             disabled={!canTrade}
                             onClick={() => { setWorldTraderPick(t); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); setWorldTraderFuelTab("common"); }}
