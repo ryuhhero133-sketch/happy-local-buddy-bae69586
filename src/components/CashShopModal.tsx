@@ -58,6 +58,8 @@ type Props = {
 const PAYMENT_LINK_BLACK = "https://link.picpay.com/p/17846742186a5ff7aa48373";
 // PicPay — link dos demais pacotes (Ruby / Ruby+VIP)
 const PAYMENT_LINK_STANDARD = "https://link.picpay.com/p/17846738126a5ff61491b33";
+// PicPay — link exclusivo do pacote Ruby (2000 Rubys, R$75)
+const PAYMENT_LINK_RUBY = "https://link.picpay.com/p/17846511816a5f9dad66e61";
 
 type Product = {
   id: string;
@@ -87,11 +89,11 @@ const PRODUCTS: Product[] = [
   {
     id: "ruby",
     name: "Ruby",
-    subtitle: "Pacote de Rubys",
-    price: 50,
+    subtitle: "2.000 Rubys",
+    price: 75,
     image: rubyPackImg,
-    description: "Pacote generoso de Rubys para gastar como quiser dentro da loja premium.",
-    link: PAYMENT_LINK_STANDARD,
+    description: "Pacote generoso com 2.000 Rubys para gastar como quiser dentro da loja premium.",
+    link: PAYMENT_LINK_RUBY,
     accent: "from-rose-500 via-red-500 to-red-700",
   },
   {
