@@ -10111,7 +10111,18 @@ function IdlePage() {
           level: idle.trainerLevel ?? 1,
           xp: idle.trainerXp ?? 0,
           xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
+          safiras: idle.items?.safira_verde ?? 0,
         }}
+        onSpendSafiras={(n) => {
+          const cur = idle.items?.safira_verde ?? 0;
+          if (cur < n) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
+          }));
+          return true;
+        }}
+
         onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
         onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
         onGrantItem={(id, qty) => {
