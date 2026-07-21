@@ -5169,27 +5169,31 @@ function IdlePage() {
       };
     });
   };
-  const buyBook = (bk: ShopBook) => {
+  const buyBook = (bk: ShopBook, qty: number = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
       const useGold = bk.currency === "gold";
+      const totalPrice = bk.price * n;
+      const totalGoldExtra = (bk.priceGold ?? 0) * n;
       const have = useGold ? s.bank.gold : s.bank.crystals;
-      if (have < bk.price) {
-        pushChat(useGold ? `Ouro insuficiente para ${bk.name}.` : `Cristais insuficientes para ${bk.name}.`, "info");
+      if (have < totalPrice) {
+        pushChat(useGold ? `Ouro insuficiente para ${n}× ${bk.name}.` : `Cristais insuficientes para ${n}× ${bk.name}.`, "info");
         return s;
       }
-      if (bk.priceGold && s.bank.gold < bk.priceGold) {
-        pushChat(`Ouro insuficiente para ${bk.name} (custa ${bk.priceGold} 🪙 + ${bk.price} 💎).`, "info");
+      if (totalGoldExtra && s.bank.gold < totalGoldExtra) {
+        pushChat(`Ouro insuficiente para ${n}× ${bk.name} (custa ${bk.priceGold} 🪙 + ${bk.price} 💎 cada).`, "info");
         return s;
       }
       const curQty = s.items[bk.id] ?? 0;
-      pushChat(`Comprou ${bk.name}. Use pela Mochila quando quiser.`, "cap");
+      pushChat(`Comprou ${n}× ${bk.name}. Use pela Mochila quando quiser.`, "cap");
       const bank0 = useGold
-        ? { ...s.bank, gold: s.bank.gold - bk.price }
-        : { ...s.bank, crystals: s.bank.crystals - bk.price };
-      const bank1 = bk.priceGold ? { ...bank0, gold: bank0.gold - bk.priceGold } : bank0;
-      return { ...s, bank: bank1, items: { ...s.items, [bk.id]: curQty + 1 } };
+        ? { ...s.bank, gold: s.bank.gold - totalPrice }
+        : { ...s.bank, crystals: s.bank.crystals - totalPrice };
+      const bank1 = totalGoldExtra ? { ...bank0, gold: bank0.gold - totalGoldExtra } : bank0;
+      return { ...s, bank: bank1, items: { ...s.items, [bk.id]: curQty + n } };
     });
   };
+
 
   // ===== Trocador NPC — Incubadora de Orbs =====
   // Precisa de 5 Pokémon da raridade escolhida. Combustível (COMUM/INCOMUM/RARO)
