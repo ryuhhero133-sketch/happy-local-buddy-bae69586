@@ -160,6 +160,7 @@ import orbXpMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
 import orbXpMajorAsset from "@/assets/orb-xp-major.png.asset.json";
 import orbXpSupremeAsset from "@/assets/orb-xp-supreme.png.asset.json";
 import orbXpTeamAsset from "@/assets/orb-xp-team.png.asset.json";
+import orbIncubatorImg from "@/assets/orb-incubator.png";
 import redLakeAsset from "@/assets/red-lake.png.asset.json";
 import volcanoAsset from "@/assets/volcano.png.asset.json";
 import mapBeachUrl from "@/assets/map-beach-idle.png";
@@ -4188,14 +4189,21 @@ function IdlePage() {
         pushChat(`Já há um Orb de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
         return;
       }
-      setIdle((s) => ({
-        ...s,
-        items: { ...s.items, [id]: have - 1 },
-        buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + 3600_000, orbId: id },
-      }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · 1h`, "capture");
-      pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por 1 hora`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
-      pushChat(`✦ ${label} usado — +${pct}% EXP por 1 hora.`, "cap");
+      const extraH = ((idle.items as any)[`${id}_extra`] ?? 0) as number;
+      const durationMs = (1 + extraH) * 3600_000;
+      setIdle((s) => {
+        const items = { ...s.items, [id]: have - 1 } as any;
+        if (extraH > 0) delete items[`${id}_extra`];
+        return {
+          ...s,
+          items,
+          buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + durationMs, orbId: id },
+        };
+      });
+      const totalH = 1 + extraH;
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · ${totalH}h`, "capture");
+      pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por ${totalH} hora(s)`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
+      pushChat(`✦ ${label} usado — +${pct}% EXP por ${totalH} hora(s)${extraH > 0 ? " 🌟" : ""}.`, "cap");
     } else if (id === "orb_team") {
       const nowT = Date.now();
       if ((idle.buffs.teamOrbUntil ?? 0) > nowT) {
@@ -5086,55 +5094,96 @@ function IdlePage() {
     });
   };
 
-  // ===== Trocador NPC — Orbs de XP por Pokémon capturados =====
-  // Só oferece os orbs mais fortes (o menor está na Loja). Consome da coleção
-  // (não da equipe) os Pokémon da raridade exigida, com o menor nível primeiro.
-  const ORB_TRADES: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[] = [
-    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
-    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
+  // ===== Trocador NPC — Incubadora de Orbs =====
+  // Precisa de 5 Pokémon da raridade escolhida. Comuns extras (até 5) aumentam
+  // a chance de sucesso e a chance de LUCKY (upgrade do orb / tempo extra).
+  const ORB_TRADES: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_supreme" | "orb_team" }[] = [
+    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 5, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 5 Pokémon RAROS · comuns aumentam chance",  baseSuccess: 0.55, upgradeTo: "orb_xp_supreme" },
+    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 5, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 5 Pokémon ÉPICOS · comuns aumentam chance", baseSuccess: 0.40, upgradeTo: "orb_team" },
   ];
   // Estado do NPC Trocador no mapa (modal na tela do mundo)
   const [worldTraderOpen, setWorldTraderOpen] = useState(false);
-  const [worldTraderPick, setWorldTraderPick] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string; img: string }>(null);
+  const [worldTraderPick, setWorldTraderPick] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string; img: string; baseSuccess: number; upgradeTo?: "orb_xp_supreme" | "orb_team" }>(null);
   const [worldTraderSel, setWorldTraderSel] = useState<Set<string>>(new Set());
-  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => {
+  const [worldTraderFuel, setWorldTraderFuel] = useState<Set<string>>(new Set()); // comuns extras
+  const [orbAnim, setOrbAnim] = useState<null | { phase: "spinning" | "success" | "fail"; orbId?: string; extraHours?: number; lucky?: boolean; color: string; label: string; img?: string }>(null);
+  const MAX_FUEL = 5;
+  const FUEL_BOOST = 0.07; // +7% de sucesso por comum
+  const LUCKY_BASE = 0.05; // 5% base de sorte
+  const LUCKY_FUEL = 0.03; // +3% por comum
+
+  const computeOrbChances = (pick: { baseSuccess: number }, fuelCount: number) => {
+    const success = Math.min(0.95, pick.baseSuccess + fuelCount * FUEL_BOOST);
+    const lucky = Math.min(0.40, LUCKY_BASE + fuelCount * LUCKY_FUEL);
+    return { success, lucky };
+  };
+
+  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[], fuelUids: string[]) => {
     const trade = ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
     const uniqUids = Array.from(new Set(uids));
+    const uniqFuel = Array.from(new Set(fuelUids)).filter((u) => !uniqUids.includes(u));
     const teamUids = new Set((teamRef.current ?? []).map((p) => p.uid));
     const benchUids = new Set((benchRef.current ?? []).map((p) => p.uid));
-    // Bloqueio duro ANTES de mutar estado — evita orb infinito quando o
-    // pokémon está em uso (time/bench) e a reconciliação recolocaria na coleção.
-    const blocked = uniqUids.filter((u) => teamUids.has(u) || benchUids.has(u));
+    const blocked = [...uniqUids, ...uniqFuel].filter((u) => teamUids.has(u) || benchUids.has(u));
     if (blocked.length > 0) {
       pushChat("Retire os Pokémon do time/reserva antes de trocar por Orb.", "info");
       return;
     }
     setIdle((s) => {
       const col = s.collection ?? [];
-      const selected = col.filter(
-        (c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity,
-      );
+      const selected = col.filter((c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity);
+      const fuelSel = col.filter((c) => uniqFuel.includes(c.uid) && c.rarity === "common");
       if (selected.length !== trade.count) {
-        pushChat(
-          `Não foi possível trocar: selecione exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} fora do time.`,
-          "info",
-        );
+        pushChat(`Precisa exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} fora do time.`, "info");
         return s;
       }
-      const removeSet = new Set(selected.map((c) => c.uid));
+      const fuelCount = Math.min(MAX_FUEL, fuelSel.length);
+      const { success, lucky } = computeOrbChances(trade, fuelCount);
+      const removeSet = new Set([...selected.map((c) => c.uid), ...fuelSel.slice(0, fuelCount).map((c) => c.uid)]);
       removeSet.forEach((u) => consumedUidsRef.current.add(u));
       const newCol = col.filter((c) => !removeSet.has(c.uid));
-      const cur = s.items[orbId] ?? 0;
-      const orbName = orbId === "orb_xp_major" ? "Orb Maior ✦✦" : "Orb Supremo ✦✦✦";
-      pushChat(`✦ NPC recebeu ${trade.count} ${trade.rarity.toUpperCase()} e entregou 1 ${orbName}.`, "cap");
-      return {
-        ...s,
-        collection: newCol,
-        items: { ...s.items, [orbId]: cur + 1 },
-      };
+
+      const didSucceed = Math.random() < success;
+      const didLucky = didSucceed && Math.random() < lucky;
+      // start animation
+      setOrbAnim({ phase: "spinning", color: trade.color, label: trade.label, img: trade.img });
+      window.setTimeout(() => {
+        if (!didSucceed) {
+          setOrbAnim({ phase: "fail", color: trade.color, label: trade.label });
+          pushChat(`💥 A incubação FALHOU — ${trade.count} ${trade.rarity.toUpperCase()}${fuelCount ? ` + ${fuelCount} comum(ns)` : ""} perdidos.`, "info");
+          return;
+        }
+        // sucesso — decide se lucky = upgrade ou tempo extra
+        let finalOrbId: string = trade.orbId;
+        let extraHours = 0;
+        let luckyKind: "upgrade" | "time" | null = null;
+        if (didLucky) {
+          if (trade.upgradeTo && Math.random() < 0.5) {
+            finalOrbId = trade.upgradeTo;
+            luckyKind = "upgrade";
+          } else {
+            extraHours = 1 + Math.floor(Math.random() * 2); // +1~2h
+            luckyKind = "time";
+          }
+        }
+        const orbName = finalOrbId === "orb_xp_major" ? "Orb Maior ✦✦" : finalOrbId === "orb_xp_supreme" ? "Orb Supremo ✦✦✦" : "Orb de Time ✦✦✦";
+        const orbImg = finalOrbId === "orb_xp_major" ? orbXpMajorUrl : finalOrbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbXpTeamUrl;
+        setOrbAnim({ phase: "success", color: trade.color, label: orbName, img: orbImg, orbId: finalOrbId, extraHours, lucky: !!luckyKind });
+        setIdle((s2) => ({ ...s2, items: { ...s2.items, [finalOrbId]: (s2.items[finalOrbId] ?? 0) + 1 } }));
+        if (luckyKind === "upgrade") pushChat(`🌟 SORTE! Orb evoluiu para ${orbName}!`, "cap");
+        else if (luckyKind === "time") pushChat(`🌟 SORTE! ${orbName} com +${extraHours}h extras (aplicado ao ativar).`, "cap");
+        else pushChat(`✦ NPC forjou 1 ${orbName}.`, "cap");
+        // guarda extra time no item pendente
+        if (extraHours > 0) {
+          setIdle((s3) => ({ ...s3, items: { ...s3.items, [`${finalOrbId}_extra`]: ((s3.items as any)[`${finalOrbId}_extra`] ?? 0) + extraHours } }));
+        }
+      }, 2200);
+
+      return { ...s, collection: newCol };
     });
   };
+
 
 
 
@@ -8994,28 +9043,50 @@ function IdlePage() {
                 const teamU = new Set(team.map((p) => p.uid));
                 const benchU = new Set(restingBench.map((p) => p.uid));
                 const eligible = collection.filter((c) => c.rarity === pick.rarity && !teamU.has(c.uid) && !benchU.has(c.uid));
+                const commons = collection.filter((c) => c.rarity === "common" && !teamU.has(c.uid) && !benchU.has(c.uid));
                 const selCount = worldTraderSel.size;
+                const fuelCount = worldTraderFuel.size;
                 const canConfirm = selCount === pick.count;
+                const { success, lucky } = computeOrbChances(pick, fuelCount);
                 return (
                   <div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <div style={{ fontWeight: 900, color: pick.color, fontSize: 14 }}>
-                        Escolha {pick.count} Pokémon {pick.rarity.toUpperCase()}
+                        Incubadora · {pick.count}× {pick.rarity.toUpperCase()}
                       </div>
                       <button
-                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); }}
                         style={{ background: "transparent", border: "1px solid #3a2a4a", color: "#eadfe8", cursor: "pointer", fontSize: 11, padding: "4px 10px", borderRadius: 6 }}
                       >← VOLTAR</button>
                     </div>
-                    <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 10 }}>
-                      Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{pick.count}</b> — Recompensa: <b style={{ color: pick.color }}>{pick.label}</b>
+
+                    {/* Barra de chances */}
+                    <div style={{ background: "#0f0820", border: "1px solid #3a2a4a", borderRadius: 10, padding: 10, marginBottom: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", marginBottom: 4 }}>
+                        <span>Chance de SUCESSO</span>
+                        <b style={{ color: success >= 0.75 ? "#8ae28a" : success >= 0.5 ? "#ffd94d" : "#ff9a6b" }}>{Math.round(success * 100)}%</b>
+                      </div>
+                      <div style={{ height: 8, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                        <div style={{ width: `${success * 100}%`, height: "100%", background: `linear-gradient(90deg, #6bd66b, ${pick.color})`, transition: "width .3s" }} />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
+                        <span>🌟 SORTE (orb evolui / +tempo)</span>
+                        <b style={{ color: "#ffd94d" }}>{Math.round(lucky * 100)}%</b>
+                      </div>
+                      <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                        <div style={{ width: `${lucky * 100}%`, height: "100%", background: "linear-gradient(90deg, #ffd94d, #ff9adf)" }} />
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 6 }}>
+                      Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{pick.count}</b>
                     </div>
                     {eligible.length === 0 ? (
                       <div style={{ color: "#e28a8a", fontSize: 12, padding: 24, textAlign: "center" }}>
                         Você não tem Pokémon {pick.rarity.toUpperCase()} na coleção.
                       </div>
                     ) : (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8, maxHeight: "48vh", overflowY: "auto", padding: 4 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "26vh", overflowY: "auto", padding: 4 }}>
                         {eligible.map((c) => {
                           const sel = worldTraderSel.has(c.uid);
                           const disabled = !sel && selCount >= pick.count;
@@ -9033,40 +9104,83 @@ function IdlePage() {
                               style={{
                                 background: sel ? `linear-gradient(160deg, ${pick.color}55, ${pick.color}22)` : "#1a0f26",
                                 border: sel ? `2px solid ${pick.color}` : "2px solid #3a2a4a",
-                                borderRadius: 10, padding: 6, cursor: disabled ? "not-allowed" : "pointer",
+                                borderRadius: 10, padding: 4, cursor: disabled ? "not-allowed" : "pointer",
                                 display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                                 opacity: disabled ? 0.4 : 1, position: "relative",
                               }}
                             >
                               {GIF[c.species] ? (
-                                <img src={GIF[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
+                                <img src={GIF[c.species]} alt="" style={{ width: 48, height: 48, imageRendering: "pixelated" }} />
                               ) : (
-                                <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
+                                <div style={{ width: 48, height: 48, background: "#2a1638", borderRadius: 8 }} />
                               )}
-                              <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
-                              <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
+                              <div style={{ fontSize: 9, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
+                              <div style={{ fontSize: 9, color: "#ffd94d" }}>Lv.{c.level}</div>
                               {sel && (
-                                <div style={{
-                                  position: "absolute", top: 2, right: 2, background: pick.color, color: "#0b0510",
-                                  width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
-                                }}>✓</div>
+                                <div style={{ position: "absolute", top: 2, right: 2, background: pick.color, color: "#0b0510", width: 16, height: 16, borderRadius: 999, fontSize: 10, fontWeight: 900, display: "grid", placeItems: "center" }}>✓</div>
                               )}
                             </button>
                           );
                         })}
                       </div>
                     )}
-                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+
+                    {/* Combustível: comuns extras */}
+                    <div style={{ marginTop: 10, padding: 8, background: "#0f0820", border: "1px dashed #3a2a4a", borderRadius: 10 }}>
+                      <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 6 }}>
+                        ⚡ Combustível (COMUNS · até {MAX_FUEL}) — +{Math.round(FUEL_BOOST * 100)}% sucesso e +{Math.round(LUCKY_FUEL * 100)}% sorte por unidade · usados: <b style={{ color: "#ffd94d" }}>{fuelCount}/{MAX_FUEL}</b>
+                      </div>
+                      {commons.length === 0 ? (
+                        <div style={{ fontSize: 11, color: "#8a7a9c", padding: 8, textAlign: "center" }}>Nenhum COMUM disponível.</div>
+                      ) : (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "18vh", overflowY: "auto" }}>
+                          {commons.map((c) => {
+                            const sel = worldTraderFuel.has(c.uid);
+                            const disabled = !sel && fuelCount >= MAX_FUEL;
+                            return (
+                              <button
+                                key={c.uid}
+                                disabled={disabled}
+                                onClick={() => {
+                                  setWorldTraderFuel((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(c.uid)) next.delete(c.uid); else next.add(c.uid);
+                                    return next;
+                                  });
+                                }}
+                                style={{
+                                  background: sel ? "linear-gradient(160deg, #6bd66b55, #6bd66b22)" : "#1a0f26",
+                                  border: sel ? "2px solid #6bd66b" : "1px solid #3a2a4a",
+                                  borderRadius: 8, padding: 3, cursor: disabled ? "not-allowed" : "pointer",
+                                  opacity: disabled ? 0.4 : 1,
+                                }}
+                              >
+                                {GIF[c.species] ? (
+                                  <img src={GIF[c.species]} alt="" style={{ width: 38, height: 38, imageRendering: "pixelated" }} />
+                                ) : <div style={{ width: 38, height: 38, background: "#2a1638", borderRadius: 6 }} />}
+                                <div style={{ fontSize: 8, color: "#c8b8d0" }}>Lv.{c.level}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                       <button
-                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); }}
                         style={{ flex: 1, padding: "10px", background: "#3a2a4a", color: "#eadfe8", border: "none", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
                       >CANCELAR</button>
                       <button
                         disabled={!canConfirm}
                         onClick={() => {
-                          tradeForOrb(pick.orbId, Array.from(worldTraderSel));
+                          const uids = Array.from(worldTraderSel);
+                          const fuel = Array.from(worldTraderFuel);
                           setWorldTraderPick(null);
                           setWorldTraderSel(new Set());
+                          setWorldTraderFuel(new Set());
+                          setWorldTraderOpen(false);
+                          tradeForOrb(pick.orbId, uids, fuel);
                         }}
                         style={{
                           flex: 2, padding: "10px", fontWeight: 900,
@@ -9074,15 +9188,136 @@ function IdlePage() {
                           color: canConfirm ? "#0b0510" : "#6a5a7c",
                           border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
                         }}
-                      >CONFIRMAR TROCA</button>
+                      >⚗️ INCUBAR</button>
                     </div>
                   </div>
                 );
               })()}
+
             </div>
           </div>
         );
       })()}
+
+      {/* Incubadora — animação de sucesso/falha */}
+      {orbAnim && (
+        <div
+          onClick={() => { if (orbAnim.phase !== "spinning") setOrbAnim(null); }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 10010, display: "grid", placeItems: "center", padding: 16 }}
+        >
+          <style>{`
+            @keyframes orb-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+            @keyframes orb-pulse { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 20px ${orbAnim.color}) } 50% { transform: scale(1.06); filter: drop-shadow(0 0 40px ${orbAnim.color}) } }
+            @keyframes orb-shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px) rotate(-2deg)} 40%{transform:translateX(6px) rotate(2deg)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+            @keyframes orb-drop { from { transform: translateY(-30px) scale(.4); opacity: 0 } to { transform: translateY(0) scale(1); opacity: 1 } }
+            @keyframes orb-crack { 0%{opacity:0;transform:scale(.6)} 30%{opacity:1;transform:scale(1.2)} 100%{opacity:0.8;transform:scale(1)} }
+            @keyframes orb-particle { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)} }
+          `}</style>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(420px,100%)", background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+              border: `2px solid ${orbAnim.color}`, borderRadius: 16, padding: 22, textAlign: "center",
+              boxShadow: `0 0 60px ${orbAnim.color}55`, position: "relative", overflow: "hidden",
+            }}
+          >
+            <div style={{ fontSize: 12, color: "#c8b8d0", letterSpacing: 2, fontWeight: 900, marginBottom: 8 }}>
+              {orbAnim.phase === "spinning" ? "⚗️  INCUBANDO..." : orbAnim.phase === "success" ? (orbAnim.lucky ? "🌟  SORTE!" : "✨  SUCESSO!") : "💥  FALHOU!"}
+            </div>
+            <div style={{ position: "relative", height: 240, display: "grid", placeItems: "center" }}>
+              {/* base incubadora */}
+              <img
+                src={orbIncubatorImg}
+                alt=""
+                width={200}
+                height={200}
+                style={{
+                  imageRendering: "pixelated",
+                  filter: orbAnim.phase === "fail" ? "grayscale(1) hue-rotate(-30deg) drop-shadow(0 0 12px #e94b3c)" : `drop-shadow(0 0 24px ${orbAnim.color})`,
+                  animation: orbAnim.phase === "spinning" ? "orb-pulse 1s ease-in-out infinite" : orbAnim.phase === "fail" ? "orb-shake .5s ease-in-out 2" : "orb-pulse 1.4s ease-in-out infinite",
+                  transition: "filter .3s",
+                }}
+              />
+              {/* aura girando */}
+              {orbAnim.phase === "spinning" && (
+                <div style={{
+                  position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none",
+                  animation: "orb-spin 1.2s linear infinite",
+                }}>
+                  <div style={{
+                    width: 160, height: 160, borderRadius: "50%",
+                    border: `3px dashed ${orbAnim.color}88`,
+                    boxShadow: `inset 0 0 30px ${orbAnim.color}55`,
+                  }} />
+                </div>
+              )}
+              {/* orb resultante */}
+              {orbAnim.phase === "success" && orbAnim.img && (
+                <img
+                  src={orbAnim.img}
+                  alt=""
+                  width={72}
+                  height={72}
+                  style={{
+                    position: "absolute", bottom: 30, imageRendering: "pixelated",
+                    filter: `drop-shadow(0 0 20px ${orbAnim.color})`,
+                    animation: "orb-drop .6s ease-out both, orb-pulse 2s ease-in-out infinite .6s",
+                  }}
+                />
+              )}
+              {/* rachadura fail */}
+              {orbAnim.phase === "fail" && (
+                <>
+                  <div style={{
+                    position: "absolute", fontSize: 96, animation: "orb-crack .8s ease-out both", pointerEvents: "none",
+                  }}>💔</div>
+                  {[0,1,2,3,4,5].map((i) => {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const dx = Math.cos(angle) * 80;
+                    const dy = Math.sin(angle) * 80;
+                    return (
+                      <div key={i} style={{
+                        position: "absolute", width: 8, height: 8, borderRadius: 999,
+                        background: "#e94b3c",
+                        ["--dx" as any]: `${dx}px`, ["--dy" as any]: `${dy}px`,
+                        animation: `orb-particle 1s ease-out ${i * 0.05}s forwards`,
+                      } as React.CSSProperties} />
+                    );
+                  })}
+                </>
+              )}
+            </div>
+            <div style={{ marginTop: 10, minHeight: 40 }}>
+              {orbAnim.phase === "spinning" && (
+                <div style={{ fontSize: 12, color: "#c8b8d0" }}>A energia se condensa... aguarde.</div>
+              )}
+              {orbAnim.phase === "success" && (
+                <>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: orbAnim.color }}>+1× {orbAnim.label}</div>
+                  {orbAnim.lucky && orbAnim.extraHours ? (
+                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! +{orbAnim.extraHours}h extras ao ativar</div>
+                  ) : orbAnim.lucky ? (
+                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! Orb evoluiu de raridade!</div>
+                  ) : null}
+                </>
+              )}
+              {orbAnim.phase === "fail" && (
+                <div style={{ fontSize: 12, color: "#e28a8a" }}>A instabilidade dispersou a energia. Pokémon perdidos.</div>
+              )}
+            </div>
+            {orbAnim.phase !== "spinning" && (
+              <button
+                onClick={() => setOrbAnim(null)}
+                style={{
+                  marginTop: 12, padding: "10px 20px", fontWeight: 900, fontSize: 12,
+                  background: orbAnim.color, color: "#0b0510", border: "none", borderRadius: 8, cursor: "pointer",
+                }}
+              >FECHAR</button>
+            )}
+          </div>
+        </div>
+      )}
+
 
       {/* Botão flutuante: resgatar código */}
       <button
@@ -10112,8 +10347,8 @@ function TabOverlay({
   skinTickets: number;
   onUnlockSkin: (id: string) => void;
   onUpgradeBook: (id: string) => void;
-  orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[];
-  onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => void;
+  orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_supreme" | "orb_team" }[];
+  onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[], fuelUids: string[]) => void;
   pokemonMarketNode?: React.ReactNode;
   benchUids: Set<string>;
 
@@ -11685,7 +11920,7 @@ function TabOverlay({
                         const uids = Array.from(orbPickerSel);
                         setOrbPicker(null);
                         setOrbPickerSel(new Set());
-                        onTradeOrb(orbPicker.orbId, uids);
+                        onTradeOrb(orbPicker.orbId, uids, []);
                       }}
                       style={{
                         flex: 2, padding: "10px", fontWeight: 900,
