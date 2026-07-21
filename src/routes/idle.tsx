@@ -3466,12 +3466,14 @@ function IdlePage() {
                   // Ultra: chance muito baixa (~2%) contra lendários do evento
                   captured = usedBall.id === "ultraball" ? Math.random() < 0.02 : false;
                 }
+              } else if (target.rarity === "mythic" || target.rarity === "mythic_shiny") {
+                // 💠 Míticos (e shiny): 2% fixo por lançamento
+                captured = Math.random() < 0.02;
               } else {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
-                // 💠 Míticos selvagens: MUITO difíceis mesmo com ultra
-                const rarityMult = target.rarity === "mythic_shiny" ? 0.05 : target.rarity === "mythic" ? 0.10 : target.rarity === "legendary" ? 0.35 : 1;
+                const rarityMult = target.rarity === "legendary" ? 0.35 : 1;
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult;
               }
               if (captured) {
@@ -4058,13 +4060,15 @@ function IdlePage() {
       } else {
         chance = 0.02;
       }
+    } else if (target.rarity === "mythic" || target.rarity === "mythic_shiny") {
+      // 💠 Míticos (e shiny): 2% fixo por lançamento manual
+      chance = 0.02;
     } else {
       const base = 0.030 + (1 - hpPct) * 0.16;
       // 🖤 Guardiões anti-paralisia: um pouco mais difíceis de capturar
       const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
       const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
-      // 💠 Míticos selvagens: taxa muito baixa mesmo lançando dezenas de ultra
-      const rarityMult = target.rarity === "mythic_shiny" ? 0.05 : target.rarity === "mythic" ? 0.10 : target.rarity === "legendary" ? 0.35 : 1;
+      const rarityMult = target.rarity === "legendary" ? 0.35 : 1;
       chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult);
     }
     const success = Math.random() < chance;
