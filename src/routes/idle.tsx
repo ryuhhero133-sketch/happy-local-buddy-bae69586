@@ -5205,9 +5205,14 @@ function IdlePage() {
     uncommon: { boost: 0.09, lucky: 0.04, color: "#5cd3ff", label: "INCOMUM" },
     rare:     { boost: 0.14, lucky: 0.06, color: "#c084fc", label: "RARO" },
   };
-  const ORB_TRADES: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[] = [
-    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 5, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 5 Pokémon RAROS · combustível aumenta chance",  baseSuccess: 0.55, upgradeTo: "orb_xp_supreme" },
-    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 5, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 5 Pokémon ÉPICOS · combustível aumenta chance", baseSuccess: 0.40, upgradeTo: "orb_team", requires: { itemId: "orb_xp_major", qty: 1, label: "Orb Maior" } },
+  type OrbForgeId = "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team";
+  const ORB_TRADES: { orbId: OrbForgeId; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: OrbForgeId; requires?: { itemId: string; qty: number; label: string } }[] = [
+    { orbId: "orb_xp_minor",   label: "Orb Menor ✦",     rarity: "common",    count: 5, color: "#8ae28a", img: orbXpMinorUrl,   desc: "Entregue 5 Pokémon COMUNS · chance base baixa",           baseSuccess: 0.35, upgradeTo: "orb_xp_major" },
+    { orbId: "orb_xp_minor",   label: "Orb Menor+ ✦",    rarity: "uncommon",  count: 5, color: "#5cd3ff", img: orbXpMinorUrl,   desc: "Entregue 5 Pokémon INCOMUNS · maior chance",              baseSuccess: 0.50, upgradeTo: "orb_xp_major" },
+    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",      count: 5, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 5 Pokémon RAROS · combustível aumenta chance",  baseSuccess: 0.65, upgradeTo: "orb_xp_supreme" },
+    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",      count: 5, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 5 Pokémon ÉPICOS · combustível aumenta chance", baseSuccess: 0.75, upgradeTo: "orb_team", requires: { itemId: "orb_xp_major", qty: 1, label: "Orb Maior" } },
+    { orbId: "orb_team",       label: "Orb de Time ✦✦✦", rarity: "legendary", count: 3, color: "#ff9adf", img: orbXpTeamUrl,    desc: "Entregue 3 Pokémon LENDÁRIOS · alta chance de sucesso",   baseSuccess: 0.85 },
+    { orbId: "orb_team",       label: "Orb de Time ✦✦✦", rarity: "mythic",    count: 2, color: "#ff6bd6", img: orbXpTeamUrl,    desc: "Entregue 2 Pokémon MÍTICOS · quase garantido",             baseSuccess: 0.95 },
   ];
   // Estado do NPC Trocador no mapa (modal na tela do mundo)
   const [worldTraderOpen, setWorldTraderOpen] = useState(false);
@@ -5239,7 +5244,7 @@ function IdlePage() {
     return { success, lucky };
   };
 
-  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[], fuelUids: string[]) => {
+  const tradeForOrb = (orbId: OrbForgeId, uids: string[], fuelUids: string[]) => {
     const trade = ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
     if (trade.requires && (idle.items[trade.requires.itemId] ?? 0) < trade.requires.qty) {
@@ -5292,8 +5297,8 @@ function IdlePage() {
             luckyKind = "time";
           }
         }
-        const orbName = finalOrbId === "orb_xp_major" ? "Orb Maior ✦✦" : finalOrbId === "orb_xp_supreme" ? "Orb Supremo ✦✦✦" : "Orb de Time ✦✦✦";
-        const orbImg = finalOrbId === "orb_xp_major" ? orbXpMajorUrl : finalOrbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbXpTeamUrl;
+        const orbName = finalOrbId === "orb_xp_minor" ? "Orb Menor ✦" : finalOrbId === "orb_xp_major" ? "Orb Maior ✦✦" : finalOrbId === "orb_xp_supreme" ? "Orb Supremo ✦✦✦" : "Orb de Time ✦✦✦";
+        const orbImg = finalOrbId === "orb_xp_minor" ? orbXpMinorUrl : finalOrbId === "orb_xp_major" ? orbXpMajorUrl : finalOrbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbXpTeamUrl;
         setOrbAnim({ phase: "success", color: trade.color, label: orbName, img: orbImg, orbId: finalOrbId, extraHours, lucky: !!luckyKind });
         setIdle((s2) => ({ ...s2, items: { ...s2.items, [finalOrbId]: (s2.items[finalOrbId] ?? 0) + 1 } }));
         if (luckyKind === "upgrade") pushChat(`🌟 SORTE! Orb evoluiu para ${orbName}!`, "cap");
@@ -10520,8 +10525,8 @@ function TabOverlay({
   skinTickets: number;
   onUnlockSkin: (id: string) => void;
   onUpgradeBook: (id: string) => void;
-  orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_supreme" | "orb_team" }[];
-  onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[], fuelUids: string[]) => void;
+  orbTrades: { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[];
+  onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[]) => void;
   pokemonMarketNode?: React.ReactNode;
   benchUids: Set<string>;
 
@@ -10542,7 +10547,7 @@ function TabOverlay({
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
   const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
-  const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string }>(null);
+  const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; rarity: Rarity; count: number; color: string; label: string }>(null);
   const [orbPickerSel, setOrbPickerSel] = useState<Set<string>>(new Set());
   const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
   // Coleção: filtros + cadeado (persistidos em localStorage)
