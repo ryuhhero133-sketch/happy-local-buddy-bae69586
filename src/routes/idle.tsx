@@ -4849,7 +4849,7 @@ function IdlePage() {
       const label = r.rarity === "mythic_shiny" ? "MÍTICO SHINY" : r.rarity.toUpperCase();
       const color = r.rarity === "mythic_shiny" ? "#ffd94d" : r.rarity === "mythic" ? "#ff5252" : "#ff8b3d";
       pushEvent("★", `${label} À VISTA!`, `${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
-      pushChat(`★ ${label}: ${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa!`, "cap");
+      
     }
     return arr;
   }
