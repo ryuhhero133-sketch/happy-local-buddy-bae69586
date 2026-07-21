@@ -2175,7 +2175,7 @@ function IdlePage() {
         items: {
           ...base.items,
           book_vip_30: (base.items.book_vip_30 ?? 0) + 1,
-          egg_epic: (base.items.egg_epic ?? 0) + 1,
+          egg_charizard: (base.items.egg_charizard ?? 0) + 1,
         },
         buffs: {
           ...base.buffs,
@@ -2184,7 +2184,6 @@ function IdlePage() {
           goldMult: Math.max(base.buffs.goldMult ?? 0, 0.3),
           goldMultUntil: Math.max(base.buffs.goldMultUntil ?? 0, nowT + THIRTY_D),
         },
-        pendingEggTarget: { ...(base.pendingEggTarget ?? {}), egg_epic: "charizard" },
         redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
       };
       setIdle(next);
