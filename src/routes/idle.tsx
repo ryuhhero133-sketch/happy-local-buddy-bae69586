@@ -3058,7 +3058,9 @@ function IdlePage() {
         const critAsc = (leader.ascensionStats as Record<string, number> | undefined)?.crit ?? 0;
         const critChance = Math.min(0.6, 0.05 + leader.level * 0.003 + critAsc * 0.005);
         const isCrit = Math.random() < critChance;
-        let dmg = Math.floor((5 + leader.level * 0.8 + base.atk * 0.12 + Math.random() * 5) * (1 + idle.buffs.atk));
+        // Pokémon selvagens têm 50% de resistência ao bônus do Livro de Ataque (balanceamento anti-stack)
+        const atkBookEffective = idle.buffs.atk * 0.5;
+        let dmg = Math.floor((5 + leader.level * 0.8 + base.atk * 0.12 + Math.random() * 5) * (1 + atkBookEffective));
         if (isCrit) dmg = Math.floor(dmg * 1.8);
         // n2 debuff: enquanto ativo, reduz -40% do ataque do jogador
         if (Date.now() < atkDebuffUntilRef.current) dmg = Math.floor(dmg * 0.6);
