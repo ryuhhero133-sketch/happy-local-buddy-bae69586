@@ -210,14 +210,42 @@ function Particles({ density = 40 }: { density?: number }) {
 
 // ---------- Componente principal ----------
 export function CashShopModal(props: Props) {
-  const { open, onClose, identity, wallet, codeInput, setCodeInput, codeMsg, onRedeemCode } = props;
+  const { open, onClose, identity, wallet, codeInput, setCodeInput, codeMsg, onRedeemCode, onSpendSafiras, onGrantItem } = props;
   const [selected, setSelected] = useState<Product | null>(null);
   const [confetti, setConfetti] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [blackStock, setBlackStock] = useState<number>(readStock());
+  const [emerald, setEmerald] = useState<number>(readEmerald());
+  const [convMsg, setConvMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const safiras = wallet.safiras ?? 0;
+
+  const doSafiraToEmerald = () => {
+    if (safiras < SAFIRA_PER_EMERALD) {
+      setConvMsg({ kind: "err", text: `Precisa de ${SAFIRA_PER_EMERALD} Safiras Verdes.` });
+      return;
+    }
+    const ok = onSpendSafiras ? onSpendSafiras(SAFIRA_PER_EMERALD) : false;
+    if (!ok) { setConvMsg({ kind: "err", text: "Não foi possível gastar suas Safiras." }); return; }
+    const next = emerald + 1;
+    setEmerald(next); writeEmerald(next);
+    setConvMsg({ kind: "ok", text: `+1 Esmeralda! (Total: ${next})` });
+  };
+
+  const doEmeraldToUltra = () => {
+    if (emerald < EMERALD_PER_ULTRAPACK) {
+      setConvMsg({ kind: "err", text: `Precisa de ${EMERALD_PER_ULTRAPACK} Esmeraldas.` });
+      return;
+    }
+    const next = emerald - EMERALD_PER_ULTRAPACK;
+    setEmerald(next); writeEmerald(next);
+    onGrantItem("ultraball", ULTRAPACK_SIZE);
+    setConvMsg({ kind: "ok", text: `+${ULTRAPACK_SIZE} Ultra Balls entregues!` });
+  };
+
 
   const uid = identity?.id ?? "guest";
 
