@@ -10154,8 +10154,8 @@ function TabOverlay({
   skinTickets: number;
   onUnlockSkin: (id: string) => void;
   onUpgradeBook: (id: string) => void;
-  orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[];
-  onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => void;
+  orbTrades: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_supreme" | "orb_team" }[];
+  onTradeOrb: (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[], fuelUids: string[]) => void;
   pokemonMarketNode?: React.ReactNode;
   benchUids: Set<string>;
 
