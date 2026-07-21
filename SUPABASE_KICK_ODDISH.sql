@@ -1,15 +1,8 @@
 -- Remove todos os jogadores presentes nos mapas do evento Odisséia Oddish.
--- Executar no SQL Editor do Supabase.
+-- A presença ao vivo é via Realtime (não há tabela public.players).
+-- Basta atualizar o save persistente — no próximo login o jogador cai em verdejante.
 
--- 1) Atualiza a tabela de presença (players) — envia todos pra Terra Verdejante (mapa inicial).
-UPDATE public.players
-SET map = 'verdejante',
-    x = 400,
-    y = 300,
-    updated_at = now()
-WHERE map IN ('oddish_o1', 'oddish_o2');
-
--- 2) Atualiza o save persistente (game_saves.data.currentMap) para quem estava no evento.
+-- 1) Atualiza o save persistente (game_saves.data.currentMap / px / py)
 UPDATE public.game_saves
 SET data = jsonb_set(
              jsonb_set(
@@ -19,7 +12,7 @@ SET data = jsonb_set(
     updated_at = now()
 WHERE data->>'currentMap' IN ('oddish_o1', 'oddish_o2');
 
--- 3) (opcional) Verificar quantos foram afetados
+-- 2) Conferir se sobrou alguém salvo no evento
 SELECT count(*) AS ainda_no_evento
-FROM public.players
-WHERE map IN ('oddish_o1', 'oddish_o2');
+FROM public.game_saves
+WHERE data->>'currentMap' IN ('oddish_o1', 'oddish_o2');
