@@ -4941,7 +4941,7 @@ function IdlePage() {
   const buyUltraBundle = (qty: number = 1) => {
     const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
-      const COST = 1000 * n;
+      const COST = 2000 * n;
       const QTY = 20 * n;
       if (s.bank.crystals < COST) {
         pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info");
@@ -11395,7 +11395,7 @@ function TabOverlay({
           <h3 style={{ color: "#c084fc", fontSize: 15, margin: "6px 0 10px" }}>Pacote de Ultra Ball — pago em cristais 💎</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
             {(() => {
-              const COST = 1000, QTY = 20;
+              const COST = 2000, QTY = 20;
               const owned = items.ultraball ?? 0;
               const canBuy = bank.crystals >= COST;
               const color = "#c084fc";
@@ -11417,7 +11417,7 @@ function TabOverlay({
                     max={999}
                     unitLabel="pacote"
                     buttonColor={color}
-                    canBuyFn={(n) => bank.crystals >= 1000 * n}
+                    canBuyFn={(n) => bank.crystals >= 2000 * n}
                     onBuy={(n) => onBuyUltraBundle(n)}
                     disabledLabel="SEM CRISTAIS"
                   />
