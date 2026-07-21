@@ -153,8 +153,8 @@ export type Species =
   | "abomasnow" | "cloyster" | "cloyster_shiny" | "exeggutor" | "exeggutor_shiny"
   | "feraligatr" | "heracross" | "heracross_shiny" | "hitmonchan_shiny"
   | "kangaskhan" | "meganium" | "meganium_shiny" | "moltres_shiny" | "onix_shiny"
-  // Evento Odisséia Oddish — Lickitung (sonífero) + Mewtwo (mítico plus)
-  | "lickitung" | "lickitung_shiny" | "mewtwo_event";
+  // Evento Odisséia Oddish — Lickitung (sonífero) + Mewtwo (mítico plus) + Oddish Shiny raro
+  | "lickitung" | "lickitung_shiny" | "mewtwo_event" | "oddish_shiny";
 
 
 
