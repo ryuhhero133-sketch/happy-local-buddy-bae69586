@@ -4941,7 +4941,7 @@ function IdlePage() {
   const buyUltraBundle = (qty: number = 1) => {
     const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
-      const COST = 1000 * n;
+      const COST = 2000 * n;
       const QTY = 20 * n;
       if (s.bank.crystals < COST) {
         pushChat(`Cristais insuficientes (precisa ${COST} 💎).`, "info");
