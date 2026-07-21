@@ -5169,27 +5169,31 @@ function IdlePage() {
       };
     });
   };
-  const buyBook = (bk: ShopBook) => {
+  const buyBook = (bk: ShopBook, qty: number = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
       const useGold = bk.currency === "gold";
+      const totalPrice = bk.price * n;
+      const totalGoldExtra = (bk.priceGold ?? 0) * n;
       const have = useGold ? s.bank.gold : s.bank.crystals;
-      if (have < bk.price) {
-        pushChat(useGold ? `Ouro insuficiente para ${bk.name}.` : `Cristais insuficientes para ${bk.name}.`, "info");
+      if (have < totalPrice) {
+        pushChat(useGold ? `Ouro insuficiente para ${n}× ${bk.name}.` : `Cristais insuficientes para ${n}× ${bk.name}.`, "info");
         return s;
       }
-      if (bk.priceGold && s.bank.gold < bk.priceGold) {
-        pushChat(`Ouro insuficiente para ${bk.name} (custa ${bk.priceGold} 🪙 + ${bk.price} 💎).`, "info");
+      if (totalGoldExtra && s.bank.gold < totalGoldExtra) {
+        pushChat(`Ouro insuficiente para ${n}× ${bk.name} (custa ${bk.priceGold} 🪙 + ${bk.price} 💎 cada).`, "info");
         return s;
       }
       const curQty = s.items[bk.id] ?? 0;
-      pushChat(`Comprou ${bk.name}. Use pela Mochila quando quiser.`, "cap");
+      pushChat(`Comprou ${n}× ${bk.name}. Use pela Mochila quando quiser.`, "cap");
       const bank0 = useGold
-        ? { ...s.bank, gold: s.bank.gold - bk.price }
-        : { ...s.bank, crystals: s.bank.crystals - bk.price };
-      const bank1 = bk.priceGold ? { ...bank0, gold: bank0.gold - bk.priceGold } : bank0;
-      return { ...s, bank: bank1, items: { ...s.items, [bk.id]: curQty + 1 } };
+        ? { ...s.bank, gold: s.bank.gold - totalPrice }
+        : { ...s.bank, crystals: s.bank.crystals - totalPrice };
+      const bank1 = totalGoldExtra ? { ...bank0, gold: bank0.gold - totalGoldExtra } : bank0;
+      return { ...s, bank: bank1, items: { ...s.items, [bk.id]: curQty + n } };
     });
   };
+
 
   // ===== Trocador NPC — Incubadora de Orbs =====
   // Precisa de 5 Pokémon da raridade escolhida. Combustível (COMUM/INCOMUM/RARO)
@@ -10486,7 +10490,7 @@ function TabOverlay({
   onBuyBall: (b: ShopBall, qty?: number) => void;
   onBuyUltraBundle: (qty?: number) => void;
   onBuyTeleportScroll: (qty?: number) => void;
-  onBuyBook: (bk: ShopBook) => void;
+  onBuyBook: (bk: ShopBook, qty?: number) => void;
   onBuyPotion: (qty?: number) => void;
   onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
   shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
@@ -11934,17 +11938,16 @@ function TabOverlay({
                   <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{bk.desc}</div>
                   <div style={{ fontSize: 12, color: useGold ? "#ffd94d" : "#c084fc", fontWeight: 700 }}>{useGold ? "🪙" : "💎"} {bk.price}</div>
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
-                  <button
-                    onClick={() => onBuyBook(bk)}
-                    disabled={!canBuy}
-                    style={{
-                      width: "100%", padding: "8px 10px", fontWeight: 800,
-                      background: canBuy ? color : "#3a2a4a",
-                      color: canBuy ? "#0b0510" : "#6a5a7c",
-                      border: "none", borderRadius: 6,
-                      cursor: canBuy ? "pointer" : "not-allowed",
-                    }}
-                  >{canBuy ? "COMPRAR" : "SEM CRISTAL"}</button>
+                  <QtyBuy
+                    presets={[1, 10, 50, 100]}
+                    max={9999}
+                    unitLabel={bk.name}
+                    buttonColor={color}
+                    canBuyFn={(n) => (useGold ? bank.gold >= bk.price * n : bank.crystals >= bk.price * n) && (!bk.priceGold || bank.gold >= bk.priceGold * n)}
+                    onBuy={(n) => onBuyBook(bk, n)}
+                    disabledLabel={useGold ? "SEM OURO" : "SEM CRISTAL"}
+                  />
+
                 </div>
               );
             })}
