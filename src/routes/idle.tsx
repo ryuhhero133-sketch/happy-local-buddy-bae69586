@@ -954,7 +954,7 @@ const SHOP_BOOKS: ShopBook[] = [
   // ═══ ORB DE XP FRACO — único vendido; os fortes vêm da troca com NPC ═══
   { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo, stack com livro)", price: 100,  img: orbXpMinorUrl,   currency: "crystals", priceGold: 50000 },
   // ═══ ORB DE TIME — distribui EXP para todos os pokémons do time por 1 hora ═══
-  { id: "orb_team",       name: "Orb de Time ✦✦✦",     desc: "Todo o time ganha EXP nas batalhas por 3 horas (sem +% de EXP)", price: 1000, img: orbXpTeamUrl,   currency: "crystals" },
+  { id: "orb_team",       name: "Orb de Time ✦✦✦",     desc: "Todo o time ganha EXP nas batalhas por 3 horas (sem +% de EXP)", price: 2000, img: orbXpTeamUrl,   currency: "crystals" },
 ];
 
 
