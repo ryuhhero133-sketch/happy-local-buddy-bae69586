@@ -4189,14 +4189,21 @@ function IdlePage() {
         pushChat(`Já há um Orb de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
         return;
       }
-      setIdle((s) => ({
-        ...s,
-        items: { ...s.items, [id]: have - 1 },
-        buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + 3600_000, orbId: id },
-      }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · 1h`, "capture");
-      pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por 1 hora`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
-      pushChat(`✦ ${label} usado — +${pct}% EXP por 1 hora.`, "cap");
+      const extraH = ((idle.items as any)[`${id}_extra`] ?? 0) as number;
+      const durationMs = (1 + extraH) * 3600_000;
+      setIdle((s) => {
+        const items = { ...s.items, [id]: have - 1 } as any;
+        if (extraH > 0) delete items[`${id}_extra`];
+        return {
+          ...s,
+          items,
+          buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + durationMs, orbId: id },
+        };
+      });
+      const totalH = 1 + extraH;
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · ${totalH}h`, "capture");
+      pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por ${totalH} hora(s)`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
+      pushChat(`✦ ${label} usado — +${pct}% EXP por ${totalH} hora(s)${extraH > 0 ? " 🌟" : ""}.`, "cap");
     } else if (id === "orb_team") {
       const nowT = Date.now();
       if ((idle.buffs.teamOrbUntil ?? 0) > nowT) {
