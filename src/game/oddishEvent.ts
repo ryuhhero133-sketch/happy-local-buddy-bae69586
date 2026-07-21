@@ -22,7 +22,7 @@ export const ODDISH_EVENT: {
   /** Evento ATIVO — portal permanentemente aberto durante a duração. */
   enabled: true,
   /** Timestamp de abertura oficial (ms). */
-  startedAt: 1784591072789,
+  startedAt: 1784431051055,
   /** Encerra após 48h desde startedAt. */
   durationHours: 48,
   /** Ciclo entre aberturas (2h). */
@@ -82,7 +82,7 @@ export type OddishEventSpecies = typeof ODDISH_EVENT_POOL[number];
 /** Chance de spawnar Mewtwo (evento) a cada tentativa de spawn no mapa do evento. */
 export const MEWTWO_EVENT_CHANCE = 0.006;
 /** Mínimo de bolas necessárias antes de o Mewtwo do evento poder ser capturado. */
-export const MEWTWO_MIN_BALLS = 1500;
+export const MEWTWO_MIN_BALLS = 767;
 
 /** Safira Verde ganha ao FRAGMENTAR um pokémon capturado no evento. */
 export const SAFIRA_VERDE_BY_RARITY: Record<string, number> = {
