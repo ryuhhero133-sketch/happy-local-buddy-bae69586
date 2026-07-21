@@ -5244,7 +5244,7 @@ function IdlePage() {
     return { success, lucky };
   };
 
-  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[], fuelUids: string[]) => {
+  const tradeForOrb = (orbId: OrbForgeId, uids: string[], fuelUids: string[]) => {
     const trade = ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
     if (trade.requires && (idle.items[trade.requires.itemId] ?? 0) < trade.requires.qty) {
