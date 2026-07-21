@@ -2189,9 +2189,9 @@ function IdlePage() {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "🔥 VIP 30d + Ovo Épico (Charizard) entregues!" });
+      setCodeMsg({ kind: "ok", text: "🔥 VIP 30d + Ovo do Charizard entregues!" });
       setCodeInput("");
-      pushChat(`🎉 Código ${raw}: VIP 30d + 1× Ovo Épico 🔥 (Charizard garantido).`, "cap");
+      pushChat(`🎉 Código ${raw}: VIP 30d + 1× Ovo do Charizard 🔥.`, "cap");
       return;
     }
 
