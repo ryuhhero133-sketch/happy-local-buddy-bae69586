@@ -5087,55 +5087,96 @@ function IdlePage() {
     });
   };
 
-  // ===== Trocador NPC — Orbs de XP por Pokémon capturados =====
-  // Só oferece os orbs mais fortes (o menor está na Loja). Consome da coleção
-  // (não da equipe) os Pokémon da raridade exigida, com o menor nível primeiro.
-  const ORB_TRADES: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string }[] = [
-    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 3, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 3 Pokémon RAROS da coleção" },
-    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 2, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 2 Pokémon ÉPICOS da coleção" },
+  // ===== Trocador NPC — Incubadora de Orbs =====
+  // Precisa de 5 Pokémon da raridade escolhida. Comuns extras (até 5) aumentam
+  // a chance de sucesso e a chance de LUCKY (upgrade do orb / tempo extra).
+  const ORB_TRADES: { orbId: "orb_xp_major" | "orb_xp_supreme"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_supreme" | "orb_team" }[] = [
+    { orbId: "orb_xp_major",   label: "Orb Maior ✦✦",   rarity: "rare",  count: 5, color: "#c084fc", img: orbXpMajorUrl,   desc: "Entregue 5 Pokémon RAROS · comuns aumentam chance",  baseSuccess: 0.55, upgradeTo: "orb_xp_supreme" },
+    { orbId: "orb_xp_supreme", label: "Orb Supremo ✦✦✦", rarity: "epic",  count: 5, color: "#ffd94d", img: orbXpSupremeUrl, desc: "Entregue 5 Pokémon ÉPICOS · comuns aumentam chance", baseSuccess: 0.40, upgradeTo: "orb_team" },
   ];
   // Estado do NPC Trocador no mapa (modal na tela do mundo)
   const [worldTraderOpen, setWorldTraderOpen] = useState(false);
-  const [worldTraderPick, setWorldTraderPick] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string; img: string }>(null);
+  const [worldTraderPick, setWorldTraderPick] = useState<null | { orbId: "orb_xp_major" | "orb_xp_supreme"; rarity: Rarity; count: number; color: string; label: string; img: string; baseSuccess: number; upgradeTo?: "orb_xp_supreme" | "orb_team" }>(null);
   const [worldTraderSel, setWorldTraderSel] = useState<Set<string>>(new Set());
-  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[]) => {
+  const [worldTraderFuel, setWorldTraderFuel] = useState<Set<string>>(new Set()); // comuns extras
+  const [orbAnim, setOrbAnim] = useState<null | { phase: "spinning" | "success" | "fail"; orbId?: string; extraHours?: number; lucky?: boolean; color: string; label: string; img?: string }>(null);
+  const MAX_FUEL = 5;
+  const FUEL_BOOST = 0.07; // +7% de sucesso por comum
+  const LUCKY_BASE = 0.05; // 5% base de sorte
+  const LUCKY_FUEL = 0.03; // +3% por comum
+
+  const computeOrbChances = (pick: { baseSuccess: number }, fuelCount: number) => {
+    const success = Math.min(0.95, pick.baseSuccess + fuelCount * FUEL_BOOST);
+    const lucky = Math.min(0.40, LUCKY_BASE + fuelCount * LUCKY_FUEL);
+    return { success, lucky };
+  };
+
+  const tradeForOrb = (orbId: "orb_xp_major" | "orb_xp_supreme", uids: string[], fuelUids: string[]) => {
     const trade = ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
     const uniqUids = Array.from(new Set(uids));
+    const uniqFuel = Array.from(new Set(fuelUids)).filter((u) => !uniqUids.includes(u));
     const teamUids = new Set((teamRef.current ?? []).map((p) => p.uid));
     const benchUids = new Set((benchRef.current ?? []).map((p) => p.uid));
-    // Bloqueio duro ANTES de mutar estado — evita orb infinito quando o
-    // pokémon está em uso (time/bench) e a reconciliação recolocaria na coleção.
-    const blocked = uniqUids.filter((u) => teamUids.has(u) || benchUids.has(u));
+    const blocked = [...uniqUids, ...uniqFuel].filter((u) => teamUids.has(u) || benchUids.has(u));
     if (blocked.length > 0) {
       pushChat("Retire os Pokémon do time/reserva antes de trocar por Orb.", "info");
       return;
     }
     setIdle((s) => {
       const col = s.collection ?? [];
-      const selected = col.filter(
-        (c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity,
-      );
+      const selected = col.filter((c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity);
+      const fuelSel = col.filter((c) => uniqFuel.includes(c.uid) && c.rarity === "common");
       if (selected.length !== trade.count) {
-        pushChat(
-          `Não foi possível trocar: selecione exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} fora do time.`,
-          "info",
-        );
+        pushChat(`Precisa exatamente ${trade.count} Pokémon ${trade.rarity.toUpperCase()} fora do time.`, "info");
         return s;
       }
-      const removeSet = new Set(selected.map((c) => c.uid));
+      const fuelCount = Math.min(MAX_FUEL, fuelSel.length);
+      const { success, lucky } = computeOrbChances(trade, fuelCount);
+      const removeSet = new Set([...selected.map((c) => c.uid), ...fuelSel.slice(0, fuelCount).map((c) => c.uid)]);
       removeSet.forEach((u) => consumedUidsRef.current.add(u));
       const newCol = col.filter((c) => !removeSet.has(c.uid));
-      const cur = s.items[orbId] ?? 0;
-      const orbName = orbId === "orb_xp_major" ? "Orb Maior ✦✦" : "Orb Supremo ✦✦✦";
-      pushChat(`✦ NPC recebeu ${trade.count} ${trade.rarity.toUpperCase()} e entregou 1 ${orbName}.`, "cap");
-      return {
-        ...s,
-        collection: newCol,
-        items: { ...s.items, [orbId]: cur + 1 },
-      };
+
+      const didSucceed = Math.random() < success;
+      const didLucky = didSucceed && Math.random() < lucky;
+      // start animation
+      setOrbAnim({ phase: "spinning", color: trade.color, label: trade.label, img: trade.img });
+      window.setTimeout(() => {
+        if (!didSucceed) {
+          setOrbAnim({ phase: "fail", color: trade.color, label: trade.label });
+          pushChat(`💥 A incubação FALHOU — ${trade.count} ${trade.rarity.toUpperCase()}${fuelCount ? ` + ${fuelCount} comum(ns)` : ""} perdidos.`, "info");
+          return;
+        }
+        // sucesso — decide se lucky = upgrade ou tempo extra
+        let finalOrbId: string = trade.orbId;
+        let extraHours = 0;
+        let luckyKind: "upgrade" | "time" | null = null;
+        if (didLucky) {
+          if (trade.upgradeTo && Math.random() < 0.5) {
+            finalOrbId = trade.upgradeTo;
+            luckyKind = "upgrade";
+          } else {
+            extraHours = 1 + Math.floor(Math.random() * 2); // +1~2h
+            luckyKind = "time";
+          }
+        }
+        const orbName = finalOrbId === "orb_xp_major" ? "Orb Maior ✦✦" : finalOrbId === "orb_xp_supreme" ? "Orb Supremo ✦✦✦" : "Orb de Time ✦✦✦";
+        const orbImg = finalOrbId === "orb_xp_major" ? orbXpMajorUrl : finalOrbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbXpTeamUrl;
+        setOrbAnim({ phase: "success", color: trade.color, label: orbName, img: orbImg, orbId: finalOrbId, extraHours, lucky: !!luckyKind });
+        setIdle((s2) => ({ ...s2, items: { ...s2.items, [finalOrbId]: (s2.items[finalOrbId] ?? 0) + 1 } }));
+        if (luckyKind === "upgrade") pushChat(`🌟 SORTE! Orb evoluiu para ${orbName}!`, "cap");
+        else if (luckyKind === "time") pushChat(`🌟 SORTE! ${orbName} com +${extraHours}h extras (aplicado ao ativar).`, "cap");
+        else pushChat(`✦ NPC forjou 1 ${orbName}.`, "cap");
+        // guarda extra time no item pendente
+        if (extraHours > 0) {
+          setIdle((s3) => ({ ...s3, items: { ...s3.items, [`${finalOrbId}_extra`]: ((s3.items as any)[`${finalOrbId}_extra`] ?? 0) + extraHours } }));
+        }
+      }, 2200);
+
+      return { ...s, collection: newCol };
     });
   };
+
 
 
 
