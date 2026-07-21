@@ -2207,10 +2207,11 @@ function IdlePage() {
         },
         buffs: {
           ...base.buffs,
+          // Empilha: estende a partir do fim do buff atual (se ativo) ou de agora.
           expMult: Math.max(base.buffs.expMult ?? 0, 0.3),
-          expMultUntil: Math.max(base.buffs.expMultUntil ?? 0, nowT + SIXTY_D),
+          expMultUntil: Math.max(base.buffs.expMultUntil ?? 0, nowT) + SIXTY_D,
           goldMult: Math.max(base.buffs.goldMult ?? 0, 0.3),
-          goldMultUntil: Math.max(base.buffs.goldMultUntil ?? 0, nowT + SIXTY_D),
+          goldMultUntil: Math.max(base.buffs.goldMultUntil ?? 0, nowT) + SIXTY_D,
         },
         redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
       };
