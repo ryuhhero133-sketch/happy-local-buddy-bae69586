@@ -387,7 +387,7 @@ export function CashShopModal(props: Props) {
                   transition={{ delay: 0.15 }}
                   className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/60 text-amber-200 text-[10px] sm:text-xs font-bold tracking-widest mb-2"
                 >
-                  ⭐ EDIÇÃO LIMITADA · {blackStock}/10
+                  ⭐ EDIÇÃO LIMITADA · {blackStock}/{STOCK_TOTAL} · {STOCK_TOTAL - blackStock} vendidas
                 </motion.div>
                 <motion.h1
                   initial={{ x: -30, opacity: 0 }}
