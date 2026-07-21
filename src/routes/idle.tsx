@@ -2176,6 +2176,23 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "CHARIZ50" || raw === "CHARIZARD50" || raw === "CHARIZ50LV" || raw === "CHAR50") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 2000) },
+        items: { ...base.items, egg_charizard: (base.items.egg_charizard ?? 0) + 1 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🔥 Ovo Mítico Charizard Lv 50 + 2 000 Cristais entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código CHARIZ50: 1× Ovo Mítico Charizard Lv 50 + 2 000 💎 Cristais.`, "cap");
+      return;
+    }
+
     if (raw === "CHARIZA1" || raw === "CHARIZA2" || raw === "CHARIZA3") {
       const nowT = Date.now();
       const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
