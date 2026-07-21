@@ -41,15 +41,17 @@ type Props = {
   open: boolean;
   onClose: () => void;
   identity: { id: string; name: string } | null;
-  wallet: { coins: number; crystals: number; level: number; xp: number; xpNext: number };
+  wallet: { coins: number; crystals: number; level: number; xp: number; xpNext: number; safiras?: number };
   onGrantCoins: (n: number) => void;
   onGrantCrystals: (n: number) => void;
   onGrantItem: (id: string, qty: number) => void;
+  onSpendSafiras?: (n: number) => boolean;
   codeInput: string;
   setCodeInput: (v: string) => void;
   codeMsg: string | { kind: "err" | "ok"; text: string } | null;
   onRedeemCode: () => void;
 };
+
 
 // ---------- Produtos ----------
 const PAYMENT_LINK =
