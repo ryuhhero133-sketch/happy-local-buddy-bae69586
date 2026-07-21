@@ -4059,7 +4059,7 @@ function IdlePage() {
         chance = 0.02;
       }
     } else {
-      const base = 0.055 + (1 - hpPct) * 0.26;
+      const base = 0.030 + (1 - hpPct) * 0.16;
       // 🖤 Guardiões anti-paralisia: um pouco mais difíceis de capturar
       const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
       const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
