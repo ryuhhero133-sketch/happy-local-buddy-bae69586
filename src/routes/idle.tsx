@@ -555,6 +555,7 @@ const GIF: Partial<Record<Species, string>> = {
   lickitung: assetUrlFromJson(lickitungGifAsset),
   lickitung_shiny: assetUrlFromJson(lickitungShinyGifAsset),
   mewtwo_event: assetUrlFromJson(mewtwoEventGifAsset),
+  oddish_shiny: assetUrlFromJson(oddishShinyGifAsset),
 };
 
 
