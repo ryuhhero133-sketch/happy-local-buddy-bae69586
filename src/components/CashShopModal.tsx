@@ -89,11 +89,11 @@ const PRODUCTS: Product[] = [
   {
     id: "ruby",
     name: "Ruby",
-    subtitle: "Pacote de Rubys",
-    price: 50,
+    subtitle: "2.000 Rubys",
+    price: 75,
     image: rubyPackImg,
-    description: "Pacote generoso de Rubys para gastar como quiser dentro da loja premium.",
-    link: PAYMENT_LINK_STANDARD,
+    description: "Pacote generoso com 2.000 Rubys para gastar como quiser dentro da loja premium.",
+    link: PAYMENT_LINK_RUBY,
     accent: "from-rose-500 via-red-500 to-red-700",
   },
   {
