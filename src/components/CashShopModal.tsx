@@ -105,6 +105,7 @@ const PRODUCTS: Product[] = [
     description:
       "O ovo mais raro já lançado no IdleMon. Possui Pokémon exclusivos, nunca voltará à loja. Quem comprar fará parte da primeira geração de treinadores lendários.",
     link: PAYMENT_LINK_BLACK,
+    accent: "from-yellow-400 via-amber-500 to-yellow-600",
   },
 ];
 
