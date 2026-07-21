@@ -2176,6 +2176,23 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "CRYULTRA50" || raw === "CRY60KULTRA50" || raw === "CRYSTAL60K50") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 60000) },
+        items: { ...base.items, ultraball: (base.items.ultraball ?? 0) + 50 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "💎 +60 000 Cristais + 50× Ultra Ball entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código CRYULTRA50: +60 000 💎 Cristais + 50× Ultra Ball.`, "cap");
+      return;
+    }
+
     if (raw === "CHARIZ50" || raw === "CHARIZARD50" || raw === "CHARIZ50LV" || raw === "CHAR50") {
       const base = idleRef.current;
       const next: IdleState = {
