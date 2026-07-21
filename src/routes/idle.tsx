@@ -4356,7 +4356,7 @@ function IdlePage() {
       if (!entry) return s;
       const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
       const isEvent = entry.event === "oddish_odyssey";
-      const safiraGain = isEvent ? (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1) : 0;
+      const safiraGain = isEvent ? (entry.species === "oddish_shiny" ? 5 : (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1)) : 0;
       const bonus = safiraGain > 0 ? ` +${safiraGain} 💚 Safira Verde` : "";
       pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft${bonus}).`, "cap");
       consumedUidsRef.current.add(uid);
