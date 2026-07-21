@@ -460,7 +460,11 @@ export function CashShopModal(props: Props) {
                 RESGATAR
               </button>
             </div>
-            {codeMsg && <div className="mt-2 text-xs text-amber-300">{codeMsg}</div>}
+            {codeMsg && (
+              <div className={`mt-2 text-xs ${typeof codeMsg === "object" && codeMsg?.kind === "err" ? "text-red-400" : "text-amber-300"}`}>
+                {typeof codeMsg === "string" ? codeMsg : codeMsg?.text}
+              </div>
+            )}
           </div>
 
           <div className="text-center text-[10px] text-white/40 pt-2 pb-4">
