@@ -4629,6 +4629,24 @@ function IdlePage() {
           }
         }
         sp = pool[Math.floor(Math.random() * pool.length)];
+        // 🔒 FILTRO DE VALIOSOS — se a espécie tem raridade base alta (mítico/lendário)
+        // e não foi forçada por evento, aplica um gate probabilístico e re-sorteia
+        // um mon mais comum da pool caso não passe. Deixa os valiosos MUITO mais raros.
+        if (!forcedRarity) {
+          const baseRar = SPECIES_BASE[sp]?.rarity;
+          const gate =
+            baseRar === "mythic_shiny" ? 0.05 :
+            baseRar === "mythic"       ? 0.08 :
+            baseRar === "legendary"    ? 0.15 :
+            baseRar === "epic"         ? 0.35 : 1;
+          if (gate < 1 && Math.random() > gate) {
+            const cheaper = pool.filter((p) => {
+              const rr = SPECIES_BASE[p]?.rarity;
+              return rr !== "mythic" && rr !== "mythic_shiny" && rr !== "legendary" && rr !== "epic";
+            });
+            if (cheaper.length > 0) sp = cheaper[Math.floor(Math.random() * cheaper.length)];
+          }
+        }
       }
 
       // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
