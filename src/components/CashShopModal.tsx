@@ -491,6 +491,91 @@ export function CashShopModal(props: Props) {
             ))}
           </div>
 
+          {/* ============ CONVERSÃO (Safira → Esmeralda → Ultra Balls) ============ */}
+          <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-900/30 via-black/50 to-emerald-950/40 backdrop-blur-xl p-4 sm:p-5 relative overflow-hidden">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-30"
+              style={{
+                background:
+                  "radial-gradient(circle at 15% 30%, rgba(52,211,153,.35), transparent 45%), radial-gradient(circle at 85% 70%, rgba(16,185,129,.25), transparent 50%)",
+              }}
+            />
+            <div className="relative">
+              <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 grid place-items-center text-lg shadow-[0_0_16px_rgba(52,211,153,.6)]">💠</div>
+                  <div>
+                    <div className="text-white font-black text-sm">Painel de Conversão</div>
+                    <div className="text-emerald-200/70 text-xs">Troque Safiras Verdes por Esmeraldas e itens exclusivos</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-400/40 text-emerald-200 font-bold">
+                    💚 Safiras: {safiras.toLocaleString()}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black shadow-[0_0_12px_rgba(52,211,153,.35)]">
+                    💠 Esmeraldas: {emerald.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Safira -> Esmeralda */}
+                <div className="rounded-xl border border-emerald-400/30 bg-black/50 p-3 hover:border-emerald-300/60 transition">
+                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
+                    <span className="text-lg">💚</span>
+                    <span className="text-emerald-200/80">×{SAFIRA_PER_EMERALD}</span>
+                    <span className="text-emerald-300">→</span>
+                    <span className="text-lg">💠</span>
+                    <span className="text-emerald-100">×1</span>
+                  </div>
+                  <div className="text-[11px] text-white/60 text-center mb-3">
+                    Converta <b className="text-emerald-200">{SAFIRA_PER_EMERALD} Safiras Verdes</b> em <b className="text-emerald-100">1 Esmeralda</b>
+                  </div>
+                  <button
+                    onClick={doSafiraToEmerald}
+                    disabled={safiras < SAFIRA_PER_EMERALD}
+                    className="w-full py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(52,211,153,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    CONVERTER
+                  </button>
+                </div>
+
+                {/* Esmeralda -> Ultra Balls */}
+                <div className="rounded-xl border border-amber-400/30 bg-black/50 p-3 hover:border-amber-300/60 transition">
+                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
+                    <span className="text-lg">💠</span>
+                    <span className="text-emerald-100">×{EMERALD_PER_ULTRAPACK}</span>
+                    <span className="text-amber-300">→</span>
+                    <span className="text-lg">🟣</span>
+                    <span className="text-amber-100">{ULTRAPACK_SIZE} Ultra Balls</span>
+                  </div>
+                  <div className="text-[11px] text-white/60 text-center mb-3">
+                    Troque <b className="text-emerald-100">{EMERALD_PER_ULTRAPACK} Esmeraldas</b> por <b className="text-amber-200">{ULTRAPACK_SIZE} Ultra Balls</b>
+                  </div>
+                  <button
+                    onClick={doEmeraldToUltra}
+                    disabled={emerald < EMERALD_PER_ULTRAPACK}
+                    className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(250,204,21,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    TROCAR
+                  </button>
+                </div>
+              </div>
+
+              {convMsg && (
+                <div className={`mt-3 text-xs text-center font-bold ${convMsg.kind === "err" ? "text-red-400" : "text-emerald-300"}`}>
+                  {convMsg.text}
+                </div>
+              )}
+
+              <div className="mt-3 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[11px] text-white/60 text-center">
+                💎 <b className="text-white/80">Compra direta com Safiras</b> · <span className="text-amber-300 font-bold">Em breve</span> — por enquanto, apenas conversões estão disponíveis.
+              </div>
+            </div>
+          </div>
+
+
           {/* ============ CÓDIGO PROMOCIONAL ============ */}
           <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
