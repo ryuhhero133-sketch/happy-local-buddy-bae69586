@@ -4629,6 +4629,24 @@ function IdlePage() {
           }
         }
         sp = pool[Math.floor(Math.random() * pool.length)];
+        // 🔒 FILTRO DE VALIOSOS — se a espécie tem raridade base alta (mítico/lendário)
+        // e não foi forçada por evento, aplica um gate probabilístico e re-sorteia
+        // um mon mais comum da pool caso não passe. Deixa os valiosos MUITO mais raros.
+        if (!forcedRarity) {
+          const baseRar = SPECIES_BASE[sp]?.rarity;
+          const gate =
+            baseRar === "mythic_shiny" ? 0.05 :
+            baseRar === "mythic"       ? 0.08 :
+            baseRar === "legendary"    ? 0.15 :
+            baseRar === "epic"         ? 0.35 : 1;
+          if (gate < 1 && Math.random() > gate) {
+            const cheaper = pool.filter((p) => {
+              const rr = SPECIES_BASE[p]?.rarity;
+              return rr !== "mythic" && rr !== "mythic_shiny" && rr !== "legendary" && rr !== "epic";
+            });
+            if (cheaper.length > 0) sp = cheaper[Math.floor(Math.random() * cheaper.length)];
+          }
+        }
       }
 
       // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
@@ -4647,7 +4665,7 @@ function IdlePage() {
           localStorage.setItem("dialga_last_spawn_ms", String(Date.now()));
         }
       } catch {}
-      const isMythicRoamer = !isDialgaEvent && currentRoamers === 0 && Math.random() < 0.004;
+      const isMythicRoamer = !isDialgaEvent && currentRoamers === 0 && Math.random() < 0.0015;
       if (isDialgaEvent) {
         sp = "dialga";
         forcedRarity = "mythic_shiny";
@@ -4685,7 +4703,7 @@ function IdlePage() {
         pet = makePet(sp, lv, "rare");
       }
       // ★ POKÉMON RIDER: 1.2% de chance — muito acima do nível do líder, dá MUITO xp
-      const isRider = !isMythicRoamer && !isDialgaEvent && Math.random() < 0.012 && !mapLvRange;
+      const isRider = !isMythicRoamer && !isDialgaEvent && Math.random() < 0.005 && !mapLvRange;
       if (isRider) {
         const boost = 25 + Math.floor(Math.random() * 21); // +25..+45
         lv = leaderLv + boost;
@@ -4697,7 +4715,7 @@ function IdlePage() {
       // Raridade varia de comum a mítico.
       const GUARDIAN_MONS: Species[] = ["ditto", "ditto_shiny", "scizor", "umbreon"];
       const guardianEligible = !isMythicRoamer && !isDialgaEvent && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
-      const isGuardian = guardianEligible && Math.random() < 0.008;
+      const isGuardian = guardianEligible && Math.random() < 0.003;
       if (isGuardian) {
         sp = GUARDIAN_MONS[Math.floor(Math.random() * GUARDIAN_MONS.length)];
         const rarityRoll = Math.random();
@@ -4725,7 +4743,7 @@ function IdlePage() {
       const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
       const apexEligible = !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && apexPool.length > 0;
       // 0.6% chance quando elegível (aparição escassa)
-      const isApex = apexEligible && Math.random() < 0.006;
+      const isApex = apexEligible && Math.random() < 0.0025;
       if (isApex) {
         const pick = apexPool[Math.floor(Math.random() * apexPool.length)];
         sp = pick.sp;
@@ -4750,7 +4768,7 @@ function IdlePage() {
       let isMtcBoss = false;
       if (!isApex && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && leaderLv >= 500) {
         // ~1% dos spawns em Lv 500+; sobe levemente com o nível do líder
-        const chance = Math.min(0.025, 0.01 + (leaderLv - 500) * 0.00002);
+        const chance = Math.min(0.008, 0.003 + (leaderLv - 500) * 0.000008);
         if (Math.random() < chance) {
           isMtcBoss = true;
           sp = MTC_MONS[Math.floor(Math.random() * MTC_MONS.length)];
