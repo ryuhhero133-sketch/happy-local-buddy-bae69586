@@ -4715,7 +4715,7 @@ function IdlePage() {
       // Raridade varia de comum a mítico.
       const GUARDIAN_MONS: Species[] = ["ditto", "ditto_shiny", "scizor", "umbreon"];
       const guardianEligible = !isMythicRoamer && !isDialgaEvent && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
-      const isGuardian = guardianEligible && Math.random() < 0.008;
+      const isGuardian = guardianEligible && Math.random() < 0.003;
       if (isGuardian) {
         sp = GUARDIAN_MONS[Math.floor(Math.random() * GUARDIAN_MONS.length)];
         const rarityRoll = Math.random();
