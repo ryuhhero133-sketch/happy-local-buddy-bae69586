@@ -2271,6 +2271,27 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "EPIC5EGG" || raw === "EPICEGG5" || raw === "EPIC5CRY10K") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 10_000) },
+        items: {
+          ...base.items,
+          egg_epic: (base.items.egg_epic ?? 0) + 5,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🥚 5× Ovo Épico + 10 000 💎 Cristais entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código EPIC5EGG: 5× Ovo Épico + 10 000 💎 Cristais.`, "cap");
+      return;
+    }
+
+
     if (raw === "CHARIZA1" || raw === "CHARIZA2" || raw === "CHARIZA3") {
       const nowT = Date.now();
       const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
