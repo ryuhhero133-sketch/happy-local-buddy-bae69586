@@ -4844,10 +4844,10 @@ function IdlePage() {
       if (!e) break;
       arr.push(e);
     }
-    const rareOnes = arr.filter((e) => e.rarity === "epic" || e.rarity === "legendary" || e.rarity === "mythic" || e.rarity === "mythic_shiny");
+    const rareOnes = arr.filter((e) => e.rarity === "legendary" || e.rarity === "mythic" || e.rarity === "mythic_shiny");
     for (const r of rareOnes) {
       const label = r.rarity === "mythic_shiny" ? "MÍTICO SHINY" : r.rarity.toUpperCase();
-      const color = r.rarity === "mythic_shiny" ? "#ffd94d" : r.rarity === "mythic" ? "#ff5252" : r.rarity === "legendary" ? "#ff8b3d" : "#c084fc";
+      const color = r.rarity === "mythic_shiny" ? "#ffd94d" : r.rarity === "mythic" ? "#ff5252" : "#ff8b3d";
       pushEvent("★", `${label} À VISTA!`, `${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
       pushChat(`★ ${label}: ${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa!`, "cap");
     }
