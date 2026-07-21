@@ -2291,6 +2291,27 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "LVUP50" || raw === "TRAINER50" || raw === "LEVEL50") {
+      const base = idleRef.current;
+      const curLv = base.trainerLevel ?? 1;
+      const newLv = Math.min(10000, curLv + 50);
+      const next: IdleState = {
+        ...base,
+        trainerLevel: newLv,
+        trainerXp: 0,
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: `⭐ +50 níveis de treinador! (Lv ${curLv} → ${newLv})` });
+      setCodeInput("");
+      pushChat(`🎉 Código LVUP50: +50 níveis de treinador (Lv ${curLv} → ${newLv}).`, "cap");
+      return;
+    }
+
+
+
 
     if (raw === "CHARIZA1" || raw === "CHARIZA2" || raw === "CHARIZA3") {
       const nowT = Date.now();
