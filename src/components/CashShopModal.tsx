@@ -54,8 +54,10 @@ type Props = {
 
 
 // ---------- Produtos ----------
-const PAYMENT_LINK =
-  "http://jmnw92l5.r.us-east-2.awstrack.me/L0/http:%2F%2Fsso.cakto.com.br%2Faccounts%2Flogin%2Fverify-magiclink%2F%3Ftoken=kEY0ZEpZm0lViSQ7OtJWsthxthUarpAwAsXWzgPxzOYNHD2ZOA%26expiresession=1%26email=pedigital%40hotmail.com/1/010f019f7b9d8602-12206b2c-2423-45f1-bc80-9939de510e13-000000/NkoZg_3Rr5FuFY8WBQeHvVYAlTM=258";
+// PicPay — link do BLACK MYTHIC PLUS (R$347)
+const PAYMENT_LINK_BLACK = "https://link.picpay.com/p/17846742186a5ff7aa48373";
+// PicPay — link dos demais pacotes (Ruby / Ruby+VIP)
+const PAYMENT_LINK_STANDARD = "https://link.picpay.com/p/17846738126a5ff61491b33";
 
 type Product = {
   id: string;
@@ -79,7 +81,7 @@ const PRODUCTS: Product[] = [
     image: rubyVipImg,
     badge: "MAIS VENDIDO",
     description: "Pacote com Rubys premium + VIP incluso. Bônus de XP, Gold e recompensas exclusivas.",
-    link: PAYMENT_LINK,
+    link: PAYMENT_LINK_STANDARD,
     accent: "from-amber-500 via-rose-500 to-red-600",
   },
   {
@@ -89,7 +91,7 @@ const PRODUCTS: Product[] = [
     price: 50,
     image: rubyPackImg,
     description: "Pacote generoso de Rubys para gastar como quiser dentro da loja premium.",
-    link: PAYMENT_LINK,
+    link: PAYMENT_LINK_STANDARD,
     accent: "from-rose-500 via-red-500 to-red-700",
   },
   {
@@ -102,7 +104,7 @@ const PRODUCTS: Product[] = [
     limited: 30,
     description:
       "O ovo mais raro já lançado no IdleMon. Possui Pokémon exclusivos, nunca voltará à loja. Quem comprar fará parte da primeira geração de treinadores lendários.",
-    link: PAYMENT_LINK,
+    link: PAYMENT_LINK_BLACK,
     accent: "from-yellow-400 via-amber-500 to-yellow-600",
   },
 ];
@@ -631,7 +633,7 @@ export function CashShopModal(props: Props) {
               setSupportOpen(true);
               const sysMsg: ChatMsg = {
                 id: crypto.randomUUID(), from: "support", ts: Date.now(),
-                text: `📩 Recebemos sua intenção de compra de "${selected.name}" (R$${selected.price}). Envie o comprovante do pagamento aqui para agilizar a entrega. Após aprovado, enviaremos seu código do produto.`,
+                text: `📩 Pedido de "${selected.name}" (R$${selected.price}) recebido e está em ANÁLISE. Envie o comprovante do PicPay aqui neste chat para agilizar. Após aprovado, você receberá o código do produto por aqui.`,
               };
               const next = [...chatMsgs, sysMsg];
               setChatMsgs(next); saveChat(uid, next);
@@ -676,8 +678,10 @@ function PurchaseModal({
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState("");
+  const [step, setStep] = useState<"form" | "await">("form");
+  const [orderId, setOrderId] = useState<string>("");
 
-  const submit = () => {
+  const goToPayment = () => {
     if (!charName.trim() || !email.trim() || !fullName.trim()) {
       setError("Preencha todos os campos.");
       return;
@@ -687,23 +691,45 @@ function PurchaseModal({
       return;
     }
     setError("");
+    const id = crypto.randomUUID();
+    setOrderId(id);
     try { window.open(product.link, "_blank", "noopener,noreferrer"); } catch { /* ignore */ }
-    // registra pedido local (fallback quando backend não estiver ligado)
+    // registra pedido local com status "aguardando_pagamento"
     try {
       const key = "rubym.cashshop.orders.v1";
       const arr = JSON.parse(localStorage.getItem(key) ?? "[]");
       arr.push({
-        id: crypto.randomUUID(),
+        id,
         product_id: product.id,
         product_name: product.name,
         price_brl: product.price,
+        payment_link: product.link,
         char_name: charName, email, full_name: fullName,
         created_at: new Date().toISOString(),
         status: "aguardando_pagamento",
       });
       localStorage.setItem(key, JSON.stringify(arr));
     } catch { /* ignore */ }
+    setStep("await");
+  };
+
+  const markPaid = () => {
+    // move pedido para "em_analise"
+    try {
+      const key = "rubym.cashshop.orders.v1";
+      const arr = JSON.parse(localStorage.getItem(key) ?? "[]");
+      const idx = arr.findIndex((o: { id?: string }) => o?.id === orderId);
+      if (idx >= 0) {
+        arr[idx].status = "em_analise";
+        arr[idx].paid_at = new Date().toISOString();
+        localStorage.setItem(key, JSON.stringify(arr));
+      }
+    } catch { /* ignore */ }
     onConfirm();
+  };
+
+  const reopenLink = () => {
+    try { window.open(product.link, "_blank", "noopener,noreferrer"); } catch { /* ignore */ }
   };
 
   return (
@@ -726,24 +752,68 @@ function PurchaseModal({
           </div>
         </div>
 
-        <div className="space-y-3">
-          <Field label="Nome do Personagem" value={charName} onChange={setCharName} placeholder="Ex: AshKetchum" />
-          <Field label="Email (Gmail)" value={email} onChange={setEmail} placeholder="voce@gmail.com" type="email" />
-          <Field label="Nome Completo do Comprador" value={fullName} onChange={setFullName} placeholder="Ex: João da Silva" />
-          {error && <div className="text-xs text-red-400">{error}</div>}
-        </div>
+        {step === "form" && (
+          <>
+            <div className="space-y-3">
+              <Field label="Nome do Personagem" value={charName} onChange={setCharName} placeholder="Ex: AshKetchum" />
+              <Field label="Email (Gmail)" value={email} onChange={setEmail} placeholder="voce@gmail.com" type="email" />
+              <Field label="Nome Completo do Comprador" value={fullName} onChange={setFullName} placeholder="Ex: João da Silva" />
+              {error && <div className="text-xs text-red-400">{error}</div>}
+            </div>
 
-        <div className="mt-5 space-y-2">
-          <button
-            onClick={submit}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black tracking-wider hover:shadow-[0_0_30px_rgba(250,204,21,.7)] transition"
-          >
-            IR PARA PAGAMENTO →
-          </button>
-          <div className="text-[10px] text-white/50 text-center">
-            Após o pagamento, envie o comprovante no chat de suporte para receber o código do produto.
+            <div className="mt-5 space-y-2">
+              <button
+                onClick={goToPayment}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black tracking-wider hover:shadow-[0_0_30px_rgba(250,204,21,.7)] transition"
+              >
+                IR PARA PAGAMENTO (PicPay) →
+              </button>
+              <div className="text-[10px] text-white/50 text-center">
+                O link do PicPay abre em uma nova aba. Depois de pagar, volte aqui e clique em <span className="text-amber-300 font-bold">"Já paguei"</span>.
+              </div>
+            </div>
+          </>
+        )}
+
+        {step === "await" && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-amber-400/40 bg-black/50 p-4 text-center">
+              <div className="text-4xl mb-1">💳</div>
+              <div className="text-white font-black text-sm">Aguardando confirmação de pagamento</div>
+              <div className="text-white/60 text-[11px] mt-1">
+                O link do PicPay foi aberto em nova aba. Após concluir o pagamento, clique em "Já paguei" para colocar seu pedido em <span className="text-amber-300 font-bold">análise</span> e enviar o comprovante no chat.
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-white/[.03] p-3 text-[11px] text-white/70 space-y-1">
+              <div><span className="text-white/40">Pedido:</span> <span className="text-amber-300 font-mono">{orderId.slice(0, 8).toUpperCase()}</span></div>
+              <div><span className="text-white/40">Personagem:</span> <span className="text-white">{charName}</span></div>
+              <div><span className="text-white/40">Valor:</span> <span className="text-emerald-300 font-bold">R${product.price}</span></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={reopenLink}
+                className="py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white text-sm font-bold"
+              >
+                Reabrir link
+              </button>
+              <button
+                onClick={markPaid}
+                className="py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-cyan-500 text-black font-black text-sm tracking-wider hover:shadow-[0_0_30px_rgba(52,211,153,.6)] transition"
+              >
+                JÁ PAGUEI ✓
+              </button>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-full py-2 rounded-lg text-white/50 hover:text-white/80 text-xs"
+            >
+              Cancelar
+            </button>
           </div>
-        </div>
+        )}
       </motion.div>
     </motion.div>
   );
