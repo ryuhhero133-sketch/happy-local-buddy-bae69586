@@ -555,6 +555,7 @@ const GIF: Partial<Record<Species, string>> = {
   lickitung: assetUrlFromJson(lickitungGifAsset),
   lickitung_shiny: assetUrlFromJson(lickitungShinyGifAsset),
   mewtwo_event: assetUrlFromJson(mewtwoEventGifAsset),
+  oddish_shiny: assetUrlFromJson(oddishShinyGifAsset),
 };
 
 
@@ -4355,7 +4356,7 @@ function IdlePage() {
       if (!entry) return s;
       const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
       const isEvent = entry.event === "oddish_odyssey";
-      const safiraGain = isEvent ? (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1) : 0;
+      const safiraGain = isEvent ? (entry.species === "oddish_shiny" ? 5 : (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1)) : 0;
       const bonus = safiraGain > 0 ? ` +${safiraGain} 💚 Safira Verde` : "";
       pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft${bonus}).`, "cap");
       consumedUidsRef.current.add(uid);
@@ -4569,6 +4570,11 @@ function IdlePage() {
             pool = ["mewtwo_event"] as Species[];
             forcedRarity = "mythic_shiny";
             mapLvRange = [Math.max(300, leaderLv), Math.max(300, leaderLv) + 10];
+          } else if (Math.random() < 0.015 && !enemies.some((e) => e.sp === "oddish_shiny")) {
+            // ✦ ODDISH SHINY — spawn raro (~1.5%), lendário, vale 5 Safiras Verdes ao fragmentar.
+            pool = ["oddish_shiny"] as Species[];
+            forcedRarity = "legendary";
+            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           } else {
             // 60% oddish/gloom/vileplume, 40% lickitung(_shiny)
             const useSleeper = Math.random() < 0.4;

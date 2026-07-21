@@ -153,8 +153,8 @@ export type Species =
   | "abomasnow" | "cloyster" | "cloyster_shiny" | "exeggutor" | "exeggutor_shiny"
   | "feraligatr" | "heracross" | "heracross_shiny" | "hitmonchan_shiny"
   | "kangaskhan" | "meganium" | "meganium_shiny" | "moltres_shiny" | "onix_shiny"
-  // Evento Odisséia Oddish — Lickitung (sonífero) + Mewtwo (mítico plus)
-  | "lickitung" | "lickitung_shiny" | "mewtwo_event";
+  // Evento Odisséia Oddish — Lickitung (sonífero) + Mewtwo (mítico plus) + Oddish Shiny raro
+  | "lickitung" | "lickitung_shiny" | "mewtwo_event" | "oddish_shiny";
 
 
 
@@ -417,6 +417,7 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   lickitung:        { hp: 90,  atk: 55,  def: 75,  spa: 60,  spd: 75,  spe: 30,  rarity: "epic",         goldRange: [70, 130],   crystalChance: 0.30, catchMod: 1.8, minLv: 20 },
   lickitung_shiny:  { hp: 90,  atk: 55,  def: 75,  spa: 60,  spd: 75,  spe: 30,  rarity: "legendary",    goldRange: [220, 380],  crystalChance: 0.60, catchMod: 2.6, minLv: 40 },
   mewtwo_event:     { hp: 106, atk: 110, def: 90,  spa: 154, spd: 90,  spe: 130, rarity: "mythic_shiny", goldRange: [3000, 5000],crystalChance: 1.0,  catchMod: 9.0, minLv: 300 },
+  oddish_shiny:     { hp: 55,  atk: 55,  def: 60,  spa: 85,  spd: 75,  spe: 45,  rarity: "legendary",    goldRange: [280, 460],  crystalChance: 0.70, catchMod: 3.2, minLv: 1 },
 };
 
 const RARITY_WEIGHT: Record<Rarity, number> = {

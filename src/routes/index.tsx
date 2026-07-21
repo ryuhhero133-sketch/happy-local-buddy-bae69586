@@ -601,7 +601,7 @@ const SPECIES_GIF: Record<Species, string> = {
   hitmonchan_shiny: hitmonchanShinyGif, kangaskhan: kangaskhanGif,
   meganium: meganiumGif, meganium_shiny: meganiumShinyGif,
   moltres_shiny: moltresShinyGif, onix_shiny: onixShinyGif,
-  lickitung: oddishGif, lickitung_shiny: oddishGif, mewtwo_event: oddishGif,
+  lickitung: oddishGif, lickitung_shiny: oddishGif, mewtwo_event: oddishGif, oddish_shiny: oddishGif,
 };
 
 
@@ -656,7 +656,7 @@ const SPECIES_NAME: Record<Species, string> = {
   hitmonchan_shiny: "HITMONCHAN ✧", kangaskhan: "KANGASKHAN ✦",
   meganium: "MEGANIUM ✦", meganium_shiny: "MEGANIUM ✧",
   moltres_shiny: "MOLTRES ✧", onix_shiny: "ONIX ✧",
-  lickitung: "LICKITUNG", lickitung_shiny: "LICKITUNG ✦", mewtwo_event: "MEWTWO ✦✧",
+  lickitung: "LICKITUNG", lickitung_shiny: "LICKITUNG ✦", mewtwo_event: "MEWTWO ✦✧", oddish_shiny: "ODDISH ✦",
 };
 
 
