@@ -54,8 +54,10 @@ type Props = {
 
 
 // ---------- Produtos ----------
-const PAYMENT_LINK =
-  "http://jmnw92l5.r.us-east-2.awstrack.me/L0/http:%2F%2Fsso.cakto.com.br%2Faccounts%2Flogin%2Fverify-magiclink%2F%3Ftoken=kEY0ZEpZm0lViSQ7OtJWsthxthUarpAwAsXWzgPxzOYNHD2ZOA%26expiresession=1%26email=pedigital%40hotmail.com/1/010f019f7b9d8602-12206b2c-2423-45f1-bc80-9939de510e13-000000/NkoZg_3Rr5FuFY8WBQeHvVYAlTM=258";
+// PicPay — link do BLACK MYTHIC PLUS (R$347)
+const PAYMENT_LINK_BLACK = "https://link.picpay.com/p/17846742186a5ff7aa48373";
+// PicPay — link dos demais pacotes (Ruby / Ruby+VIP)
+const PAYMENT_LINK_STANDARD = "https://link.picpay.com/p/17846738126a5ff61491b33";
 
 type Product = {
   id: string;
