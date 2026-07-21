@@ -4768,7 +4768,7 @@ function IdlePage() {
       let isMtcBoss = false;
       if (!isApex && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && leaderLv >= 500) {
         // ~1% dos spawns em Lv 500+; sobe levemente com o nível do líder
-        const chance = Math.min(0.025, 0.01 + (leaderLv - 500) * 0.00002);
+        const chance = Math.min(0.008, 0.003 + (leaderLv - 500) * 0.000008);
         if (Math.random() < chance) {
           isMtcBoss = true;
           sp = MTC_MONS[Math.floor(Math.random() * MTC_MONS.length)];
