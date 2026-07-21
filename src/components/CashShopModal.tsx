@@ -404,7 +404,7 @@ export function CashShopModal(props: Props) {
                   transition={{ delay: 0.35 }}
                   className="mt-2 max-w-xl text-white/80 text-xs sm:text-sm"
                 >
-                  Somente <span className="text-amber-300 font-bold">10 treinadores</span> conseguirão possuir este ovo exclusivo.
+                  Apenas <span className="text-amber-300 font-bold">{blackStock} de {STOCK_TOTAL}</span> restantes — <span className="text-amber-300 font-bold">{STOCK_TOTAL - blackStock}</span> já vendidos.
                 </motion.p>
                 <motion.button
                   initial={{ y: 15, opacity: 0 }}
