@@ -81,7 +81,7 @@ const PRODUCTS: Product[] = [
     image: rubyVipImg,
     badge: "MAIS VENDIDO",
     description: "Pacote com Rubys premium + VIP incluso. Bônus de XP, Gold e recompensas exclusivas.",
-    link: PAYMENT_LINK,
+    link: PAYMENT_LINK_STANDARD,
     accent: "from-amber-500 via-rose-500 to-red-600",
   },
   {
@@ -91,7 +91,7 @@ const PRODUCTS: Product[] = [
     price: 50,
     image: rubyPackImg,
     description: "Pacote generoso de Rubys para gastar como quiser dentro da loja premium.",
-    link: PAYMENT_LINK,
+    link: PAYMENT_LINK_STANDARD,
     accent: "from-rose-500 via-red-500 to-red-700",
   },
   {
@@ -104,7 +104,7 @@ const PRODUCTS: Product[] = [
     limited: 30,
     description:
       "O ovo mais raro já lançado no IdleMon. Possui Pokémon exclusivos, nunca voltará à loja. Quem comprar fará parte da primeira geração de treinadores lendários.",
-    link: PAYMENT_LINK,
+    link: PAYMENT_LINK_STANDARD,
     accent: "from-yellow-400 via-amber-500 to-yellow-600",
   },
 ];
