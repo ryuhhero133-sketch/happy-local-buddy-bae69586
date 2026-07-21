@@ -11727,7 +11727,7 @@ function TabOverlay({
                         const uids = Array.from(orbPickerSel);
                         setOrbPicker(null);
                         setOrbPickerSel(new Set());
-                        onTradeOrb(orbPicker.orbId, uids);
+                        onTradeOrb(orbPicker.orbId, uids, []);
                       }}
                       style={{
                         flex: 2, padding: "10px", fontWeight: 900,
