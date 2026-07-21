@@ -4570,6 +4570,11 @@ function IdlePage() {
             pool = ["mewtwo_event"] as Species[];
             forcedRarity = "mythic_shiny";
             mapLvRange = [Math.max(300, leaderLv), Math.max(300, leaderLv) + 10];
+          } else if (Math.random() < 0.015 && !enemies.some((e) => e.sp === "oddish_shiny")) {
+            // ✦ ODDISH SHINY — spawn raro (~1.5%), lendário, vale 5 Safiras Verdes ao fragmentar.
+            pool = ["oddish_shiny"] as Species[];
+            forcedRarity = "legendary";
+            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           } else {
             // 60% oddish/gloom/vileplume, 40% lickitung(_shiny)
             const useSleeper = Math.random() < 0.4;
