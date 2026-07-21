@@ -601,7 +601,7 @@ const SPECIES_GIF: Record<Species, string> = {
   hitmonchan_shiny: hitmonchanShinyGif, kangaskhan: kangaskhanGif,
   meganium: meganiumGif, meganium_shiny: meganiumShinyGif,
   moltres_shiny: moltresShinyGif, onix_shiny: onixShinyGif,
-  lickitung: oddishGif, lickitung_shiny: oddishGif, mewtwo_event: oddishGif,
+  lickitung: oddishGif, lickitung_shiny: oddishGif, mewtwo_event: oddishGif, oddish_shiny: oddishGif,
 };
 
 
