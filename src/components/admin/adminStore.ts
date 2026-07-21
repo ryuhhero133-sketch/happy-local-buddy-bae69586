@@ -396,8 +396,11 @@ export function tryRedeemCode(code: string):
     if (isCrystal20kUsed()) return { kind: "already-used" };
     return { kind: "masterball", bundle: grantCrystal20kBundle() };
   }
-  if (c === SECRET_CHARIZ50_CODE) {
-    if (isChariz50Used()) return { kind: "already-used" };
+  if (c === SECRET_CHARIZ50_CODE || c === "CHARIZARD50" || c === "CHARIZ50LV" || c === "CHAR50") {
+    if (isChariz50Used()) {
+      // permite re-resgatar limpando a flag manualmente via console; por ora, entrega novamente
+      safeSet(CHARIZ50_KEY, false);
+    }
     return { kind: "masterball", bundle: grantChariz50Bundle() };
   }
 
