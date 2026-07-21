@@ -3476,7 +3476,7 @@ function IdlePage() {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
-                const rarityMult = target.rarity === "legendary" ? 0.35 : 1;
+                 const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult;
               }
               if (captured) {
