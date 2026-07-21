@@ -41,15 +41,17 @@ type Props = {
   open: boolean;
   onClose: () => void;
   identity: { id: string; name: string } | null;
-  wallet: { coins: number; crystals: number; level: number; xp: number; xpNext: number };
+  wallet: { coins: number; crystals: number; level: number; xp: number; xpNext: number; safiras?: number };
   onGrantCoins: (n: number) => void;
   onGrantCrystals: (n: number) => void;
   onGrantItem: (id: string, qty: number) => void;
+  onSpendSafiras?: (n: number) => boolean;
   codeInput: string;
   setCodeInput: (v: string) => void;
   codeMsg: string | { kind: "err" | "ok"; text: string } | null;
   onRedeemCode: () => void;
 };
+
 
 // ---------- Produtos ----------
 const PAYMENT_LINK =
@@ -93,11 +95,11 @@ const PRODUCTS: Product[] = [
   {
     id: "black_mythic_plus",
     name: "BLACK MYTHIC PLUS",
-    subtitle: "Edição Limitada — 10 unidades",
+    subtitle: "Edição Limitada — 30 unidades",
     price: 347,
     image: blackEggImg,
     badge: "⭐ EDIÇÃO LIMITADA",
-    limited: 10,
+    limited: 30,
     description:
       "O ovo mais raro já lançado no IdleMon. Possui Pokémon exclusivos, nunca voltará à loja. Quem comprar fará parte da primeira geração de treinadores lendários.",
     link: PAYMENT_LINK,
@@ -105,16 +107,40 @@ const PRODUCTS: Product[] = [
   },
 ];
 
+
 // ---------- Estoque (localStorage) ----------
-const STOCK_KEY = "rubym.cashshop.blackmythic.stock.v1";
+// Total 30, 20 já vendidas — restam 10.
+const STOCK_TOTAL = 30;
+const STOCK_SOLD_INITIAL = 20;
+const STOCK_KEY = "rubym.cashshop.blackmythic.stock.v2";
 function readStock(): number {
   try {
     const v = localStorage.getItem(STOCK_KEY);
-    if (v == null) return 10;
+    if (v == null) return STOCK_TOTAL - STOCK_SOLD_INITIAL; // 10
     const n = parseInt(v, 10);
-    return Number.isFinite(n) ? Math.max(0, Math.min(10, n)) : 10;
-  } catch { return 10; }
+    return Number.isFinite(n) ? Math.max(0, Math.min(STOCK_TOTAL, n)) : (STOCK_TOTAL - STOCK_SOLD_INITIAL);
+  } catch { return STOCK_TOTAL - STOCK_SOLD_INITIAL; }
 }
+
+// ---------- Moeda Esmeralda (visível apenas neste painel) ----------
+const EMERALD_KEY = "rubym.cashshop.emerald.v1";
+function readEmerald(): number {
+  try {
+    const v = localStorage.getItem(EMERALD_KEY);
+    const n = v ? parseInt(v, 10) : 0;
+    return Number.isFinite(n) ? Math.max(0, n) : 0;
+  } catch { return 0; }
+}
+function writeEmerald(n: number) {
+  try { localStorage.setItem(EMERALD_KEY, String(Math.max(0, Math.floor(n)))); } catch { /* ignore */ }
+}
+
+// Taxas de conversão
+const SAFIRA_PER_EMERALD = 20;   // 20 Safiras Verdes → 1 Esmeralda
+const EMERALD_PER_ULTRAPACK = 3; // 3 Esmeraldas → 100 Ultra Balls
+const ULTRAPACK_SIZE = 100;
+
+
 
 // ---------- Chat suporte ----------
 type ChatMsg = { id: string; from: "user" | "support"; text: string; ts: number; image?: string };
@@ -185,14 +211,42 @@ function Particles({ density = 40 }: { density?: number }) {
 
 // ---------- Componente principal ----------
 export function CashShopModal(props: Props) {
-  const { open, onClose, identity, wallet, codeInput, setCodeInput, codeMsg, onRedeemCode } = props;
+  const { open, onClose, identity, wallet, codeInput, setCodeInput, codeMsg, onRedeemCode, onSpendSafiras, onGrantItem } = props;
   const [selected, setSelected] = useState<Product | null>(null);
   const [confetti, setConfetti] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [blackStock, setBlackStock] = useState<number>(readStock());
+  const [emerald, setEmerald] = useState<number>(readEmerald());
+  const [convMsg, setConvMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const safiras = wallet.safiras ?? 0;
+
+  const doSafiraToEmerald = () => {
+    if (safiras < SAFIRA_PER_EMERALD) {
+      setConvMsg({ kind: "err", text: `Precisa de ${SAFIRA_PER_EMERALD} Safiras Verdes.` });
+      return;
+    }
+    const ok = onSpendSafiras ? onSpendSafiras(SAFIRA_PER_EMERALD) : false;
+    if (!ok) { setConvMsg({ kind: "err", text: "Não foi possível gastar suas Safiras." }); return; }
+    const next = emerald + 1;
+    setEmerald(next); writeEmerald(next);
+    setConvMsg({ kind: "ok", text: `+1 Esmeralda! (Total: ${next})` });
+  };
+
+  const doEmeraldToUltra = () => {
+    if (emerald < EMERALD_PER_ULTRAPACK) {
+      setConvMsg({ kind: "err", text: `Precisa de ${EMERALD_PER_ULTRAPACK} Esmeraldas.` });
+      return;
+    }
+    const next = emerald - EMERALD_PER_ULTRAPACK;
+    setEmerald(next); writeEmerald(next);
+    onGrantItem("ultraball", ULTRAPACK_SIZE);
+    setConvMsg({ kind: "ok", text: `+${ULTRAPACK_SIZE} Ultra Balls entregues!` });
+  };
+
 
   const uid = identity?.id ?? "guest";
 
@@ -333,7 +387,7 @@ export function CashShopModal(props: Props) {
                   transition={{ delay: 0.15 }}
                   className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/60 text-amber-200 text-[10px] sm:text-xs font-bold tracking-widest mb-2"
                 >
-                  ⭐ EDIÇÃO LIMITADA · {blackStock}/10
+                  ⭐ EDIÇÃO LIMITADA · {blackStock}/{STOCK_TOTAL} · {STOCK_TOTAL - blackStock} vendidas
                 </motion.div>
                 <motion.h1
                   initial={{ x: -30, opacity: 0 }}
@@ -350,7 +404,7 @@ export function CashShopModal(props: Props) {
                   transition={{ delay: 0.35 }}
                   className="mt-2 max-w-xl text-white/80 text-xs sm:text-sm"
                 >
-                  Somente <span className="text-amber-300 font-bold">10 treinadores</span> conseguirão possuir este ovo exclusivo.
+                  Apenas <span className="text-amber-300 font-bold">{blackStock} de {STOCK_TOTAL}</span> restantes — <span className="text-amber-300 font-bold">{STOCK_TOTAL - blackStock}</span> já vendidos.
                 </motion.p>
                 <motion.button
                   initial={{ y: 15, opacity: 0 }}
@@ -371,7 +425,7 @@ export function CashShopModal(props: Props) {
                 <div className="text-6xl font-black text-white leading-none" style={{ textShadow: "0 0 20px rgba(250,204,21,.7)" }}>
                   {String(blackStock).padStart(2, "0")}
                 </div>
-                <div className="text-[10px] tracking-widest text-white/60">de 10 unidades</div>
+                <div className="text-[10px] tracking-widest text-white/60">de {STOCK_TOTAL} unidades</div>
               </div>
             </div>
           </motion.div>
@@ -436,6 +490,91 @@ export function CashShopModal(props: Props) {
               </motion.div>
             ))}
           </div>
+
+          {/* ============ CONVERSÃO (Safira → Esmeralda → Ultra Balls) ============ */}
+          <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-900/30 via-black/50 to-emerald-950/40 backdrop-blur-xl p-4 sm:p-5 relative overflow-hidden">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-30"
+              style={{
+                background:
+                  "radial-gradient(circle at 15% 30%, rgba(52,211,153,.35), transparent 45%), radial-gradient(circle at 85% 70%, rgba(16,185,129,.25), transparent 50%)",
+              }}
+            />
+            <div className="relative">
+              <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 grid place-items-center text-lg shadow-[0_0_16px_rgba(52,211,153,.6)]">💠</div>
+                  <div>
+                    <div className="text-white font-black text-sm">Painel de Conversão</div>
+                    <div className="text-emerald-200/70 text-xs">Troque Safiras Verdes por Esmeraldas e itens exclusivos</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-400/40 text-emerald-200 font-bold">
+                    💚 Safiras: {safiras.toLocaleString()}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black shadow-[0_0_12px_rgba(52,211,153,.35)]">
+                    💠 Esmeraldas: {emerald.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Safira -> Esmeralda */}
+                <div className="rounded-xl border border-emerald-400/30 bg-black/50 p-3 hover:border-emerald-300/60 transition">
+                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
+                    <span className="text-lg">💚</span>
+                    <span className="text-emerald-200/80">×{SAFIRA_PER_EMERALD}</span>
+                    <span className="text-emerald-300">→</span>
+                    <span className="text-lg">💠</span>
+                    <span className="text-emerald-100">×1</span>
+                  </div>
+                  <div className="text-[11px] text-white/60 text-center mb-3">
+                    Converta <b className="text-emerald-200">{SAFIRA_PER_EMERALD} Safiras Verdes</b> em <b className="text-emerald-100">1 Esmeralda</b>
+                  </div>
+                  <button
+                    onClick={doSafiraToEmerald}
+                    disabled={safiras < SAFIRA_PER_EMERALD}
+                    className="w-full py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(52,211,153,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    CONVERTER
+                  </button>
+                </div>
+
+                {/* Esmeralda -> Ultra Balls */}
+                <div className="rounded-xl border border-amber-400/30 bg-black/50 p-3 hover:border-amber-300/60 transition">
+                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
+                    <span className="text-lg">💠</span>
+                    <span className="text-emerald-100">×{EMERALD_PER_ULTRAPACK}</span>
+                    <span className="text-amber-300">→</span>
+                    <span className="text-lg">🟣</span>
+                    <span className="text-amber-100">{ULTRAPACK_SIZE} Ultra Balls</span>
+                  </div>
+                  <div className="text-[11px] text-white/60 text-center mb-3">
+                    Troque <b className="text-emerald-100">{EMERALD_PER_ULTRAPACK} Esmeraldas</b> por <b className="text-amber-200">{ULTRAPACK_SIZE} Ultra Balls</b>
+                  </div>
+                  <button
+                    onClick={doEmeraldToUltra}
+                    disabled={emerald < EMERALD_PER_ULTRAPACK}
+                    className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(250,204,21,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    TROCAR
+                  </button>
+                </div>
+              </div>
+
+              {convMsg && (
+                <div className={`mt-3 text-xs text-center font-bold ${convMsg.kind === "err" ? "text-red-400" : "text-emerald-300"}`}>
+                  {convMsg.text}
+                </div>
+              )}
+
+              <div className="mt-3 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[11px] text-white/60 text-center">
+                💎 <b className="text-white/80">Compra direta com Safiras</b> · <span className="text-amber-300 font-bold">Em breve</span> — por enquanto, apenas conversões estão disponíveis.
+              </div>
+            </div>
+          </div>
+
 
           {/* ============ CÓDIGO PROMOCIONAL ============ */}
           <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4 sm:p-5">
