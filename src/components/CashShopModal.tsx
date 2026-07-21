@@ -633,7 +633,7 @@ export function CashShopModal(props: Props) {
               setSupportOpen(true);
               const sysMsg: ChatMsg = {
                 id: crypto.randomUUID(), from: "support", ts: Date.now(),
-                text: `📩 Recebemos sua intenção de compra de "${selected.name}" (R$${selected.price}). Envie o comprovante do pagamento aqui para agilizar a entrega. Após aprovado, enviaremos seu código do produto.`,
+                text: `📩 Pedido de "${selected.name}" (R$${selected.price}) recebido e está em ANÁLISE. Envie o comprovante do PicPay aqui neste chat para agilizar. Após aprovado, você receberá o código do produto por aqui.`,
               };
               const next = [...chatMsgs, sysMsg];
               setChatMsgs(next); saveChat(uid, next);
