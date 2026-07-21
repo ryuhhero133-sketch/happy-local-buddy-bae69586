@@ -1,1101 +1,752 @@
-// LOJA POKÉMON — redesenho fiel ao mock (banner de madeira, tabs, cards em pergaminho,
-// colunas laterais de Carteira/Converter/Código e Pacotes Especiais, nav inferior).
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { isAdmin as readIsAdmin } from "@/components/admin/adminStore";
-import { assetUrlFromJson } from "@/lib/assetUrl";
-import shopBannerAsset from "@/assets/shop-banner.png.asset.json";
-import shopBgAsset from "@/assets/shop-bg.jpg.asset.json";
+// LOJINHA CASH — Premium redesign (Black Mythic Plus edition)
+// Design: glassmorphism, particles, framer-motion, cinematic banner.
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import blackEggImg from "@/assets/black-mythic-plus-egg.jpg";
+import rubyVipImg from "@/assets/ruby-vip.jpg";
+import rubyPackImg from "@/assets/ruby-pack.jpg";
 
-// ---------- Types ----------
+// Mantém tipos exportados p/ compat externa (não usados internamente agora)
 export type CashProduct = {
   id: string;
-  category: "featured" | "sapphire" | "package" | "egg" | "premium" | "promo" | "other";
+  category: string;
   name: string;
   description: string | null;
   image_url: string | null;
-  currency: "cash" | "sapphires" | "tokens" | "tickets" | "coins" | "crystals";
+  currency: string;
   price: number;
   discount_pct: number | null;
   grants: Record<string, number> | null;
   active: boolean;
   sort: number | null;
   badge: string | null;
-  // Pagamento manual (PicPay/Stripe Link/MercadoPago)
   payment_link_url?: string | null;
   price_brl?: number | null;
   payment_method?: string | null;
 };
-
 export type PendingPurchase = {
-  id: string;
-  user_id: string;
-  username: string;
-  product_id: string;
-  product_name: string;
-  price_brl: number | null;
-  payment_method: string | null;
-  payment_link_url: string | null;
-  transaction_ref: string | null;
-  grants: Record<string, number>;
+  id: string; user_id: string; username: string; product_id: string; product_name: string;
+  price_brl: number | null; payment_method: string | null; payment_link_url: string | null;
+  transaction_ref: string | null; grants: Record<string, number>;
   status: "analise" | "approved" | "rejected" | "expired";
-  admin_note: string | null;
-  approved_by: string | null;
-  created_at: string;
-  expires_at: string;
-  resolved_at: string | null;
+  admin_note: string | null; approved_by: string | null;
+  created_at: string; expires_at: string; resolved_at: string | null;
 };
-
 export type Wallet = {
-  coins: number; crystals: number; sapphires: number;
-  tokens: number; tickets: number; cash: number;
-  vip_until: number | null; premium_until: number | null;
+  coins: number; crystals: number; sapphires?: number; tokens?: number;
+  tickets?: number; cash?: number; level?: number; xp?: number; xpNext?: number;
 };
 
-export type CashShopModalProps = {
+type Props = {
   open: boolean;
   onClose: () => void;
   identity: { id: string; name: string } | null;
-  wallet: Partial<Wallet> & { level?: number; xp?: number; xpNext?: number };
-  onGrantCoins?: (n: number) => void;
-  onGrantCrystals?: (n: number) => void;
-  onGrantItem?: (itemId: string, qty: number) => void;
-  onGrantPokemon?: (species: string, rarity?: string) => void;
-  onOpenCodeTab?: () => void;
-  onRedeemCode?: (code: string) => void;
-  codeInput?: string;
-  setCodeInput?: (v: string) => void;
-  codeMsg?: { kind: "ok" | "err"; text: string } | null;
+  wallet: { coins: number; crystals: number; level: number; xp: number; xpNext: number };
+  onGrantCoins: (n: number) => void;
+  onGrantCrystals: (n: number) => void;
+  onGrantItem: (id: string, qty: number) => void;
+  codeInput: string;
+  setCodeInput: (v: string) => void;
+  codeMsg: string;
+  onRedeemCode: () => void;
 };
 
-type TabId = "featured" | "items" | "coins" | "sapphires" | "pokemon" | "all";
-const TABS: { id: TabId; label: string }[] = [
-  { id: "featured", label: "EM DESTAQUE" },
-  { id: "items",    label: "ITENS" },
-  { id: "coins",    label: "MOEDAS" },
-  { id: "sapphires",label: "SAFIRAS" },
-  { id: "pokemon",  label: "POKÉMON" },
-  { id: "all",      label: "TUDO" },
+// ---------- Produtos ----------
+const PAYMENT_LINK =
+  "http://jmnw92l5.r.us-east-2.awstrack.me/L0/http:%2F%2Fsso.cakto.com.br%2Faccounts%2Flogin%2Fverify-magiclink%2F%3Ftoken=kEY0ZEpZm0lViSQ7OtJWsthxthUarpAwAsXWzgPxzOYNHD2ZOA%26expiresession=1%26email=pedigital%40hotmail.com/1/010f019f7b9d8602-12206b2c-2423-45f1-bc80-9939de510e13-000000/NkoZg_3Rr5FuFY8WBQeHvVYAlTM=258";
+
+type Product = {
+  id: string;
+  name: string;
+  subtitle: string;
+  price: number;
+  image: string;
+  badge?: string;
+  limited?: number;
+  description: string;
+  link: string;
+  accent: string; // gradient
+};
+
+const PRODUCTS: Product[] = [
+  {
+    id: "ruby_vip",
+    name: "Ruby + VIP",
+    subtitle: "Melhor custo-benefício",
+    price: 50,
+    image: rubyVipImg,
+    badge: "MAIS VENDIDO",
+    description: "Pacote com Rubys premium + VIP incluso. Bônus de XP, Gold e recompensas exclusivas.",
+    link: PAYMENT_LINK,
+    accent: "from-amber-500 via-rose-500 to-red-600",
+  },
+  {
+    id: "ruby",
+    name: "Ruby",
+    subtitle: "Pacote de Rubys",
+    price: 50,
+    image: rubyPackImg,
+    description: "Pacote generoso de Rubys para gastar como quiser dentro da loja premium.",
+    link: PAYMENT_LINK,
+    accent: "from-rose-500 via-red-500 to-red-700",
+  },
+  {
+    id: "black_mythic_plus",
+    name: "BLACK MYTHIC PLUS",
+    subtitle: "Edição Limitada — 10 unidades",
+    price: 347,
+    image: blackEggImg,
+    badge: "⭐ EDIÇÃO LIMITADA",
+    limited: 10,
+    description:
+      "O ovo mais raro já lançado no IdleMon. Possui Pokémon exclusivos, nunca voltará à loja. Quem comprar fará parte da primeira geração de treinadores lendários.",
+    link: PAYMENT_LINK,
+    accent: "from-yellow-400 via-amber-500 to-yellow-600",
+  },
 ];
 
-const BANNER = assetUrlFromJson(shopBannerAsset);
-const BG = assetUrlFromJson(shopBgAsset);
-
-const currencyIcon = (c: CashProduct["currency"]) =>
-  ({ cash: "💵", sapphires: "🟢", tokens: "🟣", tickets: "🎟", coins: "🪙", crystals: "💎" }[c] ?? "•");
-
-function fmt(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return n.toLocaleString("pt-BR");
-  return String(n);
+// ---------- Estoque (localStorage) ----------
+const STOCK_KEY = "rubym.cashshop.blackmythic.stock.v1";
+function readStock(): number {
+  try {
+    const v = localStorage.getItem(STOCK_KEY);
+    if (v == null) return 10;
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? Math.max(0, Math.min(10, n)) : 10;
+  } catch { return 10; }
 }
 
-// ============ Panels ============
+// ---------- Chat suporte ----------
+type ChatMsg = { id: string; from: "user" | "support"; text: string; ts: number; image?: string };
+const CHAT_KEY = (uid: string) => `rubym.cashshop.chat.v1.${uid}`;
 
-function CardHeader({ icon, title, color }: { icon: string; title: string; color: string }) {
+function loadChat(uid: string): ChatMsg[] {
+  try {
+    const raw = localStorage.getItem(CHAT_KEY(uid));
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+function saveChat(uid: string, msgs: ChatMsg[]) {
+  try { localStorage.setItem(CHAT_KEY(uid), JSON.stringify(msgs.slice(-100))); } catch { /* ignore */ }
+}
+
+// ---------- Partículas ----------
+function Particles({ density = 40 }: { density?: number }) {
+  const arr = useMemo(() => Array.from({ length: density }, (_, i) => i), [density]);
   return (
-    <div style={{
-      padding: "10px 12px",
-      background: `linear-gradient(180deg, ${color}22, transparent)`,
-      borderBottom: `1.5px solid ${color}55`,
-      color, fontWeight: 900, fontSize: 12, letterSpacing: 1.5,
-      display: "flex", alignItems: "center", gap: 8,
-    }}>
-      <span style={{ fontSize: 16 }}>{icon}</span>
-      <span>{title}</span>
-    </div>
-  );
-}
-
-function LeftCarteira({ w }: { w: Partial<Wallet> }) {
-  return (
-    <div style={cardBox("#1e2a4a", "#3d5aa8")}>
-      <CardHeader icon="💼" title="CARTEIRA" color="#7aa5ff" />
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px 12px" }}>
-        <ResourceRow icon="🪙" color="#f5cf6b" value={w.coins ?? 0} />
-        <ResourceRow icon="💎" color="#7dd3fc" value={w.crystals ?? 0} action="+" />
-      </div>
-    </div>
-  );
-}
-
-function ResourceRow({ icon, color, value, action }: { icon: string; color: string; value: number; action?: string }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      background: "rgba(8,14,32,0.6)", border: `1.5px solid ${color}44`,
-      borderRadius: 10, padding: "8px 12px",
-    }}>
-      <span style={{ fontSize: 20, filter: `drop-shadow(0 0 6px ${color})` }}>{icon}</span>
-      <span style={{ flex: 1, fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: 0.5 }}>{fmt(value)}</span>
-      {action && (
-        <div style={{
-          width: 26, height: 26, borderRadius: 6,
-          background: "linear-gradient(180deg,#f7c14a,#d99a2a)",
-          color: "#3a1e05", fontWeight: 900, fontSize: 16,
-          display: "grid", placeItems: "center", cursor: "pointer",
-          boxShadow: "0 2px 0 #7a4c0f",
-        }}>{action}</div>
-      )}
-    </div>
-  );
-}
-
-function LeftConverter({ w, onConvert }: { w: Partial<Wallet>; onConvert: (from: string, to: string, af: number, at: number) => void }) {
-  const [coinsToCry, setCoinsToCry] = useState(1000);
-  const [cryToCoins, setCryToCoins] = useState(100);
-  const gotCrystals = Math.floor(coinsToCry / 10);
-  const gotCoins = cryToCoins * 10;
-  return (
-    <div style={cardBox("#1e2a4a", "#3d5aa8")}>
-      <CardHeader icon="🔄" title="CONVERTER" color="#7aa5ff" />
-      <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ fontSize: 10.5, color: "#b8c8f0", textAlign: "center", lineHeight: 1.4 }}>
-          Converta moedas em cristais e cristais em moedas.
-        </div>
-        <ConvertRow icon1="🪙" icon2="💎" val={coinsToCry} setVal={setCoinsToCry} result={gotCrystals} />
-        <ConvertRow icon1="💎" icon2="🪙" val={cryToCoins} setVal={setCryToCoins} result={gotCoins} />
-        <button onClick={() => onConvert("coins","crystals",coinsToCry,gotCrystals)} style={btnGreen}>CONVERTER</button>
-      </div>
-    </div>
-  );
-}
-
-function ConvertRow({ icon1, icon2, val, setVal, result }: { icon1: string; icon2: string; val: number; setVal: (n: number) => void; result: number }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 6, alignItems: "center" }}>
-      <div style={convBox}>
-        <span style={{ fontSize: 14 }}>{icon1}</span>
-        <input type="number" value={val} onChange={e => setVal(Math.max(0, Number(e.target.value)))}
-          style={convInput} />
-      </div>
-      <span style={{ color: "#7aa5ff", fontSize: 14, fontWeight: 900 }}>»</span>
-      <div style={convBox}>
-        <span style={{ fontSize: 14 }}>{icon2}</span>
-        <span style={{ ...convInput, textAlign: "right" as const, padding: "4px 6px" }}>{fmt(result)}</span>
-      </div>
-    </div>
-  );
-}
-
-function LeftPromoCode({ codeInput, setCodeInput, onRedeem, msg }: {
-  codeInput?: string; setCodeInput?: (v: string) => void;
-  onRedeem?: (c: string) => void; msg?: { kind: "ok" | "err"; text: string } | null;
-}) {
-  return (
-    <div style={cardBox("#2a1a4a", "#6b47c9")}>
-      <CardHeader icon="🎁" title="CÓDIGO PROMOCIONAL" color="#c4a3ff" />
-      <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ fontSize: 10.5, color: "#d6c5ff", textAlign: "center", lineHeight: 1.4 }}>
-          Resgate códigos e ganhe recompensas exclusivas!
-        </div>
-        <input value={codeInput ?? ""} onChange={e => setCodeInput?.(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter") onRedeem?.(codeInput ?? ""); }}
-          placeholder="Digite o código..."
-          style={{
-            padding: "10px 12px", background: "rgba(8,14,32,0.7)",
-            color: "#fff", border: "1.5px solid #6b47c988", borderRadius: 8,
-            fontSize: 12, fontWeight: 700, letterSpacing: 1,
-          }} />
-        <button onClick={() => onRedeem?.(codeInput ?? "")} style={btnPurple}>RESGATAR</button>
-        {msg && (
-          <div style={{
-            padding: "6px 10px", borderRadius: 6, fontSize: 11, fontWeight: 800, textAlign: "center",
-            background: msg.kind === "ok" ? "rgba(74,222,128,0.2)" : "rgba(239,68,68,0.2)",
-            color: msg.kind === "ok" ? "#86efac" : "#fca5a5",
-          }}>{msg.text}</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function TrainerCard({ name, level, xp, xpNext, coins, crystals }: {
-  name: string; level: number; xp: number; xpNext: number; coins: number; crystals: number;
-}) {
-  const pct = Math.min(100, Math.round((xp / Math.max(1, xpNext)) * 100));
-  return (
-    <div style={{
-      background: "linear-gradient(160deg, #14213e, #0f1a30)",
-      border: "2px solid #f5cf6b",
-      borderRadius: 14, padding: "12px 16px", minWidth: 260,
-      boxShadow: "0 6px 20px rgba(0,0,0,0.5), 0 0 18px rgba(245,207,107,0.25)",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.5, color: "#ffe08a" }}>TREINADOR</span>
-        <span style={{ fontSize: 10, color: "#c8b8e8", maxWidth: 120, textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{name}</span>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 12, color: "#e8dcff", fontWeight: 700 }}>Nível {level}</span>
-        <div style={{ flex: 1, height: 8, background: "rgba(0,0,0,0.5)", borderRadius: 4, overflow: "hidden", border: "1px solid #3a4c7a" }}>
-          <div style={{ width: `${pct}%`, height: "100%", background: "linear-gradient(90deg,#5aa4ff,#7dd3fc)", boxShadow: "0 0 8px #7dd3fc" }} />
-        </div>
-        <span style={{ fontSize: 10, color: "#a89cc9", fontWeight: 800 }}>{pct}%</span>
-      </div>
-      <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-        <span style={miniChip("#f5cf6b")}>🪙 {fmt(coins)}</span>
-        <span style={miniChip("#7dd3fc")}>💎 {fmt(crystals)}</span>
-        <div style={{
-          width: 26, height: 26, borderRadius: 6,
-          background: "linear-gradient(180deg,#f7c14a,#d99a2a)",
-          color: "#3a1e05", fontWeight: 900, fontSize: 16,
-          display: "grid", placeItems: "center", cursor: "pointer", marginLeft: "auto",
-          boxShadow: "0 2px 0 #7a4c0f",
-        }}>+</div>
-      </div>
-    </div>
-  );
-}
-
-// Product tile — parchment / wooden card
-function ProductTile({ p, onBuy, onBuyBRL, canAfford }: { p: CashProduct; onBuy: () => void; onBuyBRL: () => void; canAfford: boolean }) {
-  const price = p.discount_pct ? Math.floor(p.price * (1 - p.discount_pct / 100)) : p.price;
-  const hasBRL = !!p.payment_link_url && !!p.price_brl && p.price_brl > 0;
-  return (
-    <div style={{
-      background: "linear-gradient(180deg, #f5e6b8 0%, #ecd18e 100%)",
-      border: "3px solid #8a5a2c",
-      borderRadius: 12,
-      padding: 10,
-      boxShadow: "0 4px 0 #5c3a18, 0 6px 12px rgba(0,0,0,0.4), inset 0 2px 0 #fff5cc",
-      display: "flex", flexDirection: "column", gap: 6,
-    }}>
-      <div style={{
-        fontSize: 11, fontWeight: 900, letterSpacing: 1, color: "#3a1e05",
-        textAlign: "center", textTransform: "uppercase",
-        textShadow: "0 1px 0 #fff8d4",
-      }}>{p.name}</div>
-      <div style={{
-        aspectRatio: "1/1", background: "rgba(255,255,255,0.35)",
-        border: "1.5px solid #8a5a2c66", borderRadius: 8,
-        display: "grid", placeItems: "center", overflow: "hidden",
-      }}>
-        {p.image_url ? (
-          <img src={p.image_url} alt={p.name} loading="lazy"
-            style={{ width: "80%", height: "80%", objectFit: "contain", imageRendering: "pixelated" }} />
-        ) : (
-          <div style={{ fontSize: 40 }}>{currencyIcon(p.currency)}</div>
-        )}
-      </div>
-      {p.description && (
-        <div style={{
-          fontSize: 10, color: "#5c3a18", textAlign: "center",
-          lineHeight: 1.3, minHeight: 26,
-        }}>{p.description}</div>
-      )}
-      <button onClick={onBuy} disabled={!canAfford} style={{
-        background: canAfford
-          ? "linear-gradient(180deg, #2f4b7a, #1e3358)"
-          : "linear-gradient(180deg, #6b6b6b, #4a4a4a)",
-        border: `2px solid ${canAfford ? "#5a7db8" : "#666"}`,
-        color: "#fff",
-        fontWeight: 900, fontSize: 13, letterSpacing: 0.5,
-        borderRadius: 8, padding: "6px 8px",
-        cursor: canAfford ? "pointer" : "not-allowed",
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-        boxShadow: canAfford ? "0 2px 0 #0a1224, inset 0 1px 0 rgba(255,255,255,0.15)" : "none",
-      }}>
-        <span style={{ fontSize: 15, filter: `drop-shadow(0 0 4px ${p.currency === "crystals" || p.currency === "sapphires" ? "#7dd3fc" : "#f5cf6b"})` }}>{currencyIcon(p.currency)}</span>
-        <span>{fmt(price)}</span>
-      </button>
-      {hasBRL && (
-        <button onClick={onBuyBRL} style={{
-          background: "linear-gradient(180deg,#22c55e,#15803d)",
-          border: "2px solid #86efac", color: "#fff",
-          fontWeight: 900, fontSize: 12, letterSpacing: 0.5,
-          borderRadius: 8, padding: "6px 8px", cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-          boxShadow: "0 2px 0 #0a3a1a, inset 0 1px 0 rgba(255,255,255,0.2)",
-        }}>
-          <span style={{ fontSize: 14 }}>💵</span>
-          <span>R$ {p.price_brl!.toFixed(2).replace(".", ",")}</span>
-        </button>
-      )}
-    </div>
-  );
-}
-
-function RightPacotes({ products, onBuy, onBuyBRL }: { products: CashProduct[]; onBuy: (p: CashProduct) => void; onBuyBRL: (p: CashProduct) => void }) {
-  const pkgs = products.filter(p => p.category === "package" || p.category === "premium").slice(0, 3);
-  return (
-    <div style={cardBox("#2a1a4a", "#6b47c9")}>
-      <CardHeader icon="🎁" title="PACOTES ESPECIAIS" color="#c4a3ff" />
-      <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: 10 }}>
-        {pkgs.length === 0 && (
-          <div style={{ padding: 12, color: "#c4a3ff", fontSize: 11, textAlign: "center" }}>
-            Nenhum pacote cadastrado. Adicione na tabela <code>cash_products</code>.
-          </div>
-        )}
-        {pkgs.map(p => (
-          <div key={p.id} style={{
-            background: "linear-gradient(160deg, rgba(30,20,60,0.85), rgba(50,30,90,0.85))",
-            border: "1.5px solid #6b47c9",
-            borderRadius: 10, padding: 10,
-            display: "grid", gridTemplateColumns: "70px 1fr", gap: 10,
-          }}>
-            <div style={{
-              width: 70, height: 70, borderRadius: 8,
-              background: "radial-gradient(circle at 50% 40%, rgba(196,163,255,0.3), transparent 70%)",
-              border: "1.5px solid #6b47c9aa",
-              display: "grid", placeItems: "center", overflow: "hidden",
-            }}>
-              {p.image_url ? (
-                <img src={p.image_url} alt={p.name} loading="lazy" style={{ width: "88%", height: "88%", objectFit: "contain", imageRendering: "pixelated" }} />
-              ) : <div style={{ fontSize: 32 }}>📦</div>}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#f5cf6b", letterSpacing: 0.5 }}>{p.name.toUpperCase()}</div>
-              <div style={{ fontSize: 10, color: "#d6c5ff", lineHeight: 1.4, minHeight: 26 }}>{p.description}</div>
-              <button onClick={() => onBuy(p)} style={{
-                marginTop: 4,
-                background: "linear-gradient(180deg,#5abf5a,#3a8f3a)",
-                border: "1.5px solid #86ef86", color: "#fff",
-                fontWeight: 900, fontSize: 11, letterSpacing: 0.8,
-                borderRadius: 6, padding: "6px 10px", cursor: "pointer",
-                alignSelf: "flex-start",
-                boxShadow: "0 2px 0 #1e5a1e",
-              }}>{currencyIcon(p.currency)} {fmt(p.discount_pct ? Math.floor(p.price*(1-p.discount_pct/100)) : p.price)}</button>
-              {p.payment_link_url && p.price_brl && p.price_brl > 0 && (
-                <button onClick={() => onBuyBRL(p)} style={{
-                  marginTop: 4, background: "linear-gradient(180deg,#22c55e,#15803d)",
-                  border: "1.5px solid #86efac", color: "#fff",
-                  fontWeight: 900, fontSize: 11, letterSpacing: 0.5,
-                  borderRadius: 6, padding: "6px 10px", cursor: "pointer",
-                  alignSelf: "flex-start", boxShadow: "0 2px 0 #0a3a1a",
-                }}>💵 R$ {p.price_brl.toFixed(2).replace(".", ",")}</button>
-              )}
-            </div>
-          </div>
-        ))}
-        <button style={{
-          marginTop: 4,
-          background: "linear-gradient(180deg,#f7c14a,#d99a2a)",
-          border: "1.5px solid #ffe08a", color: "#3a1e05",
-          fontWeight: 900, fontSize: 11, letterSpacing: 1,
-          borderRadius: 8, padding: "10px", cursor: "pointer",
-          boxShadow: "0 3px 0 #7a4c0f",
-        }}>VER TODOS OS PACOTES</button>
-      </div>
-    </div>
-  );
-}
-
-// ---------- Admin ----------
-function AdminPanel({ identity }: { identity: { id: string; name: string } | null }) {
-  const [nickname, setNickname] = useState("");
-  const [itemId, setItemId] = useState("pokeball");
-  const [qty, setQty] = useState(1);
-  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const send = useCallback(async () => {
-    if (!identity?.id) { setMsg({ kind: "err", text: "Não autenticado." }); return; }
-    if (!nickname.trim() || !itemId.trim() || qty <= 0) { setMsg({ kind: "err", text: "Preencha nickname/item/quantidade." }); return; }
-    setBusy(true);
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: prof } = await (supabase as any).from("profiles").select("id,username").ilike("username", nickname.trim()).maybeSingle();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any).from("admin_gifts").insert({
-        recipient_user_id: prof?.id ?? null,
-        recipient_username: prof?.username ?? nickname.trim(),
-        kind: "item", item_id: itemId.trim(), qty,
-        sender: identity.name || "ADMIN", note: "loja pokemon admin",
-      });
-      if (error) throw error;
-      setMsg({ kind: "ok", text: `✅ ${qty}× ${itemId} → ${nickname}` });
-      setNickname(""); setQty(1);
-    } catch (e) { setMsg({ kind: "err", text: `Erro: ${(e as Error).message}` }); }
-    finally { setBusy(false); }
-  }, [identity, nickname, itemId, qty]);
-
-  return (
-    <div style={{
-      marginTop: 12, background: "linear-gradient(160deg,#3d0f0f,#521414)",
-      border: "2px solid #f5cf6b", borderRadius: 12, padding: 12,
-    }}>
-      <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 12, letterSpacing: 1, marginBottom: 8 }}>👑 PAINEL ADMIN</div>
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 2fr 60px auto", gap: 6 }}>
-        <input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="nickname"
-          style={adminInput} />
-        <input value={itemId} onChange={e => setItemId(e.target.value)} placeholder="item id"
-          style={adminInput} />
-        <input type="number" value={qty} onChange={e => setQty(Math.max(1, Number(e.target.value)))}
-          style={{ ...adminInput, textAlign: "right" as const }} />
-        <button onClick={send} disabled={busy} style={{
-          background: "linear-gradient(180deg,#f7c14a,#d99a2a)", border: "1.5px solid #ffe08a",
-          color: "#3a1e05", fontWeight: 900, fontSize: 11, letterSpacing: 0.5,
-          borderRadius: 6, padding: "0 12px", cursor: "pointer",
-        }}>{busy ? "..." : "ENVIAR"}</button>
-      </div>
-      {msg && <div style={{ marginTop: 6, fontSize: 11, color: msg.kind === "ok" ? "#86efac" : "#fca5a5" }}>{msg.text}</div>}
-    </div>
-  );
-}
-
-// ============ Main Modal ============
-export function CashShopModal(props: CashShopModalProps) {
-  const { open, onClose, identity, wallet } = props;
-  const [tab, setTab] = useState<TabId>("featured");
-  const [products, setProducts] = useState<CashProduct[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [dbError, setDbError] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [dbWallet, setDbWallet] = useState<Partial<Wallet>>({});
-  const [brlProduct, setBrlProduct] = useState<CashProduct | null>(null);
-
-  useEffect(() => { setIsAdmin(readIsAdmin()); }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [open, onClose]);
-
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true); setDbError(null);
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase as any)
-          .from("cash_products").select("*").eq("active", true).order("sort", { ascending: true });
-        if (error) throw error;
-        if (!cancelled) setProducts((data as CashProduct[]) ?? []);
-      } catch (e) {
-        if (!cancelled) { setProducts([]); setDbError((e as Error).message); }
-      } finally { if (!cancelled) setLoading(false); }
-    })();
-    return () => { cancelled = true; };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open || !identity?.id) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data } = await (supabase as any).from("cash_wallets").select("*").eq("user_id", identity.id).maybeSingle();
-        if (!cancelled && data) setDbWallet(data as Partial<Wallet>);
-      } catch { /* silent */ }
-    })();
-    return () => { cancelled = true; };
-  }, [open, identity?.id]);
-
-  const w: Partial<Wallet> = useMemo(() => ({
-    coins: wallet.coins ?? 0,
-    crystals: wallet.crystals ?? 0,
-    sapphires: dbWallet.sapphires ?? wallet.sapphires ?? 0,
-    tokens: dbWallet.tokens ?? wallet.tokens ?? 0,
-    tickets: dbWallet.tickets ?? wallet.tickets ?? 0,
-    cash: dbWallet.cash ?? wallet.cash ?? 0,
-  }), [wallet, dbWallet]);
-
-  const visible = useMemo(() => {
-    if (tab === "all") return products;
-    if (tab === "featured") return products.filter(p => p.category === "featured" || p.badge);
-    if (tab === "items") return products.filter(p => p.category === "other" || p.category === "featured");
-    if (tab === "coins") return products.filter(p => p.currency === "coins" || p.currency === "cash");
-    if (tab === "sapphires") return products.filter(p => p.category === "sapphire" || p.currency === "sapphires");
-    if (tab === "pokemon") return products.filter(p => p.category === "egg");
-    return products;
-  }, [products, tab]);
-
-  const canAfford = (p: CashProduct) => {
-    const price = p.discount_pct ? Math.floor(p.price * (1 - p.discount_pct / 100)) : p.price;
-    return ((w[p.currency as keyof Wallet] as number) ?? 0) >= price;
-  };
-
-  const buy = useCallback(async (p: CashProduct) => {
-    if (!identity?.id) return;
-    const price = p.discount_pct ? Math.floor(p.price * (1 - p.discount_pct / 100)) : p.price;
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).from("cash_purchases").insert({
-        user_id: identity.id, username: identity.name,
-        product_id: p.id, currency: p.currency, price_paid: price,
-        grants: p.grants ?? {},
-      });
-      if (p.grants) {
-        for (const [k, v] of Object.entries(p.grants)) {
-          const qty = Number(v);
-          if (k === "coins") props.onGrantCoins?.(qty);
-          else if (k === "crystals") props.onGrantCrystals?.(qty);
-          else props.onGrantItem?.(k, qty);
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {arr.map((i) => {
+        const size = Math.random() * 3 + 1;
+        const dur = Math.random() * 8 + 6;
+        const delay = Math.random() * 6;
+        const left = Math.random() * 100;
+        const hue = Math.random() > 0.5 ? "rgba(250,204,21,0.9)" : "rgba(244,63,94,0.7)";
+        return (
+          <span
+            key={i}
+            className="absolute rounded-full blur-[1px]"
+            style={{
+              left: `${left}%`,
+              bottom: `-10px`,
+              width: `${size}px`,
+              height: `${size}px`,
+              background: hue,
+              boxShadow: `0 0 ${size * 4}px ${hue}`,
+              animation: `cashFloat ${dur}s linear ${delay}s infinite`,
+            }}
+          />
+        );
+      })}
+      <style>{`
+        @keyframes cashFloat {
+          0% { transform: translateY(0) translateX(0); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(-110vh) translateX(20px); opacity: 0; }
         }
-      }
-      alert(`✅ Comprado: ${p.name}`);
-    } catch (e) { alert(`Erro: ${(e as Error).message}`); }
-  }, [identity, props]);
+        @keyframes shineSweep {
+          0% { transform: translateX(-120%) skewX(-20deg); }
+          100% { transform: translateX(220%) skewX(-20deg); }
+        }
+        @keyframes goldPulse {
+          0%,100% { box-shadow: 0 0 24px rgba(250,204,21,.35), inset 0 0 20px rgba(250,204,21,.15); }
+          50% { box-shadow: 0 0 44px rgba(250,204,21,.7), inset 0 0 30px rgba(250,204,21,.28); }
+        }
+        @keyframes bannerFloat {
+          0%,100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-8px) scale(1.01); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ---------- Componente principal ----------
+export function CashShopModal(props: Props) {
+  const { open, onClose, identity, wallet, codeInput, setCodeInput, codeMsg, onRedeemCode } = props;
+  const [selected, setSelected] = useState<Product | null>(null);
+  const [confetti, setConfetti] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [blackStock, setBlackStock] = useState<number>(readStock());
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const uid = identity?.id ?? "guest";
+
+  useEffect(() => {
+    if (!open) return;
+    setChatMsgs(loadChat(uid));
+  }, [open, uid]);
+
+  useEffect(() => {
+    if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [chatMsgs, supportOpen]);
 
   if (!open) return null;
 
-  const level = wallet.level ?? 1;
-  const xp = wallet.xp ?? 0;
-  const xpNext = wallet.xpNext ?? 100;
+  const sendChat = (text: string, image?: string) => {
+    const msg: ChatMsg = { id: crypto.randomUUID(), from: "user", text, ts: Date.now(), image };
+    const next = [...chatMsgs, msg];
+    // resposta automática
+    setTimeout(() => {
+      const bot: ChatMsg = {
+        id: crypto.randomUUID(), from: "support", ts: Date.now(),
+        text: "✅ Recebemos! Nosso time analisará seu pagamento em breve. Após aprovado, enviaremos aqui o código do produto.",
+      };
+      const withBot = [...next, bot];
+      setChatMsgs(withBot);
+      saveChat(uid, withBot);
+    }, 800);
+    setChatMsgs(next);
+    saveChat(uid, next);
+  };
 
   return (
-    <div
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-      style={{
-        position: "fixed", inset: 0, zIndex: 9999,
-        background: "rgba(5,10,25,0.7)", backdropFilter: "blur(6px)",
-        display: "grid", placeItems: "center", padding: 12,
-        animation: "loja-fade 200ms ease",
-      }}
-    >
-      <style>{`
-        @keyframes loja-fade { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes loja-pop  { from { transform: scale(.95); opacity: 0 } to { transform: scale(1); opacity: 1 } }
-        .loja-scroll::-webkit-scrollbar { width: 10px }
-        .loja-scroll::-webkit-scrollbar-thumb { background: #6b47c988; border-radius: 5px }
-        .loja-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.3) }
-      `}</style>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-6">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/85 backdrop-blur-md"
+        onClick={onClose}
+      />
 
-      <div style={{
-        width: "min(1400px, 98vw)", height: "min(900px, 96vh)",
-        background: `linear-gradient(rgba(5,20,40,0.55), rgba(5,20,40,0.55)), url(${BG})`,
-        backgroundSize: "cover", backgroundPosition: "center",
-        border: "3px solid #8a5a2c", borderRadius: 20,
-        boxShadow: "0 25px 80px rgba(0,0,0,0.85), 0 0 40px rgba(245,207,107,0.25)",
-        display: "grid",
-        gridTemplateRows: "auto 1fr auto",
-        overflow: "hidden",
-        animation: "loja-pop 260ms cubic-bezier(0.34,1.56,0.64,1)",
-      }}>
-        {/* HEADER: banner + trainer + close */}
-        <div style={{
-          display: "grid", gridTemplateColumns: "1fr auto", gap: 16,
-          padding: "12px 18px",
-          background: "linear-gradient(180deg, rgba(0,0,0,0.4), transparent)",
-          alignItems: "center",
-        }}>
-          <img src={BANNER} alt="LOJA POKÉMON" style={{
-            height: 130, maxWidth: "100%", objectFit: "contain",
-            filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.5))",
-          }} />
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <TrainerCard
-              name={identity?.name ?? "Convidado"}
-              level={level} xp={xp} xpNext={xpNext}
-              coins={w.coins ?? 0} crystals={w.crystals ?? 0}
-            />
-            <button onClick={onClose} aria-label="Fechar" style={{
-              width: 38, height: 38, borderRadius: 10,
-              background: "linear-gradient(180deg,#ef4444,#b91c1c)",
-              border: "2px solid #fca5a5", color: "#fff",
-              fontSize: 18, fontWeight: 900, cursor: "pointer",
-              boxShadow: "0 3px 0 #7a1414",
-            }}>✕</button>
-          </div>
+      {/* Painel */}
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 30, scale: 0.97 }}
+        transition={{ type: "spring", damping: 22, stiffness: 200 }}
+        className="relative w-full max-w-6xl max-h-[95vh] overflow-hidden rounded-3xl border border-amber-500/40 shadow-[0_0_80px_rgba(250,204,21,0.35)]"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(20,10,30,.92) 0%, rgba(10,5,15,.95) 50%, rgba(20,10,30,.92) 100%)",
+        }}
+      >
+        {/* fundo animado */}
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            className="absolute inset-0 opacity-30"
+            style={{
+              background:
+                "radial-gradient(circle at 20% 20%, rgba(250,204,21,.35), transparent 40%), radial-gradient(circle at 80% 80%, rgba(139,92,246,.3), transparent 40%), radial-gradient(circle at 50% 50%, rgba(244,63,94,.2), transparent 60%)",
+            }}
+          />
+          <Particles density={50} />
         </div>
 
-        {/* MIDDLE: 3 columns */}
-        <div style={{
-          display: "grid", gridTemplateColumns: "260px 1fr 300px",
-          gap: 14, padding: "0 18px 12px", minHeight: 0,
-        }}>
-          {/* LEFT column */}
-          <div className="loja-scroll" style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, paddingRight: 4 }}>
-            <LeftCarteira w={w} />
-            <LeftConverter w={w} onConvert={async (from, to, af, at) => {
-              if (!identity?.id) return;
-              try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await (supabase as any).from("cash_conversions").insert({
-                  user_id: identity.id, from_currency: from, to_currency: to, amount_from: af, amount_to: at,
-                });
-                alert(`✅ ${af} ${from} → ${at} ${to}`);
-              } catch (e) { alert(`Erro: ${(e as Error).message}`); }
-            }} />
-            <LeftPromoCode
-              codeInput={props.codeInput}
-              setCodeInput={props.setCodeInput}
-              onRedeem={props.onRedeemCode}
-              msg={props.codeMsg}
-            />
-          </div>
-
-          {/* CENTER: tabs + products */}
-          <div style={{
-            background: "linear-gradient(160deg, rgba(15,30,55,0.9), rgba(10,20,45,0.9))",
-            border: "2.5px solid #2a4478",
-            borderRadius: 14,
-            display: "grid", gridTemplateRows: "auto auto 1fr",
-            overflow: "hidden",
-          }}>
-            {/* Tabs */}
-            <div style={{
-              display: "flex", gap: 4, padding: "10px 10px 0",
-              background: "rgba(0,0,0,0.25)",
-            }}>
-              {TABS.map(t => {
-                const active = tab === t.id;
-                return (
-                  <button key={t.id} onClick={() => setTab(t.id)} style={{
-                    flex: 1, padding: "10px 8px",
-                    background: active
-                      ? "linear-gradient(180deg,#f5cf6b,#d99a2a)"
-                      : "linear-gradient(180deg,#2a4478,#1a2e58)",
-                    border: `2px solid ${active ? "#ffe08a" : "#3a5a98"}`,
-                    borderBottom: active ? "2px solid #ffe08a" : "2px solid transparent",
-                    color: active ? "#3a1e05" : "#c8d6f0",
-                    fontSize: 11, fontWeight: 900, letterSpacing: 0.8,
-                    borderRadius: "8px 8px 0 0", cursor: "pointer",
-                    textShadow: active ? "0 1px 0 rgba(255,255,255,0.4)" : "none",
-                  }}>{t.label}</button>
-                );
-              })}
+        {/* Top bar */}
+        <div className="relative z-10 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-amber-500/25 bg-black/40 backdrop-blur-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-red-600 grid place-items-center text-lg font-black text-black shadow-lg">
+              ✦
             </div>
-            <div style={{
-              padding: "10px 14px",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-              borderBottom: "1px solid #2a4478",
-            }}>
-              <span style={{ color: "#f5cf6b", fontSize: 12 }}>✦</span>
-              <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.5, color: "#ffe08a" }}>
-                {TABS.find(t => t.id === tab)?.label}
+            <div>
+              <div className="text-amber-300 font-black tracking-widest text-sm sm:text-base">LOJINHA CASH</div>
+              <div className="text-white/50 text-[10px] sm:text-xs tracking-wider">IDLEMON · PREMIUM STORE</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden sm:flex items-center gap-2 text-xs text-white/70">
+              <span className="px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-200">
+                Nv {wallet.level}
               </span>
-              <span style={{ color: "#f5cf6b", fontSize: 12 }}>✦</span>
+              <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10">
+                💎 {wallet.crystals.toLocaleString()}
+              </span>
+              <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10">
+                🪙 {wallet.coins.toLocaleString()}
+              </span>
             </div>
-
-            <div className="loja-scroll" style={{ overflowY: "auto", padding: 14 }}>
-              {loading ? (
-                <div style={{ padding: 40, textAlign: "center", color: "#c8d6f0" }}>⏳ Carregando...</div>
-              ) : visible.length === 0 ? (
-                <div style={{
-                  padding: 40, textAlign: "center", color: "#c8d6f0",
-                  background: "rgba(0,0,0,0.25)", border: "1.5px dashed #3a5a98",
-                  borderRadius: 10,
-                }}>
-                  <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.6 }}>📦</div>
-                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>
-                    Nenhum item nesta categoria.
-                  </div>
-                  <div style={{ fontSize: 11, color: "#8ba0c8", lineHeight: 1.5 }}>
-                    {dbError
-                      ? "⚠️ Rode SUPABASE_CASH_SHOP.sql no Supabase para criar as tabelas."
-                      : "Adicione produtos em cash_products no Supabase."}
-                  </div>
-                </div>
-              ) : (
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                  gap: 12,
-                }}>
-                  {visible.map(p => (
-                    <ProductTile key={p.id} p={p} onBuy={() => buy(p)} onBuyBRL={() => setBrlProduct(p)} canAfford={canAfford(p)} />
-                  ))}
-                </div>
-              )}
-              {isAdmin && <AdminPanel identity={identity} />}
-              {isAdmin && <AdminPendingPanel identity={identity} onGrantCoins={props.onGrantCoins} onGrantCrystals={props.onGrantCrystals} onGrantItem={props.onGrantItem} onGrantPokemon={props.onGrantPokemon} />}
-            </div>
-          </div>
-
-          {/* RIGHT column */}
-          <div className="loja-scroll" style={{ overflowY: "auto" }}>
-            <RightPacotes products={products} onBuy={buy} onBuyBRL={(p) => setBrlProduct(p)} />
+            <button
+              onClick={() => setSupportOpen(true)}
+              className="px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-bold hover:bg-emerald-500/30 transition"
+            >
+              💬 Suporte
+            </button>
+            <button
+              onClick={onClose}
+              className="w-9 h-9 rounded-lg bg-white/5 hover:bg-red-500/30 border border-white/10 hover:border-red-400/50 text-white/80 hover:text-white transition"
+              aria-label="Fechar"
+            >
+              ✕
+            </button>
           </div>
         </div>
 
-        {/* BOTTOM: footer */}
-        <div style={{
-          padding: "10px 20px",
-          background: "linear-gradient(180deg, rgba(5,15,35,0.85), rgba(5,15,35,0.95))",
-          borderTop: "2px solid #2a4478",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          color: "#7dd3fc", fontSize: 11, fontWeight: 800, letterSpacing: 1,
-        }}>
-          <span>🛡️</span>
-          <span style={{ color: "#c8d6f0" }}>COMPRA SEGURA</span>
-          <span style={{ color: "#f5cf6b" }}>•</span>
-          <span style={{ color: "#c8d6f0" }}>100% PROTEGIDO</span>
-        </div>
-      </div>
+        {/* Conteúdo scrollável */}
+        <div className="relative z-10 overflow-y-auto max-h-[calc(95vh-64px)] px-4 sm:px-6 py-5 space-y-6">
+          {/* ============ BANNER PRINCIPAL ============ */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative rounded-2xl overflow-hidden border-2 border-amber-500/60"
+            style={{ animation: "goldPulse 3.4s ease-in-out infinite" }}
+          >
+            <div className="relative w-full aspect-[16/9] sm:aspect-[21/9]">
+              <img
+                src={blackEggImg}
+                alt="Black Mythic Plus"
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ animation: "bannerFloat 6s ease-in-out infinite" }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/40" />
+              {/* Shine sweep */}
+              <div
+                className="pointer-events-none absolute inset-0 overflow-hidden"
+                aria-hidden
+              >
+                <div
+                  className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  style={{ animation: "shineSweep 6s ease-in-out infinite" }}
+                />
+              </div>
 
-      {brlProduct && (
-        <PurchaseBRLModal
-          product={brlProduct}
-          identity={identity}
-          onClose={() => setBrlProduct(null)}
-        />
-      )}
+              {/* Texto */}
+              <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-10">
+                <motion.div
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.15 }}
+                  className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/60 text-amber-200 text-[10px] sm:text-xs font-bold tracking-widest mb-2"
+                >
+                  ⭐ EDIÇÃO LIMITADA · {blackStock}/10
+                </motion.div>
+                <motion.h1
+                  initial={{ x: -30, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.25 }}
+                  className="font-black text-white leading-none tracking-tight text-3xl sm:text-5xl md:text-6xl"
+                  style={{ textShadow: "0 0 24px rgba(250,204,21,.6)" }}
+                >
+                  BLACK <span className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">MYTHIC PLUS</span>
+                </motion.h1>
+                <motion.p
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.35 }}
+                  className="mt-2 max-w-xl text-white/80 text-xs sm:text-sm"
+                >
+                  Somente <span className="text-amber-300 font-bold">10 treinadores</span> conseguirão possuir este ovo exclusivo.
+                </motion.p>
+                <motion.button
+                  initial={{ y: 15, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.45 }}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setSelected(PRODUCTS[2])}
+                  className="mt-4 self-start px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black text-sm sm:text-base tracking-wider shadow-[0_0_30px_rgba(250,204,21,.6)] hover:shadow-[0_0_50px_rgba(250,204,21,.9)] transition"
+                >
+                  COMPRAR AGORA — R$347
+                </motion.button>
+              </div>
+
+              {/* Contador gigante lateral */}
+              <div className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 flex-col items-center">
+                <div className="text-[10px] tracking-widest text-amber-300/80">RESTAM</div>
+                <div className="text-6xl font-black text-white leading-none" style={{ textShadow: "0 0 20px rgba(250,204,21,.7)" }}>
+                  {String(blackStock).padStart(2, "0")}
+                </div>
+                <div className="text-[10px] tracking-widest text-white/60">de 10 unidades</div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ============ PRODUTOS ============ */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {PRODUCTS.map((p, i) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * i }}
+                whileHover={{ y: -6 }}
+                className="group relative rounded-2xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-black/40 backdrop-blur-xl hover:border-amber-400/60 transition-all"
+              >
+                {/* Glow border animado */}
+                <div className={`pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br ${p.accent} blur-md`} style={{ zIndex: 0 }} />
+                <div className="relative z-10 bg-black/40 rounded-2xl overflow-hidden">
+                  <div className="relative aspect-square overflow-hidden">
+                    <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                    {p.badge && (
+                      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-amber-500/90 text-black text-[10px] font-black tracking-widest shadow-lg">
+                        {p.badge}
+                      </div>
+                    )}
+                    {p.limited != null && (
+                      <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/70 border border-amber-400/60 text-amber-300 text-[10px] font-bold">
+                        {blackStock}/{p.limited}
+                      </div>
+                    )}
+                    {/* Shine hover */}
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent" style={{ animation: "shineSweep 1.6s ease-out" }} />
+                    </div>
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <div>
+                      <div className="text-white font-black text-lg leading-tight">{p.name}</div>
+                      <div className="text-white/50 text-xs">{p.subtitle}</div>
+                    </div>
+                    <div className="text-white/70 text-xs line-clamp-2 min-h-[32px]">{p.description}</div>
+                    <div className="flex items-end justify-between pt-1">
+                      <div>
+                        <div className="text-[10px] text-white/40">Preço</div>
+                        <div className={`text-2xl font-black bg-gradient-to-r ${p.accent} bg-clip-text text-transparent`}>
+                          R${p.price}
+                        </div>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setSelected(p)}
+                        disabled={p.id === "black_mythic_plus" && blackStock <= 0}
+                        className={`px-4 py-2 rounded-lg font-black text-sm text-black bg-gradient-to-r ${p.accent} shadow-lg hover:shadow-xl transition disabled:opacity-40 disabled:cursor-not-allowed`}
+                      >
+                        {p.id === "black_mythic_plus" && blackStock <= 0 ? "ESGOTADO" : "COMPRAR"}
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* ============ CÓDIGO PROMOCIONAL ============ */}
+          <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4 sm:p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 grid place-items-center text-lg">🎁</div>
+              <div>
+                <div className="text-white font-black text-sm">Código Promocional</div>
+                <div className="text-white/50 text-xs">Resgate recompensas exclusivas</div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
+                placeholder="DIGITE SEU CÓDIGO..."
+                className="flex-1 px-4 py-2.5 rounded-lg bg-black/60 border border-white/10 focus:border-amber-400/60 outline-none text-white font-mono text-sm tracking-widest"
+              />
+              <button
+                onClick={onRedeemCode}
+                className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(52,211,153,.5)] transition"
+              >
+                RESGATAR
+              </button>
+            </div>
+            {codeMsg && <div className="mt-2 text-xs text-amber-300">{codeMsg}</div>}
+          </div>
+
+          <div className="text-center text-[10px] text-white/40 pt-2 pb-4">
+            Pagamentos processados via provedor externo · Após aprovação, o código do produto é enviado no chat de suporte.
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ============ MODAL COMPRA ============ */}
+      <AnimatePresence>
+        {selected && (
+          <PurchaseModal
+            product={selected}
+            defaultCharName={identity?.name ?? ""}
+            onClose={() => setSelected(null)}
+            onConfirm={() => {
+              if (selected.id === "black_mythic_plus" && blackStock > 0) {
+                const next = blackStock - 1;
+                setBlackStock(next);
+                try { localStorage.setItem(STOCK_KEY, String(next)); } catch { /* ignore */ }
+              }
+              setConfetti(true);
+              setTimeout(() => setConfetti(false), 2400);
+              setSelected(null);
+              setSupportOpen(true);
+              const sysMsg: ChatMsg = {
+                id: crypto.randomUUID(), from: "support", ts: Date.now(),
+                text: `📩 Recebemos sua intenção de compra de "${selected.name}" (R$${selected.price}). Envie o comprovante do pagamento aqui para agilizar a entrega. Após aprovado, enviaremos seu código do produto.`,
+              };
+              const next = [...chatMsgs, sysMsg];
+              setChatMsgs(next); saveChat(uid, next);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ============ PAINEL SUPORTE ============ */}
+      <AnimatePresence>
+        {supportOpen && (
+          <SupportChat
+            trainerName={identity?.name ?? "Treinador"}
+            messages={chatMsgs}
+            input={chatInput}
+            setInput={setChatInput}
+            onSend={(t, img) => { if (t.trim() || img) sendChat(t.trim(), img); setChatInput(""); }}
+            onClose={() => setSupportOpen(false)}
+            endRef={chatEndRef}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ============ CONFETES ============ */}
+      <AnimatePresence>
+        {confetti && <Confetti />}
+      </AnimatePresence>
     </div>
   );
 }
 
-export default CashShopModal;
-
-// ============ Purchase BRL Modal (pagamento manual) ============
-function PurchaseBRLModal({ product, identity, onClose }: {
-  product: CashProduct;
-  identity: { id: string; name: string } | null;
+// ---------- Modal Compra ----------
+function PurchaseModal({
+  product, defaultCharName, onClose, onConfirm,
+}: {
+  product: Product;
+  defaultCharName: string;
   onClose: () => void;
+  onConfirm: () => void;
 }) {
-  const [txRef, setTxRef] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
-  const [step, setStep] = useState<"pay" | "sent">("pay");
+  const [charName, setCharName] = useState(defaultCharName);
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [error, setError] = useState("");
 
-  const openPayment = () => {
-    if (product.payment_link_url) window.open(product.payment_link_url, "_blank", "noopener,noreferrer");
-  };
-
-  const confirm = useCallback(async () => {
-    if (!identity?.id) { setMsg({ kind: "err", text: "Faça login primeiro." }); return; }
-    setBusy(true);
+  const submit = () => {
+    if (!charName.trim() || !email.trim() || !fullName.trim()) {
+      setError("Preencha todos os campos.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Email inválido.");
+      return;
+    }
+    setError("");
+    try { window.open(product.link, "_blank", "noopener,noreferrer"); } catch { /* ignore */ }
+    // registra pedido local (fallback quando backend não estiver ligado)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any).from("pending_purchases").insert({
-        user_id: identity.id,
-        username: identity.name,
+      const key = "rubym.cashshop.orders.v1";
+      const arr = JSON.parse(localStorage.getItem(key) ?? "[]");
+      arr.push({
+        id: crypto.randomUUID(),
         product_id: product.id,
         product_name: product.name,
-        price_brl: product.price_brl,
-        payment_method: product.payment_method ?? null,
-        payment_link_url: product.payment_link_url ?? null,
-        transaction_ref: txRef.trim() || null,
-        grants: product.grants ?? {},
+        price_brl: product.price,
+        char_name: charName, email, full_name: fullName,
+        created_at: new Date().toISOString(),
+        status: "aguardando_pagamento",
       });
-      if (error) throw error;
-      setStep("sent");
-      setMsg({ kind: "ok", text: "✅ Compra enviada! Aguarde a aprovação do admin (até 10 min)." });
-    } catch (e) { setMsg({ kind: "err", text: `Erro: ${(e as Error).message}` }); }
-    finally { setBusy(false); }
-  }, [identity, product, txRef]);
-
-  return (
-    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-      style={{
-        position: "fixed", inset: 0, zIndex: 10001,
-        background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)",
-        display: "grid", placeItems: "center", padding: 16,
-      }}>
-      <div style={{
-        width: "min(480px, 96vw)",
-        background: "linear-gradient(160deg,#0f2038,#0a1424)",
-        border: "3px solid #22c55e", borderRadius: 16,
-        boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 30px #22c55e33",
-        padding: 20, color: "#fff",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ fontSize: 18, fontWeight: 900, color: "#86efac", letterSpacing: 1 }}>💵 PAGAR COM DINHEIRO REAL</div>
-          <button onClick={onClose} style={{
-            width: 30, height: 30, borderRadius: 8, background: "#ef4444", color: "#fff",
-            border: "none", fontWeight: 900, cursor: "pointer",
-          }}>✕</button>
-        </div>
-
-        <div style={{
-          background: "rgba(0,0,0,0.4)", border: "1.5px solid #22c55e55",
-          borderRadius: 10, padding: 12, marginBottom: 14, display: "flex", gap: 12, alignItems: "center",
-        }}>
-          {product.image_url && (
-            <img src={product.image_url} alt="" style={{
-              width: 64, height: 64, objectFit: "contain", imageRendering: "pixelated",
-              background: "rgba(255,255,255,0.05)", borderRadius: 8,
-            }} />
-          )}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 900, color: "#f5cf6b" }}>{product.name}</div>
-            {product.description && <div style={{ fontSize: 11, color: "#c8d6f0", marginTop: 2 }}>{product.description}</div>}
-            <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900, color: "#86efac" }}>
-              R$ {product.price_brl?.toFixed(2).replace(".", ",")}
-            </div>
-          </div>
-        </div>
-
-        {step === "pay" ? (
-          <>
-            <div style={{ fontSize: 12, color: "#c8d6f0", lineHeight: 1.6, marginBottom: 12 }}>
-              <b style={{ color: "#f5cf6b" }}>Como funciona:</b><br />
-              1️⃣ Clique em <b>ABRIR PAGAMENTO</b> e conclua a compra ({product.payment_method?.toUpperCase() ?? "PIX/CARTÃO"}).<br />
-              2️⃣ Volte aqui e cole o <b>ID da transação</b> ou <b>comprovante</b> abaixo.<br />
-              3️⃣ Sua compra fica <b style={{ color: "#f5cf6b" }}>Em análise por 10 min</b>. Após aprovação do admin, o item é entregue automaticamente.
-            </div>
-
-            <button onClick={openPayment} style={{
-              width: "100%", padding: "12px",
-              background: "linear-gradient(180deg,#22c55e,#15803d)",
-              border: "2px solid #86efac", color: "#fff",
-              fontWeight: 900, fontSize: 14, letterSpacing: 1,
-              borderRadius: 10, cursor: "pointer", marginBottom: 12,
-              boxShadow: "0 3px 0 #0a3a1a",
-            }}>🔗 ABRIR PAGAMENTO ({product.payment_method?.toUpperCase() ?? "LINK"})</button>
-
-            <label style={{ display: "block", fontSize: 11, fontWeight: 800, color: "#c8d6f0", marginBottom: 4 }}>
-              ID DA TRANSAÇÃO / COMPROVANTE (opcional)
-            </label>
-            <input value={txRef} onChange={e => setTxRef(e.target.value)}
-              placeholder="ex: TX-abc123 ou cole o ID do PicPay"
-              style={{
-                width: "100%", padding: "10px 12px", marginBottom: 12,
-                background: "rgba(0,0,0,0.5)", border: "1.5px solid #3a5a98",
-                color: "#fff", borderRadius: 8, fontSize: 13, boxSizing: "border-box",
-              }} />
-
-            <button onClick={confirm} disabled={busy} style={{
-              width: "100%", padding: "12px",
-              background: "linear-gradient(180deg,#f7c14a,#d99a2a)",
-              border: "2px solid #ffe08a", color: "#3a1e05",
-              fontWeight: 900, fontSize: 14, letterSpacing: 1,
-              borderRadius: 10, cursor: busy ? "wait" : "pointer",
-              boxShadow: "0 3px 0 #7a4c0f",
-            }}>{busy ? "ENVIANDO..." : "✅ JÁ PAGUEI — ENVIAR PARA ANÁLISE"}</button>
-          </>
-        ) : (
-          <div style={{
-            padding: 20, textAlign: "center",
-            background: "rgba(34,197,94,0.15)", border: "2px solid #22c55e",
-            borderRadius: 10,
-          }}>
-            <div style={{ fontSize: 40, marginBottom: 8 }}>⏳</div>
-            <div style={{ fontSize: 15, fontWeight: 900, color: "#86efac", marginBottom: 6 }}>Enviado para análise!</div>
-            <div style={{ fontSize: 12, color: "#c8d6f0", lineHeight: 1.5 }}>
-              O admin tem até 10 minutos para aprovar.<br />
-              Assim que aprovado, o item aparece na sua conta automaticamente.
-            </div>
-            <button onClick={onClose} style={{
-              marginTop: 12, padding: "8px 20px",
-              background: "linear-gradient(180deg,#22c55e,#15803d)",
-              border: "2px solid #86efac", color: "#fff",
-              fontWeight: 900, borderRadius: 8, cursor: "pointer",
-            }}>FECHAR</button>
-          </div>
-        )}
-        {msg && step === "pay" && (
-          <div style={{ marginTop: 8, fontSize: 12, color: msg.kind === "ok" ? "#86efac" : "#fca5a5" }}>{msg.text}</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ============ Admin: Pagamentos Pendentes ============
-function AdminPendingPanel({ identity, onGrantCoins, onGrantCrystals, onGrantItem, onGrantPokemon }: {
-  identity: { id: string; name: string } | null;
-  onGrantCoins?: (n: number) => void;
-  onGrantCrystals?: (n: number) => void;
-  onGrantItem?: (id: string, qty: number) => void;
-  onGrantPokemon?: (species: string, rarity?: string) => void;
-}) {
-  const [rows, setRows] = useState<PendingPurchase[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [now, setNow] = useState(Date.now());
-  const [msg, setMsg] = useState<string | null>(null);
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data } = await (supabase as any)
-        .from("pending_purchases")
-        .select("*")
-        .in("status", ["analise", "approved", "rejected"])
-        .order("created_at", { ascending: false })
-        .limit(40);
-      setRows((data as PendingPurchase[]) ?? []);
-    } finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { refresh(); }, [refresh]);
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    const r = setInterval(refresh, 15000);
-    return () => { clearInterval(t); clearInterval(r); };
-  }, [refresh]);
-
-  const approve = useCallback(async (row: PendingPurchase) => {
-    try {
-      // Entrega os grants via admin_gifts (a lógica do jogo consome automaticamente)
-      const entries = Object.entries(row.grants ?? {});
-      for (const [k, v] of entries) {
-        const qty = Number(v);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase as any).from("admin_gifts").insert({
-          recipient_user_id: row.user_id,
-          recipient_username: row.username,
-          kind: k === "coins" || k === "crystals" ? "currency" : "item",
-          item_id: k, qty,
-          sender: identity?.name || "ADMIN",
-          note: `compra R$ ${row.product_name} (${row.id.slice(0, 8)})`,
-        });
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).from("pending_purchases")
-        .update({ status: "approved", approved_by: identity?.name || "ADMIN", resolved_at: new Date().toISOString() })
-        .eq("id", row.id);
-      setMsg(`✅ Aprovado: ${row.username} — ${row.product_name}`);
-      refresh();
-    } catch (e) { setMsg(`Erro: ${(e as Error).message}`); }
-  }, [identity, refresh]);
-
-  const reject = useCallback(async (row: PendingPurchase) => {
-    const note = prompt(`Motivo da rejeição para ${row.username}?`, "Pagamento não localizado");
-    if (note === null) return;
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).from("pending_purchases")
-        .update({ status: "rejected", admin_note: note, approved_by: identity?.name || "ADMIN", resolved_at: new Date().toISOString() })
-        .eq("id", row.id);
-      setMsg(`❌ Rejeitado: ${row.username}`);
-      refresh();
-    } catch (e) { setMsg(`Erro: ${(e as Error).message}`); }
-  }, [identity, refresh]);
-
-  // Também suprimimos os grants via callbacks locais quando o admin aprova para o próprio user
-  const grantLocalIfSelf = (row: PendingPurchase) => {
-    if (identity?.id !== row.user_id) return;
-    for (const [k, v] of Object.entries(row.grants ?? {})) {
-      const qty = Number(v);
-      if (k === "coins") onGrantCoins?.(qty);
-      else if (k === "crystals") onGrantCrystals?.(qty);
-      else if (k === "pokemon") onGrantPokemon?.(String(v));
-      else onGrantItem?.(k, qty);
-    }
+      localStorage.setItem(key, JSON.stringify(arr));
+    } catch { /* ignore */ }
+    onConfirm();
   };
 
-  const analise = rows.filter(r => r.status === "analise");
-  const historico = rows.filter(r => r.status !== "analise").slice(0, 10);
-
   return (
-    <div style={{
-      marginTop: 12, background: "linear-gradient(160deg,#0f3d1a,#0a2412)",
-      border: "2px solid #22c55e", borderRadius: 12, padding: 12,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <div style={{ color: "#86efac", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>
-          💵 PAGAMENTOS PENDENTES {analise.length > 0 && <span style={{ background: "#f7c14a", color: "#3a1e05", padding: "2px 8px", borderRadius: 10, marginLeft: 6, fontSize: 10 }}>{analise.length}</span>}
-        </div>
-        <button onClick={refresh} disabled={loading} style={{
-          fontSize: 10, padding: "4px 10px", background: "#0a2412", color: "#86efac",
-          border: "1px solid #22c55e", borderRadius: 6, cursor: "pointer", fontWeight: 800,
-        }}>{loading ? "..." : "↻"}</button>
-      </div>
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+        className="relative w-full max-w-md rounded-2xl border border-amber-500/40 bg-gradient-to-b from-[#1a0f22] to-[#0a0510] p-6 shadow-[0_0_60px_rgba(250,204,21,.35)]"
+      >
+        <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/30 border border-white/10 text-white/80">✕</button>
 
-      {analise.length === 0 && (
-        <div style={{ fontSize: 11, color: "#86efac99", textAlign: "center", padding: 10 }}>Nenhuma compra pendente.</div>
-      )}
-
-      {analise.map(row => {
-        const expiresMs = new Date(row.expires_at).getTime() - now;
-        const mm = Math.max(0, Math.floor(expiresMs / 60000));
-        const ss = Math.max(0, Math.floor((expiresMs % 60000) / 1000));
-        const expired = expiresMs <= 0;
-        return (
-          <div key={row.id} style={{
-            background: "rgba(0,0,0,0.4)", border: `1.5px solid ${expired ? "#ef4444" : "#22c55e77"}`,
-            borderRadius: 8, padding: 10, marginBottom: 8, display: "grid",
-            gridTemplateColumns: "1fr auto auto", gap: 8, alignItems: "center",
-          }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#f5cf6b" }}>
-                {row.username} <span style={{ color: "#7aa5ff", fontWeight: 600 }}>→ {row.product_name}</span>
-              </div>
-              <div style={{ fontSize: 10, color: "#c8d6f0", marginTop: 2 }}>
-                💰 R$ {row.price_brl?.toFixed(2).replace(".", ",") ?? "—"} · {row.payment_method?.toUpperCase() ?? "LINK"}
-                {row.transaction_ref && <> · <b>TX:</b> {row.transaction_ref}</>}
-              </div>
-              <div style={{ fontSize: 10, color: expired ? "#fca5a5" : "#86efac", marginTop: 2, fontWeight: 800 }}>
-                {expired ? "⚠️ EXPIROU" : `⏳ ${mm}:${String(ss).padStart(2, "0")}`}
-              </div>
-            </div>
-            <button onClick={() => { grantLocalIfSelf(row); approve(row); }} style={{
-              padding: "8px 12px", background: "linear-gradient(180deg,#22c55e,#15803d)",
-              border: "1.5px solid #86efac", color: "#fff", fontWeight: 900, fontSize: 11,
-              borderRadius: 6, cursor: "pointer",
-            }}>✓ APROVAR</button>
-            <button onClick={() => reject(row)} style={{
-              padding: "8px 10px", background: "linear-gradient(180deg,#ef4444,#b91c1c)",
-              border: "1.5px solid #fca5a5", color: "#fff", fontWeight: 900, fontSize: 11,
-              borderRadius: 6, cursor: "pointer",
-            }}>✕</button>
+        <div className="flex items-center gap-3 mb-4">
+          <img src={product.image} alt="" className="w-14 h-14 rounded-xl object-cover border border-amber-400/40" />
+          <div>
+            <div className="text-white font-black text-lg leading-tight">{product.name}</div>
+            <div className="text-amber-300 font-bold">R${product.price}</div>
           </div>
-        );
-      })}
+        </div>
 
-      {historico.length > 0 && (
-        <>
-          <div style={{ marginTop: 10, fontSize: 10, color: "#86efac99", fontWeight: 800, letterSpacing: 1 }}>HISTÓRICO</div>
-          {historico.map(row => (
-            <div key={row.id} style={{
-              fontSize: 10, color: row.status === "approved" ? "#86efac" : "#fca5a5",
-              padding: "4px 8px", borderBottom: "1px dashed #22c55e33",
-              display: "flex", justifyContent: "space-between",
-            }}>
-              <span>{row.status === "approved" ? "✓" : "✕"} {row.username} · {row.product_name}</span>
-              <span style={{ opacity: 0.7 }}>R$ {row.price_brl?.toFixed(2).replace(".", ",")}</span>
-            </div>
-          ))}
-        </>
-      )}
-      {msg && <div style={{ marginTop: 8, fontSize: 11, color: "#86efac" }}>{msg}</div>}
-    </div>
+        <div className="space-y-3">
+          <Field label="Nome do Personagem" value={charName} onChange={setCharName} placeholder="Ex: AshKetchum" />
+          <Field label="Email (Gmail)" value={email} onChange={setEmail} placeholder="voce@gmail.com" type="email" />
+          <Field label="Nome Completo do Comprador" value={fullName} onChange={setFullName} placeholder="Ex: João da Silva" />
+          {error && <div className="text-xs text-red-400">{error}</div>}
+        </div>
+
+        <div className="mt-5 space-y-2">
+          <button
+            onClick={submit}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black tracking-wider hover:shadow-[0_0_30px_rgba(250,204,21,.7)] transition"
+          >
+            IR PARA PAGAMENTO →
+          </button>
+          <div className="text-[10px] text-white/50 text-center">
+            Após o pagamento, envie o comprovante no chat de suporte para receber o código do produto.
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
+function Field({ label, value, onChange, placeholder, type = "text" }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string;
+}) {
+  return (
+    <label className="block">
+      <div className="text-[11px] text-white/60 mb-1 tracking-wider uppercase font-bold">{label}</div>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2.5 rounded-lg bg-black/60 border border-white/10 focus:border-amber-400/60 outline-none text-white text-sm"
+      />
+    </label>
+  );
+}
 
+// ---------- Chat de suporte ----------
+function SupportChat({
+  trainerName, messages, input, setInput, onSend, onClose, endRef,
+}: {
+  trainerName: string;
+  messages: ChatMsg[];
+  input: string;
+  setInput: (v: string) => void;
+  onSend: (text: string, image?: string) => void;
+  onClose: () => void;
+  endRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
 
-// ============ Shared style helpers ============
-const cardBox = (bg: string, border: string): React.CSSProperties => ({
-  background: `linear-gradient(160deg, ${bg}, rgba(5,10,25,0.9))`,
-  border: `2px solid ${border}`,
-  borderRadius: 12,
-  overflow: "hidden",
-  boxShadow: `0 4px 14px rgba(0,0,0,0.5), 0 0 12px ${border}44`,
-});
-const cardHeader = (icon: string, title: string, color: string): React.CSSProperties => ({
-  padding: "10px 12px",
-  background: `linear-gradient(180deg, ${color}22, transparent)`,
-  borderBottom: `1.5px solid ${color}55`,
-  color: color, fontWeight: 900, fontSize: 12, letterSpacing: 1.5,
-  display: "flex", alignItems: "center", gap: 8,
-  // content injected via children—render fallback with icon+title:
-});
-// Because cardHeader is used as a style-with-children pattern, we build a small helper component below instead.
-// The variant used above expects children — we swap to a component:
+  const onPickImage = (f: File) => {
+    const reader = new FileReader();
+    reader.onload = () => onSend("📎 Comprovante enviado", String(reader.result));
+    reader.readAsDataURL(f);
+  };
 
-// (Note: the earlier cardHeader() usage returns only CSSProperties; the JSX <div style={cardHeader()} />
-// won't render icon/title. Replace calls with <CardHeader/> component:
-// We keep both styles alive by exporting the CardHeader component.
-// The three left panels reference cardHeader() as a style — they render icon/title inline instead.
-// To simplify, we render inline in each panel; the cardHeader helper is unused fallback for style only.)
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }}
+      className="fixed bottom-4 right-4 z-[10001] w-[92vw] max-w-sm h-[70vh] max-h-[560px] rounded-2xl border border-emerald-400/40 bg-gradient-to-b from-[#08130e] to-[#04090a] shadow-[0_0_50px_rgba(52,211,153,.35)] flex flex-col overflow-hidden"
+    >
+      <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-400/20 bg-black/50">
+        <div className="flex items-center gap-2">
+          <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 grid place-items-center text-lg text-black font-black">
+            S
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-black animate-pulse" />
+          </div>
+          <div>
+            <div className="text-white font-black text-sm">Suporte IdleMon</div>
+            <div className="text-emerald-300 text-[10px] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Atendente online
+            </div>
+          </div>
+        </div>
+        <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/30 border border-white/10 text-white/80">✕</button>
+      </div>
 
-const convBox: React.CSSProperties = {
-  background: "rgba(8,14,32,0.7)",
-  border: "1.5px solid #3a5a9855",
-  borderRadius: 6, padding: "2px 6px",
-  display: "flex", alignItems: "center", gap: 4,
-};
-const convInput: React.CSSProperties = {
-  flex: 1, background: "transparent", border: "none", color: "#fff",
-  fontSize: 12, fontWeight: 900, textAlign: "right", padding: 4, minWidth: 0, width: "100%",
-  outline: "none",
-};
-const btnGreen: React.CSSProperties = {
-  background: "linear-gradient(180deg,#5abf5a,#3a8f3a)",
-  border: "1.5px solid #86ef86", color: "#fff",
-  fontWeight: 900, fontSize: 12, letterSpacing: 1,
-  borderRadius: 8, padding: "9px", cursor: "pointer",
-  boxShadow: "0 2px 0 #1e5a1e",
-};
-const btnPurple: React.CSSProperties = {
-  background: "linear-gradient(180deg,#8b5cf6,#6b47c9)",
-  border: "1.5px solid #c4a3ff", color: "#fff",
-  fontWeight: 900, fontSize: 12, letterSpacing: 1,
-  borderRadius: 8, padding: "9px", cursor: "pointer",
-  boxShadow: "0 2px 0 #3a1e75",
-};
-const miniChip = (color: string): React.CSSProperties => ({
-  fontSize: 11, fontWeight: 900, color: "#fff",
-  background: "rgba(0,0,0,0.35)", border: `1px solid ${color}55`,
-  padding: "3px 8px", borderRadius: 6, letterSpacing: 0.5,
-});
-const adminInput: React.CSSProperties = {
-  padding: "8px 10px", background: "rgba(10,5,25,0.9)", color: "#fff",
-  border: "1px solid #f5cf6b55", borderRadius: 6, fontSize: 12, fontWeight: 700,
-};
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        {messages.length === 0 && (
+          <div className="text-center text-white/50 text-xs py-8 px-4">
+            Olá, <span className="text-emerald-300 font-bold">{trainerName}</span>! Envie o comprovante do seu pagamento aqui.
+            Assim que aprovado, você receberá o código do produto neste chat.
+          </div>
+        )}
+        {messages.map((m) => (
+          <div key={m.id} className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
+              m.from === "user"
+                ? "bg-gradient-to-br from-emerald-500 to-cyan-600 text-black rounded-br-sm"
+                : "bg-white/5 border border-white/10 text-white/90 rounded-bl-sm"
+            }`}>
+              {m.image && <img src={m.image} alt="" className="rounded-lg mb-1 max-h-40 w-auto" />}
+              <div className="whitespace-pre-wrap break-words">{m.text}</div>
+              <div className={`text-[9px] mt-1 ${m.from === "user" ? "text-black/60" : "text-white/40"}`}>
+                {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </div>
+            </div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+
+      <div className="p-2 border-t border-emerald-400/20 bg-black/50 flex items-center gap-2">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickImage(f); e.currentTarget.value = ""; }}
+        />
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="w-9 h-9 rounded-lg bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-emerald-300"
+          title="Anexar comprovante"
+        >📎</button>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") onSend(input); }}
+          placeholder="Digite sua mensagem..."
+          className="flex-1 px-3 py-2 rounded-lg bg-black/60 border border-white/10 focus:border-emerald-400/60 outline-none text-white text-sm"
+        />
+        <button
+          onClick={() => onSend(input)}
+          className="px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-black text-sm"
+        >Enviar</button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ---------- Confetes ----------
+function Confetti() {
+  const pieces = useMemo(() => Array.from({ length: 80 }, () => ({
+    left: Math.random() * 100,
+    delay: Math.random() * 0.6,
+    dur: 1.6 + Math.random() * 1.4,
+    color: ["#facc15", "#f43f5e", "#22d3ee", "#a78bfa", "#34d399"][Math.floor(Math.random() * 5)],
+    rot: Math.random() * 360,
+  })), []);
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[10002] overflow-hidden">
+      {pieces.map((p, i) => (
+        <span
+          key={i}
+          className="absolute top-[-10px] w-2 h-3 rounded-sm"
+          style={{
+            left: `${p.left}%`,
+            background: p.color,
+            transform: `rotate(${p.rot}deg)`,
+            animation: `confDrop ${p.dur}s ${p.delay}s ease-in forwards`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes confDrop {
+          0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+}
