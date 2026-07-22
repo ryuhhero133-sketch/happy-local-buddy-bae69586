@@ -217,6 +217,24 @@ const EMERALD_OFFERS: EmeraldOffer[] = [
     grants: [{ itemId: "egg_mystic", qty: 1 }],
     accent: "from-fuchsia-500 via-purple-500 to-pink-600",
   },
+  {
+    id: "ovo_dragonite_shiny",
+    name: "Ovo Dragonite Shiny",
+    desc: "1× Ovo Mítico Dragonite Shiny ✦✦ · choca um Dragonite Shiny lendário nível 100",
+    price: 500,
+    image: dragoniteEggImg,
+    grants: [{ itemId: "egg_dragonite", qty: 1 }],
+    accent: "from-amber-400 via-orange-500 to-rose-600",
+  },
+  {
+    id: "safari_ball_pack",
+    name: "Safari Ball",
+    desc: "Nova pokébola exclusiva de eventos safári · em breve",
+    price: 999,
+    image: safariBallImg,
+    grants: [{ itemId: "safariball", qty: 20 }],
+    accent: "from-lime-500 via-green-500 to-emerald-600",
+  },
 ];
 
 
