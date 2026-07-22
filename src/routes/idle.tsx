@@ -4468,21 +4468,27 @@ function IdlePage() {
           ? { add: 0.30, ms: 30 * 24 * 3600_000, label: "30 dias" }
           : { add: 0.20, ms: 3600_000, label: "1 hora" };
       const nowT = Date.now();
-      if ((idle.buffs.expMultUntil ?? 0) > nowT || (idle.buffs.goldMultUntil ?? 0) > nowT) {
-        pushChat(`Já há um bônus VIP/EXP ativo. Espere o tempo acabar.`, "info");
-        return;
-      }
+      const curUntil = Math.max(idle.buffs.expMultUntil ?? 0, idle.buffs.goldMultUntil ?? 0);
+      const curMult = curUntil > nowT ? Math.max(idle.buffs.expMult ?? 0, idle.buffs.goldMult ?? 0) : 0;
+      const remaining = curUntil > nowT ? (curUntil - nowT) : 0;
+      const newUntil = nowT + remaining + cfg.ms;
+      const newMult = Math.max(curMult, cfg.add);
+      const upgraded = curMult > 0 && newMult > curMult;
       setIdle((s) => ({
         ...s,
         items: { ...s.items, [id]: have - 1 },
         buffs: {
           ...s.buffs,
-          expMult: cfg.add, expMultUntil: nowT + cfg.ms,
-          goldMult: cfg.add, goldMultUntil: nowT + cfg.ms,
+          expMult: newMult, expMultUntil: newUntil,
+          goldMult: newMult, goldMultUntil: newUntil,
         },
       }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `VIP +${Math.round(cfg.add*100)}% · ${cfg.label}`, "capture");
-      pushChat(`Livro VIP usado (+${Math.round(cfg.add*100)}% ouro e EXP por ${cfg.label}).`, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `VIP +${Math.round(newMult*100)}% · +${cfg.label}`, "capture");
+      if (curMult > 0) {
+        pushChat(`Livro VIP somado! +${cfg.label} de duração${upgraded ? ` — bônus aumentado para +${Math.round(newMult*100)}% XP/Ouro` : ` (bônus mantido em +${Math.round(newMult*100)}%)`}.`, "cap");
+      } else {
+        pushChat(`Livro VIP usado (+${Math.round(newMult*100)}% ouro e EXP por ${cfg.label}).`, "cap");
+      }
     } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia" || id === "egg_dragonite") {
       openEgg(id as EggId);
     } else if (id === "premium_box") {
