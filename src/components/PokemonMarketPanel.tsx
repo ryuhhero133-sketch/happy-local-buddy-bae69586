@@ -12,6 +12,17 @@ import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
 import { readEmeraldFor, writeEmeraldFor, spendEmeraldFor, grantEmeraldFor } from "@/lib/emerald";
+import emeraldCoinImg from "@/assets/emerald-coin.png";
+import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
+import { assetUrlFromJson } from "@/lib/assetUrl";
+
+const SAFIRA_URL = assetUrlFromJson(safiraVerdeAsset);
+
+function CurIcon({ c, size = 14 }: { c: Currency; size?: number }) {
+  if (c === "safira") return <img src={SAFIRA_URL} alt="" width={size} height={size} style={{ imageRendering: "pixelated", display: "inline-block", verticalAlign: "-2px", filter: "drop-shadow(0 0 4px #6ee7a8cc)" }} />;
+  if (c === "esmerald") return <img src={emeraldCoinImg} alt="" width={size} height={size} style={{ imageRendering: "pixelated", display: "inline-block", verticalAlign: "-2px", filter: "drop-shadow(0 0 4px rgba(52,211,153,0.9))" }} />;
+  return <span>{c === "gold" ? "💰" : "💎"}</span>;
+}
 
 // A tabela pokemon_market ainda não está nos types gerados — cast pra any.
 const supabase = _supabase as unknown as {
@@ -633,7 +644,7 @@ function ListingCard(props: {
         <div>
           <div style={{ fontSize: 8, letterSpacing: 2, color: "#8a7a9c", fontWeight: 900 }}>PREÇO</div>
           <div style={{ fontSize: 16, fontWeight: 900, color: CUR_COLOR[r.currency] }}>
-            {CUR_ICON[r.currency]} {r.price.toLocaleString()}
+            <CurIcon c={r.currency} /> {r.price.toLocaleString()}
           </div>
           <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 2 }}>por <b style={{ color: "#c8b8d0" }}>{r.seller_name}</b></div>
         </div>
@@ -697,7 +708,7 @@ function OffersReceived(props: {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.buyer_name}</div>
             <div style={{ fontSize: 11, fontWeight: 900, color: CUR_COLOR[o.currency] }}>
-              {CUR_ICON[o.currency]} {o.amount.toLocaleString()}
+              <CurIcon c={o.currency} /> {o.amount.toLocaleString()}
             </div>
           </div>
           <button onClick={() => onAccept(o)} title="Aceitar" style={{ ...btnGold, padding: "3px 7px", fontSize: 9 }}>✓</button>
@@ -779,7 +790,7 @@ function CreateListing(props: {
                     cursor: locked ? "not-allowed" : "pointer", opacity: locked ? 0.55 : 1,
                     textTransform: "uppercase", letterSpacing: 0.4,
                   }}>
-                  {CUR_ICON[c]} {c === "gold" ? "OURO" : c === "crystal" ? "CRISTAL" : c === "safira" ? "SAFIRA" : "ESMERALDA"} {locked && "🔒"}
+                  <CurIcon c={c} /> {c === "gold" ? "OURO" : c === "crystal" ? "CRISTAL" : c === "safira" ? "SAFIRA" : "ESMERALDA"} {locked && "🔒"}
                 </button>
               );
             })}
