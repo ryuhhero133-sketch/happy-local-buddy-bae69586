@@ -661,7 +661,7 @@ function OfferBox(props: {
     return (
       <div style={{ background: "#0e0818", border: "1px dashed #6bd4ff55", borderRadius: 8, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
         <div style={{ fontSize: 10, color: "#c8b8d0" }}>
-          Sua oferta: <b style={{ color: CUR_COLOR[myOffer.currency][r.currency] }}>{myOffer.amount.toLocaleString()}</b>
+          Sua oferta: <b style={{ color: CUR_COLOR[myOffer.currency] }}>{myOffer.amount.toLocaleString()}</b>
         </div>
         <button onClick={onCancel} style={{ ...btnRed, padding: "4px 8px", fontSize: 9 }}>Cancelar</button>
       </div>
