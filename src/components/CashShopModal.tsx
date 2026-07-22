@@ -973,6 +973,7 @@ export function CashShopModal(props: Props) {
             defaultCharName={identity?.name ?? ""}
             onClose={() => setSelected(null)}
             onConfirm={() => {
+              if (!guardCooldown()) return;
               if (selected.id === "black_mythic_plus" && blackStock > 0) {
                 const next = blackStock - 1;
                 setBlackStock(next);
@@ -980,10 +981,13 @@ export function CashShopModal(props: Props) {
               }
               setConfetti(true);
               setTimeout(() => setConfetti(false), 2400);
+              setPurchaseToast({ kind: "ok", title: "Pedido enviado!", subtitle: `${selected.name} · R$${selected.price} — aguarde aprovação no suporte` });
+              const productName = selected.name;
+              const productPrice = selected.price;
               setSelected(null);
               setSupportOpen(true);
               // Registra o pedido no chat (persistido → admin vê o ticket)
-              const orderText = `📩 Pedido: "${selected.name}" — R$${selected.price}. Envio o comprovante aqui e aguardo o código.`;
+              const orderText = `📩 Pedido: "${productName}" — R$${productPrice}. Envio o comprovante aqui e aguardo o código.`;
               if (uid && uid !== "guest") {
                 sendUserMessage(uid, identity?.name ?? "Treinador", orderText).catch(() => { /* ignore */ });
               } else {
