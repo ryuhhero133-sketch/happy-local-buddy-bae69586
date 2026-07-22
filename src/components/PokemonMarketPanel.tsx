@@ -316,7 +316,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (!entry) { pushChat("Selecione um Pokémon da coleção.", "info"); return; }
     if (myListings.length >= 6) { pushChat("Você já tem 6 anúncios ativos. Aguarde ou cancele algum.", "info"); return; }
     if (price < 1 || price > 100_000_000) { pushChat("Preço inválido.", "info"); return; }
-    if (currency === "crystal" && !isVip) { pushChat("✦ Vender por Cristal é exclusivo VIP.", "info"); return; }
+    if (currency !== "gold" && !isVip) { pushChat(`✦ Vender por ${CUR_LABEL[currency]} é exclusivo VIP.`, "info"); return; }
     if (cancelRemaining > 0) { pushChat(`Cooldown ativo: aguarde ${fmtTime(cancelRemaining)}.`, "info"); return; }
 
     const activate = new Date(Date.now() + 3 * 60 * 1000).toISOString();
