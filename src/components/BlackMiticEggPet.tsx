@@ -910,28 +910,112 @@ export function BlackMiticEggHud(props: {
 
                 {/* Direita: afinidade + alimentação + histórico */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {/* Card de Arquetipo + Cuidado */}
+                  {(() => {
+                    const arch = computeArchetype(selected.affinity);
+                    const meta = ARCHETYPE_META[arch];
+                    const care = computeCareScore(selected);
+                    return (
+                      <div style={{
+                        background: `linear-gradient(135deg, ${meta.color}22, rgba(30,10,60,0.6))`,
+                        border: `1px solid ${meta.color}77`,
+                        borderRadius: 10, padding: 12,
+                        display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center",
+                        boxShadow: `0 0 12px ${meta.color}33`,
+                      }}>
+                        <div style={{
+                          width: 44, height: 44, borderRadius: 10,
+                          background: `radial-gradient(circle, ${meta.color}66, ${meta.color}11)`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 22, border: `1px solid ${meta.color}`,
+                        }}>{meta.icon}</div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 10, color: meta.color, letterSpacing: 1 }}>ARQUÉTIPO</div>
+                          <div style={{ fontSize: 12, color: "#fff", marginTop: 2 }}>{meta.label}</div>
+                          <div style={{ fontSize: 8, color: "#c8a0e8", marginTop: 3, fontFamily: "ui-monospace, monospace", fontStyle: "italic" }}>{meta.desc}</div>
+                        </div>
+                        <div style={{ textAlign: "right", minWidth: 70 }}>
+                          <div style={{ fontSize: 8, color: "#a888c8", letterSpacing: 1 }}>CUIDADO</div>
+                          <div style={{ fontSize: 16, color: care >= 70 ? "#a0ffb0" : care >= 40 ? "#ffd84d" : "#ff9090", fontWeight: 700 }}>{care}<span style={{ fontSize: 9, color: "#a888c8" }}>/100</span></div>
+                          <div style={{ height: 4, marginTop: 3, background: "rgba(0,0,0,0.5)", borderRadius: 2, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${care}%`, background: `linear-gradient(90deg, #ff6b3d, #ffd84d, #a0ffb0)`, transition: "width 0.4s" }} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   <div style={{
                     background: "rgba(30,10,60,0.5)",
                     border: "1px solid rgba(160,80,255,0.3)",
                     borderRadius: 10, padding: 12,
                   }}>
-                    <div style={{ fontSize: 11, color: "#e0b8ff", marginBottom: 8, letterSpacing: 1 }}>◆ AFINIDADE ELEMENTAL</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ fontSize: 11, color: "#e0b8ff", marginBottom: 10, letterSpacing: 1, display: "flex", justifyContent: "space-between" }}>
+                      <span>◆ AFINIDADE ELEMENTAL</span>
+                      <span style={{ fontSize: 8, color: "#a888c8" }}>Total: {selected.totalFed}</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {ELEMENTS.map((el) => {
                         const val = selected.affinity[el.id] ?? 0;
                         const pct = Math.round((val / totalAffinity) * 100);
+                        const recent = selected.recentFeedAt?.[el.id] ?? 0;
+                        const isRecent = recent > 0 && (now - recent) < 4000;
+                        const isDominant = el.id === dominant && val > 0;
                         return (
-                          <div key={el.id} style={{ display: "grid", gridTemplateColumns: "80px 1fr 44px", gap: 8, alignItems: "center", fontSize: 9 }}>
-                            <span style={{ color: el.color }}>{el.emoji} {el.label}</span>
-                            <div style={{ height: 10, background: "rgba(0,0,0,0.5)", borderRadius: 5, overflow: "hidden", border: `1px solid ${el.color}55` }}>
-                              <div style={{ height: "100%", width: `${pct}%`, background: el.color, boxShadow: `0 0 6px ${el.color}` }} />
+                          <div key={el.id} style={{
+                            display: "grid", gridTemplateColumns: "36px 1fr auto", gap: 10, alignItems: "center",
+                            padding: "6px 8px",
+                            background: isDominant
+                              ? `linear-gradient(90deg, ${el.color}22, rgba(0,0,0,0.2))`
+                              : "rgba(0,0,0,0.2)",
+                            border: `1px solid ${isDominant ? el.color + "77" : "rgba(160,80,255,0.15)"}`,
+                            borderRadius: 8,
+                            transform: isRecent ? "scale(1.02)" : "scale(1)",
+                            transition: "transform 0.3s ease",
+                            boxShadow: isRecent ? `0 0 12px ${el.color}` : "none",
+                          }}>
+                            <div style={{
+                              width: 36, height: 36, borderRadius: 8,
+                              background: `radial-gradient(circle, ${el.color}44, ${el.color}11)`,
+                              border: `1px solid ${el.color}88`,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              boxShadow: isRecent ? `0 0 10px ${el.color}` : "none",
+                              animation: isRecent ? "blackEggStoneFlash 0.6s ease-out" : undefined,
+                            }}>
+                              <ItemPixelIcon id={el.stone} size={26} />
                             </div>
-                            <span style={{ textAlign: "right", color: "#d8bfff" }}>{pct}%</span>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 9, color: el.color, letterSpacing: 1, display: "flex", gap: 6, alignItems: "center" }}>
+                                <span>{el.label.toUpperCase()}</span>
+                                {isDominant && <span style={{ fontSize: 7, color: "#fff", background: el.color, padding: "1px 4px", borderRadius: 3 }}>DOM</span>}
+                                {selected.cravingElement === el.id && <span style={{ fontSize: 8, color: "#ff9ad6" }}>❥ desejo</span>}
+                              </div>
+                              <div style={{ position: "relative", height: 10, marginTop: 4, background: "rgba(0,0,0,0.55)", borderRadius: 5, overflow: "hidden", border: `1px solid ${el.color}44` }}>
+                                <div style={{
+                                  height: "100%", width: `${pct}%`,
+                                  background: `linear-gradient(90deg, ${el.color}, ${el.color}dd)`,
+                                  boxShadow: `0 0 8px ${el.color}`,
+                                  transition: "width 0.5s ease",
+                                  position: "relative",
+                                }}>
+                                  <div style={{
+                                    position: "absolute", inset: 0,
+                                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                                    animation: "blackEggShine 2.5s linear infinite",
+                                  }} />
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: "right", minWidth: 46 }}>
+                              <div style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>{pct}%</div>
+                              <div style={{ fontSize: 8, color: "#a888c8" }}>{val}</div>
+                            </div>
                           </div>
                         );
                       })}
                     </div>
                   </div>
+
 
                   <div style={{
                     background: "rgba(30,10,60,0.5)",
