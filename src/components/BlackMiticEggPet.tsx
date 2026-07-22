@@ -242,6 +242,99 @@ const CRAVING_LINES: Record<ElementId, string[]> = {
   dark:     ["Anseio pelo silêncio das sombras.", "A escuridão me chama. Alimente esse chamado."],
   dragon:   ["Sinto asas se formando... mas falta poder ancestral.", "Um sopro de dragão faria toda diferença agora."],
 };
+const EXCESS_LINES = [
+  "Treinador... tanta energia... estou mudando...",
+  "Esse poder está ficando difícil de controlar...",
+  "Você está criando algo muito além do normal...",
+  "Ainda consigo absorver mais... mas sinto que estou diferente.",
+  "Meu núcleo pulsa como uma tempestade — o que serei?",
+];
+
+// =========================================================================
+// Arquetipo (moldado pela alimentação) e pontuação de cuidado
+// =========================================================================
+export type Archetype = "tank" | "damage" | "versatile" | "balanced";
+export const ARCHETYPE_META: Record<Archetype, { label: string; color: string; icon: string; desc: string }> = {
+  tank:      { label: "Guardião",  color: "#4fb8ff", icon: "🛡", desc: "Alta defesa e HP." },
+  damage:    { label: "Ofensivo",  color: "#ff6b3d", icon: "⚔", desc: "Dano bruto e crítico." },
+  balanced:  { label: "Equilibrado", color: "#c58bff", icon: "⚖", desc: "Atributos gerais superiores." },
+  versatile: { label: "Versátil", color: "#a0ffb0", icon: "✦", desc: "Distribuição rara — bônus mistos." },
+};
+
+export function computeArchetype(affinity: Record<ElementId, number>): Archetype {
+  const total = Object.values(affinity).reduce((a, b) => a + b, 0);
+  if (total <= 0) return "balanced";
+  let off = 0, def = 0;
+  for (const el of ELEMENTS) {
+    const v = affinity[el.id] ?? 0;
+    if (el.role === "offense") off += v; else def += v;
+  }
+  const usedElements = ELEMENTS.filter(e => (affinity[e.id] ?? 0) > 0).length;
+  // Distribuição bem espalhada (>=5 elementos com peso) → versátil
+  if (usedElements >= 5) return "versatile";
+  const bias = (off - def) / total;
+  if (bias > 0.35) return "damage";
+  if (bias < -0.25) return "tank";
+  return "balanced";
+}
+
+// Pontuação de cuidado: 0..100. Influencia a qualidade dos traits ao chocar.
+export function computeCareScore(egg: EggInstance): number {
+  const feedsCount = Math.floor(egg.totalFed / FEED_COST);
+  if (feedsCount === 0) return 0;
+  const targetFeeds = 10; // "cheio de cuidado" a partir de ~10 alimentações
+  const consistency = Math.min(1, feedsCount / targetFeeds);           // 0..1
+  const cravingRate = Math.min(1, egg.matchedCravings / Math.max(1, feedsCount)); // 0..1
+  const missPenalty = Math.min(0.5, egg.missedFeedings * 0.06);        // 0..0.5
+  // Balanceamento por variância baixa entre elementos
+  const values = ELEMENTS.map(e => egg.affinity[e.id] ?? 0);
+  const total = values.reduce((a, b) => a + b, 0) || 1;
+  const shares = values.map(v => v / total);
+  const mean = 1 / ELEMENTS.length;
+  const variance = shares.reduce((a, s) => a + (s - mean) * (s - mean), 0) / ELEMENTS.length;
+  const balance = Math.max(0, 1 - variance * 6); // menor variância = mais balanceado
+  // Obsessão penaliza — streaks muito longos
+  const obsessionPenalty = Math.min(0.3, Math.max(0, egg.streakCount - 3) * 0.05);
+  const raw = (consistency * 0.4 + cravingRate * 0.3 + balance * 0.3) - missPenalty - obsessionPenalty;
+  return Math.round(Math.max(0, Math.min(1, raw)) * 100);
+}
+
+// Traits divididos por tier para o hatch inteligente.
+const TRAITS_EPIC   = ["alpha", "prismatico", "ceifador", "eterno", "dourado"];
+const TRAITS_RARE   = ["eletrizado", "precioso", "prodigio", "mistico", "esquivo", "vampirico", "colosso"];
+const TRAITS_STRONG = ["sabio", "curador", "brutal", "guardiao"];
+const TRAITS_ARCHETYPE: Record<Archetype, string[]> = {
+  tank:      ["colosso", "guardiao", "eterno", "curador"],
+  damage:    ["ceifador", "brutal", "mistico", "vampirico", "eletrizado"],
+  balanced:  ["alpha", "prodigio", "sabio", "dourado"],
+  versatile: ["prismatico", "alpha", "esquivo", "dourado", "prodigio"],
+};
+
+export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype): string[] {
+  const care = computeCareScore(egg); // 0..100
+  // Prob de escolher épico por slot cresce com care (25% → 85%)
+  const epicChance = 0.25 + (care / 100) * 0.6;
+  const rareChance = 0.85; // se falhar épico, chance de raro
+  const picked: string[] = [];
+  const themed = TRAITS_ARCHETYPE[archetype];
+  // Slot 1: garante um trait temático do arquétipo (o "sabor")
+  const themeSeed = themed[Math.floor(Math.random() * themed.length)];
+  picked.push(themeSeed);
+  while (picked.length < 5) {
+    let pool: string[];
+    const r = Math.random();
+    if (r < epicChance) pool = TRAITS_EPIC;
+    else if (r < epicChance + (1 - epicChance) * rareChance) pool = TRAITS_RARE;
+    else pool = TRAITS_STRONG;
+    // Bias adicional: chance extra de puxar do pool temático quando care é alto
+    if (Math.random() < 0.35 + care / 300) pool = [...pool, ...themed];
+    const candidates = pool.filter(t => !picked.includes(t));
+    if (candidates.length === 0) break;
+    picked.push(candidates[Math.floor(Math.random() * candidates.length)]);
+  }
+  return picked.slice(0, 5);
+}
+
 
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
