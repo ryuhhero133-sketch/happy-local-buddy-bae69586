@@ -792,7 +792,7 @@ export function CashShopModal(props: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {/* Safira -> Esmeralda */}
                 <div className="rounded-xl border border-emerald-400/30 bg-black/50 p-3 hover:border-emerald-300/60 transition">
                   <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
@@ -832,6 +832,27 @@ export function CashShopModal(props: Props) {
                     className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(250,204,21,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     TROCAR
+                  </button>
+                </div>
+
+                {/* Esmeralda -> Cristais (câmbio único, não reverso) */}
+                <div className="rounded-xl border border-cyan-400/30 bg-black/50 p-3 hover:border-cyan-300/60 transition">
+                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
+                    <span className="text-lg">💠</span>
+                    <span className="text-emerald-100">×{EMERALD_PER_CRYSTAL_PACK}</span>
+                    <span className="text-cyan-300">→</span>
+                    <span className="text-lg">💎</span>
+                    <span className="text-cyan-100">{CRYSTAL_PACK_SIZE.toLocaleString()}</span>
+                  </div>
+                  <div className="text-[11px] text-white/60 text-center mb-3">
+                    Câmbio <b className="text-cyan-200">único</b>: {EMERALD_PER_CRYSTAL_PACK} Esmeraldas → <b className="text-cyan-100">{CRYSTAL_PACK_SIZE.toLocaleString()} Cristais</b>. Cristais <b className="text-white/80">não</b> voltam a Esmeraldas.
+                  </div>
+                  <button
+                    onClick={doEmeraldToCrystal}
+                    disabled={emerald < EMERALD_PER_CRYSTAL_PACK}
+                    className="w-full py-2 rounded-lg bg-gradient-to-r from-cyan-400 to-sky-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(56,189,248,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    CAMBIAR
                   </button>
                 </div>
               </div>
