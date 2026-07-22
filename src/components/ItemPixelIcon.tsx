@@ -2,10 +2,12 @@
 // Cada glyph desenha um grid 16×16 com <rect> de 1u. Animações via CSS keyframes.
 import React from "react";
 import cartaGovernanteUrl from "@/assets/carta-governante.png";
+import cartaIncubadoraUrl from "@/assets/carta-incubadora.png";
 
 // Overrides que renderizam uma imagem bitmap ao invés do glyph SVG.
 const BITMAP_OVERRIDES: Record<string, string> = {
   carta_governante: cartaGovernanteUrl,
+  carta_incubadora: cartaIncubadoraUrl,
 };
 
 type Cell = [number, number, string]; // x, y, color
