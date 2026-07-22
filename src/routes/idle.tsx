@@ -923,6 +923,8 @@ const ITEM_IMG: Record<string, string> = {
   premium_box: premiumBoxImg,
   bau_esmeralda: chestEmeraldImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
+  orb_xp_supreme_24h: (new URL("../assets/orb-24h.png", import.meta.url)).href,
+  incenso_mel_raro_24h: (new URL("../assets/incense-24h.png", import.meta.url)).href,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
