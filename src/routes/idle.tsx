@@ -11702,6 +11702,89 @@ function TabOverlay({
                 .mochila-body { grid-template-columns: 1fr !important; }
               }
             `}</style>
+
+            {itemDetail && (() => {
+              const id = itemDetail;
+              const isEgg = id.startsWith("egg_");
+              const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
+              const img = ITEM_IMG[id];
+              const name = NAMES[id] ?? id;
+              const desc = ITEM_DESC[id] ?? "Item do universo IdleMon. Ainda sem descrição detalhada.";
+              const count = items[id] ?? 0;
+              const sellPrice = marketSellPrices[id] ?? 0;
+              return (
+                <div onClick={() => setItemDetail(null)} style={{
+                  position: "fixed", inset: 0, zIndex: 9999,
+                  background: "rgba(4,4,10,0.72)", backdropFilter: "blur(6px)",
+                  display: "grid", placeItems: "center", padding: 16,
+                }}>
+                  <div onClick={(e) => e.stopPropagation()} style={{
+                    width: "min(420px, 96vw)", position: "relative",
+                    background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
+                    border: `2px solid ${P.goldDark}`, borderRadius: 14,
+                    boxShadow: `inset 0 0 0 1px ${P.goldLight}88, 0 0 40px ${color}55, 0 12px 40px rgba(0,0,0,0.6)`,
+                    padding: 18, color: P.ink,
+                  }}>
+                    <button onClick={() => setItemDetail(null)} style={{
+                      position: "absolute", top: 8, right: 10, background: "transparent",
+                      border: "none", color: P.inkSoft, fontSize: 20, cursor: "pointer", fontWeight: 900,
+                    }}>×</button>
+                    <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                      <div style={{
+                        width: 84, height: 84, borderRadius: 12, flexShrink: 0,
+                        background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
+                        display: "grid", placeItems: "center",
+                        border: `2px inset ${P.goldDark}aa`,
+                        boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 14px ${color}66`,
+                      }}>
+                        {img ? (
+                          <img src={img} alt="" width={68} height={68} style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 6px ${color}aa)` }} />
+                        ) : (
+                          <ItemPixelIcon id={id} size={68} color={color} />
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.2 }}>{name}</div>
+                        <div style={{ fontSize: 11, color: P.inkSoft, marginTop: 4, fontWeight: 700 }}>Quantidade: <span style={{ color: P.gold }}>x{count}</span></div>
+                        {sellPrice > 0 && (
+                          <div style={{ fontSize: 11, color: P.inkSoft, marginTop: 2, fontWeight: 700 }}>Preço de venda: <span style={{ color: "#ffd66b" }}>{sellPrice} 🪙</span></div>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{
+                      marginTop: 14, padding: 12, borderRadius: 10,
+                      background: `${P.bg2}80`, border: `1px dashed ${P.goldDark}88`,
+                      fontSize: 12.5, lineHeight: 1.5, color: P.ink,
+                    }}>{desc}</div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                      {!isEgg && count > 0 && (
+                        <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
+                          flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                          background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
+                          color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                          borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
+                          boxShadow: `0 2px 0 ${P.goldDark}`,
+                        }}>USAR</button>
+                      )}
+                      {isEgg && count > 0 && (
+                        <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
+                          flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                          background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
+                          color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                          borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
+                          boxShadow: `0 2px 0 ${P.goldDark}`,
+                        }}>CHOCAR</button>
+                      )}
+                      <button onClick={() => setItemDetail(null)} style={{
+                        flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                        background: "transparent", color: P.inkSoft,
+                        border: `1.5px solid ${P.goldDark}`, borderRadius: 8, cursor: "pointer",
+                      }}>FECHAR</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         );
       })()}
