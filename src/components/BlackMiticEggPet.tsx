@@ -603,6 +603,101 @@ export function BlackMiticEggHud(props: {
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<"journal" | "feeds">("journal");
 
+  // ---- Cloud sync (Supabase) --------------------------------------------
+  // Nenhum jogador perde progresso: puxamos o snapshot do servidor ao abrir
+  // (fonte da verdade) e empurramos, com debounce, sempre que o estado muda.
+  const fetchCloud = useServerFn(getBlackEggSave);
+  const pushCloud = useServerFn(saveBlackEggSave);
+  const cloudReadyRef = useRef(false);
+  const cloudUidRef = useRef<string | null>(null);
+  const pushInFlightRef = useRef(false);
+  const pushPendingRef = useRef(false);
+  const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Reseta o gate de sync se o uid mudar (troca de conta).
+  useEffect(() => {
+    if (cloudUidRef.current !== uid) {
+      cloudReadyRef.current = false;
+      cloudUidRef.current = uid;
+    }
+  }, [uid]);
+
+  // Pull inicial ao abrir o painel: cloud manda no local (garante que ao
+  // abrir em outra máquina/limpar cache o progresso volta do banco).
+  useEffect(() => {
+    if (!open) return;
+    if (!uid || uid === "guest" || uid.startsWith("guest")) {
+      cloudReadyRef.current = true; // convidado: só local
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = (await fetchCloud({} as any)) as { data: any; updated_at: string | null };
+        if (cancelled) return;
+        const remote = res?.data;
+        if (remote && Array.isArray(remote.eggs)) {
+          const merged: CollectionState = {
+            eggs: remote.eggs as EggInstance[],
+            selectedId: typeof remote.selectedId === "string" ? remote.selectedId : (remote.eggs[0]?.id ?? null),
+          };
+          setState(merged);
+          saveState(uid, merged);
+        }
+      } catch (e) {
+        console.warn("[BlackEgg] pull cloud falhou:", e);
+      } finally {
+        cloudReadyRef.current = true;
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open, uid, fetchCloud]);
+
+  // Push debounced sempre que o estado muda (depois que o pull terminou).
+  useEffect(() => {
+    if (!cloudReadyRef.current) return;
+    if (!uid || uid === "guest" || uid.startsWith("guest")) return;
+    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+    pushTimerRef.current = setTimeout(async () => {
+      if (pushInFlightRef.current) { pushPendingRef.current = true; return; }
+      pushInFlightRef.current = true;
+      try {
+        await pushCloud({ data: { data: state as any } } as any);
+      } catch (e) {
+        console.warn("[BlackEgg] push cloud falhou:", e);
+      } finally {
+        pushInFlightRef.current = false;
+        if (pushPendingRef.current) {
+          pushPendingRef.current = false;
+          // dispara outro ciclo curto pra não segurar mudanças recentes
+          if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+          pushTimerRef.current = setTimeout(() => {
+            pushCloud({ data: { data: state as any } } as any).catch(() => { /* ignore */ });
+          }, 800);
+        }
+      }
+    }, 1500);
+    return () => { if (pushTimerRef.current) clearTimeout(pushTimerRef.current); };
+  }, [state, uid, pushCloud]);
+
+  // Flush final ao fechar o painel / desmontar / esconder aba.
+  useEffect(() => {
+    const flush = () => {
+      if (!cloudReadyRef.current) return;
+      if (!uid || uid === "guest" || uid.startsWith("guest")) return;
+      try { pushCloud({ data: { data: state as any } } as any).catch(() => {}); } catch { /* ignore */ }
+    };
+    const onHide = () => { if (document.visibilityState === "hidden") flush(); };
+    window.addEventListener("beforeunload", flush);
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onHide);
+      flush();
+    };
+  }, [state, uid, pushCloud]);
+
+
   // Sincroniza número de ovos com itemCount (adiciona novos inativos, ou remove excesso do fim entre os NÃO ativados)
   useEffect(() => {
     setState((prev) => {
