@@ -1730,6 +1730,10 @@ function IdlePage() {
   // Governante NPC — abre a cutscene de diálogo ao entrar no Salão do Governante.
   const [governanteOpen, setGovernanteOpen] = useState(false);
   useEffect(() => {
+    // Zona sagrada — limpa qualquer inimigo que tenha ficado do mapa anterior.
+    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+      setEnemies([]);
+    }
     if (idle.currentMap !== "governante_hall") return;
     setGovernanteOpen(true);
   }, [idle.currentMap]);
