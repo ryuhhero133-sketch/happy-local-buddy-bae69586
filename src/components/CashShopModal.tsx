@@ -916,8 +916,33 @@ export function CashShopModal(props: Props) {
             adminThreads={adminThreads}
             adminTargetUid={adminTargetUid}
             adminTargetName={adminTargetName}
-            onAdminPick={(t) => { setAdminTargetUid(t.user_id); setAdminTargetName(t.username); }}
+            onAdminPick={(t) => { setAdminTargetUid(t.user_id); setAdminTargetName(t.username); setAdminTab("tickets"); }}
             onAdminBack={() => { setAdminTargetUid(null); setAdminTargetName(""); }}
+            adminTab={adminTab}
+            onAdminTab={setAdminTab}
+            pendingSales={pendingSales}
+            onApproveSale={async (s) => {
+              await updatePendingStatus(s.id, "approved", identity?.name ?? "Admin");
+              await sendAdminMessage(
+                s.user_id,
+                identity?.name ?? "Suporte",
+                `✅ Pagamento APROVADO — "${s.product_name}". Os itens foram liberados. Bom jogo!`,
+              );
+              reloadPendingSales();
+              reloadAdminList();
+            }}
+            onRejectSale={async (s) => {
+              const note = window.prompt("Motivo da rejeição (opcional):") ?? "";
+              await updatePendingStatus(s.id, "rejected", identity?.name ?? "Admin", note);
+              await sendAdminMessage(
+                s.user_id,
+                identity?.name ?? "Suporte",
+                `❌ Pagamento REJEITADO — "${s.product_name}".${note ? ` Motivo: ${note}` : ""}`,
+              );
+              reloadPendingSales();
+              reloadAdminList();
+            }}
+            onOpenSaleThread={(s) => { setAdminTargetUid(s.user_id); setAdminTargetName(s.username); setAdminTab("tickets"); }}
           />
         )}
       </AnimatePresence>
