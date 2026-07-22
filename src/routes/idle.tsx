@@ -13459,6 +13459,7 @@ type MarketListing = {
   item_id: string;
   qty: number;
   price: number;
+  currency?: "gold" | "crystal" | "safira";
   created_at: string;
 };
 function MarketScreen({
@@ -13468,8 +13469,8 @@ function MarketScreen({
   bank: { gold: number; crystals: number };
   identity: LocalIdentity | null;
   isVip: boolean;
-  onList: (itemId: string, qty: number, price: number) => Promise<boolean>;
-  onBuy: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number }) => Promise<boolean>;
+  onList: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
+  onBuy: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onCancel: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
   onNpcSell: (id: string, qty?: number) => void;
   npcPrices: Record<string, number>;
@@ -13478,23 +13479,31 @@ function MarketScreen({
     pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
     chest_amulet: "Amuleto do Baú",
     potion: "Poção",
+    stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
+    stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
+    stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
   };
   const ICONS: Record<string, string> = {
     pokeball: "⚪", greatball: "🔴", ultraball: "🟡",
     chest_amulet: "🎗", potion: "🧪",
+    stone_grass: "🌿", stone_fire: "🔥", stone_water: "💧",
+    stone_electric: "⚡", stone_dark: "🌑", stone_dragon: "🐉",
   };
+  const CUR_LABEL: Record<string, string> = { gold: "ouro", crystal: "💎 cristais", safira: "💚 safiras" };
+  const CUR_COLOR: Record<string, string> = { gold: "#ff9d3d", crystal: "#6bd4ff", safira: "#7dffbe" };
   const [listings, setListings] = useState<MarketListing[]>([]);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"browse" | "create" | "npc">("browse");
   const [selItem, setSelItem] = useState<string>("pokeball");
   const [selQty, setSelQty] = useState<number>(1);
   const [selPrice, setSelPrice] = useState<number>(500);
+  const [selCurrency, setSelCurrency] = useState<"gold" | "crystal" | "safira">("gold");
 
   const refresh = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("market_listings")
-      .select("id, seller_id, seller_name, item_id, qty, price, created_at, sold_at")
+      .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at")
       .is("sold_at", null)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -13505,6 +13514,7 @@ function MarketScreen({
 
   const mine = listings.filter((l) => l.seller_id === (identity?.id ?? ""));
   const others = listings.filter((l) => l.seller_id !== (identity?.id ?? ""));
+
 
   return (
     <div style={{ maxWidth: 900 }}>
