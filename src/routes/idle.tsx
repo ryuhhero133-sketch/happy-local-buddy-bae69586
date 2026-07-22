@@ -11547,6 +11547,33 @@ function TabOverlay({
                                 }}
                               >💰{sellPrice}</button>
                             )}
+                            {id.startsWith("stone_") && (
+                              <>
+                                <button
+                                  onClick={() => onSellItem(id, 1, "crystal")}
+                                  title="Vender 1 por cristais"
+                                  style={{
+                                    padding: "5px 6px", fontSize: 10, fontWeight: 900,
+                                    background: "linear-gradient(180deg,#7dd3fc,#0ea5e9)",
+                                    color: "#0b2540", border: "1.5px solid #075985",
+                                    borderRadius: 6, cursor: "pointer",
+                                    boxShadow: "0 2px 0 #075985",
+                                  }}
+                                >💎</button>
+                                <button
+                                  onClick={() => onSellItem(id, Math.max(2, n - (n % 2)), "safira")}
+                                  title="Vender por Safira Verde (2 stones = 1 safira)"
+                                  disabled={n < 2}
+                                  style={{
+                                    padding: "5px 6px", fontSize: 10, fontWeight: 900,
+                                    background: n < 2 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                    color: "#0b2540", border: "1.5px solid #065f46",
+                                    borderRadius: 6, cursor: n < 2 ? "not-allowed" : "pointer",
+                                    boxShadow: "0 2px 0 #065f46", opacity: n < 2 ? 0.5 : 1,
+                                  }}
+                                >💚</button>
+                              </>
+                            )}
                           </div>
                           {(() => {
                             const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
