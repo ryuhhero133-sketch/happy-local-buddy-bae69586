@@ -13622,14 +13622,22 @@ function MarketScreen({
           <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Quantidade</label>
           <input type="number" min={1} max={999} value={selQty} onChange={(e) => setSelQty(Math.max(1, parseInt(e.target.value) || 1))}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }} />
-          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Preço total (ouro)</label>
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Moeda</label>
+          <select value={selCurrency} onChange={(e) => setSelCurrency(e.target.value as any)}
+            style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }}>
+            <option value="gold">💰 Ouro</option>
+            <option value="crystal">💎 Cristal</option>
+            <option value="safira">💚 Safira Verde</option>
+          </select>
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Preço total ({CUR_LABEL[selCurrency]})</label>
           <input type="number" min={1} value={selPrice} onChange={(e) => setSelPrice(Math.max(1, parseInt(e.target.value) || 1))}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 12 }} />
           <button disabled={!isVip || (items[selItem] ?? 0) < selQty}
-            onClick={async () => { const ok = await onList(selItem, selQty, selPrice); if (ok) { setMode("browse"); void refresh(); } }}
+            onClick={async () => { const ok = await onList(selItem, selQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
             style={{ width: "100%", background: (!isVip || (items[selItem] ?? 0) < selQty) ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: (!isVip || (items[selItem] ?? 0) < selQty) ? "not-allowed" : "pointer" }}>
             {isVip ? "Publicar anúncio" : "🔒 VIP necessário"}
           </button>
+
         </div>
       )}
 
