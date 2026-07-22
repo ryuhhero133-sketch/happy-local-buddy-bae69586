@@ -708,7 +708,7 @@ function OffersReceived(props: {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.buyer_name}</div>
             <div style={{ fontSize: 11, fontWeight: 900, color: CUR_COLOR[o.currency] }}>
-              {CUR_ICON[o.currency]} {o.amount.toLocaleString()}
+              <CurIcon c={o.currency} /> {o.amount.toLocaleString()}
             </div>
           </div>
           <button onClick={() => onAccept(o)} title="Aceitar" style={{ ...btnGold, padding: "3px 7px", fontSize: 9 }}>✓</button>
