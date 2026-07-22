@@ -9,6 +9,7 @@ import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 // - Suporta múltiplos ovos em UM único painel (seleção por ovo).
 // - Cooldown de alimentação: 1h entre feeds.
 // - Incubação: 20h (conta apenas depois de "ATIVAR INICIAÇÃO").
+export const BLACK_EGG_ITEM_ID = "black_mitic_egg";
 export const BLACK_MITIC_EGG_DESCRIPTION =
   "Black Mitic Plus Egg — coloque na incubadora e ative para começar a chocar (20h). Alimente com Elemental Stones (50 por vez, 1h de cooldown). O elemento dominante define o tipo do Pokémon que nascerá com 5 traits.";
 
