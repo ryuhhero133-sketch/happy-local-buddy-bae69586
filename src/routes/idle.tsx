@@ -8748,7 +8748,7 @@ function IdlePage() {
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px", gap: 8 }}>
                             <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 15, letterSpacing: 2 }}>
-                              🌍 MAPA MUNDI · UNIVERSO POKÉMON
+                              {tabTitle}
                             </div>
                             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                               <span style={{ background: scrollsAvail > 0 ? "linear-gradient(135deg,#3d2a08,#5a3d10)" : "#1a1420", border: `1px solid ${scrollsAvail > 0 ? "#f5cf6b" : "#4a3a52"}`, color: scrollsAvail > 0 ? "#ffe08a" : "#7a6a82", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 900 }}>
@@ -8760,10 +8760,43 @@ function IdlePage() {
                               >✕</button>
                             </div>
                           </div>
-                          <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: "2px solid #7a5a20", boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)" }}>
+                          {/* Tabs de continentes */}
+                          <div style={{ display: "flex", gap: 6, marginBottom: 8, padding: "0 4px" }}>
+                            {([
+                              { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
+                              { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
+                            ]).map((t) => {
+                              const active = worldTab === t.id;
+                              const locked = t.id === 2 && !hasGovCard;
+                              return (
+                                <button
+                                  key={t.id}
+                                  onClick={() => { if (locked) return; playClick(); setWorldTab(t.id); }}
+                                  disabled={locked}
+                                  style={{
+                                    flex: 1,
+                                    background: active
+                                      ? "linear-gradient(135deg, #3d2a08, #6a4818)"
+                                      : locked ? "#160a1e" : "#1a1420",
+                                    border: `2px solid ${active ? "#f5cf6b" : locked ? "#3a2a4a" : "#5a4a6a"}`,
+                                    color: active ? "#ffe08a" : locked ? "#5a4a6a" : "#c8b8d0",
+                                    borderRadius: 8,
+                                    padding: "8px 10px",
+                                    cursor: locked ? "not-allowed" : "pointer",
+                                    textAlign: "left",
+                                    boxShadow: active ? "0 0 14px rgba(245,207,107,0.5)" : undefined,
+                                  }}
+                                >
+                                  <div style={{ fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>{t.label}</div>
+                                  <div style={{ fontSize: 10, opacity: 0.85, marginTop: 2 }}>{t.sub}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: `2px solid ${activeTab === 2 ? "#a06de0" : "#7a5a20"}`, boxShadow: activeTab === 2 ? "inset 0 0 60px rgba(120,60,180,0.6)" : "inset 0 0 40px rgba(0,0,0,0.6)" }}>
                             <img
-                              src={assetUrlFromJson(worldMapGlobeAsset)}
-                              alt="Mapa Mundi"
+                              src={bgUrl}
+                              alt={tabTitle}
                               loading="lazy"
                               width={1536}
                               height={1024}
