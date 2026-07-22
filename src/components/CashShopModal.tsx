@@ -119,8 +119,8 @@ const PRODUCTS: Product[] = [
 // ---------- Estoque (localStorage) ----------
 // Total 30, 20 já vendidas — restam 10.
 const STOCK_TOTAL = 30;
-const STOCK_SOLD_INITIAL = 20;
-const STOCK_KEY = "rubym.cashshop.blackmythic.stock.v2";
+const STOCK_SOLD_INITIAL = 30;
+const STOCK_KEY = "rubym.cashshop.blackmythic.stock.v3";
 function readStock(): number {
   try {
     const v = localStorage.getItem(STOCK_KEY);
@@ -203,6 +203,15 @@ const EMERALD_OFFERS: EmeraldOffer[] = [
     image: chestEmeraldImg,
     grants: [{ itemId: "premium_box", qty: 1 }],
     accent: "from-emerald-400 via-green-500 to-emerald-700",
+  },
+  {
+    id: "ovo_mitico_aleatorio",
+    name: "Ovo Mítico Aleatório",
+    desc: "1× Ovo Místico ✦ · espécie aleatória com chance mítica",
+    price: 400,
+    image: blackEggImg,
+    grants: [{ itemId: "egg_mystic", qty: 1 }],
+    accent: "from-fuchsia-500 via-purple-500 to-pink-600",
   },
 ];
 
