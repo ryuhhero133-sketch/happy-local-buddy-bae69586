@@ -3511,18 +3511,45 @@ function IdlePage() {
           pushChat(`+${xp} EXP · +${gold} ouro${suffix}`, "info");
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
-          for (const it of ITEM_POOL) {
-            if (it.id === "pokeball") continue;
-            if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
+          const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2";
+          if (isOddishMap) {
+            // 🌿 EVENTO ODISSÉIA ODDISH — SÓ dropa Stones Elementais.
+            // Épico / mítico / mítico shiny / lendário são os únicos que dropam.
+            const isValuable = target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
+            if (isValuable) {
+              const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
+              // ~60% de chance de dropar 1 stone random (=> ~12 stones a cada 20 kills)
+              if (Math.random() < 0.60) {
+                const first = STONES[Math.floor(Math.random() * STONES.length)];
+                drops.push(first);
+                // ~20% de chance de vir uma SEGUNDA stone de elemento DIFERENTE
+                // (=> em média ~2 stones diferentes a cada 10 kills)
+                if (Math.random() < 0.20) {
+                  const rest = STONES.filter((s) => s !== first);
+                  drops.push(rest[Math.floor(Math.random() * rest.length)]);
+                }
+              }
+              // Míticos/shiny dão bônus garantido de uma stone extra diferente
+              if (target.rarity === "mythic" || target.rarity === "mythic_shiny") {
+                const already = new Set(drops);
+                const rest = STONES.filter((s) => !already.has(s));
+                if (rest.length) drops.push(rest[Math.floor(Math.random() * rest.length)]);
+              }
+            }
+          } else {
+            for (const it of ITEM_POOL) {
+              if (it.id === "pokeball") continue;
+              if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
+            }
+            // Ultra Ball: raro+, 30% padrão. Mapas Terry/n2/n3 têm chance elevada e Great Ball extra.
+            const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
+            const cm = idle.currentMap;
+            const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
+            const isGeliusMap = cm === "gelius1" || cm === "gelius2";
+            const ultraChance = isGeliusMap ? 0.35 : isTerryMap ? 0.20 : 0.08;
+            if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
+            if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
           }
-          // Ultra Ball: raro+, 30% padrão. Mapas Terry/n2/n3 têm chance elevada e Great Ball extra.
-          const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
-          const cm = idle.currentMap;
-          const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
-          const isGeliusMap = cm === "gelius1" || cm === "gelius2";
-          const ultraChance = isGeliusMap ? 0.35 : isTerryMap ? 0.20 : 0.08;
-          if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
-          if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
@@ -3587,6 +3614,11 @@ function IdlePage() {
             // Evento Gelius: só permite capturar espécies específicas (ditto/gengar/magmar)
             const inGelius = s.currentMap === "gelius1" || s.currentMap === "gelius2";
             if (inGelius && !GELIUS_CAPTURABLE.has(target.sp)) {
+              usedBall = null;
+            }
+            // 🌿 EVENTO ODISSÉIA ODDISH — captura BLOQUEADA. Aqui só cai Stone.
+            const inOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2";
+            if (inOddishEvent) {
               usedBall = null;
             }
             let captured = false;
@@ -3787,7 +3819,7 @@ function IdlePage() {
               : newItems;
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + (isGeliusMap && Math.random() < 0.35 ? 1 : 0) },
+              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0) },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
               tasks: nt2,
               items: itemsWithBalls,
@@ -4803,25 +4835,27 @@ function IdlePage() {
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2") {
-          // Odisséia Oddish — pool só do evento; TODOS épicos; nível escala com o treinador.
-          // Lickitung(_shiny) entra com peso menor. Mewtwo é rolado à parte (mítico plus).
-          if (Math.random() < MEWTWO_EVENT_CHANCE && !enemies.some((e) => e.sp === "mewtwo_event")) {
-            pool = ["mewtwo_event"] as Species[];
-            forcedRarity = "mythic_shiny";
-            mapLvRange = [Math.max(300, leaderLv), Math.max(300, leaderLv) + 10];
-          } else if (Math.random() < 0.015 && !enemies.some((e) => e.sp === "oddish_shiny")) {
-            // ✦ ODDISH SHINY — spawn raro (~1.5%), lendário, vale 5 Safiras Verdes ao fragmentar.
+          // Odisséia Oddish — mapa aberto 24h. Não captura aqui.
+          // Bastante Oddish Shiny, Scizor e mons legais aleatórios.
+          const rollShiny = Math.random();
+          if (rollShiny < 0.18) {
+            // ✦ ODDISH SHINY — spawn muito comum no evento
             pool = ["oddish_shiny"] as Species[];
-            forcedRarity = "legendary";
+            forcedRarity = "mythic_shiny";
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
-          } else {
-            // 60% oddish/gloom/vileplume, 40% lickitung(_shiny)
-            const useSleeper = Math.random() < 0.4;
-            const sleepers = (["lickitung", "lickitung_shiny"] as Species[]).filter(hasGif);
-            const base = (["oddish", "gloom", "vileplume"] as Species[]).filter(hasGif);
-            pool = useSleeper && sleepers.length ? sleepers : (base.length ? base : ([...ODDISH_EVENT_POOL] as Species[]).filter(hasGif));
+          } else if (rollShiny < 0.32) {
+            // Scizor — épico brilhante
+            pool = (["scizor"] as Species[]).filter(hasGif);
             if (pool.length === 0) pool = ["oddish"] as Species[];
             forcedRarity = "epic";
+            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
+          } else {
+            // Aleatórios legais no mapa: gengar, magmar, gyarados, ursaring, hariyama, umbreon, jolteon, dragonite, oddish, gloom, vileplume, lickitung
+            const wild = (["gengar", "magmar", "gyarados", "ursaring", "hariyama", "umbreon", "jolteon", "dragonite", "oddish", "gloom", "vileplume", "lickitung", "lickitung_shiny", "beedrill", "venomoth"] as Species[]).filter(hasGif);
+            pool = wild.length ? wild : (["oddish"] as Species[]);
+            // Raridade mista: epic 55%, mythic 25%, mythic_shiny 20% — todos dropam stones
+            const rr = Math.random();
+            forcedRarity = rr < 0.55 ? "epic" : rr < 0.80 ? "mythic" : "mythic_shiny";
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           }
         }
@@ -5177,6 +5211,9 @@ function IdlePage() {
     chest_amulet: 900, potion: 40,
     berry: 60, revive: 300, key: 500,
     incenso_mel: 2500, incenso_mel_raro: 9000,
+    // Stones elementais — valem bastante ouro (também alimentam ovos Black Mítico)
+    stone_grass: 12000, stone_fire: 12000, stone_water: 12000,
+    stone_electric: 12000, stone_dark: 15000, stone_dragon: 18000,
   };
   // ===== Mercado P2P (Supabase) =====
   const isVip = () => {
@@ -11127,6 +11164,9 @@ function TabOverlay({
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯",
           safira_verde: "Safira Verde 💚",
           carta_governante: "Carta do Governante 👑",
+          stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
+          stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
+          stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
