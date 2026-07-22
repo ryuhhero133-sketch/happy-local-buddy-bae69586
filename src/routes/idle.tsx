@@ -11561,21 +11561,21 @@ function TabOverlay({
                             {id.startsWith("stone_") && (
                               <button
                                 onClick={() => {
-                                  const maxBatches = Math.floor(n / 50);
+                                  const maxBatches = Math.floor(n / 250);
                                   if (maxBatches <= 0) return;
-                                  const raw = window.prompt(`Vender quantas Safiras? (1–${maxBatches})\n50 stones = 1 💚 Safira`, String(maxBatches));
+                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
                                   if (raw == null) return;
                                   const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
-                                  onSellItem(id, b * 50, "safira");
+                                  onSellItem(id, b * 250, "safira");
                                 }}
-                                title="Vender por Safira Verde (50 stones = 1 safira)"
-                                disabled={n < 50}
+                                title="Vender por Safira Verde (250 stones = 2 safiras)"
+                                disabled={n < 250}
                                 style={{
                                   padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                  background: n < 50 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
                                   color: "#0b2540", border: "1.5px solid #065f46",
-                                  borderRadius: 6, cursor: n < 50 ? "not-allowed" : "pointer",
-                                  boxShadow: "0 2px 0 #065f46", opacity: n < 50 ? 0.5 : 1,
+                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
+                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
                                 }}
                               >💚</button>
                             )}
