@@ -28,6 +28,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
+import { BlackMiticEggSprite, BlackMiticEggHud, BLACK_EGG_ITEM_ID } from "@/components/BlackMiticEggPet";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
 import chestOpenImg from "@/assets/icons/chest-open.png";
@@ -2056,6 +2057,7 @@ function IdlePage() {
   const [codeInput, setCodeInput] = useState("");
   const [codeMsg, setCodeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [cashShopOpen, setCashShopOpen] = useState(false);
+  const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
@@ -2328,6 +2330,28 @@ function IdlePage() {
       pushChat(`🎉 Código CHARIZEPIC30: 1× Ovo Charizard + VIP 30 dias (+30% XP/Gold).`, "cap");
       return;
     }
+
+    if (raw === "BLACKEGGTEST" || raw === "BLACKMITIC1" || raw === "TESTBLACKEGG") {
+      const base = idleRef.current;
+      if ((base.items?.[BLACK_EGG_ITEM_ID] ?? 0) > 0) {
+        setCodeMsg({ kind: "err", text: "Você já possui um Black Mitic Egg." });
+        return;
+      }
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, [BLACK_EGG_ITEM_ID]: 1 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "✦ Black Mitic Egg entregue! Confira sua mochila e o mapa." });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: 1× Black Mitic Egg ✦ (pet flutuante).`, "cap");
+      return;
+    }
+
+
 
 
     if (raw === "EPIC5EGG" || raw === "EPICEGG5" || raw === "EPIC5CRY10K") {
@@ -7478,6 +7502,15 @@ function IdlePage() {
               }} />
             </div>
 
+            {/* Black Mitic Egg — pet flutuante */}
+            <BlackMiticEggSprite
+              trainerX={renderTrainerX}
+              trainerY={renderTrainerY}
+              visible={(idle.items?.[BLACK_EGG_ITEM_ID] ?? 0) > 0}
+              onClick={() => setBlackEggHudOpen(true)}
+            />
+
+
             {/* Animação da pokébola sendo lançada */}
             {captureAnim && (() => {
               const now = performance.now();
@@ -10421,7 +10454,32 @@ function IdlePage() {
         codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
       />
+
+      <BlackMiticEggHud
+        open={blackEggHudOpen}
+        onClose={() => setBlackEggHudOpen(false)}
+        uid={identity?.id ?? "guest"}
+        stones={{
+          stone_grass: idle.items?.stone_grass ?? 0,
+          stone_fire: idle.items?.stone_fire ?? 0,
+          stone_water: idle.items?.stone_water ?? 0,
+          stone_electric: idle.items?.stone_electric ?? 0,
+          stone_dark: idle.items?.stone_dark ?? 0,
+          stone_dragon: idle.items?.stone_dragon ?? 0,
+        }}
+        onConsumeStone={(stoneId, qty) => {
+          const have = idleRef.current.items?.[stoneId] ?? 0;
+          if (have < qty) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), [stoneId]: (s.items?.[stoneId] ?? 0) - qty },
+          }));
+          return true;
+        }}
+        onNotify={(msg) => pushChat(`✦ Black Mitic Egg: ${msg}`, "cap")}
+      />
     </div>
+
 
   );
 }
@@ -11348,6 +11406,7 @@ function TabOverlay({
           stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
+          black_mitic_egg: "Black Mitic Egg ✦",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -11392,6 +11451,7 @@ function TabOverlay({
           stone_electric: "Stone Elétrica ⚡ · alimenta ovos Black Míticos e vale ouro.",
           stone_dark: "Stone Sombria 🌑 · alimenta ovos Black Míticos, valor alto.",
           stone_dragon: "Stone Dragão 🐉 · alimenta ovos Black Míticos, valor muito alto.",
+          black_mitic_egg: "Black Mitic Egg ✦ · ovo lendário que flutua ao seu lado. Clique nele no mapa para abrir a HUD e alimentar com Elemental Stones (50 por vez). Cooldown de 7h por alimentação. A afinidade elemental dominante decidirá o elemento do futuro Pokémon.",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
