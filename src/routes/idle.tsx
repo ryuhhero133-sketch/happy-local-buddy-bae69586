@@ -2367,26 +2367,12 @@ function IdlePage() {
       return;
     }
 
-    // CARTAGOV1..4 — Carta do Governante (liberado)
+    // CARTAGOV1..4 — desativados
     if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4") {
-
-      const base = idleRef.current;
-      const next: IdleState = {
-        ...base,
-        items: {
-          ...base.items,
-          carta_governante: (base.items.carta_governante ?? 0) + 1,
-        },
-        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
-      };
-      setIdle(next);
-      persistCodeReward(next);
-      try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "👑 Carta do Governante entregue!" });
-      setCodeInput("");
-      pushChat(`🎉 Código ${raw}: 1× Carta do Governante 👑.`, "cap");
+      setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
       return;
     }
+
 
 
 
