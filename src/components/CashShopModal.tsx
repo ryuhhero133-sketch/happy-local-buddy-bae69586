@@ -11,12 +11,14 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import blackEggImg from "@/assets/black-mythic-plus-egg.jpg";
 import rubyVipImg from "@/assets/ruby-vip.jpg";
-import rubyPackImg from "@/assets/ruby-pack.jpg";
+import rubyEmeraldPackImg from "@/assets/ruby-emerald-pack.jpg";
 import chestEmeraldImg from "@/assets/chest-emerald.png";
 import packUltraballImg from "@/assets/pack-ultraball.png";
 import orb24hImg from "@/assets/orb-24h.png";
 import incense24hImg from "@/assets/incense-24h.png";
 import emeraldCoinImg from "@/assets/emerald-coin.png";
+import safariBallImg from "@/assets/items/icon-safariball.png";
+import dragoniteEggImg from "@/assets/egg-dragonite-shiny.jpg";
 import { emeraldKeyFor, readEmeraldFor, writeEmeraldFor } from "@/lib/emerald";
 
 // Mantém tipos exportados p/ compat externa (não usados internamente agora)
@@ -101,13 +103,14 @@ const PRODUCTS: Product[] = [
   },
   {
     id: "ruby",
-    name: "Ruby",
-    subtitle: "2.000 Rubys",
+    name: "Ruby + Esmeralda",
+    subtitle: "2.000 Rubys + 500 Esmeraldas",
     price: 75,
-    image: rubyPackImg,
-    description: "Pacote generoso com 2.000 Rubys para gastar como quiser dentro da loja premium.",
+    image: rubyEmeraldPackImg,
+    badge: "💚 500 ESMERALDAS",
+    description: "Pacote generoso com 2.000 Rubys + 500 Esmeraldas convertidas dos Rubys — economia premium exclusiva.",
     link: PAYMENT_LINK_RUBY,
-    accent: "from-rose-500 via-red-500 to-red-700",
+    accent: "from-rose-500 via-red-500 to-emerald-600",
   },
   {
     id: "black_mythic_plus",
@@ -145,6 +148,9 @@ function readStock(): number {
 const SAFIRA_PER_EMERALD = 200;  // 200 Safiras Verdes → 1 Esmeralda
 const EMERALD_PER_ULTRAPACK = 3; // 3 Esmeraldas → 100 Ultra Balls
 const ULTRAPACK_SIZE = 100;
+// Câmbio único (não reverso): 500 Esmeraldas → 30.000 Cristais
+const EMERALD_PER_CRYSTAL_PACK = 500;
+const CRYSTAL_PACK_SIZE = 30000;
 
 // ---------- Ofertas em Esmeraldas ----------
 type EmeraldOffer = {
@@ -210,6 +216,24 @@ const EMERALD_OFFERS: EmeraldOffer[] = [
     image: blackEggImg,
     grants: [{ itemId: "egg_mystic", qty: 1 }],
     accent: "from-fuchsia-500 via-purple-500 to-pink-600",
+  },
+  {
+    id: "ovo_dragonite_shiny",
+    name: "Ovo Dragonite Shiny",
+    desc: "1× Ovo Mítico Dragonite Shiny ✦✦ · choca um Dragonite Shiny lendário nível 100",
+    price: 500,
+    image: dragoniteEggImg,
+    grants: [{ itemId: "egg_dragonite", qty: 1 }],
+    accent: "from-amber-400 via-orange-500 to-rose-600",
+  },
+  {
+    id: "safari_ball_pack",
+    name: "Safari Ball",
+    desc: "Nova pokébola exclusiva de eventos safári · em breve",
+    price: 999,
+    image: safariBallImg,
+    grants: [{ itemId: "safariball", qty: 20 }],
+    accent: "from-lime-500 via-green-500 to-emerald-600",
   },
 ];
 
@@ -359,6 +383,19 @@ export function CashShopModal(props: Props) {
     setEmerald(next); writeEmerald(next);
     onGrantItem("ultraball", ULTRAPACK_SIZE);
     setConvMsg({ kind: "ok", text: `+${ULTRAPACK_SIZE} Ultra Balls entregues!` });
+  };
+
+  const doEmeraldToCrystal = () => {
+    if (emerald < EMERALD_PER_CRYSTAL_PACK) {
+      setConvMsg({ kind: "err", text: `Precisa de ${EMERALD_PER_CRYSTAL_PACK} Esmeraldas.` });
+      return;
+    }
+    if (!guardCooldown()) return;
+    const next = emerald - EMERALD_PER_CRYSTAL_PACK;
+    setEmerald(next); writeEmerald(next);
+    onGrantCrystals(CRYSTAL_PACK_SIZE);
+    setConvMsg({ kind: "ok", text: `+${CRYSTAL_PACK_SIZE.toLocaleString()} Cristais entregues! (câmbio único — cristais não voltam a Esmeraldas)` });
+    setPurchaseToast({ kind: "ok", title: "Câmbio concluído!", subtitle: `+${CRYSTAL_PACK_SIZE.toLocaleString()} 💎 por ${EMERALD_PER_CRYSTAL_PACK} 💠` });
   };
 
   const buyEmeraldOffer = (offer: EmeraldOffer) => {
@@ -755,7 +792,7 @@ export function CashShopModal(props: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {/* Safira -> Esmeralda */}
                 <div className="rounded-xl border border-emerald-400/30 bg-black/50 p-3 hover:border-emerald-300/60 transition">
                   <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
@@ -795,6 +832,27 @@ export function CashShopModal(props: Props) {
                     className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(250,204,21,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     TROCAR
+                  </button>
+                </div>
+
+                {/* Esmeralda -> Cristais (câmbio único, não reverso) */}
+                <div className="rounded-xl border border-cyan-400/30 bg-black/50 p-3 hover:border-cyan-300/60 transition">
+                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
+                    <span className="text-lg">💠</span>
+                    <span className="text-emerald-100">×{EMERALD_PER_CRYSTAL_PACK}</span>
+                    <span className="text-cyan-300">→</span>
+                    <span className="text-lg">💎</span>
+                    <span className="text-cyan-100">{CRYSTAL_PACK_SIZE.toLocaleString()}</span>
+                  </div>
+                  <div className="text-[11px] text-white/60 text-center mb-3">
+                    Câmbio <b className="text-cyan-200">único</b>: {EMERALD_PER_CRYSTAL_PACK} Esmeraldas → <b className="text-cyan-100">{CRYSTAL_PACK_SIZE.toLocaleString()} Cristais</b>. Cristais <b className="text-white/80">não</b> voltam a Esmeraldas.
+                  </div>
+                  <button
+                    onClick={doEmeraldToCrystal}
+                    disabled={emerald < EMERALD_PER_CRYSTAL_PACK}
+                    className="w-full py-2 rounded-lg bg-gradient-to-r from-cyan-400 to-sky-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(56,189,248,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    CAMBIAR
                   </button>
                 </div>
               </div>
@@ -837,7 +895,7 @@ export function CashShopModal(props: Props) {
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {EMERALD_OFFERS.map((o) => {
-                  const blocked = o.id === "ovo_mitico_aleatorio";
+                  const blocked = o.id === "ovo_mitico_aleatorio" || o.id === "safari_ball_pack";
                   const canBuy = !blocked && emerald >= o.price;
                   return (
                     <div
