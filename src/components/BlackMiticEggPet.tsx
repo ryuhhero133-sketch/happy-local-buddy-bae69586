@@ -382,7 +382,9 @@ function advanceJournal(egg: EggInstance, now: number): EggInstance {
     if (overdue > 30 * 60 * 1000 && (now - next.lastHungerNudgeAt) > 60 * 60 * 1000) {
       const line = overdue > 3 * 60 * 60 * 1000 ? pick(ABANDON_LINES) : pick(HUNGRY_LINES);
       next = pushJournal(next, overdue > 3 * 60 * 60 * 1000 ? "worry" : "hungry", line);
-      next = { ...next, lastHungerNudgeAt: now };
+      // Cada nudge que passa dos 90min conta como missedFeeding (penaliza care)
+      const isMiss = overdue > 90 * 60 * 1000;
+      next = { ...next, lastHungerNudgeAt: now, missedFeedings: next.missedFeedings + (isMiss ? 1 : 0) };
     }
   }
 
@@ -397,13 +399,14 @@ function advanceJournal(egg: EggInstance, now: number): EggInstance {
   return next;
 }
 
-/** Reage a uma alimentação: felicidade, absorção, obsessão, mistério. */
+/** Reage a uma alimentação: felicidade, absorção, obsessão, mistério, excesso. */
 function reactToFeed(egg: EggInstance, element: ElementId): EggInstance {
   let next = egg;
   const matchedCraving = next.cravingElement === element;
 
   if (matchedCraving) {
     next = pushJournal(next, "happy", pick(HAPPY_MATCH), element);
+    next = { ...next, matchedCravings: next.matchedCravings + 1 };
     const newCraving = pickCraving({ ...next, cravingElement: element });
     next = { ...next, cravingElement: newCraving, cravingSince: Date.now(), lastCravingNudgeAt: Date.now() };
     const el = ELEMENTS.find(e => e.id === newCraving)!;
@@ -419,6 +422,16 @@ function reactToFeed(egg: EggInstance, element: ElementId): EggInstance {
     next = pushJournal(next, "obsession", pick(OBSESSION_LINES), element);
   }
 
+  // Excesso — anuncia em marcos de totalFed (500, 1000, 2000, 3500, 5000)
+  const MILESTONES = [500, 1000, 2000, 3500, 5000];
+  for (const m of MILESTONES) {
+    if (next.totalFed >= m && next.lastMilestone < m) {
+      next = pushJournal(next, "obsession", pick(EXCESS_LINES));
+      next = { ...next, lastMilestone: m };
+      break;
+    }
+  }
+
   // Mistério ocasional a cada ~4 feeds
   if (next.totalFed > 0 && Math.floor(next.totalFed / FEED_COST) % 4 === 0 && Math.random() < 0.6) {
     next = pushJournal(next, "mystery", pick(MYSTERY_LINES));
@@ -426,6 +439,7 @@ function reactToFeed(egg: EggInstance, element: ElementId): EggInstance {
 
   return next;
 }
+
 
 // ================================================================
 // Sprite (pet flutuante único)
