@@ -222,8 +222,8 @@ const EMERALD_OFFERS: EmeraldOffer[] = [
   },
   {
     id: "ovo_dragonite_shiny",
-    name: "Ovo Mítico Shiny Dragonite",
-    desc: "1× Ovo Mítico Shiny Dragonite ✦✦ · choca um Dragonite Shiny mítico nível 100",
+    name: "Ovo Mítico Dragonite",
+    desc: "1× Ovo Mítico Dragonite ✦ · choca um Dragonite mítico nível 100",
     price: 500,
     image: dragoniteEggImg,
     grants: [{ itemId: "egg_dragonite", qty: 1 }],
