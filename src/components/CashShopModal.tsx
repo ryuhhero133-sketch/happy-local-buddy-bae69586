@@ -5,6 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import blackEggImg from "@/assets/black-mythic-plus-egg.jpg";
 import rubyVipImg from "@/assets/ruby-vip.jpg";
 import rubyPackImg from "@/assets/ruby-pack.jpg";
+import chestEmeraldImg from "@/assets/chest-emerald.png";
+import packUltraballImg from "@/assets/pack-ultraball.png";
+import orb24hImg from "@/assets/orb-24h.png";
+import incense24hImg from "@/assets/incense-24h.png";
 
 // Mantém tipos exportados p/ compat externa (não usados internamente agora)
 export type CashProduct = {
