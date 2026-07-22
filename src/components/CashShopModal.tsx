@@ -313,6 +313,20 @@ export function CashShopModal(props: Props) {
     setConvMsg({ kind: "ok", text: `+${ULTRAPACK_SIZE} Ultra Balls entregues!` });
   };
 
+  const buyEmeraldOffer = (offer: EmeraldOffer) => {
+    if (emerald < offer.price) {
+      setConvMsg({ kind: "err", text: `Precisa de ${offer.price} Esmeraldas para ${offer.name}.` });
+      return;
+    }
+    const next = emerald - offer.price;
+    setEmerald(next); writeEmerald(next);
+    for (const g of offer.grants) onGrantItem(g.itemId, g.qty);
+    const parts = offer.grants.map((g) => `+${g.qty}× ${g.itemId}`).join(", ");
+    setConvMsg({ kind: "ok", text: `${offer.name} entregue! ${parts}` });
+    setConfetti(true);
+    setTimeout(() => setConfetti(false), 1600);
+  };
+
 
   const uid = identity?.id ?? "guest";
 
