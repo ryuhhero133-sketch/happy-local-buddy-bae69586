@@ -8691,7 +8691,8 @@ function IdlePage() {
                   )}
 
                   {worldMapOpen && (() => {
-                    const WORLD_PINS: Array<{ id: IdleMapId; x: number; y: number }> = [
+                    const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
+                    const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
                       { id: "arena", x: 15, y: 22 },
                       { id: "terra", x: 32, y: 16 },
                       { id: "deserto_purpura", x: 54, y: 20 },
@@ -8712,16 +8713,16 @@ function IdlePage() {
                       { id: "cadeia_ab", x: 80, y: 76 },
                       { id: "cadeia_ab1", x: 86, y: 68 },
                       { id: "cadeia_f1", x: 92, y: 58 },
-                      // gelius1 só aparece durante o evento (a cada 2h)
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 90, y: 84 }] : []),
-                      // Continente do Governante — só aparece com Carta do Governante na mochila
-                      ...((idle.items?.carta_governante ?? 0) > 0
-                        ? [
-                            { id: "absol_start" as IdleMapId, x: 8, y: 90 },
-                            { id: "governante_hall" as IdleMapId, x: 4, y: 82 },
-                          ]
-                        : []),
                     ];
+                    const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
+                      { id: "absol_start" as IdleMapId, x: 18, y: 45 },
+                      { id: "governante_hall" as IdleMapId, x: 52, y: 55 },
+                    ];
+                    const activeTab = worldTab;
+                    const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : WORLD_PINS_C2;
+                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : worldMapContinent2Url;
+                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : "👑 TEMPLO DO GOVERNANTE · CONTINENTE II";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
                     return (
