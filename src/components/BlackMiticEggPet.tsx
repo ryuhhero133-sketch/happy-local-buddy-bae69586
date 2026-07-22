@@ -35,6 +35,17 @@ type StoneId = typeof ELEMENTS[number]["stone"];
 
 type FeedHistoryItem = { ts: number; element: ElementId; amount: number };
 
+export type JournalMood =
+  | "greeting" | "hungry" | "craving" | "happy" | "absorbing"
+  | "obsession" | "worry" | "mystery" | "ready" | "hatch";
+
+export type JournalEntry = {
+  ts: number;
+  mood: JournalMood;
+  text: string;
+  element?: ElementId;
+};
+
 export type EggInstance = {
   id: string;
   createdAt: number;
@@ -44,6 +55,15 @@ export type EggInstance = {
   affinity: Record<ElementId, number>;
   totalFed: number;
   history: FeedHistoryItem[];
+  // Personalidade / diário
+  journal: JournalEntry[];
+  cravingElement: ElementId | null;
+  cravingSince: number;
+  lastHungerNudgeAt: number;
+  lastReadyNudgeAt: number;
+  lastCravingNudgeAt: number;
+  streakElement: ElementId | null;
+  streakCount: number;
 };
 
 type CollectionState = {
@@ -63,6 +83,14 @@ function newEgg(): EggInstance {
     affinity: { grass: 0, fire: 0, water: 0, electric: 0, dark: 0, dragon: 0 },
     totalFed: 0,
     history: [],
+    journal: [],
+    cravingElement: null,
+    cravingSince: 0,
+    lastHungerNudgeAt: 0,
+    lastReadyNudgeAt: 0,
+    lastCravingNudgeAt: 0,
+    streakElement: null,
+    streakCount: 0,
   };
 }
 
