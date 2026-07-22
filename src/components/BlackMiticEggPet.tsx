@@ -972,9 +972,14 @@ export function BlackMiticEggHud(props: {
                     border: "1px solid rgba(160,80,255,0.3)",
                     borderRadius: 10, padding: 12,
                   }}>
-                    <div style={{ fontSize: 11, color: "#e0b8ff", marginBottom: 10, letterSpacing: 1, display: "flex", justifyContent: "space-between" }}>
-                      <span>◆ AFINIDADE ELEMENTAL</span>
-                      <span style={{ fontSize: 8, color: "#a888c8" }}>Total: {selected.totalFed}</span>
+                    <div style={{ fontSize: 11, color: "#e0b8ff", marginBottom: 10, letterSpacing: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span>◆ AFINIDADE & ALIMENTAÇÃO</span>
+                      <span style={{
+                        fontSize: 8,
+                        color: !selected.activated ? "#ff9090" : feedReady ? "#a0ffb0" : "#ffb857",
+                      }}>
+                        {!selected.activated ? (hasIncubatorCard ? "Ative primeiro" : "Aguarda carta") : feedReady ? `Pronto · ${FEED_COST}/feed` : `⏱ ${fmt(feedCdRemain)}`}
+                      </span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {ELEMENTS.map((el) => {
@@ -983,36 +988,42 @@ export function BlackMiticEggHud(props: {
                         const recent = selected.recentFeedAt?.[el.id] ?? 0;
                         const isRecent = recent > 0 && (now - recent) < 4000;
                         const isDominant = el.id === dominant && val > 0;
+                        const have = stones[el.stone] ?? 0;
+                        const canFeed = selected.activated && feedReady && have >= FEED_COST;
+                        const craving = selected.cravingElement === el.id;
                         return (
                           <div key={el.id} style={{
-                            display: "grid", gridTemplateColumns: "36px 1fr auto", gap: 10, alignItems: "center",
-                            padding: "6px 8px",
+                            display: "grid", gridTemplateColumns: "40px 1fr auto", gap: 10, alignItems: "center",
+                            padding: "8px 10px",
                             background: isDominant
-                              ? `linear-gradient(90deg, ${el.color}22, rgba(0,0,0,0.2))`
-                              : "rgba(0,0,0,0.2)",
-                            border: `1px solid ${isDominant ? el.color + "77" : "rgba(160,80,255,0.15)"}`,
+                              ? `linear-gradient(90deg, ${el.color}22, rgba(0,0,0,0.25))`
+                              : "rgba(0,0,0,0.25)",
+                            border: `1px solid ${isDominant ? el.color + "77" : "rgba(160,80,255,0.18)"}`,
                             borderRadius: 8,
                             transform: isRecent ? "scale(1.02)" : "scale(1)",
                             transition: "transform 0.3s ease",
-                            boxShadow: isRecent ? `0 0 12px ${el.color}` : "none",
+                            boxShadow: isRecent ? `0 0 14px ${el.color}` : "none",
                           }}>
                             <div style={{
-                              width: 36, height: 36, borderRadius: 8,
+                              width: 40, height: 40, borderRadius: 8,
                               background: `radial-gradient(circle, ${el.color}44, ${el.color}11)`,
                               border: `1px solid ${el.color}88`,
                               display: "flex", alignItems: "center", justifyContent: "center",
-                              boxShadow: isRecent ? `0 0 10px ${el.color}` : "none",
+                              boxShadow: isRecent ? `0 0 12px ${el.color}` : "none",
                               animation: isRecent ? "blackEggStoneFlash 0.6s ease-out" : undefined,
                             }}>
-                              <ItemPixelIcon id={el.stone} size={26} />
+                              <ItemPixelIcon id={el.stone} size={28} />
                             </div>
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: 9, color: el.color, letterSpacing: 1, display: "flex", gap: 6, alignItems: "center" }}>
+                              <div style={{ fontSize: 9, color: el.color, letterSpacing: 1, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                                 <span>{el.label.toUpperCase()}</span>
+                                <span style={{ fontSize: 8, color: have >= FEED_COST ? "#c8ffd0" : "#ff9a9a", background: "rgba(0,0,0,0.4)", padding: "1px 5px", borderRadius: 3 }}>
+                                  x{have}
+                                </span>
                                 {isDominant && <span style={{ fontSize: 7, color: "#fff", background: el.color, padding: "1px 4px", borderRadius: 3 }}>DOM</span>}
-                                {selected.cravingElement === el.id && <span style={{ fontSize: 8, color: "#ff9ad6" }}>❥ desejo</span>}
+                                {craving && <span style={{ fontSize: 8, color: "#ff9ad6" }}>❥ desejo</span>}
                               </div>
-                              <div style={{ position: "relative", height: 10, marginTop: 4, background: "rgba(0,0,0,0.55)", borderRadius: 5, overflow: "hidden", border: `1px solid ${el.color}44` }}>
+                              <div style={{ position: "relative", height: 10, marginTop: 5, background: "rgba(0,0,0,0.55)", borderRadius: 5, overflow: "hidden", border: `1px solid ${el.color}44` }}>
                                 <div style={{
                                   height: "100%", width: `${pct}%`,
                                   background: `linear-gradient(90deg, ${el.color}, ${el.color}dd)`,
@@ -1027,60 +1038,38 @@ export function BlackMiticEggHud(props: {
                                   }} />
                                 </div>
                               </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: "#a888c8", marginTop: 3 }}>
+                                <span>{val} pts</span>
+                                <span style={{ color: "#fff", fontWeight: 700 }}>{pct}%</span>
+                              </div>
                             </div>
-                            <div style={{ textAlign: "right", minWidth: 46 }}>
-                              <div style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>{pct}%</div>
-                              <div style={{ fontSize: 8, color: "#a888c8" }}>{val}</div>
-                            </div>
+                            <button
+                              onClick={() => feed(el)}
+                              disabled={!canFeed}
+                              title={
+                                !selected.activated ? "Ative a incubação primeiro"
+                                : !feedReady ? `Aguarde ${fmt(feedCdRemain)}`
+                                : have < FEED_COST ? `Faltam ${FEED_COST - have} stones`
+                                : `Alimentar (${FEED_COST}× ${el.label})`
+                              }
+                              style={{
+                                minWidth: 62, padding: "8px 6px",
+                                background: canFeed
+                                  ? `linear-gradient(180deg, ${el.color}66, ${el.color}22)`
+                                  : "rgba(40,20,60,0.5)",
+                                border: `1px solid ${canFeed ? el.color : "#4a2a6a"}`,
+                                color: canFeed ? "#fff" : "#7a5a9a",
+                                borderRadius: 7,
+                                cursor: canFeed ? "pointer" : "not-allowed",
+                                fontSize: 9, fontWeight: 700, letterSpacing: 1,
+                                boxShadow: canFeed ? `0 0 10px ${el.color}66` : "none",
+                                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                              }}
+                            >
+                              <span>ALIMENTAR</span>
+                              <span style={{ fontSize: 8, opacity: 0.85 }}>{FEED_COST}×</span>
+                            </button>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-
-                  <div style={{
-                    background: "rgba(30,10,60,0.5)",
-                    border: "1px solid rgba(160,80,255,0.3)",
-                    borderRadius: 10, padding: 12,
-                  }}>
-                    <div style={{
-                      fontSize: 11, color: "#e0b8ff", marginBottom: 8, letterSpacing: 1,
-                      display: "flex", justifyContent: "space-between", alignItems: "center",
-                    }}>
-                      <span>◆ ALIMENTAR ({FEED_COST} Stones)</span>
-                      <span style={{
-                        fontSize: 9,
-                        color: !selected.activated ? "#ff9090" : feedReady ? "#a0ffb0" : "#ffb857",
-                      }}>
-                        {!selected.activated ? "Ative primeiro" : feedReady ? "Pronto" : `⏱ ${fmt(feedCdRemain)}`}
-                      </span>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-                      {ELEMENTS.map((el) => {
-                        const have = stones[el.stone] ?? 0;
-                        const canFeed = selected.activated && feedReady && have >= FEED_COST;
-                        return (
-                          <button
-                            key={el.id}
-                            onClick={() => feed(el)}
-                            disabled={!canFeed}
-                            style={{
-                              background: canFeed
-                                ? `linear-gradient(180deg, ${el.color}44, ${el.color}22)`
-                                : "rgba(40,20,60,0.5)",
-                              border: `1px solid ${canFeed ? el.color : "#4a2a6a"}`,
-                              color: canFeed ? "#fff" : "#7a5a9a",
-                              borderRadius: 8, padding: "8px 6px",
-                              cursor: canFeed ? "pointer" : "not-allowed", fontSize: 9,
-                              display: "flex", flexDirection: "column", gap: 3, alignItems: "center",
-                              boxShadow: canFeed ? `0 0 8px ${el.color}55` : "none",
-                            }}
-                          >
-                            <span style={{ fontSize: 18 }}>{el.emoji}</span>
-                            <span style={{ fontWeight: 700 }}>{el.label}</span>
-                            <span style={{ fontSize: 8, color: have >= FEED_COST ? "#c8ffd0" : "#ff9090" }}>{have}/{FEED_COST}</span>
-                          </button>
                         );
                       })}
                     </div>
