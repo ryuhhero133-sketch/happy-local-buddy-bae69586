@@ -861,7 +861,7 @@ export function CashShopModal(props: Props) {
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {EMERALD_OFFERS.map((o) => {
-                  const blocked = o.id === "ovo_mitico_aleatorio";
+                  const blocked = o.id === "ovo_mitico_aleatorio" || o.id === "safari_ball_pack";
                   const canBuy = !blocked && emerald >= o.price;
                   return (
                     <div
