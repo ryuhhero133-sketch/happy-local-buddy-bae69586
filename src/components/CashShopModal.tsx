@@ -330,6 +330,29 @@ export function CashShopModal(props: Props) {
     }
     const next = emerald - offer.price;
     setEmerald(next); writeEmerald(next);
+
+    // Baú de Esmeralda → loot aleatório generoso
+    if (offer.id === "bau_esmeralda") {
+      const pool: Array<{ label: string; run: () => void; weight: number }> = [
+        { label: "300× Ultra Ball", weight: 22, run: () => onGrantItem("ultraball", 300) },
+        { label: "5× Orb Supremo ✦✦✦", weight: 18, run: () => onGrantItem("orb_xp_supreme", 5) },
+        { label: "1.000 Cristais 💎", weight: 18, run: () => onGrantCrystals(1000) },
+        { label: "150× Poção", weight: 14, run: () => onGrantItem("potion", 150) },
+        { label: "100× Great Ball", weight: 12, run: () => onGrantItem("greatball", 100) },
+        { label: "10× Incenso de Mel Raro 🍯", weight: 8, run: () => onGrantItem("incenso_mel_raro", 10) },
+        { label: "1× Ovo Épico ✦✦", weight: 5, run: () => onGrantItem("egg_epic", 1) },
+        { label: "50.000 Ouro 🪙", weight: 3, run: () => onGrantCoins(50000) },
+      ];
+      const total = pool.reduce((s, p) => s + p.weight, 0);
+      let r = Math.random() * total;
+      const roll = pool.find((p) => (r -= p.weight) < 0) ?? pool[0];
+      roll.run();
+      setConvMsg({ kind: "ok", text: `🎁 Baú aberto! Você ganhou: ${roll.label}` });
+      setConfetti(true);
+      setTimeout(() => setConfetti(false), 1600);
+      return;
+    }
+
     for (const g of offer.grants) onGrantItem(g.itemId, g.qty);
     const parts = offer.grants.map((g) => `+${g.qty}× ${g.itemId}`).join(", ");
     setConvMsg({ kind: "ok", text: `${offer.name} entregue! ${parts}` });
