@@ -465,9 +465,11 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
             Anuncie por Ouro ou Cristal (VIP). Aparece pra todos em <b>3 minutos</b>. Cancelar tranca novos anúncios por 5 min.
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <div style={{ background: "#0e0818", border: "1px solid #f5cf6b55", borderRadius: 8, padding: "6px 12px", color: "#f5cf6b", fontWeight: 800 }}>💰 {gold.toLocaleString()}</div>
-          <div style={{ background: "#0e0818", border: "1px solid #6bd4ff55", borderRadius: 8, padding: "6px 12px", color: "#6bd4ff", fontWeight: 800 }}>💎 {crystals.toLocaleString()}</div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <div style={{ background: "#0e0818", border: "1px solid #f5cf6b55", borderRadius: 8, padding: "6px 10px", color: "#f5cf6b", fontWeight: 800, fontSize: 12 }}>💰 {gold.toLocaleString()}</div>
+          <div style={{ background: "#0e0818", border: "1px solid #6bd4ff55", borderRadius: 8, padding: "6px 10px", color: "#6bd4ff", fontWeight: 800, fontSize: 12 }}>💎 {crystals.toLocaleString()}</div>
+          <div style={{ background: "#0e0818", border: "1px solid #7dffbe55", borderRadius: 8, padding: "6px 10px", color: "#7dffbe", fontWeight: 800, fontSize: 12 }}>💚 {safiras.toLocaleString()}</div>
+          <div style={{ background: "#0e0818", border: "1px solid #38f5a355", borderRadius: 8, padding: "6px 10px", color: "#38f5a3", fontWeight: 800, fontSize: 12 }}>🟢 {emeraldBal.toLocaleString()}</div>
         </div>
       </div>
 
