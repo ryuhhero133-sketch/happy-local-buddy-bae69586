@@ -701,14 +701,15 @@ export function CashShopModal(props: Props) {
             <div className="relative">
               <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 grid place-items-center text-lg shadow-[0_0_18px_rgba(52,211,153,.7)]">💠</div>
+                  <img src={emeraldCoinImg} alt="Esmeralda" width={40} height={40} loading="lazy" className="w-10 h-10 drop-shadow-[0_0_12px_rgba(52,211,153,1)] animate-pulse" style={{ imageRendering: "pixelated" }} />
                   <div>
                     <div className="text-white font-black text-sm tracking-wide">Ofertas em Esmeraldas</div>
                     <div className="text-emerald-200/70 text-xs">Itens exclusivos entregues na hora · sem espera</div>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black text-xs shadow-[0_0_12px_rgba(52,211,153,.35)]">
-                  💠 {emerald.toLocaleString()} Esmeraldas
+                <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black text-xs shadow-[0_0_12px_rgba(52,211,153,.35)] flex items-center gap-1.5">
+                  <img src={emeraldCoinImg} alt="" width={16} height={16} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                  {emerald.toLocaleString()} Esmeraldas
                 </span>
               </div>
 
