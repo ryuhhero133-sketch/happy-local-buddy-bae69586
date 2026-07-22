@@ -10776,7 +10776,7 @@ function TabOverlay({
   onFragmentCollection: (uid: string) => void;
   gifMap: Partial<Record<Species, string>>;
   onPickTeam: (entry: CollectionEntry) => void;
-  onUseItem: (id: string) => void;
+  onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number; teamOrbUntil?: number };
   onBuyBall: (b: ShopBall, qty?: number) => void;
