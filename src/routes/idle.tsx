@@ -8765,24 +8765,28 @@ function IdlePage() {
             </div>
 
             <button
-              onClick={() => {
-                const c = window.prompt("Código de acesso da Lojinha:");
-                if (c == null) return;
-                if (c.trim().toLowerCase() === "rbx") setCashShopOpen(true);
-                else window.alert("Código inválido.");
-              }}
+              onClick={() => setCashShopOpen(true)}
+              className="lojinha-btn-glow"
               style={{
                 marginTop: 10, width: "100%",
-                background: "linear-gradient(135deg, #f5cf6b 0%, #ffe08a 50%, #d9a441 100%)",
-                border: "1.5px solid #ffe08a",
-                color: "#1a0a26", fontWeight: 900, fontSize: 11, letterSpacing: 1.5,
+                background: "linear-gradient(135deg, #14ff7a 0%, #6cff9d 50%, #0ea85a 100%)",
+                border: "1.5px solid #b8ffcf",
+                color: "#062a13", fontWeight: 900, fontSize: 11, letterSpacing: 1.5,
                 borderRadius: 8, padding: "9px", cursor: "pointer",
-                textShadow: "0 1px 0 rgba(255,255,255,0.4)",
-                boxShadow: "0 3px 12px rgba(245,207,107,0.5), inset 0 1px 0 rgba(255,255,255,0.3)",
+                textShadow: "0 1px 0 rgba(255,255,255,0.45)",
+                boxShadow: "0 0 14px rgba(46,255,140,0.75), 0 0 28px rgba(46,255,140,0.45), inset 0 1px 0 rgba(255,255,255,0.4)",
                 position: "relative",
+                overflow: "hidden",
               }}
               title="Abrir Lojinha Cash"
-            >✦ ABRIR LOJINHA ✦</button>
+            >
+              <span style={{ position: "relative", zIndex: 2 }}>✦ ABRIR LOJINHA ✦</span>
+              <span className="lojinha-star lojinha-star-1" aria-hidden>✦</span>
+              <span className="lojinha-star lojinha-star-2" aria-hidden>✧</span>
+              <span className="lojinha-star lojinha-star-3" aria-hidden>✦</span>
+              <span className="lojinha-star lojinha-star-4" aria-hidden>✧</span>
+              <span className="lojinha-star lojinha-star-5" aria-hidden>★</span>
+            </button>
           </div>
 
           {/* BANNER — Evento Odisséia Oddish (clique para entrar quando aberto) */}
