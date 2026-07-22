@@ -12,6 +12,17 @@ import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
 import { readEmeraldFor, writeEmeraldFor, spendEmeraldFor, grantEmeraldFor } from "@/lib/emerald";
+import emeraldCoinImg from "@/assets/emerald-coin.png";
+import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
+import { assetUrlFromJson } from "@/lib/assetUrl";
+
+const SAFIRA_URL = assetUrlFromJson(safiraVerdeAsset);
+
+function CurIcon({ c, size = 14 }: { c: Currency; size?: number }) {
+  if (c === "safira") return <img src={SAFIRA_URL} alt="" width={size} height={size} style={{ imageRendering: "pixelated", display: "inline-block", verticalAlign: "-2px", filter: "drop-shadow(0 0 4px #6ee7a8cc)" }} />;
+  if (c === "esmerald") return <img src={emeraldCoinImg} alt="" width={size} height={size} style={{ imageRendering: "pixelated", display: "inline-block", verticalAlign: "-2px", filter: "drop-shadow(0 0 4px rgba(52,211,153,0.9))" }} />;
+  return <span>{c === "gold" ? "💰" : "💎"}</span>;
+}
 
 // A tabela pokemon_market ainda não está nos types gerados — cast pra any.
 const supabase = _supabase as unknown as {
