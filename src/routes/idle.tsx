@@ -36,6 +36,7 @@ import ballGreatImg from "@/assets/items/icon-greatball.png";
 import ballUltraImg from "@/assets/items/icon-ultraball.png";
 import potionNewImg from "@/assets/items/icon-potion.png";
 import premiumBoxImg from "@/assets/items/icon-premium-box.png";
+import chestEmeraldImg from "@/assets/chest-emerald.png";
 import chestAmuletImg from "@/assets/items/icon-chest-amulet.png";
 import bagIconImg from "@/assets/items/icon-bag.png";
 import reviveIconImg from "@/assets/items/icon-revive.png";
@@ -918,6 +919,7 @@ const ITEM_IMG: Record<string, string> = {
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
   premium_box: premiumBoxImg,
+  bau_esmeralda: chestEmeraldImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
 };
@@ -4500,6 +4502,43 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, "+50 Poção · +50 Pokébola · +1 Ticket de Skin", "capture");
       pushChat(`🎁 Caixa Premium aberta! Você recebeu 50 Poções, 50 Pokébolas e 1 Ticket de Skin ✦ (use na aba Início para escolher uma skin premium).`, "cap");
+    } else if (id === "bau_esmeralda") {
+      const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"] as const;
+      const pickStone = () => STONES[Math.floor(Math.random() * STONES.length)];
+      const pool: Array<{ label: string; weight: number; apply: (items: Record<string, number>) => { items: Record<string, number>; gold?: number; crystals?: number } }> = [
+        { label: "4.000× Great Ball", weight: 14, apply: (it) => ({ items: { ...it, greatball: (it.greatball ?? 0) + 4000 } }) },
+        { label: "3.000× Ultra Ball", weight: 12, apply: (it) => ({ items: { ...it, ultraball: (it.ultraball ?? 0) + 3000 } }) },
+        { label: "10× Orb Supremo ✦✦✦", weight: 10, apply: (it) => ({ items: { ...it, orb_xp_supreme: (it.orb_xp_supreme ?? 0) + 10 } }) },
+        { label: "10× Orb Maior ✦✦", weight: 10, apply: (it) => ({ items: { ...it, orb_xp_major: (it.orb_xp_major ?? 0) + 10 } }) },
+        { label: "10× Orb Comum ✦", weight: 10, apply: (it) => ({ items: { ...it, orb_xp: (it.orb_xp ?? 0) + 10 } }) },
+        { label: "2× de cada Orb", weight: 9, apply: (it) => ({ items: { ...it, orb_xp: (it.orb_xp ?? 0) + 2, orb_xp_major: (it.orb_xp_major ?? 0) + 2, orb_xp_supreme: (it.orb_xp_supreme ?? 0) + 2 } }) },
+        { label: "50× Stone Elemental aleatória", weight: 8, apply: (it) => { const s = pickStone(); return { items: { ...it, [s]: (it[s] ?? 0) + 50 } }; } },
+        { label: "10× Stone Elemental aleatória", weight: 10, apply: (it) => { const s = pickStone(); return { items: { ...it, [s]: (it[s] ?? 0) + 10 } }; } },
+        { label: "5× de cada Stone Elemental", weight: 6, apply: (it) => { const next = { ...it }; for (const s of STONES) next[s] = (next[s] ?? 0) + 5; return { items: next }; } },
+        { label: "2.500 Cristais 💎", weight: 8, apply: (it) => ({ items: it, crystals: 2500 }) },
+        { label: "150× Poção", weight: 8, apply: (it) => ({ items: { ...it, potion: (it.potion ?? 0) + 150 } }) },
+        { label: "15× Incenso de Mel Raro 🍯", weight: 6, apply: (it) => ({ items: { ...it, incenso_mel_raro: (it.incenso_mel_raro ?? 0) + 15 } }) },
+        { label: "1× Ovo Épico ✦✦", weight: 4, apply: (it) => ({ items: { ...it, egg_epic: (it.egg_epic ?? 0) + 1 } }) },
+        { label: "100.000 Ouro 🪙", weight: 3, apply: (it) => ({ items: it, gold: 100000 }) },
+      ];
+      const total = pool.reduce((s, p) => s + p.weight, 0);
+      let r = Math.random() * total;
+      const roll = pool.find((p) => (r -= p.weight) < 0) ?? pool[0];
+      setIdle((s) => {
+        const baseItems = { ...s.items, bau_esmeralda: (s.items.bau_esmeralda ?? 0) - 1 };
+        const res = roll.apply(baseItems);
+        return {
+          ...s,
+          items: res.items,
+          bank: {
+            ...s.bank,
+            gold: s.bank.gold + (res.gold ?? 0),
+            crystals: s.bank.crystals + (res.crystals ?? 0),
+          },
+        };
+      });
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `🎁 ${roll.label}`, "capture");
+      pushChat(`💠 Baú de Esmeralda aberto! Você ganhou: ${roll.label}`, "cap");
     } else if (id === "skin_ticket") {
       pushChat(`✦ Vá até a aba Início e escolha uma skin premium para desbloquear com o ticket.`, "info");
     } else if (id === "incenso_mel") {
@@ -11206,6 +11245,7 @@ function TabOverlay({
           chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
+          bau_esmeralda: "Baú de Esmeralda 💠",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯",
           safira_verde: "Safira Verde 💚",
