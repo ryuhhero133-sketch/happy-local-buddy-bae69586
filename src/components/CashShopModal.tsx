@@ -346,6 +346,25 @@ export function CashShopModal(props: Props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _readEmeraldNoop = () => readEmeraldFor(emeraldUid);
   const [convMsg, setConvMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [purchaseToast, setPurchaseToast] = useState<{ title: string; subtitle?: string; kind: "ok" | "wait" } | null>(null);
+  const lastBuyAtRef = useRef(0);
+  const BUY_COOLDOWN_MS = 2000;
+  useEffect(() => {
+    if (!purchaseToast) return;
+    const t = setTimeout(() => setPurchaseToast(null), purchaseToast.kind === "wait" ? 1400 : 2200);
+    return () => clearTimeout(t);
+  }, [purchaseToast]);
+  const guardCooldown = (): boolean => {
+    const now = Date.now();
+    const diff = now - lastBuyAtRef.current;
+    if (diff < BUY_COOLDOWN_MS) {
+      const s = Math.max(1, Math.ceil((BUY_COOLDOWN_MS - diff) / 1000));
+      setPurchaseToast({ kind: "wait", title: "Aguarde um instante...", subtitle: `Nova compra em ${s}s` });
+      return false;
+    }
+    lastBuyAtRef.current = now;
+    return true;
+  };
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const safiras = wallet.safiras ?? 0;
@@ -378,6 +397,7 @@ export function CashShopModal(props: Props) {
       setConvMsg({ kind: "err", text: `Precisa de ${offer.price} Esmeraldas para ${offer.name}.` });
       return;
     }
+    if (!guardCooldown()) return;
     const next = emerald - offer.price;
     setEmerald(next); writeEmerald(next);
 
@@ -385,6 +405,7 @@ export function CashShopModal(props: Props) {
     if (offer.id === "bau_esmeralda") {
       onGrantItem("bau_esmeralda", 1);
       setConvMsg({ kind: "ok", text: `💠 Baú de Esmeralda entregue na Mochila! Abra pela Bag para ver seu loot.` });
+      setPurchaseToast({ kind: "ok", title: "Compra realizada!", subtitle: `💠 Baú de Esmeralda entregue na Mochila` });
       setConfetti(true);
       setTimeout(() => setConfetti(false), 1600);
       return;
@@ -393,6 +414,7 @@ export function CashShopModal(props: Props) {
     for (const g of offer.grants) onGrantItem(g.itemId, g.qty);
     const parts = offer.grants.map((g) => `+${g.qty}× ${g.itemId}`).join(", ");
     setConvMsg({ kind: "ok", text: `${offer.name} entregue! ${parts}` });
+    setPurchaseToast({ kind: "ok", title: "Compra realizada!", subtitle: `${offer.name} · ${parts}` });
     setConfetti(true);
     setTimeout(() => setConfetti(false), 1600);
   };
@@ -951,6 +973,7 @@ export function CashShopModal(props: Props) {
             defaultCharName={identity?.name ?? ""}
             onClose={() => setSelected(null)}
             onConfirm={() => {
+              if (!guardCooldown()) return;
               if (selected.id === "black_mythic_plus" && blackStock > 0) {
                 const next = blackStock - 1;
                 setBlackStock(next);
@@ -958,10 +981,13 @@ export function CashShopModal(props: Props) {
               }
               setConfetti(true);
               setTimeout(() => setConfetti(false), 2400);
+              setPurchaseToast({ kind: "ok", title: "Pedido enviado!", subtitle: `${selected.name} · R$${selected.price} — aguarde aprovação no suporte` });
+              const productName = selected.name;
+              const productPrice = selected.price;
               setSelected(null);
               setSupportOpen(true);
               // Registra o pedido no chat (persistido → admin vê o ticket)
-              const orderText = `📩 Pedido: "${selected.name}" — R$${selected.price}. Envio o comprovante aqui e aguardo o código.`;
+              const orderText = `📩 Pedido: "${productName}" — R$${productPrice}. Envio o comprovante aqui e aguardo o código.`;
               if (uid && uid !== "guest") {
                 sendUserMessage(uid, identity?.name ?? "Treinador", orderText).catch(() => { /* ignore */ });
               } else {
@@ -1028,6 +1054,56 @@ export function CashShopModal(props: Props) {
       {/* ============ CONFETES ============ */}
       <AnimatePresence>
         {confetti && <Confetti />}
+      </AnimatePresence>
+
+      {/* ============ TOAST DE COMPRA ============ */}
+      <AnimatePresence>
+        {purchaseToast && (
+          <motion.div
+            key="purchase-toast"
+            initial={{ opacity: 0, scale: 0.85, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: -10 }}
+            transition={{ type: "spring", stiffness: 320, damping: 22 }}
+            className="fixed inset-0 z-[10050] pointer-events-none flex items-center justify-center px-4"
+          >
+            <div
+              className={`pointer-events-auto relative overflow-hidden rounded-2xl border shadow-2xl px-6 py-5 min-w-[280px] max-w-[92vw] text-center backdrop-blur-xl ${
+                purchaseToast.kind === "ok"
+                  ? "border-emerald-300/60 bg-gradient-to-br from-emerald-500/25 via-emerald-950/70 to-black/80 shadow-[0_0_60px_rgba(52,211,153,0.55)]"
+                  : "border-amber-300/60 bg-gradient-to-br from-amber-500/20 via-amber-950/70 to-black/80 shadow-[0_0_50px_rgba(251,191,36,0.45)]"
+              }`}
+            >
+              <div
+                className="pointer-events-none absolute inset-0 opacity-40"
+                style={{
+                  background:
+                    purchaseToast.kind === "ok"
+                      ? "radial-gradient(circle at 30% 20%, rgba(52,211,153,0.55), transparent 55%), radial-gradient(circle at 80% 80%, rgba(16,185,129,0.45), transparent 55%)"
+                      : "radial-gradient(circle at 30% 20%, rgba(251,191,36,0.5), transparent 55%)",
+                }}
+              />
+              <div className="relative">
+                <div className="text-3xl mb-1">
+                  {purchaseToast.kind === "ok" ? "✨" : "⏳"}
+                </div>
+                <div
+                  className={`font-black text-lg leading-tight ${
+                    purchaseToast.kind === "ok" ? "text-emerald-100" : "text-amber-100"
+                  }`}
+                  style={{ textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}
+                >
+                  {purchaseToast.title}
+                </div>
+                {purchaseToast.subtitle && (
+                  <div className="mt-1 text-xs font-semibold text-white/85">
+                    {purchaseToast.subtitle}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
