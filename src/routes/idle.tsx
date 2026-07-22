@@ -130,6 +130,7 @@ import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
 import mapPantanoFogoAsset from "@/assets/map-pantano-fogo.png.asset.json";
 import worldMapGlobeAsset from "@/assets/world-map-globe.jpg.asset.json";
+import worldMapContinent2Url from "@/assets/world-map-continent2.jpg";
 import mapFantasmaAsset from "@/assets/map-fantasma.jpg.asset.json";
 import mapCadeiaAbAsset from "@/assets/map-cadeia-ab.png.asset.json";
 import mapCadeiaAb1Asset from "@/assets/map-cadeia-ab1.png.asset.json";
