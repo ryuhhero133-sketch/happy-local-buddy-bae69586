@@ -158,6 +158,169 @@ function fmt(ms: number) {
 }
 
 // ================================================================
+// Sistema de personalidade / diálogos
+// ================================================================
+const MOOD_META: Record<JournalMood, { color: string; label: string; icon: string }> = {
+  greeting:  { color: "#c58bff", label: "Despertar",   icon: "✦" },
+  hungry:    { color: "#ffb857", label: "Fome",        icon: "◇" },
+  craving:   { color: "#ff9ad6", label: "Desejo",      icon: "❥" },
+  happy:     { color: "#8affb0", label: "Alegria",     icon: "♡" },
+  absorbing: { color: "#8ad0ff", label: "Absorvendo",  icon: "≋" },
+  obsession: { color: "#ff6b8a", label: "Obsessão",    icon: "⚠" },
+  worry:     { color: "#ff9090", label: "Inquietação", icon: "…" },
+  mystery:   { color: "#d8a0ff", label: "Mistério",    icon: "☾" },
+  ready:     { color: "#a0ffb0", label: "Pronto",      icon: "✧" },
+  hatch:     { color: "#ffe0a0", label: "Nascimento",  icon: "★" },
+};
+
+const GREETINGS = [
+  "Sinto sua presença... quem é você, treinador?",
+  "Uma casca escura me protege... e você me observa.",
+  "Ainda estou frágil... prometa que vai cuidar de mim.",
+  "Posso ouvir seu coração pulsando através da casca.",
+];
+const HUNGRY_LINES = [
+  "Ei... estou começando a sentir fome novamente...",
+  "Sinto que preciso de mais energia...",
+  "Meu interior está frio. Alimente-me, por favor.",
+  "As stones... estou sonhando com elas.",
+  "Preciso de poder para continuar crescendo...",
+];
+const ABANDON_LINES = [
+  "Será que você ainda está comigo, treinador?",
+  "Silêncio... só silêncio. Você me esqueceu?",
+  "Fico esperando por você. Sempre esperando.",
+  "Se me abandonar agora, o que será de mim?",
+];
+const READY_SOON_LINES = [
+  "Acho que já posso absorver mais poder...",
+  "Sinto que estou pronto para uma nova stone.",
+  "Meu núcleo pulsou. É hora, treinador.",
+];
+const HAPPY_MATCH = [
+  "SIM! Era exatamente disso que eu precisava!",
+  "Este elemento... me deixa completo. Obrigado.",
+  "Você me ouviu. Sabia que me entenderia.",
+];
+const ABSORB_LINES = [
+  "Absorvendo bem... sinto essa energia se enraizar.",
+  "Esta stone me aquece por dentro.",
+  "Cada gota de poder está encontrando um lugar em mim.",
+];
+const OBSESSION_LINES = [
+  "Treinador... tanta energia... estou mudando...",
+  "Você está transformando algo dentro de mim...",
+  "Esse poder está ficando incontrolável...",
+  "Será que conseguirei conter toda essa força?",
+  "Sinto meu núcleo se dobrar sob esse elemento...",
+];
+const MYSTERY_LINES = [
+  "Vejo cores que ainda não têm nome...",
+  "Algo está se formando aqui dentro. Algo raro.",
+  "Sonhei com asas. Ou seriam garras?",
+  "Meu tipo ainda está sendo decidido... por você.",
+];
+const CRAVING_LINES: Record<ElementId, string[]> = {
+  grass:    ["Sinto falta do cheiro da terra úmida...", "Uma folha... eu queria sentir uma folha crescer em mim."],
+  fire:     ["Preciso de calor. O frio está me consumindo.", "Um pouco de brasa... só um pouco, por favor."],
+  water:    ["Minha casca está seca. Traga águas profundas.", "Sonho com marés puxando meu núcleo."],
+  electric: ["Quero sentir um raio percorrer minha casca.", "Faíscas... me faltam faíscas."],
+  dark:     ["Anseio pelo silêncio das sombras.", "A escuridão me chama. Alimente esse chamado."],
+  dragon:   ["Sinto asas se formando... mas falta poder ancestral.", "Um sopro de dragão faria toda diferença agora."],
+};
+
+function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function pushJournal(egg: EggInstance, mood: JournalMood, text: string, element?: ElementId): EggInstance {
+  const entry: JournalEntry = { ts: Date.now(), mood, text, element };
+  return { ...egg, journal: [entry, ...egg.journal].slice(0, 60) };
+}
+
+function pickCraving(egg: EggInstance): ElementId {
+  // Prefere elemento menos alimentado; evita repetir o desejo anterior.
+  const sorted = [...ELEMENTS].sort((a, b) => (egg.affinity[a.id] ?? 0) - (egg.affinity[b.id] ?? 0));
+  const candidates = sorted.filter(e => e.id !== egg.cravingElement).slice(0, 3);
+  return (candidates[Math.floor(Math.random() * candidates.length)] ?? sorted[0]).id;
+}
+
+/**
+ * Aplica atualizações passivas do diário (fome, saudade do desejo, aviso de pronto para comer).
+ * Idempotente por cursores.
+ */
+function advanceJournal(egg: EggInstance, now: number): EggInstance {
+  if (!egg.activated) return egg;
+  let next = egg;
+
+  // Fixa um desejo inicial se ainda não existe
+  if (!next.cravingElement) {
+    const craving = pickCraving(next);
+    next = { ...next, cravingElement: craving, cravingSince: now };
+    const el = ELEMENTS.find(e => e.id === craving)!;
+    next = pushJournal(next, "craving", pick(CRAVING_LINES[craving]) + ` (${el.emoji} ${el.label})`, craving);
+  }
+
+  // Aviso "quase pronto" ~5 min antes do cooldown acabar
+  if (next.lastFedAt > 0) {
+    const cdEnd = next.lastFedAt + FEED_COOLDOWN_MS;
+    const untilReady = cdEnd - now;
+    if (untilReady > 0 && untilReady <= 5 * 60 * 1000 && next.lastReadyNudgeAt < cdEnd - 6 * 60 * 1000) {
+      next = pushJournal(next, "ready", pick(READY_SOON_LINES));
+      next = { ...next, lastReadyNudgeAt: now };
+    }
+  }
+
+  // Fome: já passou 30 min do cooldown sem novo feed
+  if (next.lastFedAt > 0) {
+    const overdue = now - (next.lastFedAt + FEED_COOLDOWN_MS);
+    if (overdue > 30 * 60 * 1000 && (now - next.lastHungerNudgeAt) > 60 * 60 * 1000) {
+      const line = overdue > 3 * 60 * 60 * 1000 ? pick(ABANDON_LINES) : pick(HUNGRY_LINES);
+      next = pushJournal(next, overdue > 3 * 60 * 60 * 1000 ? "worry" : "hungry", line);
+      next = { ...next, lastHungerNudgeAt: now };
+    }
+  }
+
+  // Saudade do desejo: 2h sem receber o elemento desejado
+  if (next.cravingElement && (now - next.cravingSince) > 2 * 60 * 60 * 1000 &&
+      (now - next.lastCravingNudgeAt) > 90 * 60 * 1000) {
+    const el = next.cravingElement;
+    next = pushJournal(next, "craving", pick(CRAVING_LINES[el]), el);
+    next = { ...next, lastCravingNudgeAt: now };
+  }
+
+  return next;
+}
+
+/** Reage a uma alimentação: felicidade, absorção, obsessão, mistério. */
+function reactToFeed(egg: EggInstance, element: ElementId): EggInstance {
+  let next = egg;
+  const matchedCraving = next.cravingElement === element;
+
+  if (matchedCraving) {
+    next = pushJournal(next, "happy", pick(HAPPY_MATCH), element);
+    const newCraving = pickCraving({ ...next, cravingElement: element });
+    next = { ...next, cravingElement: newCraving, cravingSince: Date.now(), lastCravingNudgeAt: Date.now() };
+    const el = ELEMENTS.find(e => e.id === newCraving)!;
+    next = pushJournal(next, "craving", `Agora... sinto falta de ${el.emoji} ${el.label}. ${pick(CRAVING_LINES[newCraving])}`, newCraving);
+  } else {
+    next = pushJournal(next, "absorbing", pick(ABSORB_LINES), element);
+  }
+
+  // Streak / obsessão
+  const streakCount = next.streakElement === element ? next.streakCount + 1 : 1;
+  next = { ...next, streakElement: element, streakCount };
+  if (streakCount === 3 || streakCount === 5 || streakCount === 8) {
+    next = pushJournal(next, "obsession", pick(OBSESSION_LINES), element);
+  }
+
+  // Mistério ocasional a cada ~4 feeds
+  if (next.totalFed > 0 && Math.floor(next.totalFed / FEED_COST) % 4 === 0 && Math.random() < 0.6) {
+    next = pushJournal(next, "mystery", pick(MYSTERY_LINES));
+  }
+
+  return next;
+}
+
+// ================================================================
 // Sprite (pet flutuante único)
 // ================================================================
 export function BlackMiticEggSprite(props: {
