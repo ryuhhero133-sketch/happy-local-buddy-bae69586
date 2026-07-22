@@ -346,6 +346,25 @@ export function CashShopModal(props: Props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _readEmeraldNoop = () => readEmeraldFor(emeraldUid);
   const [convMsg, setConvMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [purchaseToast, setPurchaseToast] = useState<{ title: string; subtitle?: string; kind: "ok" | "wait" } | null>(null);
+  const lastBuyAtRef = useRef(0);
+  const BUY_COOLDOWN_MS = 2000;
+  useEffect(() => {
+    if (!purchaseToast) return;
+    const t = setTimeout(() => setPurchaseToast(null), purchaseToast.kind === "wait" ? 1400 : 2200);
+    return () => clearTimeout(t);
+  }, [purchaseToast]);
+  const guardCooldown = (): boolean => {
+    const now = Date.now();
+    const diff = now - lastBuyAtRef.current;
+    if (diff < BUY_COOLDOWN_MS) {
+      const s = Math.max(1, Math.ceil((BUY_COOLDOWN_MS - diff) / 1000));
+      setPurchaseToast({ kind: "wait", title: "Aguarde um instante...", subtitle: `Nova compra em ${s}s` });
+      return false;
+    }
+    lastBuyAtRef.current = now;
+    return true;
+  };
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const safiras = wallet.safiras ?? 0;
