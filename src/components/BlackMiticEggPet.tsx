@@ -864,17 +864,34 @@ export function BlackMiticEggHud(props: {
                   </div>
 
                   {!selected.activated ? (
-                    <button
-                      onClick={activate}
-                      style={{
-                        width: "100%", padding: "10px 8px",
-                        background: "linear-gradient(180deg, #a066ff, #6b28c8)",
-                        border: "1px solid #c58bff", borderRadius: 8,
-                        color: "#fff", fontWeight: 700, fontSize: 11,
-                        cursor: "pointer", letterSpacing: 1,
-                        boxShadow: "0 0 12px rgba(160,80,255,0.7)",
-                      }}
-                    >⚡ ATIVAR INICIAÇÃO</button>
+                    <>
+                      <button
+                        onClick={activate}
+                        disabled={!hasIncubatorCard}
+                        title={hasIncubatorCard ? "Ativar a incubação (10h)" : "Requer Carta da Incubadora Lendária"}
+                        style={{
+                          width: "100%", padding: "10px 8px",
+                          background: hasIncubatorCard
+                            ? "linear-gradient(180deg, #a066ff, #6b28c8)"
+                            : "linear-gradient(180deg, #3a2050, #1e0f30)",
+                          border: `1px solid ${hasIncubatorCard ? "#c58bff" : "#5a3a7a"}`,
+                          borderRadius: 8,
+                          color: hasIncubatorCard ? "#fff" : "#8a6ab0",
+                          fontWeight: 700, fontSize: 11,
+                          cursor: hasIncubatorCard ? "pointer" : "not-allowed", letterSpacing: 1,
+                          boxShadow: hasIncubatorCard ? "0 0 12px rgba(160,80,255,0.7)" : "none",
+                        }}
+                      >⚡ ATIVAR INICIAÇÃO</button>
+                      {!hasIncubatorCard && (
+                        <div style={{
+                          fontSize: 8, color: "#ffb857", textAlign: "center", lineHeight: 1.5,
+                          padding: "6px 4px", background: "rgba(80,40,10,0.35)",
+                          border: "1px dashed #a06010", borderRadius: 6, width: "100%",
+                        }}>
+                          🔒 Requer <b style={{ color: "#ffd88a" }}>Carta da Incubadora Lendária</b> no inventário.
+                        </div>
+                      )}
+                    </>
                   ) : readyToHatch ? (
                     <button
                       onClick={hatch}
