@@ -19,7 +19,7 @@ export const BLACK_EGG_ITEM_DESC =
   "Black Mitic Plus Egg — coloque na incubadora e ative para começar a chocar (10h). Alimente com Elemental Stones (50 por vez, 1h de cooldown). O elemento dominante define o tipo do Pokémon que nascerá com 5 traits.";
 
 const FEED_COOLDOWN_MS = 60 * 60 * 1000;         // 1h entre feeds
-const HATCH_MS = 10 * 60 * 60 * 1000;            // 10h incubação
+const HATCH_MS = 20 * 60 * 60 * 1000;            // 20h incubação
 const FEED_COST = 50;
 
 export const ELEMENTS = [
