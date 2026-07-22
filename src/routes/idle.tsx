@@ -1726,16 +1726,11 @@ function IdlePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [energyTick, idle.currentMap]);
 
-  // Primeiro contato com o Governante — entrega 1 Black Mitic Plus Egg (única vez por conta)
+  // Governante NPC — abre a cutscene de diálogo ao entrar no Salão do Governante.
+  const [governanteOpen, setGovernanteOpen] = useState(false);
   useEffect(() => {
     if (idle.currentMap !== "governante_hall") return;
-    if (idle.redeemedCodes?.__met_governante) return;
-    setIdle((s) => ({
-      ...s,
-      items: { ...s.items, black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + 1 },
-      redeemedCodes: { ...(s.redeemedCodes ?? {}), __met_governante: true },
-    }));
-    pushChat("👑 Governante: \"Você chegou, treinador... Aceite este Black Mitic Plus Egg. Cuide dele com sabedoria.\"", "cap");
+    setGovernanteOpen(true);
   }, [idle.currentMap]);
 
   // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
