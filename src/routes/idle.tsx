@@ -28,7 +28,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
-import { BlackMiticEggSprite, BlackMiticEggHud, BLACK_EGG_ITEM_ID } from "@/components/BlackMiticEggPet";
+import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
 import chestOpenImg from "@/assets/icons/chest-open.png";
@@ -6447,6 +6447,11 @@ function IdlePage() {
                 draggable={false}
               />
             </button>
+            <BlackMiticEggQuickIcon
+              count={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
+              ready={hasReadyEgg(identity?.id ?? "guest")}
+              onOpen={() => { playClick(); setBlackEggHudOpen(true); }}
+            />
             {(() => {
               const gi = currentGeliusInfo();
               if (gi.phase === "closed") return null;
@@ -10459,6 +10464,7 @@ function IdlePage() {
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
+        itemCount={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
         stones={{
           stone_grass: idle.items?.stone_grass ?? 0,
           stone_fire: idle.items?.stone_fire ?? 0,
@@ -10476,7 +10482,33 @@ function IdlePage() {
           }));
           return true;
         }}
-        onNotify={(msg) => pushChat(`✦ Black Mitic Egg: ${msg}`, "cap")}
+        onHatched={(species, element, traits) => {
+          const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+            ? crypto.randomUUID()
+            : `bmp_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+          setIdle((s) => {
+            const curCount = s.items?.[BLACK_EGG_ITEM_ID] ?? 0;
+            const nextItems = { ...(s.items ?? {}) };
+            if (curCount <= 1) delete nextItems[BLACK_EGG_ITEM_ID];
+            else nextItems[BLACK_EGG_ITEM_ID] = curCount - 1;
+            const entry = {
+              uid,
+              species,
+              level: 100,
+              rarity: "mythic_shiny" as const,
+              capturedAt: Date.now(),
+              traits,
+              event: `black_mitic_plus:${element}`,
+            };
+            return {
+              ...s,
+              items: nextItems,
+              collection: [...(s.collection ?? []), entry as any],
+            };
+          });
+          pushChat(`✦ Black Mitic Plus (${element}) nasceu com 5 traits! Confira sua coleção.`, "cap");
+        }}
+        onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
       />
     </div>
 
