@@ -423,6 +423,11 @@ export function tryRedeemCode(code: string):
     return { kind: "masterball", bundle: grantChariz50Bundle() };
   }
 
+  if (c === SECRET_EMERALD60_CODE) {
+    if (isEmerald60Used()) return { kind: "already-used" };
+    return { kind: "masterball", bundle: grantEmerald60Bundle() };
+  }
+
   if (c === SECRET_ADMIN_CODE) {
     setAdmin(true);
     pushLog({ actor: "self", action: "admin_unlocked" });
