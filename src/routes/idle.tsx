@@ -4920,7 +4920,7 @@ function IdlePage() {
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           } else {
             // Aleatórios legais no mapa: gengar, magmar, gyarados, ursaring, hariyama, umbreon, jolteon, dragonite, oddish, gloom, vileplume, lickitung
-            const wild = (["gengar", "magmar", "gyarados", "ursaring", "hariyama", "umbreon", "jolteon", "dragonite", "oddish", "gloom", "vileplume", "lickitung", "lickitung_shiny", "beedrill", "venomoth"] as Species[]).filter(hasGif);
+            const wild = (["gengar", "magmar", "gyarados", "ursaring", "hariyama", "umbreon", "jolteon", "dragonite", "oddish", "gloom", "vileplume", "lickitung", "lickitung_shiny", "beedrill", "venomoth", "onix", "onix_shiny"] as Species[]).filter(hasGif);
             pool = wild.length ? wild : (["oddish"] as Species[]);
             // Raridade mista: epic 55%, mythic 25%, mythic_shiny 20% — todos dropam stones
             const rr = Math.random();
