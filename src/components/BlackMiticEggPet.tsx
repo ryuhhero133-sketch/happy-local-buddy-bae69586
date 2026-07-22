@@ -35,6 +35,17 @@ type StoneId = typeof ELEMENTS[number]["stone"];
 
 type FeedHistoryItem = { ts: number; element: ElementId; amount: number };
 
+export type JournalMood =
+  | "greeting" | "hungry" | "craving" | "happy" | "absorbing"
+  | "obsession" | "worry" | "mystery" | "ready" | "hatch";
+
+export type JournalEntry = {
+  ts: number;
+  mood: JournalMood;
+  text: string;
+  element?: ElementId;
+};
+
 export type EggInstance = {
   id: string;
   createdAt: number;
@@ -44,6 +55,15 @@ export type EggInstance = {
   affinity: Record<ElementId, number>;
   totalFed: number;
   history: FeedHistoryItem[];
+  // Personalidade / diário
+  journal: JournalEntry[];
+  cravingElement: ElementId | null;
+  cravingSince: number;
+  lastHungerNudgeAt: number;
+  lastReadyNudgeAt: number;
+  lastCravingNudgeAt: number;
+  streakElement: ElementId | null;
+  streakCount: number;
 };
 
 type CollectionState = {
@@ -63,6 +83,14 @@ function newEgg(): EggInstance {
     affinity: { grass: 0, fire: 0, water: 0, electric: 0, dark: 0, dragon: 0 },
     totalFed: 0,
     history: [],
+    journal: [],
+    cravingElement: null,
+    cravingSince: 0,
+    lastHungerNudgeAt: 0,
+    lastReadyNudgeAt: 0,
+    lastCravingNudgeAt: 0,
+    streakElement: null,
+    streakCount: 0,
   };
 }
 
@@ -92,6 +120,14 @@ function loadState(uid: string): CollectionState {
           },
           totalFed: Number(e?.totalFed ?? 0),
           history: Array.isArray(e?.history) ? e.history.slice(0, 20) : [],
+          journal: Array.isArray(e?.journal) ? e.journal.slice(0, 60) : [],
+          cravingElement: (e?.cravingElement ?? null) as ElementId | null,
+          cravingSince: Number(e?.cravingSince ?? 0),
+          lastHungerNudgeAt: Number(e?.lastHungerNudgeAt ?? 0),
+          lastReadyNudgeAt: Number(e?.lastReadyNudgeAt ?? 0),
+          lastCravingNudgeAt: Number(e?.lastCravingNudgeAt ?? 0),
+          streakElement: (e?.streakElement ?? null) as ElementId | null,
+          streakCount: Number(e?.streakCount ?? 0),
         }))
       : [];
     return { eggs, selectedId: typeof p?.selectedId === "string" ? p.selectedId : (eggs[0]?.id ?? null) };
@@ -119,6 +155,169 @@ function fmt(ms: number) {
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
+// ================================================================
+// Sistema de personalidade / diálogos
+// ================================================================
+const MOOD_META: Record<JournalMood, { color: string; label: string; icon: string }> = {
+  greeting:  { color: "#c58bff", label: "Despertar",   icon: "✦" },
+  hungry:    { color: "#ffb857", label: "Fome",        icon: "◇" },
+  craving:   { color: "#ff9ad6", label: "Desejo",      icon: "❥" },
+  happy:     { color: "#8affb0", label: "Alegria",     icon: "♡" },
+  absorbing: { color: "#8ad0ff", label: "Absorvendo",  icon: "≋" },
+  obsession: { color: "#ff6b8a", label: "Obsessão",    icon: "⚠" },
+  worry:     { color: "#ff9090", label: "Inquietação", icon: "…" },
+  mystery:   { color: "#d8a0ff", label: "Mistério",    icon: "☾" },
+  ready:     { color: "#a0ffb0", label: "Pronto",      icon: "✧" },
+  hatch:     { color: "#ffe0a0", label: "Nascimento",  icon: "★" },
+};
+
+const GREETINGS = [
+  "Sinto sua presença... quem é você, treinador?",
+  "Uma casca escura me protege... e você me observa.",
+  "Ainda estou frágil... prometa que vai cuidar de mim.",
+  "Posso ouvir seu coração pulsando através da casca.",
+];
+const HUNGRY_LINES = [
+  "Ei... estou começando a sentir fome novamente...",
+  "Sinto que preciso de mais energia...",
+  "Meu interior está frio. Alimente-me, por favor.",
+  "As stones... estou sonhando com elas.",
+  "Preciso de poder para continuar crescendo...",
+];
+const ABANDON_LINES = [
+  "Será que você ainda está comigo, treinador?",
+  "Silêncio... só silêncio. Você me esqueceu?",
+  "Fico esperando por você. Sempre esperando.",
+  "Se me abandonar agora, o que será de mim?",
+];
+const READY_SOON_LINES = [
+  "Acho que já posso absorver mais poder...",
+  "Sinto que estou pronto para uma nova stone.",
+  "Meu núcleo pulsou. É hora, treinador.",
+];
+const HAPPY_MATCH = [
+  "SIM! Era exatamente disso que eu precisava!",
+  "Este elemento... me deixa completo. Obrigado.",
+  "Você me ouviu. Sabia que me entenderia.",
+];
+const ABSORB_LINES = [
+  "Absorvendo bem... sinto essa energia se enraizar.",
+  "Esta stone me aquece por dentro.",
+  "Cada gota de poder está encontrando um lugar em mim.",
+];
+const OBSESSION_LINES = [
+  "Treinador... tanta energia... estou mudando...",
+  "Você está transformando algo dentro de mim...",
+  "Esse poder está ficando incontrolável...",
+  "Será que conseguirei conter toda essa força?",
+  "Sinto meu núcleo se dobrar sob esse elemento...",
+];
+const MYSTERY_LINES = [
+  "Vejo cores que ainda não têm nome...",
+  "Algo está se formando aqui dentro. Algo raro.",
+  "Sonhei com asas. Ou seriam garras?",
+  "Meu tipo ainda está sendo decidido... por você.",
+];
+const CRAVING_LINES: Record<ElementId, string[]> = {
+  grass:    ["Sinto falta do cheiro da terra úmida...", "Uma folha... eu queria sentir uma folha crescer em mim."],
+  fire:     ["Preciso de calor. O frio está me consumindo.", "Um pouco de brasa... só um pouco, por favor."],
+  water:    ["Minha casca está seca. Traga águas profundas.", "Sonho com marés puxando meu núcleo."],
+  electric: ["Quero sentir um raio percorrer minha casca.", "Faíscas... me faltam faíscas."],
+  dark:     ["Anseio pelo silêncio das sombras.", "A escuridão me chama. Alimente esse chamado."],
+  dragon:   ["Sinto asas se formando... mas falta poder ancestral.", "Um sopro de dragão faria toda diferença agora."],
+};
+
+function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function pushJournal(egg: EggInstance, mood: JournalMood, text: string, element?: ElementId): EggInstance {
+  const entry: JournalEntry = { ts: Date.now(), mood, text, element };
+  return { ...egg, journal: [entry, ...egg.journal].slice(0, 60) };
+}
+
+function pickCraving(egg: EggInstance): ElementId {
+  // Prefere elemento menos alimentado; evita repetir o desejo anterior.
+  const sorted = [...ELEMENTS].sort((a, b) => (egg.affinity[a.id] ?? 0) - (egg.affinity[b.id] ?? 0));
+  const candidates = sorted.filter(e => e.id !== egg.cravingElement).slice(0, 3);
+  return (candidates[Math.floor(Math.random() * candidates.length)] ?? sorted[0]).id;
+}
+
+/**
+ * Aplica atualizações passivas do diário (fome, saudade do desejo, aviso de pronto para comer).
+ * Idempotente por cursores.
+ */
+function advanceJournal(egg: EggInstance, now: number): EggInstance {
+  if (!egg.activated) return egg;
+  let next = egg;
+
+  // Fixa um desejo inicial se ainda não existe
+  if (!next.cravingElement) {
+    const craving = pickCraving(next);
+    next = { ...next, cravingElement: craving, cravingSince: now };
+    const el = ELEMENTS.find(e => e.id === craving)!;
+    next = pushJournal(next, "craving", pick(CRAVING_LINES[craving]) + ` (${el.emoji} ${el.label})`, craving);
+  }
+
+  // Aviso "quase pronto" ~5 min antes do cooldown acabar
+  if (next.lastFedAt > 0) {
+    const cdEnd = next.lastFedAt + FEED_COOLDOWN_MS;
+    const untilReady = cdEnd - now;
+    if (untilReady > 0 && untilReady <= 5 * 60 * 1000 && next.lastReadyNudgeAt < cdEnd - 6 * 60 * 1000) {
+      next = pushJournal(next, "ready", pick(READY_SOON_LINES));
+      next = { ...next, lastReadyNudgeAt: now };
+    }
+  }
+
+  // Fome: já passou 30 min do cooldown sem novo feed
+  if (next.lastFedAt > 0) {
+    const overdue = now - (next.lastFedAt + FEED_COOLDOWN_MS);
+    if (overdue > 30 * 60 * 1000 && (now - next.lastHungerNudgeAt) > 60 * 60 * 1000) {
+      const line = overdue > 3 * 60 * 60 * 1000 ? pick(ABANDON_LINES) : pick(HUNGRY_LINES);
+      next = pushJournal(next, overdue > 3 * 60 * 60 * 1000 ? "worry" : "hungry", line);
+      next = { ...next, lastHungerNudgeAt: now };
+    }
+  }
+
+  // Saudade do desejo: 2h sem receber o elemento desejado
+  if (next.cravingElement && (now - next.cravingSince) > 2 * 60 * 60 * 1000 &&
+      (now - next.lastCravingNudgeAt) > 90 * 60 * 1000) {
+    const el = next.cravingElement;
+    next = pushJournal(next, "craving", pick(CRAVING_LINES[el]), el);
+    next = { ...next, lastCravingNudgeAt: now };
+  }
+
+  return next;
+}
+
+/** Reage a uma alimentação: felicidade, absorção, obsessão, mistério. */
+function reactToFeed(egg: EggInstance, element: ElementId): EggInstance {
+  let next = egg;
+  const matchedCraving = next.cravingElement === element;
+
+  if (matchedCraving) {
+    next = pushJournal(next, "happy", pick(HAPPY_MATCH), element);
+    const newCraving = pickCraving({ ...next, cravingElement: element });
+    next = { ...next, cravingElement: newCraving, cravingSince: Date.now(), lastCravingNudgeAt: Date.now() };
+    const el = ELEMENTS.find(e => e.id === newCraving)!;
+    next = pushJournal(next, "craving", `Agora... sinto falta de ${el.emoji} ${el.label}. ${pick(CRAVING_LINES[newCraving])}`, newCraving);
+  } else {
+    next = pushJournal(next, "absorbing", pick(ABSORB_LINES), element);
+  }
+
+  // Streak / obsessão
+  const streakCount = next.streakElement === element ? next.streakCount + 1 : 1;
+  next = { ...next, streakElement: element, streakCount };
+  if (streakCount === 3 || streakCount === 5 || streakCount === 8) {
+    next = pushJournal(next, "obsession", pick(OBSESSION_LINES), element);
+  }
+
+  // Mistério ocasional a cada ~4 feeds
+  if (next.totalFed > 0 && Math.floor(next.totalFed / FEED_COST) % 4 === 0 && Math.random() < 0.6) {
+    next = pushJournal(next, "mystery", pick(MYSTERY_LINES));
+  }
+
+  return next;
 }
 
 // ================================================================
@@ -282,6 +481,7 @@ export function BlackMiticEggHud(props: {
   const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify } = props;
   const [state, setState] = useState<CollectionState>(() => loadState(uid));
   const [now, setNow] = useState(Date.now());
+  const [tab, setTab] = useState<"journal" | "feeds">("journal");
 
   // Sincroniza número de ovos com itemCount (adiciona novos inativos, ou remove excesso do fim entre os NÃO ativados)
   useEffect(() => {
@@ -310,9 +510,25 @@ export function BlackMiticEggHud(props: {
 
   useEffect(() => {
     if (!open) return;
-    const id = setInterval(() => setNow(Date.now()), 500);
-    return () => clearInterval(id);
-  }, [open]);
+    const idNow = setInterval(() => setNow(Date.now()), 500);
+    const advance = () => {
+      setState((prev) => {
+        let changed = false;
+        const eggs = prev.eggs.map(e => {
+          const ne = advanceJournal(e, Date.now());
+          if (ne !== e) changed = true;
+          return ne;
+        });
+        if (!changed) return prev;
+        const next = { ...prev, eggs };
+        saveState(uid, next);
+        return next;
+      });
+    };
+    advance();
+    const idAdv = setInterval(advance, 10000);
+    return () => { clearInterval(idNow); clearInterval(idAdv); };
+  }, [open, uid]);
 
   const selected = useMemo(
     () => state.eggs.find(e => e.id === state.selectedId) ?? state.eggs[0] ?? null,
@@ -331,7 +547,16 @@ export function BlackMiticEggHud(props: {
     if (!selected) return;
     persist((s) => ({
       ...s,
-      eggs: s.eggs.map(e => e.id === selected.id ? { ...e, activated: true, activatedAt: Date.now() } : e),
+      eggs: s.eggs.map(e => {
+        if (e.id !== selected.id) return e;
+        let ne: EggInstance = { ...e, activated: true, activatedAt: Date.now() };
+        ne = pushJournal(ne, "greeting", pick(GREETINGS));
+        const craving = pickCraving(ne);
+        ne = { ...ne, cravingElement: craving, cravingSince: Date.now() };
+        const el = ELEMENTS.find(x => x.id === craving)!;
+        ne = pushJournal(ne, "craving", pick(CRAVING_LINES[craving]) + ` (${el.emoji} ${el.label})`, craving);
+        return ne;
+      }),
     }));
     onNotify?.("Incubação iniciada! 10 horas para chocar.");
   };
@@ -346,13 +571,20 @@ export function BlackMiticEggHud(props: {
     if (!onConsumeStone(el.stone, FEED_COST)) { onNotify?.("Falha ao consumir a Stone."); return; }
     persist((s) => ({
       ...s,
-      eggs: s.eggs.map(e => e.id === selected.id ? {
-        ...e,
-        affinity: { ...e.affinity, [el.id]: (e.affinity[el.id] ?? 0) + FEED_COST },
-        totalFed: e.totalFed + FEED_COST,
-        lastFedAt: Date.now(),
-        history: [{ ts: Date.now(), element: el.id, amount: FEED_COST }, ...e.history].slice(0, 20),
-      } : e),
+      eggs: s.eggs.map(e => {
+        if (e.id !== selected.id) return e;
+        let ne: EggInstance = {
+          ...e,
+          affinity: { ...e.affinity, [el.id]: (e.affinity[el.id] ?? 0) + FEED_COST },
+          totalFed: e.totalFed + FEED_COST,
+          lastFedAt: Date.now(),
+          history: [{ ts: Date.now(), element: el.id, amount: FEED_COST }, ...e.history].slice(0, 20),
+          lastHungerNudgeAt: Date.now(),
+          lastReadyNudgeAt: 0,
+        };
+        ne = reactToFeed(ne, el.id);
+        return ne;
+      }),
     }));
     onNotify?.(`+${FEED_COST} ${el.label} → afinidade aumentada.`);
   };
@@ -639,22 +871,82 @@ export function BlackMiticEggHud(props: {
                     border: "1px solid rgba(160,80,255,0.3)",
                     borderRadius: 10, padding: 12,
                   }}>
-                    <div style={{ fontSize: 11, color: "#e0b8ff", marginBottom: 8, letterSpacing: 1 }}>◆ HISTÓRICO</div>
-                    {selected.history.length === 0 ? (
-                      <div style={{ fontSize: 9, color: "#8a6ab0", textAlign: "center", padding: 8 }}>Nenhuma alimentação ainda.</div>
+                    <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                      {([
+                        { id: "journal", label: `◆ DIÁRIO (${selected.journal.length})` },
+                        { id: "feeds",   label: `◆ ALIMENTAÇÕES (${selected.history.length})` },
+                      ] as const).map((t) => {
+                        const active = tab === t.id;
+                        return (
+                          <button key={t.id} onClick={() => setTab(t.id)} style={{
+                            flex: 1, padding: "6px 8px", fontSize: 9, letterSpacing: 1,
+                            background: active
+                              ? "linear-gradient(180deg, rgba(160,80,255,0.45), rgba(120,40,220,0.2))"
+                              : "rgba(20,8,40,0.6)",
+                            border: `1px solid ${active ? "#c58bff" : "rgba(160,80,255,0.3)"}`,
+                            color: active ? "#fff" : "#a888c8",
+                            borderRadius: 6, cursor: "pointer",
+                            boxShadow: active ? "0 0 8px rgba(160,80,255,0.5)" : "none",
+                          }}>{t.label}</button>
+                        );
+                      })}
+                    </div>
+
+                    {tab === "journal" ? (
+                      selected.journal.length === 0 ? (
+                        <div style={{ fontSize: 9, color: "#8a6ab0", textAlign: "center", padding: 10, lineHeight: 1.6 }}>
+                          O ovo ainda dorme.<br />Ative a incubação para ouvi-lo.
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto", paddingRight: 4 }}>
+                          {selected.journal.map((j, i) => {
+                            const meta = MOOD_META[j.mood];
+                            const el = j.element ? ELEMENTS.find(x => x.id === j.element) : null;
+                            const ago = Math.floor((now - j.ts) / 60000);
+                            const when = ago < 1 ? "agora mesmo" : ago < 60 ? `há ${ago} min` : ago < 60 * 24 ? `há ${Math.floor(ago / 60)}h` : `há ${Math.floor(ago / (60 * 24))}d`;
+                            return (
+                              <div key={i} style={{
+                                display: "flex", gap: 8, alignItems: "flex-start",
+                                padding: "8px 10px",
+                                background: `linear-gradient(180deg, ${meta.color}18, rgba(0,0,0,0.35))`,
+                                border: `1px solid ${meta.color}55`,
+                                borderLeft: `3px solid ${meta.color}`,
+                                borderRadius: 6,
+                              }}>
+                                <div style={{
+                                  fontSize: 14, color: meta.color, lineHeight: 1,
+                                  textShadow: `0 0 6px ${meta.color}`,
+                                }}>{meta.icon}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: 8, color: meta.color, letterSpacing: 1, marginBottom: 3 }}>
+                                    {meta.label.toUpperCase()}{el ? ` · ${el.emoji} ${el.label}` : ""} · <span style={{ color: "#8a6ab0" }}>{when}</span>
+                                  </div>
+                                  <div style={{ fontSize: 10, color: "#f0e6ff", lineHeight: 1.55, fontFamily: "ui-monospace, monospace", fontStyle: "italic" }}>
+                                    “{j.text}”
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )
                     ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 120, overflowY: "auto" }}>
-                        {selected.history.map((h, i) => {
-                          const el = ELEMENTS.find(e => e.id === h.element)!;
-                          const ago = Math.floor((now - h.ts) / 60000);
-                          return (
-                            <div key={i} style={{ fontSize: 9, color: "#c8a0e8", display: "flex", justifyContent: "space-between", padding: "2px 4px", background: "rgba(0,0,0,0.25)", borderRadius: 4 }}>
-                              <span><span style={{ color: el.color }}>{el.emoji} {el.label}</span> +{h.amount}</span>
-                              <span>{ago < 1 ? "agora" : ago < 60 ? `${ago}min` : `${Math.floor(ago/60)}h`}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      selected.history.length === 0 ? (
+                        <div style={{ fontSize: 9, color: "#8a6ab0", textAlign: "center", padding: 8 }}>Nenhuma alimentação ainda.</div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 220, overflowY: "auto" }}>
+                          {selected.history.map((h, i) => {
+                            const el = ELEMENTS.find(e => e.id === h.element)!;
+                            const ago = Math.floor((now - h.ts) / 60000);
+                            return (
+                              <div key={i} style={{ fontSize: 9, color: "#c8a0e8", display: "flex", justifyContent: "space-between", padding: "4px 6px", background: "rgba(0,0,0,0.25)", borderRadius: 4 }}>
+                                <span><span style={{ color: el.color }}>{el.emoji} {el.label}</span> +{h.amount}</span>
+                                <span>{ago < 1 ? "agora" : ago < 60 ? `${ago}min` : `${Math.floor(ago/60)}h`}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
