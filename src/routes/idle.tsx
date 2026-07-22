@@ -432,7 +432,9 @@ type IdleMapId =
   // Evento Mítico Shiny — abre 5min a cada 1h
   | "evento_myth"
   // Evento Oddish Odyssey — 24h aberto, 3 mapas conectados por portal
-  | "oddish_o1" | "oddish_o2" | "oddish_o3";
+  | "oddish_o1" | "oddish_o2" | "oddish_o3"
+  // Continente do Governante — acesso via Carta do Governante
+  | "absol_start" | "governante_hall";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
