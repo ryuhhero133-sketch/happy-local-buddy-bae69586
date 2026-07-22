@@ -5177,6 +5177,9 @@ function IdlePage() {
     chest_amulet: 900, potion: 40,
     berry: 60, revive: 300, key: 500,
     incenso_mel: 2500, incenso_mel_raro: 9000,
+    // Stones elementais — valem bastante ouro (também alimentam ovos Black Mítico)
+    stone_grass: 12000, stone_fire: 12000, stone_water: 12000,
+    stone_electric: 12000, stone_dark: 15000, stone_dragon: 18000,
   };
   // ===== Mercado P2P (Supabase) =====
   const isVip = () => {
