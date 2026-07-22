@@ -447,7 +447,14 @@ export function CashShopModal(props: Props) {
               ✦
             </div>
             <div>
-              <div className="text-amber-300 font-black tracking-widest text-sm sm:text-base">LOJINHA CASH</div>
+              <div className="text-amber-300 font-black tracking-widest text-sm sm:text-base flex items-center gap-2">
+                LOJINHA CASH
+                {typeof window !== "undefined" && localStorage.getItem("rubym.cashShop.isAdmin") === "1" && (
+                  <span className="px-2 py-0.5 rounded-md text-[9px] font-black tracking-widest bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-[0_0_10px_rgba(217,70,239,0.6)] border border-fuchsia-300/60">
+                    ★ ADMIN
+                  </span>
+                )}
+              </div>
               <div className="text-white/50 text-[10px] sm:text-xs tracking-wider">IDLEMON · PREMIUM STORE</div>
             </div>
           </div>
