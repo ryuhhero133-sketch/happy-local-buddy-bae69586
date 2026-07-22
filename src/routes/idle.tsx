@@ -2331,6 +2331,28 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "BLACKEGGTEST" || raw === "BLACKMITIC1" || raw === "TESTBLACKEGG") {
+      const base = idleRef.current;
+      if ((base.items?.[BLACK_EGG_ITEM_ID] ?? 0) > 0) {
+        setCodeMsg({ kind: "err", text: "Você já possui um Black Mitic Egg." });
+        return;
+      }
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, [BLACK_EGG_ITEM_ID]: 1 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "✦ Black Mitic Egg entregue! Confira sua mochila e o mapa." });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: 1× Black Mitic Egg ✦ (pet flutuante).`, "cap");
+      return;
+    }
+
+
+
 
     if (raw === "EPIC5EGG" || raw === "EPICEGG5" || raw === "EPIC5CRY10K") {
       const base = idleRef.current;
