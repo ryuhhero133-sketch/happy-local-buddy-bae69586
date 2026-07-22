@@ -2435,7 +2435,7 @@ function IdlePage() {
     }
 
     // INCUBLENDA1..5 — Carta da Incubadora Lendária (single-use)
-    if (raw === "INCUBLENDA1" || raw === "INCUBLENDA2" || raw === "INCUBLENDA3" || raw === "INCUBLENDA4" || raw === "INCUBLENDA5") {
+    if (raw === "INCUBLENDA1" || raw === "INCUBLENDA2" || raw === "INCUBLENDA3" || raw === "INCUBLENDA4" || raw === "INCUBLENDA5" || raw === "INCUBKEY2026") {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
       const next: IdleState = {
