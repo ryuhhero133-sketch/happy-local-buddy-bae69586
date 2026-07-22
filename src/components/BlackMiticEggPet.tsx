@@ -598,8 +598,9 @@ export function BlackMiticEggHud(props: {
   onConsumeStone: (stoneId: StoneId, qty: number) => boolean;
   onHatched: (species: string, element: ElementId, traits: string[]) => void;   // parent grants pokemon + decrementa item
   onNotify?: (msg: string) => void;
+  hasIncubatorCard?: boolean;                          // gate para "ATIVAR INICIAÇÃO"
 }) {
-  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify } = props;
+  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify, hasIncubatorCard = false } = props;
   const [state, setState] = useState<CollectionState>(() => loadState(uid));
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<"journal" | "feeds">("journal");
