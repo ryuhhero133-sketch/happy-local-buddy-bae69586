@@ -790,7 +790,7 @@ function CreateListing(props: {
                     cursor: locked ? "not-allowed" : "pointer", opacity: locked ? 0.55 : 1,
                     textTransform: "uppercase", letterSpacing: 0.4,
                   }}>
-                  {CUR_ICON[c]} {c === "gold" ? "OURO" : c === "crystal" ? "CRISTAL" : c === "safira" ? "SAFIRA" : "ESMERALDA"} {locked && "🔒"}
+                  <CurIcon c={c} /> {c === "gold" ? "OURO" : c === "crystal" ? "CRISTAL" : c === "safira" ? "SAFIRA" : "ESMERALDA"} {locked && "🔒"}
                 </button>
               );
             })}
