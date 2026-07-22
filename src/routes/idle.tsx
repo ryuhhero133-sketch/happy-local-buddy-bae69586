@@ -1898,7 +1898,7 @@ function IdlePage() {
       // Se o evento está desligado/encerrado, apenas retira quem ainda está no mapa.
       if (!ODDISH_EVENT.enabled || st.phase === "finished" || st.phase === "disabled") {
         setIdle((s) => {
-          if (s.currentMap !== "oddish_o1" && s.currentMap !== "oddish_o2") return s;
+          if (s.currentMap !== "oddish_o1" && s.currentMap !== "oddish_o2" && s.currentMap !== "oddish_o3") return s;
           const back = oddishReturnMapRef.current ?? "arena";
           oddishReturnMapRef.current = null;
           try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Evento encerrado", body: "Odisséia Oddish acabou — de volta ao mapa anterior.", tone: "info" } })); } catch {}
@@ -1935,7 +1935,7 @@ function IdlePage() {
       // Auto-retorno: portal fechou e o jogador ainda está no mapa do evento.
       if (st.phase !== "open") {
         setIdle((s) => {
-          if (s.currentMap !== "oddish_o1" && s.currentMap !== "oddish_o2") return s;
+          if (s.currentMap !== "oddish_o1" && s.currentMap !== "oddish_o2" && s.currentMap !== "oddish_o3") return s;
           const back = oddishReturnMapRef.current ?? "arena";
           oddishReturnMapRef.current = null;
           try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Portal fechado", body: "Você foi teletransportado de volta.", tone: "info" } })); } catch {}
@@ -3539,7 +3539,7 @@ function IdlePage() {
           pushChat(`+${xp} EXP · +${gold} ouro${suffix}`, "info");
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
-          const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2";
+          const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
           if (isOddishMap) {
             // 🌿 EVENTO ODISSÉIA ODDISH — SÓ dropa Stones Elementais.
             // Épico / mítico / mítico shiny / lendário são os únicos que dropam.
@@ -3645,7 +3645,7 @@ function IdlePage() {
               usedBall = null;
             }
             // 🌿 EVENTO ODISSÉIA ODDISH — captura BLOQUEADA. Aqui só cai Stone.
-            const inOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2";
+            const inOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3";
             if (inOddishEvent) {
               usedBall = null;
             }
@@ -4360,7 +4360,7 @@ function IdlePage() {
           queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
           return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
         }
-        const isOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2";
+        const isOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3";
         const finalLevel = isOddishEvent ? 1 : np.level;
         return {
           ...s,
@@ -4903,7 +4903,7 @@ function IdlePage() {
           // Pareia com o líder — grande variação para não ficar previsível
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
-        } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2") {
+        } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") {
           // Odisséia Oddish — mapa aberto 24h. Não captura aqui.
           // Bastante Oddish Shiny, Scizor e mons legais aleatórios.
           const rollShiny = Math.random();
@@ -8916,7 +8916,7 @@ function IdlePage() {
               }
               const target = oddishMapForCycle();
               setIdle((s) => {
-                if (s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2") return s;
+                if (s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3") return s;
                 oddishReturnMapRef.current = s.currentMap;
                 return { ...s, currentMap: target };
               });
