@@ -523,12 +523,10 @@ export function CashShopModal(props: Props) {
                   initial={{ y: 15, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.45 }}
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setSelected(PRODUCTS[2])}
-                  className="mt-4 self-start px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black text-sm sm:text-base tracking-wider shadow-[0_0_30px_rgba(250,204,21,.6)] hover:shadow-[0_0_50px_rgba(250,204,21,.9)] transition"
+                  disabled
+                  className="mt-4 self-start px-6 py-3 rounded-xl bg-white/10 border border-white/20 text-white/60 font-black text-sm sm:text-base tracking-wider cursor-not-allowed"
                 >
-                  COMPRAR AGORA — R$347
+                  ESGOTADO
                 </motion.button>
               </div>
 
