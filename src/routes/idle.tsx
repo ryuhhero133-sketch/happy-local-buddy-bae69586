@@ -11127,6 +11127,9 @@ function TabOverlay({
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯",
           safira_verde: "Safira Verde 💚",
           carta_governante: "Carta do Governante 👑",
+          stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
+          stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
+          stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
