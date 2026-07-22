@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useServerFn } from "@tanstack/react-start";
 import eggSprite from "@/assets/black-mitic-egg.png";
 import incubatorSprite from "@/assets/black-mitic-incubator.png";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
+import { getBlackEggSave, saveBlackEggSave } from "@/lib/blackEgg.functions";
 
 // ============================================================================
 // Black Mitic Plus Egg — sistema unificado
