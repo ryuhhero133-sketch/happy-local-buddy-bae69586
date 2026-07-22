@@ -6447,6 +6447,11 @@ function IdlePage() {
                 draggable={false}
               />
             </button>
+            <BlackMiticEggQuickIcon
+              count={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
+              ready={hasReadyEgg(identity?.id ?? "guest")}
+              onOpen={() => { playClick(); setBlackEggHudOpen(true); }}
+            />
             {(() => {
               const gi = currentGeliusInfo();
               if (gi.phase === "closed") return null;
