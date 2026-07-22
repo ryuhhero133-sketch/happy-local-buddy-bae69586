@@ -375,6 +375,20 @@ export interface ItemPixelIconProps {
 }
 
 export function ItemPixelIcon({ id, size = 48, color = "#c9a24b" }: ItemPixelIconProps) {
+  const bmp = BITMAP_OVERRIDES[id];
+  if (bmp) {
+    return (
+      <div className="pxi-wrap pxi-bob" style={{ width: size, height: size }}>
+        <img
+          src={bmp}
+          width={size}
+          height={size}
+          alt=""
+          style={{ imageRendering: "pixelated", display: "block", filter: "drop-shadow(0 0 4px rgba(255,215,110,0.6))" }}
+        />
+      </div>
+    );
+  }
   const drawer = ICONS[id];
   const cells = drawer ? drawer() : drawGeneric(color);
   // classe de animação por categoria
