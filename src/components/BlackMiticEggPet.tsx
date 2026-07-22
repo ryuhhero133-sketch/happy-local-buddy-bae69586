@@ -685,6 +685,7 @@ export function BlackMiticEggHud(props: {
         return ne;
       }),
     }));
+    onActivateEgg?.();
     onNotify?.("Incubação iniciada! 10 horas para chocar.");
   };
 
