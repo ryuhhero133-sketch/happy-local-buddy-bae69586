@@ -5,6 +5,7 @@ import {
   fetchThread, sendUserMessage, sendAdminMessage, subscribeThread,
   fetchThreadsForAdmin, subscribeAll,
   fetchPendingSales, subscribePendingSales, updatePendingStatus,
+  checkCashShopAdmin, getCashShopChatError, getCashShopSalesError,
   type TicketMsg, type AdminThreadSummary, type PendingSale,
 } from "@/lib/cashshopChat";
 import { motion, AnimatePresence } from "framer-motion";
@@ -355,8 +356,14 @@ export function CashShopModal(props: Props) {
 
 
   const uid = identity?.id ?? "guest";
-  const isCashAdmin = typeof window !== "undefined"
-    && localStorage.getItem("rubym.cashShop.isAdmin") === "1";
+  const isLocalCashAdmin = typeof window !== "undefined"
+    && localStorage.getItem("rubym.cashShop.isAdmin") === "1"
+    && (!localStorage.getItem("rubym.cashShop.adminOwner") || localStorage.getItem("rubym.cashShop.adminOwner") === uid);
+  const [isDbCashAdmin, setIsDbCashAdmin] = useState(false);
+  const [adminRoleError, setAdminRoleError] = useState<string | null>(null);
+  const [adminTicketsError, setAdminTicketsError] = useState<string | null>(null);
+  const [adminSalesError, setAdminSalesError] = useState<string | null>(null);
+  const isCashAdmin = isLocalCashAdmin || isDbCashAdmin;
 
   // Alvo do painel admin (uid do jogador cujo ticket está sendo lido)
   const [adminTargetUid, setAdminTargetUid] = useState<string | null>(null);
@@ -381,13 +388,37 @@ export function CashShopModal(props: Props) {
     if (!isCashAdmin) return;
     const list = await fetchThreadsForAdmin();
     setAdminThreads(list);
+    setAdminTicketsError(getCashShopChatError());
   }, [isCashAdmin]);
 
   const reloadPendingSales = useCallback(async () => {
     if (!isCashAdmin) return;
     const list = await fetchPendingSales();
     setPendingSales(list);
+    setAdminSalesError(getCashShopSalesError());
   }, [isCashAdmin]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (!uid || uid === "guest" || uid.startsWith("guest-")) {
+      setIsDbCashAdmin(false);
+      return;
+    }
+    let alive = true;
+    (async () => {
+      const res = await checkCashShopAdmin(uid);
+      if (!alive) return;
+      setIsDbCashAdmin(res.ok);
+      setAdminRoleError(res.error);
+      if (res.ok && typeof window !== "undefined") {
+        try {
+          localStorage.setItem("rubym.cashShop.isAdmin", "1");
+          localStorage.setItem("rubym.cashShop.adminOwner", uid);
+        } catch { /* ignore */ }
+      }
+    })();
+    return () => { alive = false; };
+  }, [open, uid]);
 
   useEffect(() => {
     if (!open) return;
@@ -485,7 +516,7 @@ export function CashShopModal(props: Props) {
             <div>
               <div className="text-amber-300 font-black tracking-widest text-sm sm:text-base flex items-center gap-2">
                 LOJINHA CASH
-                {typeof window !== "undefined" && localStorage.getItem("rubym.cashShop.isAdmin") === "1" && (
+                {isCashAdmin && (
                   <span className="px-2 py-0.5 rounded-md text-[9px] font-black tracking-widest bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-[0_0_10px_rgba(217,70,239,0.6)] border border-fuchsia-300/60">
                     ★ ADMIN
                   </span>
@@ -921,6 +952,9 @@ export function CashShopModal(props: Props) {
             adminTab={adminTab}
             onAdminTab={setAdminTab}
             pendingSales={pendingSales}
+            adminRoleError={adminRoleError}
+            adminTicketsError={adminTicketsError}
+            adminSalesError={adminSalesError}
             onApproveSale={async (s) => {
               await updatePendingStatus(s.id, "approved", identity?.name ?? "Admin");
               await sendAdminMessage(
