@@ -199,7 +199,7 @@ const EMERALD_OFFERS: EmeraldOffer[] = [
   {
     id: "bau_esmeralda",
     name: "Baú de Esmeralda",
-    desc: "Loot aleatório ✦ pode vir 300 Ultra, Orb Supremo, 1k Cristal, Incensos e mais",
+    desc: "Loot aleatório ✦ 4k Great, 3k Ultra, Orbs, Stones Elementais (10/50), Cristais e mais",
     price: 20,
     image: chestEmeraldImg,
     grants: [{ itemId: "premium_box", qty: 1 }], // fallback (rota randômica no handler)
@@ -331,17 +331,33 @@ export function CashShopModal(props: Props) {
     const next = emerald - offer.price;
     setEmerald(next); writeEmerald(next);
 
-    // Baú de Esmeralda → loot aleatório generoso
+    // Baú de Esmeralda → loot aleatório variado
     if (offer.id === "bau_esmeralda") {
+      const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"] as const;
+      const pickStone = () => STONES[Math.floor(Math.random() * STONES.length)];
       const pool: Array<{ label: string; run: () => void; weight: number }> = [
-        { label: "300× Ultra Ball", weight: 22, run: () => onGrantItem("ultraball", 300) },
-        { label: "5× Orb Supremo ✦✦✦", weight: 18, run: () => onGrantItem("orb_xp_supreme", 5) },
-        { label: "1.000 Cristais 💎", weight: 18, run: () => onGrantCrystals(1000) },
-        { label: "150× Poção", weight: 14, run: () => onGrantItem("potion", 150) },
-        { label: "100× Great Ball", weight: 12, run: () => onGrantItem("greatball", 100) },
-        { label: "10× Incenso de Mel Raro 🍯", weight: 8, run: () => onGrantItem("incenso_mel_raro", 10) },
-        { label: "1× Ovo Épico ✦✦", weight: 5, run: () => onGrantItem("egg_epic", 1) },
-        { label: "50.000 Ouro 🪙", weight: 3, run: () => onGrantCoins(50000) },
+        { label: "4.000× Great Ball", weight: 14, run: () => onGrantItem("greatball", 4000) },
+        { label: "3.000× Ultra Ball", weight: 12, run: () => onGrantItem("ultraball", 3000) },
+        { label: "10× Orb Supremo ✦✦✦", weight: 10, run: () => onGrantItem("orb_xp_supreme", 10) },
+        { label: "10× Orb Maior ✦✦", weight: 10, run: () => onGrantItem("orb_xp_major", 10) },
+        { label: "10× Orb Comum ✦", weight: 10, run: () => onGrantItem("orb_xp", 10) },
+        {
+          label: "2× de cada Orb (Comum + Maior + Supremo)",
+          weight: 9,
+          run: () => { onGrantItem("orb_xp", 2); onGrantItem("orb_xp_major", 2); onGrantItem("orb_xp_supreme", 2); },
+        },
+        { label: "50× Stone Elemental aleatória", weight: 8, run: () => onGrantItem(pickStone(), 50) },
+        { label: "10× Stone Elemental aleatória", weight: 10, run: () => onGrantItem(pickStone(), 10) },
+        {
+          label: "5× de cada Stone Elemental",
+          weight: 6,
+          run: () => STONES.forEach((s) => onGrantItem(s, 5)),
+        },
+        { label: "2.500 Cristais 💎", weight: 8, run: () => onGrantCrystals(2500) },
+        { label: "150× Poção", weight: 8, run: () => onGrantItem("potion", 150) },
+        { label: "15× Incenso de Mel Raro 🍯", weight: 6, run: () => onGrantItem("incenso_mel_raro", 15) },
+        { label: "1× Ovo Épico ✦✦", weight: 4, run: () => onGrantItem("egg_epic", 1) },
+        { label: "100.000 Ouro 🪙", weight: 3, run: () => onGrantCoins(100000) },
       ];
       const total = pool.reduce((s, p) => s + p.weight, 0);
       let r = Math.random() * total;

@@ -8765,7 +8765,19 @@ function IdlePage() {
             </div>
 
             <button
-              onClick={() => setCashShopOpen(true)}
+              onClick={() => {
+                const OWNER_CODE = "RBXOWNER2026";
+                const unlocked = typeof window !== "undefined" && sessionStorage.getItem("rubym.lojinha.unlocked") === "1";
+                if (unlocked) { setCashShopOpen(true); return; }
+                const input = window.prompt("🔒 Lojinha bloqueada. Digite o código de acesso:");
+                if (input == null) return;
+                if (input.trim().toUpperCase() === OWNER_CODE) {
+                  sessionStorage.setItem("rubym.lojinha.unlocked", "1");
+                  setCashShopOpen(true);
+                } else {
+                  window.alert("❌ Código inválido. Acesso negado.");
+                }
+              }}
               className="lojinha-btn-glow"
               style={{
                 marginTop: 10, width: "100%",
