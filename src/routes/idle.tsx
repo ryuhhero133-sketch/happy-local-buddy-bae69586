@@ -11530,7 +11530,17 @@ function TabOverlay({
                           }}>{NAMES[id] ?? id}</div>
                           <div style={{ display: "flex", gap: 4, width: "100%" }}>
                             <button
-                              onClick={() => onUseItem(id)}
+                              onClick={() => {
+                                const bulk = id === "book_atk" || id === "book_def" || id === "potion";
+                                if (bulk && n > 1) {
+                                  const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
+                                  if (raw == null) return;
+                                  const q = Math.max(1, Math.min(n, parseInt(raw, 10) || 1));
+                                  onUseItem(id, q);
+                                } else {
+                                  onUseItem(id, 1);
+                                }
+                              }}
                               style={{
                                 flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
                                 background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
@@ -11553,32 +11563,27 @@ function TabOverlay({
                               >💰{sellPrice}</button>
                             )}
                             {id.startsWith("stone_") && (
-                              <>
-                                <button
-                                  onClick={() => onSellItem(id, 1, "crystal")}
-                                  title="Vender 1 por cristais"
-                                  style={{
-                                    padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                    background: "linear-gradient(180deg,#7dd3fc,#0ea5e9)",
-                                    color: "#0b2540", border: "1.5px solid #075985",
-                                    borderRadius: 6, cursor: "pointer",
-                                    boxShadow: "0 2px 0 #075985",
-                                  }}
-                                >💎</button>
-                                <button
-                                  onClick={() => onSellItem(id, Math.max(2, n - (n % 2)), "safira")}
-                                  title="Vender por Safira Verde (2 stones = 1 safira)"
-                                  disabled={n < 2}
-                                  style={{
-                                    padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                    background: n < 2 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
-                                    color: "#0b2540", border: "1.5px solid #065f46",
-                                    borderRadius: 6, cursor: n < 2 ? "not-allowed" : "pointer",
-                                    boxShadow: "0 2px 0 #065f46", opacity: n < 2 ? 0.5 : 1,
-                                  }}
-                                >💚</button>
-                              </>
+                              <button
+                                onClick={() => {
+                                  const maxBatches = Math.floor(n / 50);
+                                  if (maxBatches <= 0) return;
+                                  const raw = window.prompt(`Vender quantas Safiras? (1–${maxBatches})\n50 stones = 1 💚 Safira`, String(maxBatches));
+                                  if (raw == null) return;
+                                  const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
+                                  onSellItem(id, b * 50, "safira");
+                                }}
+                                title="Vender por Safira Verde (50 stones = 1 safira)"
+                                disabled={n < 50}
+                                style={{
+                                  padding: "5px 6px", fontSize: 10, fontWeight: 900,
+                                  background: n < 50 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                  color: "#0b2540", border: "1.5px solid #065f46",
+                                  borderRadius: 6, cursor: n < 50 ? "not-allowed" : "pointer",
+                                  boxShadow: "0 2px 0 #065f46", opacity: n < 50 ? 0.5 : 1,
+                                }}
+                              >💚</button>
                             )}
+
                           </div>
                           {(() => {
                             const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
