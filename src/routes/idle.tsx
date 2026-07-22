@@ -919,6 +919,7 @@ const ITEM_IMG: Record<string, string> = {
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
   premium_box: premiumBoxImg,
+  bau_esmeralda: chestEmeraldImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
 };
