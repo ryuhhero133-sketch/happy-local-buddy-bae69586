@@ -9,6 +9,7 @@ import chestEmeraldImg from "@/assets/chest-emerald.png";
 import packUltraballImg from "@/assets/pack-ultraball.png";
 import orb24hImg from "@/assets/orb-24h.png";
 import incense24hImg from "@/assets/incense-24h.png";
+import emeraldCoinImg from "@/assets/emerald-coin.png";
 
 // Mantém tipos exportados p/ compat externa (não usados internamente agora)
 export type CashProduct = {
@@ -198,10 +199,10 @@ const EMERALD_OFFERS: EmeraldOffer[] = [
   {
     id: "bau_esmeralda",
     name: "Baú de Esmeralda",
-    desc: "1× Caixa Premium ✦ · surpresas de evento",
-    price: 8,
+    desc: "Loot aleatório ✦ pode vir 300 Ultra, Orb Supremo, 1k Cristal, Incensos e mais",
+    price: 20,
     image: chestEmeraldImg,
-    grants: [{ itemId: "premium_box", qty: 1 }],
+    grants: [{ itemId: "premium_box", qty: 1 }], // fallback (rota randômica no handler)
     accent: "from-emerald-400 via-green-500 to-emerald-700",
   },
   {
@@ -286,7 +287,7 @@ function Particles({ density = 40 }: { density?: number }) {
 
 // ---------- Componente principal ----------
 export function CashShopModal(props: Props) {
-  const { open, onClose, identity, wallet, codeInput, setCodeInput, codeMsg, onRedeemCode, onSpendSafiras, onGrantItem } = props;
+  const { open, onClose, identity, wallet, codeInput, setCodeInput, codeMsg, onRedeemCode, onSpendSafiras, onGrantItem, onGrantCoins, onGrantCrystals } = props;
   const [selected, setSelected] = useState<Product | null>(null);
   const [confetti, setConfetti] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
@@ -329,6 +330,29 @@ export function CashShopModal(props: Props) {
     }
     const next = emerald - offer.price;
     setEmerald(next); writeEmerald(next);
+
+    // Baú de Esmeralda → loot aleatório generoso
+    if (offer.id === "bau_esmeralda") {
+      const pool: Array<{ label: string; run: () => void; weight: number }> = [
+        { label: "300× Ultra Ball", weight: 22, run: () => onGrantItem("ultraball", 300) },
+        { label: "5× Orb Supremo ✦✦✦", weight: 18, run: () => onGrantItem("orb_xp_supreme", 5) },
+        { label: "1.000 Cristais 💎", weight: 18, run: () => onGrantCrystals(1000) },
+        { label: "150× Poção", weight: 14, run: () => onGrantItem("potion", 150) },
+        { label: "100× Great Ball", weight: 12, run: () => onGrantItem("greatball", 100) },
+        { label: "10× Incenso de Mel Raro 🍯", weight: 8, run: () => onGrantItem("incenso_mel_raro", 10) },
+        { label: "1× Ovo Épico ✦✦", weight: 5, run: () => onGrantItem("egg_epic", 1) },
+        { label: "50.000 Ouro 🪙", weight: 3, run: () => onGrantCoins(50000) },
+      ];
+      const total = pool.reduce((s, p) => s + p.weight, 0);
+      let r = Math.random() * total;
+      const roll = pool.find((p) => (r -= p.weight) < 0) ?? pool[0];
+      roll.run();
+      setConvMsg({ kind: "ok", text: `🎁 Baú aberto! Você ganhou: ${roll.label}` });
+      setConfetti(true);
+      setTimeout(() => setConfetti(false), 1600);
+      return;
+    }
+
     for (const g of offer.grants) onGrantItem(g.itemId, g.qty);
     const parts = offer.grants.map((g) => `+${g.qty}× ${g.itemId}`).join(", ");
     setConvMsg({ kind: "ok", text: `${offer.name} entregue! ${parts}` });
@@ -592,7 +616,7 @@ export function CashShopModal(props: Props) {
             <div className="relative">
               <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 grid place-items-center text-lg shadow-[0_0_16px_rgba(52,211,153,.6)]">💠</div>
+                  <img src={emeraldCoinImg} alt="Esmeralda" width={36} height={36} loading="lazy" className="w-9 h-9 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)] animate-pulse" style={{ imageRendering: "pixelated" }} />
                   <div>
                     <div className="text-white font-black text-sm">Painel de Conversão</div>
                     <div className="text-emerald-200/70 text-xs">Troque Safiras Verdes por Esmeraldas e itens exclusivos</div>
@@ -602,8 +626,9 @@ export function CashShopModal(props: Props) {
                   <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-400/40 text-emerald-200 font-bold">
                     💚 Safiras: {safiras.toLocaleString()}
                   </span>
-                  <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black shadow-[0_0_12px_rgba(52,211,153,.35)]">
-                    💠 Esmeraldas: {emerald.toLocaleString()}
+                  <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black shadow-[0_0_12px_rgba(52,211,153,.35)] flex items-center gap-1.5">
+                    <img src={emeraldCoinImg} alt="" width={18} height={18} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                    Esmeraldas: {emerald.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -676,14 +701,15 @@ export function CashShopModal(props: Props) {
             <div className="relative">
               <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 grid place-items-center text-lg shadow-[0_0_18px_rgba(52,211,153,.7)]">💠</div>
+                  <img src={emeraldCoinImg} alt="Esmeralda" width={40} height={40} loading="lazy" className="w-10 h-10 drop-shadow-[0_0_12px_rgba(52,211,153,1)] animate-pulse" style={{ imageRendering: "pixelated" }} />
                   <div>
                     <div className="text-white font-black text-sm tracking-wide">Ofertas em Esmeraldas</div>
                     <div className="text-emerald-200/70 text-xs">Itens exclusivos entregues na hora · sem espera</div>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black text-xs shadow-[0_0_12px_rgba(52,211,153,.35)]">
-                  💠 {emerald.toLocaleString()} Esmeraldas
+                <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black text-xs shadow-[0_0_12px_rgba(52,211,153,.35)] flex items-center gap-1.5">
+                  <img src={emeraldCoinImg} alt="" width={16} height={16} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                  {emerald.toLocaleString()} Esmeraldas
                 </span>
               </div>
 
