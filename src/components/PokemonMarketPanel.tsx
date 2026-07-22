@@ -11,13 +11,14 @@ import type { Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
+import { readEmeraldFor, writeEmeraldFor, spendEmeraldFor, grantEmeraldFor } from "@/lib/emerald";
 
 // A tabela pokemon_market ainda não está nos types gerados — cast pra any.
 const supabase = _supabase as unknown as {
   from: (table: string) => any;
 };
 
-type Currency = "gold" | "crystal";
+type Currency = "gold" | "crystal" | "safira" | "esmerald";
 
 type ListingRow = {
   id: string;
