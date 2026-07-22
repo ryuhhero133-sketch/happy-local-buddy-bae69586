@@ -11,12 +11,14 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import blackEggImg from "@/assets/black-mythic-plus-egg.jpg";
 import rubyVipImg from "@/assets/ruby-vip.jpg";
-import rubyPackImg from "@/assets/ruby-pack.jpg";
+import rubyEmeraldPackImg from "@/assets/ruby-emerald-pack.jpg";
 import chestEmeraldImg from "@/assets/chest-emerald.png";
 import packUltraballImg from "@/assets/pack-ultraball.png";
 import orb24hImg from "@/assets/orb-24h.png";
 import incense24hImg from "@/assets/incense-24h.png";
 import emeraldCoinImg from "@/assets/emerald-coin.png";
+import safariBallImg from "@/assets/items/icon-safariball.png";
+import dragoniteEggImg from "@/assets/egg-dragonite-shiny.jpg";
 import { emeraldKeyFor, readEmeraldFor, writeEmeraldFor } from "@/lib/emerald";
 
 // Mantém tipos exportados p/ compat externa (não usados internamente agora)
@@ -101,13 +103,14 @@ const PRODUCTS: Product[] = [
   },
   {
     id: "ruby",
-    name: "Ruby",
-    subtitle: "2.000 Rubys",
+    name: "Ruby + Esmeralda",
+    subtitle: "2.000 Rubys + 500 Esmeraldas",
     price: 75,
-    image: rubyPackImg,
-    description: "Pacote generoso com 2.000 Rubys para gastar como quiser dentro da loja premium.",
+    image: rubyEmeraldPackImg,
+    badge: "💚 500 ESMERALDAS",
+    description: "Pacote generoso com 2.000 Rubys + 500 Esmeraldas convertidas dos Rubys — economia premium exclusiva.",
     link: PAYMENT_LINK_RUBY,
-    accent: "from-rose-500 via-red-500 to-red-700",
+    accent: "from-rose-500 via-red-500 to-emerald-600",
   },
   {
     id: "black_mythic_plus",
@@ -145,6 +148,9 @@ function readStock(): number {
 const SAFIRA_PER_EMERALD = 200;  // 200 Safiras Verdes → 1 Esmeralda
 const EMERALD_PER_ULTRAPACK = 3; // 3 Esmeraldas → 100 Ultra Balls
 const ULTRAPACK_SIZE = 100;
+// Câmbio único (não reverso): 500 Esmeraldas → 30.000 Cristais
+const EMERALD_PER_CRYSTAL_PACK = 500;
+const CRYSTAL_PACK_SIZE = 30000;
 
 // ---------- Ofertas em Esmeraldas ----------
 type EmeraldOffer = {
