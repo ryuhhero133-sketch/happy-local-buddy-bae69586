@@ -1,6 +1,12 @@
 // Ícones de itens em pixel-art SVG, animados. Sem dependência de assets externos.
 // Cada glyph desenha um grid 16×16 com <rect> de 1u. Animações via CSS keyframes.
 import React from "react";
+import cartaGovernanteUrl from "@/assets/carta-governante.png";
+
+// Overrides que renderizam uma imagem bitmap ao invés do glyph SVG.
+const BITMAP_OVERRIDES: Record<string, string> = {
+  carta_governante: cartaGovernanteUrl,
+};
 
 type Cell = [number, number, string]; // x, y, color
 
@@ -369,6 +375,20 @@ export interface ItemPixelIconProps {
 }
 
 export function ItemPixelIcon({ id, size = 48, color = "#c9a24b" }: ItemPixelIconProps) {
+  const bmp = BITMAP_OVERRIDES[id];
+  if (bmp) {
+    return (
+      <div className="pxi-wrap pxi-bob" style={{ width: size, height: size }}>
+        <img
+          src={bmp}
+          width={size}
+          height={size}
+          alt=""
+          style={{ imageRendering: "pixelated", display: "block", filter: "drop-shadow(0 0 4px rgba(255,215,110,0.6))" }}
+        />
+      </div>
+    );
+  }
   const drawer = ICONS[id];
   const cells = drawer ? drawer() : drawGeneric(color);
   // classe de animação por categoria

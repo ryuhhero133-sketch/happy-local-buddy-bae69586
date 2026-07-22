@@ -2339,6 +2339,34 @@ function IdlePage() {
       return;
     }
 
+    // CARTAGOV1..4 — Carta do Governante (entrega liberada 23/07/2026 às 01:00 BRT)
+    if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4") {
+      const UNLOCK_MS = Date.parse("2026-07-23T04:00:00Z"); // 01:00 BRT (UTC-3)
+      if (Date.now() < UNLOCK_MS) {
+        const diff = UNLOCK_MS - Date.now();
+        const hh = Math.floor(diff / 3_600_000);
+        const mm = Math.floor((diff % 3_600_000) / 60_000);
+        setCodeMsg({ kind: "err", text: `⏳ Este código será liberado em ${hh}h ${mm}m (23/07 às 01:00 BRT).` });
+        return;
+      }
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          carta_governante: (base.items.carta_governante ?? 0) + 1,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "👑 Carta do Governante entregue!" });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: 1× Carta do Governante 👑.`, "cap");
+      return;
+    }
+
 
 
 
@@ -11105,6 +11133,7 @@ function TabOverlay({
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯",
           safira_verde: "Safira Verde 💚",
+          carta_governante: "Carta do Governante 👑",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
