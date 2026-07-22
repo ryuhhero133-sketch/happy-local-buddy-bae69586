@@ -8190,6 +8190,47 @@ function IdlePage() {
                   </button>
                 </div>
               )}
+              {/* Quick ball selector — troca rápida sem abrir configurações */}
+              <div style={{
+                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.35)",
+                borderRadius: 10, padding: "4px 8px", display: "flex", alignItems: "center", gap: 6,
+              }}>
+                {([
+                  { id: "auto" as const, img: null, label: "A", count: null as number | null, tint: "#f5cf6b" },
+                  { id: "pokeball" as const, img: ballPokeImg, label: "Poké", count: idle.items.pokeball ?? 0, tint: "#ff8080" },
+                  { id: "greatball" as const, img: ballGreatImg, label: "Great", count: idle.items.greatball ?? 0, tint: "#7ec4ff" },
+                  { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
+                ]).map((b) => {
+                  const sel = ab.preferredBall === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      onClick={() => setAB({ preferredBall: b.id, useBall: true })}
+                      title={b.id === "auto" ? "Auto (melhor disponível)" : `${b.label} (${b.count})`}
+                      style={{
+                        position: "relative", background: sel ? "rgba(245,207,107,0.18)" : "transparent",
+                        border: sel ? `1.5px solid ${b.tint}` : "1.5px solid transparent",
+                        boxShadow: sel ? `0 0 8px ${b.tint}88` : "none",
+                        borderRadius: 8, padding: 3, cursor: "pointer",
+                        width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
+                      }}
+                    >
+                      {b.img ? (
+                        <img src={b.img} alt={b.label} width={24} height={24} style={{ imageRendering: "pixelated", filter: sel ? "none" : "grayscale(0.4)" }} />
+                      ) : (
+                        <span style={{ fontSize: 14, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>A</span>
+                      )}
+                      {b.count !== null && (
+                        <span style={{
+                          position: "absolute", bottom: -2, right: -2, background: "#0b0510",
+                          border: `1px solid ${b.tint}`, borderRadius: 6, padding: "0 3px",
+                          fontSize: 8, fontWeight: 800, color: b.tint, lineHeight: "10px", minWidth: 12, textAlign: "center",
+                        }}>{b.count > 999 ? "999+" : b.count}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
               <div style={{
                 background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.4)",
                 borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
