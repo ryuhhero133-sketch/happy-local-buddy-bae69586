@@ -9416,6 +9416,8 @@ function IdlePage() {
       {/* ═══ Modal do NPC Trocador (aberto ao clicar no NPC no mapa) ═══ */}
       {worldTraderOpen && (() => {
         const collection = idle.collection ?? [];
+        const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
+        const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
         return (
           <div
             onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
@@ -9451,7 +9453,11 @@ function IdlePage() {
                   <div style={{ color: "#b8a8c8", fontSize: 12, marginBottom: 10 }}>Escolha a raridade da troca:</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     {ORB_TRADES.map((t) => {
-                      const available = collection.filter((c) => c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny")).length;
+                      const available = collection.filter((c) =>
+                        (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
+                        && !teamUidsForTrade.has(c.uid)
+                        && !benchUidsForTrade.has(c.uid),
+                      ).length;
                       const reqOk = !t.requires || (idle.items[t.requires.itemId] ?? 0) >= t.requires.qty;
                       const reqOwned = t.requires ? (idle.items[t.requires.itemId] ?? 0) : 0;
                       const canTrade = available >= t.count && reqOk;
@@ -12471,7 +12477,12 @@ function TabOverlay({
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
             {orbTrades.map((t) => {
-              const available = collection.filter((c) => c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny")).length;
+              const available = collection.filter((c) =>
+                (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
+                && !teamUidSet.has(c.uid)
+                && !benchUids.has(c.uid)
+                && !lockedSet.has(c.uid),
+              ).length;
               const reqOk = !t.requires || (items[t.requires.itemId] ?? 0) >= t.requires.qty;
               const reqOwned = t.requires ? (items[t.requires.itemId] ?? 0) : 0;
               const canTrade = available >= t.count && reqOk;
