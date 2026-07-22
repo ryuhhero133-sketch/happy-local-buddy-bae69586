@@ -139,9 +139,7 @@ function readStock(): number {
   } catch { return STOCK_TOTAL - STOCK_SOLD_INITIAL; }
 }
 
-// ---------- Moeda Esmeralda (visível apenas neste painel) ----------
-// Helpers compartilhados com o Marketplace em src/lib/emerald.ts.
-import { emeraldKeyFor, readEmeraldFor, writeEmeraldFor } from "@/lib/emerald";
+// Helpers de Esmeralda compartilhados em src/lib/emerald.ts (import no topo).
 
 // Taxas de conversão
 const SAFIRA_PER_EMERALD = 200;  // 200 Safiras Verdes → 1 Esmeralda
