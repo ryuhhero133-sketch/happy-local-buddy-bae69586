@@ -385,6 +385,19 @@ export function CashShopModal(props: Props) {
     setConvMsg({ kind: "ok", text: `+${ULTRAPACK_SIZE} Ultra Balls entregues!` });
   };
 
+  const doEmeraldToCrystal = () => {
+    if (emerald < EMERALD_PER_CRYSTAL_PACK) {
+      setConvMsg({ kind: "err", text: `Precisa de ${EMERALD_PER_CRYSTAL_PACK} Esmeraldas.` });
+      return;
+    }
+    if (!guardCooldown()) return;
+    const next = emerald - EMERALD_PER_CRYSTAL_PACK;
+    setEmerald(next); writeEmerald(next);
+    onGrantCrystals(CRYSTAL_PACK_SIZE);
+    setConvMsg({ kind: "ok", text: `+${CRYSTAL_PACK_SIZE.toLocaleString()} Cristais entregues! (câmbio único — cristais não voltam a Esmeraldas)` });
+    setPurchaseToast({ kind: "ok", title: "Câmbio concluído!", subtitle: `+${CRYSTAL_PACK_SIZE.toLocaleString()} 💎 por ${EMERALD_PER_CRYSTAL_PACK} 💠` });
+  };
+
   const buyEmeraldOffer = (offer: EmeraldOffer) => {
     if (emerald < offer.price) {
       setConvMsg({ kind: "err", text: `Precisa de ${offer.price} Esmeraldas para ${offer.name}.` });
