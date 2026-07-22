@@ -616,7 +616,7 @@ export function CashShopModal(props: Props) {
             <div className="relative">
               <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 grid place-items-center text-lg shadow-[0_0_16px_rgba(52,211,153,.6)]">💠</div>
+                  <img src={emeraldCoinImg} alt="Esmeralda" width={36} height={36} loading="lazy" className="w-9 h-9 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)] animate-pulse" style={{ imageRendering: "pixelated" }} />
                   <div>
                     <div className="text-white font-black text-sm">Painel de Conversão</div>
                     <div className="text-emerald-200/70 text-xs">Troque Safiras Verdes por Esmeraldas e itens exclusivos</div>
