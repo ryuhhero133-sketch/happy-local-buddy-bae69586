@@ -11549,7 +11549,7 @@ function TabOverlay({
                                 boxShadow: `0 2px 0 ${P.goldDark}`,
                               }}
                             >{isEgg ? "CHOCAR" : "USAR"}</button>
-                            {sellPrice > 0 && (
+                            {sellPrice > 0 && !id.startsWith("stone_") && (
                               <button
                                 onClick={() => onSellItem(id, 1)}
                                 title={`Vender 1 por ${sellPrice} ouro`}
@@ -11562,6 +11562,7 @@ function TabOverlay({
                                 }}
                               >💰{sellPrice}</button>
                             )}
+
                             {id.startsWith("stone_") && (
                               <button
                                 onClick={() => {
