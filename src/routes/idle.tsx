@@ -5331,9 +5331,9 @@ function IdlePage() {
     stone_grass: 10, stone_fire: 10, stone_water: 10,
     stone_electric: 10, stone_dark: 15, stone_dragon: 20,
   };
-  // Sell 50 stones → 1 safira
-  const STONE_SAFIRA_BATCH = 50;
-  const STONE_SAFIRA_PER_BATCH = 1;
+  // Sell 250 stones → 2 safiras
+  const STONE_SAFIRA_BATCH = 250;
+  const STONE_SAFIRA_PER_BATCH = 2;
 
 
   const sellItem = (id: string, qty = 1, currency: "gold" | "crystal" | "safira" = "gold") => {
