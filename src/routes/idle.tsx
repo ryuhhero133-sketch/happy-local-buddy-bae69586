@@ -5424,7 +5424,7 @@ function IdlePage() {
     const until = idle.buffs?.goldMultUntil ?? 0;
     return until > Date.now();
   };
-  const listMarketItem = async (itemId: string, qty: number, price: number): Promise<boolean> => {
+  const listMarketItem = async (itemId: string, qty: number, price: number, currency: "gold" | "crystal" | "safira" = "gold"): Promise<boolean> => {
     if (!identity?.id) { pushChat("Faça login para anunciar.", "info"); return false; }
     if (!isVip()) { pushChat("✦ Anunciar no mercado é exclusivo VIP. Use um Livro VIP na Loja.", "info"); return false; }
     const have = idle.items[itemId] ?? 0;
@@ -5437,18 +5437,22 @@ function IdlePage() {
       item_id: itemId,
       qty,
       price,
-      currency: "gold",
+      currency,
     });
     if (error) { pushChat(`Falha ao anunciar: ${error.message}`, "info"); return false; }
     // remove item do estoque local (custódia do anúncio)
     setIdle((s) => ({ ...s, items: { ...s.items, [itemId]: (s.items[itemId] ?? 0) - qty } }));
-    pushChat(`📢 Anúncio criado: ${qty}x ${itemId} por ${price} ouro.`, "cap");
+    const curLabel = currency === "gold" ? "ouro" : currency === "crystal" ? "💎 cristais" : "💚 safiras";
+    pushChat(`📢 Anúncio criado: ${qty}x ${itemId} por ${price} ${curLabel}.`, "cap");
     return true;
   };
-  const buyMarketListing = async (listing: { id: string; seller_id: string; item_id: string; qty: number; price: number }): Promise<boolean> => {
+  const buyMarketListing = async (listing: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }): Promise<boolean> => {
     if (!identity?.id) { pushChat("Faça login para comprar.", "info"); return false; }
     if (listing.seller_id === identity.id) { pushChat("Você não pode comprar seu próprio anúncio.", "info"); return false; }
-    if (idle.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
+    const cur = listing.currency ?? "gold";
+    if (cur === "gold" && idle.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
+    if (cur === "crystal" && idle.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
+    if (cur === "safira" && (idle.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
     const { data, error } = await supabase
       .from("market_listings")
       .update({ buyer_id: identity.id, sold_at: new Date().toISOString() })
@@ -5457,12 +5461,16 @@ function IdlePage() {
       .select("id")
       .maybeSingle();
     if (error || !data) { pushChat("Anúncio não está mais disponível.", "info"); return false; }
-    setIdle((s) => ({
-      ...s,
-      bank: { ...s.bank, gold: s.bank.gold - listing.price },
-      items: { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty },
-    }));
-    pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ouro.`, "cap");
+    setIdle((s) => {
+      const bank = { ...s.bank };
+      const items = { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty };
+      if (cur === "gold") bank.gold -= listing.price;
+      else if (cur === "crystal") bank.crystals -= listing.price;
+      else items.safira_verde = (s.items?.safira_verde ?? 0) - listing.price;
+      return { ...s, bank, items };
+    });
+    const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
+    pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ${curLabel}.`, "cap");
     return true;
   };
   const cancelMarketListing = async (listing: { id: string; item_id: string; qty: number; seller_id: string }): Promise<boolean> => {
@@ -5473,6 +5481,7 @@ function IdlePage() {
     pushChat(`Anúncio cancelado — ${listing.qty}x ${listing.item_id} devolvido.`, "info");
     return true;
   };
+
 
   // Stones — venda alternativa por Cristal e por Safira Verde
   // Regra pedida: 1000 stones = 500 safiras (2:1). Cristal: preço por unidade.
@@ -11196,9 +11205,10 @@ function TabOverlay({
   onSellItem: (id: string, qty?: number, currency?: "gold" | "crystal" | "safira") => void;
   marketSellPrices: Record<string, number>;
   identity: LocalIdentity | null;
-  onListMarket: (itemId: string, qty: number, price: number) => Promise<boolean>;
-  onBuyMarket: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number }) => Promise<boolean>;
+  onListMarket: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
+  onBuyMarket: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onCancelMarket: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
+
   isVip: boolean;
   skinId: string;
   setSkinId: (id: string) => void;
@@ -13449,6 +13459,7 @@ type MarketListing = {
   item_id: string;
   qty: number;
   price: number;
+  currency?: "gold" | "crystal" | "safira";
   created_at: string;
 };
 function MarketScreen({
@@ -13458,8 +13469,8 @@ function MarketScreen({
   bank: { gold: number; crystals: number };
   identity: LocalIdentity | null;
   isVip: boolean;
-  onList: (itemId: string, qty: number, price: number) => Promise<boolean>;
-  onBuy: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number }) => Promise<boolean>;
+  onList: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
+  onBuy: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onCancel: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
   onNpcSell: (id: string, qty?: number) => void;
   npcPrices: Record<string, number>;
@@ -13468,23 +13479,31 @@ function MarketScreen({
     pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
     chest_amulet: "Amuleto do Baú",
     potion: "Poção",
+    stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
+    stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
+    stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
   };
   const ICONS: Record<string, string> = {
     pokeball: "⚪", greatball: "🔴", ultraball: "🟡",
     chest_amulet: "🎗", potion: "🧪",
+    stone_grass: "🌿", stone_fire: "🔥", stone_water: "💧",
+    stone_electric: "⚡", stone_dark: "🌑", stone_dragon: "🐉",
   };
+  const CUR_LABEL: Record<string, string> = { gold: "ouro", crystal: "💎 cristais", safira: "💚 safiras" };
+  const CUR_COLOR: Record<string, string> = { gold: "#ff9d3d", crystal: "#6bd4ff", safira: "#7dffbe" };
   const [listings, setListings] = useState<MarketListing[]>([]);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"browse" | "create" | "npc">("browse");
   const [selItem, setSelItem] = useState<string>("pokeball");
   const [selQty, setSelQty] = useState<number>(1);
   const [selPrice, setSelPrice] = useState<number>(500);
+  const [selCurrency, setSelCurrency] = useState<"gold" | "crystal" | "safira">("gold");
 
   const refresh = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("market_listings")
-      .select("id, seller_id, seller_name, item_id, qty, price, created_at, sold_at")
+      .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at")
       .is("sold_at", null)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -13495,6 +13514,7 @@ function MarketScreen({
 
   const mine = listings.filter((l) => l.seller_id === (identity?.id ?? ""));
   const others = listings.filter((l) => l.seller_id !== (identity?.id ?? ""));
+
 
   return (
     <div style={{ maxWidth: 900 }}>
@@ -13541,7 +13561,8 @@ function MarketScreen({
                         <div style={{ color: "#8a7a9c", fontSize: 11 }}>Seu anúncio</div>
                       </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: "#ff9d3d" }}>{l.price.toLocaleString()} ouro</b></div>
+                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: CUR_COLOR[l.currency ?? "gold"] }}>{l.price.toLocaleString()} {CUR_LABEL[l.currency ?? "gold"]}</b></div>
+
                     <button onClick={() => void onCancel(l).then((ok) => { if (ok) void refresh(); })}
                       style={{ width: "100%", background: "#3a1010", color: "#fff", border: "1px solid #ff6b6b55", borderRadius: 6, padding: "6px 0", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
                       Cancelar anúncio
@@ -13557,7 +13578,9 @@ function MarketScreen({
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
               {others.map((l) => {
-                const canBuy = bank.gold >= l.price;
+                const cur = l.currency ?? "gold";
+                const bal = cur === "gold" ? bank.gold : cur === "crystal" ? bank.crystals : (items.safira_verde ?? 0);
+                const canBuy = bal >= l.price;
                 return (
                   <div key={l.id} style={{ background: "#1a0f26", border: "1px solid #ff9d3d66", borderRadius: 10, padding: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -13567,14 +13590,15 @@ function MarketScreen({
                         <div style={{ color: "#8a7a9c", fontSize: 11 }}>por <b style={{ color: "#c8b8d0" }}>{l.seller_name}</b></div>
                       </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: "#ff9d3d" }}>{l.price.toLocaleString()} ouro</b></div>
+                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: CUR_COLOR[cur] }}>{l.price.toLocaleString()} {CUR_LABEL[cur]}</b></div>
                     <button disabled={!canBuy} onClick={() => void onBuy(l).then((ok) => { if (ok) void refresh(); })}
                       style={{ width: "100%", background: !canBuy ? "#333" : "linear-gradient(180deg,#ff9d3d,#8b4a10)", color: "#0e0818", border: "none", borderRadius: 6, padding: "8px 0", fontWeight: 800, cursor: !canBuy ? "not-allowed" : "pointer", fontSize: 12 }}>
-                      {canBuy ? "Comprar" : "Ouro insuficiente"}
+                      {canBuy ? "Comprar" : `${CUR_LABEL[cur]} insuficiente(s)`}
                     </button>
                   </div>
                 );
               })}
+
             </div>
           )}
         </>
@@ -13598,14 +13622,22 @@ function MarketScreen({
           <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Quantidade</label>
           <input type="number" min={1} max={999} value={selQty} onChange={(e) => setSelQty(Math.max(1, parseInt(e.target.value) || 1))}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }} />
-          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Preço total (ouro)</label>
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Moeda</label>
+          <select value={selCurrency} onChange={(e) => setSelCurrency(e.target.value as any)}
+            style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }}>
+            <option value="gold">💰 Ouro</option>
+            <option value="crystal">💎 Cristal</option>
+            <option value="safira">💚 Safira Verde</option>
+          </select>
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Preço total ({CUR_LABEL[selCurrency]})</label>
           <input type="number" min={1} value={selPrice} onChange={(e) => setSelPrice(Math.max(1, parseInt(e.target.value) || 1))}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 12 }} />
           <button disabled={!isVip || (items[selItem] ?? 0) < selQty}
-            onClick={async () => { const ok = await onList(selItem, selQty, selPrice); if (ok) { setMode("browse"); void refresh(); } }}
+            onClick={async () => { const ok = await onList(selItem, selQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
             style={{ width: "100%", background: (!isVip || (items[selItem] ?? 0) < selQty) ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: (!isVip || (items[selItem] ?? 0) < selQty) ? "not-allowed" : "pointer" }}>
             {isVip ? "Publicar anúncio" : "🔒 VIP necessário"}
           </button>
+
         </div>
       )}
 
