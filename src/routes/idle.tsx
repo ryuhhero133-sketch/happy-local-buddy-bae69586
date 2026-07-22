@@ -2418,7 +2418,7 @@ function IdlePage() {
     }
 
     // CARTAGOV1..5 — Carta do Governante (single-use por conta, não consome no uso)
-    if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4" || raw === "CARTAGOV5" || raw === "GOVKEY2026") {
+    if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4" || raw === "CARTAGOV5" || raw === "GOVKEY2026" || raw === "GOVKEY2X26") {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
       const next: IdleState = {
