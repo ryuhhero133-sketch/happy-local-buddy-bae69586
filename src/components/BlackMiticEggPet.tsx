@@ -599,8 +599,9 @@ export function BlackMiticEggHud(props: {
   onHatched: (species: string, element: ElementId, traits: string[]) => void;   // parent grants pokemon + decrementa item
   onNotify?: (msg: string) => void;
   hasIncubatorCard?: boolean;                          // gate para "ATIVAR INICIAÇÃO"
+  onActivateEgg?: () => void;                          // primeira ativação — parent consome carta / marca unlock permanente
 }) {
-  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify, hasIncubatorCard = false } = props;
+  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify, hasIncubatorCard = false, onActivateEgg } = props;
   const [state, setState] = useState<CollectionState>(() => loadState(uid));
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<"journal" | "feeds">("journal");
@@ -684,6 +685,7 @@ export function BlackMiticEggHud(props: {
         return ne;
       }),
     }));
+    onActivateEgg?.();
     onNotify?.("Incubação iniciada! 10 horas para chocar.");
   };
 

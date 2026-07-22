@@ -1726,16 +1726,11 @@ function IdlePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [energyTick, idle.currentMap]);
 
-  // Primeiro contato com o Governante — entrega 1 Black Mitic Plus Egg (única vez por conta)
+  // Governante NPC — abre a cutscene de diálogo ao entrar no Salão do Governante.
+  const [governanteOpen, setGovernanteOpen] = useState(false);
   useEffect(() => {
     if (idle.currentMap !== "governante_hall") return;
-    if (idle.redeemedCodes?.__met_governante) return;
-    setIdle((s) => ({
-      ...s,
-      items: { ...s.items, black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + 1 },
-      redeemedCodes: { ...(s.redeemedCodes ?? {}), __met_governante: true },
-    }));
-    pushChat("👑 Governante: \"Você chegou, treinador... Aceite este Black Mitic Plus Egg. Cuide dele com sabedoria.\"", "cap");
+    setGovernanteOpen(true);
   }, [idle.currentMap]);
 
   // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
@@ -2448,6 +2443,33 @@ function IdlePage() {
       pushChat(`🔮 Código ${raw}: Carta da Incubadora Lendária entregue.`, "cap");
       return;
     }
+
+    // GOV6CARDS1..4 — 6 Cartas Lendárias (single-use)
+    // GOV1CARD — 1 Carta Lendária
+    // GOV5CARDS1..2 — 5 Cartas Lendárias
+    const bigCardMap: Record<string, number> = {
+      GOV6CARDS1: 6, GOV6CARDS2: 6, GOV6CARDS3: 6, GOV6CARDS4: 6,
+      GOV1CARD: 1,
+      GOV5CARDS1: 5, GOV5CARDS2: 5,
+    };
+    if (bigCardMap[raw]) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const qty = bigCardMap[raw];
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, carta_governante: (base.items?.carta_governante ?? 0) + qty },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: `👑 +${qty} Cartas Lendárias! Fale com o Governante para trocar por ovos.` });
+      setCodeInput("");
+      pushChat(`👑 Código ${raw}: ${qty}× Carta Lendária entregue. Cada carta = 1 Black Mitic Plus Egg.`, "cap");
+      return;
+    }
+
 
 
 
@@ -4855,6 +4877,8 @@ function IdlePage() {
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
+    // Continente do Governante — zona sagrada, sem spawns.
+    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return null;
     const leaderLv = team[0]?.level ?? 10;
     const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
     const MIN_DIST = 220;
@@ -10565,7 +10589,45 @@ function IdlePage() {
           pushChat(`✦ Black Mitic Plus (${element}) nasceu com 5 traits! Confira sua coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
-        hasIncubatorCard={(idle.items?.carta_incubadora ?? 0) > 0}
+        hasIncubatorCard={(idle.items?.carta_incubadora ?? 0) > 0 || !!idle.redeemedCodes?.__incubator_unlocked}
+        onActivateEgg={() => {
+          const base = idleRef.current;
+          if (base.redeemedCodes?.__incubator_unlocked) return;
+          // Consome 1 Carta da Incubadora e destrava a incubadora PERMANENTEMENTE.
+          const cards = base.items?.carta_incubadora ?? 0;
+          const nextItems = { ...(base.items ?? {}) };
+          if (cards > 0) nextItems.carta_incubadora = cards - 1;
+          setIdle((s) => ({
+            ...s,
+            items: nextItems,
+            redeemedCodes: { ...(s.redeemedCodes ?? {}), __incubator_unlocked: true },
+          }));
+          pushChat("🔮 Incubadora Lendária desbloqueada permanentemente!", "cap");
+        }}
+      />
+
+      <GovernanteDialog
+        open={governanteOpen}
+        cards={idle.items?.carta_governante ?? 0}
+        currentEggs={idle.items?.black_mitic_egg ?? 0}
+        onClose={() => setGovernanteOpen(false)}
+        onExchange={(qty) => {
+          const base = idleRef.current;
+          const cards = base.items?.carta_governante ?? 0;
+          const eggs = base.items?.black_mitic_egg ?? 0;
+          const maxByEggCap = Math.max(0, 6 - eggs);
+          const use = Math.min(qty, cards, maxByEggCap);
+          if (use <= 0) return;
+          setIdle((s) => ({
+            ...s,
+            items: {
+              ...(s.items ?? {}),
+              carta_governante: (s.items?.carta_governante ?? 0) - use,
+              black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + use,
+            },
+          }));
+          pushChat(`👑 Governante entregou ${use}× Black Mitic Plus Egg. Cuide bem deles.`, "cap");
+        }}
       />
     </div>
 
@@ -13736,5 +13798,143 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     </div>
   );
 }
+
+
+// ============ Governante NPC — cutscene de diálogo premium ============
+function GovernanteDialog(props: {
+  open: boolean;
+  cards: number;
+  currentEggs: number;
+  onClose: () => void;
+  onExchange: (qty: number) => void;
+}) {
+  const { open, cards, currentEggs, onClose, onExchange } = props;
+  const [step, setStep] = useState(0);
+  useEffect(() => { if (open) setStep(0); }, [open]);
+  if (!open) return null;
+  const maxByCap = Math.max(0, 6 - currentEggs);
+  const canGive = Math.min(cards, maxByCap);
+  const lines = [
+    "Ah... um treinador digno enfim cruza meu salão.",
+    cards > 0
+      ? `Vejo em suas mãos ${cards} Carta${cards > 1 ? "s" : ""} Lendária${cards > 1 ? "s" : ""}. Cada uma vale um Black Mitic Plus Egg.`
+      : "Você não porta nenhuma Carta Lendária... volte quando obtiver ao menos uma.",
+    canGive > 0
+      ? `Posso lhe entregar ${canGive} ovo${canGive > 1 ? "s" : ""} agora (limite de 6 simultâneos).`
+      : cards > 0
+        ? "Mas você já carrega o máximo de 6 ovos. Chocolate os primeiros antes de retornar."
+        : "Volte quando estiver pronto.",
+  ];
+  const isLast = step >= lines.length - 1;
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 20000,
+        background: "radial-gradient(ellipse at center, rgba(30,10,60,0.85), rgba(0,0,0,0.95))",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        padding: "0 0 40px 0", backdropFilter: "blur(4px)",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(720px, 94vw)",
+          background: "linear-gradient(180deg, rgba(40,20,70,0.98), rgba(15,5,30,0.98))",
+          border: "3px solid transparent",
+          borderImage: "linear-gradient(135deg, #ffd44a, #a066ff, #ffd44a) 1",
+          borderRadius: 14,
+          boxShadow: "0 0 40px rgba(160,80,255,0.55), inset 0 0 20px rgba(255,212,74,0.15)",
+          padding: 16, display: "flex", gap: 16, color: "#f5eaff",
+          position: "relative", animation: "govFadeIn 0.35s ease-out",
+        }}
+      >
+        <style>{`
+          @keyframes govFadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
+          @keyframes govGlow { 0%,100% { filter: drop-shadow(0 0 8px #ffd44a);} 50% { filter: drop-shadow(0 0 20px #a066ff);} }
+        `}</style>
+        {/* Retrato */}
+        <div style={{
+          flex: "0 0 160px", height: 200,
+          background: "linear-gradient(180deg, #2a1550, #150828)",
+          border: "2px solid #ffd44a", borderRadius: 10,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          overflow: "hidden", animation: "govGlow 3s ease-in-out infinite",
+        }}>
+          <img
+            src={npcGovernanteAsset.url}
+            alt="Governante"
+            style={{ width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated" }}
+          />
+        </div>
+        {/* Conteúdo */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{
+            fontSize: 20, fontWeight: 900, letterSpacing: 2,
+            color: "#ffd44a", textShadow: "0 0 10px rgba(255,212,74,0.6)",
+          }}>
+            👑 GOVERNANTE
+            <span style={{ marginLeft: 8, fontSize: 10, color: "#c58bff", letterSpacing: 3 }}>SENHOR DAS CARTAS</span>
+          </div>
+          <div style={{
+            background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,212,74,0.35)",
+            borderRadius: 8, padding: 14, minHeight: 90, fontSize: 14, lineHeight: 1.5,
+            fontStyle: "italic", color: "#f5eaff",
+          }}>
+            "{lines[step]}"
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ fontSize: 11, color: "#c58bff" }}>
+              Cartas: <b style={{ color: "#ffd44a" }}>{cards}</b> · Ovos atuais: <b style={{ color: "#ffd44a" }}>{currentEggs}/6</b>
+            </div>
+            <div style={{ flex: 1 }} />
+            {!isLast ? (
+              <button
+                onClick={() => setStep((s) => s + 1)}
+                style={{
+                  padding: "8px 16px", background: "linear-gradient(180deg, #a066ff, #6b28c8)",
+                  border: "1px solid #c58bff", borderRadius: 8, color: "#fff",
+                  fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                }}
+              >CONTINUAR ▸</button>
+            ) : canGive > 0 ? (
+              <>
+                <button
+                  onClick={onClose}
+                  style={{
+                    padding: "8px 14px", background: "rgba(40,20,60,0.8)",
+                    border: "1px solid #5a3a7a", borderRadius: 8, color: "#c58bff",
+                    fontWeight: 600, cursor: "pointer", fontSize: 11,
+                  }}
+                >Agora não</button>
+                <button
+                  onClick={() => { onExchange(canGive); onClose(); }}
+                  style={{
+                    padding: "10px 18px",
+                    background: "linear-gradient(180deg, #ffd44a, #b88010)",
+                    border: "1px solid #ffe988", borderRadius: 8, color: "#2a1500",
+                    fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                    boxShadow: "0 0 14px rgba(255,212,74,0.7)",
+                  }}
+                >✦ RECEBER {canGive} OVO{canGive > 1 ? "S" : ""}</button>
+              </>
+            ) : (
+              <button
+                onClick={onClose}
+                style={{
+                  padding: "10px 18px", background: "linear-gradient(180deg, #a066ff, #6b28c8)",
+                  border: "1px solid #c58bff", borderRadius: 8, color: "#fff",
+                  fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                }}
+              >Despedir-se</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 
 
