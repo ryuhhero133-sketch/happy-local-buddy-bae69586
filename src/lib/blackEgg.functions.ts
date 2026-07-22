@@ -9,7 +9,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 export type BlackEggCloudPayload = {
-  data: unknown;
+  data: Record<string, any> | null;
   updated_at: string | null;
 };
 
@@ -28,7 +28,7 @@ export const getBlackEggSave = createServerFn({ method: "GET" })
   });
 
 const SaveSchema = z.object({
-  data: z.unknown(),
+  data: z.record(z.string(), z.any()),
 });
 
 export const saveBlackEggSave = createServerFn({ method: "POST" })
