@@ -9448,7 +9448,8 @@ function IdlePage() {
                           setWorldTraderPick(null);
                           setWorldTraderSel(new Set());
                           setWorldTraderFuel(new Set());
-                          setWorldTraderOpen(false);
+                          // NÃO fechar o modal aqui — se fechar, o overlay do orbAnim
+                          // (que está dentro deste IIFE) desmonta e a animação some.
                           tradeForOrb(pick.orbId, uids, fuel);
                         }}
                         style={{
