@@ -655,6 +655,85 @@ export function CashShopModal(props: Props) {
             </div>
           </div>
 
+          {/* ============ OFERTAS EM ESMERALDAS ============ */}
+          <div className="rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-950/60 via-black/60 to-emerald-900/40 backdrop-blur-xl p-4 sm:p-5 relative overflow-hidden">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-40"
+              style={{
+                background:
+                  "radial-gradient(circle at 20% 20%, rgba(52,211,153,.35), transparent 45%), radial-gradient(circle at 80% 80%, rgba(16,185,129,.25), transparent 50%)",
+              }}
+            />
+            <div className="relative">
+              <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 grid place-items-center text-lg shadow-[0_0_18px_rgba(52,211,153,.7)]">💠</div>
+                  <div>
+                    <div className="text-white font-black text-sm tracking-wide">Ofertas em Esmeraldas</div>
+                    <div className="text-emerald-200/70 text-xs">Itens exclusivos entregues na hora · sem espera</div>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black text-xs shadow-[0_0_12px_rgba(52,211,153,.35)]">
+                  💠 {emerald.toLocaleString()} Esmeraldas
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {EMERALD_OFFERS.map((o) => {
+                  const canBuy = emerald >= o.price;
+                  return (
+                    <div
+                      key={o.id}
+                      className="group relative rounded-xl border border-emerald-400/30 bg-gradient-to-b from-black/70 to-emerald-950/40 p-3 flex flex-col hover:border-emerald-300/70 hover:shadow-[0_0_24px_rgba(52,211,153,.35)] transition"
+                    >
+                      <div className={`pointer-events-none absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br ${o.accent} blur-md -z-0`} />
+                      <div className="relative aspect-square rounded-lg bg-gradient-to-br from-black/80 to-emerald-950/60 border border-emerald-400/20 overflow-hidden mb-2 grid place-items-center">
+                        <img
+                          src={o.image}
+                          alt={o.name}
+                          loading="lazy"
+                          width={128}
+                          height={128}
+                          className="w-[85%] h-[85%] object-contain drop-shadow-[0_0_10px_rgba(52,211,153,.55)] group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <div className="relative text-white font-black text-[13px] leading-tight mb-0.5">{o.name}</div>
+                      <div className="relative text-white/60 text-[10.5px] leading-snug mb-2 line-clamp-2">{o.desc}</div>
+                      <div className="relative flex items-center justify-between gap-2 mt-auto">
+                        <span className="text-emerald-200 font-black text-sm">💠 {o.price}</span>
+                        <button
+                          onClick={() => buyEmeraldOffer(o)}
+                          disabled={!canBuy}
+                          className={
+                            "relative px-3 py-1.5 rounded-lg font-black text-[11px] tracking-widest transition " +
+                            (canBuy
+                              ? "text-black bg-gradient-to-r from-emerald-300 via-green-400 to-emerald-500 shadow-[0_0_18px_rgba(52,211,153,.85)] hover:shadow-[0_0_28px_rgba(52,211,153,1)] animate-[emeraldPulse_1.6s_ease-in-out_infinite]"
+                              : "text-white/50 bg-white/5 border border-white/10 cursor-not-allowed")
+                          }
+                        >
+                          COMPRAR
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-3 rounded-lg border border-emerald-400/20 bg-black/40 px-3 py-2 text-[11px] text-emerald-100/70 text-center">
+                ✨ Todas as ofertas usam <b className="text-emerald-200">Esmeraldas</b>. Converta suas Safiras Verdes acima para adquirir.
+              </div>
+            </div>
+
+            <style>{`
+              @keyframes emeraldPulse {
+                0%, 100% { box-shadow: 0 0 14px rgba(52,211,153,.7), 0 0 28px rgba(16,185,129,.35); transform: scale(1); }
+                50%      { box-shadow: 0 0 22px rgba(52,211,153,1),  0 0 44px rgba(16,185,129,.55); transform: scale(1.03); }
+              }
+            `}</style>
+          </div>
+
+
+
 
           {/* ============ CÓDIGO PROMOCIONAL ============ */}
           <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4 sm:p-5">
