@@ -5333,10 +5333,46 @@ function IdlePage() {
     return true;
   };
 
-  const sellItem = (id: string, qty = 1) => {
+  // Stones — venda alternativa por Cristal e por Safira Verde
+  // Regra pedida: 1000 stones = 500 safiras (2:1). Cristal: preço por unidade.
+  const STONE_IDS = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"] as const;
+  const STONE_CRYSTAL_PRICE: Record<string, number> = {
+    stone_grass: 10, stone_fire: 10, stone_water: 10,
+    stone_electric: 10, stone_dark: 15, stone_dragon: 20,
+  };
+  // Sell 2 stones → 1 safira (=> 1000 stones = 500 safiras)
+  const STONE_SAFIRA_BATCH = 2;
+  const STONE_SAFIRA_PER_BATCH = 1;
+
+  const sellItem = (id: string, qty = 1, currency: "gold" | "crystal" | "safira" = "gold") => {
     setIdle((s) => {
       const have = s.items[id] ?? 0;
       if (have < qty) { pushChat(`Você não tem ${qty}x ${id}.`, "info"); return s; }
+      if (currency === "crystal") {
+        const unit = STONE_CRYSTAL_PRICE[id] ?? 0;
+        if (unit <= 0) { pushChat(`Este item não é vendável por cristal.`, "info"); return s; }
+        const gain = unit * qty;
+        pushChat(`Vendeu ${qty}x ${id} por ${gain} 💎 cristais.`, "cap");
+        return {
+          ...s,
+          bank: { ...s.bank, crystals: s.bank.crystals + gain },
+          items: { ...s.items, [id]: have - qty },
+        };
+      }
+      if (currency === "safira") {
+        if (!STONE_IDS.includes(id as (typeof STONE_IDS)[number])) {
+          pushChat(`Este item não é vendável por safira.`, "info"); return s;
+        }
+        const batches = Math.floor(qty / STONE_SAFIRA_BATCH);
+        if (batches <= 0) { pushChat(`Precisa de ao menos ${STONE_SAFIRA_BATCH}x para vender por safira.`, "info"); return s; }
+        const cost = batches * STONE_SAFIRA_BATCH;
+        const gain = batches * STONE_SAFIRA_PER_BATCH;
+        pushChat(`Vendeu ${cost}x ${id} por ${gain} 💚 Safira Verde.`, "cap");
+        return {
+          ...s,
+          items: { ...s.items, [id]: have - cost, safira_verde: (s.items?.safira_verde ?? 0) + gain },
+        };
+      }
       const unit = MARKET_SELL_PRICE[id] ?? 0;
       if (unit <= 0) { pushChat(`Este item não é vendável.`, "info"); return s; }
       const gain = unit * qty;
@@ -10757,7 +10793,7 @@ function TabOverlay({
   onClaimTask: (tid: string) => void;
   onOpenColecaoDetail: (uid: string) => void;
   onExchange: (dir: "g2c" | "c2g", amount: number) => void;
-  onSellItem: (id: string, qty?: number) => void;
+  onSellItem: (id: string, qty?: number, currency?: "gold" | "crystal" | "safira") => void;
   marketSellPrices: Record<string, number>;
   identity: LocalIdentity | null;
   onListMarket: (itemId: string, qty: number, price: number) => Promise<boolean>;
@@ -11510,6 +11546,33 @@ function TabOverlay({
                                   boxShadow: `0 2px 0 #7a1e12`,
                                 }}
                               >💰{sellPrice}</button>
+                            )}
+                            {id.startsWith("stone_") && (
+                              <>
+                                <button
+                                  onClick={() => onSellItem(id, 1, "crystal")}
+                                  title="Vender 1 por cristais"
+                                  style={{
+                                    padding: "5px 6px", fontSize: 10, fontWeight: 900,
+                                    background: "linear-gradient(180deg,#7dd3fc,#0ea5e9)",
+                                    color: "#0b2540", border: "1.5px solid #075985",
+                                    borderRadius: 6, cursor: "pointer",
+                                    boxShadow: "0 2px 0 #075985",
+                                  }}
+                                >💎</button>
+                                <button
+                                  onClick={() => onSellItem(id, Math.max(2, n - (n % 2)), "safira")}
+                                  title="Vender por Safira Verde (2 stones = 1 safira)"
+                                  disabled={n < 2}
+                                  style={{
+                                    padding: "5px 6px", fontSize: 10, fontWeight: 900,
+                                    background: n < 2 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                    color: "#0b2540", border: "1.5px solid #065f46",
+                                    borderRadius: 6, cursor: n < 2 ? "not-allowed" : "pointer",
+                                    boxShadow: "0 2px 0 #065f46", opacity: n < 2 ? 0.5 : 1,
+                                  }}
+                                >💚</button>
+                              </>
                             )}
                           </div>
                           {(() => {
