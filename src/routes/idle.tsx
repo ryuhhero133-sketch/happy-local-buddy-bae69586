@@ -2468,6 +2468,8 @@ function IdlePage() {
       INCUB5A: 5, INCUB5B: 5, INCUB5C: 5, INCUB5D: 5, INCUB5E: 5,
       INCUB6A: 6, INCUB6B: 6, INCUB6C: 6, INCUB6D: 6, INCUB6E: 6,
       INCUB1A: 1, INCUB1B: 1, INCUB1C: 1,
+      // 2 Cartas Lendárias (uso único)
+      INCUBKEY2X26: 2,
     };
     if (bigCardMap[raw]) {
       const base = idleRef.current;
