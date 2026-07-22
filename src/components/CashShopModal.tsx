@@ -145,7 +145,7 @@ function writeEmerald(n: number) {
 }
 
 // Taxas de conversão
-const SAFIRA_PER_EMERALD = 20;   // 20 Safiras Verdes → 1 Esmeralda
+const SAFIRA_PER_EMERALD = 100;  // 100 Safiras Verdes → 1 Esmeralda
 const EMERALD_PER_ULTRAPACK = 3; // 3 Esmeraldas → 100 Ultra Balls
 const ULTRAPACK_SIZE = 100;
 
