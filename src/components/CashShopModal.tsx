@@ -397,6 +397,7 @@ export function CashShopModal(props: Props) {
       setConvMsg({ kind: "err", text: `Precisa de ${offer.price} Esmeraldas para ${offer.name}.` });
       return;
     }
+    if (!guardCooldown()) return;
     const next = emerald - offer.price;
     setEmerald(next); writeEmerald(next);
 
@@ -404,6 +405,7 @@ export function CashShopModal(props: Props) {
     if (offer.id === "bau_esmeralda") {
       onGrantItem("bau_esmeralda", 1);
       setConvMsg({ kind: "ok", text: `💠 Baú de Esmeralda entregue na Mochila! Abra pela Bag para ver seu loot.` });
+      setPurchaseToast({ kind: "ok", title: "Compra realizada!", subtitle: `💠 Baú de Esmeralda entregue na Mochila` });
       setConfetti(true);
       setTimeout(() => setConfetti(false), 1600);
       return;
@@ -412,6 +414,7 @@ export function CashShopModal(props: Props) {
     for (const g of offer.grants) onGrantItem(g.itemId, g.qty);
     const parts = offer.grants.map((g) => `+${g.qty}× ${g.itemId}`).join(", ");
     setConvMsg({ kind: "ok", text: `${offer.name} entregue! ${parts}` });
+    setPurchaseToast({ kind: "ok", title: "Compra realizada!", subtitle: `${offer.name} · ${parts}` });
     setConfetti(true);
     setTimeout(() => setConfetti(false), 1600);
   };
