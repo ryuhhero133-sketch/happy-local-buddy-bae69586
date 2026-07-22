@@ -1977,6 +1977,7 @@ function IdlePage() {
   const [chatInput, setChatInput] = useState("");
   const [chatCooldownUntil, setChatCooldownUntil] = useState<number>(0);
   const [chatFilter, setChatFilter] = useState<"all" | "system" | "world" | "captures">("all");
+  const [teamCollapsed, setTeamCollapsed] = useState<boolean>(false);
   const [chatTick, setChatTick] = useState(0);
   useEffect(() => {
     if (chatCooldownUntil <= Date.now()) return;
