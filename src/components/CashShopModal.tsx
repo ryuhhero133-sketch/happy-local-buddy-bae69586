@@ -158,7 +158,6 @@ type EmeraldOffer = {
   accent: string;        // gradient tailwind classes
 };
 const EMERALD_OFFERS: EmeraldOffer[] = [
-const EMERALD_OFFERS: EmeraldOffer[] = [
   {
     id: "orb_supremo_24h",
     name: "Orb Supremo 24h",
