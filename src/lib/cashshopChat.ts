@@ -23,13 +23,42 @@ export type AdminThreadSummary = {
   count: number;
 };
 
+let lastChatError: string | null = null;
+let lastSalesError: string | null = null;
+
+export function getCashShopChatError() {
+  return lastChatError;
+}
+
+export function getCashShopSalesError() {
+  return lastSalesError;
+}
+
+export async function checkCashShopAdmin(userId: string): Promise<{ ok: boolean; error: string | null }> {
+  if (!userId || userId === "guest" || userId.startsWith("guest-")) return { ok: false, error: "Conta convidada não pode ser admin." };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .limit(1);
+
+  if (error) {
+    console.error("[chat] checkCashShopAdmin", error);
+    return { ok: false, error: error.message ?? String(error) };
+  }
+  return { ok: Array.isArray(data) && data.length > 0, error: null };
+}
+
 export async function fetchThread(userId: string): Promise<TicketMsg[]> {
   const { data, error } = await db()
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: true })
     .limit(500);
-  if (error) { console.error("[chat] fetchThread", error); return []; }
+  if (error) { lastChatError = error.message ?? String(error); console.error("[chat] fetchThread", error); return []; }
+  lastChatError = null;
   return (data ?? []) as TicketMsg[];
 }
 
@@ -37,7 +66,8 @@ export async function sendUserMessage(userId: string, username: string, text: st
   const { error } = await db().insert({
     user_id: userId, username, from_role: "user", text, image: image ?? null,
   });
-  if (error) console.error("[chat] sendUserMessage", error);
+  if (error) { lastChatError = error.message ?? String(error); console.error("[chat] sendUserMessage", error); }
+  else lastChatError = null;
   return !error;
 }
 
@@ -45,7 +75,8 @@ export async function sendAdminMessage(targetUserId: string, adminName: string, 
   const { error } = await db().insert({
     user_id: targetUserId, username: adminName, from_role: "support", text, image: image ?? null,
   });
-  if (error) console.error("[chat] sendAdminMessage", error);
+  if (error) { lastChatError = error.message ?? String(error); console.error("[chat] sendAdminMessage", error); }
+  else lastChatError = null;
   return !error;
 }
 
@@ -54,7 +85,8 @@ export async function fetchThreadsForAdmin(): Promise<AdminThreadSummary[]> {
     .select("*")
     .order("created_at", { ascending: false })
     .limit(1000);
-  if (error) { console.error("[chat] fetchThreadsForAdmin", error); return []; }
+  if (error) { lastChatError = error.message ?? String(error); console.error("[chat] fetchThreadsForAdmin", error); return []; }
+  lastChatError = null;
   const map = new Map<string, AdminThreadSummary>();
   for (const r of ((data ?? []) as TicketMsg[])) {
     const cur = map.get(r.user_id);
@@ -125,7 +157,8 @@ export async function fetchPendingSales(): Promise<PendingSale[]> {
     .select("*")
     .order("created_at", { ascending: false })
     .limit(200);
-  if (error) { console.error("[cash] fetchPendingSales", error); return []; }
+  if (error) { lastSalesError = error.message ?? String(error); console.error("[cash] fetchPendingSales", error); return []; }
+  lastSalesError = null;
   return (data ?? []) as PendingSale[];
 }
 
@@ -143,7 +176,8 @@ export async function updatePendingStatus(
       resolved_at: new Date().toISOString(),
     })
     .eq("id", id);
-  if (error) console.error("[cash] updatePendingStatus", error);
+  if (error) { lastSalesError = error.message ?? String(error); console.error("[cash] updatePendingStatus", error); }
+  else lastSalesError = null;
   return !error;
 }
 
