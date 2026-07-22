@@ -4420,30 +4420,33 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `EXP +${pct}% · 1h`, "capture");
       pushChat(`Livro de EXP usado (+${pct}% EXP por 1 hora).`, "cap");
-    } else if (id === "orb_xp_minor" || id === "orb_xp_major" || id === "orb_xp_supreme") {
+    } else if (id === "orb_xp_minor" || id === "orb_xp_major" || id === "orb_xp_supreme" || id === "orb_xp_supreme_24h") {
       const add = id === "orb_xp_minor" ? 0.10 : id === "orb_xp_major" ? 0.20 : 0.30;
       const pct = Math.round(add * 100);
-      const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : "Orb Supremo";
+      const is24 = id === "orb_xp_supreme_24h";
+      const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : is24 ? "Orb Supremo 24h" : "Orb Supremo";
       const nowT = Date.now();
       if ((idle.buffs.orbUntil ?? 0) > nowT) {
         pushChat(`Já há um Orb de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
         return;
       }
-      const extraH = ((idle.items as any)[`${id}_extra`] ?? 0) as number;
-      const durationMs = (1 + extraH) * 3600_000;
+      const extraH = is24 ? 0 : (((idle.items as any)[`${id}_extra`] ?? 0) as number);
+      const baseH = is24 ? 24 : 1;
+      const durationMs = (baseH + extraH) * 3600_000;
+      const buffOrbId = is24 ? "orb_xp_supreme" : id;
       setIdle((s) => {
         const items = { ...s.items, [id]: have - 1 } as any;
-        if (extraH > 0) delete items[`${id}_extra`];
+        if (!is24 && extraH > 0) delete items[`${id}_extra`];
         return {
           ...s,
           items,
-          buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + durationMs, orbId: id },
+          buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + durationMs, orbId: buffOrbId },
         };
       });
-      const totalH = 1 + extraH;
+      const totalH = baseH + extraH;
       pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · ${totalH}h`, "capture");
-      pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por ${totalH} hora(s)`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
-      pushChat(`✦ ${label} usado — +${pct}% EXP por ${totalH} hora(s)${extraH > 0 ? " 🌟" : ""}.`, "cap");
+      pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por ${totalH} hora(s)`, id === "orb_xp_supreme" || is24 ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
+      pushChat(`✦ ${label} usado — +${pct}% EXP por ${totalH} hora(s)${!is24 && extraH > 0 ? " 🌟" : ""}.`, "cap");
     } else if (id === "orb_team") {
       const nowT = Date.now();
       if ((idle.buffs.teamOrbUntil ?? 0) > nowT) {
