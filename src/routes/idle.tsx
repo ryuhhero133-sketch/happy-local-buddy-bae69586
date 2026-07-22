@@ -2393,9 +2393,39 @@ function IdlePage() {
       return;
     }
 
-    // CARTAGOV1..4 — desativados
-    if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4") {
-      setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
+    // CARTAGOV1..5 — Carta do Governante (single-use por conta, não consome no uso)
+    if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4" || raw === "CARTAGOV5") {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, carta_governante: (base.items?.carta_governante ?? 0) + 1 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "👑 Carta do Governante recebida! Vá ao Mapa Mundi para viajar." });
+      setCodeInput("");
+      pushChat(`👑 Código ${raw}: Carta do Governante entregue — libera o Continente do Governante.`, "cap");
+      return;
+    }
+
+    // INCUBLENDA1..5 — Carta da Incubadora Lendária (single-use)
+    if (raw === "INCUBLENDA1" || raw === "INCUBLENDA2" || raw === "INCUBLENDA3" || raw === "INCUBLENDA4" || raw === "INCUBLENDA5") {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, carta_incubadora: (base.items?.carta_incubadora ?? 0) + 1 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🔮 Carta da Incubadora Lendária recebida!" });
+      setCodeInput("");
+      pushChat(`🔮 Código ${raw}: Carta da Incubadora Lendária entregue.`, "cap");
       return;
     }
 
