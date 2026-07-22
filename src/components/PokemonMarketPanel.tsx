@@ -93,17 +93,49 @@ export interface PokemonMarketPanelProps {
   collection: CollectionEntry[];
   gold: number;
   crystals: number;
+  safiras?: number;
   isVip: boolean;
   gifOf: (sp: Species) => string | undefined;
   onListed: (uid: string) => void;                              // remove do estoque local
   onReturned: (entry: CollectionEntry) => void;                 // devolve p/ coleção
   onSpend: (currency: Currency, amount: number) => void;
   onEarn:  (currency: Currency, amount: number) => void;
+  onSpendSafira?: (amount: number) => boolean;
+  onEarnSafira?: (amount: number) => void;
   pushChat: (msg: string, kind?: "info" | "cap") => void;
 }
 
+const CUR_LABEL: Record<Currency, string> = {
+  gold: "ouro", crystal: "cristal", safira: "safira verde", esmerald: "esmeralda",
+};
+const CUR_ICON: Record<Currency, string> = {
+  gold: "💰", crystal: "💎", safira: "💚", esmerald: "🟢",
+};
+const CUR_COLOR: Record<Currency, string> = {
+  gold: "#f5cf6b", crystal: "#6bd4ff", safira: "#7dffbe", esmerald: "#38f5a3",
+};
+
 export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
-  const { identity, collection, gold, crystals, isVip, gifOf, onListed, onReturned, onSpend, onEarn, pushChat } = props;
+  const { identity, collection, gold, crystals, safiras = 0, isVip, gifOf, onListed, onReturned, onSpend, onEarn, onSpendSafira, onEarnSafira, pushChat } = props;
+  const [, setEmeraldTick] = useState(0);
+  useEffect(() => {
+    const h = () => setEmeraldTick(x => x + 1);
+    window.addEventListener("rubym:emerald", h as any);
+    return () => window.removeEventListener("rubym:emerald", h as any);
+  }, []);
+  const emeraldBal = readEmeraldFor(identity?.id);
+  const balanceOf = (c: Currency): number =>
+    c === "gold" ? gold : c === "crystal" ? crystals : c === "safira" ? safiras : emeraldBal;
+  const spendCur = (c: Currency, amount: number): boolean => {
+    if (c === "gold" || c === "crystal") { onSpend(c, amount); return true; }
+    if (c === "safira") { return onSpendSafira ? onSpendSafira(amount) : false; }
+    return spendEmeraldFor(identity?.id, amount);
+  };
+  const earnCur = (c: Currency, amount: number) => {
+    if (c === "gold" || c === "crystal") { onEarn(c, amount); return; }
+    if (c === "safira") { onEarnSafira?.(amount); return; }
+    grantEmeraldFor(identity?.id, amount);
+  };
   const [mode, setMode] = useState<"browse" | "mine" | "create">("browse");
   const [rows, setRows] = useState<ListingRow[]>([]);
   const [loading, setLoading] = useState(false);
