@@ -427,8 +427,8 @@ type IdleMapId =
   | "cadeia_ab" | "cadeia_ab1" | "cadeia_f1"
   // Evento Mítico Shiny — abre 5min a cada 1h
   | "evento_myth"
-  // Evento Oddish Odyssey — 48h, abre 30min a cada 2h
-  | "oddish_o1" | "oddish_o2";
+  // Evento Oddish Odyssey — 24h aberto, 3 mapas conectados por portal
+  | "oddish_o1" | "oddish_o2" | "oddish_o3";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
