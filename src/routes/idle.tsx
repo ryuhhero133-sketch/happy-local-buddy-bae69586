@@ -2081,6 +2081,30 @@ function IdlePage() {
     } catch { /* ignore */ }
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
 
+    // CASHADMIN2026 — libera Modo Admin da Lojinha Cash. Uso único global (primeira conta que resgatar).
+    if (raw === "CASHADMIN2026") {
+      const CLAIM_KEY = "rubym.cashShop.adminClaimed";
+      const OWNER_KEY = "rubym.cashShop.adminOwner";
+      const uid = identity?.id ?? "guest";
+      try {
+        const claimed = localStorage.getItem(CLAIM_KEY);
+        const owner = localStorage.getItem(OWNER_KEY);
+        if (claimed === "1" && owner && owner !== uid) {
+          setCodeMsg({ kind: "err", text: "Código já foi utilizado por outra conta." });
+          return;
+        }
+        localStorage.setItem(CLAIM_KEY, "1");
+        localStorage.setItem(OWNER_KEY, uid);
+        localStorage.setItem("rubym.cashShop.isAdmin", "1");
+      } catch { /* ignore */ }
+      setIdle((s) => ({ ...s, redeemedCodes: { ...(s.redeemedCodes ?? {}), [raw]: true } }));
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: "★ Modo Admin da Lojinha Cash ativado para esta conta." });
+      pushChat("★ Modo Admin da Lojinha Cash ativado.", "cap");
+      return;
+    }
+
+
     if (raw === "MYTHVIP30") {
       const nowT = Date.now();
       const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
