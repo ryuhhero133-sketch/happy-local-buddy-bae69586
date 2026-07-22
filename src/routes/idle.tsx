@@ -4563,6 +4563,21 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, "✨ MEL RARO +20% · 1h", "capture");
       pushChat(`✨🍯 Incenso Raro ativado! +20% drop/xp/def/velocidade por 1 hora (dobro do normal).`, "cap");
+    } else if (id === "incenso_mel_raro_24h") {
+      const nowT = Date.now();
+      if ((idle.buffs.honeyUntil ?? 0) > nowT || (idle.buffs.honeyRareUntil ?? 0) > nowT) {
+        pushChat(`Já há um Incenso ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      const dur24 = 24 * 60 * 60 * 1000;
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, incenso_mel_raro_24h: (s.items.incenso_mel_raro_24h ?? 0) - 1 },
+        buffs: { ...s.buffs, honeyRareUntil: nowT + dur24 },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "✨ MEL RARO +20% · 24h", "capture");
+      pushEvent("✨", "INCENSO RARO 24H", "+20% drop/xp/def/velocidade por 24 horas", "#ffd94d");
+      pushChat(`✨🍯 Incenso Raro 24h ativado! +20% drop/xp/def/velocidade por 24 horas.`, "cap");
     }
   };
 
