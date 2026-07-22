@@ -626,8 +626,9 @@ export function CashShopModal(props: Props) {
                   <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-400/40 text-emerald-200 font-bold">
                     💚 Safiras: {safiras.toLocaleString()}
                   </span>
-                  <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black shadow-[0_0_12px_rgba(52,211,153,.35)]">
-                    💠 Esmeraldas: {emerald.toLocaleString()}
+                  <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black shadow-[0_0_12px_rgba(52,211,153,.35)] flex items-center gap-1.5">
+                    <img src={emeraldCoinImg} alt="" width={18} height={18} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                    Esmeraldas: {emerald.toLocaleString()}
                   </span>
                 </div>
               </div>
