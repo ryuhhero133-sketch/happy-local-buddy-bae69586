@@ -667,6 +667,10 @@ export function BlackMiticEggHud(props: {
 
   const activate = () => {
     if (!selected) return;
+    if (!hasIncubatorCard) {
+      onNotify?.("Você precisa da Carta da Incubadora Lendária para ativar este ovo.");
+      return;
+    }
     persist((s) => ({
       ...s,
       eggs: s.eggs.map(e => {
