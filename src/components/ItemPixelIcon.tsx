@@ -1,13 +1,14 @@
 // Ícones de itens em pixel-art SVG, animados. Sem dependência de assets externos.
 // Cada glyph desenha um grid 16×16 com <rect> de 1u. Animações via CSS keyframes.
 import React from "react";
-import cartaGovernanteUrl from "@/assets/carta-governante.png";
-import cartaIncubadoraUrl from "@/assets/carta-incubadora.png";
+import cartaGovernanteAsset from "@/assets/carta-governante.png.asset.json";
+import cartaIncubadoraAsset from "@/assets/carta-incubadora.png.asset.json";
+import { assetUrlFromJson } from "@/lib/assetUrl";
 
 // Overrides que renderizam uma imagem bitmap ao invés do glyph SVG.
 const BITMAP_OVERRIDES: Record<string, string> = {
-  carta_governante: cartaGovernanteUrl,
-  carta_incubadora: cartaIncubadoraUrl,
+  carta_governante: assetUrlFromJson(cartaGovernanteAsset),
+  carta_incubadora: assetUrlFromJson(cartaIncubadoraAsset),
 };
 
 type Cell = [number, number, string]; // x, y, color

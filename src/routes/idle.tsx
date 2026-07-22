@@ -130,7 +130,7 @@ import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
 import mapPantanoFogoAsset from "@/assets/map-pantano-fogo.png.asset.json";
 import worldMapGlobeAsset from "@/assets/world-map-globe.jpg.asset.json";
-import worldMapContinent2Url from "@/assets/world-map-continent2.jpg";
+import worldMapContinent2Asset from "@/assets/world-map-continent2.jpg.asset.json";
 import mapFantasmaAsset from "@/assets/map-fantasma.jpg.asset.json";
 import mapCadeiaAbAsset from "@/assets/map-cadeia-ab.png.asset.json";
 import mapCadeiaAb1Asset from "@/assets/map-cadeia-ab1.png.asset.json";
@@ -410,6 +410,8 @@ const magnemiteUrl = assetUrlFromJson(magnemiteAsset);
 const nidoranFUrl = assetUrlFromJson(nidoranFAsset);
 const snorlaxUrl = assetUrlFromJson(snorlaxAsset);
 const gloomUrl = assetUrlFromJson(gloomAsset);
+const npcGovernanteUrl = assetUrlFromJson(npcGovernanteAsset);
+const worldMapContinent2Url = assetUrlFromJson(worldMapContinent2Asset);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const gameDb = supabase as any;
 
@@ -7372,7 +7374,7 @@ function IdlePage() {
                     animation: "pulse 1.6s ease-in-out infinite",
                   }}>👑 GOVERNANTE</div>
                   <img
-                    src={npcGovernanteAsset.url}
+                    src={npcGovernanteUrl}
                     alt="Governante"
                     width={120} height={160}
                     style={{ width: 120, height: 160, imageRendering: "pixelated", objectFit: "contain" }}
@@ -13953,7 +13955,7 @@ function GovernanteDialog(props: {
           overflow: "hidden", animation: "govGlow 3s ease-in-out infinite",
         }}>
           <img
-            src={npcGovernanteAsset.url}
+            src={npcGovernanteUrl}
             alt="Governante"
             style={{ width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated" }}
           />
