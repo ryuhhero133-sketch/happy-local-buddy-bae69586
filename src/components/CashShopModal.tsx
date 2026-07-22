@@ -17,6 +17,7 @@ import packUltraballImg from "@/assets/pack-ultraball.png";
 import orb24hImg from "@/assets/orb-24h.png";
 import incense24hImg from "@/assets/incense-24h.png";
 import emeraldCoinImg from "@/assets/emerald-coin.png";
+import { emeraldKeyFor, readEmeraldFor, writeEmeraldFor } from "@/lib/emerald";
 
 // Mantém tipos exportados p/ compat externa (não usados internamente agora)
 export type CashProduct = {
