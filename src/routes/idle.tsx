@@ -2271,6 +2271,35 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "CHARIZEPIC30" || raw === "CHAREPICVIP30" || raw === "EPICHAR30") {
+      const nowT = Date.now();
+      const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          egg_charizard: (base.items.egg_charizard ?? 0) + 1,
+        },
+        buffs: {
+          ...base.buffs,
+          expMult: Math.max(base.buffs.expMult ?? 0, 0.3),
+          expMultUntil: Math.max(base.buffs.expMultUntil ?? 0, nowT) + THIRTY_D,
+          goldMult: Math.max(base.buffs.goldMult ?? 0, 0.3),
+          goldMultUntil: Math.max(base.buffs.goldMultUntil ?? 0, nowT) + THIRTY_D,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🔥 Ovo Épico Charizard + VIP 30 dias entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código CHARIZEPIC30: 1× Ovo Charizard + VIP 30 dias (+30% XP/Gold).`, "cap");
+      return;
+    }
+
+
     if (raw === "EPIC5EGG" || raw === "EPICEGG5" || raw === "EPIC5CRY10K") {
       const base = idleRef.current;
       const next: IdleState = {
