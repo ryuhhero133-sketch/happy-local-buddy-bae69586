@@ -4855,6 +4855,8 @@ function IdlePage() {
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
+    // Continente do Governante — zona sagrada, sem spawns.
+    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return null;
     const leaderLv = team[0]?.level ?? 10;
     const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
     const MIN_DIST = 220;
