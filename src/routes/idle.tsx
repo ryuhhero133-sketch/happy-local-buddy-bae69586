@@ -10432,7 +10432,32 @@ function IdlePage() {
         codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
       />
+
+      <BlackMiticEggHud
+        open={blackEggHudOpen}
+        onClose={() => setBlackEggHudOpen(false)}
+        uid={identity?.id ?? "guest"}
+        stones={{
+          stone_grass: idle.items?.stone_grass ?? 0,
+          stone_fire: idle.items?.stone_fire ?? 0,
+          stone_water: idle.items?.stone_water ?? 0,
+          stone_electric: idle.items?.stone_electric ?? 0,
+          stone_dark: idle.items?.stone_dark ?? 0,
+          stone_dragon: idle.items?.stone_dragon ?? 0,
+        }}
+        onConsumeStone={(stoneId, qty) => {
+          const have = idleRef.current.items?.[stoneId] ?? 0;
+          if (have < qty) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), [stoneId]: (s.items?.[stoneId] ?? 0) - qty },
+          }));
+          return true;
+        }}
+        onNotify={(msg) => pushChat(`✦ Black Mitic Egg: ${msg}`, "cap")}
+      />
     </div>
+
 
   );
 }
