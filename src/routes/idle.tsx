@@ -923,6 +923,8 @@ const ITEM_IMG: Record<string, string> = {
   premium_box: premiumBoxImg,
   bau_esmeralda: chestEmeraldImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
+  orb_xp_supreme_24h: (new URL("../assets/orb-24h.png", import.meta.url)).href,
+  incenso_mel_raro_24h: (new URL("../assets/incense-24h.png", import.meta.url)).href,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
@@ -4418,30 +4420,33 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `EXP +${pct}% · 1h`, "capture");
       pushChat(`Livro de EXP usado (+${pct}% EXP por 1 hora).`, "cap");
-    } else if (id === "orb_xp_minor" || id === "orb_xp_major" || id === "orb_xp_supreme") {
+    } else if (id === "orb_xp_minor" || id === "orb_xp_major" || id === "orb_xp_supreme" || id === "orb_xp_supreme_24h") {
       const add = id === "orb_xp_minor" ? 0.10 : id === "orb_xp_major" ? 0.20 : 0.30;
       const pct = Math.round(add * 100);
-      const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : "Orb Supremo";
+      const is24 = id === "orb_xp_supreme_24h";
+      const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : is24 ? "Orb Supremo 24h" : "Orb Supremo";
       const nowT = Date.now();
       if ((idle.buffs.orbUntil ?? 0) > nowT) {
         pushChat(`Já há um Orb de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
         return;
       }
-      const extraH = ((idle.items as any)[`${id}_extra`] ?? 0) as number;
-      const durationMs = (1 + extraH) * 3600_000;
+      const extraH = is24 ? 0 : (((idle.items as any)[`${id}_extra`] ?? 0) as number);
+      const baseH = is24 ? 24 : 1;
+      const durationMs = (baseH + extraH) * 3600_000;
+      const buffOrbId = is24 ? "orb_xp_supreme" : id;
       setIdle((s) => {
         const items = { ...s.items, [id]: have - 1 } as any;
-        if (extraH > 0) delete items[`${id}_extra`];
+        if (!is24 && extraH > 0) delete items[`${id}_extra`];
         return {
           ...s,
           items,
-          buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + durationMs, orbId: id },
+          buffs: { ...s.buffs, orbMult: add, orbUntil: Date.now() + durationMs, orbId: buffOrbId },
         };
       });
-      const totalH = 1 + extraH;
+      const totalH = baseH + extraH;
       pushFxAt(trainerPos.x, trainerPos.y - 40, `${label} +${pct}% · ${totalH}h`, "capture");
-      pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por ${totalH} hora(s)`, id === "orb_xp_supreme" ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
-      pushChat(`✦ ${label} usado — +${pct}% EXP por ${totalH} hora(s)${extraH > 0 ? " 🌟" : ""}.`, "cap");
+      pushEvent("✦", `${label.toUpperCase()} ATIVO`, `+${pct}% EXP por ${totalH} hora(s)`, id === "orb_xp_supreme" || is24 ? "#ffd94d" : id === "orb_xp_major" ? "#c084fc" : "#5cd3ff");
+      pushChat(`✦ ${label} usado — +${pct}% EXP por ${totalH} hora(s)${!is24 && extraH > 0 ? " 🌟" : ""}.`, "cap");
     } else if (id === "orb_team") {
       const nowT = Date.now();
       if ((idle.buffs.teamOrbUntil ?? 0) > nowT) {
@@ -4558,6 +4563,21 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, "✨ MEL RARO +20% · 1h", "capture");
       pushChat(`✨🍯 Incenso Raro ativado! +20% drop/xp/def/velocidade por 1 hora (dobro do normal).`, "cap");
+    } else if (id === "incenso_mel_raro_24h") {
+      const nowT = Date.now();
+      if ((idle.buffs.honeyUntil ?? 0) > nowT || (idle.buffs.honeyRareUntil ?? 0) > nowT) {
+        pushChat(`Já há um Incenso ativo. Espere o tempo acabar.`, "info");
+        return;
+      }
+      const dur24 = 24 * 60 * 60 * 1000;
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, incenso_mel_raro_24h: (s.items.incenso_mel_raro_24h ?? 0) - 1 },
+        buffs: { ...s.buffs, honeyRareUntil: nowT + dur24 },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "✨ MEL RARO +20% · 24h", "capture");
+      pushEvent("✨", "INCENSO RARO 24H", "+20% drop/xp/def/velocidade por 24 horas", "#ffd94d");
+      pushChat(`✨🍯 Incenso Raro 24h ativado! +20% drop/xp/def/velocidade por 24 horas.`, "cap");
     }
   };
 
@@ -5331,9 +5351,9 @@ function IdlePage() {
     stone_grass: 10, stone_fire: 10, stone_water: 10,
     stone_electric: 10, stone_dark: 15, stone_dragon: 20,
   };
-  // Sell 50 stones → 1 safira
-  const STONE_SAFIRA_BATCH = 50;
-  const STONE_SAFIRA_PER_BATCH = 1;
+  // Sell 250 stones → 2 safiras
+  const STONE_SAFIRA_BATCH = 250;
+  const STONE_SAFIRA_PER_BATCH = 2;
 
 
   const sellItem = (id: string, qty = 1, currency: "gold" | "crystal" | "safira" = "gold") => {
@@ -8076,6 +8096,7 @@ function IdlePage() {
                   collection={idle.collection ?? []}
                   gold={idle.bank.gold}
                   crystals={idle.bank.crystals}
+                  safiras={idle.items?.safira_verde ?? 0}
                   isVip={isVip()}
                   gifOf={(sp) => GIF[sp]}
                   onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
@@ -8096,6 +8117,15 @@ function IdlePage() {
                       ? { ...s.bank, gold: s.bank.gold + amount }
                       : { ...s.bank, crystals: s.bank.crystals + amount },
                   }))}
+                  onSpendSafira={(amount) => {
+                    const cur = idle.items?.safira_verde ?? 0;
+                    if (cur < amount) return false;
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
+                    return true;
+                  }}
+                  onEarnSafira={(amount) => {
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
+                  }}
                   pushChat={pushChat}
                 />
               }
@@ -10829,6 +10859,7 @@ function TabOverlay({
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
   const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
+  const [itemDetail, setItemDetail] = useState<string | null>(null);
   const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; rarity: Rarity; count: number; color: string; label: string }>(null);
   const [orbPickerSel, setOrbPickerSel] = useState<Set<string>>(new Set());
   const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
@@ -11283,12 +11314,57 @@ function TabOverlay({
           skin_ticket: "Ticket de Skin ✦",
           bau_esmeralda: "Baú de Esmeralda 💠",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
-          incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯",
+          incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
+          orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
           safira_verde: "Safira Verde 💚",
           carta_governante: "Carta do Governante 👑",
           stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
+        };
+        const ITEM_DESC: Record<string, string> = {
+          potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
+          pokeball: "Pokébola padrão. Chance base de captura.",
+          greatball: "Great Ball. Melhor chance de captura contra pokémon fortes.",
+          ultraball: "Ultra Ball. Alta chance de captura, essencial contra míticos.",
+          book_atk: "Aumenta o Ataque do time em batalha (permanente ao usar).",
+          book_def: "Aumenta a Defesa do time em batalha (permanente ao usar).",
+          book_exp: "Livro de EXP · +10% EXP por 1 hora.",
+          book_exp_big: "Livro de EXP Raro · +20% EXP por 1 hora.",
+          book_exp_max: "Livro de EXP Lendário · +30% EXP por 1 hora.",
+          book_vip: "Livro VIP · +20% Ouro e EXP por 1 hora.",
+          book_vip_30: "Livro VIP 30 dias · +30% Ouro e EXP.",
+          book_vip_60: "Livro VIP 60 dias · +40% Ouro e EXP.",
+          orb_xp_minor: "Orb Menor ✦ · +10% EXP por 1 hora (stack com livro).",
+          orb_xp_major: "Orb Maior ✦✦ · +20% EXP por 1 hora (stack com livro).",
+          orb_xp_supreme: "Orb Supremo ✦✦✦ · +30% EXP por 1 hora (stack com livro).",
+          orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦ · +30% EXP por 24 horas contínuas. Não empilha com outro orb ativo.",
+          orb_team: "Orb de Time ✦✦✦ · distribui EXP a todo o time por 3 horas.",
+          incenso_mel: "Incenso de Mel 🍯 · +10% drop/xp/def/velocidade por 1 hora.",
+          incenso_mel_raro: "Incenso Raro ✨🍯 · +20% drop/xp/def/velocidade por 1 hora.",
+          incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
+          premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
+          bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
+          skin_ticket: "Ticket de Skin ✦ · use na aba Início para desbloquear uma skin premium.",
+          egg_common: "Ovo Comum · chocado gera um pokémon aleatório de raridade baixa.",
+          egg_rare: "Ovo Raro · chance de raridades altas ao chocar.",
+          egg_epic: "Ovo Épico · alta chance de raridade Épica.",
+          egg_mystic: "Ovo Místico · pode chocar espécies míticas.",
+          egg_aura: "Ovo da Aura · espécies especiais com aura elemental.",
+          egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
+          egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
+          safira_verde: "Safira Verde 💚 · moeda do evento Oddish. Converte em Esmeraldas (200:1) na Cash Shop.",
+          berry: "Baga · restaura um pouco de HP em batalha.",
+          revive: "Reviver · devolve um pokémon caído com HP parcial.",
+          key: "Chave · abre baús trancados encontrados no mundo.",
+          chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
+          carta_governante: "Carta do Governante 👑 · item comemorativo raro.",
+          stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
+          stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
+          stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
+          stone_electric: "Stone Elétrica ⚡ · alimenta ovos Black Míticos e vale ouro.",
+          stone_dark: "Stone Sombria 🌑 · alimenta ovos Black Míticos, valor alto.",
+          stone_dragon: "Stone Dragão 🐉 · alimenta ovos Black Míticos, valor muito alto.",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
@@ -11494,13 +11570,16 @@ function TabOverlay({
                             boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
                             border: `1.5px solid ${P.panel}`,
                           }}>x{n}</div>
-                          <div style={{
+                          <div
+                            onClick={(e) => { e.stopPropagation(); setItemDetail(id); }}
+                            title="Ver detalhes"
+                            style={{
                             width: 62, height: 62, borderRadius: 10, marginTop: 2,
                             background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
                             display: "grid", placeItems: "center",
                             border: `2px inset ${P.goldDark}aa`,
                             boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 10px ${color}44`,
-                            position: "relative", overflow: "hidden",
+                            position: "relative", overflow: "hidden", cursor: "pointer",
                           }}>
                             {img ? (
                               <img
@@ -11561,21 +11640,21 @@ function TabOverlay({
                             {id.startsWith("stone_") && (
                               <button
                                 onClick={() => {
-                                  const maxBatches = Math.floor(n / 50);
+                                  const maxBatches = Math.floor(n / 250);
                                   if (maxBatches <= 0) return;
-                                  const raw = window.prompt(`Vender quantas Safiras? (1–${maxBatches})\n50 stones = 1 💚 Safira`, String(maxBatches));
+                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
                                   if (raw == null) return;
                                   const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
-                                  onSellItem(id, b * 50, "safira");
+                                  onSellItem(id, b * 250, "safira");
                                 }}
-                                title="Vender por Safira Verde (50 stones = 1 safira)"
-                                disabled={n < 50}
+                                title="Vender por Safira Verde (250 stones = 2 safiras)"
+                                disabled={n < 250}
                                 style={{
                                   padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                  background: n < 50 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
                                   color: "#0b2540", border: "1.5px solid #065f46",
-                                  borderRadius: 6, cursor: n < 50 ? "not-allowed" : "pointer",
-                                  boxShadow: "0 2px 0 #065f46", opacity: n < 50 ? 0.5 : 1,
+                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
+                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
                                 }}
                               >💚</button>
                             )}
@@ -11633,6 +11712,89 @@ function TabOverlay({
                 .mochila-body { grid-template-columns: 1fr !important; }
               }
             `}</style>
+
+            {itemDetail && (() => {
+              const id = itemDetail;
+              const isEgg = id.startsWith("egg_");
+              const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
+              const img = ITEM_IMG[id];
+              const name = NAMES[id] ?? id;
+              const desc = ITEM_DESC[id] ?? "Item do universo IdleMon. Ainda sem descrição detalhada.";
+              const count = items[id] ?? 0;
+              const sellPrice = marketSellPrices[id] ?? 0;
+              return (
+                <div onClick={() => setItemDetail(null)} style={{
+                  position: "fixed", inset: 0, zIndex: 9999,
+                  background: "rgba(4,4,10,0.72)", backdropFilter: "blur(6px)",
+                  display: "grid", placeItems: "center", padding: 16,
+                }}>
+                  <div onClick={(e) => e.stopPropagation()} style={{
+                    width: "min(420px, 96vw)", position: "relative",
+                    background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
+                    border: `2px solid ${P.goldDark}`, borderRadius: 14,
+                    boxShadow: `inset 0 0 0 1px ${P.goldLight}88, 0 0 40px ${color}55, 0 12px 40px rgba(0,0,0,0.6)`,
+                    padding: 18, color: P.ink,
+                  }}>
+                    <button onClick={() => setItemDetail(null)} style={{
+                      position: "absolute", top: 8, right: 10, background: "transparent",
+                      border: "none", color: P.inkSoft, fontSize: 20, cursor: "pointer", fontWeight: 900,
+                    }}>×</button>
+                    <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                      <div style={{
+                        width: 84, height: 84, borderRadius: 12, flexShrink: 0,
+                        background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
+                        display: "grid", placeItems: "center",
+                        border: `2px inset ${P.goldDark}aa`,
+                        boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 14px ${color}66`,
+                      }}>
+                        {img ? (
+                          <img src={img} alt="" width={68} height={68} style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 6px ${color}aa)` }} />
+                        ) : (
+                          <ItemPixelIcon id={id} size={68} color={color} />
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.2 }}>{name}</div>
+                        <div style={{ fontSize: 11, color: P.inkSoft, marginTop: 4, fontWeight: 700 }}>Quantidade: <span style={{ color: P.gold }}>x{count}</span></div>
+                        {sellPrice > 0 && (
+                          <div style={{ fontSize: 11, color: P.inkSoft, marginTop: 2, fontWeight: 700 }}>Preço de venda: <span style={{ color: "#ffd66b" }}>{sellPrice} 🪙</span></div>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{
+                      marginTop: 14, padding: 12, borderRadius: 10,
+                      background: `${P.bg2}80`, border: `1px dashed ${P.goldDark}88`,
+                      fontSize: 12.5, lineHeight: 1.5, color: P.ink,
+                    }}>{desc}</div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                      {!isEgg && count > 0 && (
+                        <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
+                          flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                          background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
+                          color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                          borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
+                          boxShadow: `0 2px 0 ${P.goldDark}`,
+                        }}>USAR</button>
+                      )}
+                      {isEgg && count > 0 && (
+                        <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
+                          flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                          background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
+                          color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                          borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
+                          boxShadow: `0 2px 0 ${P.goldDark}`,
+                        }}>CHOCAR</button>
+                      )}
+                      <button onClick={() => setItemDetail(null)} style={{
+                        flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                        background: "transparent", color: P.inkSoft,
+                        border: `1.5px solid ${P.goldDark}`, borderRadius: 8, cursor: "pointer",
+                      }}>FECHAR</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         );
       })()}

@@ -11,13 +11,14 @@ import type { Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
+import { readEmeraldFor, writeEmeraldFor, spendEmeraldFor, grantEmeraldFor } from "@/lib/emerald";
 
 // A tabela pokemon_market ainda não está nos types gerados — cast pra any.
 const supabase = _supabase as unknown as {
   from: (table: string) => any;
 };
 
-type Currency = "gold" | "crystal";
+type Currency = "gold" | "crystal" | "safira" | "esmerald";
 
 type ListingRow = {
   id: string;
@@ -92,17 +93,49 @@ export interface PokemonMarketPanelProps {
   collection: CollectionEntry[];
   gold: number;
   crystals: number;
+  safiras?: number;
   isVip: boolean;
   gifOf: (sp: Species) => string | undefined;
   onListed: (uid: string) => void;                              // remove do estoque local
   onReturned: (entry: CollectionEntry) => void;                 // devolve p/ coleção
   onSpend: (currency: Currency, amount: number) => void;
   onEarn:  (currency: Currency, amount: number) => void;
+  onSpendSafira?: (amount: number) => boolean;
+  onEarnSafira?: (amount: number) => void;
   pushChat: (msg: string, kind?: "info" | "cap") => void;
 }
 
+const CUR_LABEL: Record<Currency, string> = {
+  gold: "ouro", crystal: "cristal", safira: "safira verde", esmerald: "esmeralda",
+};
+const CUR_ICON: Record<Currency, string> = {
+  gold: "💰", crystal: "💎", safira: "💚", esmerald: "🟢",
+};
+const CUR_COLOR: Record<Currency, string> = {
+  gold: "#f5cf6b", crystal: "#6bd4ff", safira: "#7dffbe", esmerald: "#38f5a3",
+};
+
 export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
-  const { identity, collection, gold, crystals, isVip, gifOf, onListed, onReturned, onSpend, onEarn, pushChat } = props;
+  const { identity, collection, gold, crystals, safiras = 0, isVip, gifOf, onListed, onReturned, onSpend, onEarn, onSpendSafira, onEarnSafira, pushChat } = props;
+  const [, setEmeraldTick] = useState(0);
+  useEffect(() => {
+    const h = () => setEmeraldTick(x => x + 1);
+    window.addEventListener("rubym:emerald", h as any);
+    return () => window.removeEventListener("rubym:emerald", h as any);
+  }, []);
+  const emeraldBal = readEmeraldFor(identity?.id);
+  const balanceOf = (c: Currency): number =>
+    c === "gold" ? gold : c === "crystal" ? crystals : c === "safira" ? safiras : emeraldBal;
+  const spendCur = (c: Currency, amount: number): boolean => {
+    if (c === "gold" || c === "crystal") { onSpend(c, amount); return true; }
+    if (c === "safira") { return onSpendSafira ? onSpendSafira(amount) : false; }
+    return spendEmeraldFor(identity?.id, amount);
+  };
+  const earnCur = (c: Currency, amount: number) => {
+    if (c === "gold" || c === "crystal") { onEarn(c, amount); return; }
+    if (c === "safira") { onEarnSafira?.(amount); return; }
+    grantEmeraldFor(identity?.id, amount);
+  };
   const [mode, setMode] = useState<"browse" | "mine" | "create">("browse");
   const [rows, setRows] = useState<ListingRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -210,7 +243,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
         }
         // Para vendas via oferta o comprador só é debitado agora — precisa de saldo.
         if (r.via_offer) {
-          const have = r.currency === "gold" ? gold : crystals;
+          const have = balanceOf(r.currency);
           if (have < r.price) continue;
         }
         inflightBuyerRef.current.add(r.id);
@@ -231,7 +264,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
           continue;
         }
         // Só agora cobra e entrega — garantido único.
-        if (r.via_offer) onSpend(r.currency, r.price);
+        if (r.via_offer) spendCur(r.currency, r.price);
         claimedBuyerRef.current.add(r.id);
         writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
         const entry: CollectionEntry = {
@@ -245,7 +278,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
         };
         onReturned(entry);
         pushChat(r.via_offer
-          ? `🤝 Oferta aceita! Recebeu ${r.pokemon.species} por ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"}.`
+          ? `🤝 Oferta aceita! Recebeu ${r.pokemon.species} por ${r.price} ${CUR_LABEL[r.currency]}.`
           : `📦 Recebeu ${r.pokemon.species} do Marketplace.`, "cap");
         inflightBuyerRef.current.delete(r.id);
       }
@@ -267,10 +300,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
           }
           continue;
         }
-        onEarn(r.currency, r.price);
+        earnCur(r.currency, r.price);
         claimedSellerRef.current.add(r.id);
         writeClaimSet(claimedSellerKey(identity.id), claimedSellerRef.current);
-        pushChat(`💸 Recebeu ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"} da venda de ${r.pokemon.species}.`, "cap");
+        pushChat(`💸 Recebeu ${r.price} ${CUR_LABEL[r.currency]} da venda de ${r.pokemon.species}.`, "cap");
         inflightSellerRef.current.delete(r.id);
       }
     })();
@@ -283,7 +316,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (!entry) { pushChat("Selecione um Pokémon da coleção.", "info"); return; }
     if (myListings.length >= 6) { pushChat("Você já tem 6 anúncios ativos. Aguarde ou cancele algum.", "info"); return; }
     if (price < 1 || price > 100_000_000) { pushChat("Preço inválido.", "info"); return; }
-    if (currency === "crystal" && !isVip) { pushChat("✦ Vender por Cristal é exclusivo VIP.", "info"); return; }
+    if (currency !== "gold" && !isVip) { pushChat(`✦ Vender por ${CUR_LABEL[currency]} é exclusivo VIP.`, "info"); return; }
     if (cancelRemaining > 0) { pushChat(`Cooldown ativo: aguarde ${fmtTime(cancelRemaining)}.`, "info"); return; }
 
     const activate = new Date(Date.now() + 3 * 60 * 1000).toISOString();
@@ -337,8 +370,8 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (r.seller_id === identity.id) return;
     if (r.offers_only) { pushChat("Este anúncio aceita apenas ofertas.", "info"); return; }
     if (claimedBuyerRef.current.has(r.id)) return; // já processado nesta sessão
-    const have = r.currency === "gold" ? gold : crystals;
-    if (have < r.price) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente.`, "info"); return; }
+    const have = balanceOf(r.currency);
+    if (have < r.price) { pushChat(`${CUR_LABEL[r.currency]} insuficiente.`, "info"); return; }
     // Reserva com UPDATE atômico — só um comprador vence a corrida.
     const { data, error } = await supabase.from("pokemon_market").update({
       status: "sold",
@@ -351,13 +384,13 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     // de reentregar o mesmo pokémon caso o refresh chegue antes do buyer_claimed.
     claimedBuyerRef.current.add(r.id);
     writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
-    onSpend(r.currency, r.price);
+    spendCur(r.currency, r.price);
     onReturned({
       uid: `bought-${r.id}`, species: r.pokemon.species, level: r.pokemon.level,
       rarity: r.pokemon.rarity, xp: r.pokemon.xp ?? 0, traits: r.pokemon.traits ?? [], capturedAt: Date.now(),
     });
     await supabase.from("pokemon_market").update({ buyer_claimed: true }).eq("id", r.id);
-    pushChat(`🛒 Comprou ${r.pokemon.species} por ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"}.`, "cap");
+    pushChat(`🛒 Comprou ${r.pokemon.species} por ${r.price} ${CUR_LABEL[r.currency]}.`, "cap");
     void refresh();
   };
 
@@ -366,7 +399,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (r.seller_id === identity.id) return;
     if (amount < 1 || amount > 100_000_000) { pushChat("Valor inválido.", "info"); return; }
     if (!r.offers_only && amount >= r.price) { pushChat(`Oferta precisa ser menor que ${r.price.toLocaleString()}.`, "info"); return; }
-    const have = r.currency === "gold" ? gold : crystals;
+    const have = balanceOf(r.currency);
     if (have < amount) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente pra cobrir a oferta.`, "info"); return; }
     // Só uma oferta pending por comprador+anúncio
     const existing = offers.find(o => o.listing_id === r.id && o.buyer_id === identity.id && o.status === "pending");
@@ -385,7 +418,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       }
       return;
     }
-    pushChat(`💬 Oferta de ${amount.toLocaleString()} ${r.currency === "gold" ? "ouro" : "cristal"} enviada.`, "cap");
+    pushChat(`💬 Oferta de ${amount.toLocaleString()} ${CUR_LABEL[r.currency]} enviada.`, "cap");
     void refresh();
   };
 
@@ -405,7 +438,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     // rejeita as outras ofertas do mesmo anúncio
     await supabase.from("pokemon_market_offers").update({ status: "rejected" })
       .eq("listing_id", r.id).eq("status", "pending").neq("id", o.id);
-    pushChat(`✅ Oferta de ${o.buyer_name} aceita por ${o.amount.toLocaleString()} ${o.currency === "gold" ? "ouro" : "cristal"}.`, "cap");
+    pushChat(`✅ Oferta de ${o.buyer_name} aceita por ${o.amount.toLocaleString()} ${CUR_LABEL[o.currency]}.`, "cap");
     void refresh();
   };
 
@@ -432,9 +465,11 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
             Anuncie por Ouro ou Cristal (VIP). Aparece pra todos em <b>3 minutos</b>. Cancelar tranca novos anúncios por 5 min.
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <div style={{ background: "#0e0818", border: "1px solid #f5cf6b55", borderRadius: 8, padding: "6px 12px", color: "#f5cf6b", fontWeight: 800 }}>💰 {gold.toLocaleString()}</div>
-          <div style={{ background: "#0e0818", border: "1px solid #6bd4ff55", borderRadius: 8, padding: "6px 12px", color: "#6bd4ff", fontWeight: 800 }}>💎 {crystals.toLocaleString()}</div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <div style={{ background: "#0e0818", border: "1px solid #f5cf6b55", borderRadius: 8, padding: "6px 10px", color: "#f5cf6b", fontWeight: 800, fontSize: 12 }}>💰 {gold.toLocaleString()}</div>
+          <div style={{ background: "#0e0818", border: "1px solid #6bd4ff55", borderRadius: 8, padding: "6px 10px", color: "#6bd4ff", fontWeight: 800, fontSize: 12 }}>💎 {crystals.toLocaleString()}</div>
+          <div style={{ background: "#0e0818", border: "1px solid #7dffbe55", borderRadius: 8, padding: "6px 10px", color: "#7dffbe", fontWeight: 800, fontSize: 12 }}>💚 {safiras.toLocaleString()}</div>
+          <div style={{ background: "#0e0818", border: "1px solid #38f5a355", borderRadius: 8, padding: "6px 10px", color: "#38f5a3", fontWeight: 800, fontSize: 12 }}>🟢 {emeraldBal.toLocaleString()}</div>
         </div>
       </div>
 
@@ -597,8 +632,8 @@ function ListingCard(props: {
       <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", gap: 8 }}>
         <div>
           <div style={{ fontSize: 8, letterSpacing: 2, color: "#8a7a9c", fontWeight: 900 }}>PREÇO</div>
-          <div style={{ fontSize: 16, fontWeight: 900, color: r.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>
-            {r.currency === "gold" ? "💰" : "💎"} {r.price.toLocaleString()}
+          <div style={{ fontSize: 16, fontWeight: 900, color: CUR_COLOR[r.currency] }}>
+            {CUR_ICON[r.currency]} {r.price.toLocaleString()}
           </div>
           <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 2 }}>por <b style={{ color: "#c8b8d0" }}>{r.seller_name}</b></div>
         </div>
@@ -628,7 +663,7 @@ function OfferBox(props: {
     return (
       <div style={{ background: "#0e0818", border: "1px dashed #6bd4ff55", borderRadius: 8, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
         <div style={{ fontSize: 10, color: "#c8b8d0" }}>
-          Sua oferta: <b style={{ color: myOffer.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>{myOffer.amount.toLocaleString()}</b>
+          Sua oferta: <b style={{ color: CUR_COLOR[myOffer.currency] }}>{myOffer.amount.toLocaleString()}</b>
         </div>
         <button onClick={onCancel} style={{ ...btnRed, padding: "4px 8px", fontSize: 9 }}>Cancelar</button>
       </div>
@@ -661,8 +696,8 @@ function OffersReceived(props: {
         <div key={o.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#0e0818", border: "1px solid #3a2a4a", borderRadius: 6, padding: "4px 6px" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.buyer_name}</div>
-            <div style={{ fontSize: 11, fontWeight: 900, color: o.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>
-              {o.currency === "gold" ? "💰" : "💎"} {o.amount.toLocaleString()}
+            <div style={{ fontSize: 11, fontWeight: 900, color: CUR_COLOR[o.currency] }}>
+              {CUR_ICON[o.currency]} {o.amount.toLocaleString()}
             </div>
           </div>
           <button onClick={() => onAccept(o)} title="Aceitar" style={{ ...btnGold, padding: "3px 7px", fontSize: 9 }}>✓</button>
@@ -728,20 +763,26 @@ function CreateListing(props: {
 
         <div>
           <div style={{ fontSize: 10, color: "#c8b8d0", fontWeight: 900, marginBottom: 4 }}>MOEDA</div>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setCurrency("gold")} style={{
-              flex: 1, padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 11,
-              border: `1px solid ${currency === "gold" ? "#f5cf6b" : "#3a2a4a"}`,
-              background: currency === "gold" ? "#2a1c05" : "transparent",
-              color: currency === "gold" ? "#f5cf6b" : "#c8b8d0", cursor: "pointer",
-            }}>💰 OURO</button>
-            <button onClick={() => isVip && setCurrency("crystal")} disabled={!isVip} title={isVip ? "" : "Requer VIP"} style={{
-              flex: 1, padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 11,
-              border: `1px solid ${currency === "crystal" ? "#6bd4ff" : "#3a2a4a"}`,
-              background: currency === "crystal" ? "#0f2b3d" : "transparent",
-              color: !isVip ? "#5a5a70" : (currency === "crystal" ? "#6bd4ff" : "#c8b8d0"),
-              cursor: isVip ? "pointer" : "not-allowed", opacity: isVip ? 1 : 0.6,
-            }}>💎 CRISTAL {!isVip && "🔒"}</button>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {(["gold","crystal","safira","esmerald"] as Currency[]).map(c => {
+              const locked = c !== "gold" && !isVip;
+              const active = currency === c;
+              const col = active ? "#000" : (locked ? "#5a5a70" : "#c8b8d0");
+              const bg = active ? CUR_COLOR[c] : "transparent";
+              const bd = active ? CUR_COLOR[c] : "#3a2a4a";
+              return (
+                <button key={c} onClick={() => !locked && setCurrency(c)} disabled={locked}
+                  title={locked ? "Requer VIP" : ""}
+                  style={{
+                    padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 11,
+                    border: `1px solid ${bd}`, background: bg, color: col,
+                    cursor: locked ? "not-allowed" : "pointer", opacity: locked ? 0.55 : 1,
+                    textTransform: "uppercase", letterSpacing: 0.4,
+                  }}>
+                  {CUR_ICON[c]} {c === "gold" ? "OURO" : c === "crystal" ? "CRISTAL" : c === "safira" ? "SAFIRA" : "ESMERALDA"} {locked && "🔒"}
+                </button>
+              );
+            })}
           </div>
         </div>
 

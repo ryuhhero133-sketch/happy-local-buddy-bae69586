@@ -17,6 +17,7 @@ import packUltraballImg from "@/assets/pack-ultraball.png";
 import orb24hImg from "@/assets/orb-24h.png";
 import incense24hImg from "@/assets/incense-24h.png";
 import emeraldCoinImg from "@/assets/emerald-coin.png";
+import { emeraldKeyFor, readEmeraldFor, writeEmeraldFor } from "@/lib/emerald";
 
 // Mantém tipos exportados p/ compat externa (não usados internamente agora)
 export type CashProduct = {
@@ -138,42 +139,10 @@ function readStock(): number {
   } catch { return STOCK_TOTAL - STOCK_SOLD_INITIAL; }
 }
 
-// ---------- Moeda Esmeralda (visível apenas neste painel) ----------
-// Antes: uma única chave global — jogadores perdiam saldo ao trocar de conta/navegador.
-// Agora: chave por UID + espelho no user_metadata do Supabase para nunca perder.
-const EMERALD_KEY_LEGACY = "rubym.cashshop.emerald.v1";
-function emeraldKeyFor(uid?: string | null): string {
-  return uid ? `rubym.cashshop.emerald.v2.${uid}` : EMERALD_KEY_LEGACY;
-}
-function readEmeraldFor(uid?: string | null): number {
-  try {
-    const k = emeraldKeyFor(uid);
-    let v = localStorage.getItem(k);
-    // Migração one-shot: se a chave por-uid ainda não existe, herda do valor global antigo.
-    if (v == null && uid) {
-      const legacy = localStorage.getItem(EMERALD_KEY_LEGACY);
-      if (legacy != null) {
-        localStorage.setItem(k, legacy);
-        v = legacy;
-      }
-    }
-    const n = v ? parseInt(v, 10) : 0;
-    return Number.isFinite(n) ? Math.max(0, n) : 0;
-  } catch { return 0; }
-}
-function writeEmeraldFor(uid: string | null | undefined, n: number) {
-  const val = Math.max(0, Math.floor(n));
-  try { localStorage.setItem(emeraldKeyFor(uid), String(val)); } catch { /* ignore */ }
-  // Mirror best-effort no user_metadata (sobrevive a limpezas de localStorage/troca de device)
-  if (uid) {
-    import("@/integrations/supabase/client").then(({ supabase }) => {
-      supabase.auth.updateUser({ data: { emeralds: val } }).catch(() => { /* offline: ok */ });
-    }).catch(() => { /* ignore */ });
-  }
-}
+// Helpers de Esmeralda compartilhados em src/lib/emerald.ts (import no topo).
 
 // Taxas de conversão
-const SAFIRA_PER_EMERALD = 100;  // 100 Safiras Verdes → 1 Esmeralda
+const SAFIRA_PER_EMERALD = 200;  // 200 Safiras Verdes → 1 Esmeralda
 const EMERALD_PER_ULTRAPACK = 3; // 3 Esmeraldas → 100 Ultra Balls
 const ULTRAPACK_SIZE = 100;
 
@@ -191,19 +160,19 @@ const EMERALD_OFFERS: EmeraldOffer[] = [
   {
     id: "orb_supremo_24h",
     name: "Orb Supremo 24h",
-    desc: "24× Orb Supremo ✦✦✦ · +30% EXP por 24 horas",
+    desc: "1× Orb Supremo 24h ✦✦✦ · +30% EXP contínuo por 24 horas",
     price: 15,
     image: orb24hImg,
-    grants: [{ itemId: "orb_xp_supreme", qty: 24 }],
+    grants: [{ itemId: "orb_xp_supreme_24h", qty: 1 }],
     accent: "from-fuchsia-500 via-purple-500 to-indigo-600",
   },
   {
     id: "incenso_24h",
     name: "Incenso Raro 24h",
-    desc: "24× Incenso de Mel Raro ✨🍯 · atrai raros por 24h",
+    desc: "1× Incenso de Mel Raro 24h ✨🍯 · atrai raros por 24 horas",
     price: 12,
     image: incense24hImg,
-    grants: [{ itemId: "incenso_mel_raro", qty: 24 }],
+    grants: [{ itemId: "incenso_mel_raro_24h", qty: 1 }],
     accent: "from-amber-400 via-orange-500 to-yellow-600",
   },
   {
