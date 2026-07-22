@@ -8096,6 +8096,7 @@ function IdlePage() {
                   collection={idle.collection ?? []}
                   gold={idle.bank.gold}
                   crystals={idle.bank.crystals}
+                  safiras={idle.items?.safira_verde ?? 0}
                   isVip={isVip()}
                   gifOf={(sp) => GIF[sp]}
                   onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
@@ -8116,6 +8117,15 @@ function IdlePage() {
                       ? { ...s.bank, gold: s.bank.gold + amount }
                       : { ...s.bank, crystals: s.bank.crystals + amount },
                   }))}
+                  onSpendSafira={(amount) => {
+                    const cur = idle.items?.safira_verde ?? 0;
+                    if (cur < amount) return false;
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
+                    return true;
+                  }}
+                  onEarnSafira={(amount) => {
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
+                  }}
                   pushChat={pushChat}
                 />
               }
