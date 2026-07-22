@@ -873,12 +873,16 @@ export function CashShopModal(props: Props) {
               setTimeout(() => setConfetti(false), 2400);
               setSelected(null);
               setSupportOpen(true);
-              const sysMsg: ChatMsg = {
-                id: crypto.randomUUID(), from: "support", ts: Date.now(),
-                text: `📩 Pedido de "${selected.name}" (R$${selected.price}) recebido e está em ANÁLISE. Envie o comprovante do PicPay aqui neste chat para agilizar. Após aprovado, você receberá o código do produto por aqui.`,
-              };
-              const next = [...chatMsgs, sysMsg];
-              setChatMsgs(next); saveChat(uid, next);
+              // Registra o pedido no chat (persistido → admin vê o ticket)
+              const orderText = `📩 Pedido: "${selected.name}" — R$${selected.price}. Envio o comprovante aqui e aguardo o código.`;
+              if (uid && uid !== "guest") {
+                sendUserMessage(uid, identity?.name ?? "Treinador", orderText).catch(() => { /* ignore */ });
+              } else {
+                const sysMsg: ChatMsg = {
+                  id: crypto.randomUUID(), from: "user", ts: Date.now(), text: orderText,
+                };
+                setChatMsgs((prev) => [...prev, sysMsg]);
+              }
             }}
           />
         )}
@@ -895,9 +899,16 @@ export function CashShopModal(props: Props) {
             onSend={(t, img) => { if (t.trim() || img) sendChat(t.trim(), img); setChatInput(""); }}
             onClose={() => setSupportOpen(false)}
             endRef={chatEndRef}
+            isAdmin={isCashAdmin}
+            adminThreads={adminThreads}
+            adminTargetUid={adminTargetUid}
+            adminTargetName={adminTargetName}
+            onAdminPick={(t) => { setAdminTargetUid(t.user_id); setAdminTargetName(t.username); }}
+            onAdminBack={() => { setAdminTargetUid(null); setAdminTargetName(""); }}
           />
         )}
       </AnimatePresence>
+
 
       {/* ============ CONFETES ============ */}
       <AnimatePresence>
