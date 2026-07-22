@@ -3561,7 +3561,7 @@ function IdlePage() {
             const cm = idle.currentMap;
             const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
             const isGeliusMap = cm === "gelius1" || cm === "gelius2";
-            const ultraChance = isGeliusMap ? 0.35 : isTerryMap ? 0.20 : 0.08;
+            const ultraChance = isGeliusMap ? 0.04 : isTerryMap ? 0.02 : 0.006;
             if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
             if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
           }
@@ -4483,7 +4483,7 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `VIP +${Math.round(cfg.add*100)}% · ${cfg.label}`, "capture");
       pushChat(`Livro VIP usado (+${Math.round(cfg.add*100)}% ouro e EXP por ${cfg.label}).`, "cap");
-    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia") {
+    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia" || id === "egg_dragonite") {
       openEgg(id as EggId);
     } else if (id === "premium_box") {
       setIdle((s) => ({
@@ -4506,8 +4506,8 @@ function IdlePage() {
         { label: "3.000× Ultra Ball", weight: 12, apply: (it) => ({ items: { ...it, ultraball: (it.ultraball ?? 0) + 3000 } }) },
         { label: "10× Orb Supremo ✦✦✦", weight: 10, apply: (it) => ({ items: { ...it, orb_xp_supreme: (it.orb_xp_supreme ?? 0) + 10 } }) },
         { label: "10× Orb Maior ✦✦", weight: 10, apply: (it) => ({ items: { ...it, orb_xp_major: (it.orb_xp_major ?? 0) + 10 } }) },
-        { label: "10× Orb Comum ✦", weight: 10, apply: (it) => ({ items: { ...it, orb_xp: (it.orb_xp ?? 0) + 10 } }) },
-        { label: "2× de cada Orb", weight: 9, apply: (it) => ({ items: { ...it, orb_xp: (it.orb_xp ?? 0) + 2, orb_xp_major: (it.orb_xp_major ?? 0) + 2, orb_xp_supreme: (it.orb_xp_supreme ?? 0) + 2 } }) },
+        { label: "10× Orb Menor ✦", weight: 10, apply: (it) => ({ items: { ...it, orb_xp_minor: (it.orb_xp_minor ?? 0) + 10 } }) },
+        { label: "2× de cada Orb", weight: 9, apply: (it) => ({ items: { ...it, orb_xp_minor: (it.orb_xp_minor ?? 0) + 2, orb_xp_major: (it.orb_xp_major ?? 0) + 2, orb_xp_supreme: (it.orb_xp_supreme ?? 0) + 2 } }) },
         { label: "50× Stone Elemental aleatória", weight: 8, apply: (it) => { const s = pickStone(); return { items: { ...it, [s]: (it[s] ?? 0) + 50 } }; } },
         { label: "10× Stone Elemental aleatória", weight: 10, apply: (it) => { const s = pickStone(); return { items: { ...it, [s]: (it[s] ?? 0) + 10 } }; } },
         { label: "5× de cada Stone Elemental", weight: 6, apply: (it) => { const next = { ...it }; for (const s of STONES) next[s] = (next[s] ?? 0) + 5; return { items: next }; } },
@@ -4591,7 +4591,7 @@ function IdlePage() {
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
-  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia";
+  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
     egg_common: { weights: { common: 70, uncommon: 25, rare: 5 } },
     egg_rare:   { weights: { uncommon: 20, rare: 55, epic: 22, legendary: 3 } },
@@ -4600,6 +4600,7 @@ function IdlePage() {
     egg_aura:   { weights: { mythic: 100 } },
     egg_charizard: { weights: { mythic: 100 } },
     egg_lugia:  { weights: { mythic: 100 } },
+    egg_dragonite: { weights: { mythic_shiny: 100 } },
   };
 
   const rollEggRarity = (tier: EggId): Rarity => {
@@ -4621,6 +4622,8 @@ function IdlePage() {
       sp = "charizard_shiny" as Species;
     } else if (eggId === "egg_lugia") {
       sp = "lugia" as Species;
+    } else if (eggId === "egg_dragonite") {
+      sp = "dragonite_shiny" as Species;
     } else {
       const unlocked = speciesUnlockedFor(leaderLv).filter((x) => !!GIF[x]);
       const fallback = (Object.keys(GIF) as Species[]);
@@ -4628,7 +4631,7 @@ function IdlePage() {
       sp = pickFrom[Math.floor(Math.random() * pickFrom.length)] as Species;
     }
     const rarity = rollEggRarity(eggId);
-    const fixedLv = eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" ? 50 : Math.max(1, leaderLv);
+    const fixedLv = eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" ? 50 : eggId === "egg_dragonite" ? 100 : Math.max(1, leaderLv);
     const pet = makePet(sp, fixedLv, rarity as Rarity);
 
     setIdle((s) => {
