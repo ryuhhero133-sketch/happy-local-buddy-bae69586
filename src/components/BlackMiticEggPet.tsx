@@ -871,22 +871,82 @@ export function BlackMiticEggHud(props: {
                     border: "1px solid rgba(160,80,255,0.3)",
                     borderRadius: 10, padding: 12,
                   }}>
-                    <div style={{ fontSize: 11, color: "#e0b8ff", marginBottom: 8, letterSpacing: 1 }}>◆ HISTÓRICO</div>
-                    {selected.history.length === 0 ? (
-                      <div style={{ fontSize: 9, color: "#8a6ab0", textAlign: "center", padding: 8 }}>Nenhuma alimentação ainda.</div>
+                    <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                      {([
+                        { id: "journal", label: `◆ DIÁRIO (${selected.journal.length})` },
+                        { id: "feeds",   label: `◆ ALIMENTAÇÕES (${selected.history.length})` },
+                      ] as const).map((t) => {
+                        const active = tab === t.id;
+                        return (
+                          <button key={t.id} onClick={() => setTab(t.id)} style={{
+                            flex: 1, padding: "6px 8px", fontSize: 9, letterSpacing: 1,
+                            background: active
+                              ? "linear-gradient(180deg, rgba(160,80,255,0.45), rgba(120,40,220,0.2))"
+                              : "rgba(20,8,40,0.6)",
+                            border: `1px solid ${active ? "#c58bff" : "rgba(160,80,255,0.3)"}`,
+                            color: active ? "#fff" : "#a888c8",
+                            borderRadius: 6, cursor: "pointer",
+                            boxShadow: active ? "0 0 8px rgba(160,80,255,0.5)" : "none",
+                          }}>{t.label}</button>
+                        );
+                      })}
+                    </div>
+
+                    {tab === "journal" ? (
+                      selected.journal.length === 0 ? (
+                        <div style={{ fontSize: 9, color: "#8a6ab0", textAlign: "center", padding: 10, lineHeight: 1.6 }}>
+                          O ovo ainda dorme.<br />Ative a incubação para ouvi-lo.
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto", paddingRight: 4 }}>
+                          {selected.journal.map((j, i) => {
+                            const meta = MOOD_META[j.mood];
+                            const el = j.element ? ELEMENTS.find(x => x.id === j.element) : null;
+                            const ago = Math.floor((now - j.ts) / 60000);
+                            const when = ago < 1 ? "agora mesmo" : ago < 60 ? `há ${ago} min` : ago < 60 * 24 ? `há ${Math.floor(ago / 60)}h` : `há ${Math.floor(ago / (60 * 24))}d`;
+                            return (
+                              <div key={i} style={{
+                                display: "flex", gap: 8, alignItems: "flex-start",
+                                padding: "8px 10px",
+                                background: `linear-gradient(180deg, ${meta.color}18, rgba(0,0,0,0.35))`,
+                                border: `1px solid ${meta.color}55`,
+                                borderLeft: `3px solid ${meta.color}`,
+                                borderRadius: 6,
+                              }}>
+                                <div style={{
+                                  fontSize: 14, color: meta.color, lineHeight: 1,
+                                  textShadow: `0 0 6px ${meta.color}`,
+                                }}>{meta.icon}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: 8, color: meta.color, letterSpacing: 1, marginBottom: 3 }}>
+                                    {meta.label.toUpperCase()}{el ? ` · ${el.emoji} ${el.label}` : ""} · <span style={{ color: "#8a6ab0" }}>{when}</span>
+                                  </div>
+                                  <div style={{ fontSize: 10, color: "#f0e6ff", lineHeight: 1.55, fontFamily: "ui-monospace, monospace", fontStyle: "italic" }}>
+                                    “{j.text}”
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )
                     ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 120, overflowY: "auto" }}>
-                        {selected.history.map((h, i) => {
-                          const el = ELEMENTS.find(e => e.id === h.element)!;
-                          const ago = Math.floor((now - h.ts) / 60000);
-                          return (
-                            <div key={i} style={{ fontSize: 9, color: "#c8a0e8", display: "flex", justifyContent: "space-between", padding: "2px 4px", background: "rgba(0,0,0,0.25)", borderRadius: 4 }}>
-                              <span><span style={{ color: el.color }}>{el.emoji} {el.label}</span> +{h.amount}</span>
-                              <span>{ago < 1 ? "agora" : ago < 60 ? `${ago}min` : `${Math.floor(ago/60)}h`}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      selected.history.length === 0 ? (
+                        <div style={{ fontSize: 9, color: "#8a6ab0", textAlign: "center", padding: 8 }}>Nenhuma alimentação ainda.</div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 220, overflowY: "auto" }}>
+                          {selected.history.map((h, i) => {
+                            const el = ELEMENTS.find(e => e.id === h.element)!;
+                            const ago = Math.floor((now - h.ts) / 60000);
+                            return (
+                              <div key={i} style={{ fontSize: 9, color: "#c8a0e8", display: "flex", justifyContent: "space-between", padding: "4px 6px", background: "rgba(0,0,0,0.25)", borderRadius: 4 }}>
+                                <span><span style={{ color: el.color }}>{el.emoji} {el.label}</span> +{h.amount}</span>
+                                <span>{ago < 1 ? "agora" : ago < 60 ? `${ago}min` : `${Math.floor(ago/60)}h`}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
