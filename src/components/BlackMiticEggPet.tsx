@@ -23,12 +23,12 @@ const HATCH_MS = 10 * 60 * 60 * 1000;            // 10h incubação
 const FEED_COST = 50;
 
 export const ELEMENTS = [
-  { id: "grass",    stone: "stone_grass",    label: "Planta",   color: "#3fd06b", emoji: "🌿", species: "venusaur"  },
-  { id: "fire",     stone: "stone_fire",     label: "Fogo",     color: "#ff6b3d", emoji: "🔥", species: "charizard" },
-  { id: "water",    stone: "stone_water",    label: "Água",     color: "#4fb8ff", emoji: "💧", species: "blastoise" },
-  { id: "electric", stone: "stone_electric", label: "Elétrico", color: "#ffd84d", emoji: "⚡", species: "raichu"    },
-  { id: "dark",     stone: "stone_dark",     label: "Sombrio",  color: "#a066ff", emoji: "🌑", species: "gengar"    },
-  { id: "dragon",   stone: "stone_dragon",   label: "Dragão",   color: "#ff5aa8", emoji: "🐉", species: "dragonite" },
+  { id: "grass",    stone: "stone_grass",    label: "Planta",   color: "#3fd06b", emoji: "🌿", species: "venusaur",  role: "defense" as const },
+  { id: "fire",     stone: "stone_fire",     label: "Fogo",     color: "#ff6b3d", emoji: "🔥", species: "charizard", role: "offense" as const },
+  { id: "water",    stone: "stone_water",    label: "Água",     color: "#4fb8ff", emoji: "💧", species: "blastoise", role: "defense" as const },
+  { id: "electric", stone: "stone_electric", label: "Elétrico", color: "#ffd84d", emoji: "⚡", species: "raichu",    role: "offense" as const },
+  { id: "dark",     stone: "stone_dark",     label: "Sombrio",  color: "#a066ff", emoji: "🌑", species: "gengar",    role: "offense" as const },
+  { id: "dragon",   stone: "stone_dragon",   label: "Dragão",   color: "#ff5aa8", emoji: "🐉", species: "dragonite", role: "offense" as const },
 ] as const;
 
 type ElementId = typeof ELEMENTS[number]["id"];
