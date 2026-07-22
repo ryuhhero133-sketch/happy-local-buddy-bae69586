@@ -199,10 +199,10 @@ const EMERALD_OFFERS: EmeraldOffer[] = [
   {
     id: "bau_esmeralda",
     name: "Baú de Esmeralda",
-    desc: "1× Caixa Premium ✦ · surpresas de evento",
-    price: 8,
+    desc: "Loot aleatório ✦ pode vir 300 Ultra, Orb Supremo, 1k Cristal, Incensos e mais",
+    price: 20,
     image: chestEmeraldImg,
-    grants: [{ itemId: "premium_box", qty: 1 }],
+    grants: [{ itemId: "premium_box", qty: 1 }], // fallback (rota randômica no handler)
     accent: "from-emerald-400 via-green-500 to-emerald-700",
   },
   {
