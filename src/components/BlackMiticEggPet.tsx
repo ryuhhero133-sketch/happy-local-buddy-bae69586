@@ -702,6 +702,7 @@ export function BlackMiticEggHud(props: {
           history: [{ ts: Date.now(), element: el.id, amount: FEED_COST }, ...e.history].slice(0, 20),
           lastHungerNudgeAt: Date.now(),
           lastReadyNudgeAt: 0,
+          recentFeedAt: { ...e.recentFeedAt, [el.id]: Date.now() },
         };
         ne = reactToFeed(ne, el.id);
         return ne;
