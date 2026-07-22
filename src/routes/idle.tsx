@@ -2339,6 +2339,34 @@ function IdlePage() {
       return;
     }
 
+    // CARTAGOV1..4 — Carta do Governante (entrega liberada 23/07/2026 às 01:00 BRT)
+    if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4") {
+      const UNLOCK_MS = Date.parse("2026-07-23T04:00:00Z"); // 01:00 BRT (UTC-3)
+      if (Date.now() < UNLOCK_MS) {
+        const diff = UNLOCK_MS - Date.now();
+        const hh = Math.floor(diff / 3_600_000);
+        const mm = Math.floor((diff % 3_600_000) / 60_000);
+        setCodeMsg({ kind: "err", text: `⏳ Este código será liberado em ${hh}h ${mm}m (23/07 às 01:00 BRT).` });
+        return;
+      }
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          carta_governante: (base.items.carta_governante ?? 0) + 1,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "👑 Carta do Governante entregue!" });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: 1× Carta do Governante 👑.`, "cap");
+      return;
+    }
+
 
 
 
