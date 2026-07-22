@@ -322,7 +322,29 @@ export function CashShopModal(props: Props) {
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [blackStock, setBlackStock] = useState<number>(readStock());
-  const [emerald, setEmerald] = useState<number>(readEmerald());
+  const emeraldUid = identity?.id ?? null;
+  const [emerald, setEmerald] = useState<number>(() => readEmeraldFor(emeraldUid));
+
+  // Ao trocar de conta / hidratar identidade: recarrega saldo por-uid e reconcilia com o
+  // espelho salvo no user_metadata (mantém o maior — evita perder saldo entre devices).
+  useEffect(() => {
+    if (!emeraldUid) return;
+    const local = readEmeraldFor(emeraldUid);
+    setEmerald(local);
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data }) => {
+        const remote = Number((data?.user?.user_metadata as { emeralds?: number } | null)?.emeralds ?? 0);
+        const merged = Math.max(local, Number.isFinite(remote) ? remote : 0);
+        if (merged !== local) {
+          setEmerald(merged);
+          try { localStorage.setItem(emeraldKeyFor(emeraldUid), String(merged)); } catch { /* ignore */ }
+        }
+      }).catch(() => { /* offline: ok */ });
+    }).catch(() => { /* ignore */ });
+  }, [emeraldUid]);
+  const writeEmerald = (n: number) => writeEmeraldFor(emeraldUid, n);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _readEmeraldNoop = () => readEmeraldFor(emeraldUid);
   const [convMsg, setConvMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
