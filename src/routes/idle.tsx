@@ -2444,6 +2444,33 @@ function IdlePage() {
       return;
     }
 
+    // GOV6CARDS1..4 — 6 Cartas Lendárias (single-use)
+    // GOV1CARD — 1 Carta Lendária
+    // GOV5CARDS1..2 — 5 Cartas Lendárias
+    const bigCardMap: Record<string, number> = {
+      GOV6CARDS1: 6, GOV6CARDS2: 6, GOV6CARDS3: 6, GOV6CARDS4: 6,
+      GOV1CARD: 1,
+      GOV5CARDS1: 5, GOV5CARDS2: 5,
+    };
+    if (bigCardMap[raw]) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const qty = bigCardMap[raw];
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, carta_governante: (base.items?.carta_governante ?? 0) + qty },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: `👑 +${qty} Cartas Lendárias! Fale com o Governante para trocar por ovos.` });
+      setCodeInput("");
+      pushChat(`👑 Código ${raw}: ${qty}× Carta Lendária entregue. Cada carta = 1 Black Mitic Plus Egg.`, "cap");
+      return;
+    }
+
+
 
 
 
