@@ -76,12 +76,12 @@ export function oddishEventStatus(now: number = Date.now()): OddishStatus {
   return { phase: "closed", msUntilChange: cycleMs - t, elapsedMs: elapsed };
 }
 
-/** Alterna entre os dois mapas a cada abertura. */
-export function oddishMapForCycle(now: number = Date.now()): "oddish_o1" | "oddish_o2" {
+/** Rotaciona entre os três mapas do evento (bosque → clareira → caverna). */
+export function oddishMapForCycle(now: number = Date.now()): "oddish_o1" | "oddish_o2" | "oddish_o3" {
   if (ODDISH_EVENT.startedAt === 0) return "oddish_o1";
   const cycleMs = ODDISH_EVENT.cycleHours * 60 * 60 * 1000;
-  const idx = Math.floor((now - ODDISH_EVENT.startedAt) / cycleMs);
-  return idx % 2 === 0 ? "oddish_o1" : "oddish_o2";
+  const idx = Math.floor((now - ODDISH_EVENT.startedAt) / cycleMs) % 3;
+  return idx === 0 ? "oddish_o1" : idx === 1 ? "oddish_o2" : "oddish_o3";
 }
 
 /** Espécies do pool de spawn base — épicos, escala com o nível do treinador.
