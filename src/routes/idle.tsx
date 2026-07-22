@@ -3616,6 +3616,11 @@ function IdlePage() {
             if (inGelius && !GELIUS_CAPTURABLE.has(target.sp)) {
               usedBall = null;
             }
+            // 🌿 EVENTO ODISSÉIA ODDISH — captura BLOQUEADA. Aqui só cai Stone.
+            const inOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2";
+            if (inOddishEvent) {
+              usedBall = null;
+            }
             let captured = false;
             let capturedPet: PetInstance | null = null;
             const isEventLeg = !!target.eventLegendary;
