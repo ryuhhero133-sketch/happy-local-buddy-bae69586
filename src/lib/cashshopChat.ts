@@ -1,5 +1,9 @@
 // Cash Shop tickets — chat persistido no Supabase (users ↔ admin)
+// Tabela ainda não gerada em types.ts, então usamos casts amplos.
 import { supabase } from "@/integrations/supabase/client";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = () => (supabase as any).from("cashshop_tickets");
 
 export type TicketMsg = {
   id: string;
@@ -20,8 +24,7 @@ export type AdminThreadSummary = {
 };
 
 export async function fetchThread(userId: string): Promise<TicketMsg[]> {
-  const { data, error } = await supabase
-    .from("cashshop_tickets")
+  const { data, error } = await db()
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: true })
@@ -31,7 +34,7 @@ export async function fetchThread(userId: string): Promise<TicketMsg[]> {
 }
 
 export async function sendUserMessage(userId: string, username: string, text: string, image?: string) {
-  const { error } = await supabase.from("cashshop_tickets").insert({
+  const { error } = await db().insert({
     user_id: userId, username, from_role: "user", text, image: image ?? null,
   });
   if (error) console.error("[chat] sendUserMessage", error);
@@ -39,7 +42,7 @@ export async function sendUserMessage(userId: string, username: string, text: st
 }
 
 export async function sendAdminMessage(targetUserId: string, adminName: string, text: string, image?: string) {
-  const { error } = await supabase.from("cashshop_tickets").insert({
+  const { error } = await db().insert({
     user_id: targetUserId, username: adminName, from_role: "support", text, image: image ?? null,
   });
   if (error) console.error("[chat] sendAdminMessage", error);
@@ -47,14 +50,13 @@ export async function sendAdminMessage(targetUserId: string, adminName: string, 
 }
 
 export async function fetchThreadsForAdmin(): Promise<AdminThreadSummary[]> {
-  const { data, error } = await supabase
-    .from("cashshop_tickets")
+  const { data, error } = await db()
     .select("*")
     .order("created_at", { ascending: false })
     .limit(1000);
   if (error) { console.error("[chat] fetchThreadsForAdmin", error); return []; }
   const map = new Map<string, AdminThreadSummary>();
-  for (const r of (data as TicketMsg[])) {
+  for (const r of ((data ?? []) as TicketMsg[])) {
     const cur = map.get(r.user_id);
     if (!cur) {
       map.set(r.user_id, {
@@ -75,9 +77,11 @@ export function subscribeThread(userId: string, cb: (msg: TicketMsg) => void) {
   const ch = supabase
     .channel(`ticket_${userId}`)
     .on(
-      "postgres_changes",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      "postgres_changes" as any,
       { event: "INSERT", schema: "public", table: "cashshop_tickets", filter: `user_id=eq.${userId}` },
-      (payload) => cb(payload.new as TicketMsg),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (payload: any) => cb(payload.new as TicketMsg),
     )
     .subscribe();
   return () => { supabase.removeChannel(ch); };
@@ -87,9 +91,11 @@ export function subscribeAll(cb: (msg: TicketMsg) => void) {
   const ch = supabase
     .channel("ticket_all")
     .on(
-      "postgres_changes",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      "postgres_changes" as any,
       { event: "INSERT", schema: "public", table: "cashshop_tickets" },
-      (payload) => cb(payload.new as TicketMsg),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (payload: any) => cb(payload.new as TicketMsg),
     )
     .subscribe();
   return () => { supabase.removeChannel(ch); };
