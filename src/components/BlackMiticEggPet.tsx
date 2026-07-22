@@ -138,6 +138,10 @@ function loadState(uid: string): CollectionState {
           lastCravingNudgeAt: Number(e?.lastCravingNudgeAt ?? 0),
           streakElement: (e?.streakElement ?? null) as ElementId | null,
           streakCount: Number(e?.streakCount ?? 0),
+          matchedCravings: Number(e?.matchedCravings ?? 0),
+          missedFeedings: Number(e?.missedFeedings ?? 0),
+          lastMilestone: Number(e?.lastMilestone ?? 0),
+          recentFeedAt: (e?.recentFeedAt && typeof e.recentFeedAt === "object") ? e.recentFeedAt : {},
         }))
       : [];
     return { eggs, selectedId: typeof p?.selectedId === "string" ? p.selectedId : (eggs[0]?.id ?? null) };
