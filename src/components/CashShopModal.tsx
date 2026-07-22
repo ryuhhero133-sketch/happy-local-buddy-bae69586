@@ -287,7 +287,7 @@ function Particles({ density = 40 }: { density?: number }) {
 
 // ---------- Componente principal ----------
 export function CashShopModal(props: Props) {
-  const { open, onClose, identity, wallet, codeInput, setCodeInput, codeMsg, onRedeemCode, onSpendSafiras, onGrantItem } = props;
+  const { open, onClose, identity, wallet, codeInput, setCodeInput, codeMsg, onRedeemCode, onSpendSafiras, onGrantItem, onGrantCoins, onGrantCrystals } = props;
   const [selected, setSelected] = useState<Product | null>(null);
   const [confetti, setConfetti] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
