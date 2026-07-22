@@ -13561,7 +13561,8 @@ function MarketScreen({
                         <div style={{ color: "#8a7a9c", fontSize: 11 }}>Seu anúncio</div>
                       </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: "#ff9d3d" }}>{l.price.toLocaleString()} ouro</b></div>
+                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: CUR_COLOR[l.currency ?? "gold"] }}>{l.price.toLocaleString()} {CUR_LABEL[l.currency ?? "gold"]}</b></div>
+
                     <button onClick={() => void onCancel(l).then((ok) => { if (ok) void refresh(); })}
                       style={{ width: "100%", background: "#3a1010", color: "#fff", border: "1px solid #ff6b6b55", borderRadius: 6, padding: "6px 0", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
                       Cancelar anúncio
