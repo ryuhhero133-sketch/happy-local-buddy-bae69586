@@ -1092,6 +1092,8 @@ function Field({ label, value, onChange, placeholder, type = "text" }: {
 // ---------- Chat de suporte ----------
 function SupportChat({
   trainerName, messages, input, setInput, onSend, onClose, endRef,
+  isAdmin = false, adminThreads = [], adminTargetUid = null, adminTargetName = "",
+  onAdminPick, onAdminBack,
 }: {
   trainerName: string;
   messages: ChatMsg[];
@@ -1100,6 +1102,12 @@ function SupportChat({
   onSend: (text: string, image?: string) => void;
   onClose: () => void;
   endRef: React.RefObject<HTMLDivElement | null>;
+  isAdmin?: boolean;
+  adminThreads?: AdminThreadSummary[];
+  adminTargetUid?: string | null;
+  adminTargetName?: string;
+  onAdminPick?: (t: AdminThreadSummary) => void;
+  onAdminBack?: () => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -1109,6 +1117,8 @@ function SupportChat({
     reader.readAsDataURL(f);
   };
 
+  const showList = isAdmin && !adminTargetUid;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }}
@@ -1116,44 +1126,86 @@ function SupportChat({
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-400/20 bg-black/50">
         <div className="flex items-center gap-2">
+          {isAdmin && adminTargetUid && (
+            <button
+              onClick={() => onAdminBack?.()}
+              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-emerald-300"
+              title="Voltar aos tickets"
+            >←</button>
+          )}
           <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 grid place-items-center text-lg text-black font-black">
-            S
+            {isAdmin ? "A" : "S"}
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-black animate-pulse" />
           </div>
           <div>
-            <div className="text-white font-black text-sm">Suporte IdleMon</div>
+            <div className="text-white font-black text-sm">
+              {isAdmin
+                ? (adminTargetUid ? `Ticket · ${adminTargetName || "Treinador"}` : "Tickets (Admin)")
+                : "Suporte IdleMon"}
+            </div>
             <div className="text-emerald-300 text-[10px] flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Atendente online
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              {isAdmin ? "Modo admin — todos os tickets" : "Atendente online"}
             </div>
           </div>
         </div>
         <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/30 border border-white/10 text-white/80">✕</button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {messages.length === 0 && (
-          <div className="text-center text-white/50 text-xs py-8 px-4">
-            Olá, <span className="text-emerald-300 font-bold">{trainerName}</span>! Envie o comprovante do seu pagamento aqui.
-            Assim que aprovado, você receberá o código do produto neste chat.
-          </div>
-        )}
-        {messages.map((m) => (
-          <div key={m.id} className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
-              m.from === "user"
-                ? "bg-gradient-to-br from-emerald-500 to-cyan-600 text-black rounded-br-sm"
-                : "bg-white/5 border border-white/10 text-white/90 rounded-bl-sm"
-            }`}>
-              {m.image && <img src={m.image} alt="" className="rounded-lg mb-1 max-h-40 w-auto" />}
-              <div className="whitespace-pre-wrap break-words">{m.text}</div>
-              <div className={`text-[9px] mt-1 ${m.from === "user" ? "text-black/60" : "text-white/40"}`}>
-                {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </div>
+      {showList ? (
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {adminThreads.length === 0 && (
+            <div className="text-center text-white/50 text-xs py-8 px-4">
+              Nenhum ticket ainda. Quando alguém enviar mensagem, aparece aqui em tempo real.
             </div>
-          </div>
-        ))}
-        <div ref={endRef} />
-      </div>
+          )}
+          {adminThreads.map((t) => (
+            <button
+              key={t.user_id}
+              onClick={() => onAdminPick?.(t)}
+              className="w-full text-left px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-emerald-500/15 hover:border-emerald-400/40 transition"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-white text-sm font-bold truncate">{t.username || "Treinador"}</div>
+                <div className="text-white/40 text-[10px]">{new Date(t.last_ts).toLocaleString([], { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</div>
+              </div>
+              <div className="text-white/60 text-xs truncate mt-0.5">{t.last_text}</div>
+              <div className="text-emerald-300/70 text-[10px] mt-0.5">{t.count} msg</div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          {messages.length === 0 && (
+            <div className="text-center text-white/50 text-xs py-8 px-4">
+              {isAdmin
+                ? "Sem mensagens neste ticket ainda."
+                : <>Olá, <span className="text-emerald-300 font-bold">{trainerName}</span>! Envie o comprovante do seu pagamento aqui. Assim que aprovado, você receberá o código do produto neste chat.</>}
+            </div>
+          )}
+          {messages.map((m) => {
+            // Admin: mensagens do jogador (from=user) aparecem à esquerda; as do próprio admin (from=support) à direita
+            const mine = isAdmin ? m.from === "support" : m.from === "user";
+            return (
+              <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
+                  mine
+                    ? "bg-gradient-to-br from-emerald-500 to-cyan-600 text-black rounded-br-sm"
+                    : "bg-white/5 border border-white/10 text-white/90 rounded-bl-sm"
+                }`}>
+                  {m.image && <img src={m.image} alt="" className="rounded-lg mb-1 max-h-40 w-auto" />}
+                  <div className="whitespace-pre-wrap break-words">{m.text}</div>
+                  <div className={`text-[9px] mt-1 ${mine ? "text-black/60" : "text-white/40"}`}>
+                    {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          <div ref={endRef} />
+        </div>
+      )}
+
 
       <div className="p-2 border-t border-emerald-400/20 bg-black/50 flex items-center gap-2">
         <input
