@@ -4600,7 +4600,7 @@ function IdlePage() {
     egg_aura:   { weights: { mythic: 100 } },
     egg_charizard: { weights: { mythic: 100 } },
     egg_lugia:  { weights: { mythic: 100 } },
-    egg_dragonite: { weights: { mythic_shiny: 100 } },
+    egg_dragonite: { weights: { mythic: 100 } },
   };
 
   const rollEggRarity = (tier: EggId): Rarity => {
