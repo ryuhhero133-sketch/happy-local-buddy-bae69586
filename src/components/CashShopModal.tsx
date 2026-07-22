@@ -713,11 +713,12 @@ export function CashShopModal(props: Props) {
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {EMERALD_OFFERS.map((o) => {
-                  const canBuy = emerald >= o.price;
+                  const blocked = o.id === "ovo_mitico_aleatorio";
+                  const canBuy = !blocked && emerald >= o.price;
                   return (
                     <div
                       key={o.id}
-                      className="group relative rounded-xl border border-emerald-400/30 bg-gradient-to-b from-black/70 to-emerald-950/40 p-3 flex flex-col hover:border-emerald-300/70 hover:shadow-[0_0_24px_rgba(52,211,153,.35)] transition"
+                      className={"group relative rounded-xl border border-emerald-400/30 bg-gradient-to-b from-black/70 to-emerald-950/40 p-3 flex flex-col transition " + (blocked ? "opacity-60" : "hover:border-emerald-300/70 hover:shadow-[0_0_24px_rgba(52,211,153,.35)]")}
                     >
                       <div className={`pointer-events-none absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br ${o.accent} blur-md -z-0`} />
                       <div className="relative aspect-square rounded-lg bg-gradient-to-br from-black/80 to-emerald-950/60 border border-emerald-400/20 overflow-hidden mb-2 grid place-items-center">
@@ -727,15 +728,20 @@ export function CashShopModal(props: Props) {
                           loading="lazy"
                           width={128}
                           height={128}
-                          className="w-[85%] h-[85%] object-contain drop-shadow-[0_0_10px_rgba(52,211,153,.55)] group-hover:scale-105 transition-transform"
+                          className={"w-[85%] h-[85%] object-contain drop-shadow-[0_0_10px_rgba(52,211,153,.55)] transition-transform " + (blocked ? "grayscale" : "group-hover:scale-105")}
                         />
+                        {blocked && (
+                          <div className="absolute inset-0 grid place-items-center bg-black/60">
+                            <span className="px-2 py-0.5 rounded-md bg-red-500/80 text-white text-[10px] font-black tracking-widest">ESGOTADO</span>
+                          </div>
+                        )}
                       </div>
                       <div className="relative text-white font-black text-[13px] leading-tight mb-0.5">{o.name}</div>
                       <div className="relative text-white/60 text-[10.5px] leading-snug mb-2 line-clamp-2">{o.desc}</div>
                       <div className="relative flex items-center justify-between gap-2 mt-auto">
                         <span className="text-emerald-200 font-black text-sm">💠 {o.price}</span>
                         <button
-                          onClick={() => buyEmeraldOffer(o)}
+                          onClick={() => !blocked && buyEmeraldOffer(o)}
                           disabled={!canBuy}
                           className={
                             "relative px-3 py-1.5 rounded-lg font-black text-[11px] tracking-widest transition " +
@@ -744,7 +750,7 @@ export function CashShopModal(props: Props) {
                               : "text-white/50 bg-white/5 border border-white/10 cursor-not-allowed")
                           }
                         >
-                          COMPRAR
+                          {blocked ? "ESGOTADO" : "COMPRAR"}
                         </button>
                       </div>
                     </div>
