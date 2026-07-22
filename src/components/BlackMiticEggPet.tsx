@@ -717,24 +717,16 @@ export function BlackMiticEggHud(props: {
     const remain = Math.max(0, (selected.activatedAt + HATCH_MS) - Date.now());
     if (remain > 0) { onNotify?.(`Ainda faltam ${fmt(remain)} para chocar.`); return; }
     const el = ELEMENTS.find(e => e.id === dominantElement(selected.affinity))!;
-    // 5 traits — pega do pool épico/raro para valorizar o mítico
-    const TRAIT_POOL = [
-      "alpha", "prismatico", "ceifador", "eterno", "dourado",
-      "eletrizado", "precioso", "prodigio", "mistico", "esquivo", "vampirico", "colosso",
-      "sabio", "curador", "brutal", "guardiao",
-    ];
-    const picked = new Set<string>();
-    while (picked.size < 5 && picked.size < TRAIT_POOL.length) {
-      picked.add(TRAIT_POOL[Math.floor(Math.random() * TRAIT_POOL.length)]);
-    }
-    const traits = Array.from(picked);
+    const arch = computeArchetype(selected.affinity);
+    const care = computeCareScore(selected);
+    const traits = rollBlackMiticTraits(selected, arch);
     onHatched(el.species, el.id, traits);
     // remove o ovo do painel (parent decrementa itemCount, mas removemos aqui também para responsividade)
     persist((s) => {
       const eggs = s.eggs.filter(e => e.id !== selected.id);
       return { eggs, selectedId: eggs[0]?.id ?? null };
     });
-    onNotify?.(`✦ Nasceu um Black Mitic Plus (${el.label})! Confira sua coleção.`);
+    onNotify?.(`✦ Nasceu um Black Mitic Plus (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100!`);
   };
 
   if (!open) return null;
