@@ -1730,6 +1730,10 @@ function IdlePage() {
   // Governante NPC — abre a cutscene de diálogo ao entrar no Salão do Governante.
   const [governanteOpen, setGovernanteOpen] = useState(false);
   useEffect(() => {
+    // Zona sagrada — limpa qualquer inimigo que tenha ficado do mapa anterior.
+    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+      setEnemies([]);
+    }
     if (idle.currentMap !== "governante_hall") return;
     setGovernanteOpen(true);
   }, [idle.currentMap]);
@@ -2462,17 +2466,24 @@ function IdlePage() {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
       const qty = bigCardMap[raw];
+      // Cada carta = 1 Black Mitic Plus Egg (consumida pelo Governante).
+      // Também garante a Carta do Governante (chave de teleporte, não consumida) na primeira vez.
+      const hasKey = (base.items?.carta_governante ?? 0) > 0;
       const next: IdleState = {
         ...base,
-        items: { ...base.items, carta_governante: (base.items?.carta_governante ?? 0) + qty },
+        items: {
+          ...base.items,
+          carta_incubadora: (base.items?.carta_incubadora ?? 0) + qty,
+          carta_governante: (base.items?.carta_governante ?? 0) + (hasKey ? 0 : 1),
+        },
         redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
       };
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: `👑 +${qty} Cartas Lendárias! Fale com o Governante para trocar por ovos.` });
+      setCodeMsg({ kind: "ok", text: `👑 +${qty} Cartas da Incubadora! Fale com o Governante para trocar por ovos.` });
       setCodeInput("");
-      pushChat(`👑 Código ${raw}: ${qty}× Carta Lendária entregue. Cada carta = 1 Black Mitic Plus Egg.`, "cap");
+      pushChat(`🔮 Código ${raw}: ${qty}× Carta da Incubadora Lendária entregue. Cada carta = 1 Black Mitic Plus Egg.`, "cap");
       return;
     }
 
@@ -7329,6 +7340,48 @@ function IdlePage() {
                 </div>
               );
             })()}
+
+            {/* 👑 NPC Governante — visível apenas no Salão do Governante */}
+            {idle.currentMap === "governante_hall" && (() => {
+              const npcX = WORLD_W / 2, npcY = WORLD_H / 2 - 40;
+              return (
+                <div
+                  onClick={() => { playClick(); setGovernanteOpen(true); }}
+                  title="Governante — Entregue Cartas da Incubadora para receber Black Mitic Plus Egg"
+                  style={{
+                    position: "absolute",
+                    left: npcX - 60, top: npcY - 90,
+                    width: 120, height: 160,
+                    cursor: "pointer",
+                    zIndex: Math.round(npcY),
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.7))",
+                  }}
+                >
+                  <div style={{
+                    position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)",
+                    background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
+                    border: "1px solid #ffd44a", color: "#ffd44a",
+                    borderRadius: 999, padding: "3px 10px",
+                    fontSize: 11, fontWeight: 900, whiteSpace: "nowrap",
+                    boxShadow: "0 0 12px rgba(255,212,74,0.7)",
+                    animation: "pulse 1.6s ease-in-out infinite",
+                  }}>👑 GOVERNANTE</div>
+                  <img
+                    src={npcGovernanteAsset.url}
+                    alt="Governante"
+                    width={120} height={160}
+                    style={{ width: 120, height: 160, imageRendering: "pixelated", objectFit: "contain" }}
+                  />
+                  <div style={{
+                    position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
+                    width: 90, height: 12, borderRadius: "50%",
+                    background: "radial-gradient(ellipse, rgba(255,212,74,0.6), transparent 70%)",
+                  }} />
+                </div>
+              );
+            })()}
+
 
 
 
