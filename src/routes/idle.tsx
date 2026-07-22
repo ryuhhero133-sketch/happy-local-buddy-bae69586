@@ -8712,6 +8712,13 @@ function IdlePage() {
                       { id: "cadeia_f1", x: 92, y: 58 },
                       // gelius1 só aparece durante o evento (a cada 2h)
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 90, y: 84 }] : []),
+                      // Continente do Governante — só aparece com Carta do Governante na mochila
+                      ...((idle.items?.carta_governante ?? 0) > 0
+                        ? [
+                            { id: "absol_start" as IdleMapId, x: 8, y: 90 },
+                            { id: "governante_hall" as IdleMapId, x: 4, y: 82 },
+                          ]
+                        : []),
                     ];
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
