@@ -354,11 +354,58 @@ export function CashShopModal(props: Props) {
 
 
   const uid = identity?.id ?? "guest";
+  const isCashAdmin = typeof window !== "undefined"
+    && localStorage.getItem("rubym.cashShop.isAdmin") === "1";
+
+  // Alvo do painel admin (uid do jogador cujo ticket está sendo lido)
+  const [adminTargetUid, setAdminTargetUid] = useState<string | null>(null);
+  const [adminTargetName, setAdminTargetName] = useState<string>("");
+  const [adminThreads, setAdminThreads] = useState<AdminThreadSummary[]>([]);
+
+  // Uid efetivamente exibido no painel de chat
+  const chatUid = isCashAdmin ? adminTargetUid : uid;
+
+  const ticketToChat = (t: TicketMsg): ChatMsg => ({
+    id: t.id,
+    from: t.from_role,
+    text: t.text,
+    ts: new Date(t.created_at).getTime(),
+    image: t.image ?? undefined,
+  });
+
+  // Carrega lista de tickets (admin) ao abrir
+  const reloadAdminList = useCallback(async () => {
+    if (!isCashAdmin) return;
+    const list = await fetchThreadsForAdmin();
+    setAdminThreads(list);
+  }, [isCashAdmin]);
 
   useEffect(() => {
     if (!open) return;
-    setChatMsgs(loadChat(uid));
-  }, [open, uid]);
+    if (isCashAdmin) {
+      reloadAdminList();
+      const unsub = subscribeAll(() => { reloadAdminList(); });
+      return () => { unsub(); };
+    }
+  }, [open, isCashAdmin, reloadAdminList]);
+
+  // Carrega thread ativa + subscribe
+  useEffect(() => {
+    if (!open) return;
+    if (!chatUid || chatUid === "guest") { setChatMsgs([]); return; }
+    let alive = true;
+    (async () => {
+      const rows = await fetchThread(chatUid);
+      if (!alive) return;
+      setChatMsgs(rows.map(ticketToChat));
+    })();
+    const unsub = subscribeThread(chatUid, (row) => {
+      setChatMsgs((prev) =>
+        prev.some((m) => m.id === row.id) ? prev : [...prev, ticketToChat(row)],
+      );
+    });
+    return () => { alive = false; unsub(); };
+  }, [open, chatUid]);
 
   useEffect(() => {
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -366,22 +413,22 @@ export function CashShopModal(props: Props) {
 
   if (!open) return null;
 
-  const sendChat = (text: string, image?: string) => {
-    const msg: ChatMsg = { id: crypto.randomUUID(), from: "user", text, ts: Date.now(), image };
-    const next = [...chatMsgs, msg];
-    // resposta automática
-    setTimeout(() => {
-      const bot: ChatMsg = {
-        id: crypto.randomUUID(), from: "support", ts: Date.now(),
-        text: "✅ Recebemos! Nosso time analisará seu pagamento em breve. Após aprovado, enviaremos aqui o código do produto.",
-      };
-      const withBot = [...next, bot];
-      setChatMsgs(withBot);
-      saveChat(uid, withBot);
-    }, 800);
-    setChatMsgs(next);
-    saveChat(uid, next);
+  const sendChat = async (text: string, image?: string) => {
+    if (!text.trim() && !image) return;
+    if (isCashAdmin) {
+      if (!adminTargetUid) return;
+      const optimistic: ChatMsg = { id: crypto.randomUUID(), from: "support", text, ts: Date.now(), image };
+      setChatMsgs((prev) => [...prev, optimistic]);
+      await sendAdminMessage(adminTargetUid, identity?.name ?? "Suporte", text, image);
+      reloadAdminList();
+      return;
+    }
+    if (!uid || uid === "guest") return;
+    const optimistic: ChatMsg = { id: crypto.randomUUID(), from: "user", text, ts: Date.now(), image };
+    setChatMsgs((prev) => [...prev, optimistic]);
+    await sendUserMessage(uid, identity?.name ?? "Treinador", text, image);
   };
+
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-6">
