@@ -761,20 +761,26 @@ function CreateListing(props: {
 
         <div>
           <div style={{ fontSize: 10, color: "#c8b8d0", fontWeight: 900, marginBottom: 4 }}>MOEDA</div>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setCurrency("gold")} style={{
-              flex: 1, padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 11,
-              border: `1px solid ${currency === "gold" ? "#f5cf6b" : "#3a2a4a"}`,
-              background: currency === "gold" ? "#2a1c05" : "transparent",
-              color: currency === "gold" ? "#f5cf6b" : "#c8b8d0", cursor: "pointer",
-            }}>💰 OURO</button>
-            <button onClick={() => isVip && setCurrency("crystal")} disabled={!isVip} title={isVip ? "" : "Requer VIP"} style={{
-              flex: 1, padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 11,
-              border: `1px solid ${currency === "crystal" ? "#6bd4ff" : "#3a2a4a"}`,
-              background: currency === "crystal" ? "#0f2b3d" : "transparent",
-              color: !isVip ? "#5a5a70" : (currency === "crystal" ? "#6bd4ff" : "#c8b8d0"),
-              cursor: isVip ? "pointer" : "not-allowed", opacity: isVip ? 1 : 0.6,
-            }}>💎 CRISTAL {!isVip && "🔒"}</button>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {(["gold","crystal","safira","esmerald"] as Currency[]).map(c => {
+              const locked = c !== "gold" && !isVip;
+              const active = currency === c;
+              const col = active ? "#000" : (locked ? "#5a5a70" : "#c8b8d0");
+              const bg = active ? CUR_COLOR[c] : "transparent";
+              const bd = active ? CUR_COLOR[c] : "#3a2a4a";
+              return (
+                <button key={c} onClick={() => !locked && setCurrency(c)} disabled={locked}
+                  title={locked ? "Requer VIP" : ""}
+                  style={{
+                    padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 11,
+                    border: `1px solid ${bd}`, background: bg, color: col,
+                    cursor: locked ? "not-allowed" : "pointer", opacity: locked ? 0.55 : 1,
+                    textTransform: "uppercase", letterSpacing: 0.4,
+                  }}>
+                  {CUR_ICON[c]} {c === "gold" ? "OURO" : c === "crystal" ? "CRISTAL" : c === "safira" ? "SAFIRA" : "ESMERALDA"} {locked && "🔒"}
+                </button>
+              );
+            })}
           </div>
         </div>
 
