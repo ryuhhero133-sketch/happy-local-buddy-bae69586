@@ -8712,6 +8712,13 @@ function IdlePage() {
                       { id: "cadeia_f1", x: 92, y: 58 },
                       // gelius1 só aparece durante o evento (a cada 2h)
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 90, y: 84 }] : []),
+                      // Continente do Governante — só aparece com Carta do Governante na mochila
+                      ...((idle.items?.carta_governante ?? 0) > 0
+                        ? [
+                            { id: "absol_start" as IdleMapId, x: 8, y: 90 },
+                            { id: "governante_hall" as IdleMapId, x: 4, y: 82 },
+                          ]
+                        : []),
                     ];
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
@@ -10589,31 +10596,18 @@ function IdlePage() {
           pushChat(`✦ Black Mitic Plus (${element}) nasceu com 5 traits! Confira sua coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
-        hasIncubatorCard={(idle.items?.carta_incubadora ?? 0) > 0 || !!idle.redeemedCodes?.__incubator_unlocked}
-        onActivateEgg={() => {
-          const base = idleRef.current;
-          if (base.redeemedCodes?.__incubator_unlocked) return;
-          // Consome 1 Carta da Incubadora e destrava a incubadora PERMANENTEMENTE.
-          const cards = base.items?.carta_incubadora ?? 0;
-          const nextItems = { ...(base.items ?? {}) };
-          if (cards > 0) nextItems.carta_incubadora = cards - 1;
-          setIdle((s) => ({
-            ...s,
-            items: nextItems,
-            redeemedCodes: { ...(s.redeemedCodes ?? {}), __incubator_unlocked: true },
-          }));
-          pushChat("🔮 Incubadora Lendária desbloqueada permanentemente!", "cap");
-        }}
+        hasIncubatorCard={true}
+        onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
       />
 
       <GovernanteDialog
         open={governanteOpen}
-        cards={idle.items?.carta_governante ?? 0}
+        cards={idle.items?.carta_incubadora ?? 0}
         currentEggs={idle.items?.black_mitic_egg ?? 0}
         onClose={() => setGovernanteOpen(false)}
         onExchange={(qty) => {
           const base = idleRef.current;
-          const cards = base.items?.carta_governante ?? 0;
+          const cards = base.items?.carta_incubadora ?? 0;
           const eggs = base.items?.black_mitic_egg ?? 0;
           const maxByEggCap = Math.max(0, 6 - eggs);
           const use = Math.min(qty, cards, maxByEggCap);
@@ -10622,11 +10616,11 @@ function IdlePage() {
             ...s,
             items: {
               ...(s.items ?? {}),
-              carta_governante: (s.items?.carta_governante ?? 0) - use,
+              carta_incubadora: (s.items?.carta_incubadora ?? 0) - use,
               black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + use,
             },
           }));
-          pushChat(`👑 Governante entregou ${use}× Black Mitic Plus Egg. Cuide bem deles.`, "cap");
+          pushChat(`👑 Governante consumiu ${use}× Carta da Incubadora e entregou ${use}× Black Mitic Plus Egg.`, "cap");
         }}
       />
     </div>
@@ -11597,7 +11591,7 @@ function TabOverlay({
           key: "Chave · abre baús trancados encontrados no mundo.",
           chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
           carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
-          carta_incubadora: "Carta da Incubadora Lendária 🔮 · desbloqueia a ATIVAÇÃO da Incubadora do Black Mitic Plus Egg. NÃO é consumida.",
+          carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
           stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
           stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
           stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
