@@ -1,6 +1,11 @@
 // LOJINHA CASH — Premium redesign (Black Mythic Plus edition)
 // Design: glassmorphism, particles, framer-motion, cinematic banner.
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  fetchThread, sendUserMessage, sendAdminMessage, subscribeThread,
+  fetchThreadsForAdmin, subscribeAll,
+  type TicketMsg, type AdminThreadSummary,
+} from "@/lib/cashshopChat";
 import { motion, AnimatePresence } from "framer-motion";
 import blackEggImg from "@/assets/black-mythic-plus-egg.jpg";
 import rubyVipImg from "@/assets/ruby-vip.jpg";
