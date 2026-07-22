@@ -138,6 +138,9 @@ import mapMythshinyEventAsset from "@/assets/map-mythshiny-event.png.asset.json"
 import mapOddish1Asset from "@/assets/map-oddish-1.png.asset.json";
 import mapOddish2Asset from "@/assets/map-oddish-2.png.asset.json";
 import mapOddish3Url from "@/assets/map-oddish3.png";
+import absolStartMapAsset from "@/assets/absol-start-map.png.asset.json";
+import governanteHallMapAsset from "@/assets/governante-hall-map.png.asset.json";
+import npcGovernanteAsset from "@/assets/npc-governante.png.asset.json";
 import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
 import oddishEventGifAsset from "@/assets/oddish-event.gif.asset.json";
 import oddishShinyGifAsset from "@/assets/oddish-shiny.gif.asset.json";
@@ -429,7 +432,9 @@ type IdleMapId =
   // Evento Mítico Shiny — abre 5min a cada 1h
   | "evento_myth"
   // Evento Oddish Odyssey — 24h aberto, 3 mapas conectados por portal
-  | "oddish_o1" | "oddish_o2" | "oddish_o3";
+  | "oddish_o1" | "oddish_o2" | "oddish_o3"
+  // Continente do Governante — acesso via Carta do Governante
+  | "absol_start" | "governante_hall";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -483,6 +488,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   oddish_o1: { name: "Odisséia Oddish — Bosque",   diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
   oddish_o2: { name: "Odisséia Oddish — Clareira", diff: "EVENTO", bg: assetUrlFromJson(mapOddish2Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
   oddish_o3: { name: "Odisséia Oddish — Caverna Sombria", diff: "EVENTO", bg: mapOddish3Url, rate: 9.0, minLevel: 1, maxLevel: 9999, element: "Fantasma/Caos", stars: 7 },
+  absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
+  governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -1718,6 +1725,19 @@ function IdlePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [energyTick, idle.currentMap]);
+
+  // Primeiro contato com o Governante — entrega 1 Black Mitic Plus Egg (única vez por conta)
+  useEffect(() => {
+    if (idle.currentMap !== "governante_hall") return;
+    if (idle.redeemedCodes?.__met_governante) return;
+    setIdle((s) => ({
+      ...s,
+      items: { ...s.items, black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + 1 },
+      redeemedCodes: { ...(s.redeemedCodes ?? {}), __met_governante: true },
+    }));
+    pushChat("👑 Governante: \"Você chegou, treinador... Aceite este Black Mitic Plus Egg. Cuide dele com sabedoria.\"", "cap");
+  }, [idle.currentMap]);
+
   // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
   // para a Casa Azul (5💎 = 5min; sem cristais = 1h grátis). Assim ele sai
   // do time e o próximo assume — o treinador não fica preso.
@@ -2393,9 +2413,39 @@ function IdlePage() {
       return;
     }
 
-    // CARTAGOV1..4 — desativados
-    if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4") {
-      setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
+    // CARTAGOV1..5 — Carta do Governante (single-use por conta, não consome no uso)
+    if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4" || raw === "CARTAGOV5") {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, carta_governante: (base.items?.carta_governante ?? 0) + 1 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "👑 Carta do Governante recebida! Vá ao Mapa Mundi para viajar." });
+      setCodeInput("");
+      pushChat(`👑 Código ${raw}: Carta do Governante entregue — libera o Continente do Governante.`, "cap");
+      return;
+    }
+
+    // INCUBLENDA1..5 — Carta da Incubadora Lendária (single-use)
+    if (raw === "INCUBLENDA1" || raw === "INCUBLENDA2" || raw === "INCUBLENDA3" || raw === "INCUBLENDA4" || raw === "INCUBLENDA5") {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, carta_incubadora: (base.items?.carta_incubadora ?? 0) + 1 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🔮 Carta da Incubadora Lendária recebida!" });
+      setCodeInput("");
+      pushChat(`🔮 Código ${raw}: Carta da Incubadora Lendária entregue.`, "cap");
       return;
     }
 
@@ -8312,6 +8362,12 @@ function IdlePage() {
                   { key: "o3-o1", target: "oddish_o1", x: 80, y: WORLD_H - 100, arriveX: WORLD_W - 120, arriveY: 120, color: "#7ef27a" },
                   { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
                 ],
+                absol_start: [
+                  { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
+                ],
+                governante_hall: [
+                  { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
+                ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
@@ -10509,6 +10565,7 @@ function IdlePage() {
           pushChat(`✦ Black Mitic Plus (${element}) nasceu com 5 traits! Confira sua coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
+        hasIncubatorCard={(idle.items?.carta_incubadora ?? 0) > 0}
       />
     </div>
 
@@ -11435,6 +11492,7 @@ function TabOverlay({
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
           safira_verde: "Safira Verde 💚",
           carta_governante: "Carta do Governante 👑",
+          carta_incubadora: "Carta da Incubadora Lendária 🔮",
           stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
@@ -11476,7 +11534,8 @@ function TabOverlay({
           revive: "Reviver · devolve um pokémon caído com HP parcial.",
           key: "Chave · abre baús trancados encontrados no mundo.",
           chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
-          carta_governante: "Carta do Governante 👑 · item comemorativo raro.",
+          carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
+          carta_incubadora: "Carta da Incubadora Lendária 🔮 · desbloqueia a ATIVAÇÃO da Incubadora do Black Mitic Plus Egg. NÃO é consumida.",
           stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
           stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
           stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
