@@ -530,7 +530,16 @@ export function BlackMiticEggHud(props: {
     if (!selected) return;
     persist((s) => ({
       ...s,
-      eggs: s.eggs.map(e => e.id === selected.id ? { ...e, activated: true, activatedAt: Date.now() } : e),
+      eggs: s.eggs.map(e => {
+        if (e.id !== selected.id) return e;
+        let ne: EggInstance = { ...e, activated: true, activatedAt: Date.now() };
+        ne = pushJournal(ne, "greeting", pick(GREETINGS));
+        const craving = pickCraving(ne);
+        ne = { ...ne, cravingElement: craving, cravingSince: Date.now() };
+        const el = ELEMENTS.find(x => x.id === craving)!;
+        ne = pushJournal(ne, "craving", pick(CRAVING_LINES[craving]) + ` (${el.emoji} ${el.label})`, craving);
+        return ne;
+      }),
     }));
     onNotify?.("Incubação iniciada! 10 horas para chocar.");
   };
@@ -545,13 +554,20 @@ export function BlackMiticEggHud(props: {
     if (!onConsumeStone(el.stone, FEED_COST)) { onNotify?.("Falha ao consumir a Stone."); return; }
     persist((s) => ({
       ...s,
-      eggs: s.eggs.map(e => e.id === selected.id ? {
-        ...e,
-        affinity: { ...e.affinity, [el.id]: (e.affinity[el.id] ?? 0) + FEED_COST },
-        totalFed: e.totalFed + FEED_COST,
-        lastFedAt: Date.now(),
-        history: [{ ts: Date.now(), element: el.id, amount: FEED_COST }, ...e.history].slice(0, 20),
-      } : e),
+      eggs: s.eggs.map(e => {
+        if (e.id !== selected.id) return e;
+        let ne: EggInstance = {
+          ...e,
+          affinity: { ...e.affinity, [el.id]: (e.affinity[el.id] ?? 0) + FEED_COST },
+          totalFed: e.totalFed + FEED_COST,
+          lastFedAt: Date.now(),
+          history: [{ ts: Date.now(), element: el.id, amount: FEED_COST }, ...e.history].slice(0, 20),
+          lastHungerNudgeAt: Date.now(),
+          lastReadyNudgeAt: 0,
+        };
+        ne = reactToFeed(ne, el.id);
+        return ne;
+      }),
     }));
     onNotify?.(`+${FEED_COST} ${el.label} → afinidade aumentada.`);
   };
