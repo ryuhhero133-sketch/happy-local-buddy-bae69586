@@ -5494,13 +5494,14 @@ function IdlePage() {
   };
 
   const tradeForOrb = (orbId: OrbForgeId, uids: string[], fuelUids: string[], rarity?: Rarity) => {
-    // Deduce rarity from the first selected pokemon when not provided (multi-tier orbs share orbId).
-    let inferred: Rarity | undefined = rarity;
+    // Multi-tier orbs share the same item id; always resolve the recipe by the explicit UI rarity.
+    const normalizeForgeRarity = (r?: Rarity): Rarity | undefined => (r === "mythic_shiny" ? "mythic" : r);
+    let inferred: Rarity | undefined = normalizeForgeRarity(rarity);
     if (!inferred) {
       const col0 = idle.collection ?? [];
       for (const u of uids) {
         const c = col0.find((x) => x.uid === u);
-        if (c) { inferred = c.rarity; break; }
+        if (c) { inferred = normalizeForgeRarity(c.rarity); break; }
       }
     }
     const trade = ORB_TRADES.find((t) => t.orbId === orbId && (!inferred || t.rarity === inferred))
@@ -5523,7 +5524,7 @@ function IdlePage() {
 
     // Leitura pura do estado atual (sem efeitos colaterais dentro do updater)
     const col = idle.collection ?? [];
-    const selected = col.filter((c) => uniqUids.includes(c.uid) && c.rarity === trade.rarity);
+    const selected = col.filter((c) => uniqUids.includes(c.uid) && (c.rarity === trade.rarity || (trade.rarity === "mythic" && c.rarity === "mythic_shiny")));
     const fuelSel = col
       .filter((c) => uniqFuel.includes(c.uid) && (c.rarity === "common" || c.rarity === "uncommon" || c.rarity === "rare") && c.rarity !== trade.rarity)
       .slice(0, MAX_FUEL);
@@ -9415,6 +9416,8 @@ function IdlePage() {
       {/* ═══ Modal do NPC Trocador (aberto ao clicar no NPC no mapa) ═══ */}
       {worldTraderOpen && (() => {
         const collection = idle.collection ?? [];
+        const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
+        const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
         return (
           <div
             onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
@@ -9450,13 +9453,17 @@ function IdlePage() {
                   <div style={{ color: "#b8a8c8", fontSize: 12, marginBottom: 10 }}>Escolha a raridade da troca:</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     {ORB_TRADES.map((t) => {
-                      const available = collection.filter((c) => c.rarity === t.rarity).length;
+                      const available = collection.filter((c) =>
+                        (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
+                        && !teamUidsForTrade.has(c.uid)
+                        && !benchUidsForTrade.has(c.uid),
+                      ).length;
                       const reqOk = !t.requires || (idle.items[t.requires.itemId] ?? 0) >= t.requires.qty;
                       const reqOwned = t.requires ? (idle.items[t.requires.itemId] ?? 0) : 0;
                       const canTrade = available >= t.count && reqOk;
                       const owned = idle.items[t.orbId] ?? 0;
                       return (
-                        <div key={t.orbId} style={{
+                        <div key={`${t.orbId}-${t.rarity}`} style={{
                           background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                           border: `2px solid ${t.color}66`, borderRadius: 14, padding: 14,
                           display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
@@ -9509,7 +9516,7 @@ function IdlePage() {
                 const pick = worldTraderPick;
                 const teamU = new Set(team.map((p) => p.uid));
                 const benchU = new Set(restingBench.map((p) => p.uid));
-                const eligible = collection.filter((c) => c.rarity === pick.rarity && !teamU.has(c.uid) && !benchU.has(c.uid));
+                const eligible = collection.filter((c) => (c.rarity === pick.rarity || (pick.rarity === "mythic" && c.rarity === "mythic_shiny")) && !teamU.has(c.uid) && !benchU.has(c.uid));
                 const fuelRarities: FuelRarity[] = (["common", "uncommon", "rare"] as FuelRarity[]).filter((r) => r !== pick.rarity);
                 const fuelPool = collection.filter((c) => (c.rarity === "common" || c.rarity === "uncommon" || c.rarity === "rare") && c.rarity !== pick.rarity && !teamU.has(c.uid) && !benchU.has(c.uid));
                 const activeTab: FuelRarity = fuelRarities.includes(worldTraderFuelTab) ? worldTraderFuelTab : fuelRarities[0];
@@ -9689,7 +9696,7 @@ function IdlePage() {
                           setWorldTraderFuel(new Set());
                           // NÃO fechar o modal aqui — se fechar, o overlay do orbAnim
                           // (que está dentro deste IIFE) desmonta e a animação some.
-                          tradeForOrb(pick.orbId, uids, fuel);
+                          tradeForOrb(pick.orbId, uids, fuel, pick.rarity);
                         }}
                         style={{
                           flex: 2, padding: "10px", fontWeight: 900,
@@ -10858,7 +10865,7 @@ function TabOverlay({
   onUnlockSkin: (id: string) => void;
   onUpgradeBook: (id: string) => void;
   orbTrades: { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[];
-  onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[]) => void;
+  onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[], rarity?: Rarity) => void;
   pokemonMarketNode?: React.ReactNode;
   benchUids: Set<string>;
 
@@ -12470,11 +12477,18 @@ function TabOverlay({
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
             {orbTrades.map((t) => {
-              const available = collection.filter((c) => c.rarity === t.rarity).length;
-              const canTrade = available >= t.count;
+              const available = collection.filter((c) =>
+                (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
+                && !teamUidSet.has(c.uid)
+                && !benchUids.has(c.uid)
+                && !lockedSet.has(c.uid),
+              ).length;
+              const reqOk = !t.requires || (items[t.requires.itemId] ?? 0) >= t.requires.qty;
+              const reqOwned = t.requires ? (items[t.requires.itemId] ?? 0) : 0;
+              const canTrade = available >= t.count && reqOk;
               const owned = items[t.orbId] ?? 0;
               return (
-                <div key={t.orbId} style={{
+                <div key={`${t.orbId}-${t.rarity}`} style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${t.color}55`, borderRadius: 12, padding: 14,
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
@@ -12487,6 +12501,11 @@ function TabOverlay({
                   <div style={{ fontSize: 11, color: canTrade ? "#8ae28a" : "#e28a8a" }}>
                     Coleção {t.rarity.toUpperCase()}: {available} (precisa {t.count})
                   </div>
+                  {t.requires && (
+                    <div style={{ fontSize: 10, fontWeight: 800, color: reqOk ? "#8ae28a" : "#ff9a6b", background: reqOk ? "#0f2018" : "#2a1620", border: `1px solid ${reqOk ? "#8ae28a55" : "#ff9a6b55"}`, borderRadius: 6, padding: "3px 8px", textAlign: "center" }}>
+                      {reqOk ? "✓" : "🔒"} Requer {t.requires.qty}× {t.requires.label} ({reqOwned}/{t.requires.qty})
+                    </div>
+                  )}
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
                   <button
                     disabled={!canTrade}
@@ -12501,7 +12520,7 @@ function TabOverlay({
                       border: "none", borderRadius: 6,
                       cursor: canTrade ? "pointer" : "not-allowed",
                     }}
-                  >{canTrade ? "ESCOLHER POKÉMON" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                  >{!reqOk ? `FORJE 1 ${t.requires!.label.toUpperCase()} PRIMEIRO` : canTrade ? "ESCOLHER POKÉMON" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
                 </div>
               );
             })}
@@ -12511,7 +12530,7 @@ function TabOverlay({
             // Exclui Pokémon do time e travados — evita "não consome / orb infinito"
             // quando o jogador tenta trocar um Pokémon que está em uso.
             const eligible = collection.filter((c) =>
-              c.rarity === orbPicker.rarity && !teamUidSet.has(c.uid) && !benchUids.has(c.uid) && !lockedSet.has(c.uid),
+              (c.rarity === orbPicker.rarity || (orbPicker.rarity === "mythic" && c.rarity === "mythic_shiny")) && !teamUidSet.has(c.uid) && !benchUids.has(c.uid) && !lockedSet.has(c.uid),
             );
             const selCount = orbPickerSel.size;
             const canConfirm = selCount === orbPicker.count;
@@ -12599,7 +12618,7 @@ function TabOverlay({
                         const uids = Array.from(orbPickerSel);
                         setOrbPicker(null);
                         setOrbPickerSel(new Set());
-                        onTradeOrb(orbPicker.orbId, uids, []);
+                        onTradeOrb(orbPicker.orbId, uids, [], orbPicker.rarity);
                       }}
                       style={{
                         flex: 2, padding: "10px", fontWeight: 900,
