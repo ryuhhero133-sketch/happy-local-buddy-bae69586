@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   fetchThread, sendUserMessage, sendAdminMessage, subscribeThread,
   fetchThreadsForAdmin, subscribeAll,
-  type TicketMsg, type AdminThreadSummary,
+  fetchPendingSales, subscribePendingSales, updatePendingStatus,
+  type TicketMsg, type AdminThreadSummary, type PendingSale,
 } from "@/lib/cashshopChat";
 import { motion, AnimatePresence } from "framer-motion";
 import blackEggImg from "@/assets/black-mythic-plus-egg.jpg";
