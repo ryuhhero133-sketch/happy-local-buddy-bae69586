@@ -158,22 +158,23 @@ type EmeraldOffer = {
   accent: string;        // gradient tailwind classes
 };
 const EMERALD_OFFERS: EmeraldOffer[] = [
+const EMERALD_OFFERS: EmeraldOffer[] = [
   {
     id: "orb_supremo_24h",
     name: "Orb Supremo 24h",
-    desc: "24× Orb Supremo ✦✦✦ · +30% EXP por 24 horas",
+    desc: "1× Orb Supremo 24h ✦✦✦ · +30% EXP contínuo por 24 horas",
     price: 15,
     image: orb24hImg,
-    grants: [{ itemId: "orb_xp_supreme", qty: 24 }],
+    grants: [{ itemId: "orb_xp_supreme_24h", qty: 1 }],
     accent: "from-fuchsia-500 via-purple-500 to-indigo-600",
   },
   {
     id: "incenso_24h",
     name: "Incenso Raro 24h",
-    desc: "24× Incenso de Mel Raro ✨🍯 · atrai raros por 24h",
+    desc: "1× Incenso de Mel Raro 24h ✨🍯 · atrai raros por 24 horas",
     price: 12,
     image: incense24hImg,
-    grants: [{ itemId: "incenso_mel_raro", qty: 24 }],
+    grants: [{ itemId: "incenso_mel_raro_24h", qty: 1 }],
     accent: "from-amber-400 via-orange-500 to-yellow-600",
   },
   {
