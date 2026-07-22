@@ -243,7 +243,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
         }
         // Para vendas via oferta o comprador só é debitado agora — precisa de saldo.
         if (r.via_offer) {
-          const have = r.currency === "gold" ? gold : crystals;
+          const have = balanceOf(r.currency);
           if (have < r.price) continue;
         }
         inflightBuyerRef.current.add(r.id);
@@ -264,7 +264,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
           continue;
         }
         // Só agora cobra e entrega — garantido único.
-        if (r.via_offer) onSpend(r.currency, r.price);
+        if (r.via_offer) spendCur(r.currency, r.price);
         claimedBuyerRef.current.add(r.id);
         writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
         const entry: CollectionEntry = {
@@ -278,7 +278,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
         };
         onReturned(entry);
         pushChat(r.via_offer
-          ? `🤝 Oferta aceita! Recebeu ${r.pokemon.species} por ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"}.`
+          ? `🤝 Oferta aceita! Recebeu ${r.pokemon.species} por ${r.price} ${CUR_LABEL[r.currency]}.`
           : `📦 Recebeu ${r.pokemon.species} do Marketplace.`, "cap");
         inflightBuyerRef.current.delete(r.id);
       }
@@ -300,10 +300,10 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
           }
           continue;
         }
-        onEarn(r.currency, r.price);
+        earnCur(r.currency, r.price);
         claimedSellerRef.current.add(r.id);
         writeClaimSet(claimedSellerKey(identity.id), claimedSellerRef.current);
-        pushChat(`💸 Recebeu ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"} da venda de ${r.pokemon.species}.`, "cap");
+        pushChat(`💸 Recebeu ${r.price} ${CUR_LABEL[r.currency]} da venda de ${r.pokemon.species}.`, "cap");
         inflightSellerRef.current.delete(r.id);
       }
     })();
@@ -370,8 +370,8 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (r.seller_id === identity.id) return;
     if (r.offers_only) { pushChat("Este anúncio aceita apenas ofertas.", "info"); return; }
     if (claimedBuyerRef.current.has(r.id)) return; // já processado nesta sessão
-    const have = r.currency === "gold" ? gold : crystals;
-    if (have < r.price) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente.`, "info"); return; }
+    const have = balanceOf(r.currency);
+    if (have < r.price) { pushChat(`${CUR_LABEL[r.currency]} insuficiente.`, "info"); return; }
     // Reserva com UPDATE atômico — só um comprador vence a corrida.
     const { data, error } = await supabase.from("pokemon_market").update({
       status: "sold",
@@ -384,13 +384,13 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     // de reentregar o mesmo pokémon caso o refresh chegue antes do buyer_claimed.
     claimedBuyerRef.current.add(r.id);
     writeClaimSet(claimedBuyerKey(identity.id), claimedBuyerRef.current);
-    onSpend(r.currency, r.price);
+    spendCur(r.currency, r.price);
     onReturned({
       uid: `bought-${r.id}`, species: r.pokemon.species, level: r.pokemon.level,
       rarity: r.pokemon.rarity, xp: r.pokemon.xp ?? 0, traits: r.pokemon.traits ?? [], capturedAt: Date.now(),
     });
     await supabase.from("pokemon_market").update({ buyer_claimed: true }).eq("id", r.id);
-    pushChat(`🛒 Comprou ${r.pokemon.species} por ${r.price} ${r.currency === "gold" ? "ouro" : "cristal"}.`, "cap");
+    pushChat(`🛒 Comprou ${r.pokemon.species} por ${r.price} ${CUR_LABEL[r.currency]}.`, "cap");
     void refresh();
   };
 
@@ -399,7 +399,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     if (r.seller_id === identity.id) return;
     if (amount < 1 || amount > 100_000_000) { pushChat("Valor inválido.", "info"); return; }
     if (!r.offers_only && amount >= r.price) { pushChat(`Oferta precisa ser menor que ${r.price.toLocaleString()}.`, "info"); return; }
-    const have = r.currency === "gold" ? gold : crystals;
+    const have = balanceOf(r.currency);
     if (have < amount) { pushChat(`${r.currency === "gold" ? "Ouro" : "Cristal"} insuficiente pra cobrir a oferta.`, "info"); return; }
     // Só uma oferta pending por comprador+anúncio
     const existing = offers.find(o => o.listing_id === r.id && o.buyer_id === identity.id && o.status === "pending");
@@ -418,7 +418,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
       }
       return;
     }
-    pushChat(`💬 Oferta de ${amount.toLocaleString()} ${r.currency === "gold" ? "ouro" : "cristal"} enviada.`, "cap");
+    pushChat(`💬 Oferta de ${amount.toLocaleString()} ${CUR_LABEL[r.currency]} enviada.`, "cap");
     void refresh();
   };
 
@@ -438,7 +438,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
     // rejeita as outras ofertas do mesmo anúncio
     await supabase.from("pokemon_market_offers").update({ status: "rejected" })
       .eq("listing_id", r.id).eq("status", "pending").neq("id", o.id);
-    pushChat(`✅ Oferta de ${o.buyer_name} aceita por ${o.amount.toLocaleString()} ${o.currency === "gold" ? "ouro" : "cristal"}.`, "cap");
+    pushChat(`✅ Oferta de ${o.buyer_name} aceita por ${o.amount.toLocaleString()} ${CUR_LABEL[o.currency]}.`, "cap");
     void refresh();
   };
 
