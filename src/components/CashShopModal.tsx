@@ -1233,6 +1233,7 @@ function SupportChat({
           className="px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-black text-sm"
         >Enviar</button>
       </div>
+      )}
     </motion.div>
   );
 }
