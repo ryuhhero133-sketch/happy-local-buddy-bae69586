@@ -541,11 +541,22 @@ export function CashShopModal(props: Props) {
       reloadAdminList();
       return;
     }
-    if (!uid || uid === "guest") return;
-    const optimistic: ChatMsg = { id: crypto.randomUUID(), from: "user", text, ts: Date.now(), image };
+    if (!uid || uid === "guest" || uid.startsWith("guest-")) {
+      setConvMsg({ kind: "err", text: "Faça login com uma conta (não convidado) para falar com o suporte." });
+      return;
+    }
+    const optimisticId = crypto.randomUUID();
+    const optimistic: ChatMsg = { id: optimisticId, from: "user", text, ts: Date.now(), image };
     setChatMsgs((prev) => [...prev, optimistic]);
-    await sendUserMessage(uid, identity?.name ?? "Treinador", text, image);
+    const ok = await sendUserMessage(uid, identity?.name ?? "Treinador", text, image);
+    if (!ok) {
+      // Reverte otimista e mostra erro real do Supabase
+      setChatMsgs((prev) => prev.filter((m) => m.id !== optimisticId));
+      const err = getCashShopChatError() ?? "Erro desconhecido ao enviar mensagem.";
+      setConvMsg({ kind: "err", text: `Falha ao enviar: ${err}` });
+    }
   };
+
 
 
   return (
