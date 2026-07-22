@@ -10596,31 +10596,18 @@ function IdlePage() {
           pushChat(`✦ Black Mitic Plus (${element}) nasceu com 5 traits! Confira sua coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
-        hasIncubatorCard={(idle.items?.carta_incubadora ?? 0) > 0 || !!idle.redeemedCodes?.__incubator_unlocked}
-        onActivateEgg={() => {
-          const base = idleRef.current;
-          if (base.redeemedCodes?.__incubator_unlocked) return;
-          // Consome 1 Carta da Incubadora e destrava a incubadora PERMANENTEMENTE.
-          const cards = base.items?.carta_incubadora ?? 0;
-          const nextItems = { ...(base.items ?? {}) };
-          if (cards > 0) nextItems.carta_incubadora = cards - 1;
-          setIdle((s) => ({
-            ...s,
-            items: nextItems,
-            redeemedCodes: { ...(s.redeemedCodes ?? {}), __incubator_unlocked: true },
-          }));
-          pushChat("🔮 Incubadora Lendária desbloqueada permanentemente!", "cap");
-        }}
+        hasIncubatorCard={true}
+        onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
       />
 
       <GovernanteDialog
         open={governanteOpen}
-        cards={idle.items?.carta_governante ?? 0}
+        cards={idle.items?.carta_incubadora ?? 0}
         currentEggs={idle.items?.black_mitic_egg ?? 0}
         onClose={() => setGovernanteOpen(false)}
         onExchange={(qty) => {
           const base = idleRef.current;
-          const cards = base.items?.carta_governante ?? 0;
+          const cards = base.items?.carta_incubadora ?? 0;
           const eggs = base.items?.black_mitic_egg ?? 0;
           const maxByEggCap = Math.max(0, 6 - eggs);
           const use = Math.min(qty, cards, maxByEggCap);
@@ -10629,11 +10616,11 @@ function IdlePage() {
             ...s,
             items: {
               ...(s.items ?? {}),
-              carta_governante: (s.items?.carta_governante ?? 0) - use,
+              carta_incubadora: (s.items?.carta_incubadora ?? 0) - use,
               black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + use,
             },
           }));
-          pushChat(`👑 Governante entregou ${use}× Black Mitic Plus Egg. Cuide bem deles.`, "cap");
+          pushChat(`👑 Governante consumiu ${use}× Carta da Incubadora e entregou ${use}× Black Mitic Plus Egg.`, "cap");
         }}
       />
     </div>
