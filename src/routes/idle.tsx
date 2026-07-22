@@ -11560,13 +11560,16 @@ function TabOverlay({
                             boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
                             border: `1.5px solid ${P.panel}`,
                           }}>x{n}</div>
-                          <div style={{
+                          <div
+                            onClick={(e) => { e.stopPropagation(); setItemDetail(id); }}
+                            title="Ver detalhes"
+                            style={{
                             width: 62, height: 62, borderRadius: 10, marginTop: 2,
                             background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
                             display: "grid", placeItems: "center",
                             border: `2px inset ${P.goldDark}aa`,
                             boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 10px ${color}44`,
-                            position: "relative", overflow: "hidden",
+                            position: "relative", overflow: "hidden", cursor: "pointer",
                           }}>
                             {img ? (
                               <img
