@@ -644,7 +644,7 @@ function ListingCard(props: {
         <div>
           <div style={{ fontSize: 8, letterSpacing: 2, color: "#8a7a9c", fontWeight: 900 }}>PREÇO</div>
           <div style={{ fontSize: 16, fontWeight: 900, color: CUR_COLOR[r.currency] }}>
-            {CUR_ICON[r.currency]} {r.price.toLocaleString()}
+            <CurIcon c={r.currency} /> {r.price.toLocaleString()}
           </div>
           <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 2 }}>por <b style={{ color: "#c8b8d0" }}>{r.seller_name}</b></div>
         </div>
