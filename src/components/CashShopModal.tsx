@@ -362,6 +362,8 @@ export function CashShopModal(props: Props) {
   const [adminTargetUid, setAdminTargetUid] = useState<string | null>(null);
   const [adminTargetName, setAdminTargetName] = useState<string>("");
   const [adminThreads, setAdminThreads] = useState<AdminThreadSummary[]>([]);
+  const [adminTab, setAdminTab] = useState<"tickets" | "sales">("tickets");
+  const [pendingSales, setPendingSales] = useState<PendingSale[]>([]);
 
   // Uid efetivamente exibido no painel de chat
   const chatUid = isCashAdmin ? adminTargetUid : uid;
@@ -381,14 +383,24 @@ export function CashShopModal(props: Props) {
     setAdminThreads(list);
   }, [isCashAdmin]);
 
+  const reloadPendingSales = useCallback(async () => {
+    if (!isCashAdmin) return;
+    const list = await fetchPendingSales();
+    setPendingSales(list);
+  }, [isCashAdmin]);
+
   useEffect(() => {
     if (!open) return;
     if (isCashAdmin) {
       reloadAdminList();
-      const unsub = subscribeAll(() => { reloadAdminList(); });
-      return () => { unsub(); };
+      reloadPendingSales();
+      const unsub1 = subscribeAll(() => { reloadAdminList(); });
+      const unsub2 = subscribePendingSales(() => { reloadPendingSales(); });
+      // fallback: refresh periódico caso realtime não esteja habilitado na tabela
+      const iv = window.setInterval(() => { reloadAdminList(); reloadPendingSales(); }, 15000);
+      return () => { unsub1(); unsub2(); window.clearInterval(iv); };
     }
-  }, [open, isCashAdmin, reloadAdminList]);
+  }, [open, isCashAdmin, reloadAdminList, reloadPendingSales]);
 
   // Carrega thread ativa + subscribe
   useEffect(() => {
