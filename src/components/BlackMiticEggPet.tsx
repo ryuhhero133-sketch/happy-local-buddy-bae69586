@@ -97,6 +97,10 @@ function newEgg(): EggInstance {
     lastCravingNudgeAt: 0,
     streakElement: null,
     streakCount: 0,
+    matchedCravings: 0,
+    missedFeedings: 0,
+    lastMilestone: 0,
+    recentFeedAt: {},
   };
 }
 
