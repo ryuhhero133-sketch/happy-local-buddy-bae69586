@@ -5440,7 +5440,7 @@ function IdlePage() {
       price,
       currency,
     });
-    if (error) { pushChat(`Falha ao anunciar: ${error.message}`, "info"); return false; }
+    if (error) { console.error("[market] insert error", error, { itemId, qty, price, currency }); pushChat(`Falha ao anunciar: ${error.message}`, "info"); return false; }
     // remove item do estoque local (custódia do anúncio)
     setIdle((s) => ({ ...s, items: { ...s.items, [itemId]: (s.items[itemId] ?? 0) - qty } }));
     const curLabel = currency === "gold" ? "ouro" : currency === "crystal" ? "💎 cristais" : "💚 safiras";
