@@ -10793,7 +10793,7 @@ function TabOverlay({
   onClaimTask: (tid: string) => void;
   onOpenColecaoDetail: (uid: string) => void;
   onExchange: (dir: "g2c" | "c2g", amount: number) => void;
-  onSellItem: (id: string, qty?: number) => void;
+  onSellItem: (id: string, qty?: number, currency?: "gold" | "crystal" | "safira") => void;
   marketSellPrices: Record<string, number>;
   identity: LocalIdentity | null;
   onListMarket: (itemId: string, qty: number, price: number) => Promise<boolean>;
