@@ -363,6 +363,25 @@ export function grantChariz50Bundle(): Reward[] {
   return bundle;
 }
 
+// ---------- EMERALD60 (60 Esmeraldas) ----------
+export const EMERALD60_KEY = "rubym.emerald60CodeUsed";
+export const SECRET_EMERALD60_CODE = "EMERALD60";
+const CASHSHOP_EMERALD_KEY = "rubym.cashshop.emerald.v1";
+export const isEmerald60Used = () => safeGet<boolean>(EMERALD60_KEY, false);
+export const setEmerald60Used = () => safeSet(EMERALD60_KEY, true);
+export function grantEmerald60Bundle(): Reward[] {
+  const bundle: Reward[] = [{ id: "emerald", label: "Esmeralda", qty: 60, rare: true }];
+  if (typeof window !== "undefined") {
+    try {
+      const cur = parseInt(localStorage.getItem(CASHSHOP_EMERALD_KEY) ?? "0", 10) || 0;
+      localStorage.setItem(CASHSHOP_EMERALD_KEY, String(cur + 60));
+    } catch { /* ignore */ }
+  }
+  setEmerald60Used();
+  pushLog({ actor: "system", action: "emerald60_code_redeemed", detail: "60x Esmeralda" });
+  return bundle;
+}
+
 export function tryRedeemCode(code: string):
   | { kind: "reward"; bundle: Reward[] }
   | { kind: "beta"; bundle: Reward[] }
