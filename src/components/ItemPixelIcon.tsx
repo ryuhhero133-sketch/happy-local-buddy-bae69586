@@ -268,7 +268,52 @@ const ICONS: Record<string, () => Cell[]> = {
     cells.push([11,9,C.gold],[11,10,C.outline],[13,9,C.gold],[13,10,C.outline]);
     return cells;
   },
+
+  // STONES ELEMENTAIS — Evento Odisséia Oddish
+  stone_grass:    () => drawStone("#6bd66b", "#1f6b2a", "#c8ffb0"),
+  stone_fire:     () => drawStone("#ff6b3d", "#8f1b12", "#ffd8a8"),
+  stone_water:    () => drawStone("#3aa9ff", "#1a5f9e", "#b0e6ff"),
+  stone_electric: () => drawStone("#f6d94a", "#8a6a10", "#fff7b0"),
+  stone_dark:     () => drawStone("#7b3ee0", "#3a1478", "#c9a4ff"),
+  stone_dragon:   () => drawStone("#ff4d94", "#7a1147", "#ffb0d4"),
 };
+
+function drawStone(main: string, dark: string, hi: string): Cell[] {
+  const cells: Cell[] = [];
+  // Gema facetada em octaedro pixel-art
+  // topo
+  cells.push([7, 3, C.outline], [8, 3, C.outline]);
+  cells.push([6, 4, C.outline], [9, 4, C.outline]);
+  cells.push([7, 4, main], [8, 4, main]);
+  cells.push([5, 5, C.outline], [10, 5, C.outline]);
+  cells.push([6, 5, main], [7, 5, hi], [8, 5, hi], [9, 5, main]);
+  cells.push([4, 6, C.outline], [11, 6, C.outline]);
+  cells.push([5, 6, main], [6, 6, hi], [7, 6, hi], [8, 6, main], [9, 6, main], [10, 6, dark]);
+  cells.push([3, 7, C.outline], [12, 7, C.outline]);
+  cells.push(...fillRect(4, 7, 11, 7, main));
+  cells.push([5, 7, hi], [6, 7, hi], [10, 7, dark], [11, 7, dark]);
+  // corpo largo
+  cells.push([3, 8, C.outline], [12, 8, C.outline]);
+  cells.push(...fillRect(4, 8, 11, 8, main));
+  cells.push([4, 8, hi], [11, 8, dark]);
+  cells.push([3, 9, C.outline], [12, 9, C.outline]);
+  cells.push(...fillRect(4, 9, 11, 9, main));
+  cells.push([5, 9, hi], [10, 9, dark], [11, 9, dark]);
+  // afunilando
+  cells.push([4, 10, C.outline], [11, 10, C.outline]);
+  cells.push(...fillRect(5, 10, 10, 10, main));
+  cells.push([9, 10, dark], [10, 10, dark]);
+  cells.push([5, 11, C.outline], [10, 11, C.outline]);
+  cells.push(...fillRect(6, 11, 9, 11, main));
+  cells.push([9, 11, dark]);
+  cells.push([6, 12, C.outline], [9, 12, C.outline]);
+  cells.push([7, 12, main], [8, 12, dark]);
+  cells.push([7, 13, C.outline], [8, 13, C.outline]);
+  // brilho superior estrelado
+  cells.push([6, 4, "#ffffff"]);
+  return cells;
+}
+
 
 function drawBook(cover: string, coverDk: string, mark: string): Cell[] {
   const cells: Cell[] = [];
