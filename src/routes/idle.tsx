@@ -3814,7 +3814,7 @@ function IdlePage() {
               : newItems;
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + (isGeliusMap && Math.random() < 0.35 ? 1 : 0) },
+              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0) },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
               tasks: nt2,
               items: itemsWithBalls,
