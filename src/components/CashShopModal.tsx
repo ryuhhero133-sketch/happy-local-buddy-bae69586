@@ -148,6 +148,64 @@ const SAFIRA_PER_EMERALD = 20;   // 20 Safiras Verdes → 1 Esmeralda
 const EMERALD_PER_ULTRAPACK = 3; // 3 Esmeraldas → 100 Ultra Balls
 const ULTRAPACK_SIZE = 100;
 
+// ---------- Ofertas em Esmeraldas ----------
+type EmeraldOffer = {
+  id: string;
+  name: string;
+  desc: string;
+  price: number;         // custo em Esmeraldas
+  image: string;
+  grants: { itemId: string; qty: number }[];
+  accent: string;        // gradient tailwind classes
+};
+const EMERALD_OFFERS: EmeraldOffer[] = [
+  {
+    id: "orb_supremo_24h",
+    name: "Orb Supremo 24h",
+    desc: "24× Orb Supremo ✦✦✦ · +30% EXP por 24 horas",
+    price: 15,
+    image: orb24hImg,
+    grants: [{ itemId: "orb_xp_supreme", qty: 24 }],
+    accent: "from-fuchsia-500 via-purple-500 to-indigo-600",
+  },
+  {
+    id: "incenso_24h",
+    name: "Incenso Raro 24h",
+    desc: "24× Incenso de Mel Raro ✨🍯 · atrai raros por 24h",
+    price: 12,
+    image: incense24hImg,
+    grants: [{ itemId: "incenso_mel_raro", qty: 24 }],
+    accent: "from-amber-400 via-orange-500 to-yellow-600",
+  },
+  {
+    id: "pack_ultra_100",
+    name: "Pacote 100 Ultra",
+    desc: "100× Ultra Ball · entrega instantânea",
+    price: 3,
+    image: packUltraballImg,
+    grants: [{ itemId: "ultraball", qty: 100 }],
+    accent: "from-emerald-400 via-teal-500 to-cyan-600",
+  },
+  {
+    id: "pack_ultra_500",
+    name: "Pacote 500 Ultra",
+    desc: "500× Ultra Ball · melhor custo-benefício",
+    price: 12,
+    image: packUltraballImg,
+    grants: [{ itemId: "ultraball", qty: 500 }],
+    accent: "from-emerald-500 via-green-500 to-lime-500",
+  },
+  {
+    id: "bau_esmeralda",
+    name: "Baú de Esmeralda",
+    desc: "1× Caixa Premium ✦ · surpresas de evento",
+    price: 8,
+    image: chestEmeraldImg,
+    grants: [{ itemId: "premium_box", qty: 1 }],
+    accent: "from-emerald-400 via-green-500 to-emerald-700",
+  },
+];
+
 
 
 // ---------- Chat suporte ----------
