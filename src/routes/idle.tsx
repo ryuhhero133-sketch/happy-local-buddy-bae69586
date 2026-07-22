@@ -4376,18 +4376,19 @@ function IdlePage() {
 
 
   // Usar item da mochila
-  const useItem = (id: string) => {
+  const useItem = (id: string, qty: number = 1) => {
     const l = team[0]; if (!l) return;
     const have = (idle.items[id] ?? 0);
     if (have <= 0) { pushChat(`Você não tem ${id}.`, "info"); return; }
+    const useQty = Math.max(1, Math.min(qty, have));
     const maxHp = calcIdleMaxHp(l);
     if (id === "potion") {
       if (leaderHp <= 0) { pushChat(`Poção não revive. Reviva por 50 ouro.`, "info"); return; }
-      const heal = Math.floor(maxHp * 0.5);
+      const heal = Math.floor(maxHp * 0.5) * useQty;
       setLeaderHp((h) => Math.min(maxHp, h + heal));
-      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 } }));
+      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `+${heal} HP`, "gold");
-      pushChat(`Você usou Poção (+${heal} HP).`, "info");
+      pushChat(`Você usou ${useQty}× Poção (+${heal} HP).`, "info");
     } else if (id === "pokeball" || id === "greatball" || id === "ultraball") {
       pushChat(`As Pokébolas são usadas automaticamente ao derrotar inimigos.`, "info");
     } else if (id === "berry") {
@@ -4405,13 +4406,16 @@ function IdlePage() {
     } else if (id === "key") {
       pushChat(`Guarde as Chaves para trocar no Mercado.`, "info");
     } else if (id === "book_atk") {
-      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 }, buffs: { ...s.buffs, atk: s.buffs.atk + 0.10 } }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "ATK +10%", "capture");
-      pushChat(`Livro de Ataque usado (+10% dano permanente).`, "cap");
+      const gain = 0.10 * useQty;
+      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty }, buffs: { ...s.buffs, atk: s.buffs.atk + gain } }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `ATK +${Math.round(gain*100)}%`, "capture");
+      pushChat(`Usou ${useQty}× Livro de Ataque (+${Math.round(gain*100)}% dano permanente).`, "cap");
     } else if (id === "book_def") {
-      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 }, buffs: { ...s.buffs, def: s.buffs.def + 0.10 } }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "DEF +10%", "capture");
-      pushChat(`Livro de Defesa usado (-10% dano recebido).`, "cap");
+      const gain = 0.10 * useQty;
+      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty }, buffs: { ...s.buffs, def: s.buffs.def + gain } }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `DEF +${Math.round(gain*100)}%`, "capture");
+      pushChat(`Usou ${useQty}× Livro de Defesa (-${Math.round(gain*100)}% dano recebido).`, "cap");
+
     } else if (id === "book_exp" || id === "book_exp_big" || id === "book_exp_max") {
       const add = id === "book_exp" ? 0.30 : id === "book_exp_big" ? 0.50 : 1.00;
       const pct = Math.round(add * 100);
@@ -5340,9 +5344,10 @@ function IdlePage() {
     stone_grass: 10, stone_fire: 10, stone_water: 10,
     stone_electric: 10, stone_dark: 15, stone_dragon: 20,
   };
-  // Sell 2 stones → 1 safira (=> 1000 stones = 500 safiras)
-  const STONE_SAFIRA_BATCH = 2;
+  // Sell 50 stones → 1 safira
+  const STONE_SAFIRA_BATCH = 50;
   const STONE_SAFIRA_PER_BATCH = 1;
+
 
   const sellItem = (id: string, qty = 1, currency: "gold" | "crystal" | "safira" = "gold") => {
     setIdle((s) => {
@@ -10771,7 +10776,7 @@ function TabOverlay({
   onFragmentCollection: (uid: string) => void;
   gifMap: Partial<Record<Species, string>>;
   onPickTeam: (entry: CollectionEntry) => void;
-  onUseItem: (id: string) => void;
+  onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number; teamOrbUntil?: number };
   onBuyBall: (b: ShopBall, qty?: number) => void;
@@ -11525,7 +11530,17 @@ function TabOverlay({
                           }}>{NAMES[id] ?? id}</div>
                           <div style={{ display: "flex", gap: 4, width: "100%" }}>
                             <button
-                              onClick={() => onUseItem(id)}
+                              onClick={() => {
+                                const bulk = id === "book_atk" || id === "book_def" || id === "potion";
+                                if (bulk && n > 1) {
+                                  const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
+                                  if (raw == null) return;
+                                  const q = Math.max(1, Math.min(n, parseInt(raw, 10) || 1));
+                                  onUseItem(id, q);
+                                } else {
+                                  onUseItem(id, 1);
+                                }
+                              }}
                               style={{
                                 flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
                                 background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
@@ -11534,7 +11549,7 @@ function TabOverlay({
                                 boxShadow: `0 2px 0 ${P.goldDark}`,
                               }}
                             >{isEgg ? "CHOCAR" : "USAR"}</button>
-                            {sellPrice > 0 && (
+                            {sellPrice > 0 && !id.startsWith("stone_") && (
                               <button
                                 onClick={() => onSellItem(id, 1)}
                                 title={`Vender 1 por ${sellPrice} ouro`}
@@ -11547,33 +11562,29 @@ function TabOverlay({
                                 }}
                               >💰{sellPrice}</button>
                             )}
+
                             {id.startsWith("stone_") && (
-                              <>
-                                <button
-                                  onClick={() => onSellItem(id, 1, "crystal")}
-                                  title="Vender 1 por cristais"
-                                  style={{
-                                    padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                    background: "linear-gradient(180deg,#7dd3fc,#0ea5e9)",
-                                    color: "#0b2540", border: "1.5px solid #075985",
-                                    borderRadius: 6, cursor: "pointer",
-                                    boxShadow: "0 2px 0 #075985",
-                                  }}
-                                >💎</button>
-                                <button
-                                  onClick={() => onSellItem(id, Math.max(2, n - (n % 2)), "safira")}
-                                  title="Vender por Safira Verde (2 stones = 1 safira)"
-                                  disabled={n < 2}
-                                  style={{
-                                    padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                    background: n < 2 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
-                                    color: "#0b2540", border: "1.5px solid #065f46",
-                                    borderRadius: 6, cursor: n < 2 ? "not-allowed" : "pointer",
-                                    boxShadow: "0 2px 0 #065f46", opacity: n < 2 ? 0.5 : 1,
-                                  }}
-                                >💚</button>
-                              </>
+                              <button
+                                onClick={() => {
+                                  const maxBatches = Math.floor(n / 50);
+                                  if (maxBatches <= 0) return;
+                                  const raw = window.prompt(`Vender quantas Safiras? (1–${maxBatches})\n50 stones = 1 💚 Safira`, String(maxBatches));
+                                  if (raw == null) return;
+                                  const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
+                                  onSellItem(id, b * 50, "safira");
+                                }}
+                                title="Vender por Safira Verde (50 stones = 1 safira)"
+                                disabled={n < 50}
+                                style={{
+                                  padding: "5px 6px", fontSize: 10, fontWeight: 900,
+                                  background: n < 50 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                  color: "#0b2540", border: "1.5px solid #065f46",
+                                  borderRadius: 6, cursor: n < 50 ? "not-allowed" : "pointer",
+                                  boxShadow: "0 2px 0 #065f46", opacity: n < 50 ? 0.5 : 1,
+                                }}
+                              >💚</button>
                             )}
+
                           </div>
                           {(() => {
                             const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
