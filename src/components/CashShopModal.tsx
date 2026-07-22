@@ -5,6 +5,7 @@ import {
   fetchThread, sendUserMessage, sendAdminMessage, subscribeThread,
   fetchThreadsForAdmin, subscribeAll,
   fetchPendingSales, subscribePendingSales, updatePendingStatus,
+  checkCashShopAdmin, getCashShopChatError, getCashShopSalesError,
   type TicketMsg, type AdminThreadSummary, type PendingSale,
 } from "@/lib/cashshopChat";
 import { motion, AnimatePresence } from "framer-motion";
@@ -355,8 +356,14 @@ export function CashShopModal(props: Props) {
 
 
   const uid = identity?.id ?? "guest";
-  const isCashAdmin = typeof window !== "undefined"
-    && localStorage.getItem("rubym.cashShop.isAdmin") === "1";
+  const isLocalCashAdmin = typeof window !== "undefined"
+    && localStorage.getItem("rubym.cashShop.isAdmin") === "1"
+    && (!localStorage.getItem("rubym.cashShop.adminOwner") || localStorage.getItem("rubym.cashShop.adminOwner") === uid);
+  const [isDbCashAdmin, setIsDbCashAdmin] = useState(false);
+  const [adminRoleError, setAdminRoleError] = useState<string | null>(null);
+  const [adminTicketsError, setAdminTicketsError] = useState<string | null>(null);
+  const [adminSalesError, setAdminSalesError] = useState<string | null>(null);
+  const isCashAdmin = isLocalCashAdmin || isDbCashAdmin;
 
   // Alvo do painel admin (uid do jogador cujo ticket está sendo lido)
   const [adminTargetUid, setAdminTargetUid] = useState<string | null>(null);
@@ -381,13 +388,37 @@ export function CashShopModal(props: Props) {
     if (!isCashAdmin) return;
     const list = await fetchThreadsForAdmin();
     setAdminThreads(list);
+    setAdminTicketsError(getCashShopChatError());
   }, [isCashAdmin]);
 
   const reloadPendingSales = useCallback(async () => {
     if (!isCashAdmin) return;
     const list = await fetchPendingSales();
     setPendingSales(list);
+    setAdminSalesError(getCashShopSalesError());
   }, [isCashAdmin]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (!uid || uid === "guest" || uid.startsWith("guest-")) {
+      setIsDbCashAdmin(false);
+      return;
+    }
+    let alive = true;
+    (async () => {
+      const res = await checkCashShopAdmin(uid);
+      if (!alive) return;
+      setIsDbCashAdmin(res.ok);
+      setAdminRoleError(res.error);
+      if (res.ok && typeof window !== "undefined") {
+        try {
+          localStorage.setItem("rubym.cashShop.isAdmin", "1");
+          localStorage.setItem("rubym.cashShop.adminOwner", uid);
+        } catch { /* ignore */ }
+      }
+    })();
+    return () => { alive = false; };
+  }, [open, uid]);
 
   useEffect(() => {
     if (!open) return;
@@ -485,7 +516,7 @@ export function CashShopModal(props: Props) {
             <div>
               <div className="text-amber-300 font-black tracking-widest text-sm sm:text-base flex items-center gap-2">
                 LOJINHA CASH
-                {typeof window !== "undefined" && localStorage.getItem("rubym.cashShop.isAdmin") === "1" && (
+                {isCashAdmin && (
                   <span className="px-2 py-0.5 rounded-md text-[9px] font-black tracking-widest bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-[0_0_10px_rgba(217,70,239,0.6)] border border-fuchsia-300/60">
                     ★ ADMIN
                   </span>
@@ -921,6 +952,9 @@ export function CashShopModal(props: Props) {
             adminTab={adminTab}
             onAdminTab={setAdminTab}
             pendingSales={pendingSales}
+            adminRoleError={adminRoleError}
+            adminTicketsError={adminTicketsError}
+            adminSalesError={adminSalesError}
             onApproveSale={async (s) => {
               await updatePendingStatus(s.id, "approved", identity?.name ?? "Admin");
               await sendAdminMessage(
@@ -1133,6 +1167,7 @@ function SupportChat({
   isAdmin = false, adminThreads = [], adminTargetUid = null, adminTargetName = "",
   onAdminPick, onAdminBack,
   adminTab = "tickets", onAdminTab, pendingSales = [],
+  adminRoleError = null, adminTicketsError = null, adminSalesError = null,
   onApproveSale, onRejectSale, onOpenSaleThread,
 }: {
   trainerName: string;
@@ -1151,6 +1186,9 @@ function SupportChat({
   adminTab?: "tickets" | "sales";
   onAdminTab?: (t: "tickets" | "sales") => void;
   pendingSales?: PendingSale[];
+  adminRoleError?: string | null;
+  adminTicketsError?: string | null;
+  adminSalesError?: string | null;
   onApproveSale?: (s: PendingSale) => void;
   onRejectSale?: (s: PendingSale) => void;
   onOpenSaleThread?: (s: PendingSale) => void;
@@ -1165,11 +1203,12 @@ function SupportChat({
 
   const showList = isAdmin && !adminTargetUid;
   const salesAnalise = pendingSales.filter((s) => s.status === "analise");
+  const panelError = adminTab === "sales" ? adminSalesError : adminTicketsError;
 
   return (
     <motion.div
       initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }}
-      className="fixed bottom-4 right-4 z-[10001] w-[92vw] max-w-sm h-[70vh] max-h-[560px] rounded-2xl border border-emerald-400/40 bg-gradient-to-b from-[#08130e] to-[#04090a] shadow-[0_0_50px_rgba(52,211,153,.35)] flex flex-col overflow-hidden"
+      className={`fixed bottom-4 right-4 z-[10001] w-[94vw] ${isAdmin ? "sm:max-w-2xl lg:max-w-3xl" : "max-w-sm"} h-[78vh] max-h-[680px] rounded-2xl border border-emerald-400/40 bg-gradient-to-b from-[#08130e] to-[#04090a] shadow-[0_0_50px_rgba(52,211,153,.35)] flex flex-col overflow-hidden`}
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-400/20 bg-black/50">
         <div className="flex items-center gap-2">
@@ -1200,6 +1239,30 @@ function SupportChat({
       </div>
 
       {showList && (
+        <div className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-emerald-400/10 bg-black/35">
+          <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-3 py-2">
+            <div className="text-[9px] uppercase tracking-widest text-emerald-200/60 font-black">Tickets abertos</div>
+            <div className="text-xl font-black text-emerald-200">{adminThreads.length}</div>
+          </div>
+          <div className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2">
+            <div className="text-[9px] uppercase tracking-widest text-amber-200/60 font-black">Vendas análise</div>
+            <div className="text-xl font-black text-amber-200">{salesAnalise.length}</div>
+          </div>
+          <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-3 py-2">
+            <div className="text-[9px] uppercase tracking-widest text-cyan-200/60 font-black">Status</div>
+            <div className="text-xs font-black text-cyan-100 mt-1 truncate">Admin ativo</div>
+          </div>
+        </div>
+      )}
+
+      {showList && (adminRoleError || panelError) && (
+        <div className="mx-3 mt-2 rounded-xl border border-red-400/35 bg-red-500/10 px-3 py-2 text-[11px] text-red-100">
+          <b className="text-red-200">Erro de permissão:</b> {panelError || adminRoleError}
+          <div className="mt-1 text-red-100/70">Confirme se seu e-mail tem role <b>admin</b> em <b>public.user_roles</b> e se a tabela tem GRANT SELECT para authenticated.</div>
+        </div>
+      )}
+
+      {showList && (
         <div className="flex gap-1 px-2 pt-2 border-b border-emerald-400/10 bg-black/40">
           <button
             onClick={() => onAdminTab?.("tickets")}
@@ -1227,9 +1290,9 @@ function SupportChat({
       )}
 
       {showList && adminTab === "sales" ? (
-        <div className="flex-1 overflow-y-auto p-2 space-y-2">
+        <div className="flex-1 overflow-y-auto p-3 grid gap-2 content-start sm:grid-cols-2">
           {salesAnalise.length === 0 && (
-            <div className="text-center text-white/50 text-xs py-8 px-4">
+            <div className="sm:col-span-2 text-center text-white/50 text-xs py-8 px-4">
               Nenhuma venda em análise no momento.
             </div>
           )}
@@ -1264,24 +1327,29 @@ function SupportChat({
           ))}
         </div>
       ) : showList ? (
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+        <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {adminThreads.length === 0 && (
             <div className="text-center text-white/50 text-xs py-8 px-4">
-              Nenhum ticket ainda. Quando alguém enviar mensagem, aparece aqui em tempo real.
+              Nenhum ticket aberto apareceu. Se jogadores já enviaram mensagens, veja o aviso de permissão acima.
             </div>
           )}
           {adminThreads.map((t) => (
             <button
               key={t.user_id}
               onClick={() => onAdminPick?.(t)}
-              className="w-full text-left px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-emerald-500/15 hover:border-emerald-400/40 transition"
+              className="w-full text-left px-3 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-emerald-500/15 hover:border-emerald-400/40 transition"
             >
               <div className="flex items-center justify-between gap-2">
-                <div className="text-white text-sm font-bold truncate">{t.username || "Treinador"}</div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-400/15 border border-emerald-300/25 text-emerald-200 font-black">💬</span>
+                  <div className="min-w-0">
+                    <div className="text-white text-sm font-bold truncate">{t.username || "Treinador"}</div>
+                    <div className="text-emerald-300/70 text-[10px] mt-0.5">{t.count} mensagens registradas</div>
+                  </div>
+                </div>
                 <div className="text-white/40 text-[10px]">{new Date(t.last_ts).toLocaleString([], { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</div>
               </div>
-              <div className="text-white/60 text-xs truncate mt-0.5">{t.last_text}</div>
-              <div className="text-emerald-300/70 text-[10px] mt-0.5">{t.count} msg</div>
+              <div className="text-white/60 text-xs truncate mt-2 rounded-lg bg-black/25 px-2 py-1 border border-white/5">{t.last_text}</div>
             </button>
           ))}
         </div>
