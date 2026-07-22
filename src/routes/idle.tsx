@@ -3511,18 +3511,45 @@ function IdlePage() {
           pushChat(`+${xp} EXP · +${gold} ouro${suffix}`, "info");
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
-          for (const it of ITEM_POOL) {
-            if (it.id === "pokeball") continue;
-            if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
+          const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2";
+          if (isOddishMap) {
+            // 🌿 EVENTO ODISSÉIA ODDISH — SÓ dropa Stones Elementais.
+            // Épico / mítico / mítico shiny / lendário são os únicos que dropam.
+            const isValuable = target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
+            if (isValuable) {
+              const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
+              // ~60% de chance de dropar 1 stone random (=> ~12 stones a cada 20 kills)
+              if (Math.random() < 0.60) {
+                const first = STONES[Math.floor(Math.random() * STONES.length)];
+                drops.push(first);
+                // ~20% de chance de vir uma SEGUNDA stone de elemento DIFERENTE
+                // (=> em média ~2 stones diferentes a cada 10 kills)
+                if (Math.random() < 0.20) {
+                  const rest = STONES.filter((s) => s !== first);
+                  drops.push(rest[Math.floor(Math.random() * rest.length)]);
+                }
+              }
+              // Míticos/shiny dão bônus garantido de uma stone extra diferente
+              if (target.rarity === "mythic" || target.rarity === "mythic_shiny") {
+                const already = new Set(drops);
+                const rest = STONES.filter((s) => !already.has(s));
+                if (rest.length) drops.push(rest[Math.floor(Math.random() * rest.length)]);
+              }
+            }
+          } else {
+            for (const it of ITEM_POOL) {
+              if (it.id === "pokeball") continue;
+              if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
+            }
+            // Ultra Ball: raro+, 30% padrão. Mapas Terry/n2/n3 têm chance elevada e Great Ball extra.
+            const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
+            const cm = idle.currentMap;
+            const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
+            const isGeliusMap = cm === "gelius1" || cm === "gelius2";
+            const ultraChance = isGeliusMap ? 0.35 : isTerryMap ? 0.20 : 0.08;
+            if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
+            if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
           }
-          // Ultra Ball: raro+, 30% padrão. Mapas Terry/n2/n3 têm chance elevada e Great Ball extra.
-          const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
-          const cm = idle.currentMap;
-          const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
-          const isGeliusMap = cm === "gelius1" || cm === "gelius2";
-          const ultraChance = isGeliusMap ? 0.35 : isTerryMap ? 0.20 : 0.08;
-          if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
-          if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
