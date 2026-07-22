@@ -13578,7 +13578,9 @@ function MarketScreen({
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
               {others.map((l) => {
-                const canBuy = bank.gold >= l.price;
+                const cur = l.currency ?? "gold";
+                const bal = cur === "gold" ? bank.gold : cur === "crystal" ? bank.crystals : (items.safira_verde ?? 0);
+                const canBuy = bal >= l.price;
                 return (
                   <div key={l.id} style={{ background: "#1a0f26", border: "1px solid #ff9d3d66", borderRadius: 10, padding: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -13588,14 +13590,15 @@ function MarketScreen({
                         <div style={{ color: "#8a7a9c", fontSize: 11 }}>por <b style={{ color: "#c8b8d0" }}>{l.seller_name}</b></div>
                       </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: "#ff9d3d" }}>{l.price.toLocaleString()} ouro</b></div>
+                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: CUR_COLOR[cur] }}>{l.price.toLocaleString()} {CUR_LABEL[cur]}</b></div>
                     <button disabled={!canBuy} onClick={() => void onBuy(l).then((ok) => { if (ok) void refresh(); })}
                       style={{ width: "100%", background: !canBuy ? "#333" : "linear-gradient(180deg,#ff9d3d,#8b4a10)", color: "#0e0818", border: "none", borderRadius: 6, padding: "8px 0", fontWeight: 800, cursor: !canBuy ? "not-allowed" : "pointer", fontSize: 12 }}>
-                      {canBuy ? "Comprar" : "Ouro insuficiente"}
+                      {canBuy ? "Comprar" : `${CUR_LABEL[cur]} insuficiente(s)`}
                     </button>
                   </div>
                 );
               })}
+
             </div>
           )}
         </>
