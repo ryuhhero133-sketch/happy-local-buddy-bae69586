@@ -1162,6 +1162,15 @@ export function BlackMiticEggHud(props: {
             0%,100% { opacity: 0.5; transform: scale(1); }
             50% { opacity: 0.9; transform: scale(1.1); }
           }
+          @keyframes blackEggShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+          @keyframes blackEggStoneFlash {
+            0% { transform: scale(1); filter: brightness(1); }
+            40% { transform: scale(1.25); filter: brightness(1.8); }
+            100% { transform: scale(1); filter: brightness(1); }
+          }
         `}</style>
       </div>
     </div>
