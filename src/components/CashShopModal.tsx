@@ -139,16 +139,37 @@ function readStock(): number {
 }
 
 // ---------- Moeda Esmeralda (visível apenas neste painel) ----------
-const EMERALD_KEY = "rubym.cashshop.emerald.v1";
-function readEmerald(): number {
+// Antes: uma única chave global — jogadores perdiam saldo ao trocar de conta/navegador.
+// Agora: chave por UID + espelho no user_metadata do Supabase para nunca perder.
+const EMERALD_KEY_LEGACY = "rubym.cashshop.emerald.v1";
+function emeraldKeyFor(uid?: string | null): string {
+  return uid ? `rubym.cashshop.emerald.v2.${uid}` : EMERALD_KEY_LEGACY;
+}
+function readEmeraldFor(uid?: string | null): number {
   try {
-    const v = localStorage.getItem(EMERALD_KEY);
+    const k = emeraldKeyFor(uid);
+    let v = localStorage.getItem(k);
+    // Migração one-shot: se a chave por-uid ainda não existe, herda do valor global antigo.
+    if (v == null && uid) {
+      const legacy = localStorage.getItem(EMERALD_KEY_LEGACY);
+      if (legacy != null) {
+        localStorage.setItem(k, legacy);
+        v = legacy;
+      }
+    }
     const n = v ? parseInt(v, 10) : 0;
     return Number.isFinite(n) ? Math.max(0, n) : 0;
   } catch { return 0; }
 }
-function writeEmerald(n: number) {
-  try { localStorage.setItem(EMERALD_KEY, String(Math.max(0, Math.floor(n)))); } catch { /* ignore */ }
+function writeEmeraldFor(uid: string | null | undefined, n: number) {
+  const val = Math.max(0, Math.floor(n));
+  try { localStorage.setItem(emeraldKeyFor(uid), String(val)); } catch { /* ignore */ }
+  // Mirror best-effort no user_metadata (sobrevive a limpezas de localStorage/troca de device)
+  if (uid) {
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.auth.updateUser({ data: { emeralds: val } }).catch(() => { /* offline: ok */ });
+    }).catch(() => { /* ignore */ });
+  }
 }
 
 // Taxas de conversão
@@ -301,7 +322,29 @@ export function CashShopModal(props: Props) {
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [blackStock, setBlackStock] = useState<number>(readStock());
-  const [emerald, setEmerald] = useState<number>(readEmerald());
+  const emeraldUid = identity?.id ?? null;
+  const [emerald, setEmerald] = useState<number>(() => readEmeraldFor(emeraldUid));
+
+  // Ao trocar de conta / hidratar identidade: recarrega saldo por-uid e reconcilia com o
+  // espelho salvo no user_metadata (mantém o maior — evita perder saldo entre devices).
+  useEffect(() => {
+    if (!emeraldUid) return;
+    const local = readEmeraldFor(emeraldUid);
+    setEmerald(local);
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data }) => {
+        const remote = Number((data?.user?.user_metadata as { emeralds?: number } | null)?.emeralds ?? 0);
+        const merged = Math.max(local, Number.isFinite(remote) ? remote : 0);
+        if (merged !== local) {
+          setEmerald(merged);
+          try { localStorage.setItem(emeraldKeyFor(emeraldUid), String(merged)); } catch { /* ignore */ }
+        }
+      }).catch(() => { /* offline: ok */ });
+    }).catch(() => { /* ignore */ });
+  }, [emeraldUid]);
+  const writeEmerald = (n: number) => writeEmeraldFor(emeraldUid, n);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _readEmeraldNoop = () => readEmeraldFor(emeraldUid);
   const [convMsg, setConvMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
