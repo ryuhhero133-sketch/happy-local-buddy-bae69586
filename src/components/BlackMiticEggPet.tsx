@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import eggSprite from "@/assets/black-mitic-egg.png";
 import incubatorSprite from "@/assets/black-mitic-incubator.png";
+import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 
 // ============================================================================
 // Black Mitic Plus Egg — sistema unificado
