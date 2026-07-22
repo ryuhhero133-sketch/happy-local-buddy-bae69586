@@ -2453,6 +2453,10 @@ function IdlePage() {
       GOV6CARDS1: 6, GOV6CARDS2: 6, GOV6CARDS3: 6, GOV6CARDS4: 6,
       GOV1CARD: 1,
       GOV5CARDS1: 5, GOV5CARDS2: 5,
+      // Nova leva (uso único) — 5x5, 5x6, 3x1
+      CARD5A: 5, CARD5B: 5, CARD5C: 5, CARD5D: 5, CARD5E: 5,
+      CARD6A: 6, CARD6B: 6, CARD6C: 6, CARD6D: 6, CARD6E: 6,
+      CARD1A: 1, CARD1B: 1, CARD1C: 1,
     };
     if (bigCardMap[raw]) {
       const base = idleRef.current;
