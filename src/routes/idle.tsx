@@ -5424,7 +5424,7 @@ function IdlePage() {
     const until = idle.buffs?.goldMultUntil ?? 0;
     return until > Date.now();
   };
-  const listMarketItem = async (itemId: string, qty: number, price: number): Promise<boolean> => {
+  const listMarketItem = async (itemId: string, qty: number, price: number, currency: "gold" | "crystal" | "safira" = "gold"): Promise<boolean> => {
     if (!identity?.id) { pushChat("Faça login para anunciar.", "info"); return false; }
     if (!isVip()) { pushChat("✦ Anunciar no mercado é exclusivo VIP. Use um Livro VIP na Loja.", "info"); return false; }
     const have = idle.items[itemId] ?? 0;
@@ -5437,18 +5437,22 @@ function IdlePage() {
       item_id: itemId,
       qty,
       price,
-      currency: "gold",
+      currency,
     });
     if (error) { pushChat(`Falha ao anunciar: ${error.message}`, "info"); return false; }
     // remove item do estoque local (custódia do anúncio)
     setIdle((s) => ({ ...s, items: { ...s.items, [itemId]: (s.items[itemId] ?? 0) - qty } }));
-    pushChat(`📢 Anúncio criado: ${qty}x ${itemId} por ${price} ouro.`, "cap");
+    const curLabel = currency === "gold" ? "ouro" : currency === "crystal" ? "💎 cristais" : "💚 safiras";
+    pushChat(`📢 Anúncio criado: ${qty}x ${itemId} por ${price} ${curLabel}.`, "cap");
     return true;
   };
-  const buyMarketListing = async (listing: { id: string; seller_id: string; item_id: string; qty: number; price: number }): Promise<boolean> => {
+  const buyMarketListing = async (listing: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }): Promise<boolean> => {
     if (!identity?.id) { pushChat("Faça login para comprar.", "info"); return false; }
     if (listing.seller_id === identity.id) { pushChat("Você não pode comprar seu próprio anúncio.", "info"); return false; }
-    if (idle.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
+    const cur = listing.currency ?? "gold";
+    if (cur === "gold" && idle.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
+    if (cur === "crystal" && idle.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
+    if (cur === "safira" && (idle.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
     const { data, error } = await supabase
       .from("market_listings")
       .update({ buyer_id: identity.id, sold_at: new Date().toISOString() })
@@ -5457,12 +5461,16 @@ function IdlePage() {
       .select("id")
       .maybeSingle();
     if (error || !data) { pushChat("Anúncio não está mais disponível.", "info"); return false; }
-    setIdle((s) => ({
-      ...s,
-      bank: { ...s.bank, gold: s.bank.gold - listing.price },
-      items: { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty },
-    }));
-    pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ouro.`, "cap");
+    setIdle((s) => {
+      const bank = { ...s.bank };
+      const items = { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty };
+      if (cur === "gold") bank.gold -= listing.price;
+      else if (cur === "crystal") bank.crystals -= listing.price;
+      else items.safira_verde = (s.items?.safira_verde ?? 0) - listing.price;
+      return { ...s, bank, items };
+    });
+    const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
+    pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ${curLabel}.`, "cap");
     return true;
   };
   const cancelMarketListing = async (listing: { id: string; item_id: string; qty: number; seller_id: string }): Promise<boolean> => {
@@ -5473,6 +5481,7 @@ function IdlePage() {
     pushChat(`Anúncio cancelado — ${listing.qty}x ${listing.item_id} devolvido.`, "info");
     return true;
   };
+
 
   // Stones — venda alternativa por Cristal e por Safira Verde
   // Regra pedida: 1000 stones = 500 safiras (2:1). Cristal: preço por unidade.
