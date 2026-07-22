@@ -65,6 +65,11 @@ export type EggInstance = {
   lastCravingNudgeAt: number;
   streakElement: ElementId | null;
   streakCount: number;
+  // Novo: métricas de cuidado
+  matchedCravings: number;     // vezes que o jogador acertou o desejo
+  missedFeedings: number;      // feeds atrasados (>1h30 desde cooldown)
+  lastMilestone: number;       // último marco de totalFed anunciado (excesso)
+  recentFeedAt: Partial<Record<ElementId, number>>; // brilho recente por elemento
 };
 
 type CollectionState = {
