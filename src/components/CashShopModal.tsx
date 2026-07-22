@@ -199,7 +199,7 @@ const EMERALD_OFFERS: EmeraldOffer[] = [
   {
     id: "bau_esmeralda",
     name: "Baú de Esmeralda",
-    desc: "Loot aleatório ✦ pode vir 300 Ultra, Orb Supremo, 1k Cristal, Incensos e mais",
+    desc: "Loot aleatório ✦ 4k Great, 3k Ultra, Orbs, Stones Elementais (10/50), Cristais e mais",
     price: 20,
     image: chestEmeraldImg,
     grants: [{ itemId: "premium_box", qty: 1 }], // fallback (rota randômica no handler)
