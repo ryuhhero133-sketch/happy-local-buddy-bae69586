@@ -3532,19 +3532,18 @@ function IdlePage() {
             const isValuable = target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
             if (isValuable) {
               const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
-              // ~60% de chance de dropar 1 stone random (=> ~12 stones a cada 20 kills)
-              if (Math.random() < 0.60) {
+              // Drop nerfado: ~25% chance de 1 stone random
+              if (Math.random() < 0.25) {
                 const first = STONES[Math.floor(Math.random() * STONES.length)];
                 drops.push(first);
-                // ~20% de chance de vir uma SEGUNDA stone de elemento DIFERENTE
-                // (=> em média ~2 stones diferentes a cada 10 kills)
-                if (Math.random() < 0.20) {
+                // ~8% de chance de vir uma SEGUNDA stone de elemento DIFERENTE
+                if (Math.random() < 0.08) {
                   const rest = STONES.filter((s) => s !== first);
                   drops.push(rest[Math.floor(Math.random() * rest.length)]);
                 }
               }
-              // Míticos/shiny dão bônus garantido de uma stone extra diferente
-              if (target.rarity === "mythic" || target.rarity === "mythic_shiny") {
+              // Míticos/shiny: 40% de chance de bônus de uma stone extra diferente (antes garantido)
+              if ((target.rarity === "mythic" || target.rarity === "mythic_shiny") && Math.random() < 0.40) {
                 const already = new Set(drops);
                 const rest = STONES.filter((s) => !already.has(s));
                 if (rest.length) drops.push(rest[Math.floor(Math.random() * rest.length)]);
