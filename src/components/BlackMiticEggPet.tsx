@@ -509,9 +509,26 @@ export function BlackMiticEggHud(props: {
 
   useEffect(() => {
     if (!open) return;
-    const id = setInterval(() => setNow(Date.now()), 500);
+    const tick = () => {
+      setNow(Date.now());
+      // Avança o diário de todos os ovos ativos (fome/saudade/quase pronto).
+      setState((prev) => {
+        let changed = false;
+        const eggs = prev.eggs.map(e => {
+          const ne = advanceJournal(e, Date.now());
+          if (ne !== e) changed = true;
+          return ne;
+        });
+        if (!changed) return prev;
+        const next = { ...prev, eggs };
+        saveState(uid, next);
+        return next;
+      });
+    };
+    tick();
+    const id = setInterval(tick, 5000);
     return () => clearInterval(id);
-  }, [open]);
+  }, [open, uid]);
 
   const selected = useMemo(
     () => state.eggs.find(e => e.id === state.selectedId) ?? state.eggs[0] ?? null,
