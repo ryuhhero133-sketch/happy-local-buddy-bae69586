@@ -100,3 +100,62 @@ export function subscribeAll(cb: (msg: TicketMsg) => void) {
     .subscribe();
   return () => { supabase.removeChannel(ch); };
 }
+
+// ============= PENDING PURCHASES (vendas em análise) =============
+export type PendingSale = {
+  id: string;
+  user_id: string;
+  username: string;
+  product_id: string;
+  product_name: string;
+  price_brl: number | null;
+  payment_method: string | null;
+  transaction_ref: string | null;
+  status: "analise" | "approved" | "rejected" | "expired";
+  admin_note: string | null;
+  created_at: string;
+  expires_at: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pdb = () => (supabase as any).from("pending_purchases");
+
+export async function fetchPendingSales(): Promise<PendingSale[]> {
+  const { data, error } = await pdb()
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) { console.error("[cash] fetchPendingSales", error); return []; }
+  return (data ?? []) as PendingSale[];
+}
+
+export async function updatePendingStatus(
+  id: string,
+  status: "approved" | "rejected",
+  adminName: string,
+  note?: string,
+) {
+  const { error } = await pdb()
+    .update({
+      status,
+      approved_by: adminName,
+      admin_note: note ?? null,
+      resolved_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) console.error("[cash] updatePendingStatus", error);
+  return !error;
+}
+
+export function subscribePendingSales(cb: () => void) {
+  const ch = supabase
+    .channel("pending_purchases_all")
+    .on(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      "postgres_changes" as any,
+      { event: "*", schema: "public", table: "pending_purchases" },
+      () => cb(),
+    )
+    .subscribe();
+  return () => { supabase.removeChannel(ch); };
+}

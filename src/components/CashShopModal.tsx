@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   fetchThread, sendUserMessage, sendAdminMessage, subscribeThread,
   fetchThreadsForAdmin, subscribeAll,
-  type TicketMsg, type AdminThreadSummary,
+  fetchPendingSales, subscribePendingSales, updatePendingStatus,
+  type TicketMsg, type AdminThreadSummary, type PendingSale,
 } from "@/lib/cashshopChat";
 import { motion, AnimatePresence } from "framer-motion";
 import blackEggImg from "@/assets/black-mythic-plus-egg.jpg";
@@ -361,6 +362,8 @@ export function CashShopModal(props: Props) {
   const [adminTargetUid, setAdminTargetUid] = useState<string | null>(null);
   const [adminTargetName, setAdminTargetName] = useState<string>("");
   const [adminThreads, setAdminThreads] = useState<AdminThreadSummary[]>([]);
+  const [adminTab, setAdminTab] = useState<"tickets" | "sales">("tickets");
+  const [pendingSales, setPendingSales] = useState<PendingSale[]>([]);
 
   // Uid efetivamente exibido no painel de chat
   const chatUid = isCashAdmin ? adminTargetUid : uid;
@@ -380,14 +383,24 @@ export function CashShopModal(props: Props) {
     setAdminThreads(list);
   }, [isCashAdmin]);
 
+  const reloadPendingSales = useCallback(async () => {
+    if (!isCashAdmin) return;
+    const list = await fetchPendingSales();
+    setPendingSales(list);
+  }, [isCashAdmin]);
+
   useEffect(() => {
     if (!open) return;
     if (isCashAdmin) {
       reloadAdminList();
-      const unsub = subscribeAll(() => { reloadAdminList(); });
-      return () => { unsub(); };
+      reloadPendingSales();
+      const unsub1 = subscribeAll(() => { reloadAdminList(); });
+      const unsub2 = subscribePendingSales(() => { reloadPendingSales(); });
+      // fallback: refresh periódico caso realtime não esteja habilitado na tabela
+      const iv = window.setInterval(() => { reloadAdminList(); reloadPendingSales(); }, 15000);
+      return () => { unsub1(); unsub2(); window.clearInterval(iv); };
     }
-  }, [open, isCashAdmin, reloadAdminList]);
+  }, [open, isCashAdmin, reloadAdminList, reloadPendingSales]);
 
   // Carrega thread ativa + subscribe
   useEffect(() => {
@@ -903,8 +916,33 @@ export function CashShopModal(props: Props) {
             adminThreads={adminThreads}
             adminTargetUid={adminTargetUid}
             adminTargetName={adminTargetName}
-            onAdminPick={(t) => { setAdminTargetUid(t.user_id); setAdminTargetName(t.username); }}
+            onAdminPick={(t) => { setAdminTargetUid(t.user_id); setAdminTargetName(t.username); setAdminTab("tickets"); }}
             onAdminBack={() => { setAdminTargetUid(null); setAdminTargetName(""); }}
+            adminTab={adminTab}
+            onAdminTab={setAdminTab}
+            pendingSales={pendingSales}
+            onApproveSale={async (s) => {
+              await updatePendingStatus(s.id, "approved", identity?.name ?? "Admin");
+              await sendAdminMessage(
+                s.user_id,
+                identity?.name ?? "Suporte",
+                `✅ Pagamento APROVADO — "${s.product_name}". Os itens foram liberados. Bom jogo!`,
+              );
+              reloadPendingSales();
+              reloadAdminList();
+            }}
+            onRejectSale={async (s) => {
+              const note = window.prompt("Motivo da rejeição (opcional):") ?? "";
+              await updatePendingStatus(s.id, "rejected", identity?.name ?? "Admin", note);
+              await sendAdminMessage(
+                s.user_id,
+                identity?.name ?? "Suporte",
+                `❌ Pagamento REJEITADO — "${s.product_name}".${note ? ` Motivo: ${note}` : ""}`,
+              );
+              reloadPendingSales();
+              reloadAdminList();
+            }}
+            onOpenSaleThread={(s) => { setAdminTargetUid(s.user_id); setAdminTargetName(s.username); setAdminTab("tickets"); }}
           />
         )}
       </AnimatePresence>
@@ -1094,6 +1132,8 @@ function SupportChat({
   trainerName, messages, input, setInput, onSend, onClose, endRef,
   isAdmin = false, adminThreads = [], adminTargetUid = null, adminTargetName = "",
   onAdminPick, onAdminBack,
+  adminTab = "tickets", onAdminTab, pendingSales = [],
+  onApproveSale, onRejectSale, onOpenSaleThread,
 }: {
   trainerName: string;
   messages: ChatMsg[];
@@ -1108,6 +1148,12 @@ function SupportChat({
   adminTargetName?: string;
   onAdminPick?: (t: AdminThreadSummary) => void;
   onAdminBack?: () => void;
+  adminTab?: "tickets" | "sales";
+  onAdminTab?: (t: "tickets" | "sales") => void;
+  pendingSales?: PendingSale[];
+  onApproveSale?: (s: PendingSale) => void;
+  onRejectSale?: (s: PendingSale) => void;
+  onOpenSaleThread?: (s: PendingSale) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -1118,6 +1164,7 @@ function SupportChat({
   };
 
   const showList = isAdmin && !adminTargetUid;
+  const salesAnalise = pendingSales.filter((s) => s.status === "analise");
 
   return (
     <motion.div
@@ -1130,7 +1177,7 @@ function SupportChat({
             <button
               onClick={() => onAdminBack?.()}
               className="w-8 h-8 rounded-lg bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-emerald-300"
-              title="Voltar aos tickets"
+              title="Voltar"
             >←</button>
           )}
           <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 grid place-items-center text-lg text-black font-black">
@@ -1140,19 +1187,83 @@ function SupportChat({
           <div>
             <div className="text-white font-black text-sm">
               {isAdmin
-                ? (adminTargetUid ? `Ticket · ${adminTargetName || "Treinador"}` : "Tickets (Admin)")
+                ? (adminTargetUid ? `Ticket · ${adminTargetName || "Treinador"}` : "Painel Admin")
                 : "Suporte IdleMon"}
             </div>
             <div className="text-emerald-300 text-[10px] flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              {isAdmin ? "Modo admin — todos os tickets" : "Atendente online"}
+              {isAdmin ? "Tickets + Vendas em análise" : "Atendente online"}
             </div>
           </div>
         </div>
         <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/30 border border-white/10 text-white/80">✕</button>
       </div>
 
-      {showList ? (
+      {showList && (
+        <div className="flex gap-1 px-2 pt-2 border-b border-emerald-400/10 bg-black/40">
+          <button
+            onClick={() => onAdminTab?.("tickets")}
+            className={`flex-1 px-3 py-2 text-xs font-black rounded-t-lg transition ${
+              adminTab === "tickets"
+                ? "bg-emerald-500/20 text-emerald-200 border border-emerald-400/40 border-b-transparent"
+                : "text-white/50 hover:text-white/80"
+            }`}
+          >
+            💬 Tickets {adminThreads.length > 0 && <span className="ml-1 text-[10px] opacity-70">({adminThreads.length})</span>}
+          </button>
+          <button
+            onClick={() => onAdminTab?.("sales")}
+            className={`flex-1 px-3 py-2 text-xs font-black rounded-t-lg transition ${
+              adminTab === "sales"
+                ? "bg-amber-500/20 text-amber-200 border border-amber-400/40 border-b-transparent"
+                : "text-white/50 hover:text-white/80"
+            }`}
+          >
+            💰 Vendas {salesAnalise.length > 0 && (
+              <span className="ml-1 text-[10px] px-1.5 rounded-full bg-amber-400 text-black">{salesAnalise.length}</span>
+            )}
+          </button>
+        </div>
+      )}
+
+      {showList && adminTab === "sales" ? (
+        <div className="flex-1 overflow-y-auto p-2 space-y-2">
+          {salesAnalise.length === 0 && (
+            <div className="text-center text-white/50 text-xs py-8 px-4">
+              Nenhuma venda em análise no momento.
+            </div>
+          )}
+          {salesAnalise.map((s) => (
+            <div key={s.id} className="rounded-lg bg-white/5 border border-amber-400/20 p-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-white text-sm font-bold truncate">{s.username || "Treinador"}</div>
+                <div className="text-amber-300 text-xs font-black">R${s.price_brl ?? "?"}</div>
+              </div>
+              <div className="text-white/70 text-xs mt-0.5 truncate">{s.product_name}</div>
+              <div className="text-white/40 text-[10px] mt-0.5">
+                {new Date(s.created_at).toLocaleString([], { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                {s.payment_method ? ` · ${s.payment_method}` : ""}
+                {s.transaction_ref ? ` · ref: ${s.transaction_ref}` : ""}
+              </div>
+              <div className="flex gap-1.5 mt-2">
+                <button
+                  onClick={() => onApproveSale?.(s)}
+                  className="flex-1 px-2 py-1.5 rounded-md bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black"
+                >Aprovar</button>
+                <button
+                  onClick={() => onRejectSale?.(s)}
+                  className="flex-1 px-2 py-1.5 rounded-md bg-red-500/80 hover:bg-red-500 text-white text-xs font-black"
+                >Rejeitar</button>
+                <button
+                  onClick={() => onOpenSaleThread?.(s)}
+                  className="px-2 py-1.5 rounded-md bg-white/10 hover:bg-emerald-500/20 text-white/80 text-xs"
+                  title="Abrir chat do jogador"
+                >💬</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : showList ? (
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {adminThreads.length === 0 && (
             <div className="text-center text-white/50 text-xs py-8 px-4">
