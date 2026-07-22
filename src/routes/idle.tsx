@@ -4376,18 +4376,19 @@ function IdlePage() {
 
 
   // Usar item da mochila
-  const useItem = (id: string) => {
+  const useItem = (id: string, qty: number = 1) => {
     const l = team[0]; if (!l) return;
     const have = (idle.items[id] ?? 0);
     if (have <= 0) { pushChat(`Você não tem ${id}.`, "info"); return; }
+    const useQty = Math.max(1, Math.min(qty, have));
     const maxHp = calcIdleMaxHp(l);
     if (id === "potion") {
       if (leaderHp <= 0) { pushChat(`Poção não revive. Reviva por 50 ouro.`, "info"); return; }
-      const heal = Math.floor(maxHp * 0.5);
+      const heal = Math.floor(maxHp * 0.5) * useQty;
       setLeaderHp((h) => Math.min(maxHp, h + heal));
-      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 } }));
+      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `+${heal} HP`, "gold");
-      pushChat(`Você usou Poção (+${heal} HP).`, "info");
+      pushChat(`Você usou ${useQty}× Poção (+${heal} HP).`, "info");
     } else if (id === "pokeball" || id === "greatball" || id === "ultraball") {
       pushChat(`As Pokébolas são usadas automaticamente ao derrotar inimigos.`, "info");
     } else if (id === "berry") {
@@ -4405,13 +4406,16 @@ function IdlePage() {
     } else if (id === "key") {
       pushChat(`Guarde as Chaves para trocar no Mercado.`, "info");
     } else if (id === "book_atk") {
-      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 }, buffs: { ...s.buffs, atk: s.buffs.atk + 0.10 } }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "ATK +10%", "capture");
-      pushChat(`Livro de Ataque usado (+10% dano permanente).`, "cap");
+      const gain = 0.10 * useQty;
+      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty }, buffs: { ...s.buffs, atk: s.buffs.atk + gain } }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `ATK +${Math.round(gain*100)}%`, "capture");
+      pushChat(`Usou ${useQty}× Livro de Ataque (+${Math.round(gain*100)}% dano permanente).`, "cap");
     } else if (id === "book_def") {
-      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 }, buffs: { ...s.buffs, def: s.buffs.def + 0.10 } }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "DEF +10%", "capture");
-      pushChat(`Livro de Defesa usado (-10% dano recebido).`, "cap");
+      const gain = 0.10 * useQty;
+      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty }, buffs: { ...s.buffs, def: s.buffs.def + gain } }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `DEF +${Math.round(gain*100)}%`, "capture");
+      pushChat(`Usou ${useQty}× Livro de Defesa (-${Math.round(gain*100)}% dano recebido).`, "cap");
+
     } else if (id === "book_exp" || id === "book_exp_big" || id === "book_exp_max") {
       const add = id === "book_exp" ? 0.30 : id === "book_exp_big" ? 0.50 : 1.00;
       const pct = Math.round(add * 100);
