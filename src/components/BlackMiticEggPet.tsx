@@ -481,6 +481,7 @@ export function BlackMiticEggHud(props: {
   const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify } = props;
   const [state, setState] = useState<CollectionState>(() => loadState(uid));
   const [now, setNow] = useState(Date.now());
+  const [tab, setTab] = useState<"journal" | "feeds">("journal");
 
   // Sincroniza número de ovos com itemCount (adiciona novos inativos, ou remove excesso do fim entre os NÃO ativados)
   useEffect(() => {
