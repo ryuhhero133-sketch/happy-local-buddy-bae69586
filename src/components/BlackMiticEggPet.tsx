@@ -8,15 +8,9 @@ import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 // Black Mitic Plus Egg — sistema unificado
 // - Suporta múltiplos ovos em UM único painel (seleção por ovo).
 // - Cooldown de alimentação: 1h entre feeds.
-// - Incubação: 10h (conta apenas depois de "ATIVAR INICIAÇÃO").
-// - Ao chocar: gera Pokémon Black Mitic Plus com 5 traits, elemento = afinidade dominante.
-// - Ícone de acesso rápido separado (renderizado no HUD do idle, perto do troféu).
-// ============================================================================
-
-export const BLACK_EGG_ITEM_ID = "black_mitic_egg";
-export const BLACK_EGG_ITEM_NAME = "Black Mitic Plus Egg ✦";
-export const BLACK_EGG_ITEM_DESC =
-  "Black Mitic Plus Egg — coloque na incubadora e ative para começar a chocar (10h). Alimente com Elemental Stones (50 por vez, 1h de cooldown). O elemento dominante define o tipo do Pokémon que nascerá com 5 traits.";
+// - Incubação: 20h (conta apenas depois de "ATIVAR INICIAÇÃO").
+...
+  "Black Mitic Plus Egg — coloque na incubadora e ative para começar a chocar (20h). Alimente com Elemental Stones (50 por vez, 1h de cooldown). O elemento dominante define o tipo do Pokémon que nascerá com 5 traits.";
 
 const FEED_COOLDOWN_MS = 60 * 60 * 1000;         // 1h entre feeds
 const HATCH_MS = 20 * 60 * 60 * 1000;            // 20h incubação
