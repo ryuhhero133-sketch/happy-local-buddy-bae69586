@@ -590,10 +590,10 @@ export function CashShopModal(props: Props) {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setSelected(p)}
-                        disabled={p.id === "black_mythic_plus" && blackStock <= 0}
+                        disabled={p.id === "black_mythic_plus"}
                         className={`px-4 py-2 rounded-lg font-black text-sm text-black bg-gradient-to-r ${p.accent} shadow-lg hover:shadow-xl transition disabled:opacity-40 disabled:cursor-not-allowed`}
                       >
-                        {p.id === "black_mythic_plus" && blackStock <= 0 ? "ESGOTADO" : "COMPRAR"}
+                        {p.id === "black_mythic_plus" ? "ESGOTADO" : "COMPRAR"}
                       </motion.button>
                     </div>
                   </div>
