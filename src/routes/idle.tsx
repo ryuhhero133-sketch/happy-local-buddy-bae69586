@@ -10509,6 +10509,7 @@ function IdlePage() {
           pushChat(`✦ Black Mitic Plus (${element}) nasceu com 5 traits! Confira sua coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
+        hasIncubatorCard={(idle.items?.carta_incubadora ?? 0) > 0}
       />
     </div>
 
