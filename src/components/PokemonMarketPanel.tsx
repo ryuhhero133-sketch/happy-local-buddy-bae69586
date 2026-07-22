@@ -630,8 +630,8 @@ function ListingCard(props: {
       <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", gap: 8 }}>
         <div>
           <div style={{ fontSize: 8, letterSpacing: 2, color: "#8a7a9c", fontWeight: 900 }}>PREÇO</div>
-          <div style={{ fontSize: 16, fontWeight: 900, color: r.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>
-            {r.currency === "gold" ? "💰" : "💎"} {r.price.toLocaleString()}
+          <div style={{ fontSize: 16, fontWeight: 900, color: CUR_COLOR[r.currency] }}>
+            {CUR_ICON[r.currency]} {r.price.toLocaleString()}
           </div>
           <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 2 }}>por <b style={{ color: "#c8b8d0" }}>{r.seller_name}</b></div>
         </div>
@@ -661,7 +661,7 @@ function OfferBox(props: {
     return (
       <div style={{ background: "#0e0818", border: "1px dashed #6bd4ff55", borderRadius: 8, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
         <div style={{ fontSize: 10, color: "#c8b8d0" }}>
-          Sua oferta: <b style={{ color: myOffer.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>{myOffer.amount.toLocaleString()}</b>
+          Sua oferta: <b style={{ color: myOffeCUR_COLOR[r.currency] }}>{myOffer.amount.toLocaleString()}</b>
         </div>
         <button onClick={onCancel} style={{ ...btnRed, padding: "4px 8px", fontSize: 9 }}>Cancelar</button>
       </div>
@@ -694,8 +694,8 @@ function OffersReceived(props: {
         <div key={o.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#0e0818", border: "1px solid #3a2a4a", borderRadius: 6, padding: "4px 6px" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.buyer_name}</div>
-            <div style={{ fontSize: 11, fontWeight: 900, color: o.currency === "gold" ? "#f5cf6b" : "#6bd4ff" }}>
-              {o.currency === "gold" ? "💰" : "💎"} {o.amount.toLocaleString()}
+            <div style={{ fontSize: 11, fontWeight: 900, color: CUR_COLOR[o.currency] }}>
+              {CUR_ICON[o.currency]} {o.amount.toLocaleString()}
             </div>
           </div>
           <button onClick={() => onAccept(o)} title="Aceitar" style={{ ...btnGold, padding: "3px 7px", fontSize: 9 }}>✓</button>
