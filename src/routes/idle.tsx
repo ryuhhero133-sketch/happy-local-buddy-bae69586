@@ -8765,24 +8765,28 @@ function IdlePage() {
             </div>
 
             <button
-              onClick={() => {
-                const c = window.prompt("Código de acesso da Lojinha:");
-                if (c == null) return;
-                if (c.trim().toLowerCase() === "rbx") setCashShopOpen(true);
-                else window.alert("Código inválido.");
-              }}
+              onClick={() => setCashShopOpen(true)}
+              className="lojinha-btn-glow"
               style={{
                 marginTop: 10, width: "100%",
-                background: "linear-gradient(135deg, #f5cf6b 0%, #ffe08a 50%, #d9a441 100%)",
-                border: "1.5px solid #ffe08a",
-                color: "#1a0a26", fontWeight: 900, fontSize: 11, letterSpacing: 1.5,
+                background: "linear-gradient(135deg, #14ff7a 0%, #6cff9d 50%, #0ea85a 100%)",
+                border: "1.5px solid #b8ffcf",
+                color: "#062a13", fontWeight: 900, fontSize: 11, letterSpacing: 1.5,
                 borderRadius: 8, padding: "9px", cursor: "pointer",
-                textShadow: "0 1px 0 rgba(255,255,255,0.4)",
-                boxShadow: "0 3px 12px rgba(245,207,107,0.5), inset 0 1px 0 rgba(255,255,255,0.3)",
+                textShadow: "0 1px 0 rgba(255,255,255,0.45)",
+                boxShadow: "0 0 14px rgba(46,255,140,0.75), 0 0 28px rgba(46,255,140,0.45), inset 0 1px 0 rgba(255,255,255,0.4)",
                 position: "relative",
+                overflow: "hidden",
               }}
               title="Abrir Lojinha Cash"
-            >✦ ABRIR LOJINHA ✦</button>
+            >
+              <span style={{ position: "relative", zIndex: 2 }}>✦ ABRIR LOJINHA ✦</span>
+              <span className="lojinha-star lojinha-star-1" aria-hidden>✦</span>
+              <span className="lojinha-star lojinha-star-2" aria-hidden>✧</span>
+              <span className="lojinha-star lojinha-star-3" aria-hidden>✦</span>
+              <span className="lojinha-star lojinha-star-4" aria-hidden>✧</span>
+              <span className="lojinha-star lojinha-star-5" aria-hidden>★</span>
+            </button>
           </div>
 
           {/* BANNER — Evento Odisséia Oddish (clique para entrar quando aberto) */}
@@ -9216,6 +9220,34 @@ function IdlePage() {
           animation: cash-pack-float 2.6s ease-in-out infinite;
           filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
         }
+
+        @keyframes lojinha-pulse {
+          0%,100% { box-shadow: 0 0 14px rgba(46,255,140,0.75), 0 0 28px rgba(46,255,140,0.45), inset 0 1px 0 rgba(255,255,255,0.4); }
+          50%     { box-shadow: 0 0 22px rgba(46,255,140,1), 0 0 44px rgba(46,255,140,0.75), 0 0 60px rgba(120,255,180,0.5), inset 0 1px 0 rgba(255,255,255,0.55); }
+        }
+        .lojinha-btn-glow { animation: lojinha-pulse 1.6s ease-in-out infinite; }
+        .lojinha-btn-glow:hover { transform: translateY(-1px) scale(1.02); }
+
+        @keyframes lojinha-star-fly {
+          0%   { transform: translate(0,0) scale(0.4); opacity: 0; }
+          20%  { opacity: 1; }
+          80%  { opacity: 1; }
+          100% { transform: translate(var(--tx,20px), var(--ty,-16px)) scale(1.2); opacity: 0; }
+        }
+        .lojinha-star {
+          position: absolute;
+          color: #f6ffb0;
+          font-size: 12px;
+          text-shadow: 0 0 6px #b8ffcf, 0 0 12px #6cff9d;
+          pointer-events: none;
+          z-index: 1;
+          animation: lojinha-star-fly 1.8s ease-in-out infinite;
+        }
+        .lojinha-star-1 { top: 4px;  left: 8%;  --tx: -6px; --ty: -14px; animation-delay: 0s;    }
+        .lojinha-star-2 { top: 50%;  left: 92%; --tx: 10px; --ty: -8px;  animation-delay: 0.35s; font-size: 10px; }
+        .lojinha-star-3 { top: 60%;  left: 4%;  --tx: -12px;--ty: 10px;  animation-delay: 0.7s;  }
+        .lojinha-star-4 { top: 6px;  left: 55%; --tx: 4px;  --ty: -18px; animation-delay: 1.05s; font-size: 9px; }
+        .lojinha-star-5 { top: 70%;  left: 45%; --tx: 0px;  --ty: 14px;  animation-delay: 1.4s;  font-size: 11px; }
 
 
       `}</style>
