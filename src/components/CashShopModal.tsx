@@ -1207,6 +1207,7 @@ function SupportChat({
       )}
 
 
+      {!showList && (
       <div className="p-2 border-t border-emerald-400/20 bg-black/50 flex items-center gap-2">
         <input
           ref={fileRef}
