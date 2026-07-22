@@ -1,6 +1,11 @@
 // LOJINHA CASH — Premium redesign (Black Mythic Plus edition)
 // Design: glassmorphism, particles, framer-motion, cinematic banner.
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  fetchThread, sendUserMessage, sendAdminMessage, subscribeThread,
+  fetchThreadsForAdmin, subscribeAll,
+  type TicketMsg, type AdminThreadSummary,
+} from "@/lib/cashshopChat";
 import { motion, AnimatePresence } from "framer-motion";
 import blackEggImg from "@/assets/black-mythic-plus-egg.jpg";
 import rubyVipImg from "@/assets/ruby-vip.jpg";
@@ -349,11 +354,58 @@ export function CashShopModal(props: Props) {
 
 
   const uid = identity?.id ?? "guest";
+  const isCashAdmin = typeof window !== "undefined"
+    && localStorage.getItem("rubym.cashShop.isAdmin") === "1";
+
+  // Alvo do painel admin (uid do jogador cujo ticket está sendo lido)
+  const [adminTargetUid, setAdminTargetUid] = useState<string | null>(null);
+  const [adminTargetName, setAdminTargetName] = useState<string>("");
+  const [adminThreads, setAdminThreads] = useState<AdminThreadSummary[]>([]);
+
+  // Uid efetivamente exibido no painel de chat
+  const chatUid = isCashAdmin ? adminTargetUid : uid;
+
+  const ticketToChat = (t: TicketMsg): ChatMsg => ({
+    id: t.id,
+    from: t.from_role,
+    text: t.text,
+    ts: new Date(t.created_at).getTime(),
+    image: t.image ?? undefined,
+  });
+
+  // Carrega lista de tickets (admin) ao abrir
+  const reloadAdminList = useCallback(async () => {
+    if (!isCashAdmin) return;
+    const list = await fetchThreadsForAdmin();
+    setAdminThreads(list);
+  }, [isCashAdmin]);
 
   useEffect(() => {
     if (!open) return;
-    setChatMsgs(loadChat(uid));
-  }, [open, uid]);
+    if (isCashAdmin) {
+      reloadAdminList();
+      const unsub = subscribeAll(() => { reloadAdminList(); });
+      return () => { unsub(); };
+    }
+  }, [open, isCashAdmin, reloadAdminList]);
+
+  // Carrega thread ativa + subscribe
+  useEffect(() => {
+    if (!open) return;
+    if (!chatUid || chatUid === "guest") { setChatMsgs([]); return; }
+    let alive = true;
+    (async () => {
+      const rows = await fetchThread(chatUid);
+      if (!alive) return;
+      setChatMsgs(rows.map(ticketToChat));
+    })();
+    const unsub = subscribeThread(chatUid, (row) => {
+      setChatMsgs((prev) =>
+        prev.some((m) => m.id === row.id) ? prev : [...prev, ticketToChat(row)],
+      );
+    });
+    return () => { alive = false; unsub(); };
+  }, [open, chatUid]);
 
   useEffect(() => {
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -361,22 +413,22 @@ export function CashShopModal(props: Props) {
 
   if (!open) return null;
 
-  const sendChat = (text: string, image?: string) => {
-    const msg: ChatMsg = { id: crypto.randomUUID(), from: "user", text, ts: Date.now(), image };
-    const next = [...chatMsgs, msg];
-    // resposta automática
-    setTimeout(() => {
-      const bot: ChatMsg = {
-        id: crypto.randomUUID(), from: "support", ts: Date.now(),
-        text: "✅ Recebemos! Nosso time analisará seu pagamento em breve. Após aprovado, enviaremos aqui o código do produto.",
-      };
-      const withBot = [...next, bot];
-      setChatMsgs(withBot);
-      saveChat(uid, withBot);
-    }, 800);
-    setChatMsgs(next);
-    saveChat(uid, next);
+  const sendChat = async (text: string, image?: string) => {
+    if (!text.trim() && !image) return;
+    if (isCashAdmin) {
+      if (!adminTargetUid) return;
+      const optimistic: ChatMsg = { id: crypto.randomUUID(), from: "support", text, ts: Date.now(), image };
+      setChatMsgs((prev) => [...prev, optimistic]);
+      await sendAdminMessage(adminTargetUid, identity?.name ?? "Suporte", text, image);
+      reloadAdminList();
+      return;
+    }
+    if (!uid || uid === "guest") return;
+    const optimistic: ChatMsg = { id: crypto.randomUUID(), from: "user", text, ts: Date.now(), image };
+    setChatMsgs((prev) => [...prev, optimistic]);
+    await sendUserMessage(uid, identity?.name ?? "Treinador", text, image);
   };
+
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-6">
@@ -821,12 +873,16 @@ export function CashShopModal(props: Props) {
               setTimeout(() => setConfetti(false), 2400);
               setSelected(null);
               setSupportOpen(true);
-              const sysMsg: ChatMsg = {
-                id: crypto.randomUUID(), from: "support", ts: Date.now(),
-                text: `📩 Pedido de "${selected.name}" (R$${selected.price}) recebido e está em ANÁLISE. Envie o comprovante do PicPay aqui neste chat para agilizar. Após aprovado, você receberá o código do produto por aqui.`,
-              };
-              const next = [...chatMsgs, sysMsg];
-              setChatMsgs(next); saveChat(uid, next);
+              // Registra o pedido no chat (persistido → admin vê o ticket)
+              const orderText = `📩 Pedido: "${selected.name}" — R$${selected.price}. Envio o comprovante aqui e aguardo o código.`;
+              if (uid && uid !== "guest") {
+                sendUserMessage(uid, identity?.name ?? "Treinador", orderText).catch(() => { /* ignore */ });
+              } else {
+                const sysMsg: ChatMsg = {
+                  id: crypto.randomUUID(), from: "user", ts: Date.now(), text: orderText,
+                };
+                setChatMsgs((prev) => [...prev, sysMsg]);
+              }
             }}
           />
         )}
@@ -843,9 +899,16 @@ export function CashShopModal(props: Props) {
             onSend={(t, img) => { if (t.trim() || img) sendChat(t.trim(), img); setChatInput(""); }}
             onClose={() => setSupportOpen(false)}
             endRef={chatEndRef}
+            isAdmin={isCashAdmin}
+            adminThreads={adminThreads}
+            adminTargetUid={adminTargetUid}
+            adminTargetName={adminTargetName}
+            onAdminPick={(t) => { setAdminTargetUid(t.user_id); setAdminTargetName(t.username); }}
+            onAdminBack={() => { setAdminTargetUid(null); setAdminTargetName(""); }}
           />
         )}
       </AnimatePresence>
+
 
       {/* ============ CONFETES ============ */}
       <AnimatePresence>
@@ -1029,6 +1092,8 @@ function Field({ label, value, onChange, placeholder, type = "text" }: {
 // ---------- Chat de suporte ----------
 function SupportChat({
   trainerName, messages, input, setInput, onSend, onClose, endRef,
+  isAdmin = false, adminThreads = [], adminTargetUid = null, adminTargetName = "",
+  onAdminPick, onAdminBack,
 }: {
   trainerName: string;
   messages: ChatMsg[];
@@ -1037,6 +1102,12 @@ function SupportChat({
   onSend: (text: string, image?: string) => void;
   onClose: () => void;
   endRef: React.RefObject<HTMLDivElement | null>;
+  isAdmin?: boolean;
+  adminThreads?: AdminThreadSummary[];
+  adminTargetUid?: string | null;
+  adminTargetName?: string;
+  onAdminPick?: (t: AdminThreadSummary) => void;
+  onAdminBack?: () => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -1046,6 +1117,8 @@ function SupportChat({
     reader.readAsDataURL(f);
   };
 
+  const showList = isAdmin && !adminTargetUid;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }}
@@ -1053,45 +1126,88 @@ function SupportChat({
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-400/20 bg-black/50">
         <div className="flex items-center gap-2">
+          {isAdmin && adminTargetUid && (
+            <button
+              onClick={() => onAdminBack?.()}
+              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-emerald-300"
+              title="Voltar aos tickets"
+            >←</button>
+          )}
           <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 grid place-items-center text-lg text-black font-black">
-            S
+            {isAdmin ? "A" : "S"}
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-black animate-pulse" />
           </div>
           <div>
-            <div className="text-white font-black text-sm">Suporte IdleMon</div>
+            <div className="text-white font-black text-sm">
+              {isAdmin
+                ? (adminTargetUid ? `Ticket · ${adminTargetName || "Treinador"}` : "Tickets (Admin)")
+                : "Suporte IdleMon"}
+            </div>
             <div className="text-emerald-300 text-[10px] flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Atendente online
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              {isAdmin ? "Modo admin — todos os tickets" : "Atendente online"}
             </div>
           </div>
         </div>
         <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/30 border border-white/10 text-white/80">✕</button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {messages.length === 0 && (
-          <div className="text-center text-white/50 text-xs py-8 px-4">
-            Olá, <span className="text-emerald-300 font-bold">{trainerName}</span>! Envie o comprovante do seu pagamento aqui.
-            Assim que aprovado, você receberá o código do produto neste chat.
-          </div>
-        )}
-        {messages.map((m) => (
-          <div key={m.id} className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
-              m.from === "user"
-                ? "bg-gradient-to-br from-emerald-500 to-cyan-600 text-black rounded-br-sm"
-                : "bg-white/5 border border-white/10 text-white/90 rounded-bl-sm"
-            }`}>
-              {m.image && <img src={m.image} alt="" className="rounded-lg mb-1 max-h-40 w-auto" />}
-              <div className="whitespace-pre-wrap break-words">{m.text}</div>
-              <div className={`text-[9px] mt-1 ${m.from === "user" ? "text-black/60" : "text-white/40"}`}>
-                {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </div>
+      {showList ? (
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {adminThreads.length === 0 && (
+            <div className="text-center text-white/50 text-xs py-8 px-4">
+              Nenhum ticket ainda. Quando alguém enviar mensagem, aparece aqui em tempo real.
             </div>
-          </div>
-        ))}
-        <div ref={endRef} />
-      </div>
+          )}
+          {adminThreads.map((t) => (
+            <button
+              key={t.user_id}
+              onClick={() => onAdminPick?.(t)}
+              className="w-full text-left px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-emerald-500/15 hover:border-emerald-400/40 transition"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-white text-sm font-bold truncate">{t.username || "Treinador"}</div>
+                <div className="text-white/40 text-[10px]">{new Date(t.last_ts).toLocaleString([], { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</div>
+              </div>
+              <div className="text-white/60 text-xs truncate mt-0.5">{t.last_text}</div>
+              <div className="text-emerald-300/70 text-[10px] mt-0.5">{t.count} msg</div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          {messages.length === 0 && (
+            <div className="text-center text-white/50 text-xs py-8 px-4">
+              {isAdmin
+                ? "Sem mensagens neste ticket ainda."
+                : <>Olá, <span className="text-emerald-300 font-bold">{trainerName}</span>! Envie o comprovante do seu pagamento aqui. Assim que aprovado, você receberá o código do produto neste chat.</>}
+            </div>
+          )}
+          {messages.map((m) => {
+            // Admin: mensagens do jogador (from=user) aparecem à esquerda; as do próprio admin (from=support) à direita
+            const mine = isAdmin ? m.from === "support" : m.from === "user";
+            return (
+              <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
+                  mine
+                    ? "bg-gradient-to-br from-emerald-500 to-cyan-600 text-black rounded-br-sm"
+                    : "bg-white/5 border border-white/10 text-white/90 rounded-bl-sm"
+                }`}>
+                  {m.image && <img src={m.image} alt="" className="rounded-lg mb-1 max-h-40 w-auto" />}
+                  <div className="whitespace-pre-wrap break-words">{m.text}</div>
+                  <div className={`text-[9px] mt-1 ${mine ? "text-black/60" : "text-white/40"}`}>
+                    {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          <div ref={endRef} />
+        </div>
+      )}
 
+
+      {!showList && (
       <div className="p-2 border-t border-emerald-400/20 bg-black/50 flex items-center gap-2">
         <input
           ref={fileRef}
@@ -1117,6 +1233,7 @@ function SupportChat({
           className="px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-black text-sm"
         >Enviar</button>
       </div>
+      )}
     </motion.div>
   );
 }
