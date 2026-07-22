@@ -130,6 +130,7 @@ import fireLakeAsset from "@/assets/fire-lake.png.asset.json";
 import mapVenofogoOrangeAsset from "@/assets/map-lava-valley.jpg.asset.json";
 import mapPantanoFogoAsset from "@/assets/map-pantano-fogo.png.asset.json";
 import worldMapGlobeAsset from "@/assets/world-map-globe.jpg.asset.json";
+import worldMapContinent2Url from "@/assets/world-map-continent2.jpg";
 import mapFantasmaAsset from "@/assets/map-fantasma.jpg.asset.json";
 import mapCadeiaAbAsset from "@/assets/map-cadeia-ab.png.asset.json";
 import mapCadeiaAb1Asset from "@/assets/map-cadeia-ab1.png.asset.json";
@@ -2067,6 +2068,7 @@ function IdlePage() {
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
+  const [worldTab, setWorldTab] = useState<1 | 2>(1);
   const [pendingGate, setPendingGate] = useState<null | { target: string; gate: any; fromBig: boolean }>(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
@@ -8689,7 +8691,8 @@ function IdlePage() {
                   )}
 
                   {worldMapOpen && (() => {
-                    const WORLD_PINS: Array<{ id: IdleMapId; x: number; y: number }> = [
+                    const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
+                    const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
                       { id: "arena", x: 15, y: 22 },
                       { id: "terra", x: 32, y: 16 },
                       { id: "deserto_purpura", x: 54, y: 20 },
@@ -8710,16 +8713,16 @@ function IdlePage() {
                       { id: "cadeia_ab", x: 80, y: 76 },
                       { id: "cadeia_ab1", x: 86, y: 68 },
                       { id: "cadeia_f1", x: 92, y: 58 },
-                      // gelius1 só aparece durante o evento (a cada 2h)
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 90, y: 84 }] : []),
-                      // Continente do Governante — só aparece com Carta do Governante na mochila
-                      ...((idle.items?.carta_governante ?? 0) > 0
-                        ? [
-                            { id: "absol_start" as IdleMapId, x: 8, y: 90 },
-                            { id: "governante_hall" as IdleMapId, x: 4, y: 82 },
-                          ]
-                        : []),
                     ];
+                    const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
+                      { id: "absol_start" as IdleMapId, x: 18, y: 45 },
+                      { id: "governante_hall" as IdleMapId, x: 52, y: 55 },
+                    ];
+                    const activeTab = worldTab;
+                    const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : WORLD_PINS_C2;
+                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : worldMapContinent2Url;
+                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : "👑 TEMPLO DO GOVERNANTE · CONTINENTE II";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
                     return (
@@ -8745,7 +8748,7 @@ function IdlePage() {
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px", gap: 8 }}>
                             <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 15, letterSpacing: 2 }}>
-                              🌍 MAPA MUNDI · UNIVERSO POKÉMON
+                              {tabTitle}
                             </div>
                             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                               <span style={{ background: scrollsAvail > 0 ? "linear-gradient(135deg,#3d2a08,#5a3d10)" : "#1a1420", border: `1px solid ${scrollsAvail > 0 ? "#f5cf6b" : "#4a3a52"}`, color: scrollsAvail > 0 ? "#ffe08a" : "#7a6a82", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 900 }}>
@@ -8757,10 +8760,43 @@ function IdlePage() {
                               >✕</button>
                             </div>
                           </div>
-                          <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: "2px solid #7a5a20", boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)" }}>
+                          {/* Tabs de continentes */}
+                          <div style={{ display: "flex", gap: 6, marginBottom: 8, padding: "0 4px" }}>
+                            {([
+                              { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
+                              { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
+                            ]).map((t) => {
+                              const active = worldTab === t.id;
+                              const locked = t.id === 2 && !hasGovCard;
+                              return (
+                                <button
+                                  key={t.id}
+                                  onClick={() => { if (locked) return; playClick(); setWorldTab(t.id); }}
+                                  disabled={locked}
+                                  style={{
+                                    flex: 1,
+                                    background: active
+                                      ? "linear-gradient(135deg, #3d2a08, #6a4818)"
+                                      : locked ? "#160a1e" : "#1a1420",
+                                    border: `2px solid ${active ? "#f5cf6b" : locked ? "#3a2a4a" : "#5a4a6a"}`,
+                                    color: active ? "#ffe08a" : locked ? "#5a4a6a" : "#c8b8d0",
+                                    borderRadius: 8,
+                                    padding: "8px 10px",
+                                    cursor: locked ? "not-allowed" : "pointer",
+                                    textAlign: "left",
+                                    boxShadow: active ? "0 0 14px rgba(245,207,107,0.5)" : undefined,
+                                  }}
+                                >
+                                  <div style={{ fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>{t.label}</div>
+                                  <div style={{ fontSize: 10, opacity: 0.85, marginTop: 2 }}>{t.sub}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: `2px solid ${activeTab === 2 ? "#a06de0" : "#7a5a20"}`, boxShadow: activeTab === 2 ? "inset 0 0 60px rgba(120,60,180,0.6)" : "inset 0 0 40px rgba(0,0,0,0.6)" }}>
                             <img
-                              src={assetUrlFromJson(worldMapGlobeAsset)}
-                              alt="Mapa Mundi"
+                              src={bgUrl}
+                              alt={tabTitle}
                               loading="lazy"
                               width={1536}
                               height={1024}
