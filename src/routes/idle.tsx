@@ -1977,6 +1977,7 @@ function IdlePage() {
   const [chatInput, setChatInput] = useState("");
   const [chatCooldownUntil, setChatCooldownUntil] = useState<number>(0);
   const [chatFilter, setChatFilter] = useState<"all" | "system" | "world" | "captures">("all");
+  const [teamCollapsed, setTeamCollapsed] = useState<boolean>(false);
   const [chatTick, setChatTick] = useState(0);
   useEffect(() => {
     if (chatCooldownUntil <= Date.now()) return;
@@ -5439,7 +5440,7 @@ function IdlePage() {
       price,
       currency,
     });
-    if (error) { pushChat(`Falha ao anunciar: ${error.message}`, "info"); return false; }
+    if (error) { console.error("[market] insert error", error, { itemId, qty, price, currency }); pushChat(`Falha ao anunciar: ${error.message}`, "info"); return false; }
     // remove item do estoque local (custódia do anúncio)
     setIdle((s) => ({ ...s, items: { ...s.items, [itemId]: (s.items[itemId] ?? 0) - qty } }));
     const curLabel = currency === "gold" ? "ouro" : currency === "crystal" ? "💎 cristais" : "💚 safiras";
@@ -6336,13 +6337,33 @@ function IdlePage() {
 
 
           <Panel title="SUA EQUIPE" accent="#c92a2a">
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+              <button
+                onClick={() => setTeamCollapsed((v) => !v)}
+                title={teamCollapsed ? "Expandir equipe" : "Minimizar (mostrar só líder)"}
+                style={{
+                  background: "#1a0f26", color: "#f5cf6b",
+                  border: "1px solid #c92a2a55", borderRadius: 4,
+                  padding: "2px 8px", fontSize: 10, fontWeight: 800, cursor: "pointer",
+                  letterSpacing: 1,
+                }}
+              >
+                {teamCollapsed ? "▼ EXPANDIR" : "▲ MINIMIZAR"}
+              </button>
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {team.map((p) => (
+              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
                 <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
               ))}
+              {teamCollapsed && team.length > 1 && (
+                <div style={{ fontSize: 10, color: "#8a7a9c", textAlign: "center", fontStyle: "italic" }}>
+                  +{team.length - 1} no banco (minimizado)
+                </div>
+              )}
               <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
             </div>
           </Panel>
+
 
 
           {/* Chat ocupa todo o espaço restante — sem rolagem externa */}
