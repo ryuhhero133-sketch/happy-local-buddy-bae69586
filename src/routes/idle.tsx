@@ -4803,25 +4803,27 @@ function IdlePage() {
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2") {
-          // Odisséia Oddish — pool só do evento; TODOS épicos; nível escala com o treinador.
-          // Lickitung(_shiny) entra com peso menor. Mewtwo é rolado à parte (mítico plus).
-          if (Math.random() < MEWTWO_EVENT_CHANCE && !enemies.some((e) => e.sp === "mewtwo_event")) {
-            pool = ["mewtwo_event"] as Species[];
-            forcedRarity = "mythic_shiny";
-            mapLvRange = [Math.max(300, leaderLv), Math.max(300, leaderLv) + 10];
-          } else if (Math.random() < 0.015 && !enemies.some((e) => e.sp === "oddish_shiny")) {
-            // ✦ ODDISH SHINY — spawn raro (~1.5%), lendário, vale 5 Safiras Verdes ao fragmentar.
+          // Odisséia Oddish — mapa aberto 24h. Não captura aqui.
+          // Bastante Oddish Shiny, Scizor e mons legais aleatórios.
+          const rollShiny = Math.random();
+          if (rollShiny < 0.18) {
+            // ✦ ODDISH SHINY — spawn muito comum no evento
             pool = ["oddish_shiny"] as Species[];
-            forcedRarity = "legendary";
+            forcedRarity = "mythic_shiny";
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
-          } else {
-            // 60% oddish/gloom/vileplume, 40% lickitung(_shiny)
-            const useSleeper = Math.random() < 0.4;
-            const sleepers = (["lickitung", "lickitung_shiny"] as Species[]).filter(hasGif);
-            const base = (["oddish", "gloom", "vileplume"] as Species[]).filter(hasGif);
-            pool = useSleeper && sleepers.length ? sleepers : (base.length ? base : ([...ODDISH_EVENT_POOL] as Species[]).filter(hasGif));
+          } else if (rollShiny < 0.32) {
+            // Scizor — épico brilhante
+            pool = (["scizor"] as Species[]).filter(hasGif);
             if (pool.length === 0) pool = ["oddish"] as Species[];
             forcedRarity = "epic";
+            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
+          } else {
+            // Aleatórios legais no mapa: gengar, magmar, gyarados, ursaring, hariyama, umbreon, jolteon, dragonite, oddish, gloom, vileplume, lickitung
+            const wild = (["gengar", "magmar", "gyarados", "ursaring", "hariyama", "umbreon", "jolteon", "dragonite", "oddish", "gloom", "vileplume", "lickitung", "lickitung_shiny", "beedrill", "venomoth"] as Species[]).filter(hasGif);
+            pool = wild.length ? wild : (["oddish"] as Species[]);
+            // Raridade mista: epic 55%, mythic 25%, mythic_shiny 20% — todos dropam stones
+            const rr = Math.random();
+            forcedRarity = rr < 0.55 ? "epic" : rr < 0.80 ? "mythic" : "mythic_shiny";
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           }
         }
