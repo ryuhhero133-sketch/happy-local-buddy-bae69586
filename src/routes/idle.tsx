@@ -2462,17 +2462,24 @@ function IdlePage() {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
       const qty = bigCardMap[raw];
+      // Cada carta = 1 Black Mitic Plus Egg (consumida pelo Governante).
+      // Também garante a Carta do Governante (chave de teleporte, não consumida) na primeira vez.
+      const hasKey = (base.items?.carta_governante ?? 0) > 0;
       const next: IdleState = {
         ...base,
-        items: { ...base.items, carta_governante: (base.items?.carta_governante ?? 0) + qty },
+        items: {
+          ...base.items,
+          carta_incubadora: (base.items?.carta_incubadora ?? 0) + qty,
+          carta_governante: (base.items?.carta_governante ?? 0) + (hasKey ? 0 : 1),
+        },
         redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
       };
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: `👑 +${qty} Cartas Lendárias! Fale com o Governante para trocar por ovos.` });
+      setCodeMsg({ kind: "ok", text: `👑 +${qty} Cartas da Incubadora! Fale com o Governante para trocar por ovos.` });
       setCodeInput("");
-      pushChat(`👑 Código ${raw}: ${qty}× Carta Lendária entregue. Cada carta = 1 Black Mitic Plus Egg.`, "cap");
+      pushChat(`🔮 Código ${raw}: ${qty}× Carta da Incubadora Lendária entregue. Cada carta = 1 Black Mitic Plus Egg.`, "cap");
       return;
     }
 
