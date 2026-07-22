@@ -5493,9 +5493,20 @@ function IdlePage() {
     return { success, lucky };
   };
 
-  const tradeForOrb = (orbId: OrbForgeId, uids: string[], fuelUids: string[]) => {
-    const trade = ORB_TRADES.find((t) => t.orbId === orbId);
+  const tradeForOrb = (orbId: OrbForgeId, uids: string[], fuelUids: string[], rarity?: Rarity) => {
+    // Deduce rarity from the first selected pokemon when not provided (multi-tier orbs share orbId).
+    let inferred: Rarity | undefined = rarity;
+    if (!inferred) {
+      const col0 = idle.collection ?? [];
+      for (const u of uids) {
+        const c = col0.find((x) => x.uid === u);
+        if (c) { inferred = c.rarity; break; }
+      }
+    }
+    const trade = ORB_TRADES.find((t) => t.orbId === orbId && (!inferred || t.rarity === inferred))
+      ?? ORB_TRADES.find((t) => t.orbId === orbId);
     if (!trade) return;
+
     if (trade.requires && (idle.items[trade.requires.itemId] ?? 0) < trade.requires.qty) {
       pushChat(`Você precisa de ${trade.requires.qty}× ${trade.requires.label} no inventário para forjar o ${trade.label}.`, "info");
       return;
