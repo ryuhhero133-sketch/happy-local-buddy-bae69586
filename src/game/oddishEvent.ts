@@ -19,19 +19,30 @@ export const ODDISH_EVENT: {
   windowMinutes: number;
   queueSeconds: number;
 } = {
-  /** Evento ENCERRADO. */
-  enabled: false,
-  /** Timestamp de abertura oficial (ms). */
-  startedAt: 1784431051055,
-  /** Encerra após 48h desde startedAt. */
-  durationHours: 48,
-  /** Ciclo entre aberturas (2h). */
-  cycleHours: 2,
-  /** Janela aberta = ciclo inteiro (portal sempre aberto). */
-  windowMinutes: 120,
-  /** Fila de entrada em segundos (5 min). */
+  /** Evento LIBERADO — Odisséia Oddish 24h aberta direto, sem ciclo. */
+  enabled: true,
+  /** Âncora fixa (referência de rotação de mapas). */
+  startedAt: 1784686000000,
+  /** Nunca encerra automaticamente. */
+  durationHours: 24 * 365,
+  /** Ciclo de rotação de mapa = 24h (sempre aberto). */
+  cycleHours: 24,
+  /** Janela aberta = ciclo inteiro. */
+  windowMinutes: 24 * 60,
+  /** Fila de entrada (mantida por compatibilidade). */
   queueSeconds: 5 * 60,
 };
+
+/** Stones elementais dropadas no mapa do evento. Alimentam ovos Black Mítico. */
+export const ELEMENTAL_STONES = [
+  "stone_grass",
+  "stone_fire",
+  "stone_water",
+  "stone_electric",
+  "stone_dark",
+  "stone_dragon",
+] as const;
+export type ElementalStoneId = typeof ELEMENTAL_STONES[number];
 
 export type OddishPhase =
   | "disabled"     // evento não ligado
