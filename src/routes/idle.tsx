@@ -8228,8 +8228,16 @@ function IdlePage() {
                   { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
                 ],
                 evento_myth: [],
-                oddish_o1: [],
-                oddish_o2: [],
+                oddish_o1: [
+                  { key: "o1-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
+                ],
+                oddish_o2: [
+                  { key: "o2-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
+                ],
+                oddish_o3: [
+                  { key: "o3-o1", target: "oddish_o1", x: 80, y: WORLD_H - 100, arriveX: WORLD_W - 120, arriveY: 120, color: "#7ef27a" },
+                  { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
+                ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
