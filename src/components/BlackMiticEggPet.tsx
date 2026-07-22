@@ -120,6 +120,14 @@ function loadState(uid: string): CollectionState {
           },
           totalFed: Number(e?.totalFed ?? 0),
           history: Array.isArray(e?.history) ? e.history.slice(0, 20) : [],
+          journal: Array.isArray(e?.journal) ? e.journal.slice(0, 60) : [],
+          cravingElement: (e?.cravingElement ?? null) as ElementId | null,
+          cravingSince: Number(e?.cravingSince ?? 0),
+          lastHungerNudgeAt: Number(e?.lastHungerNudgeAt ?? 0),
+          lastReadyNudgeAt: Number(e?.lastReadyNudgeAt ?? 0),
+          lastCravingNudgeAt: Number(e?.lastCravingNudgeAt ?? 0),
+          streakElement: (e?.streakElement ?? null) as ElementId | null,
+          streakCount: Number(e?.streakCount ?? 0),
         }))
       : [];
     return { eggs, selectedId: typeof p?.selectedId === "string" ? p.selectedId : (eggs[0]?.id ?? null) };
