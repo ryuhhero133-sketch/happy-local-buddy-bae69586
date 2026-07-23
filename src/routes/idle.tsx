@@ -104,6 +104,7 @@ import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
 import sfxBonusAsset from "@/assets/audio/bonus.mp3.asset.json";
 import sfxChestOpenAsset from "@/assets/audio/chest-open.mp3.asset.json";
+import eggTransitusAsset from "@/assets/egg-transitus.mp3.asset.json";
 
 // Sprite constants (mesmo layout do modo Explorar)
 const DIR_ROW = { down: 0, left: 1, right: 2, up: 3 } as const;
@@ -1797,6 +1798,7 @@ function IdlePage() {
   const [auto, setAuto] = useState(true);
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
+  const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
 
   // ==== ÁUDIO ====
   const [audioSettings, setAudioSettings] = useState(() => {
@@ -1835,8 +1837,37 @@ function IdlePage() {
   useEffect(() => {
     const a = bgmRef.current; if (!a) return;
     a.volume = audioSettings.musicVol;
-    if (audioSettings.music) { a.play().catch(() => {}); } else { a.pause(); }
+    if (blackEggHudOpen || !audioSettings.music) { a.pause(); } else { a.play().catch(() => {}); }
+  }, [audioSettings.music, audioSettings.musicVol, blackEggHudOpen]);
+  const eggMusicRef = useRef<HTMLAudioElement | null>(null);
+  const openBlackEggHud = useCallback(() => {
+    const bgm = bgmRef.current;
+    if (bgm) bgm.pause();
+    let eggMusic = eggMusicRef.current;
+    if (!eggMusic) {
+      eggMusic = new Audio(eggTransitusAsset.url);
+      eggMusic.loop = true;
+      eggMusic.preload = "auto";
+      eggMusicRef.current = eggMusic;
+    }
+    eggMusic.volume = audioSettings.music ? Math.min(1, audioSettings.musicVol * 1.25) : 0;
+    eggMusic.currentTime = 0;
+    eggMusic.play().catch(() => { /* clique seguinte tenta de novo */ });
+    setBlackEggHudOpen(true);
   }, [audioSettings.music, audioSettings.musicVol]);
+  useEffect(() => {
+    const eggMusic = eggMusicRef.current;
+    if (eggMusic) eggMusic.volume = audioSettings.music ? Math.min(1, audioSettings.musicVol * 1.25) : 0;
+  }, [audioSettings.music, audioSettings.musicVol]);
+  useEffect(() => {
+    if (blackEggHudOpen) return;
+    const eggMusic = eggMusicRef.current;
+    if (eggMusic) {
+      try { eggMusic.pause(); eggMusic.currentTime = 0; } catch { /* ignore */ }
+    }
+    const bgm = bgmRef.current;
+    if (bgm && audioSettings.music) bgm.play().catch(() => {});
+  }, [blackEggHudOpen, audioSettings.music]);
   const playSfx = (url: string) => {
     if (!audioSettings.sfx) return;
     try {
@@ -2093,7 +2124,6 @@ function IdlePage() {
   const [codeInput, setCodeInput] = useState("");
   const [codeMsg, setCodeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [cashShopOpen, setCashShopOpen] = useState(false);
-  const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
@@ -4863,7 +4893,7 @@ function IdlePage() {
         pushChat(`Você precisa ter um Black Mitic Egg ativo para usar o Cristal do Despertar.`, "info");
         return;
       }
-      setBlackEggHudOpen(true);
+      openBlackEggHud();
       pushChat(`✦ Cristal do Despertar pronto — abra o painel do ovo e escolha qual Black Mitic Egg adiantar para 69%.`, "cap");
     }
   };
@@ -6853,7 +6883,7 @@ function IdlePage() {
             <BlackMiticEggQuickIcon
               count={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
               ready={hasReadyEgg(identity?.id ?? "guest")}
-              onOpen={() => { playClick(); setBlackEggHudOpen(true); }}
+              onOpen={() => { playClick(); openBlackEggHud(); }}
             />
             {(() => {
               const gi = currentGeliusInfo();
@@ -8072,7 +8102,7 @@ function IdlePage() {
               trainerX={renderTrainerX}
               trainerY={renderTrainerY}
               visible={(idle.items?.[BLACK_EGG_ITEM_ID] ?? 0) > 0}
-              onClick={() => setBlackEggHudOpen(true)}
+              onClick={openBlackEggHud}
             />
 
 
@@ -11181,6 +11211,7 @@ function IdlePage() {
         hasIncubatorCard={true}
         onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
         boostCount={idle.items?.egg_boost_69 ?? 0}
+        musicControlledExternally
         onConsumeBoost={() => {
           const have = idleRef.current.items?.egg_boost_69 ?? 0;
           if (have <= 0) return false;
