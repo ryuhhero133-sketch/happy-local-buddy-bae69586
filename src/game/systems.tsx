@@ -200,6 +200,7 @@ export interface PetInstance {
   };
   hungerUpdatedAt?: number; // ms — último cálculo de decaimento de fome
   traits?: string[]; // IDs de traits (ver src/game/traits.ts) sorteados na captura
+  event?: string; // tag opcional de origem (ex.: "black_mitic_plus:fire") — usada por visuais especiais
 }
 
 export type LoyaltyStatKey = "hp" | "atk" | "def" | "spa" | "spd" | "spe";

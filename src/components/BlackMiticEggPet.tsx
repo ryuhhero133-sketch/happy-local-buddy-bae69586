@@ -230,6 +230,26 @@ const MYSTERY_LINES = [
   "Algo está se formando aqui dentro. Algo raro.",
   "Sonhei com asas. Ou seriam garras?",
   "Meu tipo ainda está sendo decidido... por você.",
+  "Ouço um coro de vozes ancestrais chamando meu nome...",
+  "Minha sombra dança sozinha, treinador. Está te esperando.",
+  "Um símbolo pulsa no fundo do meu núcleo. Você o reconheceria?",
+  "Sinto que já vivi antes... em outra era.",
+];
+// Enigmas específicos por elemento dominante — plantam pistas de quem pode nascer.
+const ENIGMATIC_LINES: Record<ElementId, string[]> = {
+  grass:    ["Raízes profundas me chamam de irmão da floresta...", "Um perfume de pétalas antigas me envolve...", "Ouço o crescer silencioso da mata dentro de mim."],
+  fire:     ["Chamas dançam nas paredes da minha casca... vejo asas em fogo.", "Uma rugida de brasa ecoa no meu peito.", "Sinto uma cauda quente serpenteando no escuro."],
+  water:    ["Marés antigas me embalam. Sonho com a fúria de tsunamis.", "Sinto conchas de tempestade se fechando ao meu redor.", "Uma canção do fundo do oceano me chama para casa."],
+  electric: ["Faíscas dançam ao meu redor... e trovões me respondem.", "Meu núcleo vibra como um raio guardado.", "Ouço um chamado do céu — como se pertencesse a ele."],
+  dark:     ["Minhas sombras têm garras. E olhos.", "Um véu de eclipse me cobre. Vejo em quem me tornarei.", "Sinto o vazio me abraçar como um velho amigo."],
+  dragon:   ["Uma força milenar bate em compasso comigo...", "Escamas prateadas se formam entre meus batimentos.", "Um rugido de dragão sopra através da minha casca."],
+};
+// Hint enigma quando o ovo é 'versátil' (5+ elementos alimentados).
+const VERSATILE_HINTS = [
+  "Todos os elementos falam em mim ao mesmo tempo... e nenhum manda.",
+  "Vejo uma silhueta lendária mudando de forma dentro do meu ovo.",
+  "Nem terra, nem céu — algo antigo entre eles se forma aqui.",
+  "Sinto que serei... imprevisível. Nem eu sei o que virá.",
 ];
 const CRAVING_LINES: Record<ElementId, string[]> = {
   grass:    ["Sinto falta do cheiro da terra úmida...", "Uma folha... eu queria sentir uma folha crescer em mim."],
@@ -307,6 +327,8 @@ const TRAITS_ARCHETYPE: Record<Archetype, string[]> = {
   versatile: ["prismatico", "alpha", "esquivo", "dourado", "prodigio"],
 };
 
+const ALL_TRAITS_POOL = [...TRAITS_EPIC, ...TRAITS_RARE, ...TRAITS_STRONG];
+
 export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype): string[] {
   const care = computeCareScore(egg); // 0..100
   // Prob de escolher épico por slot cresce com care (25% → 85%)
@@ -325,7 +347,10 @@ export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype): st
     else pool = TRAITS_STRONG;
     // Bias adicional: chance extra de puxar do pool temático quando care é alto
     if (Math.random() < 0.35 + care / 300) pool = [...pool, ...themed];
-    const candidates = pool.filter(t => !picked.includes(t));
+    let candidates = pool.filter(t => !picked.includes(t));
+    // Fallback: se o pool escolhido esgotou, usa o pool global — Black Mitic
+    // Plus SEMPRE tem que nascer com 5 traits.
+    if (candidates.length === 0) candidates = ALL_TRAITS_POOL.filter(t => !picked.includes(t));
     if (candidates.length === 0) break;
     picked.push(candidates[Math.floor(Math.random() * candidates.length)]);
   }
