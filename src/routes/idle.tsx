@@ -7198,6 +7198,25 @@ function IdlePage() {
                           const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e5e5e5" : i === 2 ? "#d99b1a" : "#ffe9a8";
                           const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
                           const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
+                          const isMe = !!identity?.id && r.id === identity.id;
+                          const isTop10 = i < 10;
+                          const alreadyClaimed = !!idle.redeemedCodes?.["RANKED_RUBY_KEY"];
+                          const canClaim = isMe && isTop10 && !alreadyClaimed;
+                          const claimRubyKey = () => {
+                            const base = idleRef.current;
+                            if (base.redeemedCodes?.["RANKED_RUBY_KEY"]) {
+                              pushChat("🔴 Chave Ruby já foi coletada nesta conta.", "info");
+                              return;
+                            }
+                            const next: IdleState = {
+                              ...base,
+                              items: { ...base.items, chave_ruby: (base.items?.chave_ruby ?? 0) + 1 },
+                              redeemedCodes: { ...(base.redeemedCodes ?? {}), RANKED_RUBY_KEY: true },
+                            };
+                            setIdle(next);
+                            try { persistCodeReward(next); } catch { /* ignore */ }
+                            pushChat(`🔴 Chave Ruby coletada por estar no Top ${i + 1} do Ranked Global!`, "cap");
+                          };
                           return (
                             <div key={r.id} style={{
                               display: "grid",
@@ -7216,6 +7235,7 @@ function IdlePage() {
                               <div style={{ overflow: "hidden", minWidth: 0 }}>
                                 <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                   {r.name}
+                                  {isMe && <span style={{ marginLeft: 6, fontSize: 10, color: "#7dff9b" }}>(você)</span>}
                                   {r.guild_name && <span style={{ marginLeft: 6, fontSize: 10, opacity: 0.75, color: "#a5d0ff" }}>[{r.guild_name}]</span>}
                                 </div>
                                 <div style={{ fontSize: 10, opacity: 0.7, display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -7225,6 +7245,31 @@ function IdlePage() {
                                   <span>🎓 Tr {r.trainer_level}</span>
                                   <span>⚒️ {r.craft_points}</span>
                                 </div>
+                                {isTop10 && isMe && (
+                                  <div style={{ marginTop: 6 }}>
+                                    <button
+                                      onClick={claimRubyKey}
+                                      disabled={!canClaim}
+                                      style={{
+                                        padding: "6px 12px",
+                                        borderRadius: 8,
+                                        border: "1px solid rgba(255,60,80,0.55)",
+                                        background: canClaim
+                                          ? "linear-gradient(90deg,#8b0018,#ff2a4d)"
+                                          : "rgba(90,20,30,0.5)",
+                                        color: "#fff",
+                                        fontWeight: 800,
+                                        fontSize: 11,
+                                        letterSpacing: 0.5,
+                                        cursor: canClaim ? "pointer" : "not-allowed",
+                                        boxShadow: canClaim ? "0 0 12px rgba(255,60,80,0.55)" : "none",
+                                        opacity: canClaim ? 1 : 0.7,
+                                      }}
+                                    >
+                                      {alreadyClaimed ? "🔴 Chave Ruby coletada" : "🔴 Coletar Chave Ruby (Top 10)"}
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                               <div style={{ textAlign: "right" }}>
                                 <div style={{ fontSize: 9, opacity: 0.6, textTransform: "uppercase", letterSpacing: 0.5 }}>{mainLabel}</div>
