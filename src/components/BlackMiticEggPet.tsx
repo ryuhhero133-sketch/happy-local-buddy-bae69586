@@ -390,8 +390,29 @@ export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype, slo
     if (candidates.length === 0) break;
     picked.push(candidates[Math.floor(Math.random() * candidates.length)]);
   }
-  return picked.slice(0, 5);
+  return picked.slice(0, slots);
 }
+
+// Linhas grosseiras usadas quando o ovo rejeita um bônus (40%)
+const RUDE_LINES = [
+  "NÃO! Guarde suas pedras, treinador... elas me irritam agora.",
+  "Ugh. Você acha mesmo que sou algum saco de energia?",
+  "Chega. Já disse que estou cheio!",
+  "Seus dedos gordos deixaram cair de novo... rejeitado.",
+  "Não. Não estou com fome. Você não me escuta?",
+  "Você me alimenta como se eu fosse um lixo comum. Fora daqui.",
+  "Silêncio... a stone está errada. Quer me quebrar?",
+  "Se insistir, vou dormir e te ignorar pela próxima hora.",
+];
+const BONUS_ACCEPT_LINES = [
+  "Sim! MAIS! Continue e sentirá o que estou me tornando!",
+  "Absorvido... você está me despertando algo perigoso.",
+  "Isso... isso me completa. Continue, treinador!",
+  "Sinto meu núcleo se partindo em algo maior.",
+  "Um véu se rasga... você está me libertando.",
+];
+const RUPTURE_LINE =
+  "✦✦✦ ROMPI OS ELEMENTAIS! Sinto seis correntes de poder me atravessando... NASCEREI DIFERENTE! ✦✦✦";
 
 
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
