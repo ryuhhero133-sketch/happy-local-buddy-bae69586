@@ -6371,7 +6371,7 @@ function IdlePage() {
                 fontSize: 11, color: "#e0c470",
                 fontFamily: "'Trebuchet MS', system-ui, sans-serif",
               }}>
-                Lv 420 · Odisséia Oddish / Caverna Sombria · Ultra Ball
+                ✦ Mítico Brilhante · Lv 420 · Odisséia / Caverna Sombria · Ultra Ball
               </div>
             </div>
           </div>
