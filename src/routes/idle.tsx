@@ -14547,11 +14547,13 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
 function GovernanteDialog(props: {
   open: boolean;
   cards: number;
+  plusCards?: number;
   currentEggs: number;
   onClose: () => void;
   onExchange: (qty: number) => void;
+  onExchangePlus?: (qty: number) => void;
 }) {
-  const { open, cards, currentEggs, onClose, onExchange } = props;
+  const { open, cards, plusCards = 0, currentEggs, onClose, onExchange, onExchangePlus } = props;
   const [step, setStep] = useState(0);
   useEffect(() => { if (open) setStep(0); }, [open]);
   if (!open) return null;
