@@ -7199,24 +7199,25 @@ function IdlePage() {
                           const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
                           const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
                           const isMe = !!identity?.id && r.id === identity.id;
-                          const isTop10 = i < 10;
-                          const alreadyClaimed = !!idle.redeemedCodes?.["RANKED_RUBY_KEY"];
-                          const canClaim = isMe && isTop10 && !alreadyClaimed;
-                          const claimRubyKey = () => {
-                            const base = idleRef.current;
-                            if (base.redeemedCodes?.["RANKED_RUBY_KEY"]) {
-                              pushChat("🔴 Chave Ruby já foi coletada nesta conta.", "info");
-                              return;
-                            }
-                            const next: IdleState = {
-                              ...base,
-                              items: { ...base.items, chave_ruby: (base.items?.chave_ruby ?? 0) + 1 },
-                              redeemedCodes: { ...(base.redeemedCodes ?? {}), RANKED_RUBY_KEY: true },
-                            };
-                            setIdle(next);
-                            try { persistCodeReward(next); } catch { /* ignore */ }
-                            pushChat(`🔴 Chave Ruby coletada por estar no Top ${i + 1} do Ranked Global!`, "cap");
-                          };
+                           const isTop50 = i < 50;
+                           const rubyAmount = i === 0 ? 15 : i === 1 ? 13 : i === 2 ? 11 : i === 3 ? 7 : 3;
+                           const alreadyClaimed = !!idle.redeemedCodes?.["RANKED_RUBY_KEY"];
+                           const canClaim = isMe && isTop50 && !alreadyClaimed;
+                           const claimRubyKey = () => {
+                             const base = idleRef.current;
+                             if (base.redeemedCodes?.["RANKED_RUBY_KEY"]) {
+                               pushChat("🔴 Chave Ruby já foi coletada nesta conta.", "info");
+                               return;
+                             }
+                             const next: IdleState = {
+                               ...base,
+                               items: { ...base.items, chave_ruby: (base.items?.chave_ruby ?? 0) + rubyAmount },
+                               redeemedCodes: { ...(base.redeemedCodes ?? {}), RANKED_RUBY_KEY: true },
+                             };
+                             setIdle(next);
+                             try { persistCodeReward(next); } catch { /* ignore */ }
+                             pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked Global!`, "cap");
+                           };
                           return (
                             <div key={r.id} style={{
                               display: "grid",
@@ -7245,7 +7246,7 @@ function IdlePage() {
                                   <span>🎓 Tr {r.trainer_level}</span>
                                   <span>⚒️ {r.craft_points}</span>
                                 </div>
-                                {isTop10 && isMe && (
+                                {isTop50 && isMe && (
                                   <div style={{ marginTop: 6 }}>
                                     <button
                                       onClick={claimRubyKey}
@@ -7266,7 +7267,7 @@ function IdlePage() {
                                         opacity: canClaim ? 1 : 0.7,
                                       }}
                                     >
-                                      {alreadyClaimed ? "🔴 Chave Ruby coletada" : "🔴 Coletar Chave Ruby (Top 10)"}
+                                      {alreadyClaimed ? "🔴 Chave Ruby coletada" : `🔴 Coletar ${rubyAmount}× Chave Ruby (Top ${i + 1})`}
                                     </button>
                                   </div>
                                 )}
@@ -11997,7 +11998,7 @@ function TabOverlay({
           incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
           premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
           bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
-          chave_ruby: "Chave Ruby 🔴 · recompensa exclusiva do Top 10 do Ranked Global. Coletada uma única vez por conta.",
+          chave_ruby: "Chave Ruby 🔴 · usada para conversão na Escala Ruby (loja exclusiva). Recompensa do Top 50 do Ranked Global — coletada uma única vez por conta. Top 1: 15 · Top 2: 13 · Top 3: 11 · Top 4: 7 · Top 5–50: 3.",
           skin_ticket: "Ticket de Skin ✦ · use na aba Início para desbloquear uma skin premium.",
           egg_common: "Ovo Comum · chocado gera um pokémon aleatório de raridade baixa.",
           egg_rare: "Ovo Raro · chance de raridades altas ao chocar.",
