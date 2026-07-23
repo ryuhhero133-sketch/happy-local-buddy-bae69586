@@ -5149,8 +5149,8 @@ function IdlePage() {
         }
         // ⚡ ZAPDOS EVENT — a cada 5 min, spawn forçado nos mapas Oddish + Caverna Sombria/Rochosa
         {
-          const zapdosMaps: MapId[] = ["oddish_o1", "oddish_o2", "oddish_o3", "caverna"];
-          const isZapMap = zapdosMaps.includes(idle.currentMap as MapId);
+          const zapdosMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3", "caverna"];
+          const isZapMap = zapdosMaps.includes(idle.currentMap as string);
           if (isZapMap) {
             const ZAP_INTERVAL_MS = 5 * 60 * 1000;
             const zapdosOnMap = enemies.some((e) => e.sp === "zapdos");
