@@ -399,6 +399,7 @@ const meowthUrl = assetUrlFromJson(meowthAsset);
 const psyduckUrl = assetUrlFromJson(psyduckAsset);
 const lucarioAuraUrl = assetUrlFromJson(lucarioAuraAsset);
 const mewAuraUrl = assetUrlFromJson(mewAuraAsset);
+const rioluUrl = assetUrlFromJson(rioluAsset);
 const oddishUrl = assetUrlFromJson(oddishAsset);
 const bellsproutUrl = assetUrlFromJson(bellsproutAsset);
 const weedleUrl = assetUrlFromJson(weedleAsset);
@@ -578,6 +579,7 @@ const GIF: Partial<Record<Species, string>> = {
   lickitung_shiny: assetUrlFromJson(lickitungShinyGifAsset),
   mewtwo_event: assetUrlFromJson(mewtwoEventGifAsset),
   oddish_shiny: assetUrlFromJson(oddishShinyGifAsset),
+  riolu: rioluUrl,
 };
 
 
@@ -633,7 +635,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Fighting
   machop: "fighting", machoke: "fighting", machamp: "fighting",
   mankey: "fighting", primeape: "fighting",
-  lucario: "fighting", pinsir: "fighting",
+  lucario: "fighting", pinsir: "fighting", riolu: "fighting",
   // Flying
   pidgey: "flying", pidgeotto: "flying", pidgeot: "flying",
   fearow: "flying", spearow: "flying",
@@ -2616,6 +2618,30 @@ function IdlePage() {
       CARTAPOW1: 1, CARTAPOW2: 1,
 
     };
+    // CARTARIOLU1/2 — Carta Riolu Suprema (uso único) → troca no Governante por Riolu Black Mitic Brilhant Plus direto na Coleção
+    const rioluMap: Record<string, number> = { CARTARIOLU1: 1, CARTARIOLU2: 1 };
+    if (rioluMap[raw]) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const qty = rioluMap[raw];
+      const hasKey = (base.items?.carta_governante ?? 0) > 0;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          carta_riolu: (base.items?.carta_riolu ?? 0) + qty,
+          carta_governante: (base.items?.carta_governante ?? 0) + (hasKey ? 0 : 1),
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: `✦ +${qty} Carta Riolu Suprema recebida! Fale com o Governante para materializar o Black Mitic Brilhant Plus.` });
+      setCodeInput("");
+      pushChat(`✦ Código ${raw}: ${qty}× Carta Riolu Suprema entregue — troque com o Governante.`, "cap");
+      return;
+    }
     if (plusMap[raw]) {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
@@ -12358,6 +12384,7 @@ function TabOverlay({
           carta_governante: "Carta do Governante 👑",
           carta_incubadora: "Carta da Incubadora Lendária 🔮",
           carta_plus: "Carta Suprema Plus ✦",
+          carta_riolu: "Carta Riolu Suprema 🐺✦",
           stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
@@ -12405,6 +12432,7 @@ function TabOverlay({
           carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
           carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
           carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para materializar 1 Black Mitic Plus direto na Coleção, VERSÁTIL com 6 traits. Uso único.",
+          carta_riolu: "Carta Riolu Suprema 🐺✦ · leve ao Governante para materializar 1 Riolu Black Mitic Brilhant Plus (Lv 1000, 6 traits) direto na Coleção. Uso único.",
           stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
           stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
           stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
