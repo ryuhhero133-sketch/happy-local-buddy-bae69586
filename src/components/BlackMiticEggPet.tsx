@@ -172,6 +172,7 @@ function loadState(uid: string): CollectionState {
           bonusRejected: Number(e?.bonusRejected ?? 0),
           lastBonusFeedAt: Number(e?.lastBonusFeedAt ?? 0),
           ruptured: !!e?.ruptured,
+          forcePlus: !!e?.forcePlus,
           lastBonusResult: e?.lastBonusResult ?? null,
         }))
       : [];
@@ -1077,15 +1078,17 @@ export function BlackMiticEggHud(props: {
   itemCount: number;                                   // quantidade em items[black_mitic_egg]
   stones: Partial<Record<StoneId, number>>;
   onConsumeStone: (stoneId: StoneId, qty: number) => boolean;
-  onHatched: (species: string, element: ElementId, traits: string[]) => void;   // parent grants pokemon + decrementa item
+  onHatched: (species: string, element: ElementId, traits: string[], plus?: boolean) => void;   // parent grants pokemon + decrementa item
   onNotify?: (msg: string) => void;
   hasIncubatorCard?: boolean;                          // gate para "ATIVAR INICIAÇÃO"
   onActivateEgg?: () => void;                          // primeira ativação — parent consome carta / marca unlock permanente
   boostCount?: number;                                 // Cristais do Despertar disponíveis na mochila
   onConsumeBoost?: () => boolean;                      // consome 1 boost; devolve false se não houver
   musicControlledExternally?: boolean;                 // usado pelo mapa idle, que tem BGM próprio
+  plusPending?: number;                                // ovos Plus (Governante) pendentes de marcação
+  onConsumePlus?: (count: number) => void;             // parent decrementa fila de Plus quando o egg é marcado
 }) {
-  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify, hasIncubatorCard = false, onActivateEgg, boostCount = 0, onConsumeBoost, musicControlledExternally = false } = props;
+  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify, hasIncubatorCard = false, onActivateEgg, boostCount = 0, onConsumeBoost, musicControlledExternally = false, plusPending = 0, onConsumePlus } = props;
   const [state, setState] = useState<CollectionState>(() => loadState(uid));
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<"journal" | "feeds">("journal");
@@ -1197,10 +1200,20 @@ export function BlackMiticEggHud(props: {
 
   // Sincroniza número de ovos com itemCount (adiciona novos inativos, ou remove excesso do fim entre os NÃO ativados)
   useEffect(() => {
+    let plusToApply = 0;
     setState((prev) => {
       let eggs = [...prev.eggs];
       if (eggs.length < itemCount) {
-        while (eggs.length < itemCount) eggs.push(newEgg());
+        while (eggs.length < itemCount) {
+          const ne = newEgg();
+          // Marca como Plus os primeiros novos ovos até esgotar fila
+          const already = eggs.filter(e => e.forcePlus).length;
+          if (already + plusToApply < plusPending) {
+            ne.forcePlus = true;
+            plusToApply += 1;
+          }
+          eggs.push(ne);
+        }
       } else if (eggs.length > itemCount) {
         const toRemove = eggs.length - itemCount;
         // remove primeiro os inativos e mais recentes
@@ -1216,7 +1229,8 @@ export function BlackMiticEggHud(props: {
       saveState(uid, next);
       return next;
     });
-  }, [itemCount, uid]);
+    if (plusToApply > 0) onConsumePlus?.(plusToApply);
+  }, [itemCount, uid, plusPending, onConsumePlus]);
 
   useEffect(() => { if (open) setState(loadState(uid)); }, [open, uid]);
 
@@ -1368,9 +1382,10 @@ export function BlackMiticEggHud(props: {
     const remain = Math.max(0, (selected.activatedAt + HATCH_MS) - Date.now());
     if (remain > 0) { onNotify?.(`Ainda faltam ${fmt(remain)} para chocar.`); return; }
     const el = ELEMENTS.find(e => e.id === dominantElement(selected.affinity))!;
-    const arch = computeArchetype(selected.affinity);
+    const isPlus = !!selected.forcePlus;
+    const arch = isPlus ? "versatile" : computeArchetype(selected.affinity);
     const care = computeCareScore(selected);
-    const slots = selected.ruptured ? 6 : 5;
+    const slots = isPlus ? 6 : (selected.ruptured ? 6 : 5);
     const traits = rollBlackMiticTraits(selected, arch, slots);
     // Anti-duplicata para pool versátil.
     const recent = new Set(state.hatchedHistory ?? []);
@@ -1382,13 +1397,13 @@ export function BlackMiticEggHud(props: {
     } else {
       species = el.species;
     }
-    onHatched(species, el.id, traits);
+    onHatched(species, el.id, traits, isPlus);
     persist((s) => {
       const eggs = s.eggs.filter(e => e.id !== selected.id);
       const hist = [...(s.hatchedHistory ?? []), species].slice(-10);
       return { eggs, selectedId: eggs[0]?.id ?? null, hatchedHistory: hist };
     });
-    const rupTag = selected.ruptured ? " ✦ ROMPIDO (6 traits)" : "";
+    const rupTag = isPlus ? " ✦ PLUS VERSÁTIL (6 traits)" : (selected.ruptured ? " ✦ ROMPIDO (6 traits)" : "");
     onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100${rupTag}!`);
   };
 
