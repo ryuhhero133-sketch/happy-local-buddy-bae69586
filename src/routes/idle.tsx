@@ -903,6 +903,15 @@ export type CollectionEntry = { uid: string; species: Species; level: number; ra
 
 export const MAX_COLLECTION = 500;
 
+const GOVERNANTE_PLUS_POOL: readonly Species[] = [
+  "mewtwo", "mew", "groudon", "lugia", "ho_oh",
+  "moltres", "zapdos", "articuno", "raikou", "suicune",
+  "dialga", "darkrai", "snorlax_mythic", "tyranitar",
+  "lucario", "scizor", "dragonite_shiny", "charizard_shiny", "blastoise_shiny",
+];
+
+const GOVERNANTE_PLUS_TRAITS = ["prismatico", "alpha", "esquivo", "dourado", "prodigio", "eterno"];
+
 export const CRAFT_BY_RARITY: Record<Rarity, number> = {
   common: 1,
   uncommon: 3,
@@ -2592,11 +2601,12 @@ function IdlePage() {
       pushChat(`🔮 Código ${raw}: Carta da Incubadora Lendária entregue.`, "cap");
       return;
     }
-    // BLACKMITICPLUS / BMP* — Carta Suprema Plus (single-use) → troca no Governante por ovo VERSÁTIL 6-traits
+    // BLACKMITICPLUS / BMP* — Carta Suprema Plus (single-use) → troca no Governante por Pokémon direto na Coleção
     if (
       raw === "BLACKMITICPLUS" || raw === "BLACKMITICPLUS1" || raw === "BLACKMITICPLUS2" ||
       raw === "BLACKMITICPLUS3" || raw === "BLACKMITICPLUS4" || raw === "BLACKMITICPLUS5" ||
-      raw === "BMP2026" || raw === "BMP2X26"
+      raw === "BMP2026" || raw === "BMP2X26" || raw === "BLACKPLUSCOLECAO" ||
+      raw === "BMPCOLECAO" || raw === "PLUSCOLECAO2026"
     ) {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
@@ -2613,9 +2623,9 @@ function IdlePage() {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "✦ Carta Suprema Plus recebida! Fale com o Governante para trocar por Black Mitic Plus VERSÁTIL (6 traits)." });
+      setCodeMsg({ kind: "ok", text: "✦ Carta Suprema Plus recebida! Fale com o Governante para materializar o Black Mitic Plus direto na Coleção." });
       setCodeInput("");
-      pushChat(`✦ Código ${raw}: Carta Suprema Plus entregue — troque com o Governante por 1 ovo VERSÁTIL (6 traits).`, "cap");
+      pushChat(`✦ Código ${raw}: Carta Suprema Plus entregue — troque com o Governante por 1 Black Mitic Plus direto na Coleção.`, "cap");
       return;
     }
 
@@ -11354,20 +11364,58 @@ function IdlePage() {
         onExchangePlus={(qty) => {
           const base = idleRef.current;
           const cards = base.items?.carta_plus ?? 0;
-          const eggs = base.items?.black_mitic_egg ?? 0;
-          const maxByEggCap = Math.max(0, 6 - eggs);
-          const use = Math.min(qty, cards, maxByEggCap);
-          if (use <= 0) return;
-          setIdle((s) => ({
-            ...s,
-            items: {
-              ...(s.items ?? {}),
-              carta_plus: (s.items?.carta_plus ?? 0) - use,
-              black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + use,
-            },
-            blackMiticPlusPending: (s.blackMiticPlusPending ?? 0) + use,
-          }));
-          pushChat(`✦ Governante consumiu ${use}× Carta Suprema Plus e entregou ${use}× Black Mitic Plus VERSÁTIL (6 traits garantidos).`, "cap");
+          const collectionSlots = Math.max(0, MAX_COLLECTION - (base.collection?.length ?? 0));
+          const use = Math.min(qty, cards, collectionSlots);
+          if (use <= 0) {
+            pushChat("✦ Governante: sua Coleção está cheia. Libere espaço antes de entregar a Carta Suprema Plus.", "cap");
+            return;
+          }
+
+          const nextItems = { ...(base.items ?? {}) };
+          const remainingCards = Math.max(0, cards - use);
+          if (remainingCards <= 0) delete nextItems.carta_plus;
+          else nextItems.carta_plus = remainingCards;
+
+          const nowTs = Date.now();
+          const entries: CollectionEntry[] = Array.from({ length: use }, (_, index) => {
+            const picked = GOVERNANTE_PLUS_POOL[Math.floor(Math.random() * GOVERNANTE_PLUS_POOL.length)] ?? "charizard_shiny";
+            const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+              ? crypto.randomUUID()
+              : `bmp_plus_${nowTs}_${index}_${Math.floor(Math.random() * 1e6)}`;
+            return {
+              uid,
+              species: picked,
+              level: 100,
+              xp: 0,
+              rarity: "mythic_shiny",
+              capturedAt: nowTs + index,
+              traits: GOVERNANTE_PLUS_TRAITS,
+              event: "black_mitic_plus:governante:plus:direct",
+            };
+          });
+
+          const seenSpecies = [...base.seenSpecies];
+          const caughtSpecies = [...base.caughtSpecies];
+          for (const entry of entries) {
+            if (!seenSpecies.includes(entry.species)) seenSpecies.push(entry.species);
+            if (!caughtSpecies.includes(entry.species)) caughtSpecies.push(entry.species);
+          }
+
+          const next: IdleState = {
+            ...base,
+            items: nextItems,
+            seenSpecies,
+            caughtSpecies,
+            collection: [...(base.collection ?? []), ...entries],
+            totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + entries.length },
+          };
+          idleRef.current = next;
+          saveIdle(next);
+          setIdle(next);
+          void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+
+          const names = entries.map((entry) => entry.species.toUpperCase()).join(", ");
+          pushChat(`✦ Governante consumiu ${use}× Carta Suprema Plus e colocou na Coleção: ${names} — Black Mitic Plus VERSÁTIL com 6 traits.`, "cap");
         }}
       />
     </div>
@@ -12345,7 +12393,7 @@ function TabOverlay({
           chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
           carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
           carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
-          carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para receber 1 Black Mitic Plus Egg VERSÁTIL garantido com 6 traits. Uso único.",
+          carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para materializar 1 Black Mitic Plus direto na Coleção, VERSÁTIL com 6 traits. Uso único.",
           stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
           stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
           stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
@@ -14588,18 +14636,18 @@ function GovernanteDialog(props: {
   if (!open) return null;
   const maxByCap = Math.max(0, 6 - currentEggs);
   const canGive = Math.min(cards, maxByCap);
-  const canGivePlus = Math.min(plusCards, maxByCap);
+  const canGivePlus = plusCards;
   const lines = [
     "Ah... um treinador digno enfim cruza meu salão.",
     plusCards > 0
-      ? `Percebo o brilho de ${plusCards} Carta${plusCards > 1 ? "s" : ""} Suprema${plusCards > 1 ? "s" : ""} Plus. Cada uma invoca um ovo VERSÁTIL, com 6 traits garantidos.`
+      ? `Percebo o brilho de ${plusCards} Carta${plusCards > 1 ? "s" : ""} Suprema${plusCards > 1 ? "s" : ""} Plus. Cada uma materializa um Black Mitic Plus direto na sua Coleção, com 6 traits garantidos.`
       : cards > 0
         ? `Vejo em suas mãos ${cards} Carta${cards > 1 ? "s" : ""} Lendária${cards > 1 ? "s" : ""}. Cada uma vale um Black Mitic Plus Egg.`
         : "Você não porta nenhuma Carta... volte quando obtiver ao menos uma.",
     (canGive > 0 || canGivePlus > 0)
-      ? `Posso lhe entregar ${canGivePlus > 0 ? `${canGivePlus} ovo${canGivePlus > 1 ? "s" : ""} PLUS ✦` : ""}${canGivePlus > 0 && canGive > 0 ? " ou " : ""}${canGive > 0 ? `${canGive} ovo${canGive > 1 ? "s" : ""} comum` : ""} (limite 6 simultâneos).`
+      ? `Posso materializar ${canGivePlus > 0 ? `${canGivePlus} Pokémon PLUS ✦ na Coleção` : ""}${canGivePlus > 0 && canGive > 0 ? " ou " : ""}${canGive > 0 ? `${canGive} ovo${canGive > 1 ? "s" : ""} comum` : ""}.`
       : (cards > 0 || plusCards > 0)
-        ? "Mas você já carrega o máximo de 6 ovos. Chocolate os primeiros antes de retornar."
+        ? "Mas você já carrega o máximo de 6 ovos comuns. Choque os primeiros antes de retornar."
         : "Volte quando estiver pronto.",
   ];
   const isLast = step >= lines.length - 1;
@@ -14662,7 +14710,7 @@ function GovernanteDialog(props: {
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ fontSize: 11, color: "#c58bff" }}>
-              Cartas: <b style={{ color: "#ffd44a" }}>{cards}</b> · Ovos atuais: <b style={{ color: "#ffd44a" }}>{currentEggs}/6</b>
+              Cartas: <b style={{ color: "#ffd44a" }}>{cards}</b> · Plus: <b style={{ color: "#ffd44a" }}>{plusCards}</b> · Ovos atuais: <b style={{ color: "#ffd44a" }}>{currentEggs}/6</b>
             </div>
             <div style={{ flex: 1 }} />
             {!isLast ? (
@@ -14694,7 +14742,7 @@ function GovernanteDialog(props: {
                       fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
                       boxShadow: "0 0 18px rgba(208,102,255,0.85)",
                     }}
-                  >✦ PLUS {canGivePlus} OVO{canGivePlus > 1 ? "S" : ""} (6 TRAITS)</button>
+                  >✦ PLUS {canGivePlus} POKÉMON{canGivePlus > 1 ? "S" : ""} NA COLEÇÃO</button>
                 )}
                 {canGive > 0 && (
                   <button
