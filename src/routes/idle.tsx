@@ -2842,10 +2842,11 @@ function IdlePage() {
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   // Contador de pokébolas arremessadas em cada Mewtwo do evento (por id de spawn).
   const mewtwoBallsRef = useRef<Map<number, number>>(new Map());
-  // Contador de Ultra Balls arremessadas em bosses raros (Dragonite Shiny / Zapdos).
+  // Contador de Ultra Balls arremessadas em bosses raros (Dragonite Shiny / Zapdos / Raichu Mítico).
   const bossBallsRef = useRef<Map<number, number>>(new Map());
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
+  const RAICHU_MYTHIC_MIN_BALLS = 1600;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
@@ -3888,10 +3889,11 @@ function IdlePage() {
                   else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
                   else captured = false;
                 }
-              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos") {
-                // 🐉⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
-                const minBalls = target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
-                const label = target.sp === "zapdos" ? "ZAPDOS" : "DRAGONITE ✦";
+              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
+                // 🐉⚡⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
+                const isRaichuMy = target.sp === "raichu";
+                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
+                const label = isRaichuMy ? "RAICHU ✦" : target.sp === "zapdos" ? "ZAPDOS" : "DRAGONITE ✦";
                 if (usedBall.id !== "ultraball") {
                   captured = false;
                   pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
@@ -5187,6 +5189,21 @@ function IdlePage() {
               try { localStorage.setItem("zapdos_last_spawn_ms", String(Date.now())); } catch {}
               setZapdosAnnounce({ ts: Date.now() });
               pushChat("⚡ ZAPDOS APARECEU! Bosque da Odisséia sacudido pela tempestade!", "cap");
+            }
+          }
+        }
+        // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey
+        {
+          const oddyMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3"];
+          const isOddy = oddyMaps.includes(idle.currentMap as string);
+          if (isOddy) {
+            const raichuOnMap = enemies.some((e) => e.sp === "raichu");
+            // ~0.4% de chance por tentativa de spawn, no máximo 1 por mapa
+            if (!raichuOnMap && Math.random() < 0.004) {
+              pool = ["raichu"] as Species[];
+              forcedRarity = "mythic_shiny";
+              mapLvRange = [500, 500];
+              pushChat("⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (1600 Ultra Balls para capturar)", "cap");
             }
           }
         }
