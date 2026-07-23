@@ -55,6 +55,8 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
   );
 
   const isBMP = !!pet.event && pet.event.startsWith("black_mitic_plus");
+  const isBrilhant = !!pet.event && pet.event.includes("brilhant");
+  const bmpLabel = isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS";
 
   return (
     <div onClick={onClose} style={{
@@ -118,10 +120,14 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
             </div>
             <div style={{ display: "flex", gap: 6, marginTop: 4, alignItems: "center", flexWrap: "wrap" }}>
               <span style={{
-                background: `linear-gradient(180deg, ${rc}, ${rc}aa)`, color: "#0b0510",
+                background: isBMP
+                  ? "linear-gradient(180deg, #a066ff, #4a1080)"
+                  : `linear-gradient(180deg, ${rc}, ${rc}aa)`,
+                color: isBMP ? "#fff5ff" : "#0b0510",
                 fontSize: 9, fontWeight: 900, letterSpacing: 1,
                 padding: "3px 8px", borderRadius: 999, border: "1px solid rgba(0,0,0,0.4)",
-              }}>{RARITY_NAME[pet.rarity]}</span>
+                boxShadow: isBMP ? "0 0 10px rgba(160,80,255,0.8)" : undefined,
+              }}>{isBMP ? bmpLabel : RARITY_NAME[pet.rarity]}</span>
               <span style={{ fontSize: 11, color: "#f5cf6b", fontWeight: 900 }}>Lv {pet.level}</span>
               {elems.map((e) => {
                 const em = ELEMENT_META[e];
