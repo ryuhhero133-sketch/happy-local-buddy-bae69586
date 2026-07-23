@@ -2606,7 +2606,8 @@ function IdlePage() {
       raw === "BLACKMITICPLUS" || raw === "BLACKMITICPLUS1" || raw === "BLACKMITICPLUS2" ||
       raw === "BLACKMITICPLUS3" || raw === "BLACKMITICPLUS4" || raw === "BLACKMITICPLUS5" ||
       raw === "BMP2026" || raw === "BMP2X26" || raw === "BLACKPLUSCOLECAO" ||
-      raw === "BMPCOLECAO" || raw === "PLUSCOLECAO2026"
+      raw === "BMPCOLECAO" || raw === "PLUSCOLECAO2026" ||
+      raw === "CARATAGOV" || raw === "CARTAGOV2026"
     ) {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
