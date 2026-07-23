@@ -989,7 +989,7 @@ const LEVEL_UNLOCKS: { minLv: number; species: Species[] }[] = [
   { minLv: 18, species: ["jolteon", "lapras"] },
   { minLv: 20, species: ["pikachu"] },
   { minLv: 25, species: ["pinsir", "golem"] },
-  { minLv: 30, species: ["dragonite", "charizard"] },
+  { minLv: 30, species: ["charizard"] },
   { minLv: 36, species: ["blaziken"] },
 ];
 function speciesUnlockedFor(lv: number): Species[] {
