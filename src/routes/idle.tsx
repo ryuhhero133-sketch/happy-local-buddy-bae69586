@@ -11952,6 +11952,7 @@ function TabOverlay({
           incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
           premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
           bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
+          chave_ruby: "Chave Ruby 🔴 · recompensa exclusiva do Top 10 do Ranked Global. Coletada uma única vez por conta.",
           skin_ticket: "Ticket de Skin ✦ · use na aba Início para desbloquear uma skin premium.",
           egg_common: "Ovo Comum · chocado gera um pokémon aleatório de raridade baixa.",
           egg_rare: "Ovo Raro · chance de raridades altas ao chocar.",
