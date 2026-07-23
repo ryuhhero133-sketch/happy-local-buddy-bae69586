@@ -5675,23 +5675,33 @@ function IdlePage() {
   const listMarketItem = async (itemId: string, qty: number, price: number, currency: "gold" | "crystal" | "safira" = "gold"): Promise<boolean> => {
     if (!identity?.id) { pushChat("Faça login para anunciar.", "info"); return false; }
     if (!isVip()) { pushChat("✦ Anunciar no mercado é exclusivo VIP. Use um Livro VIP na Loja.", "info"); return false; }
-    const have = idle.items[itemId] ?? 0;
+    const have = idleRef.current.items?.[itemId] ?? 0;
     if (have < qty) { pushChat("Estoque insuficiente para anunciar.", "info"); return false; }
     if (qty < 1 || price < 1 || price > 100_000_000) { pushChat("Quantidade ou preço inválido.", "info"); return false; }
-    const { error } = await supabase.from("market_listings").insert({
-      seller_id: identity.id,
-      seller_name: identity.name || "Treinador",
-      kind: "item",
-      item_id: itemId,
-      qty,
-      price,
-      currency,
-    });
-    if (error) { console.error("[market] insert error", error, { itemId, qty, price, currency }); pushChat(`Falha ao anunciar: ${error.message}`, "info"); return false; }
-    // remove item do estoque local (custódia do anúncio)
-    setIdle((s) => ({ ...s, items: { ...s.items, [itemId]: (s.items[itemId] ?? 0) - qty } }));
+    // Confirma criação com .select().single() — se o insert falhar por RLS/check,
+    // detectamos ANTES de descontar o estoque local. Se retornar row, é seguro debitar.
+    const { data, error } = await supabase
+      .from("market_listings")
+      .insert({
+        seller_id: identity.id,
+        seller_name: identity.name || "Treinador",
+        kind: "item",
+        item_id: itemId,
+        qty,
+        price,
+        currency,
+      })
+      .select("id")
+      .single();
+    if (error || !data?.id) {
+      console.error("[market] insert error", error, { itemId, qty, price, currency });
+      pushChat(`Falha ao anunciar: ${error?.message ?? "resposta vazia — nada foi descontado"}`, "info");
+      return false;
+    }
+    // remove item do estoque local (custódia do anúncio) — só APÓS confirmação da linha
+    setIdle((s) => ({ ...s, items: { ...s.items, [itemId]: Math.max(0, (s.items[itemId] ?? 0) - qty) } }));
     const curLabel = currency === "gold" ? "ouro" : currency === "crystal" ? "💎 cristais" : "💚 safiras";
-    pushChat(`📢 Anúncio criado: ${qty}x ${itemId} por ${price} ${curLabel}.`, "cap");
+    pushChat(`📢 Anúncio criado: ${qty}x ${itemId} por ${price} ${curLabel}. (id ${data.id.slice(0, 8)})`, "cap");
     return true;
   };
   const buyMarketListing = async (listing: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }): Promise<boolean> => {
