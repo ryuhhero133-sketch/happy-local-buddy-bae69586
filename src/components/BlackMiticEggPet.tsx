@@ -1116,8 +1116,8 @@ export function BlackMiticEggHud(props: {
     if (!selected.activated) { onNotify?.("Ative a incubação antes."); return; }
     const pct = (Date.now() - selected.activatedAt) / HATCH_MS;
     if (pct < BONUS_UNLOCK_PCT) { onNotify?.("Bônus liberado somente aos 70% de incubação."); return; }
-    const cd = Math.max(0, (selected.lastBonusFeedAt + BONUS_COOLDOWN_MS) - Date.now());
-    if (cd > 0) { onNotify?.(`Aguarde ${fmt(cd)} para o próximo bônus.`); return; }
+    // sem cooldown — alimentação bônus ilimitada
+
     const amount = Math.max(BONUS_MIN, Math.min(BONUS_MAX, Math.floor(amountRaw || 0)));
     if (amount < BONUS_MIN) { onNotify?.("Quantidade inválida."); return; }
     const have = stones[el.stone] ?? 0;
