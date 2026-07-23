@@ -1688,7 +1688,7 @@ function IdlePage() {
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
   const onPickTeamFromColecao = (entry: CollectionEntry) => {
-    const newPet = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0, traits: entry.traits ?? [] };
+    const newPet = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0, traits: entry.traits ?? [], event: entry.event } as PetInstance;
     setTeam((tm) => {
       const idx = tm.findIndex((p) => p.uid === entry.uid);
       if (idx >= 0) {
@@ -11069,7 +11069,7 @@ function IdlePage() {
               <button
                 onClick={() => {
                   const basePet = livePet ?? makePet(sp, displayLevel, entry.rarity);
-                  const pet = { ...basePet, traits: entry.traits ?? basePet.traits ?? [] };
+                  const pet = { ...basePet, traits: entry.traits ?? basePet.traits ?? [], event: entry.event ?? (basePet as any).event } as PetInstance;
                   setStatsCardPet(pet);
                   setColecaoDetailUid(null);
                 }}
