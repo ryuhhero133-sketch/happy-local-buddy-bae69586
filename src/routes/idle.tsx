@@ -5160,18 +5160,7 @@ function IdlePage() {
           }
         }
       }
-      // 🐉 DRAGONITE SHINY GLOBAL — chance pequena de aparecer em QUALQUER mapa regular.
-      // Não sobrescreve eventos (Dialga, roamer mítico, oddish, evento_myth, gelius).
-      const isEventMap = idle.currentMap === "evento_myth"
-        || idle.currentMap === "gelius1" || idle.currentMap === "gelius2"
-        || idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
-      if (!isDialgaEvent && !isMythicRoamer && !isEventMap && !forcedRarity && Math.random() < 0.006) {
-        sp = "dragonite_shiny" as Species;
-        forcedRarity = "mythic_shiny";
-        // Nível casado com o mapa, mas sempre respeitável
-        const lo = Math.max(80, mapLvRange[0]);
-        const hi = Math.max(lo + 20, mapLvRange[1]);
-        mapLvRange = [lo, hi];
+
 
       // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
       // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
