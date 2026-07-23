@@ -14559,14 +14559,17 @@ function GovernanteDialog(props: {
   if (!open) return null;
   const maxByCap = Math.max(0, 6 - currentEggs);
   const canGive = Math.min(cards, maxByCap);
+  const canGivePlus = Math.min(plusCards, maxByCap);
   const lines = [
     "Ah... um treinador digno enfim cruza meu salão.",
-    cards > 0
-      ? `Vejo em suas mãos ${cards} Carta${cards > 1 ? "s" : ""} Lendária${cards > 1 ? "s" : ""}. Cada uma vale um Black Mitic Plus Egg.`
-      : "Você não porta nenhuma Carta Lendária... volte quando obtiver ao menos uma.",
-    canGive > 0
-      ? `Posso lhe entregar ${canGive} ovo${canGive > 1 ? "s" : ""} agora (limite de 6 simultâneos).`
+    plusCards > 0
+      ? `Percebo o brilho de ${plusCards} Carta${plusCards > 1 ? "s" : ""} Suprema${plusCards > 1 ? "s" : ""} Plus. Cada uma invoca um ovo VERSÁTIL, com 6 traits garantidos.`
       : cards > 0
+        ? `Vejo em suas mãos ${cards} Carta${cards > 1 ? "s" : ""} Lendária${cards > 1 ? "s" : ""}. Cada uma vale um Black Mitic Plus Egg.`
+        : "Você não porta nenhuma Carta... volte quando obtiver ao menos uma.",
+    (canGive > 0 || canGivePlus > 0)
+      ? `Posso lhe entregar ${canGivePlus > 0 ? `${canGivePlus} ovo${canGivePlus > 1 ? "s" : ""} PLUS ✦` : ""}${canGivePlus > 0 && canGive > 0 ? " ou " : ""}${canGive > 0 ? `${canGive} ovo${canGive > 1 ? "s" : ""} comum` : ""} (limite 6 simultâneos).`
+      : (cards > 0 || plusCards > 0)
         ? "Mas você já carrega o máximo de 6 ovos. Chocolate os primeiros antes de retornar."
         : "Volte quando estiver pronto.",
   ];
