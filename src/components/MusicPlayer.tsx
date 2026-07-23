@@ -62,9 +62,15 @@ export function MusicPlayer({
 
     const applyVolume = () => {
       const st = getMusicState();
-      const target = st.muted ? 0 : st.volume;
+      const target = (st.muted || st.suspended) ? 0 : st.volume;
       for (const [id, a] of Object.entries(audiosRef.current) as [TrackId, HTMLAudioElement][]) {
         a.volume = id === currentRef.current ? target : 0;
+      }
+      // Se suspenso, pausa o atual; ao voltar, retoma.
+      const cur = currentRef.current ? audiosRef.current[currentRef.current] : null;
+      if (cur) {
+        if (st.suspended) { cur.pause(); }
+        else if (unlockedRef.current && cur.paused) { cur.play().catch(() => { /* ignore */ }); }
       }
     };
 
@@ -77,7 +83,9 @@ export function MusicPlayer({
         if (other !== id) { oa.pause(); oa.volume = 0; }
       }
       applyVolume();
-      a.play().catch(() => { /* will retry on next gesture */ });
+      if (!getMusicState().suspended) {
+        a.play().catch(() => { /* will retry on next gesture */ });
+      }
     };
 
     const unlock = () => {

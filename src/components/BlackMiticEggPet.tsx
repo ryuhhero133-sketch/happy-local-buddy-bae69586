@@ -3,8 +3,10 @@ import { createPortal } from "react-dom";
 import { useServerFn } from "@tanstack/react-start";
 import eggSprite from "@/assets/black-mitic-egg.png";
 import incubatorSprite from "@/assets/black-mitic-incubator.png";
+import eggMusicAsset from "@/assets/egg-transitus.mp3.asset.json";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { getBlackEggSave, saveBlackEggSave } from "@/lib/blackEgg.functions";
+import { getMusicState, setMusicSuspended, subscribeMusic } from "@/lib/musicControl";
 
 // ============================================================================
 // Black Mitic Plus Egg — sistema unificado
@@ -1213,6 +1215,33 @@ export function BlackMiticEggHud(props: {
   }, [itemCount, uid]);
 
   useEffect(() => { if (open) setState(loadState(uid)); }, [open, uid]);
+
+  // 🎵 Trilha exclusiva do painel: toca ao abrir, para ao fechar,
+  // e suspende a música principal enquanto o painel estiver visível.
+  useEffect(() => {
+    if (!open) return;
+    const audio = new Audio(eggMusicAsset.url);
+    audio.loop = true;
+    audio.preload = "auto";
+    const applyVol = () => {
+      const st = getMusicState();
+      audio.volume = st.muted ? 0 : Math.min(1, st.volume * 1.1);
+    };
+    applyVol();
+    const unsub = subscribeMusic(applyVol);
+    setMusicSuspended(true);
+    audio.play().catch(() => { /* precisa de gesto do usuário; abrir o painel geralmente conta */ });
+    const retry = () => { if (audio.paused) audio.play().catch(() => { /* ignore */ }); };
+    window.addEventListener("pointerdown", retry);
+    window.addEventListener("keydown", retry);
+    return () => {
+      unsub();
+      window.removeEventListener("pointerdown", retry);
+      window.removeEventListener("keydown", retry);
+      try { audio.pause(); audio.currentTime = 0; } catch { /* ignore */ }
+      setMusicSuspended(false);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
