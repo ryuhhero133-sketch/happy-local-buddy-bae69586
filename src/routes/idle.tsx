@@ -2905,7 +2905,7 @@ function IdlePage() {
   const bossBallsRef = useRef<Map<number, number>>(new Map());
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
-  const RAICHU_MYTHIC_MIN_BALLS = 1600;
+  const RAICHU_MYTHIC_MIN_BALLS = 1000;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
