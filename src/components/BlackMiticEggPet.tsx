@@ -1082,8 +1082,9 @@ export function BlackMiticEggHud(props: {
   onActivateEgg?: () => void;                          // primeira ativação — parent consome carta / marca unlock permanente
   boostCount?: number;                                 // Cristais do Despertar disponíveis na mochila
   onConsumeBoost?: () => boolean;                      // consome 1 boost; devolve false se não houver
+  musicControlledExternally?: boolean;                 // usado pelo mapa idle, que tem BGM próprio
 }) {
-  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify, hasIncubatorCard = false, onActivateEgg, boostCount = 0, onConsumeBoost } = props;
+  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify, hasIncubatorCard = false, onActivateEgg, boostCount = 0, onConsumeBoost, musicControlledExternally = false } = props;
   const [state, setState] = useState<CollectionState>(() => loadState(uid));
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<"journal" | "feeds">("journal");
@@ -1221,7 +1222,7 @@ export function BlackMiticEggHud(props: {
   // 🎵 Trilha exclusiva do painel: toca ao abrir, para ao fechar,
   // e suspende a música principal enquanto o painel estiver visível.
   useEffect(() => {
-    if (!open) return;
+    if (!open || musicControlledExternally) return;
     // 1) Suspende a trilha principal PRIMEIRO e força pausa em qualquer <audio>
     //    que ainda esteja tocando (garante que só a Transitus soará).
     setMusicSuspended(true);
@@ -1260,7 +1261,7 @@ export function BlackMiticEggHud(props: {
       try { audio.pause(); audio.currentTime = 0; } catch { /* ignore */ }
       setMusicSuspended(false);
     };
-  }, [open]);
+  }, [open, musicControlledExternally]);
 
 
   useEffect(() => {
