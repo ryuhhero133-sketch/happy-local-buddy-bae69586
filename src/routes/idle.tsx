@@ -1262,6 +1262,13 @@ function IdlePage() {
     const t = setTimeout(() => setLevelToast(null), 5000);
     return () => clearTimeout(t);
   }, [levelToast]);
+  // ⚡ ZAPDOS EVENT — anúncio no topo, aparece só nos mapas da Odisséia + Caverna Sombria
+  const [zapdosAnnounce, setZapdosAnnounce] = useState<{ ts: number } | null>(null);
+  useEffect(() => {
+    if (!zapdosAnnounce) return;
+    const t = setTimeout(() => setZapdosAnnounce(null), 8000);
+    return () => clearTimeout(t);
+  }, [zapdosAnnounce]);
   // alvo atual (para virar o pokémon) — id do inimigo que estamos atacando
   const [attackTargetId, setAttackTargetId] = useState<number | null>(null);
   const attackTargetIdRef = useRef<number | null>(null);
