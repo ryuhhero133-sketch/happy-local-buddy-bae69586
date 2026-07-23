@@ -4838,8 +4838,32 @@ function IdlePage() {
       pushFxAt(trainerPos.x, trainerPos.y - 40, "✨ MEL RARO +20% · 24h", "capture");
       pushEvent("✨", "INCENSO RARO 24H", "+20% drop/xp/def/velocidade por 24 horas", "#ffd94d");
       pushChat(`✨🍯 Incenso Raro 24h ativado! +20% drop/xp/def/velocidade por 24 horas.`, "cap");
+    } else if (id === "stone_pack_all") {
+      setIdle((s) => ({
+        ...s,
+        items: {
+          ...s.items,
+          stone_pack_all: (s.items.stone_pack_all ?? 0) - 1,
+          stone_grass: (s.items.stone_grass ?? 0) + 4000,
+          stone_fire: (s.items.stone_fire ?? 0) + 4000,
+          stone_water: (s.items.stone_water ?? 0) + 4000,
+          stone_electric: (s.items.stone_electric ?? 0) + 4000,
+          stone_dark: (s.items.stone_dark ?? 0) + 4000,
+          stone_dragon: (s.items.stone_dragon ?? 0) + 4000,
+        },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "+4000× de cada Stone", "capture");
+      pushChat(`💠 Pacote das Seis Stones aberto! +4 000 de cada Stone Elemental (🌿🔥💧⚡🌑🐉).`, "cap");
+    } else if (id === "egg_boost_69") {
+      if ((idle.items?.[BLACK_EGG_ITEM_ID] ?? 0) <= 0) {
+        pushChat(`Você precisa ter um Black Mitic Egg ativo para usar o Cristal do Despertar.`, "info");
+        return;
+      }
+      setBlackEggHudOpen(true);
+      pushChat(`✦ Cristal do Despertar pronto — abra o painel do ovo e escolha qual Black Mitic Egg adiantar para 69%.`, "cap");
     }
   };
+
 
   // ===== OVOS =====
   // (Rarity é importada de @/game/systems)
