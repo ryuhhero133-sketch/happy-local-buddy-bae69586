@@ -3967,7 +3967,9 @@ function IdlePage() {
                     }
                     pushFxAt(target.x, target.y - 70, `${nowCount}/${minBalls}`, "enemyDmg");
                   } else {
-                    captured = Math.random() < 0.02;
+                    // Raichu Mítico: quase impossível — 0.3% por lançamento após o umbral.
+                    const catchChance = isRaichuMy ? 0.003 : 0.02;
+                    captured = Math.random() < catchChance;
                   }
                 }
               } else if (target.mtcBoss) {
