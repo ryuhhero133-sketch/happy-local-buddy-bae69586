@@ -2811,6 +2811,10 @@ function IdlePage() {
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   // Contador de pokébolas arremessadas em cada Mewtwo do evento (por id de spawn).
   const mewtwoBallsRef = useRef<Map<number, number>>(new Map());
+  // Contador de Ultra Balls arremessadas em bosses raros (Dragonite Shiny / Zapdos).
+  const bossBallsRef = useRef<Map<number, number>>(new Map());
+  const DRAGONITE_SHINY_MIN_BALLS = 700;
+  const ZAPDOS_MIN_BALLS = 1000;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
@@ -3852,6 +3856,27 @@ function IdlePage() {
                   if (usedBall.id === "masterball") captured = true;
                   else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
                   else captured = false;
+                }
+              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos") {
+                // 🐉⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
+                const minBalls = target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
+                const label = target.sp === "zapdos" ? "ZAPDOS" : "DRAGONITE ✦";
+                if (usedBall.id !== "ultraball") {
+                  captured = false;
+                  pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
+                } else {
+                  const prev = bossBallsRef.current.get(target.id) ?? 0;
+                  const nowCount = prev + 1;
+                  bossBallsRef.current.set(target.id, nowCount);
+                  if (nowCount < minBalls) {
+                    captured = false;
+                    if (nowCount % 100 === 0) {
+                      pushChat(`✦ ${label} — ${nowCount}/${minBalls} Ultra Balls arremessadas...`, "info");
+                    }
+                    pushFxAt(target.x, target.y - 70, `${nowCount}/${minBalls}`, "enemyDmg");
+                  } else {
+                    captured = Math.random() < 0.02;
+                  }
                 }
               } else if (target.mtcBoss) {
                 // ✦ MTC — só ultra ball; ~1.7% por lançamento (média ~60 tentativas)
@@ -5136,6 +5161,7 @@ function IdlePage() {
         }
       }
 
+
       // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
       // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
       const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic", "darkrai"];
@@ -5167,6 +5193,19 @@ function IdlePage() {
       if (isMythShinyEvent) {
         forcedRarity = "mythic_shiny";
       }
+
+      // 🐉 DRAGONITE SHINY GLOBAL — chance pequena em qualquer mapa regular.
+      const isEventMapForDragon = idle.currentMap === "evento_myth"
+        || idle.currentMap === "gelius1" || idle.currentMap === "gelius2"
+        || idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
+      if (!isDialgaEvent && !isMythicRoamer && !isEventMapForDragon && !forcedRarity && Math.random() < 0.006) {
+        sp = "dragonite_shiny" as Species;
+        forcedRarity = "mythic_shiny";
+        const lo = Math.max(80, mapLvRange ? mapLvRange[0] : 80);
+        const hi = Math.max(lo + 20, mapLvRange ? mapLvRange[1] : lo + 20);
+        mapLvRange = [lo, hi];
+      }
+
 
       const rareStrong = Math.random() < 0.05;
       const offset = rareStrong
