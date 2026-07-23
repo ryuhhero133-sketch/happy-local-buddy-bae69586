@@ -896,6 +896,7 @@ type IdleState = {
   // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   redeemedCodes?: Record<string, boolean>;
+  blackMiticPlusPending?: number; // ovos Plus emitidos pelo Governante que ainda precisam ser marcados no painel
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
@@ -11312,6 +11313,13 @@ function IdlePage() {
         onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
         boostCount={idle.items?.egg_boost_69 ?? 0}
         musicControlledExternally
+        plusPending={idle.blackMiticPlusPending ?? 0}
+        onConsumePlus={(count) => {
+          setIdle((s) => ({
+            ...s,
+            blackMiticPlusPending: Math.max(0, (s.blackMiticPlusPending ?? 0) - count),
+          }));
+        }}
         onConsumeBoost={() => {
           const have = idleRef.current.items?.egg_boost_69 ?? 0;
           if (have <= 0) return false;
@@ -11326,6 +11334,7 @@ function IdlePage() {
       <GovernanteDialog
         open={governanteOpen}
         cards={idle.items?.carta_incubadora ?? 0}
+        plusCards={idle.items?.carta_plus ?? 0}
         currentEggs={idle.items?.black_mitic_egg ?? 0}
         onClose={() => setGovernanteOpen(false)}
         onExchange={(qty) => {
@@ -11344,6 +11353,24 @@ function IdlePage() {
             },
           }));
           pushChat(`👑 Governante consumiu ${use}× Carta da Incubadora e entregou ${use}× Black Mitic Plus Egg.`, "cap");
+        }}
+        onExchangePlus={(qty) => {
+          const base = idleRef.current;
+          const cards = base.items?.carta_plus ?? 0;
+          const eggs = base.items?.black_mitic_egg ?? 0;
+          const maxByEggCap = Math.max(0, 6 - eggs);
+          const use = Math.min(qty, cards, maxByEggCap);
+          if (use <= 0) return;
+          setIdle((s) => ({
+            ...s,
+            items: {
+              ...(s.items ?? {}),
+              carta_plus: (s.items?.carta_plus ?? 0) - use,
+              black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + use,
+            },
+            blackMiticPlusPending: (s.blackMiticPlusPending ?? 0) + use,
+          }));
+          pushChat(`✦ Governante consumiu ${use}× Carta Suprema Plus e entregou ${use}× Black Mitic Plus VERSÁTIL (6 traits garantidos).`, "cap");
         }}
       />
     </div>
