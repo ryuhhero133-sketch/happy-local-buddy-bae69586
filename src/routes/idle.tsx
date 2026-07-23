@@ -5189,6 +5189,7 @@ function IdlePage() {
               try { localStorage.setItem("zapdos_last_spawn_ms", String(Date.now())); } catch {}
               setZapdosAnnounce({ ts: Date.now() });
               pushChat("⚡ ZAPDOS APARECEU! Bosque da Odisséia sacudido pela tempestade!", "cap");
+            }
           }
         }
         // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey
