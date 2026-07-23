@@ -2611,6 +2611,9 @@ function IdlePage() {
       CARATAGOV: 1, CARTAGOV2026: 1,
       // Novo código — 2 Cartas Supremas Plus (uso único)
       CARTAGOV2X: 2,
+      // Novos códigos — 1 Carta Suprema Plus cada (uso único)
+      CARTAPOW1: 1, CARTAPOW2: 1,
+
     };
     if (plusMap[raw]) {
       const base = idleRef.current;
