@@ -5022,11 +5022,17 @@ function IdlePage() {
       const col = s.collection ?? [];
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
-      const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
+      const frozen = !!s.redeemedCodes?.RANKED_RUBY_KEY_CRAFT;
+      const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
+      const gain = frozen ? 0 : baseGain;
       const isEvent = entry.event === "oddish_odyssey";
       const safiraGain = isEvent ? (entry.species === "oddish_shiny" ? 20 : (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1)) : 0;
       const bonus = safiraGain > 0 ? ` +${safiraGain} 💚 Safira Verde` : "";
-      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft${bonus}).`, "cap");
+      if (frozen) {
+        pushChat(`❄️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado, mas seus PONTOS DE CRAFT estão CONGELADOS pela Chave Ruby (Ranked Craft).${bonus}`, "info");
+      } else {
+        pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft${bonus}).`, "cap");
+      }
       consumedUidsRef.current.add(uid);
       return {
         ...s,
@@ -5037,6 +5043,7 @@ function IdlePage() {
           : s.items,
       };
     });
+
     // Defesa: se por algum motivo estiver no bench, também remove
     setRestingBench((b) => b.filter((p) => p.uid !== uid));
   };
