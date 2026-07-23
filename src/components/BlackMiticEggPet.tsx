@@ -1649,6 +1649,37 @@ export function BlackMiticEggHud(props: {
                         }} />
                       </div>
                       <div style={{ marginTop: 4, textAlign: "center", color: "#e0b8ff" }}>{fmt(hatchRemain)} restante</div>
+                      {selected.activated && hatchPct < 0.69 && (
+                        <button
+                          onClick={() => {
+                            if (!selected) return;
+                            if (hatchPct >= 0.69) { onNotify?.("Este ovo já passou dos 69%."); return; }
+                            if ((boostCount ?? 0) <= 0) { onNotify?.("Você não tem Cristal do Despertar na mochila."); return; }
+                            if (!onConsumeBoost || !onConsumeBoost()) { onNotify?.("Falha ao consumir o Cristal do Despertar."); return; }
+                            const target = Date.now() - 0.69 * HATCH_MS;
+                            persist((s) => ({
+                              ...s,
+                              eggs: s.eggs.map(e => e.id === selected.id ? { ...e, activatedAt: Math.min(e.activatedAt, target) } : e),
+                            }));
+                            onNotify?.("✦ Cristal do Despertar usado — progresso adiantado para 69%.");
+                          }}
+                          style={{
+                            marginTop: 8, width: "100%", padding: "8px 6px",
+                            background: (boostCount ?? 0) > 0
+                              ? "linear-gradient(180deg, #ff97e1, #a03fd6)"
+                              : "linear-gradient(180deg, #3a2050, #1e0f30)",
+                            border: `1px solid ${(boostCount ?? 0) > 0 ? "#ffb8f0" : "#5a3a7a"}`,
+                            borderRadius: 8,
+                            color: (boostCount ?? 0) > 0 ? "#fff" : "#8a6ab0",
+                            fontWeight: 700, fontSize: 10,
+                            cursor: (boostCount ?? 0) > 0 ? "pointer" : "not-allowed", letterSpacing: 1,
+                            boxShadow: (boostCount ?? 0) > 0 ? "0 0 12px rgba(255,150,225,0.7)" : "none",
+                          }}
+                          title={(boostCount ?? 0) > 0 ? "Consome 1 Cristal do Despertar e adianta o progresso para 69%" : "Requer Cristal do Despertar na mochila"}
+                        >
+                          ✦ ADIANTAR PARA 69% {(boostCount ?? 0) > 0 ? `(${boostCount})` : "(0)"}
+                        </button>
+                      )}
                     </div>
                   )}
 
