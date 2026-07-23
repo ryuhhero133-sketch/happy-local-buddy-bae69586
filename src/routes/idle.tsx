@@ -12077,6 +12077,8 @@ function TabOverlay({
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
           black_mitic_egg: "Black Mitic Egg ✦",
+          egg_boost_69: "Cristal do Despertar ✦",
+          stone_pack_all: "Pacote das Seis Stones 💠",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
