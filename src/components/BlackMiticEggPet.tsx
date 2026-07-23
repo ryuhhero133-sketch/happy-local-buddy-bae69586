@@ -1080,8 +1080,10 @@ export function BlackMiticEggHud(props: {
   onNotify?: (msg: string) => void;
   hasIncubatorCard?: boolean;                          // gate para "ATIVAR INICIAÇÃO"
   onActivateEgg?: () => void;                          // primeira ativação — parent consome carta / marca unlock permanente
+  boostCount?: number;                                 // Cristais do Despertar disponíveis na mochila
+  onConsumeBoost?: () => boolean;                      // consome 1 boost; devolve false se não houver
 }) {
-  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify, hasIncubatorCard = false, onActivateEgg } = props;
+  const { open, onClose, uid, itemCount, stones, onConsumeStone, onHatched, onNotify, hasIncubatorCard = false, onActivateEgg, boostCount = 0, onConsumeBoost } = props;
   const [state, setState] = useState<CollectionState>(() => loadState(uid));
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<"journal" | "feeds">("journal");
