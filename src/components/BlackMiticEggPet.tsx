@@ -423,6 +423,21 @@ function advanceJournal(egg: EggInstance, now: number): EggInstance {
     next = { ...next, lastCravingNudgeAt: now };
   }
 
+  // Enigma periódico: pistas do que ele pode virar (a cada ~25 min de sessão)
+  if (next.lastFedAt > 0 && (now - next.lastFedAt) > 25 * 60 * 1000 &&
+      (now - (next.lastMysteryNudgeAt ?? 0)) > 45 * 60 * 1000 &&
+      Math.random() < 0.55) {
+    const used = ELEMENTS.filter(e => (next.affinity[e.id] ?? 0) > 0).length;
+    if (used >= 5) {
+      next = pushJournal(next, "mystery", pick(VERSATILE_HINTS));
+    } else {
+      const dom = dominantElement(next.affinity);
+      const hint = pick(ENIGMATIC_LINES[dom] ?? MYSTERY_LINES);
+      next = pushJournal(next, "mystery", hint, dom);
+    }
+    next = { ...next, lastMysteryNudgeAt: now };
+  }
+
   return next;
 }
 
