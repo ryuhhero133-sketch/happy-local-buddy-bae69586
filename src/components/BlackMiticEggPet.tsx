@@ -1222,6 +1222,18 @@ export function BlackMiticEggHud(props: {
   // e suspende a música principal enquanto o painel estiver visível.
   useEffect(() => {
     if (!open) return;
+    // 1) Suspende a trilha principal PRIMEIRO e força pausa em qualquer <audio>
+    //    que ainda esteja tocando (garante que só a Transitus soará).
+    setMusicSuspended(true);
+    const pauseOthers = (except?: HTMLAudioElement) => {
+      document.querySelectorAll("audio").forEach((el) => {
+        const a = el as HTMLAudioElement;
+        if (a !== except && !a.paused) { try { a.pause(); } catch { /* ignore */ } }
+      });
+    };
+    pauseOthers();
+
+    // 2) Cria e toca a Transitus.
     const audio = new Audio(eggMusicAsset.url);
     audio.loop = true;
     audio.preload = "auto";
@@ -1230,13 +1242,18 @@ export function BlackMiticEggHud(props: {
       audio.volume = st.muted ? 0 : Math.min(1, st.volume * 1.1);
     };
     applyVol();
-    const unsub = subscribeMusic(applyVol);
-    setMusicSuspended(true);
-    audio.play().catch(() => { /* precisa de gesto do usuário; abrir o painel geralmente conta */ });
-    const retry = () => { if (audio.paused) audio.play().catch(() => { /* ignore */ }); };
+    const unsub = subscribeMusic(() => { applyVol(); pauseOthers(audio); });
+    audio.play().catch(() => { /* aguarda gesto */ });
+    const retry = () => {
+      pauseOthers(audio);
+      if (audio.paused) audio.play().catch(() => { /* ignore */ });
+    };
     window.addEventListener("pointerdown", retry);
     window.addEventListener("keydown", retry);
+    // Reforço: se algo tentar retomar a música principal, silencia novamente.
+    const guard = setInterval(() => pauseOthers(audio), 500);
     return () => {
+      clearInterval(guard);
       unsub();
       window.removeEventListener("pointerdown", retry);
       window.removeEventListener("keydown", retry);
@@ -1244,6 +1261,7 @@ export function BlackMiticEggHud(props: {
       setMusicSuspended(false);
     };
   }, [open]);
+
 
   useEffect(() => {
     if (!open) return;
