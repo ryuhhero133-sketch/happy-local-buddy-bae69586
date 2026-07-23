@@ -2298,7 +2298,7 @@ function IdlePage() {
         setCodeMsg({ kind: "err", text: `Coleção cheia (${MAX_COLLECTION}). Libere espaço e tente novamente.` });
         return;
       }
-      const pet = makePet("charizard_shiny" as Species, 25, "mythic" as Rarity);
+      const pet = { ...makePet("charizard_shiny" as Species, 25, "mythic" as Rarity), capturedAt: Date.now() };
       const next: IdleState = {
         ...base,
         collection: [...prevCol, pet],
