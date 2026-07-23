@@ -667,7 +667,7 @@ export function BlackMiticEggHud(props: {
       if (pushInFlightRef.current) { pushPendingRef.current = true; return; }
       pushInFlightRef.current = true;
       try {
-        await pushCloud({ data: { data: state as any } } as any);
+        await pushCloud({ data: { data: state as any } as any } as any);
       } catch (e) {
         console.warn("[BlackEgg] push cloud falhou:", e);
       } finally {
@@ -677,7 +677,7 @@ export function BlackMiticEggHud(props: {
           // dispara outro ciclo curto pra não segurar mudanças recentes
           if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
           pushTimerRef.current = setTimeout(() => {
-            pushCloud({ data: { data: state as any } } as any).catch(() => { /* ignore */ });
+            pushCloud({ data: { data: state as any } as any } as any).catch(() => { /* ignore */ });
           }, 800);
         }
       }
