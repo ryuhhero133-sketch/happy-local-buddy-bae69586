@@ -887,6 +887,16 @@ export function CashShopModal(props: Props) {
                 </div>
               </div>
 
+              {convMsg && (
+                <div className={`mt-3 text-xs text-center font-bold ${convMsg.kind === "err" ? "text-red-400" : "text-emerald-300"}`}>
+                  {convMsg.text}
+                </div>
+              )}
+            </div>
+          </div>
+
+
+
 
           {/* ============ OFERTAS EM ESMERALDAS ============ */}
           <div className="rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-950/60 via-black/60 to-emerald-900/40 backdrop-blur-xl p-4 sm:p-5 relative overflow-hidden">
