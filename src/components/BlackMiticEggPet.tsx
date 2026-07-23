@@ -3,8 +3,10 @@ import { createPortal } from "react-dom";
 import { useServerFn } from "@tanstack/react-start";
 import eggSprite from "@/assets/black-mitic-egg.png";
 import incubatorSprite from "@/assets/black-mitic-incubator.png";
+import eggMusicAsset from "@/assets/egg-transitus.mp3.asset.json";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { getBlackEggSave, saveBlackEggSave } from "@/lib/blackEgg.functions";
+import { getMusicState, setMusicSuspended, subscribeMusic } from "@/lib/musicControl";
 
 // ============================================================================
 // Black Mitic Plus Egg — sistema unificado
