@@ -1216,6 +1216,33 @@ export function BlackMiticEggHud(props: {
 
   useEffect(() => { if (open) setState(loadState(uid)); }, [open, uid]);
 
+  // 🎵 Trilha exclusiva do painel: toca ao abrir, para ao fechar,
+  // e suspende a música principal enquanto o painel estiver visível.
+  useEffect(() => {
+    if (!open) return;
+    const audio = new Audio(eggMusicAsset.url);
+    audio.loop = true;
+    audio.preload = "auto";
+    const applyVol = () => {
+      const st = getMusicState();
+      audio.volume = st.muted ? 0 : Math.min(1, st.volume * 1.1);
+    };
+    applyVol();
+    const unsub = subscribeMusic(applyVol);
+    setMusicSuspended(true);
+    audio.play().catch(() => { /* precisa de gesto do usuário; abrir o painel geralmente conta */ });
+    const retry = () => { if (audio.paused) audio.play().catch(() => { /* ignore */ }); };
+    window.addEventListener("pointerdown", retry);
+    window.addEventListener("keydown", retry);
+    return () => {
+      unsub();
+      window.removeEventListener("pointerdown", retry);
+      window.removeEventListener("keydown", retry);
+      try { audio.pause(); audio.currentTime = 0; } catch { /* ignore */ }
+      setMusicSuspended(false);
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const idNow = setInterval(() => setNow(Date.now()), 500);
