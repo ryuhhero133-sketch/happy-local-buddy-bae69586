@@ -11379,6 +11379,7 @@ function IdlePage() {
         open={governanteOpen}
         cards={idle.items?.carta_incubadora ?? 0}
         plusCards={idle.items?.carta_plus ?? 0}
+        rioluCards={idle.items?.carta_riolu ?? 0}
         currentEggs={idle.items?.black_mitic_egg ?? 0}
         onClose={() => setGovernanteOpen(false)}
         onExchange={(qty) => {
