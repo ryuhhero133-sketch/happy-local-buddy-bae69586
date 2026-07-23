@@ -11917,6 +11917,7 @@ function TabOverlay({
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
           bau_esmeralda: "Baú de Esmeralda 💠",
+          chave_ruby: "Chave Ruby 🔴",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
