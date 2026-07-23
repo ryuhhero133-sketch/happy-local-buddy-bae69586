@@ -221,6 +221,7 @@ import meowthAsset from "@/assets/meowth.gif.asset.json";
 import psyduckAsset from "@/assets/psyduck.gif.asset.json";
 import lucarioAuraAsset from "@/assets/lucario-aura.webp.asset.json";
 import mewAuraAsset from "@/assets/mew-aura.webp.asset.json";
+import rioluAsset from "@/assets/riolu.gif.asset.json";
 import oddishAsset from "@/assets/oddish.gif.asset.json";
 import bellsproutAsset from "@/assets/bellsprout.gif.asset.json";
 import weedleAsset from "@/assets/weedle.gif.asset.json";
@@ -398,6 +399,7 @@ const meowthUrl = assetUrlFromJson(meowthAsset);
 const psyduckUrl = assetUrlFromJson(psyduckAsset);
 const lucarioAuraUrl = assetUrlFromJson(lucarioAuraAsset);
 const mewAuraUrl = assetUrlFromJson(mewAuraAsset);
+const rioluUrl = assetUrlFromJson(rioluAsset);
 const oddishUrl = assetUrlFromJson(oddishAsset);
 const bellsproutUrl = assetUrlFromJson(bellsproutAsset);
 const weedleUrl = assetUrlFromJson(weedleAsset);
@@ -577,6 +579,7 @@ const GIF: Partial<Record<Species, string>> = {
   lickitung_shiny: assetUrlFromJson(lickitungShinyGifAsset),
   mewtwo_event: assetUrlFromJson(mewtwoEventGifAsset),
   oddish_shiny: assetUrlFromJson(oddishShinyGifAsset),
+  riolu: rioluUrl,
 };
 
 
@@ -632,7 +635,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Fighting
   machop: "fighting", machoke: "fighting", machamp: "fighting",
   mankey: "fighting", primeape: "fighting",
-  lucario: "fighting", pinsir: "fighting",
+  lucario: "fighting", pinsir: "fighting", riolu: "fighting",
   // Flying
   pidgey: "flying", pidgeotto: "flying", pidgeot: "flying",
   fearow: "flying", spearow: "flying",
@@ -2615,6 +2618,30 @@ function IdlePage() {
       CARTAPOW1: 1, CARTAPOW2: 1,
 
     };
+    // CARTARIOLU1/2 — Carta Riolu Suprema (uso único) → troca no Governante por Riolu Black Mitic Brilhant Plus direto na Coleção
+    const rioluMap: Record<string, number> = { CARTARIOLU1: 1, CARTARIOLU2: 1 };
+    if (rioluMap[raw]) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const qty = rioluMap[raw];
+      const hasKey = (base.items?.carta_governante ?? 0) > 0;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          carta_riolu: (base.items?.carta_riolu ?? 0) + qty,
+          carta_governante: (base.items?.carta_governante ?? 0) + (hasKey ? 0 : 1),
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: `✦ +${qty} Carta Riolu Suprema recebida! Fale com o Governante para materializar o Black Mitic Brilhant Plus.` });
+      setCodeInput("");
+      pushChat(`✦ Código ${raw}: ${qty}× Carta Riolu Suprema entregue — troque com o Governante.`, "cap");
+      return;
+    }
     if (plusMap[raw]) {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
@@ -11352,6 +11379,7 @@ function IdlePage() {
         open={governanteOpen}
         cards={idle.items?.carta_incubadora ?? 0}
         plusCards={idle.items?.carta_plus ?? 0}
+        rioluCards={idle.items?.carta_riolu ?? 0}
         currentEggs={idle.items?.black_mitic_egg ?? 0}
         onClose={() => setGovernanteOpen(false)}
         onExchange={(qty) => {
@@ -11426,6 +11454,55 @@ function IdlePage() {
 
           const names = entries.map((entry) => entry.species.toUpperCase()).join(", ");
           pushChat(`✦ Governante consumiu ${use}× Carta Suprema Plus e colocou na Coleção: ${names} — Black Mitic Plus VERSÁTIL com 6 traits.`, "cap");
+        }}
+        onExchangeRiolu={(qty) => {
+          const base = idleRef.current;
+          const cards = base.items?.carta_riolu ?? 0;
+          const collectionSlots = Math.max(0, MAX_COLLECTION - (base.collection?.length ?? 0));
+          const use = Math.min(qty, cards, collectionSlots);
+          if (use <= 0) {
+            pushChat("✦ Governante: sua Coleção está cheia. Libere espaço antes de entregar a Carta Riolu.", "cap");
+            return;
+          }
+          const nextItems = { ...(base.items ?? {}) };
+          const remainingCards = Math.max(0, cards - use);
+          if (remainingCards <= 0) delete nextItems.carta_riolu;
+          else nextItems.carta_riolu = remainingCards;
+
+          const nowTs = Date.now();
+          const entries: CollectionEntry[] = Array.from({ length: use }, (_, index) => {
+            const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+              ? crypto.randomUUID()
+              : `bmp_riolu_${nowTs}_${index}_${Math.floor(Math.random() * 1e6)}`;
+            return {
+              uid,
+              species: "riolu" as Species,
+              level: 1000,
+              xp: 0,
+              rarity: "mythic_shiny",
+              capturedAt: nowTs + index,
+              traits: GOVERNANTE_PLUS_TRAITS,
+              event: "black_mitic_plus:brilhant:riolu",
+            };
+          });
+
+          const seenSpecies = base.seenSpecies.includes("riolu" as Species) ? base.seenSpecies : [...base.seenSpecies, "riolu" as Species];
+          const caughtSpecies = base.caughtSpecies.includes("riolu" as Species) ? base.caughtSpecies : [...base.caughtSpecies, "riolu" as Species];
+
+          const next: IdleState = {
+            ...base,
+            items: nextItems,
+            seenSpecies,
+            caughtSpecies,
+            collection: [...(base.collection ?? []), ...entries],
+            totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + entries.length },
+          };
+          idleRef.current = next;
+          saveIdle(next);
+          setIdle(next);
+          void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+
+          pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
         }}
       />
     </div>
@@ -12357,6 +12434,7 @@ function TabOverlay({
           carta_governante: "Carta do Governante 👑",
           carta_incubadora: "Carta da Incubadora Lendária 🔮",
           carta_plus: "Carta Suprema Plus ✦",
+          carta_riolu: "Carta Riolu Suprema 🐺✦",
           stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
@@ -12404,6 +12482,7 @@ function TabOverlay({
           carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
           carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
           carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para materializar 1 Black Mitic Plus direto na Coleção, VERSÁTIL com 6 traits. Uso único.",
+          carta_riolu: "Carta Riolu Suprema 🐺✦ · leve ao Governante para materializar 1 Riolu Black Mitic Brilhant Plus (Lv 1000, 6 traits) direto na Coleção. Uso único.",
           stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
           stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
           stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
@@ -14635,18 +14714,21 @@ function GovernanteDialog(props: {
   open: boolean;
   cards: number;
   plusCards?: number;
+  rioluCards?: number;
   currentEggs: number;
   onClose: () => void;
   onExchange: (qty: number) => void;
   onExchangePlus?: (qty: number) => void;
+  onExchangeRiolu?: (qty: number) => void;
 }) {
-  const { open, cards, plusCards = 0, currentEggs, onClose, onExchange, onExchangePlus } = props;
+  const { open, cards, plusCards = 0, rioluCards = 0, currentEggs, onClose, onExchange, onExchangePlus, onExchangeRiolu } = props;
   const [step, setStep] = useState(0);
   useEffect(() => { if (open) setStep(0); }, [open]);
   if (!open) return null;
   const maxByCap = Math.max(0, 6 - currentEggs);
   const canGive = Math.min(cards, maxByCap);
   const canGivePlus = plusCards;
+  const canGiveRiolu = rioluCards;
   const lines = [
     "Ah... um treinador digno enfim cruza meu salão.",
     plusCards > 0
@@ -14720,7 +14802,7 @@ function GovernanteDialog(props: {
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ fontSize: 11, color: "#c58bff" }}>
-              Cartas: <b style={{ color: "#ffd44a" }}>{cards}</b> · Plus: <b style={{ color: "#ffd44a" }}>{plusCards}</b> · Ovos atuais: <b style={{ color: "#ffd44a" }}>{currentEggs}/6</b>
+              Cartas: <b style={{ color: "#ffd44a" }}>{cards}</b> · Plus: <b style={{ color: "#ffd44a" }}>{plusCards}</b> · Riolu: <b style={{ color: "#7ec4ff" }}>{rioluCards}</b> · Ovos atuais: <b style={{ color: "#ffd44a" }}>{currentEggs}/6</b>
             </div>
             <div style={{ flex: 1 }} />
             {!isLast ? (
@@ -14732,7 +14814,7 @@ function GovernanteDialog(props: {
                   fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
                 }}
               >CONTINUAR ▸</button>
-            ) : (canGive > 0 || canGivePlus > 0) ? (
+            ) : (canGive > 0 || canGivePlus > 0 || canGiveRiolu > 0) ? (
               <>
                 <button
                   onClick={onClose}
@@ -14753,6 +14835,18 @@ function GovernanteDialog(props: {
                       boxShadow: "0 0 18px rgba(208,102,255,0.85)",
                     }}
                   >✦ PLUS {canGivePlus} POKÉMON{canGivePlus > 1 ? "S" : ""} NA COLEÇÃO</button>
+                )}
+                {canGiveRiolu > 0 && onExchangeRiolu && (
+                  <button
+                    onClick={() => { onExchangeRiolu(canGiveRiolu); onClose(); }}
+                    style={{
+                      padding: "10px 18px",
+                      background: "linear-gradient(180deg, #1a1a4a, #050515)",
+                      border: "1px solid #7ec4ff", borderRadius: 8, color: "#e0f0ff",
+                      fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                      boxShadow: "0 0 20px rgba(126,196,255,0.9), inset 0 0 12px rgba(160,80,255,0.4)",
+                    }}
+                  >🐺✦ RIOLU BLACK MITIC BRILHANT PLUS ×{canGiveRiolu}</button>
                 )}
                 {canGive > 0 && (
                   <button
