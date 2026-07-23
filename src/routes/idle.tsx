@@ -3857,6 +3857,27 @@ function IdlePage() {
                   else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
                   else captured = false;
                 }
+              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos") {
+                // 🐉⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
+                const minBalls = target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
+                const label = target.sp === "zapdos" ? "ZAPDOS" : "DRAGONITE ✦";
+                if (usedBall.id !== "ultraball") {
+                  captured = false;
+                  pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
+                } else {
+                  const prev = bossBallsRef.current.get(target.id) ?? 0;
+                  const nowCount = prev + 1;
+                  bossBallsRef.current.set(target.id, nowCount);
+                  if (nowCount < minBalls) {
+                    captured = false;
+                    if (nowCount % 100 === 0) {
+                      pushChat(`✦ ${label} — ${nowCount}/${minBalls} Ultra Balls arremessadas...`, "info");
+                    }
+                    pushFxAt(target.x, target.y - 70, `${nowCount}/${minBalls}`, "enemyDmg");
+                  } else {
+                    captured = Math.random() < 0.02;
+                  }
+                }
               } else if (target.mtcBoss) {
                 // ✦ MTC — só ultra ball; ~1.7% por lançamento (média ~60 tentativas)
                 if (usedBall.id !== "ultraball") {
