@@ -989,7 +989,7 @@ const LEVEL_UNLOCKS: { minLv: number; species: Species[] }[] = [
   { minLv: 18, species: ["jolteon", "lapras"] },
   { minLv: 20, species: ["pikachu"] },
   { minLv: 25, species: ["pinsir", "golem"] },
-  { minLv: 30, species: ["dragonite", "charizard"] },
+  { minLv: 30, species: ["charizard"] },
   { minLv: 36, species: ["blaziken"] },
 ];
 function speciesUnlockedFor(lv: number): Species[] {
@@ -5207,6 +5207,13 @@ function IdlePage() {
             }
           }
         }
+        // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas.
+        {
+          const BANNED = new Set<Species>(["darkrai", "dragonite", "dragonite_shiny"] as Species[]);
+          const filtered = pool.filter((p) => !BANNED.has(p));
+          if (filtered.length > 0) pool = filtered;
+          else pool = ["oddish"] as Species[];
+        }
         sp = pool[Math.floor(Math.random() * pool.length)];
         // 🔒 FILTRO DE VALIOSOS — se a espécie tem raridade base alta (mítico/lendário)
         // e não foi forçada por evento, aplica um gate probabilístico e re-sorteia
@@ -5231,7 +5238,7 @@ function IdlePage() {
 
       // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
       // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
-      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic", "darkrai"];
+      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic"];
       const currentRoamers = enemies.filter((e) => e.eventLegendary && e.level >= 400).length;
       // ✨ EVENTO ESPECIAL DIALGA — Lv 800, a cada 3 horas (persistente via localStorage)
       // Máx 1 no mapa. Foge fácil, crit brutal, captura só via ultraball (super difícil).
@@ -5261,17 +5268,8 @@ function IdlePage() {
         forcedRarity = "mythic_shiny";
       }
 
-      // 🐉 DRAGONITE SHINY GLOBAL — chance pequena em qualquer mapa regular.
-      const isEventMapForDragon = idle.currentMap === "evento_myth"
-        || idle.currentMap === "gelius1" || idle.currentMap === "gelius2"
-        || idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
-      if (!isDialgaEvent && !isMythicRoamer && !isEventMapForDragon && !forcedRarity && Math.random() < 0.006) {
-        sp = "dragonite_shiny" as Species;
-        forcedRarity = "mythic_shiny";
-        const lo = Math.max(80, mapLvRange ? mapLvRange[0] : 80);
-        const hi = Math.max(lo + 20, mapLvRange ? mapLvRange[1] : lo + 20);
-        mapLvRange = [lo, hi];
-      }
+      // 🐉 DRAGONITE SHINY GLOBAL — DESATIVADO (removido dos mapas por decisão do admin).
+
 
 
       const rareStrong = Math.random() < 0.05;
@@ -5389,7 +5387,7 @@ function IdlePage() {
         }
       } catch {}
       if (isMenace) {
-        const MENACE_POOL: Species[] = ["tyranitar","dragonite","gengar","machamp","gyarados","nidoking_shiny","darkrai","groudon","krookodile","infernape"];
+        const MENACE_POOL: Species[] = ["tyranitar","gengar","machamp","gyarados","nidoking_shiny","groudon","krookodile","infernape"];
         const filtered = MENACE_POOL.filter(hasGif);
         sp = (filtered.length ? filtered : MENACE_POOL)[Math.floor(Math.random() * (filtered.length || MENACE_POOL.length))];
         lv = 500 + Math.floor(Math.random() * 401); // 500..900
