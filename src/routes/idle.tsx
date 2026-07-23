@@ -5380,7 +5380,7 @@ function IdlePage() {
         }
       } catch {}
       if (isMenace) {
-        const MENACE_POOL: Species[] = ["tyranitar","dragonite","gengar","machamp","gyarados","nidoking_shiny","darkrai","groudon","krookodile","infernape"];
+        const MENACE_POOL: Species[] = ["tyranitar","gengar","machamp","gyarados","nidoking_shiny","groudon","krookodile","infernape"];
         const filtered = MENACE_POOL.filter(hasGif);
         sp = (filtered.length ? filtered : MENACE_POOL)[Math.floor(Math.random() * (filtered.length || MENACE_POOL.length))];
         lv = 500 + Math.floor(Math.random() * 401); // 500..900
