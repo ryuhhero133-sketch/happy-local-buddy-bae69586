@@ -1197,13 +1197,19 @@ export function BlackMiticEggHud(props: {
                       onClick={hatch}
                       style={{
                         width: "100%", padding: "10px 8px",
-                        background: "linear-gradient(180deg, #4fd66b, #2a8a3f)",
-                        border: "1px solid #a0ff8f", borderRadius: 8,
+                        background: selected.ruptured
+                          ? "linear-gradient(180deg, #ffd84d, #b8860b)"
+                          : "linear-gradient(180deg, #4fd66b, #2a8a3f)",
+                        border: `1px solid ${selected.ruptured ? "#fff2a0" : "#a0ff8f"}`,
+                        borderRadius: 8,
                         color: "#0a2010", fontWeight: 700, fontSize: 11,
                         cursor: "pointer", letterSpacing: 1,
-                        boxShadow: "0 0 12px rgba(80,220,110,0.8)",
+                        boxShadow: selected.ruptured
+                          ? "0 0 18px rgba(255,215,80,0.95)"
+                          : "0 0 12px rgba(80,220,110,0.8)",
                         animation: "blackEggPulse 1.4s ease-in-out infinite",
-                      }}>✦ CHOCAR AGORA</button>
+                      }}>{selected.ruptured ? "✦ TRANSCENDER E CHOCAR ✦" : "✦ CHOCAR AGORA"}</button>
+
                   ) : (
                     <div style={{ width: "100%", fontSize: 9, color: "#c8a0e8" }}>
                       <div style={{ marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
