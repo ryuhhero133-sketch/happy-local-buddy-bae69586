@@ -700,7 +700,6 @@ export function BlackMiticEggHud(props: {
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<"journal" | "feeds">("journal");
   const [bonusAmount, setBonusAmount] = useState<Partial<Record<ElementId, number>>>({});
-  const [bonusFxAt, setBonusFxAt] = useState<number>(0);
 
   // ---- Cloud sync (Supabase) --------------------------------------------
   // Nenhum jogador perde progresso: puxamos o snapshot do servidor ao abrir
