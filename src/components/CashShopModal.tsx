@@ -790,35 +790,39 @@ export function CashShopModal(props: Props) {
               }}
             />
             <div className="relative">
-              <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <img src={emeraldCoinImg} alt="Esmeralda" width={36} height={36} loading="lazy" className="w-9 h-9 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)] animate-pulse" style={{ imageRendering: "pixelated" }} />
+              <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <img src={emeraldCoinImg} alt="Esmeralda" width={48} height={48} loading="lazy" className="w-12 h-12 drop-shadow-[0_0_14px_rgba(52,211,153,0.95)] animate-pulse" style={{ imageRendering: "pixelated" }} />
                   <div>
-                    <div className="text-white font-black text-sm">Painel de Conversão</div>
+                    <div className="text-white font-black text-base sm:text-lg tracking-wide">Painel de Conversão</div>
                     <div className="text-emerald-200/70 text-xs">Troque Safiras Verdes por Esmeraldas e itens exclusivos</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-400/40 text-emerald-200 font-bold flex items-center gap-1.5">
-                    <img src={SAFIRA_URL} alt="" width={16} height={16} loading="lazy" style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 5px #6ee7a8cc)" }} />
-                    Safiras: {safiras.toLocaleString()}
+                <div className="flex items-center gap-2 text-xs sm:text-sm">
+                  <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-400/40 text-emerald-100 font-bold flex items-center gap-2">
+                    <img src={SAFIRA_URL} alt="Safira" width={22} height={22} loading="lazy" style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 6px #6ee7a8cc)" }} />
+                    {safiras.toLocaleString()}
                   </span>
-                  <span className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black shadow-[0_0_12px_rgba(52,211,153,.35)] flex items-center gap-1.5">
-                    <img src={emeraldCoinImg} alt="" width={18} height={18} loading="lazy" style={{ imageRendering: "pixelated" }} />
-                    Esmeraldas: {emerald.toLocaleString()}
+                  <span className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300/50 text-emerald-100 font-black shadow-[0_0_12px_rgba(52,211,153,.35)] flex items-center gap-2">
+                    <img src={emeraldCoinImg} alt="Esmeralda" width={22} height={22} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                    {emerald.toLocaleString()}
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Safira -> Esmeralda */}
-                <div className="rounded-xl border border-emerald-400/30 bg-black/50 p-3 hover:border-emerald-300/60 transition">
-                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
-                    <span className="text-lg">💚</span>
-                    <span className="text-emerald-200/80">×{SAFIRA_PER_EMERALD}</span>
-                    <span className="text-emerald-300">→</span>
-                    <span className="text-lg">💠</span>
-                    <span className="text-emerald-100">×1</span>
+                <div className="rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-950/70 to-black/60 p-4 hover:border-emerald-300/70 hover:shadow-[0_0_24px_rgba(52,211,153,.35)] transition group">
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <div className="flex flex-col items-center">
+                      <img src={SAFIRA_URL} alt="Safira" width={56} height={56} loading="lazy" className="w-14 h-14 drop-shadow-[0_0_12px_rgba(110,231,168,0.9)] group-hover:scale-110 transition" style={{ imageRendering: "pixelated" }} />
+                      <span className="text-emerald-200 font-black text-xs mt-1">×{SAFIRA_PER_EMERALD}</span>
+                    </div>
+                    <span className="text-emerald-300 text-2xl font-black">→</span>
+                    <div className="flex flex-col items-center">
+                      <img src={emeraldCoinImg} alt="Esmeralda" width={56} height={56} loading="lazy" className="w-14 h-14 drop-shadow-[0_0_12px_rgba(52,211,153,1)] animate-pulse" style={{ imageRendering: "pixelated" }} />
+                      <span className="text-emerald-100 font-black text-xs mt-1">×1</span>
+                    </div>
                   </div>
                   <div className="text-[11px] text-white/60 text-center mb-3">
                     Converta <b className="text-emerald-200">{SAFIRA_PER_EMERALD} Safiras Verdes</b> em <b className="text-emerald-100">1 Esmeralda</b>
@@ -826,20 +830,24 @@ export function CashShopModal(props: Props) {
                   <button
                     onClick={doSafiraToEmerald}
                     disabled={safiras < SAFIRA_PER_EMERALD}
-                    className="w-full py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(52,211,153,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full py-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(52,211,153,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     CONVERTER
                   </button>
                 </div>
 
                 {/* Esmeralda -> Ultra Balls */}
-                <div className="rounded-xl border border-amber-400/30 bg-black/50 p-3 hover:border-amber-300/60 transition">
-                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
-                    <span className="text-lg">💠</span>
-                    <span className="text-emerald-100">×{EMERALD_PER_ULTRAPACK}</span>
-                    <span className="text-amber-300">→</span>
-                    <span className="text-lg">🟣</span>
-                    <span className="text-amber-100">{ULTRAPACK_SIZE} Ultra Balls</span>
+                <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-950/50 to-black/60 p-4 hover:border-amber-300/70 hover:shadow-[0_0_24px_rgba(250,204,21,.3)] transition group">
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <div className="flex flex-col items-center">
+                      <img src={emeraldCoinImg} alt="Esmeralda" width={56} height={56} loading="lazy" className="w-14 h-14 drop-shadow-[0_0_12px_rgba(52,211,153,1)]" style={{ imageRendering: "pixelated" }} />
+                      <span className="text-emerald-100 font-black text-xs mt-1">×{EMERALD_PER_ULTRAPACK}</span>
+                    </div>
+                    <span className="text-amber-300 text-2xl font-black">→</span>
+                    <div className="flex flex-col items-center">
+                      <img src={ultraBallIconImg} alt="Ultra Ball" width={56} height={56} loading="lazy" className="w-14 h-14 drop-shadow-[0_0_12px_rgba(250,204,21,.8)] group-hover:scale-110 transition" style={{ imageRendering: "pixelated" }} />
+                      <span className="text-amber-100 font-black text-xs mt-1">×{ULTRAPACK_SIZE}</span>
+                    </div>
                   </div>
                   <div className="text-[11px] text-white/60 text-center mb-3">
                     Troque <b className="text-emerald-100">{EMERALD_PER_ULTRAPACK} Esmeraldas</b> por <b className="text-amber-200">{ULTRAPACK_SIZE} Ultra Balls</b>
@@ -847,20 +855,24 @@ export function CashShopModal(props: Props) {
                   <button
                     onClick={doEmeraldToUltra}
                     disabled={emerald < EMERALD_PER_ULTRAPACK}
-                    className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(250,204,21,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full py-2.5 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(250,204,21,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     TROCAR
                   </button>
                 </div>
 
                 {/* Esmeralda -> Cristais (câmbio único, não reverso) */}
-                <div className="rounded-xl border border-cyan-400/30 bg-black/50 p-3 hover:border-cyan-300/60 transition">
-                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm mb-2">
-                    <span className="text-lg">💠</span>
-                    <span className="text-emerald-100">×{EMERALD_PER_CRYSTAL_PACK}</span>
-                    <span className="text-cyan-300">→</span>
-                    <span className="text-lg">💎</span>
-                    <span className="text-cyan-100">{CRYSTAL_PACK_SIZE.toLocaleString()}</span>
+                <div className="rounded-2xl border border-cyan-400/40 bg-gradient-to-br from-cyan-950/50 to-black/60 p-4 hover:border-cyan-300/70 hover:shadow-[0_0_24px_rgba(56,189,248,.35)] transition group">
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <div className="flex flex-col items-center">
+                      <img src={emeraldCoinImg} alt="Esmeralda" width={56} height={56} loading="lazy" className="w-14 h-14 drop-shadow-[0_0_12px_rgba(52,211,153,1)]" style={{ imageRendering: "pixelated" }} />
+                      <span className="text-emerald-100 font-black text-xs mt-1">×{EMERALD_PER_CRYSTAL_PACK}</span>
+                    </div>
+                    <span className="text-cyan-300 text-2xl font-black">→</span>
+                    <div className="flex flex-col items-center">
+                      <img src={CRYSTAL_URL} alt="Cristal" width={56} height={56} loading="lazy" className="w-14 h-14 drop-shadow-[0_0_12px_rgba(56,189,248,.9)] group-hover:scale-110 transition" style={{ imageRendering: "pixelated" }} />
+                      <span className="text-cyan-100 font-black text-xs mt-1">×{CRYSTAL_PACK_SIZE.toLocaleString()}</span>
+                    </div>
                   </div>
                   <div className="text-[11px] text-white/60 text-center mb-3">
                     Câmbio <b className="text-cyan-200">único</b>: {EMERALD_PER_CRYSTAL_PACK} Esmeraldas → <b className="text-cyan-100">{CRYSTAL_PACK_SIZE.toLocaleString()} Cristais</b>. Cristais <b className="text-white/80">não</b> voltam a Esmeraldas.
@@ -868,24 +880,13 @@ export function CashShopModal(props: Props) {
                   <button
                     onClick={doEmeraldToCrystal}
                     disabled={emerald < EMERALD_PER_CRYSTAL_PACK}
-                    className="w-full py-2 rounded-lg bg-gradient-to-r from-cyan-400 to-sky-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(56,189,248,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-400 to-sky-600 text-black font-black text-sm hover:shadow-[0_0_20px_rgba(56,189,248,.6)] transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     CAMBIAR
                   </button>
                 </div>
               </div>
 
-              {convMsg && (
-                <div className={`mt-3 text-xs text-center font-bold ${convMsg.kind === "err" ? "text-red-400" : "text-emerald-300"}`}>
-                  {convMsg.text}
-                </div>
-              )}
-
-              <div className="mt-3 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[11px] text-white/60 text-center">
-                💎 <b className="text-white/80">Compra direta com Safiras</b> · <span className="text-amber-300 font-bold">Em breve</span> — por enquanto, apenas conversões estão disponíveis.
-              </div>
-            </div>
-          </div>
 
           {/* ============ OFERTAS EM ESMERALDAS ============ */}
           <div className="rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-950/60 via-black/60 to-emerald-900/40 backdrop-blur-xl p-4 sm:p-5 relative overflow-hidden">
