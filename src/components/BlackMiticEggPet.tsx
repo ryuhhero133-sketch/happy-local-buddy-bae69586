@@ -649,10 +649,13 @@ export function BlackMiticEggHud(props: {
           setState(merged);
           saveState(uid, merged);
         }
-      } catch (e) {
-        console.warn("[BlackEgg] pull cloud falhou:", e);
-      } finally {
+        // Só libera push depois de um pull bem-sucedido: se a leitura falhar,
+        // NÃO empurramos o local por cima da nuvem (isso zerava o progresso).
         cloudReadyRef.current = true;
+      } catch (e) {
+        console.warn("[BlackEgg] pull cloud falhou (push bloqueado até próxima abertura):", e);
+      } finally {
+        // noop — cloudReadyRef só vira true no caminho de sucesso acima.
       }
     })();
     return () => { cancelled = true; };
