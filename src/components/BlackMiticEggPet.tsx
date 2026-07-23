@@ -635,7 +635,12 @@ export function BlackMiticEggHud(props: {
       try {
         const res = (await fetchCloud({} as any)) as { data: any; updated_at: string | null };
         if (cancelled) return;
-        const remote = res?.data;
+        // Aceita formato novo { eggs, selectedId } e legado { data: { eggs, selectedId } }
+        // (push antigo envolvia o estado duas vezes; sem isso a nuvem "somia" no reload).
+        let remote: any = res?.data;
+        if (remote && !Array.isArray(remote.eggs) && remote.data && Array.isArray(remote.data.eggs)) {
+          remote = remote.data;
+        }
         if (remote && Array.isArray(remote.eggs)) {
           const merged: CollectionState = {
             eggs: remote.eggs as EggInstance[],
