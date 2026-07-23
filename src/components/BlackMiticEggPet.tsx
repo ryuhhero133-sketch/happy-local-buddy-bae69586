@@ -1038,8 +1038,6 @@ export function BlackMiticEggHud(props: {
   const feed = (el: typeof ELEMENTS[number]) => {
     if (!selected) return;
     if (!selected.activated) { onNotify?.("Ative a incubação antes de alimentar."); return; }
-    const cdRemain = Math.max(0, (selected.lastFedAt + FEED_COOLDOWN_MS) - Date.now());
-    if (cdRemain > 0) { onNotify?.(`Aguarde ${fmt(cdRemain)} para alimentar novamente.`); return; }
     const have = stones[el.stone] ?? 0;
     if (have < FEED_COST) { onNotify?.(`Você precisa de ${FEED_COST}× ${el.label} Stone.`); return; }
     if (!onConsumeStone(el.stone, FEED_COST)) { onNotify?.("Falha ao consumir a Stone."); return; }
