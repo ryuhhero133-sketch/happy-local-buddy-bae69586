@@ -5147,6 +5147,25 @@ function IdlePage() {
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           }
         }
+        // ⚡ ZAPDOS EVENT — a cada 5 min, spawn forçado nos mapas Oddish + Caverna Sombria/Rochosa
+        {
+          const zapdosMaps: MapId[] = ["oddish_o1", "oddish_o2", "oddish_o3", "caverna"];
+          const isZapMap = zapdosMaps.includes(idle.currentMap as MapId);
+          if (isZapMap) {
+            const ZAP_INTERVAL_MS = 5 * 60 * 1000;
+            const zapdosOnMap = enemies.some((e) => e.sp === "zapdos");
+            let lastZap = 0;
+            try { lastZap = Number(localStorage.getItem("zapdos_last_spawn_ms") || 0); } catch {}
+            if (!zapdosOnMap && Date.now() - lastZap >= ZAP_INTERVAL_MS) {
+              pool = ["zapdos"] as Species[];
+              forcedRarity = "mythic_shiny";
+              mapLvRange = [420, 420];
+              try { localStorage.setItem("zapdos_last_spawn_ms", String(Date.now())); } catch {}
+              setZapdosAnnounce({ ts: Date.now() });
+              pushChat("⚡ ZAPDOS APARECEU! Bosque da Odisséia sacudido pela tempestade!", "cap");
+            }
+          }
+        }
         sp = pool[Math.floor(Math.random() * pool.length)];
         // 🔒 FILTRO DE VALIOSOS — se a espécie tem raridade base alta (mítico/lendário)
         // e não foi forçada por evento, aplica um gate probabilístico e re-sorteia
