@@ -886,13 +886,22 @@ export function BlackMiticEggHud(props: {
     const arch = computeArchetype(selected.affinity);
     const care = computeCareScore(selected);
     const traits = rollBlackMiticTraits(selected, arch);
-    const species = arch === "versatile"
-      ? VERSATILE_POOL[Math.floor(Math.random() * VERSATILE_POOL.length)]
-      : el.species;
+    // Anti-duplicata: para players com múltiplos eggs, evitamos repetir a mesma
+    // espécie da pool versátil enquanto houver alternativas.
+    const recent = new Set(state.hatchedHistory ?? []);
+    let species: string;
+    if (arch === "versatile") {
+      const unused = VERSATILE_POOL.filter(s => !recent.has(s));
+      const pool = unused.length > 0 ? unused : VERSATILE_POOL;
+      species = pool[Math.floor(Math.random() * pool.length)];
+    } else {
+      species = el.species;
+    }
     onHatched(species, el.id, traits);
     persist((s) => {
       const eggs = s.eggs.filter(e => e.id !== selected.id);
-      return { eggs, selectedId: eggs[0]?.id ?? null };
+      const hist = [...(s.hatchedHistory ?? []), species].slice(-10);
+      return { eggs, selectedId: eggs[0]?.id ?? null, hatchedHistory: hist };
     });
     onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100!`);
   };
