@@ -821,12 +821,12 @@ export function BlackMiticEggHud(props: {
   // Pool aleatório usado quando o ovo atinge "Versátil" (5+ elementos alimentados).
   // Nesse caso o Pokémon nasce sorteado dentre lendários/míticos fortes.
   const VERSATILE_POOL: string[] = [
-    "mewtwo", "mew", "rayquaza", "kyogre", "groudon", "lugia",
-    "ho_oh", "moltres", "zapdos", "articuno", "raikou", "entei", "suicune",
-    "dialga", "palkia", "giratina", "darkrai", "arceus",
-    "snorlax", "tyranitar", "metagross", "salamence", "garchomp",
-    "gardevoir", "lucario", "milotic", "gyarados_shiny",
-    "scizor", "alakazam", "machamp", "gengar_shiny", "dragonite_shiny",
+    "mewtwo", "mew", "groudon", "lugia", "ho_oh",
+    "moltres", "zapdos", "articuno", "raikou", "suicune",
+    "dialga", "darkrai",
+    "snorlax", "snorlax_mythic", "tyranitar",
+    "lucario", "scizor", "machamp",
+    "dragonite_shiny", "charizard_shiny", "blastoise_shiny",
     "venusaur", "charizard", "blastoise",
   ];
 
