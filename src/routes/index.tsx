@@ -602,6 +602,8 @@ const SPECIES_GIF: Record<Species, string> = {
   meganium: meganiumGif, meganium_shiny: meganiumShinyGif,
   moltres_shiny: moltresShinyGif, onix_shiny: onixShinyGif,
   lickitung: oddishGif, lickitung_shiny: oddishGif, mewtwo_event: oddishGif, oddish_shiny: oddishGif,
+  riolu: mewGif,
+
 };
 
 
