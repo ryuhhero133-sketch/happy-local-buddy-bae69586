@@ -13065,37 +13065,51 @@ function TabOverlay({
                 const rColor = rarityColor[entry.rarity] ?? "#8b6a30";
                 const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
                 const locked = lockedSet.has(entry.uid);
-                const traits = entry.traits ?? [];
-                const fragDisabled = inTeam || locked;
-                const isSelected = bulkSel.has(entry.uid);
-                const canBulkPick = !inTeam && !locked;
-                return (
-                  <div
-                    key={entry.uid}
-                    onClick={() => {
-                      if (!bulkMode) return;
-                      if (!canBulkPick) return;
-                      toggleBulk(entry.uid);
-                    }}
-                    style={{
-                      background: locked
-                        ? "linear-gradient(180deg, #fff4c8, #f7dc9a)"
-                        : isSelected
-                          ? "linear-gradient(180deg, #ede9fe, #c4b5fd)"
-                          : "linear-gradient(180deg, #fff8e5, #f5e6c8)",
-                      border: `2px solid ${isSelected ? "#7c3aed" : locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a")}`,
-                      borderRadius: 10, padding: 10, textAlign: "center",
-                      position: "relative",
-                      boxShadow: `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(124,58,237,0.7)" : ""}`,
-                      display: "grid",
-                      gridTemplateRows: "auto auto auto 28px 36px",
-                      gap: 4,
-                      alignItems: "center",
-                      justifyItems: "center",
-                      minHeight: 220,
-                      cursor: bulkMode ? (canBulkPick ? "pointer" : "not-allowed") : "default",
-                    }}
-                  >
+                 const traits = entry.traits ?? [];
+                 const fragDisabled = inTeam || locked;
+                 const isSelected = bulkSel.has(entry.uid);
+                 const canBulkPick = !inTeam && !locked;
+                 const isBMP = !!entry.event && entry.event.startsWith("black_mitic");
+                 const isBrilhant = !!entry.event && entry.event.includes("brilhant");
+                 const bmpAccent = isBrilhant ? "#ff97e1" : "#a066ff";
+                 return (
+                   <div
+                     key={entry.uid}
+                     onClick={() => {
+                       if (!bulkMode) return;
+                       if (!canBulkPick) return;
+                       toggleBulk(entry.uid);
+                     }}
+                     style={{
+                       background: isBMP
+                         ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
+                         : locked
+                         ? "linear-gradient(180deg, #fff4c8, #f7dc9a)"
+                         : isSelected
+                           ? "linear-gradient(180deg, #ede9fe, #c4b5fd)"
+                           : "linear-gradient(180deg, #fff8e5, #f5e6c8)",
+                       border: `2.5px solid ${isBMP ? bmpAccent : (isSelected ? "#7c3aed" : locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a"))}`,
+                       borderRadius: 12, padding: 10, textAlign: "center",
+                       position: "relative",
+                       overflow: "hidden",
+                       boxShadow: isBMP
+                         ? `0 4px 14px rgba(0,0,0,0.6), 0 0 22px ${bmpAccent}88, inset 0 0 26px ${bmpAccent}33`
+                         : `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(124,58,237,0.7)" : ""}`,
+                       display: "grid",
+                       gridTemplateRows: "auto auto auto auto 36px",
+                       gap: 4,
+                       alignItems: "center",
+                       justifyItems: "center",
+                       minHeight: 220,
+                       cursor: bulkMode ? (canBulkPick ? "pointer" : "not-allowed") : "default",
+                     }}
+                   >
+                     {isBMP && (
+                       <div style={{
+                         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+                         background: `radial-gradient(circle at 50% 20%, ${bmpAccent}55, transparent 60%), radial-gradient(circle at 80% 90%, ${bmpAccent}33, transparent 55%)`,
+                       }} />
+                     )}
                     <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1, zIndex: 2 }}>
                       #{String(i + 1).padStart(3, "0")}
                     </div>
@@ -13130,37 +13144,50 @@ function TabOverlay({
                     >{locked ? "🔒" : "🔓"}</button>
 
                     {/* Sprite + nome */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); if (bulkMode) { if (canBulkPick) toggleBulk(entry.uid); return; } onOpenColecaoDetail(entry.uid); }}
-                      style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%" }}
-                      title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
-                    >
-                      {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block" }} />}
-                      <div style={{ fontSize: 11, marginTop: 2, color: "#4a3010", fontWeight: 800, textAlign: "center" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
-                    </button>
+                     <button
+                       onClick={(e) => { e.stopPropagation(); if (bulkMode) { if (canBulkPick) toggleBulk(entry.uid); return; } onOpenColecaoDetail(entry.uid); }}
+                       style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%", position: "relative", zIndex: 1 }}
+                       title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
+                     >
+                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
+                       <div style={{ fontSize: 11, marginTop: 2, color: isBMP ? "#f7ecff" : "#4a3010", fontWeight: 800, textAlign: "center", textShadow: isBMP ? "0 1px 3px #000" : undefined }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
+                     </button>
 
-                    {/* Raridade */}
-                    <div style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: rColor, color: "#fff", justifySelf: "center", fontWeight: 800, letterSpacing: 1 }}>
-                      {entry.rarity.toUpperCase()}
-                    </div>
+                     {/* Raridade / Badge BMP */}
+                     <div style={{
+                       fontSize: 9, padding: "2px 8px", borderRadius: 10,
+                       background: isBMP ? `linear-gradient(180deg, ${bmpAccent}, #4a1080)` : rColor,
+                       color: "#fff", justifySelf: "center", fontWeight: 900, letterSpacing: 1,
+                       boxShadow: isBMP ? `0 0 8px ${bmpAccent}bb` : undefined,
+                       border: isBMP ? "1px solid rgba(255,255,255,0.25)" : undefined,
+                       position: "relative", zIndex: 1,
+                     }}>
+                       {isBMP ? (isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS") : entry.rarity.toUpperCase()}
+                     </div>
 
-                    {/* Nível */}
-                    <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 900 }}>
-                      Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
-                    </div>
+                     {/* Nível */}
+                     <div style={{ fontSize: 11, color: isBMP ? "#f5cf6b" : "#6b4a10", fontWeight: 900, position: "relative", zIndex: 1, textShadow: isBMP ? "0 1px 2px #000" : undefined }}>
+                       Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
+                     </div>
 
-                    {/* Traits (slot fixo — sempre reservado) */}
-                    <div
-                      style={{
-                        display: "flex", gap: 3, justifyContent: "center", alignItems: "center",
-                        flexWrap: "nowrap", height: 28, minHeight: 28,
-                      }}
-                      title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
-                    >
-                      {traits.length > 0
-                        ? traits.slice(0, 4).map((id) => <TraitIcon key={id} id={id} size={22} />)
-                        : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
-                    </div>
+                     {/* Traits — mostra TODOS (até 6) para Black Mitic */}
+                     <div
+                       style={{
+                         display: "flex", gap: 3, justifyContent: "center", alignItems: "center",
+                         flexWrap: "wrap", minHeight: 28, position: "relative", zIndex: 1,
+                         padding: isBMP ? "4px 6px" : 0,
+                         background: isBMP ? "rgba(0,0,0,0.35)" : "transparent",
+                         border: isBMP ? `1px solid ${bmpAccent}66` : "none",
+                         borderRadius: isBMP ? 8 : 0,
+                         width: isBMP ? "100%" : "auto",
+                       }}
+                       title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
+                     >
+                       {traits.length > 0
+                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
+                         : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
+                     </div>
+
 
                     {/* Botão fragmentar (ícone cristal) */}
                     <button
