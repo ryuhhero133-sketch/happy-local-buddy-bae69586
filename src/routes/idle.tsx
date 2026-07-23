@@ -3889,10 +3889,11 @@ function IdlePage() {
                   else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
                   else captured = false;
                 }
-              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos") {
-                // 🐉⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
-                const minBalls = target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
-                const label = target.sp === "zapdos" ? "ZAPDOS" : "DRAGONITE ✦";
+              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
+                // 🐉⚡⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
+                const isRaichuMy = target.sp === "raichu";
+                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
+                const label = isRaichuMy ? "RAICHU ✦" : target.sp === "zapdos" ? "ZAPDOS" : "DRAGONITE ✦";
                 if (usedBall.id !== "ultraball") {
                   captured = false;
                   pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
