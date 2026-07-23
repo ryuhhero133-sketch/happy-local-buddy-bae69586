@@ -11279,10 +11279,7 @@ function IdlePage() {
           const nextItems = { ...(base.items ?? {}) };
           if (curCount <= 1) delete nextItems[BLACK_EGG_ITEM_ID];
           else nextItems[BLACK_EGG_ITEM_ID] = curCount - 1;
-          // Cicla a Carta Suprema Plus: ao chocar um ovo Plus, devolve 1 carta.
-          if (plus) {
-            nextItems.carta_plus = (nextItems.carta_plus ?? 0) + 1;
-          }
+          // Ovo Plus: uso único — não devolve a carta ao chocar.
           const entry: CollectionEntry = {
             uid,
             species: hatchSpecies,
