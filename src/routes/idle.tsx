@@ -5189,6 +5189,20 @@ function IdlePage() {
               try { localStorage.setItem("zapdos_last_spawn_ms", String(Date.now())); } catch {}
               setZapdosAnnounce({ ts: Date.now() });
               pushChat("⚡ ZAPDOS APARECEU! Bosque da Odisséia sacudido pela tempestade!", "cap");
+          }
+        }
+        // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey
+        {
+          const oddyMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3"];
+          const isOddy = oddyMaps.includes(idle.currentMap as string);
+          if (isOddy) {
+            const raichuOnMap = enemies.some((e) => e.sp === "raichu");
+            // ~0.4% de chance por tentativa de spawn, no máximo 1 por mapa
+            if (!raichuOnMap && Math.random() < 0.004) {
+              pool = ["raichu"] as Species[];
+              forcedRarity = "mythic_shiny";
+              mapLvRange = [500, 500];
+              pushChat("⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (1600 Ultra Balls para capturar)", "cap");
             }
           }
         }
