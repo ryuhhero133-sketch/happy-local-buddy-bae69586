@@ -364,17 +364,19 @@ const TRAITS_ARCHETYPE: Record<Archetype, string[]> = {
 
 const ALL_TRAITS_POOL = [...TRAITS_EPIC, ...TRAITS_RARE, ...TRAITS_STRONG];
 
-export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype): string[] {
+export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype, slots: number = 5): string[] {
   const care = computeCareScore(egg); // 0..100
   // Prob de escolher épico por slot cresce com care (25% → 85%)
-  const epicChance = 0.25 + (care / 100) * 0.6;
+  // Ovos "rompidos" (ruptured) ganham +15% de chance de épico
+  const rupturedBonus = egg.ruptured ? 0.15 : 0;
+  const epicChance = Math.min(0.95, 0.25 + (care / 100) * 0.6 + rupturedBonus);
   const rareChance = 0.85; // se falhar épico, chance de raro
   const picked: string[] = [];
   const themed = TRAITS_ARCHETYPE[archetype];
   // Slot 1: garante um trait temático do arquétipo (o "sabor")
   const themeSeed = themed[Math.floor(Math.random() * themed.length)];
   picked.push(themeSeed);
-  while (picked.length < 5) {
+  while (picked.length < slots) {
     let pool: string[];
     const r = Math.random();
     if (r < epicChance) pool = TRAITS_EPIC;
@@ -383,8 +385,7 @@ export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype): st
     // Bias adicional: chance extra de puxar do pool temático quando care é alto
     if (Math.random() < 0.35 + care / 300) pool = [...pool, ...themed];
     let candidates = pool.filter(t => !picked.includes(t));
-    // Fallback: se o pool escolhido esgotou, usa o pool global — Black Mitic
-    // Plus SEMPRE tem que nascer com 5 traits.
+    // Fallback: usa o pool global se o específico esgotou.
     if (candidates.length === 0) candidates = ALL_TRAITS_POOL.filter(t => !picked.includes(t));
     if (candidates.length === 0) break;
     picked.push(candidates[Math.floor(Math.random() * candidates.length)]);
