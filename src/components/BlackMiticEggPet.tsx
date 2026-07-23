@@ -18,6 +18,12 @@ export const BLACK_MITIC_EGG_DESCRIPTION =
 const FEED_COOLDOWN_MS = 60 * 60 * 1000;         // 1h entre feeds
 const HATCH_MS = 20 * 60 * 60 * 1000;            // 20h incubação
 const FEED_COST = 50;
+// --- Sistema BONUS (rompimento dos elementais) ---
+const BONUS_UNLOCK_PCT = 0.70;                    // libera aos 70% de incubação
+const BONUS_COOLDOWN_MS = 10 * 60 * 1000;         // 10min entre bônus
+const BONUS_REJECT_CHANCE = 0.40;                 // 40% de recusa grosseira
+const BONUS_MIN = 1;
+const BONUS_MAX = 999;
 
 export const ELEMENTS = [
   { id: "grass",    stone: "stone_grass",    label: "Planta",   color: "#3fd06b", emoji: "🌿", species: "venusaur",  role: "defense" as const },
