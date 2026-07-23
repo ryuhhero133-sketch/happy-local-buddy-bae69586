@@ -5261,17 +5261,8 @@ function IdlePage() {
         forcedRarity = "mythic_shiny";
       }
 
-      // 🐉 DRAGONITE SHINY GLOBAL — chance pequena em qualquer mapa regular.
-      const isEventMapForDragon = idle.currentMap === "evento_myth"
-        || idle.currentMap === "gelius1" || idle.currentMap === "gelius2"
-        || idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
-      if (!isDialgaEvent && !isMythicRoamer && !isEventMapForDragon && !forcedRarity && Math.random() < 0.006) {
-        sp = "dragonite_shiny" as Species;
-        forcedRarity = "mythic_shiny";
-        const lo = Math.max(80, mapLvRange ? mapLvRange[0] : 80);
-        const hi = Math.max(lo + 20, mapLvRange ? mapLvRange[1] : lo + 20);
-        mapLvRange = [lo, hi];
-      }
+      // 🐉 DRAGONITE SHINY GLOBAL — DESATIVADO (removido dos mapas por decisão do admin).
+
 
 
       const rareStrong = Math.random() < 0.05;
