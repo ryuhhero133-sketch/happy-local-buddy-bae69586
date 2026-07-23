@@ -1345,7 +1345,7 @@ export function BlackMiticEggHud(props: {
                                     }}
                                   />
                                   <button
-                                    onClick={() => { setBonusFxAt(Date.now()); bonusFeed(el, amt); }}
+                                    onClick={() => { bonusFeed(el, amt); }}
                                     disabled={!canPush}
                                     style={{
                                       flex: 1, fontSize: 8, padding: "3px 4px", letterSpacing: 1,
