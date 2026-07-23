@@ -1236,7 +1236,151 @@ export function BlackMiticEggHud(props: {
                       {ELEMENTS.find(e => e.id === dominant)?.label}
                     </b>
                   </div>
+
+                  {/* ===================== BÔNUS: ROMPIMENTO DOS ELEMENTAIS ===================== */}
+                  {(() => {
+                    const unlocked = hatchPct >= BONUS_UNLOCK_PCT;
+                    const cd = Math.max(0, (selected.lastBonusFeedAt + BONUS_COOLDOWN_MS) - now);
+                    const ready = unlocked && cd <= 0;
+                    const distinctBonus = ELEMENTS.filter(x => (selected.bonusFed[x.id] ?? 0) > 0).length;
+                    const rupPct = Math.round((distinctBonus / ELEMENTS.length) * 100);
+                    const lbr = selected.lastBonusResult;
+                    const fxRecent = lbr && (now - lbr.ts) < 5000;
+                    return (
+                      <div style={{
+                        width: "100%",
+                        background: selected.ruptured
+                          ? "linear-gradient(135deg, rgba(255,215,80,0.15), rgba(30,10,60,0.65))"
+                          : unlocked
+                            ? "linear-gradient(135deg, rgba(255,90,180,0.15), rgba(30,10,60,0.65))"
+                            : "rgba(20,8,40,0.5)",
+                        border: `1px solid ${selected.ruptured ? "#ffd84d" : unlocked ? "#ff5aa8" : "#4a2a6a"}`,
+                        borderRadius: 10, padding: 10,
+                        boxShadow: selected.ruptured
+                          ? "0 0 16px rgba(255,215,80,0.45)"
+                          : unlocked ? "0 0 12px rgba(255,90,180,0.35)" : "none",
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <div style={{ fontSize: 10, letterSpacing: 1, color: selected.ruptured ? "#ffd84d" : "#ff9ad6" }}>
+                            ✦ ROMPIMENTO ELEMENTAL {selected.ruptured ? "· ROMPIDO!" : ""}
+                          </div>
+                          <div style={{ fontSize: 8, color: unlocked ? (ready ? "#a0ffb0" : "#ffb857") : "#a888c8" }}>
+                            {!unlocked ? `🔒 Libera aos ${Math.round(BONUS_UNLOCK_PCT * 100)}%`
+                              : selected.ruptured ? "6 traits garantidos"
+                              : ready ? "Pronto" : `⏱ ${fmt(cd)}`}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 8, color: "#c8a0e8", lineHeight: 1.5, marginBottom: 8 }}>
+                          {selected.ruptured
+                            ? "O ovo rompeu os elementais. Nascerá com 6 traits!"
+                            : "A cada 10 min você força qualquer quantidade de stones. Alimente TODOS os 6 elementos aqui para ROMPER — 40% de chance do ovo recusar."}
+                        </div>
+
+                        {/* Progresso rompimento */}
+                        <div style={{ marginBottom: 8 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: "#e0b8ff" }}>
+                            <span>Elementos rompidos</span>
+                            <span>{distinctBonus}/{ELEMENTS.length}</span>
+                          </div>
+                          <div style={{ height: 8, background: "rgba(0,0,0,0.55)", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(255,90,180,0.35)", marginTop: 3 }}>
+                            <div style={{
+                              height: "100%", width: `${rupPct}%`,
+                              background: selected.ruptured
+                                ? "linear-gradient(90deg, #ffd84d, #ff9ad6, #ffd84d)"
+                                : "linear-gradient(90deg, #ff5aa8, #ffd84d)",
+                              boxShadow: `0 0 8px ${selected.ruptured ? "#ffd84d" : "#ff5aa8"}`,
+                              transition: "width 0.4s",
+                            }} />
+                          </div>
+                        </div>
+
+                        {/* Feedback última tentativa */}
+                        {lbr && fxRecent && (
+                          <div style={{
+                            padding: "6px 8px", borderRadius: 6, marginBottom: 8,
+                            background: lbr.kind === "accept" ? "rgba(80,220,110,0.18)" : "rgba(255,90,90,0.22)",
+                            border: `1px solid ${lbr.kind === "accept" ? "#4fd66b" : "#ff6b6b"}`,
+                            color: lbr.kind === "accept" ? "#c8ffd0" : "#ffc8c8",
+                            fontSize: 8, lineHeight: 1.5,
+                            animation: "blackEggShine 0.9s ease-out",
+                          }}>
+                            <b>{lbr.kind === "accept" ? "✓ ACEITO" : "✗ REJEITADO"}</b> — {lbr.line}
+                          </div>
+                        )}
+
+                        {/* Inputs por elemento */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                          {ELEMENTS.map(el => {
+                            const have = stones[el.stone] ?? 0;
+                            const amt = bonusAmount[el.id] ?? 10;
+                            const already = selected.bonusFed[el.id] ?? 0;
+                            const canPush = ready && have >= amt && amt >= BONUS_MIN;
+                            return (
+                              <div key={el.id} style={{
+                                display: "flex", flexDirection: "column", gap: 3,
+                                padding: 6, borderRadius: 6,
+                                background: already > 0 ? `${el.color}15` : "rgba(0,0,0,0.25)",
+                                border: `1px solid ${already > 0 ? el.color + "88" : "rgba(160,80,255,0.25)"}`,
+                              }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 8, color: el.color, letterSpacing: 1 }}>
+                                  <span>{el.emoji}</span>
+                                  <span style={{ flex: 1 }}>{el.label.toUpperCase()}</span>
+                                  <span style={{ color: "#c8a0e8", fontSize: 7 }}>x{have}</span>
+                                  {already > 0 && <span style={{ color: "#a0ffb0", fontSize: 7 }}>✓{already}</span>}
+                                </div>
+                                <div style={{ display: "flex", gap: 3 }}>
+                                  <input
+                                    type="number"
+                                    min={BONUS_MIN}
+                                    max={BONUS_MAX}
+                                    value={amt}
+                                    onChange={(ev) => {
+                                      const v = Math.max(BONUS_MIN, Math.min(BONUS_MAX, Math.floor(Number(ev.target.value) || 0)));
+                                      setBonusAmount(s => ({ ...s, [el.id]: v }));
+                                    }}
+                                    style={{
+                                      width: 56, padding: "3px 5px", fontSize: 9,
+                                      background: "#0f0620", color: "#fff",
+                                      border: `1px solid ${el.color}66`, borderRadius: 4,
+                                      fontFamily: "inherit",
+                                    }}
+                                  />
+                                  <button
+                                    onClick={() => { setBonusFxAt(Date.now()); bonusFeed(el, amt); }}
+                                    disabled={!canPush}
+                                    style={{
+                                      flex: 1, fontSize: 8, padding: "3px 4px", letterSpacing: 1,
+                                      background: canPush
+                                        ? `linear-gradient(180deg, ${el.color}88, ${el.color}33)`
+                                        : "rgba(40,20,60,0.5)",
+                                      color: canPush ? "#fff" : "#7a5a9a",
+                                      border: `1px solid ${canPush ? el.color : "#4a2a6a"}`,
+                                      borderRadius: 4,
+                                      cursor: canPush ? "pointer" : "not-allowed",
+                                      fontWeight: 700,
+                                      boxShadow: canPush ? `0 0 6px ${el.color}66` : "none",
+                                    }}
+                                  >
+                                    {!unlocked ? "🔒" : !ready ? "⏱" : "ROMPER"}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {(selected.bonusAttempts > 0) && (
+                          <div style={{ marginTop: 8, fontSize: 8, color: "#a888c8", textAlign: "center" }}>
+                            Tentativas: <b>{selected.bonusAttempts}</b> · Aceitas: <b style={{ color: "#a0ffb0" }}>{selected.bonusAccepted}</b> · Rejeitadas: <b style={{ color: "#ff9090" }}>{selected.bonusRejected}</b>
+                            {" "}(voidFx:{bonusFxAt ? "on" : "off"})
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
+
+
 
                 {/* Direita: afinidade + alimentação + histórico */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
