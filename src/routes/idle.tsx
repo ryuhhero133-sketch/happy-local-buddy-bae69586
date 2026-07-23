@@ -14645,7 +14645,7 @@ function GovernanteDialog(props: {
                   fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
                 }}
               >CONTINUAR ▸</button>
-            ) : canGive > 0 ? (
+            ) : (canGive > 0 || canGivePlus > 0) ? (
               <>
                 <button
                   onClick={onClose}
@@ -14655,16 +14655,30 @@ function GovernanteDialog(props: {
                     fontWeight: 600, cursor: "pointer", fontSize: 11,
                   }}
                 >Agora não</button>
-                <button
-                  onClick={() => { onExchange(canGive); onClose(); }}
-                  style={{
-                    padding: "10px 18px",
-                    background: "linear-gradient(180deg, #ffd44a, #b88010)",
-                    border: "1px solid #ffe988", borderRadius: 8, color: "#2a1500",
-                    fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
-                    boxShadow: "0 0 14px rgba(255,212,74,0.7)",
-                  }}
-                >✦ RECEBER {canGive} OVO{canGive > 1 ? "S" : ""}</button>
+                {canGivePlus > 0 && onExchangePlus && (
+                  <button
+                    onClick={() => { onExchangePlus(canGivePlus); onClose(); }}
+                    style={{
+                      padding: "10px 18px",
+                      background: "linear-gradient(180deg, #d066ff, #4a1080)",
+                      border: "1px solid #ffe988", borderRadius: 8, color: "#fff",
+                      fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                      boxShadow: "0 0 18px rgba(208,102,255,0.85)",
+                    }}
+                  >✦ PLUS {canGivePlus} OVO{canGivePlus > 1 ? "S" : ""} (6 TRAITS)</button>
+                )}
+                {canGive > 0 && (
+                  <button
+                    onClick={() => { onExchange(canGive); onClose(); }}
+                    style={{
+                      padding: "10px 18px",
+                      background: "linear-gradient(180deg, #ffd44a, #b88010)",
+                      border: "1px solid #ffe988", borderRadius: 8, color: "#2a1500",
+                      fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                      boxShadow: "0 0 14px rgba(255,212,74,0.7)",
+                    }}
+                  >✦ RECEBER {canGive} OVO{canGive > 1 ? "S" : ""}</button>
+                )}
               </>
             ) : (
               <button
