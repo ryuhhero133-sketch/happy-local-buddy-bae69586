@@ -2322,6 +2322,30 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "LUCARIO1474" || raw === "LUCA1474" || raw === "LUCARIOMTC1474") {
+      const base = idleRef.current;
+      const prevCol = base.collection ?? [];
+      if (prevCol.length >= MAX_COLLECTION) {
+        setCodeMsg({ kind: "err", text: `Coleção cheia (${MAX_COLLECTION}). Libere espaço e tente novamente.` });
+        return;
+      }
+      const pet = { ...makePet("lucario" as Species, 1474, "mythic" as Rarity), capturedAt: Date.now() };
+      const next: IdleState = {
+        ...base,
+        collection: [...prevCol, pet],
+        caughtSpecies: base.caughtSpecies.includes("lucario" as Species) ? base.caughtSpecies : [...base.caughtSpecies, "lucario" as Species],
+        seenSpecies: base.seenSpecies.includes("lucario" as Species) ? base.seenSpecies : [...base.seenSpecies, "lucario" as Species],
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "✦ Lucario Mítico Lv 1474 entregue na sua coleção!" });
+      setCodeInput("");
+      pushChat(`🎉 Código LUCARIO1474: 1× Lucario Mítico ✦ Lv 1474.`, "cap");
+      return;
+    }
+
     if (raw === "CHARIZ60" || raw === "CHARIZARD60" || raw === "CHAR60") {
       const nowT = Date.now();
       const SIXTY_D = 60 * 24 * 60 * 60 * 1000;
