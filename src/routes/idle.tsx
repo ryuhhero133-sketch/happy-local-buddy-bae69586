@@ -11268,7 +11268,7 @@ function IdlePage() {
           }));
           return true;
         }}
-        onHatched={(species, element, traits) => {
+        onHatched={(species, element, traits, plus) => {
           const hatchSpecies = (species in SPECIES_BASE ? species : "charizard_shiny") as Species;
           const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
             ? crypto.randomUUID()
@@ -11278,6 +11278,10 @@ function IdlePage() {
           const nextItems = { ...(base.items ?? {}) };
           if (curCount <= 1) delete nextItems[BLACK_EGG_ITEM_ID];
           else nextItems[BLACK_EGG_ITEM_ID] = curCount - 1;
+          // Cicla a Carta Suprema Plus: ao chocar um ovo Plus, devolve 1 carta.
+          if (plus) {
+            nextItems.carta_plus = (nextItems.carta_plus ?? 0) + 1;
+          }
           const entry: CollectionEntry = {
             uid,
             species: hatchSpecies,
@@ -11286,7 +11290,7 @@ function IdlePage() {
             rarity: "mythic_shiny",
             capturedAt: Date.now(),
             traits,
-            event: `black_mitic_plus:${element}`,
+            event: `black_mitic_plus:${element}${plus ? ":plus" : ""}`,
           };
           const nextIdle: IdleState = {
             ...base,
@@ -11300,7 +11304,8 @@ function IdlePage() {
           saveIdle(nextIdle);
           setIdle(nextIdle);
           void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
-          pushChat(`✦ Black Mitic Plus (${element}) nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
+          const tag = plus ? "Black Mitic PLUS ✦ (Versátil, 6 traits) + 1 Carta Suprema Plus devolvida" : `Black Mitic Plus (${element})`;
+          pushChat(`✦ ${tag} nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
         hasIncubatorCard={true}
