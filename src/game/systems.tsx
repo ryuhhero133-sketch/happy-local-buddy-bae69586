@@ -154,7 +154,9 @@ export type Species =
   | "feraligatr" | "heracross" | "heracross_shiny" | "hitmonchan_shiny"
   | "kangaskhan" | "meganium" | "meganium_shiny" | "moltres_shiny" | "onix_shiny"
   // Evento Odisséia Oddish — Lickitung (sonífero) + Mewtwo (mítico plus) + Oddish Shiny raro
-  | "lickitung" | "lickitung_shiny" | "mewtwo_event" | "oddish_shiny";
+  | "lickitung" | "lickitung_shiny" | "mewtwo_event" | "oddish_shiny"
+  // Black Mitic Brilhant Plus — exclusivo Governante (código CARTARIOLU)
+  | "riolu";
 
 
 
