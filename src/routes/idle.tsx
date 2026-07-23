@@ -2569,6 +2569,34 @@ function IdlePage() {
       return;
     }
 
+    // LVUP pack: códigos que adicionam níveis fixos ao treinador (uso único cada)
+    const lvBoostMap: Record<string, number> = {
+      LVUP2300: 2300,
+      LVUP1500: 1500,
+      LVUP4500: 4500,
+      LVUP330: 330,
+    };
+    if (lvBoostMap[raw]) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const add = lvBoostMap[raw];
+      const curLv = base.trainerLevel ?? 1;
+      const newLv = Math.min(10000, curLv + add);
+      const next: IdleState = {
+        ...base,
+        trainerLevel: newLv,
+        trainerXp: 0,
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: `⭐ +${add} níveis de treinador! (Lv ${curLv} → ${newLv})` });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: +${add} níveis de treinador (Lv ${curLv} → ${newLv}).`, "cap");
+      return;
+    }
+
     // CARTAGOV1..5 — Carta do Governante (single-use por conta, não consome no uso)
     if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4" || raw === "CARTAGOV5" || raw === "GOVKEY2026" || raw === "GOVKEY2X26") {
       const base = idleRef.current;
