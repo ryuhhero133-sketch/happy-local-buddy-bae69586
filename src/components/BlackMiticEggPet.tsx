@@ -18,6 +18,12 @@ export const BLACK_MITIC_EGG_DESCRIPTION =
 const FEED_COOLDOWN_MS = 60 * 60 * 1000;         // 1h entre feeds
 const HATCH_MS = 20 * 60 * 60 * 1000;            // 20h incubação
 const FEED_COST = 50;
+// --- Sistema BONUS (rompimento dos elementais) ---
+const BONUS_UNLOCK_PCT = 0.70;                    // libera aos 70% de incubação
+const BONUS_COOLDOWN_MS = 10 * 60 * 1000;         // 10min entre bônus
+const BONUS_REJECT_CHANCE = 0.40;                 // 40% de recusa grosseira
+const BONUS_MIN = 1;
+const BONUS_MAX = 999;
 
 export const ELEMENTS = [
   { id: "grass",    stone: "stone_grass",    label: "Planta",   color: "#3fd06b", emoji: "🌿", species: "venusaur",  role: "defense" as const },
@@ -68,6 +74,14 @@ export type EggInstance = {
   missedFeedings: number;      // feeds atrasados (>1h30 desde cooldown)
   lastMilestone: number;       // último marco de totalFed anunciado (excesso)
   recentFeedAt: Partial<Record<ElementId, number>>; // brilho recente por elemento
+  // Bônus (rompimento dos elementais) — habilitado a partir de 70% de incubação
+  bonusFed: Partial<Record<ElementId, number>>;   // total bônus por elemento
+  bonusAttempts: number;                           // tentativas (aceitas + rejeitadas)
+  bonusAccepted: number;                           // apenas aceitas
+  bonusRejected: number;                           // apenas rejeitadas
+  lastBonusFeedAt: number;                         // cooldown 10min
+  ruptured: boolean;                               // true → nasce com 6 traits
+  lastBonusResult?: { ts: number; kind: "accept" | "reject"; element: ElementId; amount: number; line: string } | null;
 };
 
 type CollectionState = {
@@ -100,6 +114,13 @@ function newEgg(): EggInstance {
     missedFeedings: 0,
     lastMilestone: 0,
     recentFeedAt: {},
+    bonusFed: {},
+    bonusAttempts: 0,
+    bonusAccepted: 0,
+    bonusRejected: 0,
+    lastBonusFeedAt: 0,
+    ruptured: false,
+    lastBonusResult: null,
   };
 }
 
@@ -142,6 +163,13 @@ function loadState(uid: string): CollectionState {
           missedFeedings: Number(e?.missedFeedings ?? 0),
           lastMilestone: Number(e?.lastMilestone ?? 0),
           recentFeedAt: (e?.recentFeedAt && typeof e.recentFeedAt === "object") ? e.recentFeedAt : {},
+          bonusFed: (e?.bonusFed && typeof e.bonusFed === "object") ? e.bonusFed : {},
+          bonusAttempts: Number(e?.bonusAttempts ?? 0),
+          bonusAccepted: Number(e?.bonusAccepted ?? 0),
+          bonusRejected: Number(e?.bonusRejected ?? 0),
+          lastBonusFeedAt: Number(e?.lastBonusFeedAt ?? 0),
+          ruptured: !!e?.ruptured,
+          lastBonusResult: e?.lastBonusResult ?? null,
         }))
       : [];
     return {
@@ -336,17 +364,19 @@ const TRAITS_ARCHETYPE: Record<Archetype, string[]> = {
 
 const ALL_TRAITS_POOL = [...TRAITS_EPIC, ...TRAITS_RARE, ...TRAITS_STRONG];
 
-export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype): string[] {
+export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype, slots: number = 5): string[] {
   const care = computeCareScore(egg); // 0..100
   // Prob de escolher épico por slot cresce com care (25% → 85%)
-  const epicChance = 0.25 + (care / 100) * 0.6;
+  // Ovos "rompidos" (ruptured) ganham +15% de chance de épico
+  const rupturedBonus = egg.ruptured ? 0.15 : 0;
+  const epicChance = Math.min(0.95, 0.25 + (care / 100) * 0.6 + rupturedBonus);
   const rareChance = 0.85; // se falhar épico, chance de raro
   const picked: string[] = [];
   const themed = TRAITS_ARCHETYPE[archetype];
   // Slot 1: garante um trait temático do arquétipo (o "sabor")
   const themeSeed = themed[Math.floor(Math.random() * themed.length)];
   picked.push(themeSeed);
-  while (picked.length < 5) {
+  while (picked.length < slots) {
     let pool: string[];
     const r = Math.random();
     if (r < epicChance) pool = TRAITS_EPIC;
@@ -355,14 +385,34 @@ export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype): st
     // Bias adicional: chance extra de puxar do pool temático quando care é alto
     if (Math.random() < 0.35 + care / 300) pool = [...pool, ...themed];
     let candidates = pool.filter(t => !picked.includes(t));
-    // Fallback: se o pool escolhido esgotou, usa o pool global — Black Mitic
-    // Plus SEMPRE tem que nascer com 5 traits.
+    // Fallback: usa o pool global se o específico esgotou.
     if (candidates.length === 0) candidates = ALL_TRAITS_POOL.filter(t => !picked.includes(t));
     if (candidates.length === 0) break;
     picked.push(candidates[Math.floor(Math.random() * candidates.length)]);
   }
-  return picked.slice(0, 5);
+  return picked.slice(0, slots);
 }
+
+// Linhas grosseiras usadas quando o ovo rejeita um bônus (40%)
+const RUDE_LINES = [
+  "NÃO! Guarde suas pedras, treinador... elas me irritam agora.",
+  "Ugh. Você acha mesmo que sou algum saco de energia?",
+  "Chega. Já disse que estou cheio!",
+  "Seus dedos gordos deixaram cair de novo... rejeitado.",
+  "Não. Não estou com fome. Você não me escuta?",
+  "Você me alimenta como se eu fosse um lixo comum. Fora daqui.",
+  "Silêncio... a stone está errada. Quer me quebrar?",
+  "Se insistir, vou dormir e te ignorar pela próxima hora.",
+];
+const BONUS_ACCEPT_LINES = [
+  "Sim! MAIS! Continue e sentirá o que estou me tornando!",
+  "Absorvido... você está me despertando algo perigoso.",
+  "Isso... isso me completa. Continue, treinador!",
+  "Sinto meu núcleo se partindo em algo maior.",
+  "Um véu se rasga... você está me libertando.",
+];
+const RUPTURE_LINE =
+  "✦✦✦ ROMPI OS ELEMENTAIS! Sinto seis correntes de poder me atravessando... NASCEREI DIFERENTE! ✦✦✦";
 
 
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -649,6 +699,7 @@ export function BlackMiticEggHud(props: {
   const [state, setState] = useState<CollectionState>(() => loadState(uid));
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<"journal" | "feeds">("journal");
+  const [bonusAmount, setBonusAmount] = useState<Partial<Record<ElementId, number>>>({});
 
   // ---- Cloud sync (Supabase) --------------------------------------------
   // Nenhum jogador perde progresso: puxamos o snapshot do servidor ao abrir
@@ -886,9 +937,9 @@ export function BlackMiticEggHud(props: {
     const el = ELEMENTS.find(e => e.id === dominantElement(selected.affinity))!;
     const arch = computeArchetype(selected.affinity);
     const care = computeCareScore(selected);
-    const traits = rollBlackMiticTraits(selected, arch);
-    // Anti-duplicata: para players com múltiplos eggs, evitamos repetir a mesma
-    // espécie da pool versátil enquanto houver alternativas.
+    const slots = selected.ruptured ? 6 : 5;
+    const traits = rollBlackMiticTraits(selected, arch, slots);
+    // Anti-duplicata para pool versátil.
     const recent = new Set(state.hatchedHistory ?? []);
     let species: string;
     if (arch === "versatile") {
@@ -904,8 +955,85 @@ export function BlackMiticEggHud(props: {
       const hist = [...(s.hatchedHistory ?? []), species].slice(-10);
       return { eggs, selectedId: eggs[0]?.id ?? null, hatchedHistory: hist };
     });
-    onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100!`);
+    const rupTag = selected.ruptured ? " ✦ ROMPIDO (6 traits)" : "";
+    onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100${rupTag}!`);
   };
+
+  // ------------------------------------------------------------------
+  // BÔNUS: rompimento dos elementais (libera aos 70% de incubação)
+  // - A cada 10 min pode empurrar qualquer quantidade de qualquer stone.
+  // - 40% de chance do ovo REJEITAR (grosseiro). Stones NÃO consumidas.
+  // - Alimentar TODOS os 6 elementos no modo bônus → ROMPE (ruptured=true)
+  //   → o Pokémon nasce com 6 traits ao invés de 5.
+  // ------------------------------------------------------------------
+  const bonusFeed = (el: typeof ELEMENTS[number], amountRaw: number) => {
+    if (!selected) return;
+    if (!selected.activated) { onNotify?.("Ative a incubação antes."); return; }
+    const pct = (Date.now() - selected.activatedAt) / HATCH_MS;
+    if (pct < BONUS_UNLOCK_PCT) { onNotify?.("Bônus liberado somente aos 70% de incubação."); return; }
+    const cd = Math.max(0, (selected.lastBonusFeedAt + BONUS_COOLDOWN_MS) - Date.now());
+    if (cd > 0) { onNotify?.(`Aguarde ${fmt(cd)} para o próximo bônus.`); return; }
+    const amount = Math.max(BONUS_MIN, Math.min(BONUS_MAX, Math.floor(amountRaw || 0)));
+    if (amount < BONUS_MIN) { onNotify?.("Quantidade inválida."); return; }
+    const have = stones[el.stone] ?? 0;
+    if (have < amount) { onNotify?.(`Você só tem ${have}× ${el.label} Stone.`); return; }
+
+    const rejected = Math.random() < BONUS_REJECT_CHANCE;
+    if (rejected) {
+      // Não consome stones — apenas registra tentativa e cooldown.
+      const line = pick(RUDE_LINES);
+      persist((s) => ({
+        ...s,
+        eggs: s.eggs.map(e => {
+          if (e.id !== selected.id) return e;
+          let ne: EggInstance = {
+            ...e,
+            bonusAttempts: e.bonusAttempts + 1,
+            bonusRejected: e.bonusRejected + 1,
+            lastBonusFeedAt: Date.now(),
+            lastBonusResult: { ts: Date.now(), kind: "reject", element: el.id, amount, line },
+          };
+          ne = pushJournal(ne, "obsession", line, el.id);
+          return ne;
+        }),
+      }));
+      onNotify?.(`✗ ${el.label} rejeitado! O ovo está grosseiro hoje.`);
+      return;
+    }
+
+    // Aceito: consome as stones e aplica bônus na afinidade.
+    if (!onConsumeStone(el.stone, amount)) { onNotify?.("Falha ao consumir a Stone."); return; }
+    const line = pick(BONUS_ACCEPT_LINES);
+    persist((s) => ({
+      ...s,
+      eggs: s.eggs.map(e => {
+        if (e.id !== selected.id) return e;
+        const newBonusFed = { ...e.bonusFed, [el.id]: (e.bonusFed[el.id] ?? 0) + amount };
+        const distinctBonusEls = ELEMENTS.filter(x => (newBonusFed[x.id] ?? 0) > 0).length;
+        const willRupture = !e.ruptured && distinctBonusEls >= ELEMENTS.length;
+        let ne: EggInstance = {
+          ...e,
+          affinity: { ...e.affinity, [el.id]: (e.affinity[el.id] ?? 0) + amount },
+          totalFed: e.totalFed + amount,
+          bonusFed: newBonusFed,
+          bonusAttempts: e.bonusAttempts + 1,
+          bonusAccepted: e.bonusAccepted + 1,
+          lastBonusFeedAt: Date.now(),
+          ruptured: e.ruptured || willRupture,
+          lastBonusResult: { ts: Date.now(), kind: "accept", element: el.id, amount, line },
+          recentFeedAt: { ...e.recentFeedAt, [el.id]: Date.now() },
+          history: [{ ts: Date.now(), element: el.id, amount }, ...e.history].slice(0, 20),
+        };
+        ne = pushJournal(ne, "absorbing", line, el.id);
+        if (willRupture) {
+          ne = pushJournal(ne, "hatch", RUPTURE_LINE);
+        }
+        return ne;
+      }),
+    }));
+    onNotify?.(`✓ +${amount} ${el.label} (BÔNUS) absorvido!`);
+  };
+
 
   if (!open) return null;
 
@@ -1070,13 +1198,19 @@ export function BlackMiticEggHud(props: {
                       onClick={hatch}
                       style={{
                         width: "100%", padding: "10px 8px",
-                        background: "linear-gradient(180deg, #4fd66b, #2a8a3f)",
-                        border: "1px solid #a0ff8f", borderRadius: 8,
+                        background: selected.ruptured
+                          ? "linear-gradient(180deg, #ffd84d, #b8860b)"
+                          : "linear-gradient(180deg, #4fd66b, #2a8a3f)",
+                        border: `1px solid ${selected.ruptured ? "#fff2a0" : "#a0ff8f"}`,
+                        borderRadius: 8,
                         color: "#0a2010", fontWeight: 700, fontSize: 11,
                         cursor: "pointer", letterSpacing: 1,
-                        boxShadow: "0 0 12px rgba(80,220,110,0.8)",
+                        boxShadow: selected.ruptured
+                          ? "0 0 18px rgba(255,215,80,0.95)"
+                          : "0 0 12px rgba(80,220,110,0.8)",
                         animation: "blackEggPulse 1.4s ease-in-out infinite",
-                      }}>✦ CHOCAR AGORA</button>
+                      }}>{selected.ruptured ? "✦ TRANSCENDER E CHOCAR ✦" : "✦ CHOCAR AGORA"}</button>
+
                   ) : (
                     <div style={{ width: "100%", fontSize: 9, color: "#c8a0e8" }}>
                       <div style={{ marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
@@ -1101,7 +1235,150 @@ export function BlackMiticEggHud(props: {
                       {ELEMENTS.find(e => e.id === dominant)?.label}
                     </b>
                   </div>
+
+                  {/* ===================== BÔNUS: ROMPIMENTO DOS ELEMENTAIS ===================== */}
+                  {(() => {
+                    const unlocked = hatchPct >= BONUS_UNLOCK_PCT;
+                    const cd = Math.max(0, (selected.lastBonusFeedAt + BONUS_COOLDOWN_MS) - now);
+                    const ready = unlocked && cd <= 0;
+                    const distinctBonus = ELEMENTS.filter(x => (selected.bonusFed[x.id] ?? 0) > 0).length;
+                    const rupPct = Math.round((distinctBonus / ELEMENTS.length) * 100);
+                    const lbr = selected.lastBonusResult;
+                    const fxRecent = lbr && (now - lbr.ts) < 5000;
+                    return (
+                      <div style={{
+                        width: "100%",
+                        background: selected.ruptured
+                          ? "linear-gradient(135deg, rgba(255,215,80,0.15), rgba(30,10,60,0.65))"
+                          : unlocked
+                            ? "linear-gradient(135deg, rgba(255,90,180,0.15), rgba(30,10,60,0.65))"
+                            : "rgba(20,8,40,0.5)",
+                        border: `1px solid ${selected.ruptured ? "#ffd84d" : unlocked ? "#ff5aa8" : "#4a2a6a"}`,
+                        borderRadius: 10, padding: 10,
+                        boxShadow: selected.ruptured
+                          ? "0 0 16px rgba(255,215,80,0.45)"
+                          : unlocked ? "0 0 12px rgba(255,90,180,0.35)" : "none",
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <div style={{ fontSize: 10, letterSpacing: 1, color: selected.ruptured ? "#ffd84d" : "#ff9ad6" }}>
+                            ✦ ROMPIMENTO ELEMENTAL {selected.ruptured ? "· ROMPIDO!" : ""}
+                          </div>
+                          <div style={{ fontSize: 8, color: unlocked ? (ready ? "#a0ffb0" : "#ffb857") : "#a888c8" }}>
+                            {!unlocked ? `🔒 Libera aos ${Math.round(BONUS_UNLOCK_PCT * 100)}%`
+                              : selected.ruptured ? "6 traits garantidos"
+                              : ready ? "Pronto" : `⏱ ${fmt(cd)}`}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 8, color: "#c8a0e8", lineHeight: 1.5, marginBottom: 8 }}>
+                          {selected.ruptured
+                            ? "O ovo rompeu os elementais. Nascerá com 6 traits!"
+                            : "A cada 10 min você força qualquer quantidade de stones. Alimente TODOS os 6 elementos aqui para ROMPER — 40% de chance do ovo recusar."}
+                        </div>
+
+                        {/* Progresso rompimento */}
+                        <div style={{ marginBottom: 8 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: "#e0b8ff" }}>
+                            <span>Elementos rompidos</span>
+                            <span>{distinctBonus}/{ELEMENTS.length}</span>
+                          </div>
+                          <div style={{ height: 8, background: "rgba(0,0,0,0.55)", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(255,90,180,0.35)", marginTop: 3 }}>
+                            <div style={{
+                              height: "100%", width: `${rupPct}%`,
+                              background: selected.ruptured
+                                ? "linear-gradient(90deg, #ffd84d, #ff9ad6, #ffd84d)"
+                                : "linear-gradient(90deg, #ff5aa8, #ffd84d)",
+                              boxShadow: `0 0 8px ${selected.ruptured ? "#ffd84d" : "#ff5aa8"}`,
+                              transition: "width 0.4s",
+                            }} />
+                          </div>
+                        </div>
+
+                        {/* Feedback última tentativa */}
+                        {lbr && fxRecent && (
+                          <div style={{
+                            padding: "6px 8px", borderRadius: 6, marginBottom: 8,
+                            background: lbr.kind === "accept" ? "rgba(80,220,110,0.18)" : "rgba(255,90,90,0.22)",
+                            border: `1px solid ${lbr.kind === "accept" ? "#4fd66b" : "#ff6b6b"}`,
+                            color: lbr.kind === "accept" ? "#c8ffd0" : "#ffc8c8",
+                            fontSize: 8, lineHeight: 1.5,
+                            animation: "blackEggShine 0.9s ease-out",
+                          }}>
+                            <b>{lbr.kind === "accept" ? "✓ ACEITO" : "✗ REJEITADO"}</b> — {lbr.line}
+                          </div>
+                        )}
+
+                        {/* Inputs por elemento */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                          {ELEMENTS.map(el => {
+                            const have = stones[el.stone] ?? 0;
+                            const amt = bonusAmount[el.id] ?? 10;
+                            const already = selected.bonusFed[el.id] ?? 0;
+                            const canPush = ready && have >= amt && amt >= BONUS_MIN;
+                            return (
+                              <div key={el.id} style={{
+                                display: "flex", flexDirection: "column", gap: 3,
+                                padding: 6, borderRadius: 6,
+                                background: already > 0 ? `${el.color}15` : "rgba(0,0,0,0.25)",
+                                border: `1px solid ${already > 0 ? el.color + "88" : "rgba(160,80,255,0.25)"}`,
+                              }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 8, color: el.color, letterSpacing: 1 }}>
+                                  <span>{el.emoji}</span>
+                                  <span style={{ flex: 1 }}>{el.label.toUpperCase()}</span>
+                                  <span style={{ color: "#c8a0e8", fontSize: 7 }}>x{have}</span>
+                                  {already > 0 && <span style={{ color: "#a0ffb0", fontSize: 7 }}>✓{already}</span>}
+                                </div>
+                                <div style={{ display: "flex", gap: 3 }}>
+                                  <input
+                                    type="number"
+                                    min={BONUS_MIN}
+                                    max={BONUS_MAX}
+                                    value={amt}
+                                    onChange={(ev) => {
+                                      const v = Math.max(BONUS_MIN, Math.min(BONUS_MAX, Math.floor(Number(ev.target.value) || 0)));
+                                      setBonusAmount(s => ({ ...s, [el.id]: v }));
+                                    }}
+                                    style={{
+                                      width: 56, padding: "3px 5px", fontSize: 9,
+                                      background: "#0f0620", color: "#fff",
+                                      border: `1px solid ${el.color}66`, borderRadius: 4,
+                                      fontFamily: "inherit",
+                                    }}
+                                  />
+                                  <button
+                                    onClick={() => { bonusFeed(el, amt); }}
+                                    disabled={!canPush}
+                                    style={{
+                                      flex: 1, fontSize: 8, padding: "3px 4px", letterSpacing: 1,
+                                      background: canPush
+                                        ? `linear-gradient(180deg, ${el.color}88, ${el.color}33)`
+                                        : "rgba(40,20,60,0.5)",
+                                      color: canPush ? "#fff" : "#7a5a9a",
+                                      border: `1px solid ${canPush ? el.color : "#4a2a6a"}`,
+                                      borderRadius: 4,
+                                      cursor: canPush ? "pointer" : "not-allowed",
+                                      fontWeight: 700,
+                                      boxShadow: canPush ? `0 0 6px ${el.color}66` : "none",
+                                    }}
+                                  >
+                                    {!unlocked ? "🔒" : !ready ? "⏱" : "ROMPER"}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {(selected.bonusAttempts > 0) && (
+                          <div style={{ marginTop: 8, fontSize: 8, color: "#a888c8", textAlign: "center" }}>
+                            Tentativas: <b>{selected.bonusAttempts}</b> · Aceitas: <b style={{ color: "#a0ffb0" }}>{selected.bonusAccepted}</b> · Rejeitadas: <b style={{ color: "#ff9090" }}>{selected.bonusRejected}</b>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
+
+
 
                 {/* Direita: afinidade + alimentação + histórico */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
