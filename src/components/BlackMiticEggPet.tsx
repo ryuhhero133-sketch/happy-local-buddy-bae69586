@@ -163,6 +163,13 @@ function loadState(uid: string): CollectionState {
           missedFeedings: Number(e?.missedFeedings ?? 0),
           lastMilestone: Number(e?.lastMilestone ?? 0),
           recentFeedAt: (e?.recentFeedAt && typeof e.recentFeedAt === "object") ? e.recentFeedAt : {},
+          bonusFed: (e?.bonusFed && typeof e.bonusFed === "object") ? e.bonusFed : {},
+          bonusAttempts: Number(e?.bonusAttempts ?? 0),
+          bonusAccepted: Number(e?.bonusAccepted ?? 0),
+          bonusRejected: Number(e?.bonusRejected ?? 0),
+          lastBonusFeedAt: Number(e?.lastBonusFeedAt ?? 0),
+          ruptured: !!e?.ruptured,
+          lastBonusResult: e?.lastBonusResult ?? null,
         }))
       : [];
     return {
