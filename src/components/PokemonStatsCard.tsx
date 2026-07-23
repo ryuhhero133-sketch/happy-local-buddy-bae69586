@@ -4,6 +4,7 @@ import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META, computeTeamSynergies } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
+import blackMiticBg from "@/assets/black-mitic-card-bg.jpg";
 
 interface Props {
   pet: PetInstance;
@@ -53,6 +54,8 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
     </div>
   );
 
+  const isBMP = !!pet.event && pet.event.startsWith("black_mitic_plus");
+
   return (
     <div onClick={onClose} style={{
       position: "fixed", inset: 0, zIndex: 200,
@@ -61,15 +64,46 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
     }}>
       <div onClick={(e) => e.stopPropagation()} style={{
         width: "min(560px, 96vw)", maxHeight: "92vh", overflowY: "auto",
-        background: `linear-gradient(160deg, ${meta.color}22 0%, #1a0f26 40%, #0b0510 100%)`,
-        border: `3px solid ${rc}`,
+        background: isBMP
+          ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
+          : `linear-gradient(160deg, ${meta.color}22 0%, #1a0f26 40%, #0b0510 100%)`,
+        border: `3px solid ${isBMP ? "#a066ff" : rc}`,
         borderRadius: 20,
-        boxShadow: `0 20px 60px rgba(0,0,0,0.8), 0 0 40px ${rc}55, inset 0 1px 0 ${rc}44`,
+        boxShadow: isBMP
+          ? "0 20px 60px rgba(0,0,0,0.85), 0 0 60px rgba(160,80,255,0.55), inset 0 1px 0 rgba(200,140,255,0.4)"
+          : `0 20px 60px rgba(0,0,0,0.8), 0 0 40px ${rc}55, inset 0 1px 0 ${rc}44`,
         position: "relative", overflow: "hidden",
       }}>
+        {/* Fundo animado Black Mitic Plus */}
+        {isBMP && (
+          <>
+            <div className="bmp-card-bg" style={{ backgroundImage: `url(${blackMiticBg})` }} />
+            <div style={{
+              position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none",
+              background: "radial-gradient(circle at 50% 30%, rgba(160,80,255,0.35), transparent 65%)",
+            }} />
+            {/* Estrelas negras orbitando */}
+            {[
+              { a: 0,   r: 180, d: 9,  cls: "" },
+              { a: 45,  r: 220, d: 11, cls: "s-lg" },
+              { a: 90,  r: 160, d: 8,  cls: "" },
+              { a: 135, r: 210, d: 12, cls: "" },
+              { a: 180, r: 190, d: 10, cls: "s-lg" },
+              { a: 225, r: 230, d: 13, cls: "" },
+              { a: 270, r: 170, d: 9,  cls: "" },
+              { a: 315, r: 200, d: 11, cls: "s-lg" },
+            ].map((s, i) => (
+              <span key={i} className={`bmp-star ${s.cls}`} style={{
+                ["--a" as string]: `${s.a}deg`,
+                ["--r" as string]: `${s.r}px`,
+                animationDuration: `${s.d}s`,
+              } as React.CSSProperties} />
+            ))}
+          </>
+        )}
         {/* Halo elemental */}
         <div style={{
-          position: "absolute", inset: 0, pointerEvents: "none",
+          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
           background: `radial-gradient(circle at 50% 15%, ${meta.color}33, transparent 55%)`,
         }} />
 
