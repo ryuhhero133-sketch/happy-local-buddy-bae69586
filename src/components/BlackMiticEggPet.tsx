@@ -1521,7 +1521,12 @@ export function BlackMiticEggHud(props: {
                   borderRadius: 10, padding: 12,
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
                 }}>
-                  <div style={{ position: "relative", width: 200, height: 200 }}>
+                  <div style={{
+                    position: "relative", width: 200, height: 200,
+                    animation: selected.activated && (Date.now() - selected.activatedAt) / HATCH_MS >= 0.7
+                      ? `eggWobble ${Math.max(0.5, 1.8 - ((Date.now() - selected.activatedAt) / HATCH_MS)).toFixed(2)}s ease-in-out infinite`
+                      : undefined,
+                  }}>
                     {/* Incubadora sempre visível */}
                     <img src={incubatorSprite} alt="" style={{
                       position: "absolute", inset: 0, width: "100%", height: "100%",
