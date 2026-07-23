@@ -635,7 +635,12 @@ export function BlackMiticEggHud(props: {
       try {
         const res = (await fetchCloud({} as any)) as { data: any; updated_at: string | null };
         if (cancelled) return;
-        const remote = res?.data;
+        // Aceita formato novo { eggs, selectedId } e legado { data: { eggs, selectedId } }
+        // (push antigo envolvia o estado duas vezes; sem isso a nuvem "somia" no reload).
+        let remote: any = res?.data;
+        if (remote && !Array.isArray(remote.eggs) && remote.data && Array.isArray(remote.data.eggs)) {
+          remote = remote.data;
+        }
         if (remote && Array.isArray(remote.eggs)) {
           const merged: CollectionState = {
             eggs: remote.eggs as EggInstance[],
@@ -644,10 +649,13 @@ export function BlackMiticEggHud(props: {
           setState(merged);
           saveState(uid, merged);
         }
-      } catch (e) {
-        console.warn("[BlackEgg] pull cloud falhou:", e);
-      } finally {
+        // Só libera push depois de um pull bem-sucedido: se a leitura falhar,
+        // NÃO empurramos o local por cima da nuvem (isso zerava o progresso).
         cloudReadyRef.current = true;
+      } catch (e) {
+        console.warn("[BlackEgg] pull cloud falhou (push bloqueado até próxima abertura):", e);
+      } finally {
+        // noop — cloudReadyRef só vira true no caminho de sucesso acima.
       }
     })();
     return () => { cancelled = true; };
@@ -662,7 +670,7 @@ export function BlackMiticEggHud(props: {
       if (pushInFlightRef.current) { pushPendingRef.current = true; return; }
       pushInFlightRef.current = true;
       try {
-        await pushCloud({ data: { data: state as any } } as any);
+        await pushCloud({ data: { data: state as any } as any } as any);
       } catch (e) {
         console.warn("[BlackEgg] push cloud falhou:", e);
       } finally {
@@ -672,7 +680,7 @@ export function BlackMiticEggHud(props: {
           // dispara outro ciclo curto pra não segurar mudanças recentes
           if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
           pushTimerRef.current = setTimeout(() => {
-            pushCloud({ data: { data: state as any } } as any).catch(() => { /* ignore */ });
+            pushCloud({ data: { data: state as any } as any } as any).catch(() => { /* ignore */ });
           }, 800);
         }
       }
