@@ -13144,37 +13144,50 @@ function TabOverlay({
                     >{locked ? "🔒" : "🔓"}</button>
 
                     {/* Sprite + nome */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); if (bulkMode) { if (canBulkPick) toggleBulk(entry.uid); return; } onOpenColecaoDetail(entry.uid); }}
-                      style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%" }}
-                      title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
-                    >
-                      {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block" }} />}
-                      <div style={{ fontSize: 11, marginTop: 2, color: "#4a3010", fontWeight: 800, textAlign: "center" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
-                    </button>
+                     <button
+                       onClick={(e) => { e.stopPropagation(); if (bulkMode) { if (canBulkPick) toggleBulk(entry.uid); return; } onOpenColecaoDetail(entry.uid); }}
+                       style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%", position: "relative", zIndex: 1 }}
+                       title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
+                     >
+                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
+                       <div style={{ fontSize: 11, marginTop: 2, color: isBMP ? "#f7ecff" : "#4a3010", fontWeight: 800, textAlign: "center", textShadow: isBMP ? "0 1px 3px #000" : undefined }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
+                     </button>
 
-                    {/* Raridade */}
-                    <div style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: rColor, color: "#fff", justifySelf: "center", fontWeight: 800, letterSpacing: 1 }}>
-                      {entry.rarity.toUpperCase()}
-                    </div>
+                     {/* Raridade / Badge BMP */}
+                     <div style={{
+                       fontSize: 9, padding: "2px 8px", borderRadius: 10,
+                       background: isBMP ? `linear-gradient(180deg, ${bmpAccent}, #4a1080)` : rColor,
+                       color: "#fff", justifySelf: "center", fontWeight: 900, letterSpacing: 1,
+                       boxShadow: isBMP ? `0 0 8px ${bmpAccent}bb` : undefined,
+                       border: isBMP ? "1px solid rgba(255,255,255,0.25)" : undefined,
+                       position: "relative", zIndex: 1,
+                     }}>
+                       {isBMP ? (isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS") : entry.rarity.toUpperCase()}
+                     </div>
 
-                    {/* Nível */}
-                    <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 900 }}>
-                      Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
-                    </div>
+                     {/* Nível */}
+                     <div style={{ fontSize: 11, color: isBMP ? "#f5cf6b" : "#6b4a10", fontWeight: 900, position: "relative", zIndex: 1, textShadow: isBMP ? "0 1px 2px #000" : undefined }}>
+                       Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
+                     </div>
 
-                    {/* Traits (slot fixo — sempre reservado) */}
-                    <div
-                      style={{
-                        display: "flex", gap: 3, justifyContent: "center", alignItems: "center",
-                        flexWrap: "nowrap", height: 28, minHeight: 28,
-                      }}
-                      title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
-                    >
-                      {traits.length > 0
-                        ? traits.slice(0, 4).map((id) => <TraitIcon key={id} id={id} size={22} />)
-                        : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
-                    </div>
+                     {/* Traits — mostra TODOS (até 6) para Black Mitic */}
+                     <div
+                       style={{
+                         display: "flex", gap: 3, justifyContent: "center", alignItems: "center",
+                         flexWrap: "wrap", minHeight: 28, position: "relative", zIndex: 1,
+                         padding: isBMP ? "4px 6px" : 0,
+                         background: isBMP ? "rgba(0,0,0,0.35)" : "transparent",
+                         border: isBMP ? `1px solid ${bmpAccent}66` : "none",
+                         borderRadius: isBMP ? 8 : 0,
+                         width: isBMP ? "100%" : "auto",
+                       }}
+                       title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
+                     >
+                       {traits.length > 0
+                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
+                         : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
+                     </div>
+
 
                     {/* Botão fragmentar (ícone cristal) */}
                     <button
