@@ -375,6 +375,10 @@ const orbXpMinorUrl = assetUrlFromJson(orbXpMinorAsset);
 const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
 const orbXpSupremeUrl = assetUrlFromJson(orbXpSupremeAsset);
 const orbXpTeamUrl = assetUrlFromJson(orbXpTeamAsset);
+// Ícones "de buff" bonitos (HUD do treinador) — orb XP, incenso e orb de time
+const buffOrbXpUrl = (new URL("../assets/buff-orb-xp.png", import.meta.url)).href;
+const buffIncenseHoneyUrl = (new URL("../assets/buff-incense-honey.png", import.meta.url)).href;
+const buffTeamOrbUrl = (new URL("../assets/buff-team-orb.png", import.meta.url)).href;
 const npcTraderUrl = assetUrlFromJson(npcTraderAsset);
 const redLakeUrl = assetUrlFromJson(redLakeAsset);
 const volcanoUrl = assetUrlFromJson(volcanoAsset);
@@ -6953,77 +6957,133 @@ function IdlePage() {
             })()}
             {(() => {
               const orbUntil = idle.buffs.orbUntil ?? 0;
-              const remain = orbUntil - Date.now();
-              if (remain <= 0) return null;
-              const orbId = idle.buffs.orbId || "orb_xp_minor";
-              const orbImg = orbId === "orb_xp_supreme" ? orbXpSupremeUrl : orbId === "orb_xp_major" ? orbXpMajorUrl : orbXpMinorUrl;
-              const orbPct = Math.round((idle.buffs.orbMult ?? 0) * 100);
-              const mins = Math.floor(remain / 60000);
-              const secs = Math.floor((remain % 60000) / 1000);
-              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
-              return (
-                <div
-                  title={`Orb ativo: +${orbPct}% EXP · ${timeStr}`}
-                  style={{
-                    marginTop: 4,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 2,
-                    padding: "3px 5px",
-                    background: "rgba(15,10,30,0.85)",
-                    border: "1px solid #7c5cff",
-                    borderRadius: 6,
-                    boxShadow: "0 0 8px rgba(124,92,255,0.5)",
-                  }}
-                >
-                  <img
-                    src={orbImg}
-                    alt="Orb ativo"
-                    width={22}
-                    height={22}
-                    style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(180,120,255,0.9))" }}
-                    draggable={false}
-                  />
-                  <span style={{ fontSize: 9, color: "#e0d0ff", fontWeight: 700, lineHeight: 1, whiteSpace: "nowrap" }}>
-                    {timeStr}
-                  </span>
-                </div>
-              );
-            })()}
-            {(() => {
+              const teamUntil = idle.buffs.teamOrbUntil ?? 0;
               const rareUntil = idle.buffs.honeyRareUntil ?? 0;
               const normalUntil = idle.buffs.honeyUntil ?? 0;
-              const isRare = rareUntil > Date.now();
-              const until = isRare ? rareUntil : normalUntil;
-              const remain = until - Date.now();
-              if (remain <= 0) return null;
-              const mins = Math.floor(remain / 60000);
-              const secs = Math.floor((remain % 60000) / 1000);
-              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
-              const pct = isRare ? 20 : 10;
-              const icon = isRare ? "✨🍯" : "🍯";
+              const now = Date.now();
+              const buffs: Array<{
+                key: string; img: string; label: string; timeMs: number;
+                ring: string; ringSoft: string; glow: string; textColor: string; bg: string;
+                subLabel?: string;
+              }> = [];
+              const fmtT = (ms: number) => {
+                const mins = Math.floor(ms / 60000);
+                const secs = Math.floor((ms % 60000) / 1000);
+                return mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+              };
+              // Orb de XP
+              if (orbUntil > now) {
+                const pct = Math.round((idle.buffs.orbMult ?? 0) * 100);
+                buffs.push({
+                  key: "orb-xp", img: buffOrbXpUrl,
+                  label: `Orb ativo: +${pct}% EXP · ${fmtT(orbUntil - now)}`,
+                  timeMs: orbUntil - now,
+                  ring: "#b48bff", ringSoft: "rgba(180,140,255,0.55)",
+                  glow: "rgba(180,120,255,0.85)",
+                  textColor: "#e6d5ff",
+                  bg: "linear-gradient(180deg, rgba(38,20,70,0.95), rgba(18,8,40,0.9))",
+                  subLabel: `+${pct}%`,
+                });
+              }
+              // Orb de Time (comporta-se como o Incenso — mostra badge no HUD)
+              if (teamUntil > now) {
+                buffs.push({
+                  key: "orb-team", img: buffTeamOrbUrl,
+                  label: `Orb de Time ativo: todo o time ganha EXP · ${fmtT(teamUntil - now)}`,
+                  timeMs: teamUntil - now,
+                  ring: "#ff8ad6", ringSoft: "rgba(255,138,214,0.55)",
+                  glow: "rgba(255,138,214,0.9)",
+                  textColor: "#ffd5ee",
+                  bg: "linear-gradient(180deg, rgba(70,20,55,0.95), rgba(40,8,30,0.9))",
+                  subLabel: "TIME",
+                });
+              }
+              // Incenso de mel
+              if (rareUntil > now || normalUntil > now) {
+                const isRare = rareUntil > now;
+                const until = isRare ? rareUntil : normalUntil;
+                const pct = isRare ? 20 : 10;
+                buffs.push({
+                  key: "honey", img: buffIncenseHoneyUrl,
+                  label: `Incenso ${isRare ? "Raro" : "de Mel"} ativo: +${pct}% drop/xp/def/velocidade · ${fmtT(until - now)}`,
+                  timeMs: until - now,
+                  ring: isRare ? "#ffd94d" : "#ffb84d",
+                  ringSoft: `rgba(255,${isRare ? 217 : 184},77,0.55)`,
+                  glow: `rgba(255,${isRare ? 217 : 184},77,0.9)`,
+                  textColor: "#fff2c4",
+                  bg: "linear-gradient(180deg, rgba(60,32,6,0.95), rgba(35,18,4,0.9))",
+                  subLabel: `+${pct}%`,
+                });
+              }
+              if (buffs.length === 0) return null;
               return (
-                <div
-                  title={`Incenso ${isRare ? "Raro" : "de Mel"} ativo: +${pct}% drop/xp/def/velocidade · ${timeStr}`}
-                  style={{
-                    marginTop: 4,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 2,
-                    padding: "3px 5px",
-                    background: isRare ? "rgba(50,30,5,0.9)" : "rgba(40,25,5,0.85)",
-                    border: `1px solid ${isRare ? "#ffd94d" : "#ffb84d"}`,
-                    borderRadius: 6,
-                    boxShadow: `0 0 ${isRare ? 12 : 8}px rgba(255,${isRare ? 217 : 184},${isRare ? 77 : 77},0.65)`,
-                  }}
-                >
-                  <span style={{ fontSize: 16, lineHeight: 1, filter: "drop-shadow(0 0 4px rgba(255,214,80,0.9))" }}>{icon}</span>
-                  <span style={{ fontSize: 9, color: "#ffe9a8", fontWeight: 700, lineHeight: 1, whiteSpace: "nowrap" }}>
-                    {timeStr}
-                  </span>
-                </div>
+                <>
+                  <style>{`
+                    @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
+                    @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                  `}</style>
+                  {buffs.map(b => (
+                    <div
+                      key={b.key}
+                      title={b.label}
+                      style={{
+                        marginTop: 6,
+                        position: "relative",
+                        width: 48,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 2,
+                        padding: "5px 4px 4px",
+                        background: b.bg,
+                        border: `1.5px solid ${b.ring}`,
+                        borderRadius: 10,
+                        boxShadow: `0 0 14px ${b.glow}, inset 0 0 8px ${b.ringSoft}`,
+                      }}
+                    >
+                      {/* Halo giratório */}
+                      <div style={{
+                        position: "absolute", inset: -3, borderRadius: 12,
+                        pointerEvents: "none",
+                        background: `conic-gradient(from 0deg, transparent 0deg, ${b.ringSoft} 90deg, transparent 180deg, ${b.ringSoft} 270deg, transparent 360deg)`,
+                        opacity: 0.45,
+                        animation: "rmBuffSpin 6s linear infinite",
+                        WebkitMask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)",
+                        mask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)",
+                      }} />
+                      <div style={{
+                        width: 34, height: 34,
+                        display: "grid", placeItems: "center",
+                        animation: "rmBuffPulse 1.8s ease-in-out infinite",
+                        filter: `drop-shadow(0 0 6px ${b.glow})`,
+                      }}>
+                        <img
+                          src={b.img}
+                          alt={b.label}
+                          width={34}
+                          height={34}
+                          style={{ objectFit: "contain", display: "block" }}
+                          draggable={false}
+                        />
+                      </div>
+                      {b.subLabel && (
+                        <span style={{
+                          fontSize: 8, fontWeight: 800, letterSpacing: 0.5, lineHeight: 1,
+                          color: b.textColor,
+                          textShadow: `0 0 4px ${b.glow}`,
+                        }}>{b.subLabel}</span>
+                      )}
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, lineHeight: 1,
+                        color: b.textColor,
+                        whiteSpace: "nowrap",
+                        textShadow: "0 1px 2px rgba(0,0,0,0.75)",
+                      }}>
+                        {fmtT(b.timeMs)}
+                      </span>
+                    </div>
+                  ))}
+                </>
               );
             })()}
           </div>
