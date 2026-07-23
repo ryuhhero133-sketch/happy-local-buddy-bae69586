@@ -11242,30 +11242,38 @@ function IdlePage() {
           return true;
         }}
         onHatched={(species, element, traits) => {
+          const hatchSpecies = (species in SPECIES_BASE ? species : "charizard_shiny") as Species;
           const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
             ? crypto.randomUUID()
             : `bmp_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
-          setIdle((s) => {
-            const curCount = s.items?.[BLACK_EGG_ITEM_ID] ?? 0;
-            const nextItems = { ...(s.items ?? {}) };
-            if (curCount <= 1) delete nextItems[BLACK_EGG_ITEM_ID];
-            else nextItems[BLACK_EGG_ITEM_ID] = curCount - 1;
-            const entry = {
-              uid,
-              species,
-              level: 100,
-              rarity: "mythic_shiny" as const,
-              capturedAt: Date.now(),
-              traits,
-              event: `black_mitic_plus:${element}`,
-            };
-            return {
-              ...s,
-              items: nextItems,
-              collection: [...(s.collection ?? []), entry as any],
-            };
-          });
-          pushChat(`✦ Black Mitic Plus (${element}) nasceu com 5 traits! Confira sua coleção.`, "cap");
+          const base = idleRef.current;
+          const curCount = base.items?.[BLACK_EGG_ITEM_ID] ?? 0;
+          const nextItems = { ...(base.items ?? {}) };
+          if (curCount <= 1) delete nextItems[BLACK_EGG_ITEM_ID];
+          else nextItems[BLACK_EGG_ITEM_ID] = curCount - 1;
+          const entry: CollectionEntry = {
+            uid,
+            species: hatchSpecies,
+            level: 100,
+            xp: 0,
+            rarity: "mythic_shiny",
+            capturedAt: Date.now(),
+            traits,
+            event: `black_mitic_plus:${element}`,
+          };
+          const nextIdle: IdleState = {
+            ...base,
+            items: nextItems,
+            seenSpecies: base.seenSpecies.includes(hatchSpecies) ? base.seenSpecies : [...base.seenSpecies, hatchSpecies],
+            caughtSpecies: base.caughtSpecies.includes(hatchSpecies) ? base.caughtSpecies : [...base.caughtSpecies, hatchSpecies],
+            collection: [...(base.collection ?? []), entry],
+            totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + 1 },
+          };
+          idleRef.current = nextIdle;
+          saveIdle(nextIdle);
+          setIdle(nextIdle);
+          void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
+          pushChat(`✦ Black Mitic Plus (${element}) nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
         hasIncubatorCard={true}
