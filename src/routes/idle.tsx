@@ -6315,6 +6315,68 @@ function IdlePage() {
       );
       })()}
 
+      {/* ⚡ ZAPDOS ANNOUNCEMENT — some após 8s */}
+      {zapdosAnnounce && (
+        <div
+          key={zapdosAnnounce.ts}
+          style={{
+            position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
+            zIndex: 9999, pointerEvents: "none",
+            animation: "zapIn 380ms cubic-bezier(.2,.9,.25,1) forwards, zapOut 500ms ease-in 7.2s forwards",
+          }}
+        >
+          <style>{`
+            @keyframes zapIn { from { opacity:0; transform: translate(-50%, -30px) scale(.9);} to {opacity:1; transform: translate(-50%,0) scale(1);} }
+            @keyframes zapOut { to { opacity:0; transform: translate(-50%,-20px) scale(.95);} }
+            @keyframes zapPulse { 0%,100% { box-shadow: 0 0 24px rgba(255,210,58,0.55), 0 0 60px rgba(255,180,20,0.35);} 50% { box-shadow: 0 0 40px rgba(255,235,120,0.85), 0 0 90px rgba(255,180,20,0.55);} }
+          `}</style>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 14,
+            padding: "10px 22px 10px 12px",
+            background: "linear-gradient(90deg,#1a1408 0%,#2a1f0a 50%,#1a1408 100%)",
+            border: "2px solid #ffd23a",
+            borderRadius: 10,
+            fontFamily: "'Cinzel', Georgia, serif",
+            animation: "zapPulse 1.2s ease-in-out infinite",
+            minWidth: 340,
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: "50%",
+              background: "radial-gradient(circle,#3a2a08 0%,#1a1004 80%)",
+              border: "2px solid #ffd23a",
+              display: "grid", placeItems: "center",
+              overflow: "hidden",
+              boxShadow: "inset 0 0 12px rgba(0,0,0,0.6)",
+            }}>
+              <img
+                src={assetUrlFromJson(zapdosAsset)}
+                alt="Zapdos"
+                style={{ width: 48, height: 48, imageRendering: "pixelated" }}
+              />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <div style={{
+                fontSize: 10, letterSpacing: 3, color: "#ffd23a",
+                textTransform: "uppercase", opacity: 0.9,
+              }}>
+                ✦ Evento Relâmpago ✦
+              </div>
+              <div style={{
+                color: "#fff2c2", fontSize: 18, fontWeight: 800, letterSpacing: 2,
+                textShadow: "0 0 12px rgba(255,210,58,0.6), 0 1px 0 #000",
+              }}>
+                ZAPDOS APARECEU!
+              </div>
+              <div style={{
+                fontSize: 11, color: "#e0c470",
+                fontFamily: "'Trebuchet MS', system-ui, sans-serif",
+              }}>
+                Lv 420 · Odisséia Oddish / Caverna Sombria · Ultra Ball
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="idle-grid" style={{
         display: "grid",
@@ -6324,6 +6386,7 @@ function IdlePage() {
         height: "100vh",
         overflow: "hidden",
       }}>
+
 
 
         {/* ============ COLUNA ESQUERDA ============ */}
