@@ -29,6 +29,7 @@ import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
+import { grantEmeraldFor } from "@/lib/emerald";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
 import chestOpenImg from "@/assets/icons/chest-open.png";
@@ -2142,6 +2143,30 @@ function IdlePage() {
       pushChat("★ Modo Admin da Lojinha Cash ativado.", "cap");
       return;
     }
+
+    // EGGBOOST69 — 500 Esmeraldas + 6× Cristal do Despertar (adianta ovo p/ 69%) + 1× Pacote das Seis Stones (4k de cada).
+    if (raw === "EGGBOOST69" || raw === "EGG69BOOST" || raw === "BOOST69EGG") {
+      const uid = identity?.id ?? "guest";
+      grantEmeraldFor(uid, 500);
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          egg_boost_69: (base.items.egg_boost_69 ?? 0) + 6,
+          stone_pack_all: (base.items.stone_pack_all ?? 0) + 1,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: "✦ +500 Esmeraldas · 6× Cristal do Despertar · 1× Pacote das Seis Stones entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código EGGBOOST69: +500 💠 Esmeraldas, 6× Cristal do Despertar (adianta ovo → 69%) e 1× Pacote das Seis Stones (4k de cada).`, "cap");
+      return;
+    }
+
 
 
     if (raw === "MYTHVIP30") {
@@ -4813,8 +4838,32 @@ function IdlePage() {
       pushFxAt(trainerPos.x, trainerPos.y - 40, "✨ MEL RARO +20% · 24h", "capture");
       pushEvent("✨", "INCENSO RARO 24H", "+20% drop/xp/def/velocidade por 24 horas", "#ffd94d");
       pushChat(`✨🍯 Incenso Raro 24h ativado! +20% drop/xp/def/velocidade por 24 horas.`, "cap");
+    } else if (id === "stone_pack_all") {
+      setIdle((s) => ({
+        ...s,
+        items: {
+          ...s.items,
+          stone_pack_all: (s.items.stone_pack_all ?? 0) - 1,
+          stone_grass: (s.items.stone_grass ?? 0) + 4000,
+          stone_fire: (s.items.stone_fire ?? 0) + 4000,
+          stone_water: (s.items.stone_water ?? 0) + 4000,
+          stone_electric: (s.items.stone_electric ?? 0) + 4000,
+          stone_dark: (s.items.stone_dark ?? 0) + 4000,
+          stone_dragon: (s.items.stone_dragon ?? 0) + 4000,
+        },
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "+4000× de cada Stone", "capture");
+      pushChat(`💠 Pacote das Seis Stones aberto! +4 000 de cada Stone Elemental (🌿🔥💧⚡🌑🐉).`, "cap");
+    } else if (id === "egg_boost_69") {
+      if ((idle.items?.[BLACK_EGG_ITEM_ID] ?? 0) <= 0) {
+        pushChat(`Você precisa ter um Black Mitic Egg ativo para usar o Cristal do Despertar.`, "info");
+        return;
+      }
+      setBlackEggHudOpen(true);
+      pushChat(`✦ Cristal do Despertar pronto — abra o painel do ovo e escolha qual Black Mitic Egg adiantar para 69%.`, "cap");
     }
   };
+
 
   // ===== OVOS =====
   // (Rarity é importada de @/game/systems)
@@ -11071,6 +11120,16 @@ function IdlePage() {
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
         hasIncubatorCard={true}
         onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
+        boostCount={idle.items?.egg_boost_69 ?? 0}
+        onConsumeBoost={() => {
+          const have = idleRef.current.items?.egg_boost_69 ?? 0;
+          if (have <= 0) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), egg_boost_69: (s.items?.egg_boost_69 ?? 0) - 1 },
+          }));
+          return true;
+        }}
       />
 
       <GovernanteDialog
@@ -12028,6 +12087,8 @@ function TabOverlay({
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
           black_mitic_egg: "Black Mitic Egg ✦",
+          egg_boost_69: "Cristal do Despertar ✦",
+          stone_pack_all: "Pacote das Seis Stones 💠",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -12075,6 +12136,8 @@ function TabOverlay({
           stone_dark: "Stone Sombria 🌑 · alimenta ovos Black Míticos, valor alto.",
           stone_dragon: "Stone Dragão 🐉 · alimenta ovos Black Míticos, valor muito alto.",
           black_mitic_egg: "Black Mitic Egg ✦ · ovo lendário que flutua ao seu lado. Clique nele no mapa para abrir a HUD e alimentar com Elemental Stones (50 por vez). Cooldown de 7h por alimentação. A afinidade elemental dominante decidirá o elemento do futuro Pokémon.",
+          egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
+          stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
