@@ -7201,33 +7201,35 @@ function IdlePage() {
                           const isMe = !!identity?.id && r.id === identity.id;
                            const isTop50 = i < 50;
                            const rubyAmount = i === 0 ? 15 : i === 1 ? 13 : i === 2 ? 11 : i === 3 ? 7 : 3;
-                           const alreadyClaimed = !!idle.redeemedCodes?.["RANKED_RUBY_KEY"];
+                           const rubyFlag = `RANKED_RUBY_KEY_${rankMode.toUpperCase()}`;
+                           const rubyModeLabel = rankMode === "craft" ? "Craft" : "Treinador";
+                           const alreadyClaimed = !!idle.redeemedCodes?.[rubyFlag];
                            const canClaim = isMe && isTop50 && !alreadyClaimed;
                            const claimRubyKey = () => {
                              const base = idleRef.current;
-                             if (base.redeemedCodes?.["RANKED_RUBY_KEY"]) {
-                               pushChat("🔴 Chave Ruby já foi coletada nesta conta.", "info");
+                             if (base.redeemedCodes?.[rubyFlag]) {
+                               pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
                                return;
                              }
                              const ok = typeof window !== "undefined"
-                               ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby?\n\nEsta recompensa é ÚNICA por conta e NÃO poderá ser coletada novamente.\n\nDeseja confirmar?`)
+                               ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta POR RANKING (Craft e Treinador são separados) e NÃO poderá ser coletada novamente neste ranking.\n\nDeseja confirmar?`)
                                : true;
                              if (!ok) return;
-                             // Re-check após o confirm pra evitar dupla coleta
                              const fresh = idleRef.current;
-                             if (fresh.redeemedCodes?.["RANKED_RUBY_KEY"]) {
-                               pushChat("🔴 Chave Ruby já foi coletada nesta conta.", "info");
+                             if (fresh.redeemedCodes?.[rubyFlag]) {
+                               pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
                                return;
                              }
                              const next: IdleState = {
                                ...fresh,
                                items: { ...fresh.items, chave_ruby: (fresh.items?.chave_ruby ?? 0) + rubyAmount },
-                               redeemedCodes: { ...(fresh.redeemedCodes ?? {}), RANKED_RUBY_KEY: true },
+                               redeemedCodes: { ...(fresh.redeemedCodes ?? {}), [rubyFlag]: true },
                              };
                              setIdle(next);
                              try { persistCodeReward(next); } catch { /* ignore */ }
-                             pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked Global! (coleta única)`, "cap");
+                             pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked ${rubyModeLabel}! (coleta única por ranking)`, "cap");
                            };
+
 
                           return (
                             <div key={r.id} style={{
@@ -7278,7 +7280,7 @@ function IdlePage() {
                                         opacity: canClaim ? 1 : 0.7,
                                       }}
                                     >
-                                      {alreadyClaimed ? "🔴 Chave Ruby coletada" : `🔴 Coletar ${rubyAmount}× Chave Ruby (Top ${i + 1})`}
+                                      {alreadyClaimed ? `🔴 Chave Ruby (${rubyModeLabel}) coletada` : `🔴 Coletar ${rubyAmount}× Chave Ruby (Top ${i + 1} · ${rubyModeLabel})`}
                                     </button>
                                   </div>
                                 )}
