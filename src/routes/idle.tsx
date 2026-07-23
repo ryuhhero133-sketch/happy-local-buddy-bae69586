@@ -7280,7 +7280,7 @@ function IdlePage() {
                                         opacity: canClaim ? 1 : 0.7,
                                       }}
                                     >
-                                      {alreadyClaimed ? "🔴 Chave Ruby coletada" : `🔴 Coletar ${rubyAmount}× Chave Ruby (Top ${i + 1})`}
+                                      {alreadyClaimed ? `🔴 Chave Ruby (${rubyModeLabel}) coletada` : `🔴 Coletar ${rubyAmount}× Chave Ruby (Top ${i + 1} · ${rubyModeLabel})`}
                                     </button>
                                   </div>
                                 )}
