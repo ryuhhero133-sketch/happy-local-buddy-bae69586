@@ -562,6 +562,243 @@ function LivingEggDialog({ pct, feedTick }: { pct: number; feedTick: number }) {
   );
 }
 
+// ================================================================
+// InstabilityFX — camada de "medo/instabilidade" da Transcendência
+// Cresce a partir de 70% (hatchPct). Adiciona partículas, ondas,
+// piscadas, pulsos, avisos e um pouco de áudio ambiente aleatório.
+// ================================================================
+type InstWarn = { id: number; text: string };
+const INST_WARN_LINES = [
+  "⚠ Energia acima do normal.",
+  "⚠ Instabilidade detectada.",
+  "⚠ A criatura está reagindo.",
+  "⚠ A casca não consegue conter essa energia.",
+  "⚠ Recomenda-se preparar a Transcendência.",
+  "⚠ Fluxo elemental instável.",
+  "⚠ Pulso vital acelerando.",
+];
+
+function useInstabilityAudio() {
+  const ctxRef = useRef<AudioContext | null>(null);
+  const getCtx = () => {
+    if (typeof window === "undefined") return null;
+    if (ctxRef.current) return ctxRef.current;
+    try {
+      const Ctor = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!Ctor) return null;
+      ctxRef.current = new Ctor();
+    } catch { return null; }
+    return ctxRef.current;
+  };
+  const boom = (freq: number, dur: number, vol = 0.05, type: OscillatorType = "sine") => {
+    const ctx = getCtx(); if (!ctx) return;
+    try {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type; o.frequency.value = freq;
+      g.gain.value = 0;
+      o.connect(g); g.connect(ctx.destination);
+      const t = ctx.currentTime;
+      g.gain.linearRampToValueAtTime(vol, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.start(t); o.stop(t + dur + 0.05);
+    } catch {}
+  };
+  return {
+    heartbeat: () => { boom(55, 0.35, 0.08, "sine"); setTimeout(() => boom(70, 0.28, 0.06, "sine"), 180); },
+    knock: () => boom(90 + Math.random() * 40, 0.15, 0.07, "square"),
+    crack: () => boom(2200 + Math.random() * 800, 0.06, 0.03, "sawtooth"),
+    breath: () => boom(180, 0.5, 0.02, "triangle"),
+  };
+}
+
+function InstabilityFX({ pct, feedTick, totalFed }: { pct: number; feedTick: number; totalFed: number }) {
+  // Instabilidade base (0..1) — cresce depois de 70%, satura em 100%.
+  const base = Math.max(0, Math.min(1, (pct - 0.7) / 0.3));
+  // Nível dinâmico com "picos" após feeds e decaimento suave.
+  const [spike, setSpike] = useState(0);
+  const [warns, setWarns] = useState<InstWarn[]>([]);
+  const [tremor, setTremor] = useState(false);
+  const [dim, setDim] = useState(false);
+  const [wave, setWave] = useState(0);
+  const feedRef = useRef(feedTick);
+  const audio = useInstabilityAudio();
+
+  const level = Math.min(1, base + spike);
+
+  // Reage a cada feed
+  useEffect(() => {
+    if (feedTick !== feedRef.current && feedTick > 0) {
+      feedRef.current = feedTick;
+      setSpike((s) => Math.min(0.6, s + 0.25));
+      setWave((w) => w + 1);
+      if (base >= 0.5 && Math.random() < 0.6) audio.knock();
+    }
+  }, [feedTick, base, audio]);
+
+  // Decaimento do pico
+  useEffect(() => {
+    if (spike <= 0) return;
+    const t = setInterval(() => setSpike((s) => Math.max(0, s - 0.04)), 400);
+    return () => clearInterval(t);
+  }, [spike]);
+
+  // Fenômenos aleatórios (mais frequentes com nível alto)
+  useEffect(() => {
+    if (base <= 0) return;
+    let alive = true;
+    const tick = () => {
+      if (!alive) return;
+      const chanceInterval = Math.max(1400, 6000 - level * 5000);
+      const kind = Math.random();
+      if (kind < 0.28) { setTremor(true); setTimeout(() => setTremor(false), 480); if (level > 0.4) audio.knock(); }
+      else if (kind < 0.5) { setDim(true); setTimeout(() => setDim(false), 900); }
+      else if (kind < 0.72) { setWave((w) => w + 1); }
+      else if (kind < 0.9) {
+        const id = Date.now() + Math.random();
+        const text = INST_WARN_LINES[Math.floor(Math.random() * INST_WARN_LINES.length)];
+        setWarns((ws) => [...ws.slice(-2), { id, text }]);
+        setTimeout(() => setWarns((ws) => ws.filter((w) => w.id !== id)), 2600);
+      } else {
+        if (Math.random() < 0.5) audio.heartbeat(); else audio.breath();
+      }
+      setTimeout(tick, chanceInterval + Math.random() * 2000);
+    };
+    const start = setTimeout(tick, 1500 + Math.random() * 1500);
+    return () => { alive = false; clearTimeout(start); };
+  }, [base, level, audio]);
+
+  // Batidas / estalos periódicos
+  useEffect(() => {
+    if (base < 0.4) return;
+    let alive = true;
+    const beat = () => {
+      if (!alive) return;
+      if (Math.random() < 0.7) audio.heartbeat();
+      setTimeout(beat, 6000 + Math.random() * 8000);
+    };
+    const t = setTimeout(beat, 5000);
+    return () => { alive = false; clearTimeout(t); };
+  }, [base, audio]);
+
+  useEffect(() => {
+    if (base < 0.3) return;
+    let alive = true;
+    const cr = () => {
+      if (!alive) return;
+      if (Math.random() < 0.5) audio.crack();
+      setTimeout(cr, 3500 + Math.random() * 5000);
+    };
+    const t = setTimeout(cr, 3000);
+    return () => { alive = false; clearTimeout(t); };
+  }, [base, audio]);
+
+  if (base <= 0) return null;
+
+  const particles = 6 + Math.round(level * 22);
+  const critical = pct >= 0.95;
+  const maxed = pct >= 1;
+
+  return (
+    <div style={{
+      position: "absolute", inset: 0, pointerEvents: "none", zIndex: 20,
+      overflow: "hidden", borderRadius: 14,
+      animation: tremor ? "instShake 0.45s ease-in-out" : undefined,
+    }}>
+      {/* Escurecimento pulsante */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: `radial-gradient(circle at 50% 40%, transparent 30%, rgba(10,0,25,${(0.15 + level * 0.35) * (dim ? 1.4 : 1)}) 100%)`,
+        transition: "background 0.6s ease",
+        mixBlendMode: "multiply",
+      }} />
+
+      {/* Pulso do painel (coração) */}
+      <div style={{
+        position: "absolute", inset: 0,
+        boxShadow: `inset 0 0 ${40 + level * 80}px rgba(160,80,255,${0.25 + level * 0.45})`,
+        animation: `instHeart ${Math.max(1.1, 2.4 - level * 1.4).toFixed(2)}s ease-in-out infinite`,
+        borderRadius: 14,
+      }} />
+
+      {/* Bordas piscando */}
+      <div style={{
+        position: "absolute", inset: 0, borderRadius: 14,
+        border: `1px solid rgba(197,139,255,${0.4 + level * 0.5})`,
+        boxShadow: `0 0 ${12 + level * 30}px rgba(197,139,255,${0.35 + level * 0.5}), inset 0 0 ${8 + level * 22}px rgba(255,90,180,${level * 0.5})`,
+        animation: `instEdge ${(1.4 - level * 0.9).toFixed(2)}s ease-in-out infinite`,
+      }} />
+
+      {/* Onda de energia */}
+      <div key={wave} style={{
+        position: "absolute", top: 0, bottom: 0, width: "40%",
+        background: "linear-gradient(90deg, transparent, rgba(197,139,255,0.35), rgba(255,90,180,0.25), transparent)",
+        filter: "blur(6px)",
+        animation: "instWave 1.4s ease-out forwards",
+      }} />
+
+      {/* Partículas roxas (e douradas em nível alto) */}
+      {Array.from({ length: particles }).map((_, i) => {
+        const gold = level > 0.6 && Math.random() < 0.35;
+        const size = 2 + Math.random() * (gold ? 3 : 2.5);
+        const dur = 3 + Math.random() * 4;
+        const delay = Math.random() * 4;
+        const left = 40 + Math.random() * 20;
+        const drift = -20 + Math.random() * 40;
+        return (
+          <span key={i} style={{
+            position: "absolute", left: `${left}%`, bottom: -6,
+            width: size, height: size, borderRadius: "50%",
+            background: gold ? "#ffd84d" : "#c58bff",
+            boxShadow: gold ? "0 0 8px #ffd84d" : "0 0 8px #a066ff",
+            opacity: 0, ["--drift" as any]: `${drift}px`,
+            animation: `instParticle ${dur}s linear ${delay}s infinite`,
+          }} />
+        );
+      })}
+
+      {/* Avisos do sistema */}
+      <div style={{
+        position: "absolute", top: 60, right: 14, display: "flex", flexDirection: "column", gap: 6,
+        alignItems: "flex-end", maxWidth: "60%",
+      }}>
+        {warns.map((w) => (
+          <div key={w.id} style={{
+            padding: "6px 10px", fontSize: 8, letterSpacing: 1,
+            color: "#ffe0a0",
+            background: "linear-gradient(90deg, rgba(80,20,20,0.7), rgba(40,10,60,0.7))",
+            border: "1px solid rgba(255,200,80,0.7)",
+            boxShadow: "0 0 10px rgba(255,180,60,0.5)",
+            borderRadius: 6,
+            fontFamily: "'Press Start 2P', monospace",
+            animation: "instWarnIn 0.35s ease-out",
+          }}>{w.text}</div>
+        ))}
+      </div>
+
+      {/* Banner crítico ≥95% */}
+      {critical && (
+        <div style={{
+          position: "absolute", top: 70, left: "50%", transform: "translateX(-50%)",
+          padding: "8px 14px", borderRadius: 8,
+          background: "linear-gradient(90deg, rgba(120,10,30,0.85), rgba(60,10,90,0.85))",
+          border: "1px solid #ff5aa8",
+          boxShadow: "0 0 22px rgba(255,90,180,0.75)",
+          color: "#ffd8ea", fontSize: 10, letterSpacing: 1.5, textAlign: "center",
+          fontFamily: "'Press Start 2P', monospace",
+          animation: "instCritical 1.1s ease-in-out infinite",
+          maxWidth: "80%",
+        }}>
+          {maxed
+            ? <>⚠ ENERGIA CRÍTICA<br /><span style={{ fontSize: 8, color: "#ffb0d6" }}>Uma criatura de poder imensurável está prestes a nascer.<br />Continue alimentando ou realize a Transcendência agora.</span></>
+            : <>⚠ A CASCA ESTÁ NO LIMITE<br /><span style={{ fontSize: 8, color: "#ffb0d6" }}>A energia pode romper a qualquer instante.</span></>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function pushJournal(egg: EggInstance, mood: JournalMood, text: string, element?: ElementId): EggInstance {
