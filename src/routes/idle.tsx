@@ -5207,6 +5207,13 @@ function IdlePage() {
             }
           }
         }
+        // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas.
+        {
+          const BANNED = new Set<Species>(["darkrai", "dragonite", "dragonite_shiny"] as Species[]);
+          const filtered = pool.filter((p) => !BANNED.has(p));
+          if (filtered.length > 0) pool = filtered;
+          else pool = ["oddish"] as Species[];
+        }
         sp = pool[Math.floor(Math.random() * pool.length)];
         // 🔒 FILTRO DE VALIOSOS — se a espécie tem raridade base alta (mítico/lendário)
         // e não foi forçada por evento, aplica um gate probabilístico e re-sorteia
