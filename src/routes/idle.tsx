@@ -14802,7 +14802,7 @@ function GovernanteDialog(props: {
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ fontSize: 11, color: "#c58bff" }}>
-              Cartas: <b style={{ color: "#ffd44a" }}>{cards}</b> · Plus: <b style={{ color: "#ffd44a" }}>{plusCards}</b> · Ovos atuais: <b style={{ color: "#ffd44a" }}>{currentEggs}/6</b>
+              Cartas: <b style={{ color: "#ffd44a" }}>{cards}</b> · Plus: <b style={{ color: "#ffd44a" }}>{plusCards}</b> · Riolu: <b style={{ color: "#7ec4ff" }}>{rioluCards}</b> · Ovos atuais: <b style={{ color: "#ffd44a" }}>{currentEggs}/6</b>
             </div>
             <div style={{ flex: 1 }} />
             {!isLast ? (
@@ -14814,7 +14814,7 @@ function GovernanteDialog(props: {
                   fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
                 }}
               >CONTINUAR ▸</button>
-            ) : (canGive > 0 || canGivePlus > 0) ? (
+            ) : (canGive > 0 || canGivePlus > 0 || canGiveRiolu > 0) ? (
               <>
                 <button
                   onClick={onClose}
@@ -14835,6 +14835,18 @@ function GovernanteDialog(props: {
                       boxShadow: "0 0 18px rgba(208,102,255,0.85)",
                     }}
                   >✦ PLUS {canGivePlus} POKÉMON{canGivePlus > 1 ? "S" : ""} NA COLEÇÃO</button>
+                )}
+                {canGiveRiolu > 0 && onExchangeRiolu && (
+                  <button
+                    onClick={() => { onExchangeRiolu(canGiveRiolu); onClose(); }}
+                    style={{
+                      padding: "10px 18px",
+                      background: "linear-gradient(180deg, #1a1a4a, #050515)",
+                      border: "1px solid #7ec4ff", borderRadius: 8, color: "#e0f0ff",
+                      fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                      boxShadow: "0 0 20px rgba(126,196,255,0.9), inset 0 0 12px rgba(160,80,255,0.4)",
+                    }}
+                  >🐺✦ RIOLU BLACK MITIC BRILHANT PLUS ×{canGiveRiolu}</button>
                 )}
                 {canGive > 0 && (
                   <button
