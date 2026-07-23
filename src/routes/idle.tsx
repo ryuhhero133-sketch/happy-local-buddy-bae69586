@@ -375,6 +375,10 @@ const orbXpMinorUrl = assetUrlFromJson(orbXpMinorAsset);
 const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
 const orbXpSupremeUrl = assetUrlFromJson(orbXpSupremeAsset);
 const orbXpTeamUrl = assetUrlFromJson(orbXpTeamAsset);
+// Ícones "de buff" bonitos (HUD do treinador) — orb XP, incenso e orb de time
+const buffOrbXpUrl = (new URL("../assets/buff-orb-xp.png", import.meta.url)).href;
+const buffIncenseHoneyUrl = (new URL("../assets/buff-incense-honey.png", import.meta.url)).href;
+const buffTeamOrbUrl = (new URL("../assets/buff-team-orb.png", import.meta.url)).href;
 const npcTraderUrl = assetUrlFromJson(npcTraderAsset);
 const redLakeUrl = assetUrlFromJson(redLakeAsset);
 const volcanoUrl = assetUrlFromJson(volcanoAsset);
