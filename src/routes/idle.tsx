@@ -2144,6 +2144,30 @@ function IdlePage() {
       return;
     }
 
+    // EGGBOOST69 — 500 Esmeraldas + 6× Cristal do Despertar (adianta ovo p/ 69%) + 1× Pacote das Seis Stones (4k de cada).
+    if (raw === "EGGBOOST69" || raw === "EGG69BOOST" || raw === "BOOST69EGG") {
+      const uid = identity?.id ?? "guest";
+      grantEmeraldFor(uid, 500);
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          egg_boost_69: (base.items.egg_boost_69 ?? 0) + 6,
+          stone_pack_all: (base.items.stone_pack_all ?? 0) + 1,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: "✦ +500 Esmeraldas · 6× Cristal do Despertar · 1× Pacote das Seis Stones entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código EGGBOOST69: +500 💠 Esmeraldas, 6× Cristal do Despertar (adianta ovo → 69%) e 1× Pacote das Seis Stones (4k de cada).`, "cap");
+      return;
+    }
+
+
 
     if (raw === "MYTHVIP30") {
       const nowT = Date.now();
