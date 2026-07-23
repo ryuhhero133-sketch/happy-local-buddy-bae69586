@@ -74,6 +74,14 @@ export type EggInstance = {
   missedFeedings: number;      // feeds atrasados (>1h30 desde cooldown)
   lastMilestone: number;       // último marco de totalFed anunciado (excesso)
   recentFeedAt: Partial<Record<ElementId, number>>; // brilho recente por elemento
+  // Bônus (rompimento dos elementais) — habilitado a partir de 70% de incubação
+  bonusFed: Partial<Record<ElementId, number>>;   // total bônus por elemento
+  bonusAttempts: number;                           // tentativas (aceitas + rejeitadas)
+  bonusAccepted: number;                           // apenas aceitas
+  bonusRejected: number;                           // apenas rejeitadas
+  lastBonusFeedAt: number;                         // cooldown 10min
+  ruptured: boolean;                               // true → nasce com 6 traits
+  lastBonusResult?: { ts: number; kind: "accept" | "reject"; element: ElementId; amount: number; line: string } | null;
 };
 
 type CollectionState = {
