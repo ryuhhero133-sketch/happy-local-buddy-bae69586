@@ -692,6 +692,7 @@ export function BlackMiticEggHud(props: {
           const merged: CollectionState = {
             eggs: remote.eggs as EggInstance[],
             selectedId: typeof remote.selectedId === "string" ? remote.selectedId : (remote.eggs[0]?.id ?? null),
+            hatchedHistory: Array.isArray(remote.hatchedHistory) ? remote.hatchedHistory.slice(-10) : [],
           };
           setState(merged);
           saveState(uid, merged);
