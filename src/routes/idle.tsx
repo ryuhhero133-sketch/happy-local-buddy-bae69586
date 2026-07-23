@@ -896,6 +896,7 @@ type IdleState = {
   // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   redeemedCodes?: Record<string, boolean>;
+  blackMiticPlusPending?: number; // ovos Plus emitidos pelo Governante que ainda precisam ser marcados no painel
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
@@ -2591,6 +2592,33 @@ function IdlePage() {
       pushChat(`🔮 Código ${raw}: Carta da Incubadora Lendária entregue.`, "cap");
       return;
     }
+    // BLACKMITICPLUS / BMP* — Carta Suprema Plus (single-use) → troca no Governante por ovo VERSÁTIL 6-traits
+    if (
+      raw === "BLACKMITICPLUS" || raw === "BLACKMITICPLUS1" || raw === "BLACKMITICPLUS2" ||
+      raw === "BLACKMITICPLUS3" || raw === "BLACKMITICPLUS4" || raw === "BLACKMITICPLUS5" ||
+      raw === "BMP2026" || raw === "BMP2X26"
+    ) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const hasKey = (base.items?.carta_governante ?? 0) > 0;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          carta_plus: (base.items?.carta_plus ?? 0) + 1,
+          carta_governante: (base.items?.carta_governante ?? 0) + (hasKey ? 0 : 1),
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "✦ Carta Suprema Plus recebida! Fale com o Governante para trocar por Black Mitic Plus VERSÁTIL (6 traits)." });
+      setCodeInput("");
+      pushChat(`✦ Código ${raw}: Carta Suprema Plus entregue — troque com o Governante por 1 ovo VERSÁTIL (6 traits).`, "cap");
+      return;
+    }
+
 
     // GOV6CARDS1..4 — 6 Cartas Lendárias (single-use)
     // GOV1CARD — 1 Carta Lendária
@@ -11241,7 +11269,7 @@ function IdlePage() {
           }));
           return true;
         }}
-        onHatched={(species, element, traits) => {
+        onHatched={(species, element, traits, plus) => {
           const hatchSpecies = (species in SPECIES_BASE ? species : "charizard_shiny") as Species;
           const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
             ? crypto.randomUUID()
@@ -11251,6 +11279,10 @@ function IdlePage() {
           const nextItems = { ...(base.items ?? {}) };
           if (curCount <= 1) delete nextItems[BLACK_EGG_ITEM_ID];
           else nextItems[BLACK_EGG_ITEM_ID] = curCount - 1;
+          // Cicla a Carta Suprema Plus: ao chocar um ovo Plus, devolve 1 carta.
+          if (plus) {
+            nextItems.carta_plus = (nextItems.carta_plus ?? 0) + 1;
+          }
           const entry: CollectionEntry = {
             uid,
             species: hatchSpecies,
@@ -11259,7 +11291,7 @@ function IdlePage() {
             rarity: "mythic_shiny",
             capturedAt: Date.now(),
             traits,
-            event: `black_mitic_plus:${element}`,
+            event: `black_mitic_plus:${element}${plus ? ":plus" : ""}`,
           };
           const nextIdle: IdleState = {
             ...base,
@@ -11273,13 +11305,21 @@ function IdlePage() {
           saveIdle(nextIdle);
           setIdle(nextIdle);
           void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
-          pushChat(`✦ Black Mitic Plus (${element}) nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
+          const tag = plus ? "Black Mitic PLUS ✦ (Versátil, 6 traits) + 1 Carta Suprema Plus devolvida" : `Black Mitic Plus (${element})`;
+          pushChat(`✦ ${tag} nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
         hasIncubatorCard={true}
         onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
         boostCount={idle.items?.egg_boost_69 ?? 0}
         musicControlledExternally
+        plusPending={idle.blackMiticPlusPending ?? 0}
+        onConsumePlus={(count) => {
+          setIdle((s) => ({
+            ...s,
+            blackMiticPlusPending: Math.max(0, (s.blackMiticPlusPending ?? 0) - count),
+          }));
+        }}
         onConsumeBoost={() => {
           const have = idleRef.current.items?.egg_boost_69 ?? 0;
           if (have <= 0) return false;
@@ -11294,6 +11334,7 @@ function IdlePage() {
       <GovernanteDialog
         open={governanteOpen}
         cards={idle.items?.carta_incubadora ?? 0}
+        plusCards={idle.items?.carta_plus ?? 0}
         currentEggs={idle.items?.black_mitic_egg ?? 0}
         onClose={() => setGovernanteOpen(false)}
         onExchange={(qty) => {
@@ -11312,6 +11353,24 @@ function IdlePage() {
             },
           }));
           pushChat(`👑 Governante consumiu ${use}× Carta da Incubadora e entregou ${use}× Black Mitic Plus Egg.`, "cap");
+        }}
+        onExchangePlus={(qty) => {
+          const base = idleRef.current;
+          const cards = base.items?.carta_plus ?? 0;
+          const eggs = base.items?.black_mitic_egg ?? 0;
+          const maxByEggCap = Math.max(0, 6 - eggs);
+          const use = Math.min(qty, cards, maxByEggCap);
+          if (use <= 0) return;
+          setIdle((s) => ({
+            ...s,
+            items: {
+              ...(s.items ?? {}),
+              carta_plus: (s.items?.carta_plus ?? 0) - use,
+              black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + use,
+            },
+            blackMiticPlusPending: (s.blackMiticPlusPending ?? 0) + use,
+          }));
+          pushChat(`✦ Governante consumiu ${use}× Carta Suprema Plus e entregou ${use}× Black Mitic Plus VERSÁTIL (6 traits garantidos).`, "cap");
         }}
       />
     </div>
@@ -12242,6 +12301,7 @@ function TabOverlay({
           safira_verde: "Safira Verde 💚",
           carta_governante: "Carta do Governante 👑",
           carta_incubadora: "Carta da Incubadora Lendária 🔮",
+          carta_plus: "Carta Suprema Plus ✦",
           stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
@@ -12288,6 +12348,7 @@ function TabOverlay({
           chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
           carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
           carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
+          carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para receber 1 Black Mitic Plus Egg VERSÁTIL garantido com 6 traits. Ao chocar, você recebe outra carta para repetir o ciclo.",
           stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
           stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
           stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
@@ -14518,24 +14579,29 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
 function GovernanteDialog(props: {
   open: boolean;
   cards: number;
+  plusCards?: number;
   currentEggs: number;
   onClose: () => void;
   onExchange: (qty: number) => void;
+  onExchangePlus?: (qty: number) => void;
 }) {
-  const { open, cards, currentEggs, onClose, onExchange } = props;
+  const { open, cards, plusCards = 0, currentEggs, onClose, onExchange, onExchangePlus } = props;
   const [step, setStep] = useState(0);
   useEffect(() => { if (open) setStep(0); }, [open]);
   if (!open) return null;
   const maxByCap = Math.max(0, 6 - currentEggs);
   const canGive = Math.min(cards, maxByCap);
+  const canGivePlus = Math.min(plusCards, maxByCap);
   const lines = [
     "Ah... um treinador digno enfim cruza meu salão.",
-    cards > 0
-      ? `Vejo em suas mãos ${cards} Carta${cards > 1 ? "s" : ""} Lendária${cards > 1 ? "s" : ""}. Cada uma vale um Black Mitic Plus Egg.`
-      : "Você não porta nenhuma Carta Lendária... volte quando obtiver ao menos uma.",
-    canGive > 0
-      ? `Posso lhe entregar ${canGive} ovo${canGive > 1 ? "s" : ""} agora (limite de 6 simultâneos).`
+    plusCards > 0
+      ? `Percebo o brilho de ${plusCards} Carta${plusCards > 1 ? "s" : ""} Suprema${plusCards > 1 ? "s" : ""} Plus. Cada uma invoca um ovo VERSÁTIL, com 6 traits garantidos.`
       : cards > 0
+        ? `Vejo em suas mãos ${cards} Carta${cards > 1 ? "s" : ""} Lendária${cards > 1 ? "s" : ""}. Cada uma vale um Black Mitic Plus Egg.`
+        : "Você não porta nenhuma Carta... volte quando obtiver ao menos uma.",
+    (canGive > 0 || canGivePlus > 0)
+      ? `Posso lhe entregar ${canGivePlus > 0 ? `${canGivePlus} ovo${canGivePlus > 1 ? "s" : ""} PLUS ✦` : ""}${canGivePlus > 0 && canGive > 0 ? " ou " : ""}${canGive > 0 ? `${canGive} ovo${canGive > 1 ? "s" : ""} comum` : ""} (limite 6 simultâneos).`
+      : (cards > 0 || plusCards > 0)
         ? "Mas você já carrega o máximo de 6 ovos. Chocolate os primeiros antes de retornar."
         : "Volte quando estiver pronto.",
   ];
@@ -14611,7 +14677,7 @@ function GovernanteDialog(props: {
                   fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
                 }}
               >CONTINUAR ▸</button>
-            ) : canGive > 0 ? (
+            ) : (canGive > 0 || canGivePlus > 0) ? (
               <>
                 <button
                   onClick={onClose}
@@ -14621,16 +14687,30 @@ function GovernanteDialog(props: {
                     fontWeight: 600, cursor: "pointer", fontSize: 11,
                   }}
                 >Agora não</button>
-                <button
-                  onClick={() => { onExchange(canGive); onClose(); }}
-                  style={{
-                    padding: "10px 18px",
-                    background: "linear-gradient(180deg, #ffd44a, #b88010)",
-                    border: "1px solid #ffe988", borderRadius: 8, color: "#2a1500",
-                    fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
-                    boxShadow: "0 0 14px rgba(255,212,74,0.7)",
-                  }}
-                >✦ RECEBER {canGive} OVO{canGive > 1 ? "S" : ""}</button>
+                {canGivePlus > 0 && onExchangePlus && (
+                  <button
+                    onClick={() => { onExchangePlus(canGivePlus); onClose(); }}
+                    style={{
+                      padding: "10px 18px",
+                      background: "linear-gradient(180deg, #d066ff, #4a1080)",
+                      border: "1px solid #ffe988", borderRadius: 8, color: "#fff",
+                      fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                      boxShadow: "0 0 18px rgba(208,102,255,0.85)",
+                    }}
+                  >✦ PLUS {canGivePlus} OVO{canGivePlus > 1 ? "S" : ""} (6 TRAITS)</button>
+                )}
+                {canGive > 0 && (
+                  <button
+                    onClick={() => { onExchange(canGive); onClose(); }}
+                    style={{
+                      padding: "10px 18px",
+                      background: "linear-gradient(180deg, #ffd44a, #b88010)",
+                      border: "1px solid #ffe988", borderRadius: 8, color: "#2a1500",
+                      fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                      boxShadow: "0 0 14px rgba(255,212,74,0.7)",
+                    }}
+                  >✦ RECEBER {canGive} OVO{canGive > 1 ? "S" : ""}</button>
+                )}
               </>
             ) : (
               <button

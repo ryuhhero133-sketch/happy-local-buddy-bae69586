@@ -4,6 +4,7 @@ import React from "react";
 import cartaGovernanteAsset from "@/assets/carta-governante.png.asset.json";
 import cartaIncubadoraAsset from "@/assets/carta-incubadora.png.asset.json";
 import rubyKeyAsset from "@/assets/ruby-key.png.asset.json";
+import cartaPlusAsset from "@/assets/black-mitic-plus-egg-icon.png.asset.json";
 import { assetUrlFromJson } from "@/lib/assetUrl";
 
 // Overrides que renderizam uma imagem bitmap ao invés do glyph SVG.
@@ -11,6 +12,7 @@ const BITMAP_OVERRIDES: Record<string, string> = {
   carta_governante: assetUrlFromJson(cartaGovernanteAsset),
   carta_incubadora: assetUrlFromJson(cartaIncubadoraAsset),
   chave_ruby: assetUrlFromJson(rubyKeyAsset),
+  carta_plus: assetUrlFromJson(cartaPlusAsset),
 };
 
 type Cell = [number, number, string]; // x, y, color
