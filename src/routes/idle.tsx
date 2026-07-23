@@ -2602,21 +2602,26 @@ function IdlePage() {
       return;
     }
     // BLACKMITICPLUS / BMP* — Carta Suprema Plus (single-use) → troca no Governante por Pokémon direto na Coleção
-    if (
-      raw === "BLACKMITICPLUS" || raw === "BLACKMITICPLUS1" || raw === "BLACKMITICPLUS2" ||
-      raw === "BLACKMITICPLUS3" || raw === "BLACKMITICPLUS4" || raw === "BLACKMITICPLUS5" ||
-      raw === "BMP2026" || raw === "BMP2X26" || raw === "BLACKPLUSCOLECAO" ||
-      raw === "BMPCOLECAO" || raw === "PLUSCOLECAO2026" ||
-      raw === "CARATAGOV" || raw === "CARTAGOV2026"
-    ) {
+    // Códigos "2X" entregam 2 Cartas Supremas Plus de uma vez (uso único do código).
+    const plusMap: Record<string, number> = {
+      BLACKMITICPLUS: 1, BLACKMITICPLUS1: 1, BLACKMITICPLUS2: 1,
+      BLACKMITICPLUS3: 1, BLACKMITICPLUS4: 1, BLACKMITICPLUS5: 1,
+      BMP2026: 1, BMP2X26: 1, BLACKPLUSCOLECAO: 1,
+      BMPCOLECAO: 1, PLUSCOLECAO2026: 1,
+      CARATAGOV: 1, CARTAGOV2026: 1,
+      // Novo código — 2 Cartas Supremas Plus (uso único)
+      CARTAGOV2X: 2,
+    };
+    if (plusMap[raw]) {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const qty = plusMap[raw];
       const hasKey = (base.items?.carta_governante ?? 0) > 0;
       const next: IdleState = {
         ...base,
         items: {
           ...base.items,
-          carta_plus: (base.items?.carta_plus ?? 0) + 1,
+          carta_plus: (base.items?.carta_plus ?? 0) + qty,
           carta_governante: (base.items?.carta_governante ?? 0) + (hasKey ? 0 : 1),
         },
         redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
@@ -2624,11 +2629,12 @@ function IdlePage() {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "✦ Carta Suprema Plus recebida! Fale com o Governante para materializar o Black Mitic Plus direto na Coleção." });
+      setCodeMsg({ kind: "ok", text: `✦ +${qty} Carta${qty > 1 ? "s" : ""} Suprema${qty > 1 ? "s" : ""} Plus recebida${qty > 1 ? "s" : ""}! Fale com o Governante para materializar o Black Mitic Plus direto na Coleção.` });
       setCodeInput("");
-      pushChat(`✦ Código ${raw}: Carta Suprema Plus entregue — troque com o Governante por 1 Black Mitic Plus direto na Coleção.`, "cap");
+      pushChat(`✦ Código ${raw}: ${qty}× Carta Suprema Plus entregue — troque com o Governante.`, "cap");
       return;
     }
+
 
 
     // GOV6CARDS1..4 — 6 Cartas Lendárias (single-use)
