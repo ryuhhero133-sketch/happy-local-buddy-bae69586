@@ -60,6 +60,7 @@ export type EggInstance = {
   lastHungerNudgeAt: number;
   lastReadyNudgeAt: number;
   lastCravingNudgeAt: number;
+  lastMysteryNudgeAt?: number;
   streakElement: ElementId | null;
   streakCount: number;
   // Novo: métricas de cuidado
@@ -134,6 +135,7 @@ function loadState(uid: string): CollectionState {
           lastHungerNudgeAt: Number(e?.lastHungerNudgeAt ?? 0),
           lastReadyNudgeAt: Number(e?.lastReadyNudgeAt ?? 0),
           lastCravingNudgeAt: Number(e?.lastCravingNudgeAt ?? 0),
+          lastMysteryNudgeAt: Number(e?.lastMysteryNudgeAt ?? 0),
           streakElement: (e?.streakElement ?? null) as ElementId | null,
           streakCount: Number(e?.streakCount ?? 0),
           matchedCravings: Number(e?.matchedCravings ?? 0),
