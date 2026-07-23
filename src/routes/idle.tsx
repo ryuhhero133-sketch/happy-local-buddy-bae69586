@@ -14714,18 +14714,21 @@ function GovernanteDialog(props: {
   open: boolean;
   cards: number;
   plusCards?: number;
+  rioluCards?: number;
   currentEggs: number;
   onClose: () => void;
   onExchange: (qty: number) => void;
   onExchangePlus?: (qty: number) => void;
+  onExchangeRiolu?: (qty: number) => void;
 }) {
-  const { open, cards, plusCards = 0, currentEggs, onClose, onExchange, onExchangePlus } = props;
+  const { open, cards, plusCards = 0, rioluCards = 0, currentEggs, onClose, onExchange, onExchangePlus, onExchangeRiolu } = props;
   const [step, setStep] = useState(0);
   useEffect(() => { if (open) setStep(0); }, [open]);
   if (!open) return null;
   const maxByCap = Math.max(0, 6 - currentEggs);
   const canGive = Math.min(cards, maxByCap);
   const canGivePlus = plusCards;
+  const canGiveRiolu = rioluCards;
   const lines = [
     "Ah... um treinador digno enfim cruza meu salão.",
     plusCards > 0
