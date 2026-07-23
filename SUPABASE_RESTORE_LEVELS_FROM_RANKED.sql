@@ -224,7 +224,11 @@ BEGIN
     END IF;
   END IF;
 
-  IF COALESCE((NEW.data #>> '{idle,gold}')::bigint, (NEW.data #>> '{gold}')::bigint, 0) > 50000000 THEN
+  IF COALESCE(
+    CASE WHEN (NEW.data #>> '{idle,gold}') ~ '^[0-9]+$' THEN (NEW.data #>> '{idle,gold}')::bigint END,
+    CASE WHEN (NEW.data #>> '{gold}') ~ '^[0-9]+$' THEN (NEW.data #>> '{gold}')::bigint END,
+    0
+  ) > 50000000 THEN
     IF NEW.data ? 'idle' THEN
       NEW.data := jsonb_set(NEW.data, '{idle,gold}', to_jsonb(50000000), true);
     ELSE
@@ -232,7 +236,11 @@ BEGIN
     END IF;
   END IF;
 
-  IF COALESCE((NEW.data #>> '{idle,crystals}')::bigint, (NEW.data #>> '{crystals}')::bigint, 0) > 1000000 THEN
+  IF COALESCE(
+    CASE WHEN (NEW.data #>> '{idle,crystals}') ~ '^[0-9]+$' THEN (NEW.data #>> '{idle,crystals}')::bigint END,
+    CASE WHEN (NEW.data #>> '{crystals}') ~ '^[0-9]+$' THEN (NEW.data #>> '{crystals}')::bigint END,
+    0
+  ) > 1000000 THEN
     IF NEW.data ? 'idle' THEN
       NEW.data := jsonb_set(NEW.data, '{idle,crystals}', to_jsonb(1000000), true);
     ELSE
