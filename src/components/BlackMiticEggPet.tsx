@@ -1381,6 +1381,30 @@ export function BlackMiticEggHud(props: {
                     </b>
                   </div>
 
+                  {/* ===================== CAIXA DE DIÁLOGO VIVA ===================== */}
+                  {selected.activated && (
+                    <>
+                      <div style={{ width: "100%", fontSize: 8, color: "#c58bff", letterSpacing: 1, marginTop: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span>◈ ENERGIA DE TRANSCENDÊNCIA</span>
+                        <span style={{ color: "#e0b8ff" }}>{Math.min(999, Math.round(hatchPct * 100 + selected.totalFed / 50))}</span>
+                      </div>
+                      <div style={{ width: "100%", height: 8, background: "rgba(0,0,0,0.55)", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(160,80,255,0.4)" }}>
+                        <div style={{
+                          height: "100%",
+                          width: `${Math.min(100, hatchPct * 100)}%`,
+                          background: "linear-gradient(90deg, #7d3fd6, #ff5aa8, #ffd84d)",
+                          boxShadow: "0 0 10px rgba(255,90,180,0.7)",
+                          transition: "width 0.5s ease",
+                        }} />
+                      </div>
+                      <LivingEggDialog
+                        pct={hatchPct}
+                        feedTick={(selected.history[0]?.ts ?? 0) + (selected.lastBonusResult?.ts ?? 0)}
+                      />
+                    </>
+                  )}
+
+
                   {/* ===================== BÔNUS: ROMPIMENTO DOS ELEMENTAIS ===================== */}
                   {(() => {
                     const unlocked = hatchPct >= BONUS_UNLOCK_PCT;
