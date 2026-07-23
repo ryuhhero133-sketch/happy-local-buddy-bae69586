@@ -1382,7 +1382,13 @@ export function BlackMiticEggHud(props: {
     const remain = Math.max(0, (selected.activatedAt + HATCH_MS) - Date.now());
     if (remain > 0) { onNotify?.(`Ainda faltam ${fmt(remain)} para chocar.`); return; }
     const el = ELEMENTS.find(e => e.id === dominantElement(selected.affinity))!;
-    const isPlus = !!selected.forcePlus;
+    // Fallback robusto: se o flag `forcePlus` não foi gravado no ovo por
+    // qualquer motivo, ainda consumimos da fila `plusPending` do parent.
+    // Isso garante que TODO ovo entregue pelo Governante nasça como
+    // Black Mitic Plus e o Pokémon caia direto na Coleção.
+    const isPlusFromEgg = !!selected.forcePlus;
+    const isPlusFromQueue = !isPlusFromEgg && plusPending > 0;
+    const isPlus = isPlusFromEgg || isPlusFromQueue;
     const arch = isPlus ? "versatile" : computeArchetype(selected.affinity);
     const care = computeCareScore(selected);
     const slots = isPlus ? 6 : (selected.ruptured ? 6 : 5);
@@ -1398,6 +1404,7 @@ export function BlackMiticEggHud(props: {
       species = el.species;
     }
     onHatched(species, el.id, traits, isPlus);
+    if (isPlusFromQueue) onConsumePlus?.(1);
     persist((s) => {
       const eggs = s.eggs.filter(e => e.id !== selected.id);
       const hist = [...(s.hatchedHistory ?? []), species].slice(-10);

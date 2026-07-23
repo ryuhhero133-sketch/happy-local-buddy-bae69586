@@ -11302,7 +11302,7 @@ function IdlePage() {
           saveIdle(nextIdle);
           setIdle(nextIdle);
           void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
-          const tag = plus ? "Black Mitic PLUS ✦ (Versátil, 6 traits) + 1 Carta Suprema Plus devolvida" : `Black Mitic Plus (${element})`;
+          const tag = plus ? "Black Mitic PLUS ✦ (Versátil, 6 traits)" : `Black Mitic Plus (${element})`;
           pushChat(`✦ ${tag} nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
