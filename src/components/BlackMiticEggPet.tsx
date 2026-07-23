@@ -114,6 +114,13 @@ function newEgg(): EggInstance {
     missedFeedings: 0,
     lastMilestone: 0,
     recentFeedAt: {},
+    bonusFed: {},
+    bonusAttempts: 0,
+    bonusAccepted: 0,
+    bonusRejected: 0,
+    lastBonusFeedAt: 0,
+    ruptured: false,
+    lastBonusResult: null,
   };
 }
 
