@@ -83,6 +83,7 @@ export type EggInstance = {
   bonusRejected: number;                           // apenas rejeitadas
   lastBonusFeedAt: number;                         // cooldown 10min
   ruptured: boolean;                               // true → nasce com 6 traits
+  forcePlus?: boolean;                             // true → Black Mitic Plus (Governante) → arquétipo VERSÁTIL forçado + 6 traits
   lastBonusResult?: { ts: number; kind: "accept" | "reject"; element: ElementId; amount: number; line: string } | null;
 };
 
