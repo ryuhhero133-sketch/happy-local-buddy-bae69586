@@ -414,6 +414,153 @@ const BONUS_ACCEPT_LINES = [
 const RUPTURE_LINE =
   "✦✦✦ ROMPI OS ELEMENTAIS! Sinto seis correntes de poder me atravessando... NASCEREI DIFERENTE! ✦✦✦";
 
+// ================================================================
+// Caixa de diálogo VIVA — mensagens digitando (typewriter)
+// ================================================================
+const LIVE_LINES_EARLY = [
+  "Sinto sua presença... cuide de mim.",
+  "Ainda sou fraco... mas você está aqui.",
+  "Cada stone me molda por dentro...",
+  "Continue... eu cresço com você.",
+  "Meu núcleo pulsa devagar. Alimente-o.",
+];
+const LIVE_LINES_70 = [
+  "Consigo sentir algo despertando...",
+  "Ainda posso ficar mais forte...",
+  "Minha casca está mudando...",
+  "Existe um grande poder dentro de mim.",
+  "Continue alimentando minha energia.",
+];
+const LIVE_LINES_80 = [
+  "Minha energia está aumentando...",
+  "Novos Traits estão surgindo...",
+  "Meu destino está mudando...",
+  "Consigo sentir um enorme poder...",
+  "Minha força continua crescendo.",
+];
+const LIVE_LINES_90 = [
+  "Estou quase rompendo minha casca.",
+  "Meu verdadeiro poder quer despertar.",
+  "Nunca estive tão forte.",
+  "Minha energia está transbordando.",
+  "Meu nascimento será inesquecível.",
+];
+const LIVE_LINES_95 = [
+  "Posso sentir minha verdadeira forma.",
+  "Falta muito pouco...",
+  "Continue...",
+  "Estou quase pronto.",
+];
+const LIVE_LINES_100 = [
+  "Chegou a hora...",
+  "Obrigado por cuidar de mim.",
+  "Estou preparado.",
+  "Agora descubra quem eu realmente sou.",
+];
+const LIVE_REACT_LINES = [
+  "Essa Stone aumentou minha energia...",
+  "Posso sentir meu corpo mudando...",
+  "Minha verdadeira forma está despertando...",
+  "Continue...",
+  "Estou absorvendo tudo...",
+  "Meu nascimento será ainda mais forte...",
+  "Cada Stone fortalece minha alma.",
+  "Sim... mais! Meu poder cresce.",
+  "Sinto essa energia se enraizar em mim.",
+];
+
+function pickLiveLine(pct: number): string {
+  let pool: string[];
+  if (pct >= 1) pool = LIVE_LINES_100;
+  else if (pct >= 0.95) pool = LIVE_LINES_95;
+  else if (pct >= 0.9) pool = LIVE_LINES_90;
+  else if (pct >= 0.8) pool = LIVE_LINES_80;
+  else if (pct >= 0.7) pool = LIVE_LINES_70;
+  else pool = LIVE_LINES_EARLY;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function LivingEggDialog({ pct, feedTick }: { pct: number; feedTick: number }) {
+  const [line, setLine] = useState<string>(() => pickLiveLine(pct));
+  const [shown, setShown] = useState<string>("");
+  const [visible, setVisible] = useState(true);
+  const lastLineRef = useRef<string>("");
+  const idxRef = useRef(0);
+
+  const startLine = (react: boolean, curPct: number) => {
+    let candidate = react ? LIVE_REACT_LINES[Math.floor(Math.random() * LIVE_REACT_LINES.length)] : pickLiveLine(curPct);
+    // não repetir imediatamente
+    let guard = 0;
+    while (candidate === lastLineRef.current && guard < 5) {
+      candidate = react ? LIVE_REACT_LINES[Math.floor(Math.random() * LIVE_REACT_LINES.length)] : pickLiveLine(curPct);
+      guard++;
+    }
+    lastLineRef.current = candidate;
+    setLine(candidate);
+    setShown("");
+    idxRef.current = 0;
+    setVisible(true);
+  };
+
+  // Reage a cada alimentação
+  const feedTickRef = useRef(feedTick);
+  useEffect(() => {
+    if (feedTick !== feedTickRef.current && feedTick > 0) {
+      feedTickRef.current = feedTick;
+      startLine(true, pct);
+    }
+  }, [feedTick, pct]);
+
+  // Typewriter
+  useEffect(() => {
+    if (!line) return;
+    if (shown.length >= line.length) return;
+    const t = setTimeout(() => {
+      idxRef.current = Math.min(line.length, idxRef.current + 1);
+      setShown(line.slice(0, idxRef.current));
+    }, 42);
+    return () => clearTimeout(t);
+  }, [line, shown]);
+
+  // Cicla nova linha entre 10-20s após terminar
+  useEffect(() => {
+    if (shown.length < line.length) return;
+    const delay = 10000 + Math.random() * 10000;
+    const t = setTimeout(() => {
+      setVisible(false);
+      setTimeout(() => startLine(false, pct), 420);
+    }, delay);
+    return () => clearTimeout(t);
+  }, [shown, line, pct]);
+
+  return (
+    <div style={{
+      width: "100%",
+      padding: "10px 12px",
+      background: "linear-gradient(180deg, rgba(60,20,120,0.35), rgba(20,5,50,0.6))",
+      border: "1px solid rgba(197,139,255,0.55)",
+      borderRadius: 10,
+      boxShadow: "0 0 14px rgba(160,80,255,0.45), inset 0 0 10px rgba(120,40,220,0.3)",
+      color: "#e6c8ff",
+      minHeight: 58,
+      fontSize: 9,
+      lineHeight: 1.65,
+      textShadow: "0 0 6px rgba(197,139,255,0.85)",
+      opacity: visible ? 1 : 0,
+      transition: "opacity 0.4s ease",
+      fontFamily: "'Press Start 2P', monospace",
+      position: "relative",
+    }}>
+      <span>{shown}</span>
+      <span style={{
+        display: "inline-block", width: 5, height: 10, marginLeft: 3,
+        background: "#c58bff", verticalAlign: "middle", borderRadius: 1,
+        boxShadow: "0 0 6px #a066ff",
+        animation: "blackEggCursor 1s steps(2) infinite",
+      }} />
+    </div>
+  );
+}
 
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
