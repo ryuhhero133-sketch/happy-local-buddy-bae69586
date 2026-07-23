@@ -1372,7 +1372,6 @@ export function BlackMiticEggHud(props: {
                         {(selected.bonusAttempts > 0) && (
                           <div style={{ marginTop: 8, fontSize: 8, color: "#a888c8", textAlign: "center" }}>
                             Tentativas: <b>{selected.bonusAttempts}</b> · Aceitas: <b style={{ color: "#a0ffb0" }}>{selected.bonusAccepted}</b> · Rejeitadas: <b style={{ color: "#ff9090" }}>{selected.bonusRejected}</b>
-                            {" "}(voidFx:{bonusFxAt ? "on" : "off"})
                           </div>
                         )}
                       </div>
