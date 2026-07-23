@@ -1791,7 +1791,8 @@ export function BlackMiticEggHud(props: {
           @keyframes blackEggPulse {
             0%,100% { opacity: 0.5; transform: scale(1); }
             50% { opacity: 0.9; transform: scale(1.1); }
-          }
+}
+
           @keyframes blackEggShine {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
