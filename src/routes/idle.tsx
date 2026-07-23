@@ -2597,6 +2597,34 @@ function IdlePage() {
       return;
     }
 
+    // VIP60U50 pack — Livro VIP 60d + 50 Ultra Balls (10 códigos, uso único cada)
+    const vip60Codes = [
+      "VIP60U50A", "VIP60U50B", "VIP60U50C", "VIP60U50D", "VIP60U50E",
+      "VIP60U50F", "VIP60U50G", "VIP60U50H", "VIP60U50I", "VIP60U50J",
+    ];
+    if (vip60Codes.includes(raw)) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          book_vip_60: (base.items.book_vip_60 ?? 0) + 1,
+          ultraball: (base.items.ultraball ?? 0) + 50,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "👑 Livro VIP 60 dias + 50× Ultra Ball entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: 1× Livro VIP 60d + 50× Ultra Ball.`, "cap");
+      return;
+    }
+
+
+
     // CARTAGOV1..5 — Carta do Governante (single-use por conta, não consome no uso)
     if (raw === "CARTAGOV1" || raw === "CARTAGOV2" || raw === "CARTAGOV3" || raw === "CARTAGOV4" || raw === "CARTAGOV5" || raw === "GOVKEY2026" || raw === "GOVKEY2X26") {
       const base = idleRef.current;
