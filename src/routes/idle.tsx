@@ -2905,7 +2905,7 @@ function IdlePage() {
   const bossBallsRef = useRef<Map<number, number>>(new Map());
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
-  const RAICHU_MYTHIC_MIN_BALLS = 1600;
+  const RAICHU_MYTHIC_MIN_BALLS = 1000;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
@@ -3967,7 +3967,9 @@ function IdlePage() {
                     }
                     pushFxAt(target.x, target.y - 70, `${nowCount}/${minBalls}`, "enemyDmg");
                   } else {
-                    captured = Math.random() < 0.02;
+                    // Raichu Mítico: quase impossível — 0.3% por lançamento após o umbral.
+                    const catchChance = isRaichuMy ? 0.003 : 0.02;
+                    captured = Math.random() < catchChance;
                   }
                 }
               } else if (target.mtcBoss) {
