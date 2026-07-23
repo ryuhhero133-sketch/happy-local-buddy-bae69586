@@ -5231,7 +5231,7 @@ function IdlePage() {
 
       // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
       // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
-      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic", "darkrai"];
+      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic"];
       const currentRoamers = enemies.filter((e) => e.eventLegendary && e.level >= 400).length;
       // ✨ EVENTO ESPECIAL DIALGA — Lv 800, a cada 3 horas (persistente via localStorage)
       // Máx 1 no mapa. Foge fácil, crit brutal, captura só via ultraball (super difícil).
