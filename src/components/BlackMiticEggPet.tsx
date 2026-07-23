@@ -1802,6 +1802,10 @@ export function BlackMiticEggHud(props: {
             40% { transform: scale(1.25); filter: brightness(1.8); }
             100% { transform: scale(1); filter: brightness(1); }
           }
+          @keyframes blackEggCursor {
+            0%, 50% { opacity: 1; }
+            50.01%, 100% { opacity: 0; }
+          }
         `}</style>
       </div>
     </div>
