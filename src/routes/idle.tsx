@@ -5609,14 +5609,19 @@ function IdlePage() {
     if (cur === "gold" && idle.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
     if (cur === "crystal" && idle.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
     if (cur === "safira" && (idle.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
-    const { data, error } = await supabase
+    // Usa count em vez de .select().maybeSingle() — a policy de SELECT
+    // pode filtrar a linha após sold_at deixar de ser null e retornar data=null
+    // mesmo com o UPDATE tendo funcionado.
+    const { error, count } = await supabase
       .from("market_listings")
-      .update({ buyer_id: identity.id, sold_at: new Date().toISOString() })
+      .update(
+        { buyer_id: identity.id, sold_at: new Date().toISOString() },
+        { count: "exact" },
+      )
       .eq("id", listing.id)
-      .is("sold_at", null)
-      .select("id")
-      .maybeSingle();
-    if (error || !data) { pushChat("Anúncio não está mais disponível.", "info"); return false; }
+      .is("sold_at", null);
+    if (error) { console.error("[market] buy error", error, listing); pushChat(`Falha ao comprar: ${error.message}`, "info"); return false; }
+    if (!count) { pushChat("Anúncio não está mais disponível.", "info"); return false; }
     setIdle((s) => {
       const bank = { ...s.bank };
       const items = { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty };
