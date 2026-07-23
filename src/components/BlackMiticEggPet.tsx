@@ -2053,6 +2053,46 @@ export function BlackMiticEggHud(props: {
             0%, 50% { opacity: 1; }
             50.01%, 100% { opacity: 0; }
           }
+          @keyframes instShake {
+            0%,100% { transform: translate(0,0); }
+            20% { transform: translate(-1.5px, 1px); }
+            40% { transform: translate(2px, -1px); }
+            60% { transform: translate(-2px, -1.5px); }
+            80% { transform: translate(1.5px, 2px); }
+          }
+          @keyframes instHeart {
+            0%,100% { opacity: 0.55; }
+            50% { opacity: 1; }
+          }
+          @keyframes instEdge {
+            0%,100% { filter: brightness(1); opacity: 0.6; }
+            50% { filter: brightness(1.6); opacity: 1; }
+          }
+          @keyframes instWave {
+            0% { left: -40%; opacity: 0; transform: skewX(-8deg); }
+            25% { opacity: 1; }
+            100% { left: 100%; opacity: 0; transform: skewX(-8deg); }
+          }
+          @keyframes instParticle {
+            0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+            15% { opacity: 1; }
+            100% { transform: translate(var(--drift, 0px), -260px) scale(1.2); opacity: 0; }
+          }
+          @keyframes instWarnIn {
+            0% { opacity: 0; transform: translateX(20px); }
+            100% { opacity: 1; transform: translateX(0); }
+          }
+          @keyframes instCritical {
+            0%,100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 22px rgba(255,90,180,0.7); }
+            50% { transform: translateX(-50%) scale(1.04); box-shadow: 0 0 34px rgba(255,90,180,1); }
+          }
+          @keyframes eggWobble {
+            0%,100% { transform: translate(0,0) rotate(0deg); }
+            20% { transform: translate(-2px, -1px) rotate(-2deg); }
+            40% { transform: translate(2px, 1px) rotate(2deg); }
+            60% { transform: translate(-2px, 1px) rotate(-1deg); }
+            80% { transform: translate(1px, -2px) rotate(1deg); }
+          }
         `}</style>
       </div>
     </div>
