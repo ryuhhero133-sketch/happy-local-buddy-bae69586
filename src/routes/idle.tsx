@@ -11120,6 +11120,16 @@ function IdlePage() {
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
         hasIncubatorCard={true}
         onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
+        boostCount={idle.items?.egg_boost_69 ?? 0}
+        onConsumeBoost={() => {
+          const have = idleRef.current.items?.egg_boost_69 ?? 0;
+          if (have <= 0) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), egg_boost_69: (s.items?.egg_boost_69 ?? 0) - 1 },
+          }));
+          return true;
+        }}
       />
 
       <GovernanteDialog
