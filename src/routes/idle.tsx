@@ -11069,7 +11069,7 @@ function IdlePage() {
               <button
                 onClick={() => {
                   const basePet = livePet ?? makePet(sp, displayLevel, entry.rarity);
-                  const pet = { ...basePet, traits: entry.traits ?? basePet.traits ?? [] };
+                  const pet = { ...basePet, traits: entry.traits ?? basePet.traits ?? [], event: entry.event ?? (basePet as any).event } as PetInstance;
                   setStatsCardPet(pet);
                   setColecaoDetailUid(null);
                 }}
