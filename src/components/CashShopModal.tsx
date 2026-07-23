@@ -21,6 +21,9 @@ import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
 import { assetUrlFromJson } from "@/lib/assetUrl";
 const SAFIRA_URL = assetUrlFromJson(safiraVerdeAsset);
 import safariBallImg from "@/assets/items/icon-safariball.png";
+import ultraBallIconImg from "@/assets/icon-ultraball.png";
+import crystalDiamondAsset from "@/assets/icon-crystal-blue-diamond.png.asset.json";
+const CRYSTAL_URL = assetUrlFromJson(crystalDiamondAsset);
 import dragoniteEggImg from "@/assets/egg-dragonite-shiny.jpg";
 import { emeraldKeyFor, readEmeraldFor, writeEmeraldFor } from "@/lib/emerald";
 
