@@ -2291,6 +2291,30 @@ function IdlePage() {
       return;
     }
 
+    if (raw === "CHARIZ25" || raw === "CHARIZARD25" || raw === "CHAR25") {
+      const base = idleRef.current;
+      const prevCol = base.collection ?? [];
+      if (prevCol.length >= MAX_COLLECTION) {
+        setCodeMsg({ kind: "err", text: `Coleção cheia (${MAX_COLLECTION}). Libere espaço e tente novamente.` });
+        return;
+      }
+      const pet = makePet("charizard_shiny" as Species, 25, "mythic" as Rarity);
+      const next: IdleState = {
+        ...base,
+        collection: [...prevCol, pet],
+        caughtSpecies: base.caughtSpecies.includes("charizard_shiny" as Species) ? base.caughtSpecies : [...base.caughtSpecies, "charizard_shiny" as Species],
+        seenSpecies: base.seenSpecies.includes("charizard_shiny" as Species) ? base.seenSpecies : [...base.seenSpecies, "charizard_shiny" as Species],
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🔥 Charizard Mítico ✦ Lv 25 entregue na sua coleção!" });
+      setCodeInput("");
+      pushChat(`🎉 Código CHARIZ25: 1× Charizard Mítico ✦ Lv 25.`, "cap");
+      return;
+    }
+
     if (raw === "CHARIZ60" || raw === "CHARIZARD60" || raw === "CHAR60") {
       const nowT = Date.now();
       const SIXTY_D = 60 * 24 * 60 * 60 * 1000;
