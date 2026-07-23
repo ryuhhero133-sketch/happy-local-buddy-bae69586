@@ -818,6 +818,18 @@ export function BlackMiticEggHud(props: {
     onNotify?.(`+${FEED_COST} ${el.label} → afinidade aumentada.`);
   };
 
+  // Pool aleatório usado quando o ovo atinge "Versátil" (5+ elementos alimentados).
+  // Nesse caso o Pokémon nasce sorteado dentre lendários/míticos fortes.
+  const VERSATILE_POOL: string[] = [
+    "mewtwo", "mew", "rayquaza", "kyogre", "groudon", "lugia",
+    "ho_oh", "moltres", "zapdos", "articuno", "raikou", "entei", "suicune",
+    "dialga", "palkia", "giratina", "darkrai", "arceus",
+    "snorlax", "tyranitar", "metagross", "salamence", "garchomp",
+    "gardevoir", "lucario", "milotic", "gyarados_shiny",
+    "scizor", "alakazam", "machamp", "gengar_shiny", "dragonite_shiny",
+    "venusaur", "charizard", "blastoise",
+  ];
+
   const hatch = () => {
     if (!selected) return;
     if (!selected.activated) return;
@@ -827,13 +839,15 @@ export function BlackMiticEggHud(props: {
     const arch = computeArchetype(selected.affinity);
     const care = computeCareScore(selected);
     const traits = rollBlackMiticTraits(selected, arch);
-    onHatched(el.species, el.id, traits);
-    // remove o ovo do painel (parent decrementa itemCount, mas removemos aqui também para responsividade)
+    const species = arch === "versatile"
+      ? VERSATILE_POOL[Math.floor(Math.random() * VERSATILE_POOL.length)]
+      : el.species;
+    onHatched(species, el.id, traits);
     persist((s) => {
       const eggs = s.eggs.filter(e => e.id !== selected.id);
       return { eggs, selectedId: eggs[0]?.id ?? null };
     });
-    onNotify?.(`✦ Nasceu um Black Mitic Plus (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100!`);
+    onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100!`);
   };
 
   if (!open) return null;
