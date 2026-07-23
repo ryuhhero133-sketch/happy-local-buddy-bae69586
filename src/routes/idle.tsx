@@ -2766,6 +2766,32 @@ function IdlePage() {
       return;
     }
 
+    // GOVLEND1..5 — 1 Carta do Governante + 1 Carta Lendária (Incubadora) cada (uso único)
+    const govLendMap: Record<string, boolean> = {
+      GOVLEND1: true, GOVLEND2: true, GOVLEND3: true, GOVLEND4: true, GOVLEND5: true,
+    };
+    if (govLendMap[raw]) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const hasKey = (base.items?.carta_governante ?? 0) > 0;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          carta_governante: (base.items?.carta_governante ?? 0) + (hasKey ? 1 : 1),
+          carta_incubadora: (base.items?.carta_incubadora ?? 0) + 1,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "👑🔮 +1 Carta do Governante e +1 Carta Lendária recebidas!" });
+      setCodeInput("");
+      pushChat(`👑🔮 Código ${raw}: 1× Carta do Governante + 1× Carta Lendária entregues.`, "cap");
+      return;
+    }
+
 
 
 
