@@ -7209,15 +7209,26 @@ function IdlePage() {
                                pushChat("🔴 Chave Ruby já foi coletada nesta conta.", "info");
                                return;
                              }
+                             const ok = typeof window !== "undefined"
+                               ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby?\n\nEsta recompensa é ÚNICA por conta e NÃO poderá ser coletada novamente.\n\nDeseja confirmar?`)
+                               : true;
+                             if (!ok) return;
+                             // Re-check após o confirm pra evitar dupla coleta
+                             const fresh = idleRef.current;
+                             if (fresh.redeemedCodes?.["RANKED_RUBY_KEY"]) {
+                               pushChat("🔴 Chave Ruby já foi coletada nesta conta.", "info");
+                               return;
+                             }
                              const next: IdleState = {
-                               ...base,
-                               items: { ...base.items, chave_ruby: (base.items?.chave_ruby ?? 0) + rubyAmount },
-                               redeemedCodes: { ...(base.redeemedCodes ?? {}), RANKED_RUBY_KEY: true },
+                               ...fresh,
+                               items: { ...fresh.items, chave_ruby: (fresh.items?.chave_ruby ?? 0) + rubyAmount },
+                               redeemedCodes: { ...(fresh.redeemedCodes ?? {}), RANKED_RUBY_KEY: true },
                              };
                              setIdle(next);
                              try { persistCodeReward(next); } catch { /* ignore */ }
-                             pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked Global!`, "cap");
+                             pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked Global! (coleta única)`, "cap");
                            };
+
                           return (
                             <div key={r.id} style={{
                               display: "grid",
