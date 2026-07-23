@@ -7198,6 +7198,25 @@ function IdlePage() {
                           const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e5e5e5" : i === 2 ? "#d99b1a" : "#ffe9a8";
                           const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
                           const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
+                          const isMe = !!identity?.id && r.id === identity.id;
+                          const isTop10 = i < 10;
+                          const alreadyClaimed = !!idle.redeemedCodes?.["RANKED_RUBY_KEY"];
+                          const canClaim = isMe && isTop10 && !alreadyClaimed;
+                          const claimRubyKey = () => {
+                            const base = idleRef.current;
+                            if (base.redeemedCodes?.["RANKED_RUBY_KEY"]) {
+                              pushChat("🔴 Chave Ruby já foi coletada nesta conta.", "info");
+                              return;
+                            }
+                            const next: IdleState = {
+                              ...base,
+                              items: { ...base.items, chave_ruby: (base.items?.chave_ruby ?? 0) + 1 },
+                              redeemedCodes: { ...(base.redeemedCodes ?? {}), RANKED_RUBY_KEY: true },
+                            };
+                            setIdle(next);
+                            try { persistCodeReward(next); } catch { /* ignore */ }
+                            pushChat(`🔴 Chave Ruby coletada por estar no Top ${i + 1} do Ranked Global!`, "cap");
+                          };
                           return (
                             <div key={r.id} style={{
                               display: "grid",
@@ -7216,6 +7235,7 @@ function IdlePage() {
                               <div style={{ overflow: "hidden", minWidth: 0 }}>
                                 <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                   {r.name}
+                                  {isMe && <span style={{ marginLeft: 6, fontSize: 10, color: "#7dff9b" }}>(você)</span>}
                                   {r.guild_name && <span style={{ marginLeft: 6, fontSize: 10, opacity: 0.75, color: "#a5d0ff" }}>[{r.guild_name}]</span>}
                                 </div>
                                 <div style={{ fontSize: 10, opacity: 0.7, display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -7225,6 +7245,31 @@ function IdlePage() {
                                   <span>🎓 Tr {r.trainer_level}</span>
                                   <span>⚒️ {r.craft_points}</span>
                                 </div>
+                                {isTop10 && isMe && (
+                                  <div style={{ marginTop: 6 }}>
+                                    <button
+                                      onClick={claimRubyKey}
+                                      disabled={!canClaim}
+                                      style={{
+                                        padding: "6px 12px",
+                                        borderRadius: 8,
+                                        border: "1px solid rgba(255,60,80,0.55)",
+                                        background: canClaim
+                                          ? "linear-gradient(90deg,#8b0018,#ff2a4d)"
+                                          : "rgba(90,20,30,0.5)",
+                                        color: "#fff",
+                                        fontWeight: 800,
+                                        fontSize: 11,
+                                        letterSpacing: 0.5,
+                                        cursor: canClaim ? "pointer" : "not-allowed",
+                                        boxShadow: canClaim ? "0 0 12px rgba(255,60,80,0.55)" : "none",
+                                        opacity: canClaim ? 1 : 0.7,
+                                      }}
+                                    >
+                                      {alreadyClaimed ? "🔴 Chave Ruby coletada" : "🔴 Coletar Chave Ruby (Top 10)"}
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                               <div style={{ textAlign: "right" }}>
                                 <div style={{ fontSize: 9, opacity: 0.6, textTransform: "uppercase", letterSpacing: 0.5 }}>{mainLabel}</div>
@@ -11917,6 +11962,7 @@ function TabOverlay({
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
           bau_esmeralda: "Baú de Esmeralda 💠",
+          chave_ruby: "Chave Ruby 🔴",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
@@ -11951,6 +11997,7 @@ function TabOverlay({
           incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
           premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
           bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
+          chave_ruby: "Chave Ruby 🔴 · recompensa exclusiva do Top 10 do Ranked Global. Coletada uma única vez por conta.",
           skin_ticket: "Ticket de Skin ✦ · use na aba Início para desbloquear uma skin premium.",
           egg_common: "Ovo Comum · chocado gera um pokémon aleatório de raridade baixa.",
           egg_rare: "Ovo Raro · chance de raridades altas ao chocar.",
