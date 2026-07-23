@@ -1798,6 +1798,7 @@ function IdlePage() {
   const [auto, setAuto] = useState(true);
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
+  const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
 
   // ==== ÁUDIO ====
   const [audioSettings, setAudioSettings] = useState(() => {
@@ -2123,7 +2124,6 @@ function IdlePage() {
   const [codeInput, setCodeInput] = useState("");
   const [codeMsg, setCodeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [cashShopOpen, setCashShopOpen] = useState(false);
-  const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
