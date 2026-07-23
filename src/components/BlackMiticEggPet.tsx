@@ -1206,11 +1206,16 @@ export function BlackMiticEggHud(props: {
           width: "min(900px, 96vw)", maxHeight: "94vh", overflowY: "auto",
           background: "linear-gradient(180deg, #1a0a30 0%, #0f0620 100%)",
           border: "2px solid #7d3fd6",
-          boxShadow: "0 0 32px rgba(160,80,255,0.55), inset 0 0 24px rgba(60,20,120,0.4)",
+          boxShadow: `0 0 ${32 + Math.round(hatchPct * 40)}px rgba(160,80,255,${0.55 + hatchPct * 0.35}), inset 0 0 24px rgba(60,20,120,0.4)`,
           borderRadius: 14, color: "#f0e6ff",
           fontFamily: "'Press Start 2P', monospace, sans-serif",
+          position: "relative",
+          animation: hatchPct >= 0.7
+            ? `instShake ${Math.max(0.25, 1.6 - hatchPct).toFixed(2)}s ease-in-out infinite`
+            : undefined,
         }}
       >
+        {selected?.activated && <InstabilityFX pct={hatchPct} feedTick={(selected.history[0]?.ts ?? 0) + (selected.lastBonusResult?.ts ?? 0)} totalFed={selected.totalFed} /> }
         {/* Header */}
         <div style={{
           padding: "14px 18px",
