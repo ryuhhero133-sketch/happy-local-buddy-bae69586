@@ -72,6 +72,7 @@ export type EggInstance = {
 type CollectionState = {
   eggs: EggInstance[];
   selectedId: string | null;
+  hatchedHistory?: string[]; // últimas ~10 espécies chocadas (evita duplicatas em série)
 };
 
 function newEgg(): EggInstance {
@@ -141,7 +142,11 @@ function loadState(uid: string): CollectionState {
           recentFeedAt: (e?.recentFeedAt && typeof e.recentFeedAt === "object") ? e.recentFeedAt : {},
         }))
       : [];
-    return { eggs, selectedId: typeof p?.selectedId === "string" ? p.selectedId : (eggs[0]?.id ?? null) };
+    return {
+      eggs,
+      selectedId: typeof p?.selectedId === "string" ? p.selectedId : (eggs[0]?.id ?? null),
+      hatchedHistory: Array.isArray(p?.hatchedHistory) ? p.hatchedHistory.slice(-10) : [],
+    };
   } catch {
     return { eggs: [], selectedId: null };
   }
