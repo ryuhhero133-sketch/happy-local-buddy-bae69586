@@ -12345,7 +12345,7 @@ function TabOverlay({
           chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
           carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
           carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
-          carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para receber 1 Black Mitic Plus Egg VERSÁTIL garantido com 6 traits. Ao chocar, você recebe outra carta para repetir o ciclo.",
+          carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para receber 1 Black Mitic Plus Egg VERSÁTIL garantido com 6 traits. Uso único.",
           stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
           stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
           stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
