@@ -936,9 +936,9 @@ export function BlackMiticEggHud(props: {
     const el = ELEMENTS.find(e => e.id === dominantElement(selected.affinity))!;
     const arch = computeArchetype(selected.affinity);
     const care = computeCareScore(selected);
-    const traits = rollBlackMiticTraits(selected, arch);
-    // Anti-duplicata: para players com múltiplos eggs, evitamos repetir a mesma
-    // espécie da pool versátil enquanto houver alternativas.
+    const slots = selected.ruptured ? 6 : 5;
+    const traits = rollBlackMiticTraits(selected, arch, slots);
+    // Anti-duplicata para pool versátil.
     const recent = new Set(state.hatchedHistory ?? []);
     let species: string;
     if (arch === "versatile") {
@@ -954,8 +954,85 @@ export function BlackMiticEggHud(props: {
       const hist = [...(s.hatchedHistory ?? []), species].slice(-10);
       return { eggs, selectedId: eggs[0]?.id ?? null, hatchedHistory: hist };
     });
-    onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100!`);
+    const rupTag = selected.ruptured ? " ✦ ROMPIDO (6 traits)" : "";
+    onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100${rupTag}!`);
   };
+
+  // ------------------------------------------------------------------
+  // BÔNUS: rompimento dos elementais (libera aos 70% de incubação)
+  // - A cada 10 min pode empurrar qualquer quantidade de qualquer stone.
+  // - 40% de chance do ovo REJEITAR (grosseiro). Stones NÃO consumidas.
+  // - Alimentar TODOS os 6 elementos no modo bônus → ROMPE (ruptured=true)
+  //   → o Pokémon nasce com 6 traits ao invés de 5.
+  // ------------------------------------------------------------------
+  const bonusFeed = (el: typeof ELEMENTS[number], amountRaw: number) => {
+    if (!selected) return;
+    if (!selected.activated) { onNotify?.("Ative a incubação antes."); return; }
+    const pct = (Date.now() - selected.activatedAt) / HATCH_MS;
+    if (pct < BONUS_UNLOCK_PCT) { onNotify?.("Bônus liberado somente aos 70% de incubação."); return; }
+    const cd = Math.max(0, (selected.lastBonusFeedAt + BONUS_COOLDOWN_MS) - Date.now());
+    if (cd > 0) { onNotify?.(`Aguarde ${fmt(cd)} para o próximo bônus.`); return; }
+    const amount = Math.max(BONUS_MIN, Math.min(BONUS_MAX, Math.floor(amountRaw || 0)));
+    if (amount < BONUS_MIN) { onNotify?.("Quantidade inválida."); return; }
+    const have = stones[el.stone] ?? 0;
+    if (have < amount) { onNotify?.(`Você só tem ${have}× ${el.label} Stone.`); return; }
+
+    const rejected = Math.random() < BONUS_REJECT_CHANCE;
+    if (rejected) {
+      // Não consome stones — apenas registra tentativa e cooldown.
+      const line = pick(RUDE_LINES);
+      persist((s) => ({
+        ...s,
+        eggs: s.eggs.map(e => {
+          if (e.id !== selected.id) return e;
+          let ne: EggInstance = {
+            ...e,
+            bonusAttempts: e.bonusAttempts + 1,
+            bonusRejected: e.bonusRejected + 1,
+            lastBonusFeedAt: Date.now(),
+            lastBonusResult: { ts: Date.now(), kind: "reject", element: el.id, amount, line },
+          };
+          ne = pushJournal(ne, "obsession", line, el.id);
+          return ne;
+        }),
+      }));
+      onNotify?.(`✗ ${el.label} rejeitado! O ovo está grosseiro hoje.`);
+      return;
+    }
+
+    // Aceito: consome as stones e aplica bônus na afinidade.
+    if (!onConsumeStone(el.stone, amount)) { onNotify?.("Falha ao consumir a Stone."); return; }
+    const line = pick(BONUS_ACCEPT_LINES);
+    persist((s) => ({
+      ...s,
+      eggs: s.eggs.map(e => {
+        if (e.id !== selected.id) return e;
+        const newBonusFed = { ...e.bonusFed, [el.id]: (e.bonusFed[el.id] ?? 0) + amount };
+        const distinctBonusEls = ELEMENTS.filter(x => (newBonusFed[x.id] ?? 0) > 0).length;
+        const willRupture = !e.ruptured && distinctBonusEls >= ELEMENTS.length;
+        let ne: EggInstance = {
+          ...e,
+          affinity: { ...e.affinity, [el.id]: (e.affinity[el.id] ?? 0) + amount },
+          totalFed: e.totalFed + amount,
+          bonusFed: newBonusFed,
+          bonusAttempts: e.bonusAttempts + 1,
+          bonusAccepted: e.bonusAccepted + 1,
+          lastBonusFeedAt: Date.now(),
+          ruptured: e.ruptured || willRupture,
+          lastBonusResult: { ts: Date.now(), kind: "accept", element: el.id, amount, line },
+          recentFeedAt: { ...e.recentFeedAt, [el.id]: Date.now() },
+          history: [{ ts: Date.now(), element: el.id, amount }, ...e.history].slice(0, 20),
+        };
+        ne = pushJournal(ne, "absorbing", line, el.id);
+        if (willRupture) {
+          ne = pushJournal(ne, "hatch", RUPTURE_LINE);
+        }
+        return ne;
+      }),
+    }));
+    onNotify?.(`✓ +${amount} ${el.label} (BÔNUS) absorvido!`);
+  };
+
 
   if (!open) return null;
 
