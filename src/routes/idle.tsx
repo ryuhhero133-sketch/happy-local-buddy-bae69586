@@ -11455,6 +11455,55 @@ function IdlePage() {
           const names = entries.map((entry) => entry.species.toUpperCase()).join(", ");
           pushChat(`✦ Governante consumiu ${use}× Carta Suprema Plus e colocou na Coleção: ${names} — Black Mitic Plus VERSÁTIL com 6 traits.`, "cap");
         }}
+        onExchangeRiolu={(qty) => {
+          const base = idleRef.current;
+          const cards = base.items?.carta_riolu ?? 0;
+          const collectionSlots = Math.max(0, MAX_COLLECTION - (base.collection?.length ?? 0));
+          const use = Math.min(qty, cards, collectionSlots);
+          if (use <= 0) {
+            pushChat("✦ Governante: sua Coleção está cheia. Libere espaço antes de entregar a Carta Riolu.", "cap");
+            return;
+          }
+          const nextItems = { ...(base.items ?? {}) };
+          const remainingCards = Math.max(0, cards - use);
+          if (remainingCards <= 0) delete nextItems.carta_riolu;
+          else nextItems.carta_riolu = remainingCards;
+
+          const nowTs = Date.now();
+          const entries: CollectionEntry[] = Array.from({ length: use }, (_, index) => {
+            const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+              ? crypto.randomUUID()
+              : `bmp_riolu_${nowTs}_${index}_${Math.floor(Math.random() * 1e6)}`;
+            return {
+              uid,
+              species: "riolu" as Species,
+              level: 1000,
+              xp: 0,
+              rarity: "mythic_shiny",
+              capturedAt: nowTs + index,
+              traits: GOVERNANTE_PLUS_TRAITS,
+              event: "black_mitic_plus:brilhant:riolu",
+            };
+          });
+
+          const seenSpecies = base.seenSpecies.includes("riolu" as Species) ? base.seenSpecies : [...base.seenSpecies, "riolu" as Species];
+          const caughtSpecies = base.caughtSpecies.includes("riolu" as Species) ? base.caughtSpecies : [...base.caughtSpecies, "riolu" as Species];
+
+          const next: IdleState = {
+            ...base,
+            items: nextItems,
+            seenSpecies,
+            caughtSpecies,
+            collection: [...(base.collection ?? []), ...entries],
+            totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + entries.length },
+          };
+          idleRef.current = next;
+          saveIdle(next);
+          setIdle(next);
+          void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+
+          pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
+        }}
       />
     </div>
 
