@@ -2591,6 +2591,33 @@ function IdlePage() {
       pushChat(`🔮 Código ${raw}: Carta da Incubadora Lendária entregue.`, "cap");
       return;
     }
+    // BLACKMITICPLUS / BMP* — Carta Suprema Plus (single-use) → troca no Governante por ovo VERSÁTIL 6-traits
+    if (
+      raw === "BLACKMITICPLUS" || raw === "BLACKMITICPLUS1" || raw === "BLACKMITICPLUS2" ||
+      raw === "BLACKMITICPLUS3" || raw === "BLACKMITICPLUS4" || raw === "BLACKMITICPLUS5" ||
+      raw === "BMP2026" || raw === "BMP2X26"
+    ) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const hasKey = (base.items?.carta_governante ?? 0) > 0;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          carta_plus: (base.items?.carta_plus ?? 0) + 1,
+          carta_governante: (base.items?.carta_governante ?? 0) + (hasKey ? 0 : 1),
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "✦ Carta Suprema Plus recebida! Fale com o Governante para trocar por Black Mitic Plus VERSÁTIL (6 traits)." });
+      setCodeInput("");
+      pushChat(`✦ Código ${raw}: Carta Suprema Plus entregue — troque com o Governante por 1 ovo VERSÁTIL (6 traits).`, "cap");
+      return;
+    }
+
 
     // GOV6CARDS1..4 — 6 Cartas Lendárias (single-use)
     // GOV1CARD — 1 Carta Lendária
