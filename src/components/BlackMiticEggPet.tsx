@@ -60,6 +60,7 @@ export type EggInstance = {
   lastHungerNudgeAt: number;
   lastReadyNudgeAt: number;
   lastCravingNudgeAt: number;
+  lastMysteryNudgeAt?: number;
   streakElement: ElementId | null;
   streakCount: number;
   // Novo: métricas de cuidado
@@ -72,6 +73,7 @@ export type EggInstance = {
 type CollectionState = {
   eggs: EggInstance[];
   selectedId: string | null;
+  hatchedHistory?: string[]; // últimas ~10 espécies chocadas (evita duplicatas em série)
 };
 
 function newEgg(): EggInstance {
@@ -133,6 +135,7 @@ function loadState(uid: string): CollectionState {
           lastHungerNudgeAt: Number(e?.lastHungerNudgeAt ?? 0),
           lastReadyNudgeAt: Number(e?.lastReadyNudgeAt ?? 0),
           lastCravingNudgeAt: Number(e?.lastCravingNudgeAt ?? 0),
+          lastMysteryNudgeAt: Number(e?.lastMysteryNudgeAt ?? 0),
           streakElement: (e?.streakElement ?? null) as ElementId | null,
           streakCount: Number(e?.streakCount ?? 0),
           matchedCravings: Number(e?.matchedCravings ?? 0),
@@ -141,7 +144,11 @@ function loadState(uid: string): CollectionState {
           recentFeedAt: (e?.recentFeedAt && typeof e.recentFeedAt === "object") ? e.recentFeedAt : {},
         }))
       : [];
-    return { eggs, selectedId: typeof p?.selectedId === "string" ? p.selectedId : (eggs[0]?.id ?? null) };
+    return {
+      eggs,
+      selectedId: typeof p?.selectedId === "string" ? p.selectedId : (eggs[0]?.id ?? null),
+      hatchedHistory: Array.isArray(p?.hatchedHistory) ? p.hatchedHistory.slice(-10) : [],
+    };
   } catch {
     return { eggs: [], selectedId: null };
   }
@@ -230,6 +237,26 @@ const MYSTERY_LINES = [
   "Algo está se formando aqui dentro. Algo raro.",
   "Sonhei com asas. Ou seriam garras?",
   "Meu tipo ainda está sendo decidido... por você.",
+  "Ouço um coro de vozes ancestrais chamando meu nome...",
+  "Minha sombra dança sozinha, treinador. Está te esperando.",
+  "Um símbolo pulsa no fundo do meu núcleo. Você o reconheceria?",
+  "Sinto que já vivi antes... em outra era.",
+];
+// Enigmas específicos por elemento dominante — plantam pistas de quem pode nascer.
+const ENIGMATIC_LINES: Record<ElementId, string[]> = {
+  grass:    ["Raízes profundas me chamam de irmão da floresta...", "Um perfume de pétalas antigas me envolve...", "Ouço o crescer silencioso da mata dentro de mim."],
+  fire:     ["Chamas dançam nas paredes da minha casca... vejo asas em fogo.", "Uma rugida de brasa ecoa no meu peito.", "Sinto uma cauda quente serpenteando no escuro."],
+  water:    ["Marés antigas me embalam. Sonho com a fúria de tsunamis.", "Sinto conchas de tempestade se fechando ao meu redor.", "Uma canção do fundo do oceano me chama para casa."],
+  electric: ["Faíscas dançam ao meu redor... e trovões me respondem.", "Meu núcleo vibra como um raio guardado.", "Ouço um chamado do céu — como se pertencesse a ele."],
+  dark:     ["Minhas sombras têm garras. E olhos.", "Um véu de eclipse me cobre. Vejo em quem me tornarei.", "Sinto o vazio me abraçar como um velho amigo."],
+  dragon:   ["Uma força milenar bate em compasso comigo...", "Escamas prateadas se formam entre meus batimentos.", "Um rugido de dragão sopra através da minha casca."],
+};
+// Hint enigma quando o ovo é 'versátil' (5+ elementos alimentados).
+const VERSATILE_HINTS = [
+  "Todos os elementos falam em mim ao mesmo tempo... e nenhum manda.",
+  "Vejo uma silhueta lendária mudando de forma dentro do meu ovo.",
+  "Nem terra, nem céu — algo antigo entre eles se forma aqui.",
+  "Sinto que serei... imprevisível. Nem eu sei o que virá.",
 ];
 const CRAVING_LINES: Record<ElementId, string[]> = {
   grass:    ["Sinto falta do cheiro da terra úmida...", "Uma folha... eu queria sentir uma folha crescer em mim."],
@@ -307,6 +334,8 @@ const TRAITS_ARCHETYPE: Record<Archetype, string[]> = {
   versatile: ["prismatico", "alpha", "esquivo", "dourado", "prodigio"],
 };
 
+const ALL_TRAITS_POOL = [...TRAITS_EPIC, ...TRAITS_RARE, ...TRAITS_STRONG];
+
 export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype): string[] {
   const care = computeCareScore(egg); // 0..100
   // Prob de escolher épico por slot cresce com care (25% → 85%)
@@ -325,7 +354,10 @@ export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype): st
     else pool = TRAITS_STRONG;
     // Bias adicional: chance extra de puxar do pool temático quando care é alto
     if (Math.random() < 0.35 + care / 300) pool = [...pool, ...themed];
-    const candidates = pool.filter(t => !picked.includes(t));
+    let candidates = pool.filter(t => !picked.includes(t));
+    // Fallback: se o pool escolhido esgotou, usa o pool global — Black Mitic
+    // Plus SEMPRE tem que nascer com 5 traits.
+    if (candidates.length === 0) candidates = ALL_TRAITS_POOL.filter(t => !picked.includes(t));
     if (candidates.length === 0) break;
     picked.push(candidates[Math.floor(Math.random() * candidates.length)]);
   }
@@ -391,6 +423,21 @@ function advanceJournal(egg: EggInstance, now: number): EggInstance {
     const el = next.cravingElement;
     next = pushJournal(next, "craving", pick(CRAVING_LINES[el]), el);
     next = { ...next, lastCravingNudgeAt: now };
+  }
+
+  // Enigma periódico: pistas do que ele pode virar (a cada ~25 min de sessão)
+  if (next.lastFedAt > 0 && (now - next.lastFedAt) > 25 * 60 * 1000 &&
+      (now - (next.lastMysteryNudgeAt ?? 0)) > 45 * 60 * 1000 &&
+      Math.random() < 0.55) {
+    const used = ELEMENTS.filter(e => (next.affinity[e.id] ?? 0) > 0).length;
+    if (used >= 5) {
+      next = pushJournal(next, "mystery", pick(VERSATILE_HINTS));
+    } else {
+      const dom = dominantElement(next.affinity);
+      const hint = pick(ENIGMATIC_LINES[dom] ?? MYSTERY_LINES);
+      next = pushJournal(next, "mystery", hint, dom);
+    }
+    next = { ...next, lastMysteryNudgeAt: now };
   }
 
   return next;
@@ -645,6 +692,7 @@ export function BlackMiticEggHud(props: {
           const merged: CollectionState = {
             eggs: remote.eggs as EggInstance[],
             selectedId: typeof remote.selectedId === "string" ? remote.selectedId : (remote.eggs[0]?.id ?? null),
+            hatchedHistory: Array.isArray(remote.hatchedHistory) ? remote.hatchedHistory.slice(-10) : [],
           };
           setState(merged);
           saveState(uid, merged);
@@ -839,13 +887,22 @@ export function BlackMiticEggHud(props: {
     const arch = computeArchetype(selected.affinity);
     const care = computeCareScore(selected);
     const traits = rollBlackMiticTraits(selected, arch);
-    const species = arch === "versatile"
-      ? VERSATILE_POOL[Math.floor(Math.random() * VERSATILE_POOL.length)]
-      : el.species;
+    // Anti-duplicata: para players com múltiplos eggs, evitamos repetir a mesma
+    // espécie da pool versátil enquanto houver alternativas.
+    const recent = new Set(state.hatchedHistory ?? []);
+    let species: string;
+    if (arch === "versatile") {
+      const unused = VERSATILE_POOL.filter(s => !recent.has(s));
+      const pool = unused.length > 0 ? unused : VERSATILE_POOL;
+      species = pool[Math.floor(Math.random() * pool.length)];
+    } else {
+      species = el.species;
+    }
     onHatched(species, el.id, traits);
     persist((s) => {
       const eggs = s.eggs.filter(e => e.id !== selected.id);
-      return { eggs, selectedId: eggs[0]?.id ?? null };
+      const hist = [...(s.hatchedHistory ?? []), species].slice(-10);
+      return { eggs, selectedId: eggs[0]?.id ?? null, hatchedHistory: hist };
     });
     onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100!`);
   };

@@ -1299,3 +1299,50 @@ html, body, #root {
   0%, 100% { transform: translateY(0) rotate(-1deg); }
   50%      { transform: translateY(-3px) rotate(1deg); }
 }
+
+/* ================= Black Mitic Plus — aura visual ================= */
+@keyframes bmpAuraPulse {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.12); }
+}
+@keyframes bmpAuraRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes bmpStarOrbit {
+  from { transform: rotate(var(--a,0deg)) translateX(var(--r,32px)) rotate(0deg); }
+  to   { transform: rotate(calc(var(--a,0deg) + 360deg)) translateX(var(--r,32px)) rotate(-360deg); }
+}
+@keyframes bmpBgShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.bmp-aura-wrap { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.bmp-aura-glow {
+  position: absolute; inset: -40%; border-radius: 50%;
+  background: radial-gradient(circle, rgba(160,80,255,.55) 0%, rgba(70,10,140,.35) 45%, transparent 72%);
+  filter: blur(14px);
+  animation: bmpAuraPulse 2.6s ease-in-out infinite;
+}
+.bmp-aura-ring {
+  position: absolute; inset: -18%; border-radius: 50%;
+  border: 2px solid rgba(200,140,255,.35);
+  box-shadow: 0 0 20px rgba(140,60,220,.5), inset 0 0 24px rgba(80,20,160,.6);
+  animation: bmpAuraRotate 12s linear infinite;
+}
+.bmp-star {
+  position: absolute; top: 50%; left: 50%;
+  width: 6px; height: 6px; margin: -3px 0 0 -3px;
+  background: radial-gradient(circle, #1a0530 0%, #3a0a60 55%, transparent 70%);
+  border-radius: 50%;
+  box-shadow: 0 0 8px #a066ff, 0 0 14px rgba(160,80,255,.6);
+  animation: bmpStarOrbit 9s linear infinite;
+}
+.bmp-star.s-lg { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; box-shadow: 0 0 12px #c58bff, 0 0 22px rgba(160,80,255,.8); }
+.bmp-card-bg {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-size: 200% 200%;
+  animation: bmpBgShift 14s ease-in-out infinite;
+  opacity: .85;
+}

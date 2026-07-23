@@ -8078,6 +8078,7 @@ function IdlePage() {
               const fainted = leaderHp <= 0;
               const faceScale = pokemonFace === "right" ? -1 : 1;
               const auraOn = Date.now() - leveledAt < 1400;
+              const isBMP = !!(leader as any).event && String((leader as any).event).startsWith("black_mitic_plus");
               // Lunge: avança 45% do caminho até o alvo e volta (curva senoidal)
               let lungeX = 0, lungeY = 0;
               if (attackAnim) {
@@ -8099,6 +8100,26 @@ function IdlePage() {
                   opacity: fainted ? 0.5 : 1,
                   zIndex: Math.round(leaderY),
                 }}>
+                  {isBMP && (
+                    <>
+                      <div className="bmp-aura-glow" style={{ position: "absolute", inset: -22, borderRadius: "50%" }} />
+                      <div className="bmp-aura-ring" style={{ position: "absolute", inset: -14, borderRadius: "50%" }} />
+                      {[
+                        { a: 0,   r: 34, d: 6, cls: "" },
+                        { a: 90,  r: 30, d: 7, cls: "s-lg" },
+                        { a: 180, r: 36, d: 8, cls: "" },
+                        { a: 270, r: 28, d: 5, cls: "s-lg" },
+                        { a: 45,  r: 40, d: 9, cls: "" },
+                        { a: 225, r: 32, d: 6, cls: "" },
+                      ].map((s, i) => (
+                        <span key={`bmp-${i}`} className={`bmp-star ${s.cls}`} style={{
+                          ["--a" as string]: `${s.a}deg`,
+                          ["--r" as string]: `${s.r}px`,
+                          animationDuration: `${s.d}s`,
+                        } as React.CSSProperties} />
+                      ))}
+                    </>
+                  )}
                   {auraOn && (
                     <>
                       <div className="lvaura-glow" style={{
