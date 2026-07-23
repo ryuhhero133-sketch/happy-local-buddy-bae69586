@@ -2811,6 +2811,10 @@ function IdlePage() {
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   // Contador de pokébolas arremessadas em cada Mewtwo do evento (por id de spawn).
   const mewtwoBallsRef = useRef<Map<number, number>>(new Map());
+  // Contador de Ultra Balls arremessadas em bosses raros (Dragonite Shiny / Zapdos).
+  const bossBallsRef = useRef<Map<number, number>>(new Map());
+  const DRAGONITE_SHINY_MIN_BALLS = 700;
+  const ZAPDOS_MIN_BALLS = 1000;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
