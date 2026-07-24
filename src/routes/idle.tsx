@@ -4620,7 +4620,6 @@ function IdlePage() {
   // Extremamente fortes, agressivos ao ver, captura minúscula (só ULTRA/MASTER).
   const BIRD_ROSTER: { sp: Species; label: string; icon: string; color: string; level: number }[] = [
     { sp: "moltres",  label: "MOLTRES",  icon: "🔥", color: "#ff7a2a", level: 400 },
-    { sp: "zapdos",   label: "ZAPDOS",   icon: "⚡", color: "#ffd23a", level: 420 },
     { sp: "articuno", label: "ARTICUNO", icon: "❄", color: "#8ecbff", level: 380 },
   ];
   const BIRD_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 horas
