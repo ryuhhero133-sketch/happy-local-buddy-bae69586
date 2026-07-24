@@ -14473,7 +14473,38 @@ function MarketScreen({
 
       {mode === "browse" && (
         <>
+          {soldPayouts.length > 0 && (
+            <>
+              <div style={{ color: "#ffd94d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>💰 VENDAS CONCLUÍDAS — COLETAR PAGAMENTO</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10, marginBottom: 16 }}>
+                {soldPayouts.map((l) => {
+                  const cur = l.currency ?? "gold";
+                  return (
+                    <div key={l.id} style={{ background: "linear-gradient(180deg,#2a1f08,#150e02)", border: "1px solid #ffd94d88", borderRadius: 10, padding: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {STONE_CHEST[l.item_id] ? (
+                          <img src={STONE_CHEST[l.item_id]} alt="" width={44} height={44} />
+                        ) : (
+                          <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                        )}
+                        <div>
+                          <div style={{ color: "#ffd94d", fontWeight: 800, fontSize: 13 }}>Vendido: {l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
+                          <div style={{ color: "#c8a878", fontSize: 11 }}>Receber <b style={{ color: CUR_COLOR[cur] }}>{l.price.toLocaleString()} {CUR_LABEL[cur]}</b></div>
+                        </div>
+                      </div>
+                      <button onClick={() => void onClaimPayout({ id: l.id, item_id: l.item_id, qty: l.qty, price: l.price, currency: l.currency }).then((ok) => { if (ok) { setSoldPayouts((prev) => prev.filter((x) => x.id !== l.id)); } })}
+                        style={{ width: "100%", marginTop: 8, background: "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 6, padding: "8px 0", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                        Coletar {l.price.toLocaleString()} {CUR_LABEL[cur]}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
           {mine.length > 0 && (
+            <></>
+          )}
             <>
               <div style={{ color: "#8fd0ff", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>MEUS ANÚNCIOS</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10, marginBottom: 16 }}>
