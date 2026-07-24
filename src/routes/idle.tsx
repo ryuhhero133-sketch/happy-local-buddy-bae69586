@@ -113,6 +113,18 @@ type Dir = keyof typeof DIR_ROW;
 // ============ assets ============
 import idleArenaAsset from "@/assets/idle-arena.jpg.asset.json";
 import trophyIconAsset from "@/assets/trophy-icon.png.asset.json";
+import chestGrassImg from "@/assets/chest-grass.png";
+import chestFireImg from "@/assets/chest-fire.png";
+import chestWaterImg from "@/assets/chest-water.png";
+import chestElectricImg from "@/assets/chest-electric.png";
+import chestDarkImg from "@/assets/chest-dark.png";
+import chestDragonImg from "@/assets/chest-dragon.png";
+const STONE_CHEST: Record<string, string> = {
+  stone_grass: chestGrassImg, stone_fire: chestFireImg, stone_water: chestWaterImg,
+  stone_electric: chestElectricImg, stone_dark: chestDarkImg, stone_dragon: chestDragonImg,
+};
+const STONE_PACK_SIZE = 20;
+const isStoneId = (id: string) => id.startsWith("stone_") && id !== "stone_pack_all";
 
 import mapSnowAsset from "@/assets/map-snow-valley.png.asset.json";
 import mapDesertAsset from "@/assets/map-desert.png.asset.json";
