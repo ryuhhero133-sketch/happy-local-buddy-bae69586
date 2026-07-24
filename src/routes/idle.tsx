@@ -258,6 +258,8 @@ import vulpixGif from "@/assets/vulpix.gif";
 import pidgeottoAsset from "@/assets/pidgeotto.gif.asset.json";
 import raticateFAsset from "@/assets/raticate-f.gif.asset.json";
 import fearowAsset from "@/assets/fearow.gif.asset.json";
+import blastoiseAsset from "@/assets/blastoise.gif.asset.json";
+import blastoiseShinyAsset from "@/assets/blastoise-shiny.gif.asset.json";
 import deoxysAsset from "@/assets/deoxys-normal.gif.asset.json";
 import groudonAsset from "@/assets/groudon.gif.asset.json";
 import laprasShinyAsset from "@/assets/lapras-shiny.gif.asset.json";
@@ -269,6 +271,8 @@ import magmortarAsset from "@/assets/magmortar.gif.asset.json";
 const pidgeottoUrl = assetUrlFromJson(pidgeottoAsset);
 const raticateFUrl = assetUrlFromJson(raticateFAsset);
 const fearowUrl = assetUrlFromJson(fearowAsset);
+const blastoiseUrl = assetUrlFromJson(blastoiseAsset);
+const blastoiseShinyUrl = assetUrlFromJson(blastoiseShinyAsset);
 const deoxysUrl = assetUrlFromJson(deoxysAsset);
 const groudonUrl = assetUrlFromJson(groudonAsset);
 const laprasShinyUrl = assetUrlFromJson(laprasShinyAsset);
@@ -573,6 +577,7 @@ const GIF: Partial<Record<Species, string>> = {
   poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
+  blastoise: blastoiseUrl, blastoise_shiny: blastoiseShinyUrl,
   deoxys: deoxysUrl, groudon: groudonUrl, lapras_shiny: laprasShinyUrl, snorlax_mythic: snorlaxMythicUrl, charizard_shiny: charizardShinyUrl,
   darkrai: darkraiUrl, ho_oh: hoOhUrl, magmortar: magmortarUrl,
   lugia: lugiaUrl, hariyama: hariyamaUrl, ursaring: ursaringUrl,
@@ -620,7 +625,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   growlithe: "fire", arcanine: "fire", ninetales: "fire", vulpix: "fire",
   magmar: "fire", flareon: "fire", moltres: "fire", blaziken: "fire",
   // Água
-  squirtle: "water", wartortle: "water", blastoise: "water",
+  squirtle: "water", wartortle: "water", blastoise: "water", blastoise_shiny: "water",
   psyduck: "water", golduck: "water",
   poliwag: "water", poliwhirl: "water", poliwrath: "fighting",
   magikarp: "water", gyarados: "water", vaporeon: "water", lapras: "water",
