@@ -5878,9 +5878,11 @@ function IdlePage() {
     if (!identity?.id) { pushChat("Faça login para comprar.", "info"); return false; }
     if (listing.seller_id === identity.id) { pushChat("Você não pode comprar seu próprio anúncio.", "info"); return false; }
     const cur = listing.currency ?? "gold";
-    if (cur === "gold" && idle.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
-    if (cur === "crystal" && idle.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
-    if (cur === "safira" && (idle.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
+    // usa idleRef pra evitar closure stale entre cliques rápidos
+    const cur_state = idleRef.current;
+    if (cur === "gold" && cur_state.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
+    if (cur === "crystal" && cur_state.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
+    if (cur === "safira" && (cur_state.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
     // Usa count em vez de .select().maybeSingle() — a policy de SELECT
     // pode filtrar a linha após sold_at deixar de ser null e retornar data=null
     // mesmo com o UPDATE tendo funcionado.
@@ -5894,18 +5896,31 @@ function IdlePage() {
       .is("sold_at", null);
     if (error) { console.error("[market] buy error", error, listing); pushChat(`Falha ao comprar: ${error.message}`, "info"); return false; }
     if (!count) { pushChat("Anúncio não está mais disponível.", "info"); return false; }
+    // Rechecagem atômica dentro do setIdle — evita débito duplicado se a UI dispararbuy 2x em paralelo
+    let insufficient = false;
     setIdle((s) => {
       const bank = { ...s.bank };
-      const items = { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty };
-      if (cur === "gold") bank.gold -= listing.price;
-      else if (cur === "crystal") bank.crystals -= listing.price;
-      else items.safira_verde = (s.items?.safira_verde ?? 0) - listing.price;
+      const items = { ...s.items };
+      if (cur === "gold") {
+        if (bank.gold < listing.price) { insufficient = true; return s; }
+        bank.gold -= listing.price;
+      } else if (cur === "crystal") {
+        if (bank.crystals < listing.price) { insufficient = true; return s; }
+        bank.crystals -= listing.price;
+      } else {
+        const sv = s.items?.safira_verde ?? 0;
+        if (sv < listing.price) { insufficient = true; return s; }
+        items.safira_verde = sv - listing.price;
+      }
+      items[listing.item_id] = (s.items[listing.item_id] ?? 0) + listing.qty;
       return { ...s, bank, items };
     });
+    if (insufficient) { pushChat("Saldo mudou — compra abortada, ninguém foi cobrado indevidamente.", "info"); return false; }
     const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
     pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ${curLabel}.`, "cap");
     return true;
   };
+
   const cancelMarketListing = async (listing: { id: string; item_id: string; qty: number; seller_id: string }): Promise<boolean> => {
     if (identity?.id !== listing.seller_id) return false;
     const { error } = await supabase.from("market_listings").delete().eq("id", listing.id).is("sold_at", null);
