@@ -14483,10 +14483,16 @@ function MarketScreen({
                       </div>
                     </div>
                     <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: CUR_COLOR[cur] }}>{l.price.toLocaleString()} {CUR_LABEL[cur]}</b></div>
-                    <button disabled={!canBuy} onClick={() => void onBuy(l).then((ok) => { if (ok) void refresh(); })}
+                    <button disabled={!canBuy} onClick={() => void onBuy(l).then((ok) => {
+                        if (ok) {
+                          setListings((prev) => prev.filter((x) => x.id !== l.id));
+                          void refresh();
+                        }
+                      })}
                       style={{ width: "100%", background: !canBuy ? "#333" : "linear-gradient(180deg,#ff9d3d,#8b4a10)", color: "#0e0818", border: "none", borderRadius: 6, padding: "8px 0", fontWeight: 800, cursor: !canBuy ? "not-allowed" : "pointer", fontSize: 12 }}>
                       {canBuy ? "Comprar" : `${CUR_LABEL[cur]} insuficiente(s)`}
                     </button>
+
                   </div>
                 );
               })}
