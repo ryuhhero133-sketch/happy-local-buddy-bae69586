@@ -9072,6 +9072,7 @@ function IdlePage() {
               onListMarket={listMarketItem}
               onBuyMarket={buyMarketListing}
               onCancelMarket={cancelMarketListing}
+              onClaimMarketPayout={claimMarketPayout}
               isVip={isVip()}
               pokemonMarketNode={
                 <PokemonMarketPanel
