@@ -599,6 +599,7 @@ const GIF: Partial<Record<Species, string>> = {
   mewtwo_event: assetUrlFromJson(mewtwoEventGifAsset),
   oddish_shiny: assetUrlFromJson(oddishShinyGifAsset),
   riolu: rioluUrl,
+  raichu: raichuUrl,
 };
 
 
