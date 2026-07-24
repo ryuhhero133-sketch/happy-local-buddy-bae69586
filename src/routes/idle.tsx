@@ -934,16 +934,21 @@ const GOVERNANTE_PLUS_TRAITS = ["prismatico", "alpha", "esquivo", "dourado", "pr
 
 // Pool de 50 espécies elegíveis para o Painel de Troca Black Mitic Plus (código RESGTT55).
 const BMP_SWAP_POOL: readonly Species[] = [
-  "charizard_shiny", "blastoise_shiny", "dragonite_shiny", "mewtwo", "mew_alt",
+  "charizard_shiny", "blastoise_shiny", "dragonite_shiny", "mewtwo",
   "mewtwo_event", "lugia", "ho_oh", "moltres", "zapdos",
   "articuno", "moltres_shiny", "raikou", "suicune", "suicune_shiny",
   "dialga", "darkrai", "deoxys", "groudon", "lapras_shiny",
-  "snorlax_mythic", "tyranitar", "lucario", "scizor", "gengar",
+  "snorlax_mythic", "tyranitar", "scizor", "gengar",
   "umbreon", "infernape", "krookodile", "nidoking_shiny", "rapidash_shiny",
   "skarmory", "heracross_shiny", "meganium_shiny", "exeggutor_shiny", "cloyster_shiny",
   "onix_shiny", "hitmonchan_shiny", "lickitung_shiny", "kangaskhan", "feraligatr",
   "blaziken", "pinsir", "golem", "jolteon", "lapras",
   "virizion", "luxray_f", "abomasnow", "riolu", "charizard",
+  // +20 novos
+  "venusaur", "pikachu", "gyarados", "machamp", "arcanine",
+  "dragonite", "blaziken", "raichu", "ninetales", "magmortar",
+  "aerodactyl", "kabutops", "primeape", "hariyama", "ursaring",
+  "magmar", "snorlax", "magneton", "electabuzz", "vaporeon_shiny",
 ] as const;
 
 export const CRAFT_BY_RARITY: Record<Rarity, number> = {
@@ -2704,18 +2709,8 @@ function IdlePage() {
     }
 
 
-    // RESGTT55 — abre o Painel de Troca Black Mitic Plus (uso único por conta)
+    // RESGTT55 — abre o Painel de Troca Black Mitic Plus (reutilizável)
     if (raw === "RESGTT55") {
-      const base = idleRef.current;
-      if (!base.redeemedCodes?.[raw]) {
-        const next: IdleState = {
-          ...base,
-          redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
-        };
-        setIdle(next);
-        persistCodeReward(next);
-        try { localStorage.setItem(codeKey, "1"); } catch {}
-      }
       setCodeInput("");
       setCodeOpen(false);
       setBmpSwapMsg(null);
