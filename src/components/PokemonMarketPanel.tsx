@@ -167,6 +167,15 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   }, [identity?.id]);
   const [offers, setOffers] = useState<OfferRow[]>([]);
 
+  // Filtros e paginação da vitrine
+  const [fltSearch, setFltSearch] = useState<string>("");
+  const [fltRarity, setFltRarity] = useState<string>("all");
+  const [fltCurrency, setFltCurrency] = useState<string>("all");
+  const [fltElement, setFltElement] = useState<string>("all");
+  const [fltSort, setFltSort] = useState<string>("new");
+  const [page, setPage] = useState<number>(1);
+  const PAGE_SIZE = 12;
+
   useEffect(() => {
     const iv = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(iv);
@@ -507,29 +516,105 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
         }}>{loading ? "…" : "↻ Atualizar"}</button>
       </div>
 
-      {mode === "browse" && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
-          {vitrine.length === 0 && <div style={{ color: "#8a7a9c", gridColumn: "1 / -1", padding: 24, textAlign: "center" }}>Nenhum Pokémon à venda no momento.</div>}
-          {vitrine.map(r => {
-            const myOffer = offers.find(o => o.listing_id === r.id && o.buyer_id === (identity?.id ?? "") && o.status === "pending");
-            return (
-              <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
-                badge={r.offers_only ? "💬 Só ofertas" : undefined}
-                action={r.offers_only
-                  ? <div style={{ fontSize: 10, color: "#6bd4ff", fontWeight: 900, letterSpacing: 1, textAlign: "right" }}>SOMENTE<br/>OFERTAS</div>
-                  : <button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>}
-                footer={
-                  <OfferBox
-                    r={r} myOffer={myOffer}
-                    onOffer={(amt) => void doMakeOffer(r, amt)}
-                    onCancel={() => myOffer && void doCancelOffer(myOffer)}
+      {mode === "browse" && (() => {
+        const q = fltSearch.trim().toLowerCase();
+        let filtered = vitrine.filter(r => {
+          if (fltRarity !== "all" && r.pokemon.rarity !== fltRarity) return false;
+          if (fltCurrency !== "all" && r.currency !== fltCurrency) return false;
+          if (fltElement !== "all") {
+            const es = elementsOf(r.pokemon.species);
+            if (!es.includes(fltElement as never)) return false;
+          }
+          if (q && !r.pokemon.species.toLowerCase().includes(q) && !r.seller_name.toLowerCase().includes(q)) return false;
+          return true;
+        });
+        filtered = [...filtered].sort((a, b) => {
+          switch (fltSort) {
+            case "price_asc": return a.price - b.price;
+            case "price_desc": return b.price - a.price;
+            case "lv_desc": return b.pokemon.level - a.pokemon.level;
+            case "lv_asc": return a.pokemon.level - b.pokemon.level;
+            case "old": return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+            default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          }
+        });
+        const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+        const curPage = Math.min(page, totalPages);
+        const pageItems = filtered.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+        const rarityOpts = ["all","common","uncommon","rare","epic","legendary","mythic","mythic_shiny"];
+        const elementOpts = ["all", ...Object.keys(ELEMENT_META)];
+        const selBase: React.CSSProperties = { background: "#0e0818", color: "#eadfe8", border: "1px solid #3a2a4a", borderRadius: 6, padding: "5px 8px", fontSize: 11, fontWeight: 700 };
+        return (
+          <>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10, background: "#0b0510", border: "1px solid #3a2a4a", borderRadius: 10, padding: 8, alignItems: "center" }}>
+              <input value={fltSearch} onChange={e => { setFltSearch(e.target.value); setPage(1); }} placeholder="🔎 Buscar espécie/vendedor…"
+                style={{ ...selBase, flex: "1 1 200px", minWidth: 160 }} />
+              <select value={fltRarity} onChange={e => { setFltRarity(e.target.value); setPage(1); }} style={selBase}>
+                {rarityOpts.map(r => <option key={r} value={r}>{r === "all" ? "Raridade: todas" : (RARITY_NAME[r as Rarity] ?? r)}</option>)}
+              </select>
+              <select value={fltElement} onChange={e => { setFltElement(e.target.value); setPage(1); }} style={selBase}>
+                {elementOpts.map(el => <option key={el} value={el}>{el === "all" ? "Elemento: todos" : `${(ELEMENT_META as any)[el].emoji} ${(ELEMENT_META as any)[el].label}`}</option>)}
+              </select>
+              <select value={fltCurrency} onChange={e => { setFltCurrency(e.target.value); setPage(1); }} style={selBase}>
+                <option value="all">Moeda: todas</option>
+                <option value="gold">💰 Ouro</option>
+                <option value="crystal">💎 Cristal</option>
+                <option value="safira">💚 Safira</option>
+                <option value="esmerald">🟢 Esmeralda</option>
+              </select>
+              <select value={fltSort} onChange={e => setFltSort(e.target.value)} style={selBase}>
+                <option value="new">Mais recentes</option>
+                <option value="old">Mais antigos</option>
+                <option value="price_asc">Preço ↑</option>
+                <option value="price_desc">Preço ↓</option>
+                <option value="lv_desc">Nível ↓</option>
+                <option value="lv_asc">Nível ↑</option>
+              </select>
+              <div style={{ marginLeft: "auto", fontSize: 11, color: "#8a7a9c", fontWeight: 800 }}>
+                {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
+              {pageItems.length === 0 && <div style={{ color: "#8a7a9c", gridColumn: "1 / -1", padding: 24, textAlign: "center" }}>Nenhum Pokémon encontrado.</div>}
+              {pageItems.map(r => {
+                const myOffer = offers.find(o => o.listing_id === r.id && o.buyer_id === (identity?.id ?? "") && o.status === "pending");
+                return (
+                  <ListingCard key={r.id} r={r} gifOf={gifOf} now={now}
+                    badge={r.offers_only ? "💬 Só ofertas" : undefined}
+                    action={r.offers_only
+                      ? <div style={{ fontSize: 10, color: "#6bd4ff", fontWeight: 900, letterSpacing: 1, textAlign: "right" }}>SOMENTE<br/>OFERTAS</div>
+                      : <button onClick={() => void doBuy(r)} style={btnGold}>🛒 COMPRAR</button>}
+                    footer={
+                      <OfferBox
+                        r={r} myOffer={myOffer}
+                        onOffer={(amt) => void doMakeOffer(r, amt)}
+                        onCancel={() => myOffer && void doCancelOffer(myOffer)}
+                      />
+                    }
                   />
-                }
-              />
-            );
-          })}
-        </div>
-      )}
+                );
+              })}
+            </div>
+            {totalPages > 1 && (
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 14, flexWrap: "wrap" }}>
+                <button onClick={() => setPage(1)} disabled={curPage === 1} style={pgBtn(curPage === 1)}>«</button>
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={curPage === 1} style={pgBtn(curPage === 1)}>‹</button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(n => n === 1 || n === totalPages || Math.abs(n - curPage) <= 1)
+                  .map((n, i, arr) => (
+                    <span key={n} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      {i > 0 && n - arr[i - 1] > 1 && <span style={{ color: "#8a7a9c" }}>…</span>}
+                      <button onClick={() => setPage(n)} style={pgBtn(false, n === curPage)}>{n}</button>
+                    </span>
+                  ))}
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={curPage === totalPages} style={pgBtn(curPage === totalPages)}>›</button>
+                <button onClick={() => setPage(totalPages)} disabled={curPage === totalPages} style={pgBtn(curPage === totalPages)}>»</button>
+                <span style={{ marginLeft: 8, fontSize: 11, color: "#8a7a9c" }}>Página {curPage}/{totalPages}</span>
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {mode === "mine" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -851,3 +936,14 @@ const btnBlue: React.CSSProperties = {
   border: "1px solid #b8ecff", borderRadius: 8, cursor: "pointer",
   boxShadow: "0 3px 8px rgba(26,90,138,0.5)",
 };
+
+function pgBtn(disabled: boolean, active = false): React.CSSProperties {
+  return {
+    minWidth: 30, padding: "5px 9px", fontSize: 11, fontWeight: 900,
+    background: active ? "linear-gradient(180deg,#6bd4ff,#1a5a8a)" : "#0e0818",
+    color: active ? "#0b0510" : "#c8b8d0",
+    border: `1px solid ${active ? "#b8ecff" : "#3a2a4a"}`,
+    borderRadius: 6, cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.4 : 1,
+  };
+}
