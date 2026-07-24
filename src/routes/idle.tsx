@@ -2632,6 +2632,32 @@ function IdlePage() {
       return;
     }
 
+    // LVDOWN pack: códigos que REMOVEM níveis do treinador (uso único cada)
+    const lvNerfMap: Record<string, number> = {
+      LVDOWN1000: 1000,
+      LVDOWN500: 500,
+    };
+    if (lvNerfMap[raw]) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const sub = lvNerfMap[raw];
+      const curLv = base.trainerLevel ?? 1;
+      const newLv = Math.max(1, curLv - sub);
+      const next: IdleState = {
+        ...base,
+        trainerLevel: newLv,
+        trainerXp: 0,
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: `⬇️ -${sub} níveis de treinador. (Lv ${curLv} → ${newLv})` });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: -${sub} níveis de treinador (Lv ${curLv} → ${newLv}).`, "cap");
+      return;
+    }
+
     // VIP60U50 pack — Livro VIP 60d + 50 Ultra Balls (10 códigos, uso único cada)
     const vip60Codes = [
       "VIP60U50A", "VIP60U50B", "VIP60U50C", "VIP60U50D", "VIP60U50E",
