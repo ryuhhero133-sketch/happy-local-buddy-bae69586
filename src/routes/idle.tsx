@@ -2610,6 +2610,7 @@ function IdlePage() {
       LVUP1500: 1500,
       LVUP4500: 4500,
       LVUP330: 330,
+      LVUP755: 755,
     };
     if (lvBoostMap[raw]) {
       const base = idleRef.current;
