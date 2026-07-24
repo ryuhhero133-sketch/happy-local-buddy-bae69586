@@ -14403,6 +14403,7 @@ function MarketScreen({
   const CUR_LABEL: Record<string, string> = { gold: "ouro", crystal: "💎 cristais", safira: "💚 safiras" };
   const CUR_COLOR: Record<string, string> = { gold: "#ff9d3d", crystal: "#6bd4ff", safira: "#7dffbe" };
   const [listings, setListings] = useState<MarketListing[]>([]);
+  const [soldPayouts, setSoldPayouts] = useState<MarketListing[]>([]);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"browse" | "create" | "npc">("browse");
   const [selItem, setSelItem] = useState<string>("pokeball");
@@ -14412,14 +14413,27 @@ function MarketScreen({
 
   const refresh = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("market_listings")
-      .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at")
-      .is("sold_at", null)
-      .order("created_at", { ascending: false })
-      .limit(100);
+    const [openRes, soldRes] = await Promise.all([
+      supabase
+        .from("market_listings")
+        .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at")
+        .is("sold_at", null)
+        .order("created_at", { ascending: false })
+        .limit(100),
+      identity?.id
+        ? (supabase as any)
+            .from("market_listings")
+            .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at, payout_claimed")
+            .eq("seller_id", identity.id)
+            .eq("payout_claimed", false)
+            .not("sold_at", "is", null)
+            .order("sold_at", { ascending: false })
+            .limit(50)
+        : Promise.resolve({ data: [], error: null } as any),
+    ]);
     setLoading(false);
-    if (!error && data) setListings(data as unknown as MarketListing[]);
+    if (!openRes.error && openRes.data) setListings(openRes.data as unknown as MarketListing[]);
+    if (!soldRes.error && soldRes.data) setSoldPayouts(soldRes.data as unknown as MarketListing[]);
   };
   useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, []);
 
