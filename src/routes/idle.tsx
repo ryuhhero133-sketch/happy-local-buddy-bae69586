@@ -932,6 +932,20 @@ const GOVERNANTE_PLUS_POOL: readonly Species[] = [
 
 const GOVERNANTE_PLUS_TRAITS = ["prismatico", "alpha", "esquivo", "dourado", "prodigio", "eterno"];
 
+// Pool de 50 espécies elegíveis para o Painel de Troca Black Mitic Plus (código RESGTT55).
+const BMP_SWAP_POOL: readonly Species[] = [
+  "charizard_shiny", "blastoise_shiny", "dragonite_shiny", "mewtwo", "mew_alt",
+  "mewtwo_event", "lugia", "ho_oh", "moltres", "zapdos",
+  "articuno", "moltres_shiny", "raikou", "suicune", "suicune_shiny",
+  "dialga", "darkrai", "deoxys", "groudon", "lapras_shiny",
+  "snorlax_mythic", "tyranitar", "lucario", "scizor", "gengar",
+  "umbreon", "infernape", "krookodile", "nidoking_shiny", "rapidash_shiny",
+  "skarmory", "heracross_shiny", "meganium_shiny", "exeggutor_shiny", "cloyster_shiny",
+  "onix_shiny", "hitmonchan_shiny", "lickitung_shiny", "kangaskhan", "feraligatr",
+  "blaziken", "pinsir", "golem", "jolteon", "lapras",
+  "virizion", "luxray_f", "abomasnow", "riolu", "charizard",
+] as const;
+
 export const CRAFT_BY_RARITY: Record<Rarity, number> = {
   common: 1,
   uncommon: 3,
@@ -2171,6 +2185,10 @@ function IdlePage() {
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [codeMsg, setCodeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [bmpSwapOpen, setBmpSwapOpen] = useState(false);
+  const [bmpSwapSourceUid, setBmpSwapSourceUid] = useState<string | null>(null);
+  const [bmpSwapTarget, setBmpSwapTarget] = useState<Species | null>(null);
+  const [bmpSwapMsg, setBmpSwapMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [cashShopOpen, setCashShopOpen] = useState(false);
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
@@ -2685,6 +2703,28 @@ function IdlePage() {
       return;
     }
 
+
+    // RESGTT55 — abre o Painel de Troca Black Mitic Plus (uso único por conta)
+    if (raw === "RESGTT55") {
+      const base = idleRef.current;
+      if (!base.redeemedCodes?.[raw]) {
+        const next: IdleState = {
+          ...base,
+          redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+        };
+        setIdle(next);
+        persistCodeReward(next);
+        try { localStorage.setItem(codeKey, "1"); } catch {}
+      }
+      setCodeInput("");
+      setCodeOpen(false);
+      setBmpSwapMsg(null);
+      setBmpSwapSourceUid(null);
+      setBmpSwapTarget(null);
+      setBmpSwapOpen(true);
+      pushChat("🔄 Painel de Troca Black Mitic Plus aberto — escolha um BMP da sua Coleção e a espécie desejada.", "cap");
+      return;
+    }
 
 
     // CARTAGOV1..5 — Carta do Governante (single-use por conta, não consome no uso)
@@ -10953,6 +10993,200 @@ function IdlePage() {
           </div>
         </div>
       )}
+
+      {/* ===== Painel de Troca Black Mitic Plus (RESGTT55) ===== */}
+      {bmpSwapOpen && (() => {
+        const bmpEntries = (idle.collection ?? []).filter((e) =>
+          typeof e.event === "string" && e.event.startsWith("black_mitic")
+        );
+        const source = bmpEntries.find((e) => e.uid === bmpSwapSourceUid) ?? null;
+        const canConfirm = !!source && !!bmpSwapTarget;
+        const confirmSwap = () => {
+          const base = idleRef.current;
+          const src = (base.collection ?? []).find((e) => e.uid === bmpSwapSourceUid);
+          if (!src || !bmpSwapTarget) {
+            setBmpSwapMsg({ kind: "err", text: "Selecione um BMP e uma espécie destino." });
+            return;
+          }
+          if (src.species === bmpSwapTarget) {
+            setBmpSwapMsg({ kind: "err", text: "O destino precisa ser diferente da espécie atual." });
+            return;
+          }
+          const nextCollection = (base.collection ?? []).map((e) =>
+            e.uid === src.uid
+              ? {
+                  ...e,
+                  species: bmpSwapTarget as Species,
+                  traits: [...GOVERNANTE_PLUS_TRAITS],
+                  rarity: "mythic_shiny" as Rarity,
+                  event: `black_mitic_plus:swap:${bmpSwapTarget}`,
+                }
+              : e
+          );
+          const seenSpecies = base.seenSpecies.includes(bmpSwapTarget)
+            ? base.seenSpecies : [...base.seenSpecies, bmpSwapTarget];
+          const caughtSpecies = base.caughtSpecies.includes(bmpSwapTarget)
+            ? base.caughtSpecies : [...base.caughtSpecies, bmpSwapTarget];
+          const next: IdleState = { ...base, collection: nextCollection, seenSpecies, caughtSpecies };
+          idleRef.current = next;
+          saveIdle(next);
+          setIdle(next);
+          if (!identity?.id?.startsWith("guest-")) {
+            void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+          }
+          pushChat(`🔄 Troca BMP concluída: ${src.species.toUpperCase()} → ${bmpSwapTarget.toUpperCase()} (6 traits VERSÁTIL).`, "cap");
+          setBmpSwapMsg({ kind: "ok", text: `Troca concluída! Seu ${src.species.toUpperCase()} agora é ${bmpSwapTarget.toString().toUpperCase()}.` });
+          setBmpSwapSourceUid(null);
+          setBmpSwapTarget(null);
+        };
+        return (
+          <div
+            onClick={() => setBmpSwapOpen(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 9999,
+              background: "rgba(4,2,10,0.88)", display: "grid", placeItems: "center", padding: 12,
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "min(880px, 100%)", maxHeight: "88vh", overflow: "auto",
+                background: "linear-gradient(160deg,#12071e 0%,#1c0a2e 55%,#0b0510 100%)",
+                border: "1px solid #a25bff", borderRadius: 14, padding: 18,
+                color: "#f3e5ff", fontFamily: "monospace",
+                boxShadow: "0 0 40px rgba(162,91,255,0.35), inset 0 0 30px rgba(162,91,255,0.15)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: 16, color: "#d9b3ff", letterSpacing: 1 }}>
+                    🔄 TROCA BLACK MITIC PLUS
+                  </div>
+                  <div style={{ fontSize: 11, color: "#b18cd9", marginTop: 2 }}>
+                    Troque um Pokémon Black Mitic Plus da sua Coleção por outra espécie. Todos vêm com 6 traits VERSÁTIL.
+                  </div>
+                </div>
+                <button
+                  onClick={() => setBmpSwapOpen(false)}
+                  style={{ background: "transparent", border: "1px solid #a25bff", color: "#d9b3ff", cursor: "pointer", fontSize: 12, padding: "4px 10px", borderRadius: 6 }}
+                >FECHAR ✕</button>
+              </div>
+
+              {/* Passo 1: escolher BMP */}
+              <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "rgba(162,91,255,0.06)", border: "1px solid rgba(162,91,255,0.25)" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#e8d1ff", marginBottom: 6 }}>
+                  1) SEU BLACK MITIC PLUS ({bmpEntries.length})
+                </div>
+                {bmpEntries.length === 0 ? (
+                  <div style={{ fontSize: 12, color: "#c8a8e8", padding: 8 }}>
+                    Você não possui nenhum Black Mitic Plus na Coleção.
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8 }}>
+                    {bmpEntries.map((e) => {
+                      const src = GIF[e.species];
+                      const sel = e.uid === bmpSwapSourceUid;
+                      return (
+                        <button
+                          key={e.uid}
+                          onClick={() => { setBmpSwapSourceUid(e.uid); setBmpSwapMsg(null); }}
+                          style={{
+                            display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                            padding: 8, borderRadius: 8, cursor: "pointer",
+                            background: sel ? "linear-gradient(180deg,#3a1660,#1a0630)" : "rgba(20,10,35,0.7)",
+                            border: sel ? "2px solid #ffd166" : "1px solid #6a3ba0",
+                            boxShadow: sel ? "0 0 12px rgba(255,209,102,0.6)" : "none",
+                            color: "#f3e5ff", fontFamily: "monospace",
+                          }}
+                        >
+                          {src ? (
+                            <img src={src} alt="" style={{ width: 48, height: 48, imageRendering: "pixelated" }} />
+                          ) : (
+                            <div style={{ width: 48, height: 48, display: "grid", placeItems: "center", fontSize: 22 }}>✦</div>
+                          )}
+                          <div style={{ fontSize: 10, fontWeight: 800, textAlign: "center" }}>
+                            {e.species.toUpperCase()}
+                          </div>
+                          <div style={{ fontSize: 9, color: "#c9a2ff" }}>Lv {e.level}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Passo 2: escolher destino */}
+              <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "rgba(162,91,255,0.06)", border: "1px solid rgba(162,91,255,0.25)" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#e8d1ff", marginBottom: 6 }}>
+                  2) ESCOLHA A ESPÉCIE DESEJADA ({BMP_SWAP_POOL.length})
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 6 }}>
+                  {BMP_SWAP_POOL.map((sp) => {
+                    const src = GIF[sp];
+                    const sel = sp === bmpSwapTarget;
+                    return (
+                      <button
+                        key={sp}
+                        onClick={() => { setBmpSwapTarget(sp); setBmpSwapMsg(null); }}
+                        style={{
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                          padding: 6, borderRadius: 6, cursor: "pointer",
+                          background: sel ? "linear-gradient(180deg,#3a1660,#1a0630)" : "rgba(15,7,28,0.75)",
+                          border: sel ? "2px solid #ffd166" : "1px solid #5a2f8a",
+                          boxShadow: sel ? "0 0 10px rgba(255,209,102,0.55)" : "none",
+                          color: "#f3e5ff", fontFamily: "monospace",
+                        }}
+                        title={sp}
+                      >
+                        {src ? (
+                          <img src={src} alt="" style={{ width: 40, height: 40, imageRendering: "pixelated" }} />
+                        ) : (
+                          <div style={{ width: 40, height: 40, display: "grid", placeItems: "center", fontSize: 18 }}>✦</div>
+                        )}
+                        <div style={{ fontSize: 9, fontWeight: 700, textAlign: "center", lineHeight: 1.1 }}>
+                          {sp.toUpperCase()}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Confirmação */}
+              <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ fontSize: 11, color: "#c8a8e8" }}>
+                  {source ? <>Fonte: <b style={{ color: "#ffd166" }}>{source.species.toUpperCase()}</b></> : "Selecione um BMP acima."}
+                  {" · "}
+                  {bmpSwapTarget ? <>Destino: <b style={{ color: "#ffd166" }}>{bmpSwapTarget.toString().toUpperCase()}</b></> : "Escolha a espécie destino."}
+                </div>
+                <button
+                  disabled={!canConfirm}
+                  onClick={confirmSwap}
+                  style={{
+                    background: canConfirm ? "linear-gradient(180deg,#ffd166,#c99a2e)" : "#2a1a3a",
+                    color: canConfirm ? "#1a1030" : "#7d6fa0",
+                    border: "none", borderRadius: 8, padding: "8px 16px",
+                    fontWeight: 900, fontSize: 12, cursor: canConfirm ? "pointer" : "not-allowed",
+                    fontFamily: "monospace",
+                    boxShadow: canConfirm ? "0 0 12px rgba(255,209,102,0.55)" : "none",
+                  }}
+                >CONFIRMAR TROCA ✦</button>
+              </div>
+              {bmpSwapMsg && (
+                <div style={{
+                  marginTop: 10, padding: "8px 10px", borderRadius: 6, fontSize: 12,
+                  background: bmpSwapMsg.kind === "ok" ? "rgba(126,242,122,0.12)" : "rgba(227,74,74,0.12)",
+                  border: `1px solid ${bmpSwapMsg.kind === "ok" ? "#7ef27a" : "#e34a4a"}`,
+                  color: bmpSwapMsg.kind === "ok" ? "#7ef27a" : "#ffb0b0",
+                }}>{bmpSwapMsg.text}</div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+
 
 
 
