@@ -5918,6 +5918,33 @@ function IdlePage() {
     if (insufficient) { pushChat("Saldo mudou — compra abortada, ninguém foi cobrado indevidamente.", "info"); return false; }
     const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
     pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ${curLabel}.`, "cap");
+    // força persistência imediata da compra (item + débito) — evita perder no F5
+    void pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench, savedAt: Date.now() });
+    return true;
+  };
+
+  // Vendedor coleta o pagamento após alguém comprar seu anúncio.
+  // Marca payout_claimed=true atomicamente e credita a moeda no vendedor.
+  const claimMarketPayout = async (listing: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }): Promise<boolean> => {
+    if (!identity?.id) return false;
+    const cur = listing.currency ?? "gold";
+    const { error, count } = await (supabase as any)
+      .from("market_listings")
+      .update({ payout_claimed: true }, { count: "exact" })
+      .eq("id", listing.id)
+      .eq("seller_id", identity.id)
+      .eq("payout_claimed", false)
+      .not("sold_at", "is", null);
+    if (error) { pushChat(`Falha ao coletar: ${error.message}`, "info"); return false; }
+    if (!count) { pushChat("Este pagamento já foi coletado.", "info"); return false; }
+    setIdle((s) => {
+      if (cur === "gold")    return { ...s, bank: { ...s.bank, gold: s.bank.gold + listing.price } };
+      if (cur === "crystal") return { ...s, bank: { ...s.bank, crystals: s.bank.crystals + listing.price } };
+      return { ...s, items: { ...s.items, safira_verde: (s.items?.safira_verde ?? 0) + listing.price } };
+    });
+    const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
+    pushChat(`💰 Recebeu ${listing.price} ${curLabel} pela venda de ${listing.qty}x ${listing.item_id}.`, "cap");
+    void pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench, savedAt: Date.now() });
     return true;
   };
 
@@ -9045,6 +9072,7 @@ function IdlePage() {
               onListMarket={listMarketItem}
               onBuyMarket={buyMarketListing}
               onCancelMarket={cancelMarketListing}
+              onClaimMarketPayout={claimMarketPayout}
               isVip={isVip()}
               pokemonMarketNode={
                 <PokemonMarketPanel
@@ -12005,7 +12033,7 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
-  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
+  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
 
 }: {
   tab: string;
@@ -12051,6 +12079,7 @@ function TabOverlay({
   onListMarket: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
   onBuyMarket: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onCancelMarket: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
+  onClaimMarketPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
 
   isVip: boolean;
   skinId: string;
@@ -14027,6 +14056,7 @@ function TabOverlay({
             onList={onListMarket}
             onBuy={onBuyMarket}
             onCancel={onCancelMarket}
+            onClaimPayout={onClaimMarketPayout}
             onNpcSell={onSellItem}
             npcPrices={marketSellPrices}
           />
@@ -14343,7 +14373,7 @@ type MarketListing = {
   created_at: string;
 };
 function MarketScreen({
-  items, bank, identity, isVip, onList, onBuy, onCancel, onNpcSell, npcPrices,
+  items, bank, identity, isVip, onList, onBuy, onCancel, onClaimPayout, onNpcSell, npcPrices,
 }: {
   items: Record<string, number>;
   bank: { gold: number; crystals: number };
@@ -14352,6 +14382,7 @@ function MarketScreen({
   onList: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
   onBuy: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onCancel: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
+  onClaimPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onNpcSell: (id: string, qty?: number) => void;
   npcPrices: Record<string, number>;
 }) {
@@ -14372,6 +14403,7 @@ function MarketScreen({
   const CUR_LABEL: Record<string, string> = { gold: "ouro", crystal: "💎 cristais", safira: "💚 safiras" };
   const CUR_COLOR: Record<string, string> = { gold: "#ff9d3d", crystal: "#6bd4ff", safira: "#7dffbe" };
   const [listings, setListings] = useState<MarketListing[]>([]);
+  const [soldPayouts, setSoldPayouts] = useState<MarketListing[]>([]);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"browse" | "create" | "npc">("browse");
   const [selItem, setSelItem] = useState<string>("pokeball");
@@ -14381,14 +14413,27 @@ function MarketScreen({
 
   const refresh = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("market_listings")
-      .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at")
-      .is("sold_at", null)
-      .order("created_at", { ascending: false })
-      .limit(100);
+    const [openRes, soldRes] = await Promise.all([
+      supabase
+        .from("market_listings")
+        .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at")
+        .is("sold_at", null)
+        .order("created_at", { ascending: false })
+        .limit(100),
+      identity?.id
+        ? (supabase as any)
+            .from("market_listings")
+            .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at, payout_claimed")
+            .eq("seller_id", identity.id)
+            .eq("payout_claimed", false)
+            .not("sold_at", "is", null)
+            .order("sold_at", { ascending: false })
+            .limit(50)
+        : Promise.resolve({ data: [], error: null } as any),
+    ]);
     setLoading(false);
-    if (!error && data) setListings(data as unknown as MarketListing[]);
+    if (!openRes.error && openRes.data) setListings(openRes.data as unknown as MarketListing[]);
+    if (!soldRes.error && soldRes.data) setSoldPayouts(soldRes.data as unknown as MarketListing[]);
   };
   useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, []);
 
@@ -14428,8 +14473,38 @@ function MarketScreen({
 
       {mode === "browse" && (
         <>
+          {soldPayouts.length > 0 && (
+            <>
+              <div style={{ color: "#ffd94d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>💰 VENDAS CONCLUÍDAS — COLETAR PAGAMENTO</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10, marginBottom: 16 }}>
+                {soldPayouts.map((l) => {
+                  const cur = l.currency ?? "gold";
+                  return (
+                    <div key={l.id} style={{ background: "linear-gradient(180deg,#2a1f08,#150e02)", border: "1px solid #ffd94d88", borderRadius: 10, padding: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {STONE_CHEST[l.item_id] ? (
+                          <img src={STONE_CHEST[l.item_id]} alt="" width={44} height={44} />
+                        ) : (
+                          <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                        )}
+                        <div>
+                          <div style={{ color: "#ffd94d", fontWeight: 800, fontSize: 13 }}>Vendido: {l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
+                          <div style={{ color: "#c8a878", fontSize: 11 }}>Receber <b style={{ color: CUR_COLOR[cur] }}>{l.price.toLocaleString()} {CUR_LABEL[cur]}</b></div>
+                        </div>
+                      </div>
+                      <button onClick={() => void onClaimPayout({ id: l.id, item_id: l.item_id, qty: l.qty, price: l.price, currency: l.currency }).then((ok) => { if (ok) { setSoldPayouts((prev) => prev.filter((x) => x.id !== l.id)); } })}
+                        style={{ width: "100%", marginTop: 8, background: "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 6, padding: "8px 0", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                        Coletar {l.price.toLocaleString()} {CUR_LABEL[cur]}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
           {mine.length > 0 && (
             <>
+
               <div style={{ color: "#8fd0ff", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>MEUS ANÚNCIOS</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10, marginBottom: 16 }}>
                 {mine.map((l) => (
