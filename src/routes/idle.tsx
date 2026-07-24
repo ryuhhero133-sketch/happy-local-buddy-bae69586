@@ -2709,18 +2709,8 @@ function IdlePage() {
     }
 
 
-    // RESGTT55 — abre o Painel de Troca Black Mitic Plus (uso único por conta)
+    // RESGTT55 — abre o Painel de Troca Black Mitic Plus (reutilizável)
     if (raw === "RESGTT55") {
-      const base = idleRef.current;
-      if (!base.redeemedCodes?.[raw]) {
-        const next: IdleState = {
-          ...base,
-          redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
-        };
-        setIdle(next);
-        persistCodeReward(next);
-        try { localStorage.setItem(codeKey, "1"); } catch {}
-      }
       setCodeInput("");
       setCodeOpen(false);
       setBmpSwapMsg(null);
