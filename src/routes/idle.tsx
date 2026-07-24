@@ -5440,25 +5440,7 @@ function IdlePage() {
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           }
         }
-        // ⚡ ZAPDOS EVENT — a cada 5 min, spawn forçado nos mapas Oddish + Caverna Sombria/Rochosa
-        {
-          const zapdosMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3", "caverna"];
-          const isZapMap = zapdosMaps.includes(idle.currentMap as string);
-          if (isZapMap) {
-            const ZAP_INTERVAL_MS = 5 * 60 * 1000;
-            const zapdosOnMap = enemies.some((e) => e.sp === "zapdos");
-            let lastZap = 0;
-            try { lastZap = Number(localStorage.getItem("zapdos_last_spawn_ms") || 0); } catch {}
-            if (!zapdosOnMap && Date.now() - lastZap >= ZAP_INTERVAL_MS) {
-              pool = ["zapdos"] as Species[];
-              forcedRarity = "mythic_shiny";
-              mapLvRange = [420, 420];
-              try { localStorage.setItem("zapdos_last_spawn_ms", String(Date.now())); } catch {}
-              setZapdosAnnounce({ ts: Date.now() });
-              pushChat("⚡ ZAPDOS APARECEU! Bosque da Odisséia sacudido pela tempestade!", "cap");
-            }
-          }
-        }
+        // ⚡ ZAPDOS EVENT — ENCERRADO
         // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey
         {
           const oddyMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3"];
