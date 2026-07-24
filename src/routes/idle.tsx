@@ -14524,16 +14524,19 @@ function MarketScreen({
           <input type="number" min={1} value={selPrice} onChange={(e) => setSelPrice(Math.max(1, parseInt(e.target.value) || 1))}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 12 }} />
           {(() => {
-            const stoneQty = isStoneId(selItem) ? STONE_PACK_SIZE : selQty;
-            const disabled = !isVip || (items[selItem] ?? 0) < stoneQty;
+            const stoneQty = isStoneId(selItem) ? Math.max(STONE_PACK_SIZE, selQty) : selQty;
+            const belowMin = isStoneId(selItem) && stoneQty < STONE_PACK_SIZE;
+            const noStock = (items[selItem] ?? 0) < stoneQty;
+            const disabled = !isVip || belowMin || noStock;
             return (
               <button disabled={disabled}
                 onClick={async () => { const ok = await onList(selItem, stoneQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
                 style={{ width: "100%", background: disabled ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer" }}>
-                {!isVip ? "🔒 VIP necessário" : (items[selItem] ?? 0) < stoneQty ? `Precisa de ${stoneQty}× ${LABELS[selItem] ?? selItem}` : "Publicar anúncio"}
+                {!isVip ? "🔒 VIP necessário" : belowMin ? `Mínimo ${STONE_PACK_SIZE} stones` : noStock ? `Precisa de ${stoneQty}× ${LABELS[selItem] ?? selItem}` : `Publicar anúncio (${stoneQty}x)`}
               </button>
             );
           })()}
+
 
         </div>
       )}
