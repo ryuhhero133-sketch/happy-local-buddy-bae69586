@@ -14373,7 +14373,7 @@ type MarketListing = {
   created_at: string;
 };
 function MarketScreen({
-  items, bank, identity, isVip, onList, onBuy, onCancel, onNpcSell, npcPrices,
+  items, bank, identity, isVip, onList, onBuy, onCancel, onClaimPayout, onNpcSell, npcPrices,
 }: {
   items: Record<string, number>;
   bank: { gold: number; crystals: number };
@@ -14382,6 +14382,7 @@ function MarketScreen({
   onList: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
   onBuy: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onCancel: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
+  onClaimPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onNpcSell: (id: string, qty?: number) => void;
   npcPrices: Record<string, number>;
 }) {
