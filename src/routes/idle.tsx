@@ -2710,7 +2710,7 @@ function IdlePage() {
 
 
     // RESGTT55 — abre o Painel de Troca Black Mitic Plus (reutilizável)
-    if (raw === "RESGTT55" || raw === "RESGTT77") {
+    if (raw === "RESGTT55" || raw === "RESGTT77" || raw === "RESGTT78") {
       setCodeInput("");
       setCodeOpen(false);
       setBmpSwapMsg(null);
