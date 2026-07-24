@@ -2185,6 +2185,10 @@ function IdlePage() {
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [codeMsg, setCodeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [bmpSwapOpen, setBmpSwapOpen] = useState(false);
+  const [bmpSwapSourceUid, setBmpSwapSourceUid] = useState<string | null>(null);
+  const [bmpSwapTarget, setBmpSwapTarget] = useState<Species | null>(null);
+  const [bmpSwapMsg, setBmpSwapMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [cashShopOpen, setCashShopOpen] = useState(false);
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
