@@ -14505,7 +14505,16 @@ function MarketScreen({
           {mine.length > 0 && (
             <></>
           )}
-            <>
+          {mine.length > 0 && (
+            <></>
+          ) as any}
+          {mine.length > 0 && (
+            <></>
+          )}
+          {mine.length > 0 && (
+            <></>
+          )}
+          {mine.length > 0 && (
               <div style={{ color: "#8fd0ff", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>MEUS ANÚNCIOS</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10, marginBottom: 16 }}>
                 {mine.map((l) => (
