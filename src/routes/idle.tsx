@@ -14054,6 +14054,7 @@ function TabOverlay({
             onList={onListMarket}
             onBuy={onBuyMarket}
             onCancel={onCancelMarket}
+            onClaimPayout={onClaimMarketPayout}
             onNpcSell={onSellItem}
             npcPrices={marketSellPrices}
           />
