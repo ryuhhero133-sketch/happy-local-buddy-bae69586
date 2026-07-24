@@ -5928,7 +5928,7 @@ function IdlePage() {
   const claimMarketPayout = async (listing: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }): Promise<boolean> => {
     if (!identity?.id) return false;
     const cur = listing.currency ?? "gold";
-    const { error, count } = await supabase
+    const { error, count } = await (supabase as any)
       .from("market_listings")
       .update({ payout_claimed: true }, { count: "exact" })
       .eq("id", listing.id)
