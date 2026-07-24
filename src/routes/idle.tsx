@@ -14455,7 +14455,13 @@ function MarketScreen({
                 return (
                   <div key={l.id} style={{ background: "#1a0f26", border: "1px solid #ff9d3d66", borderRadius: 10, padding: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      {STONE_CHEST[l.item_id] ? (
+                        <div style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(255,157,61,0.22), transparent 70%)", borderRadius: 10, filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.7))" }}>
+                          <img src={STONE_CHEST[l.item_id]} alt="" width={58} height={58} style={{ imageRendering: "auto" }} />
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      )}
                       <div>
                         <div style={{ color: "#f5cf6b", fontWeight: 800, fontSize: 13 }}>{l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
                         <div style={{ color: "#8a7a9c", fontSize: 11 }}>por <b style={{ color: "#c8b8d0" }}>{l.seller_name}</b></div>
