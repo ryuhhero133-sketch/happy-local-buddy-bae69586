@@ -14501,14 +14501,18 @@ function MarketScreen({
               <img src={STONE_CHEST[selItem]} alt="" width={64} height={64} style={{ filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.7))" }} />
               <div>
                 <div style={{ color: "#ffd94d", fontWeight: 900, fontSize: 13 }}>Baú de {LABELS[selItem]}</div>
-                <div style={{ color: "#c8b8d0", fontSize: 11 }}>Anúncio fixo em <b style={{ color: "#7dffbe" }}>pack de {STONE_PACK_SIZE}</b> stones.</div>
+                <div style={{ color: "#c8b8d0", fontSize: 11 }}>Pack mínimo <b style={{ color: "#7dffbe" }}>{STONE_PACK_SIZE}</b> stones — pode anunciar mais.</div>
               </div>
             </div>
           )}
-          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Quantidade {isStoneId(selItem) && <span style={{ color: "#8a7a9c" }}>(fixo em {STONE_PACK_SIZE} para stones)</span>}</label>
-          <input type="number" min={1} max={999} value={selQty} disabled={isStoneId(selItem)}
-            onChange={(e) => setSelQty(Math.max(1, parseInt(e.target.value) || 1))}
-            style={{ width: "100%", background: "#0e0818", color: isStoneId(selItem) ? "#8a7a9c" : "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10, opacity: isStoneId(selItem) ? 0.7 : 1 }} />
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Quantidade {isStoneId(selItem) && <span style={{ color: "#8a7a9c" }}>(mín. {STONE_PACK_SIZE} para stones)</span>}</label>
+          <input type="number" min={isStoneId(selItem) ? STONE_PACK_SIZE : 1} max={99999} value={selQty}
+            onChange={(e) => {
+              const raw = Math.max(1, parseInt(e.target.value) || 1);
+              setSelQty(isStoneId(selItem) ? Math.max(STONE_PACK_SIZE, raw) : raw);
+            }}
+            style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }} />
+
           <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Moeda</label>
           <select value={selCurrency} onChange={(e) => setSelCurrency(e.target.value as any)}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }}>
