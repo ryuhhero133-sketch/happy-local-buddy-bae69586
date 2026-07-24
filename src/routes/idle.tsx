@@ -10991,46 +10991,66 @@ function IdlePage() {
 
       {/* ===== Painel de Troca Black Mitic Plus (RESGTT55) ===== */}
       {bmpSwapOpen && (() => {
-        const bmpEntries = (idle.collection ?? []).filter((e) =>
-          typeof e.event === "string" && e.event.startsWith("black_mitic")
-        );
+        const isBMP = (e: { event?: string | null }) =>
+          typeof e.event === "string" && e.event.startsWith("black_mitic");
+        const bmpEntries = [
+          ...(idle.collection ?? []).filter(isBMP),
+          ...team.filter(isBMP),
+          ...restingBench.filter(isBMP),
+        ];
         const source = bmpEntries.find((e) => e.uid === bmpSwapSourceUid) ?? null;
         const canConfirm = !!source && !!bmpSwapTarget;
         const confirmSwap = () => {
           const base = idleRef.current;
-          const src = (base.collection ?? []).find((e) => e.uid === bmpSwapSourceUid);
-          if (!src || !bmpSwapTarget) {
+          const target = bmpSwapTarget;
+          if (!bmpSwapSourceUid || !target) {
             setBmpSwapMsg({ kind: "err", text: "Selecione um BMP e uma espécie destino." });
             return;
           }
-          if (src.species === bmpSwapTarget) {
+          const currentTeam = teamRef.current;
+          const currentBench = benchRef.current;
+          const found =
+            (base.collection ?? []).find((e) => e.uid === bmpSwapSourceUid) ||
+            currentTeam.find((p) => p.uid === bmpSwapSourceUid) ||
+            currentBench.find((p) => p.uid === bmpSwapSourceUid);
+          if (!found) {
+            setBmpSwapMsg({ kind: "err", text: "Pokémon de origem não encontrado." });
+            return;
+          }
+          if (found.species === target) {
             setBmpSwapMsg({ kind: "err", text: "O destino precisa ser diferente da espécie atual." });
             return;
           }
-          const nextCollection = (base.collection ?? []).map((e) =>
-            e.uid === src.uid
+          const patch = <T extends { uid: string; species: Species; event?: string | null; traits?: string[]; rarity: Rarity }>(p: T): T =>
+            p.uid === bmpSwapSourceUid
               ? {
-                  ...e,
-                  species: bmpSwapTarget as Species,
+                  ...p,
+                  species: target as Species,
                   traits: [...GOVERNANTE_PLUS_TRAITS],
                   rarity: "mythic_shiny" as Rarity,
-                  event: `black_mitic_plus:swap:${bmpSwapTarget}`,
+                  event: `black_mitic_plus:swap:${target}`,
                 }
-              : e
-          );
-          const seenSpecies = base.seenSpecies.includes(bmpSwapTarget)
-            ? base.seenSpecies : [...base.seenSpecies, bmpSwapTarget];
-          const caughtSpecies = base.caughtSpecies.includes(bmpSwapTarget)
-            ? base.caughtSpecies : [...base.caughtSpecies, bmpSwapTarget];
+              : p;
+          const nextCollection = (base.collection ?? []).map(patch);
+          const nextTeam = currentTeam.map(patch);
+          const nextBench = currentBench.map(patch);
+          const seenSpecies = base.seenSpecies.includes(target)
+            ? base.seenSpecies : [...base.seenSpecies, target];
+          const caughtSpecies = base.caughtSpecies.includes(target)
+            ? base.caughtSpecies : [...base.caughtSpecies, target];
           const next: IdleState = { ...base, collection: nextCollection, seenSpecies, caughtSpecies };
           idleRef.current = next;
           saveIdle(next);
           setIdle(next);
+          teamRef.current = nextTeam;
+          benchRef.current = nextBench;
+          setTeam(nextTeam);
+          setRestingBench(nextBench);
           if (!identity?.id?.startsWith("guest-")) {
-            void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+            void pushCloudSaveNow({ idle: next, team: nextTeam, restingBench: nextBench, savedAt: Date.now() });
           }
-          pushChat(`🔄 Troca BMP concluída: ${src.species.toUpperCase()} → ${bmpSwapTarget.toUpperCase()} (6 traits VERSÁTIL).`, "cap");
-          setBmpSwapMsg({ kind: "ok", text: `Troca concluída! Seu ${src.species.toUpperCase()} agora é ${bmpSwapTarget.toString().toUpperCase()}.` });
+          pushChat(`🔄 Troca BMP concluída: ${found.species.toUpperCase()} → ${target.toUpperCase()} (6 traits VERSÁTIL).`, "cap");
+          setBmpSwapMsg({ kind: "ok", text: `Troca concluída! Seu ${found.species.toUpperCase()} agora é ${target.toString().toUpperCase()}.` });
           setBmpSwapSourceUid(null);
           setBmpSwapTarget(null);
         };
