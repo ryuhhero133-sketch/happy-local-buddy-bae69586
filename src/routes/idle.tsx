@@ -945,10 +945,10 @@ const BMP_SWAP_POOL: readonly Species[] = [
   "blaziken", "pinsir", "golem", "jolteon", "lapras",
   "virizion", "luxray_f", "abomasnow", "riolu", "charizard",
   // +20 novos
-  "venusaur", "pikachu", "gyarados", "alakazam", "machamp",
-  "arcanine", "dragonite", "typhlosion", "salamence", "garchomp",
-  "metagross", "rayquaza", "kyogre", "greninja", "gardevoir",
-  "absol", "milotic", "hydreigon", "volcarona", "vaporeon_shiny",
+  "venusaur", "pikachu", "gyarados", "machamp", "arcanine",
+  "dragonite", "blaziken", "raichu", "ninetales", "magmortar",
+  "aerodactyl", "kabutops", "primeape", "hariyama", "ursaring",
+  "magmar", "snorlax", "magneton", "electabuzz", "vaporeon_shiny",
 ] as const;
 
 export const CRAFT_BY_RARITY: Record<Rarity, number> = {
