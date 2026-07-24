@@ -1351,6 +1351,24 @@ function IdlePage() {
   useEffect(() => { teamRef.current = team; }, [team]);
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
+  const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
+    const byUid = new Map<string, CollectionEntry>();
+    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry);
+    for (const pet of [...team, ...restingBench]) {
+      const current = byUid.get(pet.uid);
+      byUid.set(pet.uid, {
+        uid: pet.uid,
+        species: pet.species,
+        level: Math.max(current?.level ?? 1, pet.level ?? 1),
+        xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
+        rarity: pet.rarity,
+        capturedAt: current?.capturedAt ?? Date.now(),
+        traits: current?.traits ?? pet.traits ?? [],
+        event: current?.event ?? pet.event,
+      });
+    }
+    return [...byUid.values()];
+  }, [idle.collection, restingBench, team]);
   // UIDs intencionalmente consumidos (fragmentar/trocador) — impede reconciliação
   // de re-adicioná-los à coleção quando ainda estão em team/bench mid-cleanup.
   const consumedUidsRef = useRef<Set<string>>(new Set());
@@ -9023,7 +9041,7 @@ function IdlePage() {
               caughtSpecies={idle.caughtSpecies}
               seenSpecies={idle.seenSpecies}
               totals={idle.totals}
-              collection={idle.collection ?? []}
+              collection={collectionForDisplay}
               craftPoints={idle.craftPoints ?? 0}
               onFragmentCollection={fragmentCollection}
               gifMap={GIF}
@@ -11168,7 +11186,7 @@ function IdlePage() {
 
       {/* ===== Modal: Detalhes da Coleção ===== */}
       {colecaoDetailUid && (() => {
-        const entry = idle.collection?.find((p) => p.uid === colecaoDetailUid);
+        const entry = collectionForDisplay.find((p) => p.uid === colecaoDetailUid);
         if (!entry) return null;
         const livePet = team.find((p) => p.uid === entry.uid) ?? restingBench.find((p) => p.uid === entry.uid);
         const displayLevel = Math.max(entry.level ?? 1, livePet?.level ?? 1);
