@@ -14420,7 +14420,13 @@ function MarketScreen({
                 {mine.map((l) => (
                   <div key={l.id} style={{ background: "#101a2a", border: "1px solid #4a9eff55", borderRadius: 10, padding: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      {STONE_CHEST[l.item_id] ? (
+                        <div style={{ width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(255,217,77,0.18), transparent 70%)", borderRadius: 8, filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.6))" }}>
+                          <img src={STONE_CHEST[l.item_id]} alt="" width={52} height={52} style={{ imageRendering: "auto" }} />
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      )}
                       <div>
                         <div style={{ color: "#f5cf6b", fontWeight: 800, fontSize: 13 }}>{l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
                         <div style={{ color: "#8a7a9c", fontSize: 11 }}>Seu anúncio</div>
