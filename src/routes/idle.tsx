@@ -417,6 +417,7 @@ const psyduckUrl = assetUrlFromJson(psyduckAsset);
 const lucarioAuraUrl = assetUrlFromJson(lucarioAuraAsset);
 const mewAuraUrl = assetUrlFromJson(mewAuraAsset);
 const rioluUrl = assetUrlFromJson(rioluAsset);
+const raichuUrl = assetUrlFromJson(raichuAsset);
 const oddishUrl = assetUrlFromJson(oddishAsset);
 const bellsproutUrl = assetUrlFromJson(bellsproutAsset);
 const weedleUrl = assetUrlFromJson(weedleAsset);
