@@ -340,8 +340,8 @@ const fearowGif = fearowAsset.url;
 const pidgeottoGif = pidgeottoAsset.url;
 const wartortleGif = wartortleAsset.url;
 const wartortleShinyGif = wartortleShinyAsset.url;
-const blastoiseGif = blastoiseAsset.url;
-const blastoiseShinyGif = blastoiseShinyAsset.url;
+const blastoiseGif = assetUrlFromJson(blastoiseAsset);
+const blastoiseShinyGif = assetUrlFromJson(blastoiseShinyAsset);
 // Pack POKÉDEX Ruby M
 import abraAsset from "@/assets/abra.gif.asset.json";
 import kadabraAsset from "@/assets/kadabra.gif.asset.json";
