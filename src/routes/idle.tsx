@@ -8498,7 +8498,8 @@ function IdlePage() {
               const fainted = leaderHp <= 0;
               const faceScale = pokemonFace === "right" ? -1 : 1;
               const auraOn = Date.now() - leveledAt < 1400;
-              const isBMP = !!(leader as any).event && String((leader as any).event).startsWith("black_mitic_plus");
+              const leaderEvent = String((leader as any).event ?? "");
+              const isBMP = leaderEvent.includes("black_mitic");
               // Lunge: avança 45% do caminho até o alvo e volta (curva senoidal)
               let lungeX = 0, lungeY = 0;
               if (attackAnim) {
