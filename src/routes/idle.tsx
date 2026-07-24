@@ -234,6 +234,7 @@ import psyduckAsset from "@/assets/psyduck.gif.asset.json";
 import lucarioAuraAsset from "@/assets/lucario-aura.webp.asset.json";
 import mewAuraAsset from "@/assets/mew-aura.webp.asset.json";
 import rioluAsset from "@/assets/riolu.gif.asset.json";
+import raichuAsset from "@/assets/raichu.gif.asset.json";
 import oddishAsset from "@/assets/oddish.gif.asset.json";
 import bellsproutAsset from "@/assets/bellsprout.gif.asset.json";
 import weedleAsset from "@/assets/weedle.gif.asset.json";
@@ -416,6 +417,7 @@ const psyduckUrl = assetUrlFromJson(psyduckAsset);
 const lucarioAuraUrl = assetUrlFromJson(lucarioAuraAsset);
 const mewAuraUrl = assetUrlFromJson(mewAuraAsset);
 const rioluUrl = assetUrlFromJson(rioluAsset);
+const raichuUrl = assetUrlFromJson(raichuAsset);
 const oddishUrl = assetUrlFromJson(oddishAsset);
 const bellsproutUrl = assetUrlFromJson(bellsproutAsset);
 const weedleUrl = assetUrlFromJson(weedleAsset);
@@ -597,6 +599,7 @@ const GIF: Partial<Record<Species, string>> = {
   mewtwo_event: assetUrlFromJson(mewtwoEventGifAsset),
   oddish_shiny: assetUrlFromJson(oddishShinyGifAsset),
   riolu: rioluUrl,
+  raichu: raichuUrl,
 };
 
 
