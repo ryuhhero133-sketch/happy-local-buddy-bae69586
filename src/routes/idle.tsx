@@ -2866,6 +2866,7 @@ function IdlePage() {
     // GOVLEND1..5 — 1 Carta do Governante + 1 Carta Lendária (Incubadora) cada (uso único)
     const govLendMap: Record<string, boolean> = {
       GOVLEND1: true, GOVLEND2: true, GOVLEND3: true, GOVLEND4: true, GOVLEND5: true,
+      GOVLENDKIT1: true, GOVLENDKIT2: true,
     };
     if (govLendMap[raw]) {
       const base = idleRef.current;
