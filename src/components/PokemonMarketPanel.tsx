@@ -936,3 +936,14 @@ const btnBlue: React.CSSProperties = {
   border: "1px solid #b8ecff", borderRadius: 8, cursor: "pointer",
   boxShadow: "0 3px 8px rgba(26,90,138,0.5)",
 };
+
+function pgBtn(disabled: boolean, active = false): React.CSSProperties {
+  return {
+    minWidth: 30, padding: "5px 9px", fontSize: 11, fontWeight: 900,
+    background: active ? "linear-gradient(180deg,#6bd4ff,#1a5a8a)" : "#0e0818",
+    color: active ? "#0b0510" : "#c8b8d0",
+    border: `1px solid ${active ? "#b8ecff" : "#3a2a4a"}`,
+    borderRadius: 6, cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.4 : 1,
+  };
+}
