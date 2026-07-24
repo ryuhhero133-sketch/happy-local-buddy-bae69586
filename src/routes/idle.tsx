@@ -113,6 +113,18 @@ type Dir = keyof typeof DIR_ROW;
 // ============ assets ============
 import idleArenaAsset from "@/assets/idle-arena.jpg.asset.json";
 import trophyIconAsset from "@/assets/trophy-icon.png.asset.json";
+import chestGrassImg from "@/assets/chest-grass.png";
+import chestFireImg from "@/assets/chest-fire.png";
+import chestWaterImg from "@/assets/chest-water.png";
+import chestElectricImg from "@/assets/chest-electric.png";
+import chestDarkImg from "@/assets/chest-dark.png";
+import chestDragonImg from "@/assets/chest-dragon.png";
+const STONE_CHEST: Record<string, string> = {
+  stone_grass: chestGrassImg, stone_fire: chestFireImg, stone_water: chestWaterImg,
+  stone_electric: chestElectricImg, stone_dark: chestDarkImg, stone_dragon: chestDragonImg,
+};
+const STONE_PACK_SIZE = 20;
+const isStoneId = (id: string) => id.startsWith("stone_") && id !== "stone_pack_all";
 
 import mapSnowAsset from "@/assets/map-snow-valley.png.asset.json";
 import mapDesertAsset from "@/assets/map-desert.png.asset.json";
@@ -14408,7 +14420,13 @@ function MarketScreen({
                 {mine.map((l) => (
                   <div key={l.id} style={{ background: "#101a2a", border: "1px solid #4a9eff55", borderRadius: 10, padding: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      {STONE_CHEST[l.item_id] ? (
+                        <div style={{ width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(255,217,77,0.18), transparent 70%)", borderRadius: 8, filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.6))" }}>
+                          <img src={STONE_CHEST[l.item_id]} alt="" width={52} height={52} style={{ imageRendering: "auto" }} />
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      )}
                       <div>
                         <div style={{ color: "#f5cf6b", fontWeight: 800, fontSize: 13 }}>{l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
                         <div style={{ color: "#8a7a9c", fontSize: 11 }}>Seu anúncio</div>
@@ -14437,7 +14455,13 @@ function MarketScreen({
                 return (
                   <div key={l.id} style={{ background: "#1a0f26", border: "1px solid #ff9d3d66", borderRadius: 10, padding: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      {STONE_CHEST[l.item_id] ? (
+                        <div style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(255,157,61,0.22), transparent 70%)", borderRadius: 10, filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.7))" }}>
+                          <img src={STONE_CHEST[l.item_id]} alt="" width={58} height={58} style={{ imageRendering: "auto" }} />
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      )}
                       <div>
                         <div style={{ color: "#f5cf6b", fontWeight: 800, fontSize: 13 }}>{l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
                         <div style={{ color: "#8a7a9c", fontSize: 11 }}>por <b style={{ color: "#c8b8d0" }}>{l.seller_name}</b></div>
@@ -14466,15 +14490,25 @@ function MarketScreen({
           )}
           <div style={{ color: "#ffd94d", fontWeight: 800, fontSize: 14, marginBottom: 10 }}>Novo anúncio</div>
           <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Item</label>
-          <select value={selItem} onChange={(e) => setSelItem(e.target.value)}
+          <select value={selItem} onChange={(e) => { const v = e.target.value; setSelItem(v); if (isStoneId(v)) setSelQty(STONE_PACK_SIZE); }}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }}>
             {Object.keys(npcPrices).map((id) => (
               <option key={id} value={id}>{LABELS[id] ?? id} (tenho {items[id] ?? 0})</option>
             ))}
           </select>
-          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Quantidade</label>
-          <input type="number" min={1} max={999} value={selQty} onChange={(e) => setSelQty(Math.max(1, parseInt(e.target.value) || 1))}
-            style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }} />
+          {isStoneId(selItem) && STONE_CHEST[selItem] && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12, background: "linear-gradient(180deg,#2a1a3e,#160b24)", border: "1px solid #ffd94d66", borderRadius: 10, padding: 10, marginBottom: 10 }}>
+              <img src={STONE_CHEST[selItem]} alt="" width={64} height={64} style={{ filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.7))" }} />
+              <div>
+                <div style={{ color: "#ffd94d", fontWeight: 900, fontSize: 13 }}>Baú de {LABELS[selItem]}</div>
+                <div style={{ color: "#c8b8d0", fontSize: 11 }}>Anúncio fixo em <b style={{ color: "#7dffbe" }}>pack de {STONE_PACK_SIZE}</b> stones.</div>
+              </div>
+            </div>
+          )}
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Quantidade {isStoneId(selItem) && <span style={{ color: "#8a7a9c" }}>(fixo em {STONE_PACK_SIZE} para stones)</span>}</label>
+          <input type="number" min={1} max={999} value={selQty} disabled={isStoneId(selItem)}
+            onChange={(e) => setSelQty(Math.max(1, parseInt(e.target.value) || 1))}
+            style={{ width: "100%", background: "#0e0818", color: isStoneId(selItem) ? "#8a7a9c" : "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10, opacity: isStoneId(selItem) ? 0.7 : 1 }} />
           <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Moeda</label>
           <select value={selCurrency} onChange={(e) => setSelCurrency(e.target.value as any)}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }}>
@@ -14485,11 +14519,17 @@ function MarketScreen({
           <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Preço total ({CUR_LABEL[selCurrency]})</label>
           <input type="number" min={1} value={selPrice} onChange={(e) => setSelPrice(Math.max(1, parseInt(e.target.value) || 1))}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 12 }} />
-          <button disabled={!isVip || (items[selItem] ?? 0) < selQty}
-            onClick={async () => { const ok = await onList(selItem, selQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
-            style={{ width: "100%", background: (!isVip || (items[selItem] ?? 0) < selQty) ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: (!isVip || (items[selItem] ?? 0) < selQty) ? "not-allowed" : "pointer" }}>
-            {isVip ? "Publicar anúncio" : "🔒 VIP necessário"}
-          </button>
+          {(() => {
+            const stoneQty = isStoneId(selItem) ? STONE_PACK_SIZE : selQty;
+            const disabled = !isVip || (items[selItem] ?? 0) < stoneQty;
+            return (
+              <button disabled={disabled}
+                onClick={async () => { const ok = await onList(selItem, stoneQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
+                style={{ width: "100%", background: disabled ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer" }}>
+                {!isVip ? "🔒 VIP necessário" : (items[selItem] ?? 0) < stoneQty ? `Precisa de ${stoneQty}× ${LABELS[selItem] ?? selItem}` : "Publicar anúncio"}
+              </button>
+            );
+          })()}
 
         </div>
       )}
