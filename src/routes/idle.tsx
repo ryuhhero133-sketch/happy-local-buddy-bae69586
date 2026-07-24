@@ -5878,9 +5878,11 @@ function IdlePage() {
     if (!identity?.id) { pushChat("Faça login para comprar.", "info"); return false; }
     if (listing.seller_id === identity.id) { pushChat("Você não pode comprar seu próprio anúncio.", "info"); return false; }
     const cur = listing.currency ?? "gold";
-    if (cur === "gold" && idle.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
-    if (cur === "crystal" && idle.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
-    if (cur === "safira" && (idle.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
+    // usa idleRef pra evitar closure stale entre cliques rápidos
+    const cur_state = idleRef.current;
+    if (cur === "gold" && cur_state.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
+    if (cur === "crystal" && cur_state.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
+    if (cur === "safira" && (cur_state.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
     // Usa count em vez de .select().maybeSingle() — a policy de SELECT
     // pode filtrar a linha após sold_at deixar de ser null e retornar data=null
     // mesmo com o UPDATE tendo funcionado.
@@ -5894,18 +5896,31 @@ function IdlePage() {
       .is("sold_at", null);
     if (error) { console.error("[market] buy error", error, listing); pushChat(`Falha ao comprar: ${error.message}`, "info"); return false; }
     if (!count) { pushChat("Anúncio não está mais disponível.", "info"); return false; }
+    // Rechecagem atômica dentro do setIdle — evita débito duplicado se a UI dispararbuy 2x em paralelo
+    let insufficient = false;
     setIdle((s) => {
       const bank = { ...s.bank };
-      const items = { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty };
-      if (cur === "gold") bank.gold -= listing.price;
-      else if (cur === "crystal") bank.crystals -= listing.price;
-      else items.safira_verde = (s.items?.safira_verde ?? 0) - listing.price;
+      const items = { ...s.items };
+      if (cur === "gold") {
+        if (bank.gold < listing.price) { insufficient = true; return s; }
+        bank.gold -= listing.price;
+      } else if (cur === "crystal") {
+        if (bank.crystals < listing.price) { insufficient = true; return s; }
+        bank.crystals -= listing.price;
+      } else {
+        const sv = s.items?.safira_verde ?? 0;
+        if (sv < listing.price) { insufficient = true; return s; }
+        items.safira_verde = sv - listing.price;
+      }
+      items[listing.item_id] = (s.items[listing.item_id] ?? 0) + listing.qty;
       return { ...s, bank, items };
     });
+    if (insufficient) { pushChat("Saldo mudou — compra abortada, ninguém foi cobrado indevidamente.", "info"); return false; }
     const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
     pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ${curLabel}.`, "cap");
     return true;
   };
+
   const cancelMarketListing = async (listing: { id: string; item_id: string; qty: number; seller_id: string }): Promise<boolean> => {
     if (identity?.id !== listing.seller_id) return false;
     const { error } = await supabase.from("market_listings").delete().eq("id", listing.id).is("sold_at", null);
@@ -14468,10 +14483,16 @@ function MarketScreen({
                       </div>
                     </div>
                     <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: CUR_COLOR[cur] }}>{l.price.toLocaleString()} {CUR_LABEL[cur]}</b></div>
-                    <button disabled={!canBuy} onClick={() => void onBuy(l).then((ok) => { if (ok) void refresh(); })}
+                    <button disabled={!canBuy} onClick={() => void onBuy(l).then((ok) => {
+                        if (ok) {
+                          setListings((prev) => prev.filter((x) => x.id !== l.id));
+                          void refresh();
+                        }
+                      })}
                       style={{ width: "100%", background: !canBuy ? "#333" : "linear-gradient(180deg,#ff9d3d,#8b4a10)", color: "#0e0818", border: "none", borderRadius: 6, padding: "8px 0", fontWeight: 800, cursor: !canBuy ? "not-allowed" : "pointer", fontSize: 12 }}>
                       {canBuy ? "Comprar" : `${CUR_LABEL[cur]} insuficiente(s)`}
                     </button>
+
                   </div>
                 );
               })}
@@ -14501,14 +14522,18 @@ function MarketScreen({
               <img src={STONE_CHEST[selItem]} alt="" width={64} height={64} style={{ filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.7))" }} />
               <div>
                 <div style={{ color: "#ffd94d", fontWeight: 900, fontSize: 13 }}>Baú de {LABELS[selItem]}</div>
-                <div style={{ color: "#c8b8d0", fontSize: 11 }}>Anúncio fixo em <b style={{ color: "#7dffbe" }}>pack de {STONE_PACK_SIZE}</b> stones.</div>
+                <div style={{ color: "#c8b8d0", fontSize: 11 }}>Pack mínimo <b style={{ color: "#7dffbe" }}>{STONE_PACK_SIZE}</b> stones — pode anunciar mais.</div>
               </div>
             </div>
           )}
-          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Quantidade {isStoneId(selItem) && <span style={{ color: "#8a7a9c" }}>(fixo em {STONE_PACK_SIZE} para stones)</span>}</label>
-          <input type="number" min={1} max={999} value={selQty} disabled={isStoneId(selItem)}
-            onChange={(e) => setSelQty(Math.max(1, parseInt(e.target.value) || 1))}
-            style={{ width: "100%", background: "#0e0818", color: isStoneId(selItem) ? "#8a7a9c" : "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10, opacity: isStoneId(selItem) ? 0.7 : 1 }} />
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Quantidade {isStoneId(selItem) && <span style={{ color: "#8a7a9c" }}>(mín. {STONE_PACK_SIZE} para stones)</span>}</label>
+          <input type="number" min={isStoneId(selItem) ? STONE_PACK_SIZE : 1} max={99999} value={selQty}
+            onChange={(e) => {
+              const raw = Math.max(1, parseInt(e.target.value) || 1);
+              setSelQty(isStoneId(selItem) ? Math.max(STONE_PACK_SIZE, raw) : raw);
+            }}
+            style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }} />
+
           <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Moeda</label>
           <select value={selCurrency} onChange={(e) => setSelCurrency(e.target.value as any)}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }}>
@@ -14520,16 +14545,19 @@ function MarketScreen({
           <input type="number" min={1} value={selPrice} onChange={(e) => setSelPrice(Math.max(1, parseInt(e.target.value) || 1))}
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 12 }} />
           {(() => {
-            const stoneQty = isStoneId(selItem) ? STONE_PACK_SIZE : selQty;
-            const disabled = !isVip || (items[selItem] ?? 0) < stoneQty;
+            const stoneQty = isStoneId(selItem) ? Math.max(STONE_PACK_SIZE, selQty) : selQty;
+            const belowMin = isStoneId(selItem) && stoneQty < STONE_PACK_SIZE;
+            const noStock = (items[selItem] ?? 0) < stoneQty;
+            const disabled = !isVip || belowMin || noStock;
             return (
               <button disabled={disabled}
                 onClick={async () => { const ok = await onList(selItem, stoneQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
                 style={{ width: "100%", background: disabled ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer" }}>
-                {!isVip ? "🔒 VIP necessário" : (items[selItem] ?? 0) < stoneQty ? `Precisa de ${stoneQty}× ${LABELS[selItem] ?? selItem}` : "Publicar anúncio"}
+                {!isVip ? "🔒 VIP necessário" : belowMin ? `Mínimo ${STONE_PACK_SIZE} stones` : noStock ? `Precisa de ${stoneQty}× ${LABELS[selItem] ?? selItem}` : `Publicar anúncio (${stoneQty}x)`}
               </button>
             );
           })()}
+
 
         </div>
       )}
