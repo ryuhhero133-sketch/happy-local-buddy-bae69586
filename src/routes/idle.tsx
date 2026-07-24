@@ -2568,6 +2568,42 @@ function IdlePage() {
       return;
     }
 
+    // CHAREPIC30VIP1K — Charizard Épico (direto na coleção) + VIP 30d + 1000 cristais (uso único)
+    if (raw === "CHAREPIC30VIP1K" || raw === "CHAREPICVIP1K" || raw === "EPICHARVIP1K") {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const prevCol = base.collection ?? [];
+      if (prevCol.length >= MAX_COLLECTION) {
+        setCodeMsg({ kind: "err", text: `Coleção cheia (${MAX_COLLECTION}). Libere espaço e tente novamente.` });
+        return;
+      }
+      const nowT = Date.now();
+      const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
+      const pet = { ...makePet("charizard" as Species, 50, "epic" as Rarity), capturedAt: Date.now() };
+      const next: IdleState = {
+        ...base,
+        collection: [...prevCol, pet],
+        caughtSpecies: base.caughtSpecies.includes("charizard" as Species) ? base.caughtSpecies : [...base.caughtSpecies, "charizard" as Species],
+        seenSpecies: base.seenSpecies.includes("charizard" as Species) ? base.seenSpecies : [...base.seenSpecies, "charizard" as Species],
+        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 1000) },
+        buffs: {
+          ...base.buffs,
+          expMult: Math.max(base.buffs.expMult ?? 0, 0.3),
+          expMultUntil: Math.max(base.buffs.expMultUntil ?? 0, nowT) + THIRTY_D,
+          goldMult: Math.max(base.buffs.goldMult ?? 0, 0.3),
+          goldMultUntil: Math.max(base.buffs.goldMultUntil ?? 0, nowT) + THIRTY_D,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🔥 Charizard Épico + VIP 30 dias + 1 000 💎 Cristais entregues!" });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: 1× Charizard Épico Lv 50 + VIP 30d + 1 000 💎 Cristais.`, "cap");
+      return;
+    }
+
     if (raw === "BLACKEGGTEST" || raw === "BLACKMITIC1" || raw === "TESTBLACKEGG") {
       const base = idleRef.current;
       if ((base.items?.[BLACK_EGG_ITEM_ID] ?? 0) > 0) {
