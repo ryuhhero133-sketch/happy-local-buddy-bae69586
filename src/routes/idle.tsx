@@ -5918,6 +5918,33 @@ function IdlePage() {
     if (insufficient) { pushChat("Saldo mudou — compra abortada, ninguém foi cobrado indevidamente.", "info"); return false; }
     const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
     pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ${curLabel}.`, "cap");
+    // força persistência imediata da compra (item + débito) — evita perder no F5
+    void pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench, savedAt: Date.now() });
+    return true;
+  };
+
+  // Vendedor coleta o pagamento após alguém comprar seu anúncio.
+  // Marca payout_claimed=true atomicamente e credita a moeda no vendedor.
+  const claimMarketPayout = async (listing: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }): Promise<boolean> => {
+    if (!identity?.id) return false;
+    const cur = listing.currency ?? "gold";
+    const { error, count } = await supabase
+      .from("market_listings")
+      .update({ payout_claimed: true }, { count: "exact" })
+      .eq("id", listing.id)
+      .eq("seller_id", identity.id)
+      .eq("payout_claimed", false)
+      .not("sold_at", "is", null);
+    if (error) { pushChat(`Falha ao coletar: ${error.message}`, "info"); return false; }
+    if (!count) { pushChat("Este pagamento já foi coletado.", "info"); return false; }
+    setIdle((s) => {
+      if (cur === "gold")    return { ...s, bank: { ...s.bank, gold: s.bank.gold + listing.price } };
+      if (cur === "crystal") return { ...s, bank: { ...s.bank, crystals: s.bank.crystals + listing.price } };
+      return { ...s, items: { ...s.items, safira_verde: (s.items?.safira_verde ?? 0) + listing.price } };
+    });
+    const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
+    pushChat(`💰 Recebeu ${listing.price} ${curLabel} pela venda de ${listing.qty}x ${listing.item_id}.`, "cap");
+    void pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench, savedAt: Date.now() });
     return true;
   };
 
