@@ -167,6 +167,15 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
   }, [identity?.id]);
   const [offers, setOffers] = useState<OfferRow[]>([]);
 
+  // Filtros e paginação da vitrine
+  const [fltSearch, setFltSearch] = useState<string>("");
+  const [fltRarity, setFltRarity] = useState<string>("all");
+  const [fltCurrency, setFltCurrency] = useState<string>("all");
+  const [fltElement, setFltElement] = useState<string>("all");
+  const [fltSort, setFltSort] = useState<string>("new");
+  const [page, setPage] = useState<number>(1);
+  const PAGE_SIZE = 12;
+
   useEffect(() => {
     const iv = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(iv);
