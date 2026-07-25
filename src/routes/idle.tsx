@@ -8377,8 +8377,46 @@ function IdlePage() {
                   </div>
                   <style>{`@keyframes shimmerRank { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }`}</style>
 
-
-
+                  {/* Tabs: Treinador vs Cristal Prisma */}
+                  <div style={{
+                    display: "flex", gap: 8, padding: "12px 16px 0",
+                    borderBottom: "1px solid rgba(255,214,80,0.15)",
+                  }}>
+                    {([
+                      { id: "trainer" as const, label: "Nível Treinador", icon: "🎓" },
+                      { id: "craft" as const, label: "Cristal Prisma", icon: null },
+                    ]).map((tab) => {
+                      const active = rankMode === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setRankMode(tab.id)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 6,
+                            padding: "8px 14px",
+                            borderTopLeftRadius: 10, borderTopRightRadius: 10,
+                            borderBottomLeftRadius: 0, borderBottomRightRadius: 0,
+                            border: `1px solid ${active ? "rgba(255,214,80,0.6)" : "rgba(255,255,255,0.08)"}`,
+                            borderBottom: "none",
+                            background: active
+                              ? "linear-gradient(180deg, rgba(255,214,80,0.28), rgba(255,60,80,0.14))"
+                              : "rgba(255,255,255,0.03)",
+                            color: active ? "#fff2b8" : "#c8b8d0",
+                            fontWeight: 900, fontSize: 12, letterSpacing: 0.5,
+                            cursor: "pointer",
+                            boxShadow: active ? "0 -2px 10px rgba(255,214,80,0.25)" : "none",
+                          }}
+                        >
+                          {tab.id === "craft" ? (
+                            <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={16} height={16} style={{ imageRendering: "pixelated", filter: active ? "drop-shadow(0 0 6px rgba(180,220,255,0.9))" : "none" }} />
+                          ) : (
+                            <span style={{ fontSize: 14 }}>{tab.icon}</span>
+                          )}
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
 
                   {/* List */}
                   <div style={{ overflow: "auto", padding: 14, flex: 1 }}>
