@@ -113,6 +113,7 @@ type Dir = keyof typeof DIR_ROW;
 // ============ assets ============
 import idleArenaAsset from "@/assets/idle-arena.jpg.asset.json";
 import trophyIconAsset from "@/assets/trophy-icon.png.asset.json";
+import rankMedalsRubyAsset from "@/assets/rank-medals-ruby.png.asset.json";
 import chestGrassImg from "@/assets/chest-grass.png";
 import chestFireImg from "@/assets/chest-fire.png";
 import chestWaterImg from "@/assets/chest-water.png";
@@ -3424,7 +3425,7 @@ function IdlePage() {
       });
       try {
         await recordRankedScore(idle.trainerLevel ?? 1, 0, null);
-        const top = await fetchTopRanked(200);
+        const top = await fetchTopRanked(30);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
           name: r.username || "Treinador",
@@ -7896,14 +7897,14 @@ function IdlePage() {
                 alignItems: "center",
                 justifyContent: "center",
               }}
-              title="Ranking — Top 20 níveis"
+              title="Ranking Global — Top 30"
             >
               <img
-                src={assetUrlFromJson(trophyIconAsset)}
+                src={assetUrlFromJson(rankMedalsRubyAsset)}
                 alt="Ranking"
-                width={30}
-                height={30}
-                style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}
+                width={34}
+                height={34}
+                style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(255,60,80,0.55)) drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}
                 draggable={false}
               />
             </button>
@@ -8313,50 +8314,68 @@ function IdlePage() {
                 <div
                   onClick={(e) => e.stopPropagation()}
                   style={{
-                    width: "min(640px, 96vw)", maxHeight: "88vh", display: "flex", flexDirection: "column",
-                    background: "linear-gradient(180deg, #1a0f2a 0%, #241536 50%, #2b1a3d 100%)",
-                    border: "2px solid #ffd94d",
-                    borderRadius: 16,
-                    boxShadow: "0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,214,80,0.35), inset 0 1px 0 rgba(255,255,255,0.1)",
+                    width: "min(680px, 96vw)", maxHeight: "90vh", display: "flex", flexDirection: "column",
+                    background:
+                      "radial-gradient(ellipse at top, rgba(255,60,80,0.18), transparent 60%), linear-gradient(180deg, #140a24 0%, #1c1030 45%, #2a1642 100%)",
+                    border: "2px solid transparent",
+                    borderRadius: 18,
+                    backgroundClip: "padding-box",
+                    boxShadow:
+                      "0 25px 80px rgba(0,0,0,0.9), 0 0 60px rgba(255,214,80,0.28), 0 0 40px rgba(255,60,80,0.25), inset 0 1px 0 rgba(255,255,255,0.08)",
                     color: "#ffe9a8",
                     overflow: "hidden",
+                    position: "relative",
                   }}
                 >
+                  {/* Borda dupla ouro/ruby */}
+                  <div style={{
+                    position: "absolute", inset: 0, borderRadius: 18, pointerEvents: "none",
+                    background: "linear-gradient(135deg, #ffd94d 0%, #ff2a4d 50%, #ffd94d 100%)",
+                    padding: 2, WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                    WebkitMaskComposite: "xor", maskComposite: "exclude",
+                  }} />
+
                   {/* Header */}
                   <div style={{
                     display: "flex", justifyContent: "space-between", alignItems: "center",
-                    padding: "16px 18px",
-                    background: "linear-gradient(180deg, rgba(255,214,80,0.18), rgba(255,214,80,0.02))",
+                    padding: "18px 20px",
+                    background: "linear-gradient(180deg, rgba(255,214,80,0.22) 0%, rgba(255,60,80,0.12) 60%, rgba(0,0,0,0.15) 100%)",
                     borderBottom: "1px solid rgba(255,214,80,0.35)",
+                    position: "relative",
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <img src={assetUrlFromJson(trophyIconAsset)} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(255,214,80,0.7))" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                      <img
+                        src={assetUrlFromJson(rankMedalsRubyAsset)}
+                        alt=""
+                        width={56}
+                        height={56}
+                        style={{ filter: "drop-shadow(0 0 10px rgba(255,60,80,0.6)) drop-shadow(0 0 6px rgba(255,214,80,0.5))" }}
+                      />
                       <div>
-                        <div style={{ fontWeight: 900, fontSize: 18, color: "#ffd94d", letterSpacing: 0.5 }}>RANKING GLOBAL</div>
-                        <div style={{ fontSize: 10, opacity: 0.7 }}>Top 50 treinadores do mundo</div>
+                        <div style={{
+                          fontWeight: 900, fontSize: 20, letterSpacing: 1.2,
+                          background: "linear-gradient(90deg,#ffd94d,#ffb347,#ff5577,#ffd94d)",
+                          backgroundSize: "200% 100%",
+                          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                          animation: "shimmerRank 4s linear infinite",
+                        }}>RANKING GLOBAL</div>
+                        <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
+                          🏆 TOP 30 TREINADORES DO MUNDO · atualizado a cada 3h
+                        </div>
                       </div>
                     </div>
                     <button
                       onClick={() => setRankOpen(false)}
                       style={{
                         background: "rgba(255,214,80,0.12)", border: "1px solid rgba(255,214,80,0.4)",
-                        color: "#ffe9a8", cursor: "pointer", fontSize: 18, width: 32, height: 32,
-                        borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                        color: "#ffe9a8", cursor: "pointer", fontSize: 18, width: 34, height: 34,
+                        borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
                       }}
                     >×</button>
                   </div>
+                  <style>{`@keyframes shimmerRank { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }`}</style>
 
-                  {/* Ranking único: Nível do Treinador */}
-                  <div style={{ display: "flex", gap: 6, padding: "10px 14px 0", background: "rgba(0,0,0,0.2)" }}>
-                    <div style={{
-                      flex: 1, padding: "8px 6px", fontSize: 11, fontWeight: 700,
-                      background: "linear-gradient(180deg, #ffd94d, #d99b1a)",
-                      color: "#2b1a0a",
-                      border: "1px solid #ffd94d",
-                      borderRadius: "8px 8px 0 0",
-                      textAlign: "center",
-                    }}>🎓 Nível Treinador</div>
-                  </div>
+
 
 
                   {/* List */}
@@ -8366,60 +8385,86 @@ function IdlePage() {
                     ) : rankRows.length === 0 ? (
                       <div style={{ textAlign: "center", padding: 40, opacity: 0.7 }}>Nenhum treinador encontrado.</div>
                     ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                        {rankRows.map((r, i) => {
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {rankRows.slice(0, 30).map((r, i) => {
                           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
-                          const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e5e5e5" : i === 2 ? "#d99b1a" : "#ffe9a8";
+                          const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e8e8e8" : i === 2 ? "#f0a44a" : "#ffe9a8";
                           const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
                           const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
                           const isMe = !!identity?.id && r.id === identity.id;
-                           const isTop50 = i < 50;
-                           const rubyAmount = i === 0 ? 15 : i === 1 ? 13 : i === 2 ? 11 : i === 3 ? 7 : 3;
-                           const rubyFlag = `RANKED_RUBY_KEY_${rankMode.toUpperCase()}`;
-                           const rubyModeLabel = rankMode === "craft" ? "Craft" : "Treinador";
-                           const alreadyClaimed = !!idle.redeemedCodes?.[rubyFlag];
-                           const canClaim = isMe && isTop50 && !alreadyClaimed;
-                           const claimRubyKey = () => {
-                             const base = idleRef.current;
-                             if (base.redeemedCodes?.[rubyFlag]) {
-                               pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
-                               return;
-                             }
-                               const ok = typeof window !== "undefined"
-                                 ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta e NÃO poderá ser coletada novamente.\n\nDeseja confirmar?`)
-                                 : true;
-                             if (!ok) return;
-                             const fresh = idleRef.current;
-                             if (fresh.redeemedCodes?.[rubyFlag]) {
-                               pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
-                               return;
-                             }
-                             const next: IdleState = {
-                               ...fresh,
-                               items: { ...fresh.items, chave_ruby: (fresh.items?.chave_ruby ?? 0) + rubyAmount },
-                               redeemedCodes: { ...(fresh.redeemedCodes ?? {}), [rubyFlag]: true },
-                             };
-                             setIdle(next);
-                             try { persistCodeReward(next); } catch { /* ignore */ }
-                             pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked ${rubyModeLabel}! (coleta única por ranking)`, "cap");
-                           };
+                          const isTop30 = i < 30;
+                          const rubyAmount = i === 0 ? 15 : i === 1 ? 13 : i === 2 ? 11 : i === 3 ? 7 : 3;
+                          const rubyFlag = `RANKED_RUBY_KEY_${rankMode.toUpperCase()}`;
+                          const rubyModeLabel = rankMode === "craft" ? "Craft" : "Treinador";
+                          const alreadyClaimed = !!idle.redeemedCodes?.[rubyFlag];
+                          const canClaim = isMe && isTop30 && !alreadyClaimed;
+                          const claimRubyKey = () => {
+                            const base = idleRef.current;
+                            if (base.redeemedCodes?.[rubyFlag]) {
+                              pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
+                              return;
+                            }
+                            const ok = typeof window !== "undefined"
+                              ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta e NÃO poderá ser coletada novamente.\n\nDeseja confirmar?`)
+                              : true;
+                            if (!ok) return;
+                            const fresh = idleRef.current;
+                            if (fresh.redeemedCodes?.[rubyFlag]) {
+                              pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
+                              return;
+                            }
+                            const next: IdleState = {
+                              ...fresh,
+                              items: { ...fresh.items, chave_ruby: (fresh.items?.chave_ruby ?? 0) + rubyAmount },
+                              redeemedCodes: { ...(fresh.redeemedCodes ?? {}), [rubyFlag]: true },
+                            };
+                            setIdle(next);
+                            try { persistCodeReward(next); } catch { /* ignore */ }
+                            pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked ${rubyModeLabel}! (coleta única por ranking)`, "cap");
+                          };
 
+                          // Estilos por tier
+                          const tierBg =
+                            i === 0 ? "linear-gradient(90deg, rgba(255,214,80,0.35) 0%, rgba(255,180,60,0.12) 55%, rgba(0,0,0,0.15) 100%)"
+                            : i === 1 ? "linear-gradient(90deg, rgba(220,220,230,0.28) 0%, rgba(180,190,210,0.08) 55%, rgba(0,0,0,0.15) 100%)"
+                            : i === 2 ? "linear-gradient(90deg, rgba(240,164,74,0.28) 0%, rgba(200,120,60,0.08) 55%, rgba(0,0,0,0.15) 100%)"
+                            : i < 10 ? "linear-gradient(90deg, rgba(255,80,110,0.10), rgba(255,255,255,0.02))"
+                            : "rgba(255,255,255,0.03)";
+                          const tierBorder =
+                            i === 0 ? "rgba(255,214,80,0.7)"
+                            : i === 1 ? "rgba(220,220,230,0.55)"
+                            : i === 2 ? "rgba(240,164,74,0.55)"
+                            : i < 10 ? "rgba(255,80,110,0.25)"
+                            : "rgba(255,255,255,0.06)";
+                          const tierGlow =
+                            i === 0 ? "0 0 18px rgba(255,214,80,0.35), inset 0 1px 0 rgba(255,255,255,0.1)"
+                            : i === 1 ? "0 0 14px rgba(220,220,230,0.25)"
+                            : i === 2 ? "0 0 14px rgba(240,164,74,0.30)"
+                            : "none";
 
                           return (
                             <div key={r.id} style={{
                               display: "grid",
-                              gridTemplateColumns: "48px 1fr auto",
+                              gridTemplateColumns: "54px 1fr auto",
                               alignItems: "center",
                               gap: 12,
-                              padding: "10px 12px",
-                              background: i < 3
-                                ? "linear-gradient(90deg, rgba(255,214,80,0.15), rgba(255,214,80,0.03))"
-                                : "rgba(255,255,255,0.03)",
-                              border: `1px solid ${i < 3 ? "rgba(255,214,80,0.4)" : "rgba(255,255,255,0.06)"}`,
-                              borderRadius: 10,
-                              boxShadow: i < 3 ? "0 2px 8px rgba(255,214,80,0.1)" : "none",
+                              padding: i < 3 ? "12px 14px" : "10px 12px",
+                              background: tierBg,
+                              border: `1px solid ${tierBorder}`,
+                              borderRadius: 12,
+                              boxShadow: tierGlow,
+                              outline: isMe ? "2px solid rgba(125,255,155,0.7)" : "none",
+                              outlineOffset: isMe ? -2 : 0,
+                              transition: "transform 0.15s",
                             }}>
-                              <div style={{ fontWeight: 800, color: topColor, fontSize: i < 3 ? 22 : 15, textAlign: "center" }}>{medal}</div>
+                              <div style={{
+                                fontWeight: 900,
+                                color: topColor,
+                                fontSize: i < 3 ? 26 : 15,
+                                textAlign: "center",
+                                textShadow: i < 3 ? `0 0 10px ${topColor}` : "none",
+                              }}>{medal}</div>
+
                               <div style={{ overflow: "hidden", minWidth: 0 }}>
                                 <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                   {r.name}
@@ -8433,7 +8478,7 @@ function IdlePage() {
                                   <span>🎓 Tr {r.trainer_level}</span>
                                   <span>⚒️ {r.craft_points}</span>
                                 </div>
-                                {isTop50 && isMe && (
+                                {isTop30 && isMe && (
                                   <div style={{ marginTop: 6 }}>
                                     <button
                                       onClick={claimRubyKey}
