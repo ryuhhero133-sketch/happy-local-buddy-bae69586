@@ -5157,7 +5157,6 @@ function IdlePage() {
       });
     } else {
       pushFxAt(target.x, target.y - 70, `${ballName} falhou`, "enemyDmg");
-      pushChat(`✗ ${ballName} falhou (HP ${Math.round(hpPct * 100)}%).`, "hit");
     }
   };
 
