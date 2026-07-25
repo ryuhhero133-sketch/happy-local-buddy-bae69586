@@ -718,7 +718,21 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
 
   return (
     <PanelShell title={title}>
+      <div
+        role="alert"
+        className="mb-3 rounded-lg border-2 border-yellow-400/70 bg-gradient-to-r from-amber-500/25 via-yellow-500/20 to-amber-500/25 px-3 py-2.5 text-center shadow-[0_0_18px_rgba(250,204,21,0.35)] animate-pulse"
+      >
+        <div className="text-[11px] font-black tracking-[0.2em] text-yellow-200">
+          ⚠ SERVIDOR EM MANUTENÇÃO ⚠
+        </div>
+        <div className="mt-0.5 text-[10px] text-yellow-100/90 leading-tight">
+          Login e cadastro temporariamente indisponíveis.
+          <br />
+          Voltaremos em breve, treinador!
+        </div>
+      </div>
       <form onSubmit={submit} className="space-y-3">
+
         <Field
           label="E-mail"
           value={email}
