@@ -923,6 +923,8 @@ type IdleState = {
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   redeemedCodes?: Record<string, boolean>;
   blackMiticPlusPending?: number; // ovos Plus emitidos pelo Governante que ainda precisam ser marcados no painel
+  grassOddishCaptured?: number; // contador do evento Grass Oddish
+  grassOddishReturnMap?: IdleMapId; // mapa de origem antes de entrar no evento
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
