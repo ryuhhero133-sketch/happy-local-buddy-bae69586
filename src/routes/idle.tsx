@@ -5918,7 +5918,12 @@ function IdlePage() {
 
 
   const activeTime = now - idle.startedAt;
-  const map = IDLE_MAPS[idle.currentMap];
+  const rawMap = IDLE_MAPS[idle.currentMap];
+  // Grass Oddish rotaciona 2 backgrounds a cada 4 min pra ampliar a área do evento
+  const grassOddishBg2 = assetUrlFromJson(mapGrassOddish2Asset);
+  const map = idle.currentMap === "grass_oddish"
+    ? { ...rawMap, bg: Math.floor(now / (4 * 60 * 1000)) % 2 === 0 ? rawMap.bg : grassOddishBg2 }
+    : rawMap;
   const visibleBuildings = BUILDINGS;
   const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#1a3d1a";
 
