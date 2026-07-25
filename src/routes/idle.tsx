@@ -7135,18 +7135,31 @@ function IdlePage() {
               )}
               {oddishRankRows.map((r, i) => {
                 const pos = i + 1;
-                const medal = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `#${pos}`;
+                const medal = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : pos === 4 ? "🏅" : pos === 5 ? "🏅" : `#${pos}`;
                 const isMe = r.user_id === identity?.id;
+                const topColor = pos === 1 ? "#ffd66b" : pos === 2 ? "#d0d8e0" : pos === 3 ? "#e79a5a" : pos === 4 ? "#b6f0ff" : pos === 5 ? "#c9b6ff" : "#c8e8c8";
+                const topBg = pos === 1
+                  ? "linear-gradient(90deg, rgba(255,214,107,0.28), rgba(255,214,107,0.06))"
+                  : pos === 2
+                  ? "linear-gradient(90deg, rgba(208,216,224,0.24), rgba(208,216,224,0.05))"
+                  : pos === 3
+                  ? "linear-gradient(90deg, rgba(231,154,90,0.24), rgba(231,154,90,0.05))"
+                  : pos === 4
+                  ? "linear-gradient(90deg, rgba(182,240,255,0.20), rgba(182,240,255,0.04))"
+                  : pos === 5
+                  ? "linear-gradient(90deg, rgba(201,182,255,0.20), rgba(201,182,255,0.04))"
+                  : "transparent";
                 return (
                   <div key={r.user_id} style={{
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "6px 10px",
                     borderRadius: 8,
                     marginBottom: 4,
-                    background: isMe ? "linear-gradient(90deg, rgba(141,250,141,0.28), rgba(141,250,141,0.05))" : (pos <= 3 ? "rgba(141,250,141,0.10)" : "transparent"),
-                    border: isMe ? "1px solid #8dfa8d" : "1px solid transparent",
+                    background: isMe ? "linear-gradient(90deg, rgba(141,250,141,0.28), rgba(141,250,141,0.05))" : topBg,
+                    border: isMe ? "1px solid #8dfa8d" : (pos <= 5 ? `1px solid ${topColor}55` : "1px solid transparent"),
+                    boxShadow: pos <= 3 ? `0 0 10px ${topColor}44` : "none",
                   }}>
-                    <div style={{ width: 38, fontSize: pos <= 3 ? 16 : 12, fontWeight: 900, color: pos === 1 ? "#ffd66b" : pos === 2 ? "#d0d8e0" : pos === 3 ? "#e79a5a" : "#c8e8c8", textAlign: "center" }}>{medal}</div>
+                    <div style={{ width: 38, fontSize: pos <= 5 ? 16 : 12, fontWeight: 900, color: topColor, textAlign: "center", textShadow: pos <= 3 ? `0 0 8px ${topColor}` : "none" }}>{medal}</div>
                     <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800, color: isMe ? "#fff" : "#eaffea", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {r.username}{isMe ? " (você)" : ""}
                     </div>
