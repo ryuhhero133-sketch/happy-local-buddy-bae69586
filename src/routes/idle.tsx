@@ -2097,6 +2097,13 @@ function IdlePage() {
   const [chatFilter, setChatFilter] = useState<"all" | "system" | "world" | "captures">("all");
   const [teamCollapsed, setTeamCollapsed] = useState<boolean>(false);
   const [chatTick, setChatTick] = useState(0);
+  const [grassOddishSplash, setGrassOddishSplash] = useState<boolean>(false);
+  useEffect(() => {
+    if (idle.currentMap !== "grass_oddish") return;
+    setGrassOddishSplash(true);
+    const t = setTimeout(() => setGrassOddishSplash(false), 4200);
+    return () => clearTimeout(t);
+  }, [idle.currentMap]);
   useEffect(() => {
     if (chatCooldownUntil <= Date.now()) return;
     const iv = setInterval(() => setChatTick((n) => n + 1), 1000);
@@ -6724,6 +6731,58 @@ function IdlePage() {
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
+      {/* 🌿 SPLASH — Entrada no Evento Grass Oddish */}
+      {grassOddishSplash && (
+        <div
+          onClick={() => setGrassOddishSplash(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            display: "grid", placeItems: "center",
+            background: "radial-gradient(circle at 50% 45%, rgba(30,90,40,0.85) 0%, rgba(6,20,10,0.94) 70%)",
+            backdropFilter: "blur(6px)",
+            animation: "fadeIn 0.35s ease-out",
+            cursor: "pointer",
+          }}
+        >
+          <div style={{
+            position: "relative",
+            width: "min(560px, 92vw)",
+            padding: "26px 28px 22px",
+            borderRadius: 20,
+            background: "linear-gradient(160deg, #0f2010 0%, #1a3d1c 45%, #2b5f2e 100%)",
+            border: "3px solid #8dfa8d",
+            boxShadow: "0 0 60px rgba(141,250,141,0.55), 0 0 120px rgba(141,250,141,0.25), inset 0 0 40px rgba(141,250,141,0.14)",
+            textAlign: "center",
+            overflow: "hidden",
+          }}>
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 20% 20%, rgba(180,255,180,0.25), transparent 55%), radial-gradient(circle at 85% 85%, rgba(80,220,120,0.28), transparent 60%)" }} />
+            <div style={{ position: "absolute", top: -30, left: "50%", transform: "translateX(-50%)", fontSize: 11, letterSpacing: 6, color: "#8affb0", fontWeight: 900, textShadow: "0 0 12px #8affb0" }}>✦ EVENTO ATIVO ✦</div>
+            <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 10 }}>
+              {[0,1,2].map((i) => (
+                <img key={i} src={oddishUrl} alt="Oddish" width={72} height={72}
+                  style={{ width: 72, height: 72, objectFit: "contain", imageRendering: "pixelated" as any,
+                    filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.7)) drop-shadow(0 0 12px rgba(141,250,141,0.9))",
+                    animation: `cash-pack-float 1.4s ease-in-out ${i * 0.15}s infinite` }} />
+              ))}
+            </div>
+            <h1 style={{ margin: 0, fontSize: 30, fontWeight: 900, letterSpacing: 3, color: "#eaffea", textShadow: "0 2px 0 rgba(0,0,0,0.7), 0 0 18px rgba(141,250,141,0.75)" }}>
+              🌿 GRASS ODDISH 🌿
+            </h1>
+            <div style={{ marginTop: 4, fontSize: 12, fontWeight: 800, letterSpacing: 4, color: "#c8e8c8" }}>
+              PORTAL VERDE ABERTO
+            </div>
+            <div style={{ marginTop: 14, padding: "10px 14px", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(141,250,141,0.35)", borderRadius: 12, textAlign: "left", fontSize: 12.5, lineHeight: 1.55, color: "#e8ffe8" }}>
+              <div style={{ marginBottom: 6 }}>• Somente <b style={{ color: "#8affb0" }}>Oddish</b> aparece neste mapa.</div>
+              <div style={{ marginBottom: 6 }}>• Raridades: <b style={{ color: "#7effa0" }}>Raro</b> · <b style={{ color: "#c58bff" }}>Épico</b> · <b style={{ color: "#ffd76a" }}>Mítico</b>.</div>
+              <div style={{ marginBottom: 6 }}>• Taxa de captura <b>igual ao servidor</b> — o ganho é o <b>volume</b> de spawns.</div>
+              <div>• Contador de capturas ativo no menu lateral.</div>
+            </div>
+            <div style={{ marginTop: 14, fontSize: 11, color: "#a8d0a8", letterSpacing: 1 }}>
+              Clique em qualquer lugar para fechar
+            </div>
+          </div>
+        </div>
+      )}
       {/* ❄️ Overlay de Congelamento — ativo quando a Chave Ruby do Ranked CRAFT foi coletada. */}
       {idle.redeemedCodes?.RANKED_RUBY_KEY_CRAFT && (
         <>
@@ -10232,7 +10291,10 @@ function IdlePage() {
             title="Evento Grass Oddish"
           >
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 85% 30%, rgba(180,255,180,0.22), transparent 55%), radial-gradient(circle at 10% 80%, rgba(80,200,120,0.22), transparent 60%)" }} />
-            <div style={{ width: 58, height: 58, flexShrink: 0, borderRadius: "50%", overflow: "hidden", border: "2px solid #d6ffd6", boxShadow: "0 0 12px rgba(141,250,141,0.6), inset 0 0 8px rgba(0,0,0,0.4)", background: "#0a1a0a", display: "grid", placeItems: "center", fontSize: 34 }}>🌿</div>
+            <div style={{ width: 58, height: 58, flexShrink: 0, borderRadius: "50%", overflow: "hidden", border: "2px solid #d6ffd6", boxShadow: "0 0 14px rgba(141,250,141,0.75), inset 0 0 8px rgba(0,0,0,0.4)", background: "radial-gradient(circle at 50% 40%, #1a3d1c 0%, #0a1a0a 80%)", display: "grid", placeItems: "center", position: "relative" }}>
+              <img src={oddishUrl} alt="Oddish" width={54} height={54} className="cash-pack-float" style={{ width: "94%", height: "94%", objectFit: "contain", imageRendering: "pixelated" as any, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} />
+              <span style={{ position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none", boxShadow: "inset 0 0 12px rgba(141,250,141,0.55)", animation: "pulse 1.6s ease-in-out infinite" }} />
+            </div>
             <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "#d6ffd6", letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}>✦ GRASS ODDISH</div>
               <div className="cash-pack-float" style={{ fontSize: 12, fontWeight: 900, color: "#8affb0", marginTop: 2, lineHeight: 1.2 }}>
