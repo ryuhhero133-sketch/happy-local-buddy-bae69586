@@ -4155,6 +4155,14 @@ function IdlePage() {
             if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
             if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
           }
+          // ⚡✦ RAICHU MÍTICO — drop garantido de Stone Elétrica ao derrotar
+          if (target.sp === "raichu") {
+            drops.push("stone_electric");
+            // 60% chance de vir uma stone extra, 25% chance de vir 2 extras
+            if (Math.random() < 0.60) drops.push("stone_electric");
+            if (Math.random() < 0.25) drops.push("stone_electric");
+            pushChat("⚡✦ Raichu Mítico caiu e deixou Stone Elétrica!", "cap");
+          }
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
@@ -5613,18 +5621,25 @@ function IdlePage() {
           }
         }
         // ⚡ ZAPDOS EVENT — ENCERRADO
-        // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey
+        // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey e Grass Oddish
         {
-          const oddyMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3"];
+          const oddyMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3", "grass_oddish"];
           const isOddy = oddyMaps.includes(idle.currentMap as string);
           if (isOddy) {
             const raichuOnMap = enemies.some((e) => e.sp === "raichu");
-            // ~0.4% de chance por tentativa de spawn, no máximo 1 por mapa
-            if (!raichuOnMap && Math.random() < 0.004) {
+            const isGrass = idle.currentMap === "grass_oddish";
+            // ~0.4% Odyssey / ~0.8% Grass Oddish, no máximo 1 por mapa
+            const chance = isGrass ? 0.008 : 0.004;
+            if (!raichuOnMap && Math.random() < chance) {
               pool = ["raichu"] as Species[];
-              forcedRarity = "mythic_shiny";
-              mapLvRange = [500, 500];
-              pushChat("⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (1600 Ultra Balls para capturar)", "cap");
+              forcedRarity = isGrass ? "mythic" : "mythic_shiny";
+              mapLvRange = isGrass ? [Math.max(1, leaderLv), leaderLv + 5] : [500, 500];
+              pushChat(
+                isGrass
+                  ? "⚡✦ RAICHU MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Elétrica ⚡"
+                  : "⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (1600 Ultra Balls para capturar)",
+                "cap"
+              );
             }
           }
         }
@@ -8634,6 +8649,26 @@ function IdlePage() {
                     </>
                   )}
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
+                  {e.sp === "raichu" && !camouflaged && (
+                    <div style={{
+                      position: "absolute", top: -46, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      width: 24, height: 24, borderRadius: "50%",
+                      background: "radial-gradient(circle at 50% 40%, #fff4a1 0%, #ffd23f 45%, #b57a00 100%)",
+                      border: "2px solid #fff8b8",
+                      boxShadow: "0 0 12px rgba(255,220,80,0.95), 0 0 24px rgba(255,220,80,0.6), inset 0 0 6px rgba(255,255,180,0.9)",
+                      display: "grid", placeItems: "center",
+                      pointerEvents: "none",
+                      animation: "pulse 1.1s ease-in-out infinite",
+                    }}>
+                      <span style={{
+                        fontSize: 14, lineHeight: 1, fontWeight: 900,
+                        color: "#3a2600",
+                        textShadow: "0 0 4px #fff4a1, 0 1px 0 #fff",
+                        filter: "drop-shadow(0 0 3px #fff8b8)",
+                      }}>⚡</span>
+                    </div>
+                  )}
                   {e.menace && (
                     <div style={{
                       position: "absolute", top: -52, left: "50%",
