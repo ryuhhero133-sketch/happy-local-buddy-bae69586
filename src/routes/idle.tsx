@@ -3377,7 +3377,7 @@ function IdlePage() {
       if (k === "m") { e.preventDefault(); setWorldMapOpen((v) => !v); return; }
       if (k === "r") { e.preventDefault(); setRankOpen((v) => !v); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
-      if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
+      if (k === "c") { e.preventDefault(); collect(); return; }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
