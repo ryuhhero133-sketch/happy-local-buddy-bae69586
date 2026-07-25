@@ -3396,8 +3396,8 @@ function IdlePage() {
       try {
         const total = idle.grassOddishCaptured ?? 0;
         if (total > 0) { try { await submitOddishCaptures(total, identity?.name); } catch {} }
-        const rows = await fetchOddishTop(100);
-        if (!cancelled) setOddishRankRows(rows);
+        const rows = await fetchOddishTop(5);
+        if (!cancelled) setOddishRankRows(rows.slice(0, 5));
       } finally {
         if (!cancelled) setOddishRankLoading(false);
       }
