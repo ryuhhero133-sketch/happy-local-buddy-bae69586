@@ -14,7 +14,7 @@ import navLoja from "@/assets/icons/nav-loja.png";
 import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
 import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
-import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
+import iconFragmentCrystal from "@/assets/icon-cristal-prisma.png.asset.json";
 import iconWorldGlobe from "@/assets/icon-world-globe-v2.png.asset.json";
 import iconCrystalBlue from "@/assets/icon-crystal-blue-diamond.png.asset.json";
 import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
@@ -3385,8 +3385,8 @@ function IdlePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [worldMapOpen, rankOpen]);
 
-  const RANK_CACHE_TTL_MS = 60 * 1000; // 1 minuto — mostra o nível atual da galera
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v3_live_level_${mode}`;
+  const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking global atualiza a cada 2 horas
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v4_prisma_2h_${mode}`;
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
@@ -3424,7 +3424,7 @@ function IdlePage() {
         guild_name: null,
       });
       try {
-        await recordRankedScore(idle.trainerLevel ?? 1, 0, null);
+        await recordRankedScore(idle.trainerLevel ?? 1, Math.max(0, idle.items?.cristal_fragmentado ?? 0), null);
         const top = await fetchTopRanked(30);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
@@ -3476,10 +3476,10 @@ function IdlePage() {
       const collection = idle.collection ?? [];
       const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
       const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
-      void recordRankedScore(idle.trainerLevel ?? 1, 0, null);
+      void recordRankedScore(idle.trainerLevel ?? 1, Math.max(0, idle.items?.cristal_fragmentado ?? 0), null);
     }, 4500);
     return () => clearTimeout(t);
-  }, [idle.trainerLevel, idle.craftPoints, idle.collection]);
+  }, [idle.trainerLevel, idle.items?.cristal_fragmentado]);
   // Ranking do evento Grass Oddish: envia o total de capturas com debounce.
   useEffect(() => {
     const total = idle.grassOddishCaptured ?? 0;
@@ -5549,8 +5549,8 @@ function IdlePage() {
       if (safiraGain > 0) bonusParts.push(`+${safiraGain} 💚 Safira Verde`);
       if (stoneGain > 0) bonusParts.push(`+${stoneGain} 🌿 Stone Verdejante`);
       const bonus = bonusParts.length ? ` ${bonusParts.join(" ")}` : "";
-      const crystalGain = baseGain; // 💎 Cristal Fragmentado por raridade
-      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${crystalGain} 💎 Cristal Fragmentado${bonus}).`, "cap");
+      const crystalGain = 1; // 🔷 1 Cristal Prisma por Pokémon fragmentado (raridade não altera)
+      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+1 🔷 Cristal Prisma${bonus}).`, "cap");
       consumedUidsRef.current.add(uid);
       return {
         ...s,
@@ -8360,7 +8360,7 @@ function IdlePage() {
                           animation: "shimmerRank 4s linear infinite",
                         }}>RANKING GLOBAL</div>
                         <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
-                          🏆 TOP 30 TREINADORES DO MUNDO · atualizado a cada 3h
+                          🏆 TOP 30 TREINADORES · 🔷 Cristal Prisma · atualizado a cada 2h
                         </div>
                       </div>
                     </div>
@@ -8476,7 +8476,10 @@ function IdlePage() {
                                     ⭐ {(r.leader_species ?? "—").replace(/_/g, " ")}
                                   </span>
                                   <span>🎓 Tr {r.trainer_level}</span>
-                                  <span>⚒️ {r.craft_points}</span>
+                                  <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                                    <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={12} height={12} style={{ imageRendering: "pixelated" }} />
+                                    {r.craft_points}
+                                  </span>
                                 </div>
                                 {isTop30 && isMe && (
                                   <div style={{ marginTop: 6 }}>
@@ -13303,9 +13306,9 @@ function TabOverlay({
       .map((uid) => collection.find((e) => e.uid === uid))
       .filter((e): e is CollectionEntry => !!e)
       .filter((e) => !teamUidSet.has(e.uid) && !lockedSet.has(e.uid))
-      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: CRAFT_BY_RARITY[e.rarity] ?? 1 }));
+      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: 1 }));
     if (entries.length === 0) return;
-    const totalGain = entries.reduce((s, e) => s + e.gain, 0);
+    const totalGain = entries.length;
     setFragConfirm({ entries, totalGain });
   };
   const confirmFrag = () => {
@@ -13727,7 +13730,7 @@ function TabOverlay({
           black_mitic_egg: "Black Mitic Egg ✦",
           egg_boost_69: "Cristal do Despertar ✦",
           stone_pack_all: "Pacote das Seis Stones 💠",
-          cristal_fragmentado: "Cristal Fragmentado 💎",
+          cristal_fragmentado: "Cristal Prisma 🔷",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -13779,7 +13782,7 @@ function TabOverlay({
           black_mitic_egg: "Black Mitic Egg ✦ · ovo lendário que flutua ao seu lado. Clique nele no mapa para abrir a HUD e alimentar com Elemental Stones (50 por vez). Cooldown de 7h por alimentação. A afinidade elemental dominante decidirá o elemento do futuro Pokémon.",
           egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
           stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
-          cristal_fragmentado: "Cristal Fragmentado 💎 · token obtido ao fragmentar Pokémon da coleção. Guarde para futuras trocas e recompensas.",
+          cristal_fragmentado: "Cristal Prisma 🔷 · token obtido ao fragmentar Pokémon da coleção (1 por Pokémon). Vale no Ranking Global de Prisma — atualizado a cada 2 horas.",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
@@ -14243,8 +14246,9 @@ function TabOverlay({
               <div style={{ background: "#8b6a30", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
                 {caughtSpecies.length} ESPÉCIES
               </div>
-              <div style={{ background: "linear-gradient(180deg,#7c3aed,#4f26a4)", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(124,58,237,0.5)" }}>
-                ⚒️ {craftPoints} PTS CRAFT
+              <div style={{ background: "linear-gradient(180deg,#7c3aed,#4f26a4)", color: "#fff9e8", fontWeight: 900, padding: "6px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(124,58,237,0.5)", display: "flex", alignItems: "center", gap: 6 }}>
+                <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={20} height={20} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(233,213,255,0.9))" }} />
+                {items?.cristal_fragmentado ?? 0} CRISTAL PRISMA
               </div>
             </div>
           </div>
@@ -15337,7 +15341,7 @@ function TabOverlay({
                     ⚒️ FRAGMENTAR {isBulk ? `${list.length} POKÉMON` : "POKÉMON"}
                   </div>
                   <div style={{ fontSize: 11, color: "#c8b8d0", marginTop: 2, fontStyle: "italic" }}>
-                    Ação permanente — converte em pontos de craft.
+                    Ação permanente — 1 🔷 Cristal Prisma por Pokémon.
                   </div>
                 </div>
                 <button onClick={() => setFragConfirm(null)} style={{
@@ -15401,7 +15405,7 @@ function TabOverlay({
                       background: "linear-gradient(180deg, #f5d0fe, #a78bfa)",
                       WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                     }}>+{fragConfirm.totalGain}</span>
-                    <span style={{ fontSize: 10, color: "#c8b8d0", fontWeight: 800, letterSpacing: 1 }}>PTS CRAFT</span>
+                    <span style={{ fontSize: 10, color: "#c8b8d0", fontWeight: 800, letterSpacing: 1 }}>CRISTAL PRISMA</span>
                   </div>
                 </div>
 
