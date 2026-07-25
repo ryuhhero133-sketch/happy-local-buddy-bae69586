@@ -10785,6 +10785,11 @@ function IdlePage() {
           <div
             onClick={(ev) => {
               ev.stopPropagation();
+              if (!ODDISH_EVENT.enabled) {
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
+                pushChat("🌿 O evento Grass Oddish foi encerrado.", "info");
+                return;
+              }
               const cur = idle;
               const inEvent = cur.currentMap === "grass_oddish";
               if (inEvent) {
