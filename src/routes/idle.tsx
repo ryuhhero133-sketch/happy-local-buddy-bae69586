@@ -10718,6 +10718,27 @@ function IdlePage() {
               </span>
             </div>
           </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); playClick(); setOddishRankOpen(true); }}
+            style={{
+              marginTop: 6,
+              width: "100%",
+              background: "linear-gradient(135deg,#1a3d1c 0%,#2b5f2e 60%,#3ec96f 100%)",
+              border: "1px solid #8dfa8d",
+              borderRadius: 10,
+              padding: "7px 10px",
+              color: "#eaffea",
+              fontWeight: 900,
+              fontSize: 11,
+              letterSpacing: 1,
+              cursor: "pointer",
+              textShadow: "0 1px 0 rgba(0,0,0,0.5)",
+              boxShadow: "0 2px 10px rgba(141,250,141,0.25)",
+            }}
+            title="Ranking global do evento Grass Oddish"
+          >
+            🏆 RANKING DO EVENTO
+          </button>
 
           {/* Guia do Prof. Carvalho removido a pedido do usuário */}
 
