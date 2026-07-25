@@ -1005,6 +1005,7 @@ const ITEM_IMG: Record<string, string> = {
   orb_xp_supreme_24h: (new URL("../assets/orb-24h.png", import.meta.url)).href,
   incenso_mel_raro_24h: (new URL("../assets/incense-24h.png", import.meta.url)).href,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
+  cristal_fragmentado: assetUrlFromJson(iconFragmentCrystal),
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -5547,11 +5548,8 @@ function IdlePage() {
       if (safiraGain > 0) bonusParts.push(`+${safiraGain} 💚 Safira Verde`);
       if (stoneGain > 0) bonusParts.push(`+${stoneGain} 🌿 Stone Verdejante`);
       const bonus = bonusParts.length ? ` ${bonusParts.join(" ")}` : "";
-      if (frozen) {
-        pushChat(`❄️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado, mas seus PONTOS DE CRAFT estão CONGELADOS pela Chave Ruby (Ranked Craft).${bonus}`, "info");
-      } else {
-        pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft${bonus}).`, "cap");
-      }
+      const crystalGain = baseGain; // 💎 Cristal Fragmentado por raridade
+      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${crystalGain} 💎 Cristal Fragmentado${bonus}).`, "cap");
       consumedUidsRef.current.add(uid);
       return {
         ...s,
@@ -5559,6 +5557,7 @@ function IdlePage() {
         craftPoints: (s.craftPoints ?? 0) + gain,
         items: {
           ...s.items,
+          cristal_fragmentado: (s.items?.cristal_fragmentado ?? 0) + crystalGain,
           ...(safiraGain > 0 ? { safira_verde: (s.items?.safira_verde ?? 0) + safiraGain } : {}),
           ...(stoneGain > 0 ? { stone_grass: (s.items?.stone_grass ?? 0) + stoneGain } : {}),
         },
@@ -8347,30 +8346,18 @@ function IdlePage() {
                     >×</button>
                   </div>
 
-                  {/* Tabs */}
+                  {/* Ranking único: Nível do Treinador */}
                   <div style={{ display: "flex", gap: 6, padding: "10px 14px 0", background: "rgba(0,0,0,0.2)" }}>
-                    {([
-                      { k: "trainer", label: "🎓 Nível Treinador" },
-                      { k: "craft", label: "⚒️ Pontos de Craft" },
-                    ] as { k: RankMode; label: string }[]).map((t) => {
-                      const active = rankMode === t.k;
-                      return (
-                        <button
-                          key={t.k}
-                          onClick={() => setRankMode(t.k)}
-                          style={{
-                            flex: 1, padding: "8px 6px", fontSize: 11, fontWeight: 700,
-                            background: active ? "linear-gradient(180deg, #ffd94d, #d99b1a)" : "rgba(255,255,255,0.04)",
-                            color: active ? "#2b1a0a" : "#ffe9a8",
-                            border: `1px solid ${active ? "#ffd94d" : "rgba(255,214,80,0.2)"}`,
-                            borderRadius: "8px 8px 0 0",
-                            cursor: "pointer",
-                            borderBottom: active ? "none" : "1px solid rgba(255,214,80,0.2)",
-                          }}
-                        >{t.label}</button>
-                      );
-                    })}
+                    <div style={{
+                      flex: 1, padding: "8px 6px", fontSize: 11, fontWeight: 700,
+                      background: "linear-gradient(180deg, #ffd94d, #d99b1a)",
+                      color: "#2b1a0a",
+                      border: "1px solid #ffd94d",
+                      borderRadius: "8px 8px 0 0",
+                      textAlign: "center",
+                    }}>🎓 Nível Treinador</div>
                   </div>
+
 
                   {/* List */}
                   <div style={{ overflow: "auto", padding: 14, flex: 1 }}>
@@ -8399,7 +8386,7 @@ function IdlePage() {
                                return;
                              }
                                const ok = typeof window !== "undefined"
-                                 ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta POR RANKING (Craft e Treinador são separados) e NÃO poderá ser coletada novamente neste ranking.${rankMode === "craft" ? "\n\n❄️ ATENÇÃO: ao coletar no ranking de CRAFT, seus PONTOS DE CRAFT serão CONGELADOS — você não ganha mais pontos ao fragmentar e o efeito de gelo aparece na tela." : ""}\n\nDeseja confirmar?`)
+                                 ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta e NÃO poderá ser coletada novamente.\n\nDeseja confirmar?`)
                                  : true;
                              if (!ok) return;
                              const fresh = idleRef.current;
@@ -13695,6 +13682,7 @@ function TabOverlay({
           black_mitic_egg: "Black Mitic Egg ✦",
           egg_boost_69: "Cristal do Despertar ✦",
           stone_pack_all: "Pacote das Seis Stones 💠",
+          cristal_fragmentado: "Cristal Fragmentado 💎",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -13746,6 +13734,7 @@ function TabOverlay({
           black_mitic_egg: "Black Mitic Egg ✦ · ovo lendário que flutua ao seu lado. Clique nele no mapa para abrir a HUD e alimentar com Elemental Stones (50 por vez). Cooldown de 7h por alimentação. A afinidade elemental dominante decidirá o elemento do futuro Pokémon.",
           egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
           stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
+          cristal_fragmentado: "Cristal Fragmentado 💎 · token obtido ao fragmentar Pokémon da coleção. Guarde para futuras trocas e recompensas.",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
