@@ -2105,6 +2105,9 @@ function IdlePage() {
   const [grassOddishSplash, setGrassOddishSplash] = useState<boolean>(false);
   const [oddishNoStone, setOddishNoStone] = useState<{ have: number; need: number } | null>(null);
   const [oddishConfirm, setOddishConfirm] = useState<{ have: number; need: number } | null>(null);
+  const [oddishRankOpen, setOddishRankOpen] = useState<boolean>(false);
+  const [oddishRankRows, setOddishRankRows] = useState<OddishRankRow[]>([]);
+  const [oddishRankLoading, setOddishRankLoading] = useState<boolean>(false);
   const enterGrassOddish = () => {
     setIdle((cur) => {
       const need = 20;
