@@ -4168,7 +4168,10 @@ function IdlePage() {
           if (rarityBonus > 0) bonusParts.push(`Líder ${leaderRarity}+${Math.round(rarityBonus * 100)}%`);
           if (synergyBonus > 0) bonusParts.push(`Sinergia ${synergyRarity}+${Math.round(synergyBonus * 100)}%`);
           const suffix = bonusParts.length ? ` (${bonusParts.join(" · ")})` : "";
-          pushChat(`+${xp} EXP · +${gold} ouro${suffix}`, "info");
+          // Anuncia XP no chat só 1 a cada 2 (o floating text sempre mostra).
+          if ((xpChatAltRef.current++ & 1) === 0) {
+            pushChat(`+${xp} EXP · +${gold} ouro${suffix}`, "info");
+          }
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
           const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
