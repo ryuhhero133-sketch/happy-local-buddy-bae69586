@@ -8478,7 +8478,7 @@ function IdlePage() {
                                   <span>🎓 Tr {r.trainer_level}</span>
                                   <span>⚒️ {r.craft_points}</span>
                                 </div>
-                                {isTop50 && isMe && (
+                                {isTop30 && isMe && (
                                   <div style={{ marginTop: 6 }}>
                                     <button
                                       onClick={claimRubyKey}
