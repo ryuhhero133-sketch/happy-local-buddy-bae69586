@@ -3236,6 +3236,9 @@ function IdlePage() {
   const ZAPDOS_MIN_BALLS = 1000;
   const RAICHU_MYTHIC_MIN_BALLS = 2000;
   const RAYQUAZA_MIN_BALLS = 3000;
+  const ONIX_SHINY_MIN_BALLS = 3000;
+  const RIOLU_MIN_BALLS = 3000;
+  const DRAGONITE_SHINY_GRASS_MIN_BALLS = 3000;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
