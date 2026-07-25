@@ -5549,8 +5549,10 @@ function IdlePage() {
       if (safiraGain > 0) bonusParts.push(`+${safiraGain} 💚 Safira Verde`);
       if (stoneGain > 0) bonusParts.push(`+${stoneGain} 🌿 Stone Verdejante`);
       const bonus = bonusParts.length ? ` ${bonusParts.join(" ")}` : "";
-      const crystalGain = 1; // 🔷 1 Cristal Prisma por Pokémon fragmentado (raridade não altera)
-      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+1 🔷 Cristal Prisma${bonus}).`, "cap");
+      // 🔷 Cristal Prisma escala pela raridade: comum 1, incomum 1, raro 2, épico 3, lendário 5, mítico 10, mítico shiny 20
+      const PRISMA_BY_RARITY: Record<string, number> = { common: 1, uncommon: 1, rare: 2, epic: 3, legendary: 5, mythic: 10, mythic_shiny: 20 };
+      const crystalGain = PRISMA_BY_RARITY[entry.rarity] ?? 1;
+      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${crystalGain} 🔷 Cristal Prisma${bonus}).`, "cap");
       consumedUidsRef.current.add(uid);
       return {
         ...s,
@@ -8360,7 +8362,7 @@ function IdlePage() {
                           animation: "shimmerRank 4s linear infinite",
                         }}>RANKING GLOBAL</div>
                         <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
-                          🏆 TOP 30 TREINADORES · 🔷 Cristal Prisma · atualizado a cada 2h
+                          🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · atualiza a cada 2h
                         </div>
                       </div>
                     </div>
@@ -8375,8 +8377,46 @@ function IdlePage() {
                   </div>
                   <style>{`@keyframes shimmerRank { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }`}</style>
 
-
-
+                  {/* Tabs: Treinador vs Cristal Prisma */}
+                  <div style={{
+                    display: "flex", gap: 8, padding: "12px 16px 0",
+                    borderBottom: "1px solid rgba(255,214,80,0.15)",
+                  }}>
+                    {([
+                      { id: "trainer" as const, label: "Nível Treinador", icon: "🎓" },
+                      { id: "craft" as const, label: "Cristal Prisma", icon: null },
+                    ]).map((tab) => {
+                      const active = rankMode === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setRankMode(tab.id)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 6,
+                            padding: "8px 14px",
+                            borderTopLeftRadius: 10, borderTopRightRadius: 10,
+                            borderBottomLeftRadius: 0, borderBottomRightRadius: 0,
+                            border: `1px solid ${active ? "rgba(255,214,80,0.6)" : "rgba(255,255,255,0.08)"}`,
+                            borderBottom: "none",
+                            background: active
+                              ? "linear-gradient(180deg, rgba(255,214,80,0.28), rgba(255,60,80,0.14))"
+                              : "rgba(255,255,255,0.03)",
+                            color: active ? "#fff2b8" : "#c8b8d0",
+                            fontWeight: 900, fontSize: 12, letterSpacing: 0.5,
+                            cursor: "pointer",
+                            boxShadow: active ? "0 -2px 10px rgba(255,214,80,0.25)" : "none",
+                          }}
+                        >
+                          {tab.id === "craft" ? (
+                            <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={16} height={16} style={{ imageRendering: "pixelated", filter: active ? "drop-shadow(0 0 6px rgba(180,220,255,0.9))" : "none" }} />
+                          ) : (
+                            <span style={{ fontSize: 14 }}>{tab.icon}</span>
+                          )}
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
 
                   {/* List */}
                   <div style={{ overflow: "auto", padding: 14, flex: 1 }}>
@@ -8509,7 +8549,12 @@ function IdlePage() {
                               </div>
                               <div style={{ textAlign: "right" }}>
                                 <div style={{ fontSize: 9, opacity: 0.6, textTransform: "uppercase", letterSpacing: 0.5 }}>{mainLabel}</div>
-                                <div style={{ fontWeight: 900, fontSize: 20, color: topColor, lineHeight: 1 }}>{mainVal}</div>
+                                <div style={{ fontWeight: 900, fontSize: 20, color: topColor, lineHeight: 1, display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
+                                  {rankMode === "craft" && (
+                                    <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={20} height={20} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(180,220,255,0.8))" }} />
+                                  )}
+                                  {mainVal}
+                                </div>
                               </div>
                             </div>
                           );
@@ -13302,13 +13347,14 @@ function TabOverlay({
     });
   };
   const openFragConfirm = (uids: string[]) => {
+    const PRISMA_BY_RARITY: Record<string, number> = { common: 1, uncommon: 1, rare: 2, epic: 3, legendary: 5, mythic: 10, mythic_shiny: 20 };
     const entries = uids
       .map((uid) => collection.find((e) => e.uid === uid))
       .filter((e): e is CollectionEntry => !!e)
       .filter((e) => !teamUidSet.has(e.uid) && !lockedSet.has(e.uid))
-      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: 1 }));
+      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: PRISMA_BY_RARITY[e.rarity] ?? 1 }));
     if (entries.length === 0) return;
-    const totalGain = entries.length;
+    const totalGain = entries.reduce((s, e) => s + e.gain, 0);
     setFragConfirm({ entries, totalGain });
   };
   const confirmFrag = () => {
