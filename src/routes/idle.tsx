@@ -462,6 +462,8 @@ type IdleMapId =
   | "evento_myth"
   // Evento Oddish Odyssey — 24h aberto, 3 mapas conectados por portal
   | "oddish_o1" | "oddish_o2" | "oddish_o3"
+  // Evento Grass Oddish — mapa exclusivo, entrada custa 20 Stone Verdejante
+  | "grass_oddish"
   // Continente do Governante — acesso via Carta do Governante
   | "absol_start" | "governante_hall";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
