@@ -15337,7 +15337,7 @@ function TabOverlay({
                     ⚒️ FRAGMENTAR {isBulk ? `${list.length} POKÉMON` : "POKÉMON"}
                   </div>
                   <div style={{ fontSize: 11, color: "#c8b8d0", marginTop: 2, fontStyle: "italic" }}>
-                    Ação permanente — converte em pontos de craft.
+                    Ação permanente — 1 🔷 Cristal Prisma por Pokémon.
                   </div>
                 </div>
                 <button onClick={() => setFragConfirm(null)} style={{
