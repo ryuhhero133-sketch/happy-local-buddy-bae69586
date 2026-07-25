@@ -19,8 +19,8 @@ export const ODDISH_EVENT: {
   windowMinutes: number;
   queueSeconds: number;
 } = {
-  /** Evento LIBERADO — Odisséia Oddish 24h aberta direto, sem ciclo. */
-  enabled: true,
+  /** Evento ENCERRADO — Odisséia / Grass Oddish desativados. */
+  enabled: false,
   /** Âncora fixa (referência de rotação de mapas). */
   startedAt: 1784686000000,
   /** Nunca encerra automaticamente. */
