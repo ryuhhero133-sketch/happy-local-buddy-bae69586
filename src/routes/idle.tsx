@@ -151,6 +151,7 @@ import mapCadeiaAb1Asset from "@/assets/map-cadeia-ab1.png.asset.json";
 import mapCadeiaF1Asset from "@/assets/map-cadeia-f1.png.asset.json";
 import mapMythshinyEventAsset from "@/assets/map-mythshiny-event.png.asset.json";
 import mapOddish1Asset from "@/assets/map-oddish-1.png.asset.json";
+import mapGrassOddish2Asset from "@/assets/grass-oddish-2.png.asset.json";
 import mapOddish2Asset from "@/assets/map-oddish-2.png.asset.json";
 import mapOddish3Url from "@/assets/map-oddish3.png";
 import absolStartMapAsset from "@/assets/absol-start-map.png.asset.json";
@@ -5917,7 +5918,12 @@ function IdlePage() {
 
 
   const activeTime = now - idle.startedAt;
-  const map = IDLE_MAPS[idle.currentMap];
+  const rawMap = IDLE_MAPS[idle.currentMap];
+  // Grass Oddish rotaciona 2 backgrounds a cada 4 min pra ampliar a área do evento
+  const grassOddishBg2 = assetUrlFromJson(mapGrassOddish2Asset);
+  const map = idle.currentMap === "grass_oddish"
+    ? { ...rawMap, bg: Math.floor(now / (4 * 60 * 1000)) % 2 === 0 ? rawMap.bg : grassOddishBg2 }
+    : rawMap;
   const visibleBuildings = BUILDINGS;
   const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#1a3d1a";
 
