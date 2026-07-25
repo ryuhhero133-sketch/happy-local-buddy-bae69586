@@ -5520,7 +5520,7 @@ function IdlePage() {
     });
   };
 
-  // Fragmentar Pokémon da coleção -> pontos de craft por raridade
+  // Fragmentar Pokémon da coleção -> Cristal Prisma por raridade
   const fragmentCollection = (uid: string) => {
     // Bloqueio duro: pokémon no time nunca pode ser fragmentado
     if ((teamRef.current ?? []).some((p) => p.uid === uid)) {
@@ -8508,10 +8508,12 @@ function IdlePage() {
                                     ⭐ {(r.leader_species ?? "—").replace(/_/g, " ")}
                                   </span>
                                   <span>🎓 Tr {r.trainer_level}</span>
-                                  <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-                                    <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={12} height={12} style={{ imageRendering: "pixelated" }} />
-                                    {r.craft_points}
-                                  </span>
+                                  {rankMode === "craft" && (
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                                      <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={12} height={12} style={{ imageRendering: "pixelated" }} />
+                                      {r.craft_points}
+                                    </span>
+                                  )}
                                 </div>
                                 {isTop30 && isMe && (
                                   <div style={{ marginTop: 6 }}>
