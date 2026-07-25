@@ -113,6 +113,7 @@ type Dir = keyof typeof DIR_ROW;
 // ============ assets ============
 import idleArenaAsset from "@/assets/idle-arena.jpg.asset.json";
 import trophyIconAsset from "@/assets/trophy-icon.png.asset.json";
+import rankMedalsRubyAsset from "@/assets/rank-medals-ruby.png.asset.json";
 import chestGrassImg from "@/assets/chest-grass.png";
 import chestFireImg from "@/assets/chest-fire.png";
 import chestWaterImg from "@/assets/chest-water.png";
