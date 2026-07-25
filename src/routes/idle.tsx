@@ -5534,7 +5534,7 @@ function IdlePage() {
       const col = s.collection ?? [];
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
-      const frozen = !!s.redeemedCodes?.RANKED_RUBY_KEY_CRAFT;
+      const frozen = false; // 🔓 descongelado — pontos de craft voltaram a somar normalmente.
       const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
       const gain = frozen ? 0 : baseGain;
       const isEvent = entry.event === "oddish_odyssey";
@@ -7347,7 +7347,7 @@ function IdlePage() {
         </div>
       )}
       {/* ❄️ Overlay de Congelamento — ativo quando a Chave Ruby do Ranked CRAFT foi coletada. */}
-      {idle.redeemedCodes?.RANKED_RUBY_KEY_CRAFT && (
+      {false && idle.redeemedCodes?.RANKED_RUBY_KEY_CRAFT && (
         <>
           <style>{`
             @keyframes rm-ice-drift { 0%{background-position:0 0,0 0} 100%{background-position:600px 400px,-500px 350px} }
