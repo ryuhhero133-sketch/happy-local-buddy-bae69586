@@ -14243,8 +14243,9 @@ function TabOverlay({
               <div style={{ background: "#8b6a30", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
                 {caughtSpecies.length} ESPÉCIES
               </div>
-              <div style={{ background: "linear-gradient(180deg,#7c3aed,#4f26a4)", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(124,58,237,0.5)" }}>
-                ⚒️ {craftPoints} PTS CRAFT
+              <div style={{ background: "linear-gradient(180deg,#7c3aed,#4f26a4)", color: "#fff9e8", fontWeight: 900, padding: "6px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(124,58,237,0.5)", display: "flex", alignItems: "center", gap: 6 }}>
+                <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={20} height={20} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(233,213,255,0.9))" }} />
+                {items?.cristal_fragmentado ?? 0} CRISTAL PRISMA
               </div>
             </div>
           </div>
