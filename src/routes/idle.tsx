@@ -3380,6 +3380,30 @@ function IdlePage() {
     }, 4500);
     return () => clearTimeout(t);
   }, [idle.trainerLevel, idle.craftPoints, idle.collection]);
+  // Ranking do evento Grass Oddish: envia o total de capturas com debounce.
+  useEffect(() => {
+    const total = idle.grassOddishCaptured ?? 0;
+    if (total <= 0) return;
+    const t = setTimeout(() => { void submitOddishCaptures(total); }, 3500);
+    return () => clearTimeout(t);
+  }, [idle.grassOddishCaptured]);
+  // Recarrega o top do ranking do evento quando o modal abrir.
+  useEffect(() => {
+    if (!oddishRankOpen) return;
+    let cancelled = false;
+    setOddishRankLoading(true);
+    (async () => {
+      try {
+        const total = idle.grassOddishCaptured ?? 0;
+        if (total > 0) { try { await submitOddishCaptures(total); } catch {} }
+        const rows = await fetchOddishTop(100);
+        if (!cancelled) setOddishRankRows(rows);
+      } finally {
+        if (!cancelled) setOddishRankLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [oddishRankOpen, idle.grassOddishCaptured]);
   const viewW = viewSize.w / zoom;
   const viewH = viewSize.h / zoom;
   const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
