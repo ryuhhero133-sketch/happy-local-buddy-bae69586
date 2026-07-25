@@ -3233,7 +3233,7 @@ function IdlePage() {
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
   const RAICHU_MYTHIC_MIN_BALLS = 2000;
-  const RAYQUAZA_MIN_BALLS = 2000;
+  const RAYQUAZA_MIN_BALLS = 3000;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
@@ -5664,7 +5664,7 @@ function IdlePage() {
               pool = ["rayquaza"] as Species[];
               forcedRarity = "mythic_shiny";
               mapLvRange = [500, 500];
-              pushChat("🐉✦ RAYQUAZA MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Dragão 🐉 (2000 Ultra Balls para capturar)", "cap");
+              pushChat("🐉✦ RAYQUAZA MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Dragão 🐉 (3000 Ultra Balls para capturar)", "cap");
             }
           }
         }
@@ -5884,11 +5884,12 @@ function IdlePage() {
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = 16;
+  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 24 : 16;
 
   function spawnEnemies(): Enemy[] {
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
-    const initial = 6 + Math.floor(Math.random() * 3); // 6-8
+    const isGrassOddish = idle.currentMap === "grass_oddish";
+    const initial = isGrassOddish ? 12 + Math.floor(Math.random() * 4) : 6 + Math.floor(Math.random() * 3); // Grass Oddish: 12-15, outros: 6-8
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
