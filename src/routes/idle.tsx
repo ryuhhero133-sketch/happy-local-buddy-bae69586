@@ -4166,6 +4166,13 @@ function IdlePage() {
             if (Math.random() < 0.25) drops.push("stone_electric");
             pushChat("⚡✦ Raichu Mítico caiu e deixou Stone Elétrica!", "cap");
           }
+          // 🐉✦ RAYQUAZA MÍTICO — drop garantido de Stone Dragão ao derrotar
+          if (target.sp === "rayquaza") {
+            drops.push("stone_dragon");
+            if (Math.random() < 0.60) drops.push("stone_dragon");
+            if (Math.random() < 0.25) drops.push("stone_dragon");
+            pushChat("🐉✦ Rayquaza Mítico caiu e deixou Stone Dragão!", "cap");
+          }
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
