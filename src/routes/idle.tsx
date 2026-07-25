@@ -8783,6 +8783,26 @@ function IdlePage() {
                       }}>🐉</span>
                     </div>
                   )}
+                  {idle.currentMap === "grass_oddish" && !camouflaged && (e.sp === "dragonite_shiny" || e.sp === "onix_shiny" || e.sp === "riolu") && (
+                    <div style={{
+                      position: "absolute", top: -46, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      minWidth: 30, height: 22, padding: "0 6px", borderRadius: 11,
+                      background: "radial-gradient(circle at 50% 40%, #fff5b8 0%, #ffcf3a 45%, #a86400 100%)",
+                      border: "2px solid #fff8c8",
+                      boxShadow: "0 0 12px rgba(255,210,80,0.95), 0 0 24px rgba(255,210,80,0.55), inset 0 0 6px rgba(255,255,200,0.9)",
+                      display: "grid", placeItems: "center",
+                      pointerEvents: "none",
+                      animation: "pulse 1.1s ease-in-out infinite",
+                    }}>
+                      <span style={{
+                        fontSize: 11, lineHeight: 1, fontWeight: 900,
+                        color: "#3a2600", letterSpacing: 0.5,
+                        textShadow: "0 0 4px #fff5b8, 0 1px 0 #fff",
+                        filter: "drop-shadow(0 0 3px #fff8c8)",
+                      }}>⭐XP</span>
+                    </div>
+                  )}
                   {e.menace && (
                     <div style={{
                       position: "absolute", top: -52, left: "50%",
