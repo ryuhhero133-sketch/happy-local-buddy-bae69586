@@ -5549,8 +5549,8 @@ function IdlePage() {
       if (safiraGain > 0) bonusParts.push(`+${safiraGain} 💚 Safira Verde`);
       if (stoneGain > 0) bonusParts.push(`+${stoneGain} 🌿 Stone Verdejante`);
       const bonus = bonusParts.length ? ` ${bonusParts.join(" ")}` : "";
-      const crystalGain = baseGain; // 💎 Cristal Fragmentado por raridade
-      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${crystalGain} 💎 Cristal Fragmentado${bonus}).`, "cap");
+      const crystalGain = 1; // 🔷 1 Cristal Prisma por Pokémon fragmentado (raridade não altera)
+      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+1 🔷 Cristal Prisma${bonus}).`, "cap");
       consumedUidsRef.current.add(uid);
       return {
         ...s,
