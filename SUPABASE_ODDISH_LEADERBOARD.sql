@@ -42,7 +42,11 @@ using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
 -- Upsert seguro: só permite o valor subir (evita rollback por save antigo).
-create or replace function public.record_oddish_captures(_captures integer)
+-- Aceita `_username` do cliente (nome do treinador local, ex.: guests) e cai
+-- pro JWT quando não vier. Isso corrige o caso "todo mundo aparece como Treinador".
+drop function if exists public.record_oddish_captures(integer);
+drop function if exists public.record_oddish_captures(integer, text);
+create or replace function public.record_oddish_captures(_captures integer, _username text default null)
 returns void
 language plpgsql
 security definer
@@ -50,21 +54,23 @@ set search_path = public
 as $$
 declare
   _uid uuid := auth.uid();
-  _username text;
+  _name text;
   _safe integer := greatest(0, least(coalesce(_captures, 0), 10000000));
 begin
   if _uid is null then
     raise exception 'not authenticated';
   end if;
 
-  _username := coalesce(
+  _name := coalesce(
+    nullif(btrim(_username), ''),
     nullif(current_setting('request.jwt.claims', true)::jsonb -> 'user_metadata' ->> 'username', ''),
     nullif(current_setting('request.jwt.claims', true)::jsonb -> 'user_metadata' ->> 'name', ''),
     'Treinador'
   );
+  _name := left(_name, 24);
 
   insert into public.oddish_event_leaderboard (user_id, username, captures, updated_at)
-  values (_uid, _username, _safe, now())
+  values (_uid, _name, _safe, now())
   on conflict (user_id) do update set
     username = excluded.username,
     captures = greatest(public.oddish_event_leaderboard.captures, excluded.captures),
@@ -72,7 +78,7 @@ begin
 end;
 $$;
 
-grant execute on function public.record_oddish_captures(integer) to authenticated;
+grant execute on function public.record_oddish_captures(integer, text) to authenticated;
 
 create or replace function public.get_oddish_top(_limit integer default 100)
 returns table (
