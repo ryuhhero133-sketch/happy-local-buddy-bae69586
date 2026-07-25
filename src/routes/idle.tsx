@@ -5706,8 +5706,29 @@ function IdlePage() {
             }
           }
         }
-        // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas.
+        // ✦XP✦ Bosses raros exclusivos do Grass Oddish — Dragonite Shiny / Onix Shiny / Riolu
         {
+          const isGrass = idle.currentMap === "grass_oddish";
+          if (isGrass && !forcedRarity) {
+            const rare: Array<{ sp: Species; chance: number; lv: number; label: string }> = [
+              { sp: "dragonite_shiny" as Species, chance: 0.005, lv: 500, label: "🐲✦ DRAGONITE SHINY" },
+              { sp: "onix_shiny" as Species, chance: 0.005, lv: 400, label: "🪨✦ ONIX SHINY" },
+              { sp: "riolu" as Species, chance: 0.006, lv: 300, label: "🐺✦ RIOLU" },
+            ];
+            for (const b of rare) {
+              const already = enemies.some((e) => e.sp === b.sp);
+              if (!already && Math.random() < b.chance) {
+                pool = [b.sp] as Species[];
+                forcedRarity = "mythic_shiny";
+                mapLvRange = [b.lv, b.lv];
+                pushChat(`${b.label} apareceu no Grass Oddish! Ele carrega XP extra ⭐ (3000 Ultra Balls para capturar)`, "cap");
+                break;
+              }
+            }
+          }
+        }
+        // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas normais.
+        if (!forcedRarity) {
           const BANNED = new Set<Species>(["darkrai", "dragonite", "dragonite_shiny"] as Species[]);
           const filtered = pool.filter((p) => !BANNED.has(p));
           if (filtered.length > 0) pool = filtered;
