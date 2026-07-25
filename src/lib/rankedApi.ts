@@ -95,7 +95,8 @@ function normalizeRankedRow(row: RankedRow): RankedRow {
     ...row,
     trainer_level: trainerLevel,
     craft_points: craftPoints,
-    score: trainerLevel * 100 + craftPoints,
+    // Ranking principal é SOMENTE nível do treinador. Cristal Prisma usa busca própria.
+    score: trainerLevel * 100,
     updated_at: row.updated_at || new Date().toISOString(),
   };
 }
@@ -123,13 +124,13 @@ function mergeRankedRows(...sources: RankedRow[][]): RankedRow[] {
         trainer_level: trainerLevel,
         craft_points: craftPoints,
         guild_name: newer ? incoming.guild_name : existing.guild_name,
-        score: trainerLevel * 100 + craftPoints,
+        score: trainerLevel * 100,
         updated_at: newer ? incoming.updated_at : existing.updated_at,
       });
     }
   }
   return [...byUser.values()]
-    .sort((a, b) => b.score - a.score || rowTime(a) - rowTime(b));
+    .sort((a, b) => b.trainer_level - a.trainer_level || rowTime(a) - rowTime(b));
 }
 
 function mapLegacyRankedRows(rows: LegacyRankedScore[], inferFromScore = false): RankedRow[] {
@@ -141,7 +142,7 @@ function mapLegacyRankedRows(rows: LegacyRankedScore[], inferFromScore = false):
       1,
     )));
     const craftPoints = Math.max(0, safeInt(r.pokedex_count ?? r.craft_points ?? 0, 0));
-    const score = trainerLevel * 100 + craftPoints;
+    const score = trainerLevel * 100;
     return {
       user_id: r.user_id,
       username: r.username || "Treinador",
@@ -165,7 +166,7 @@ function mapPlayersRows(rows: PlayerRankRow[]): RankedRow[] {
       trainer_level: trainerLevel,
       craft_points: craftPoints,
       guild_name: r.guild_name ?? null,
-      score: trainerLevel * 100 + craftPoints,
+      score: trainerLevel * 100,
       updated_at: r.updated_at || new Date().toISOString(),
     };
   });
@@ -362,6 +363,42 @@ export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
   const online = await fetchPlayersFallback(limit);
   const merged = mergeRankedRows(rows, legacy, online);
   return merged.length ? merged.slice(0, limit) : online;
+}
+
+/** Top N do Cristal Prisma: usa só o token independente salvo em ranked_scores.pokedex_count. */
+export async function fetchTopPrismaRanked(limit = 30): Promise<RankedRow[]> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from("ranked_scores")
+      .select("user_id, username, trainer_level, pokedex_count, updated_at")
+      .gt("pokedex_count", 0)
+      .order("pokedex_count", { ascending: false })
+      .order("updated_at", { ascending: true })
+      .limit(limit);
+
+    if (error) {
+      console.warn("[ranked prisma] scores:", error.message);
+      return [];
+    }
+
+    return ((data ?? []) as LegacyRankedScore[]).map((r) => {
+      const trainerLevel = Math.max(1, Math.min(10000, safeInt(r.trainer_level ?? 1, 1)));
+      const prisma = Math.max(0, safeInt(r.pokedex_count ?? 0, 0));
+      return {
+        user_id: r.user_id,
+        username: r.username || "Treinador",
+        trainer_level: trainerLevel,
+        craft_points: prisma,
+        guild_name: null,
+        score: prisma,
+        updated_at: r.updated_at || new Date().toISOString(),
+      };
+    }).filter((r) => r.craft_points > 0);
+  } catch (e) {
+    console.warn("[ranked prisma] scores exc:", e);
+    return [];
+  }
 }
 
 // ============================================================
