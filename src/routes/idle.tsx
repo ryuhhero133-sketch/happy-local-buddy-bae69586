@@ -10186,9 +10186,66 @@ function IdlePage() {
             </div>
           </div>
 
-
-
-
+          {/* BANNER — Evento Grass Oddish (custa 20 Stone Verdejante) */}
+          <div
+            onClick={() => {
+              const s = idle;
+              const inEvent = s.currentMap === "grass_oddish";
+              if (inEvent) {
+                const back = s.grassOddishReturnMap ?? "arena";
+                setIdle((cur) => ({ ...cur, currentMap: back, grassOddishReturnMap: undefined }));
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Você saiu do evento.", tone: "info" } })); } catch {}
+                return;
+              }
+              const need = 20;
+              const have = s.items?.stone_grass ?? 0;
+              if (have < need) {
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `Precisa de ${need} Stone Verdejante (você tem ${have}).`, tone: "warn" } })); } catch {}
+                return;
+              }
+              setIdle((cur) => ({
+                ...cur,
+                items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
+                grassOddishReturnMap: cur.currentMap === "grass_oddish" ? cur.grassOddishReturnMap : cur.currentMap,
+                currentMap: "grass_oddish",
+              }));
+              try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
+              pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
+            }}
+            style={{
+              position: "relative",
+              marginTop: 6,
+              background: "linear-gradient(135deg,#0f2010 0%,#1a3d1c 55%,#2b5f2e 100%)",
+              border: "2px solid #8dfa8d",
+              borderRadius: 12,
+              padding: "10px 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              overflow: "hidden",
+              cursor: "pointer",
+              boxShadow: "0 4px 18px rgba(141,250,141,0.25), inset 0 0 24px rgba(141,250,141,0.10)",
+            }}
+            title="Evento Grass Oddish"
+          >
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 85% 30%, rgba(180,255,180,0.22), transparent 55%), radial-gradient(circle at 10% 80%, rgba(80,200,120,0.22), transparent 60%)" }} />
+            <div style={{ width: 58, height: 58, flexShrink: 0, borderRadius: "50%", overflow: "hidden", border: "2px solid #d6ffd6", boxShadow: "0 0 12px rgba(141,250,141,0.6), inset 0 0 8px rgba(0,0,0,0.4)", background: "#0a1a0a", display: "grid", placeItems: "center", fontSize: 34 }}>🌿</div>
+            <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: "#d6ffd6", letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}>✦ GRASS ODDISH</div>
+              <div className="cash-pack-float" style={{ fontSize: 12, fontWeight: 900, color: "#8affb0", marginTop: 2, lineHeight: 1.2 }}>
+                {idle.currentMap === "grass_oddish" ? "SAIR DO EVENTO" : "ENTRAR (20 🌿)"}
+              </div>
+              <div style={{ fontSize: 9.5, color: "#c8e8c8", marginTop: 3, lineHeight: 1.3, fontFamily: "monospace" }}>
+                Oddish capturados: <b style={{ color: "#fff" }}>{idle.grassOddishCaptured ?? 0}</b>
+              </div>
+              <div style={{ fontSize: 8.5, color: "#a8d0a8", marginTop: 2, lineHeight: 1.25 }}>
+                Só Oddish (Raro/Épico/Mítico). Taxa de captura padrão.
+              </div>
+              <span style={{ position: "absolute", top: 6, right: 8, fontSize: 9, fontWeight: 900, letterSpacing: 1, background: idle.currentMap === "grass_oddish" ? "linear-gradient(135deg,#8affb0,#3ec96f)" : "linear-gradient(135deg,#d6ffd6,#8dfa8d)", color: "#0a2010", padding: "2px 7px", borderRadius: 10, boxShadow: "0 0 10px rgba(141,250,141,0.7)" }}>
+                {idle.currentMap === "grass_oddish" ? "DENTRO" : "ABERTO"}
+              </span>
+            </div>
+          </div>
 
           {/* Guia do Prof. Carvalho removido a pedido do usuário */}
 
