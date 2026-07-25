@@ -10188,29 +10188,32 @@ function IdlePage() {
 
           {/* BANNER — Evento Grass Oddish (custa 20 Stone Verdejante) */}
           <div
-            onClick={() => {
-              const s = idle;
-              const inEvent = s.currentMap === "grass_oddish";
-              if (inEvent) {
-                const back = s.grassOddishReturnMap ?? "arena";
-                setIdle((cur) => ({ ...cur, currentMap: back, grassOddishReturnMap: undefined }));
-                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Você saiu do evento.", tone: "info" } })); } catch {}
-                return;
-              }
-              const need = 20;
-              const have = s.items?.stone_grass ?? 0;
-              if (have < need) {
-                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `Precisa de ${need} Stone Verdejante (você tem ${have}).`, tone: "warn" } })); } catch {}
-                return;
-              }
-              setIdle((cur) => ({
-                ...cur,
-                items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
-                grassOddishReturnMap: cur.currentMap === "grass_oddish" ? cur.grassOddishReturnMap : cur.currentMap,
-                currentMap: "grass_oddish",
-              }));
-              try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
-              pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
+            onClick={(ev) => {
+              ev.stopPropagation();
+              setIdle((cur) => {
+                const inEvent = cur.currentMap === "grass_oddish";
+                if (inEvent) {
+                  const back = cur.grassOddishReturnMap ?? "arena";
+                  try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Você saiu do evento.", tone: "info" } })); } catch {}
+                  pushChat("🌿 Você saiu do evento Grass Oddish.", "info");
+                  return { ...cur, currentMap: back, grassOddishReturnMap: undefined };
+                }
+                const need = 20;
+                const have = cur.items?.stone_grass ?? 0;
+                if (have < need) {
+                  try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `Precisa de ${need} Stone Verdejante (você tem ${have}).`, tone: "warn" } })); } catch {}
+                  pushChat(`🌿 Grass Oddish: precisa de ${need} Stone Verdejante (você tem ${have}).`, "info");
+                  return cur;
+                }
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
+                pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
+                return {
+                  ...cur,
+                  items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
+                  grassOddishReturnMap: cur.currentMap === "grass_oddish" ? cur.grassOddishReturnMap : cur.currentMap,
+                  currentMap: "grass_oddish",
+                };
+              });
             }}
             style={{
               position: "relative",
