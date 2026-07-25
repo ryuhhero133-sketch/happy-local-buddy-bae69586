@@ -4366,7 +4366,7 @@ function IdlePage() {
               queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
             }
             const newCollection = capturedPet && !colFull
-              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits }]
+              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits, ...(s.currentMap === "grass_oddish" ? { event: "grass_oddish" } : {}) }]
               : prevCol;
             // Anuncia traits sorteados no chat
             if (capturedPet && capturedPet.traits && capturedPet.traits.length > 0) {
