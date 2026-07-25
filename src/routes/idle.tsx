@@ -15401,7 +15401,7 @@ function TabOverlay({
                       background: "linear-gradient(180deg, #f5d0fe, #a78bfa)",
                       WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                     }}>+{fragConfirm.totalGain}</span>
-                    <span style={{ fontSize: 10, color: "#c8b8d0", fontWeight: 800, letterSpacing: 1 }}>PTS CRAFT</span>
+                    <span style={{ fontSize: 10, color: "#c8b8d0", fontWeight: 800, letterSpacing: 1 }}>CRISTAL PRISMA</span>
                   </div>
                 </div>
 
