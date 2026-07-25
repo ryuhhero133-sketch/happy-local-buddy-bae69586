@@ -4937,12 +4937,20 @@ function IdlePage() {
           return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
         }
         const isOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3";
+        const isGrassOddish = s.currentMap === "grass_oddish";
         const finalLevel = isOddishEvent ? 1 : np.level;
+        if (isGrassOddish) {
+          const total = (s.grassOddishCaptured ?? 0) + 1;
+          queueMicrotask(() => {
+            try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
+          });
+        }
         return {
           ...s,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
+          grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddish ? 1 : 0),
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
-          collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled, ...(isOddishEvent ? { event: "oddish_odyssey" } : {}) }],
+          collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled, ...(isOddishEvent ? { event: "oddish_odyssey" } : {}), ...(isGrassOddish ? { event: "grass_oddish" } : {}) }],
         };
       });
     } else {
