@@ -1879,6 +1879,8 @@ function IdlePage() {
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
+  // Alterna anúncios de XP/kill no chat (1 sim, 1 não) para reduzir spam.
+  const xpChatAltRef = useRef(0);
 
   // ==== ÁUDIO ====
   const [audioSettings, setAudioSettings] = useState(() => {
