@@ -3411,14 +3411,13 @@ function IdlePage() {
         ...team.map((p) => p?.level ?? 0),
         ...collection.map((p) => p?.level ?? 0),
       );
-      const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
-      const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
+      const prismaTotal = Math.max(0, idle.items?.cristal_fragmentado ?? 0);
       const meRow = (): RankRow => ({
         id: identity?.id ?? "local-trainer",
         name: identity?.name || "Treinador",
         level: maxPokeLevel,
         trainer_level: idle.trainerLevel ?? 1,
-        craft_points: totalCraft,
+        craft_points: prismaTotal,
         leader_species: team[0]?.species ?? null,
         leader_rarity: team[0]?.rarity ?? null,
         guild_name: null,
@@ -3473,9 +3472,6 @@ function IdlePage() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      const collection = idle.collection ?? [];
-      const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
-      const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
       void recordRankedScore(idle.trainerLevel ?? 1, Math.max(0, idle.items?.cristal_fragmentado ?? 0), null);
     }, 4500);
     return () => clearTimeout(t);
@@ -5536,12 +5532,9 @@ function IdlePage() {
       const col = s.collection ?? [];
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
-      const frozen = false; // 🔓 descongelado — pontos de craft voltaram a somar normalmente.
-      const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
-      const gain = frozen ? 0 : baseGain;
       const isEvent = entry.event === "oddish_odyssey";
       const safiraGain = isEvent ? (entry.species === "oddish_shiny" ? 20 : (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1)) : 0;
-      // 🌿 Craft de Oddish/Oddish Shiny devolve Stone Verdejante (varia por raridade)
+      // 🌿 Stone Verdejante para Oddish/Oddish Shiny
       const isOddishSp = entry.species === "oddish" || entry.species === "oddish_shiny";
       const stoneByRar: Record<string, number> = { common: 1, rare: 2, epic: 3, legendary: 4, mythic: 5, mythic_shiny: 10 };
       const stoneGain = isOddishSp ? (entry.species === "oddish_shiny" ? 10 : (stoneByRar[entry.rarity] ?? 2)) : 0;
@@ -5549,7 +5542,8 @@ function IdlePage() {
       if (safiraGain > 0) bonusParts.push(`+${safiraGain} 💚 Safira Verde`);
       if (stoneGain > 0) bonusParts.push(`+${stoneGain} 🌿 Stone Verdejante`);
       const bonus = bonusParts.length ? ` ${bonusParts.join(" ")}` : "";
-      // 🔷 Cristal Prisma escala pela raridade: comum 1, incomum 1, raro 2, épico 3, lendário 5, mítico 10, mítico shiny 20
+      // 🔷 Cristal Prisma — token independente. Escala por raridade.
+      // NÃO conta como pontos de craft nem de captura.
       const PRISMA_BY_RARITY: Record<string, number> = { common: 1, uncommon: 1, rare: 2, epic: 3, legendary: 5, mythic: 10, mythic_shiny: 20 };
       const crystalGain = PRISMA_BY_RARITY[entry.rarity] ?? 1;
       pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${crystalGain} 🔷 Cristal Prisma${bonus}).`, "cap");
@@ -5557,7 +5551,6 @@ function IdlePage() {
       return {
         ...s,
         collection: col.filter((e) => e.uid !== uid),
-        craftPoints: (s.craftPoints ?? 0) + gain,
         items: {
           ...s.items,
           cristal_fragmentado: (s.items?.cristal_fragmentado ?? 0) + crystalGain,
