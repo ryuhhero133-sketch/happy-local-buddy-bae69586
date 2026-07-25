@@ -10701,28 +10701,7 @@ function IdlePage() {
             <div style={{ width: 58, height: 58, flexShrink: 0, borderRadius: "50%", overflow: "hidden", border: "2px solid #d6ffd6", boxShadow: "0 0 14px rgba(141,250,141,0.75), inset 0 0 8px rgba(0,0,0,0.4)", background: "radial-gradient(circle at 50% 40%, #1a3d1c 0%, #0a1a0a 80%)", display: "grid", placeItems: "center", position: "relative" }}>
               <img src={oddishUrl} alt="Oddish" width={54} height={54} className="cash-pack-float" style={{ width: "94%", height: "94%", objectFit: "contain", imageRendering: "pixelated" as any, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} />
               <span style={{ position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none", boxShadow: "inset 0 0 12px rgba(141,250,141,0.55)", animation: "pulse 1.6s ease-in-out infinite" }} />
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); playClick(); setOddishRankOpen(true); }}
-            style={{
-              marginTop: 6,
-              width: "100%",
-              background: "linear-gradient(135deg,#1a3d1c 0%,#2b5f2e 60%,#3ec96f 100%)",
-              border: "1px solid #8dfa8d",
-              borderRadius: 10,
-              padding: "7px 10px",
-              color: "#eaffea",
-              fontWeight: 900,
-              fontSize: 11,
-              letterSpacing: 1,
-              cursor: "pointer",
-              textShadow: "0 1px 0 rgba(0,0,0,0.5)",
-              boxShadow: "0 2px 10px rgba(141,250,141,0.25)",
-            }}
-            title="Ranking global de Oddish capturados"
-          >
-            🏆 RANKING DO EVENTO
-          </button>
+            </div>
             <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "#d6ffd6", letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}>✦ GRASS ODDISH</div>
               <div className="cash-pack-float" style={{ fontSize: 12, fontWeight: 900, color: "#8affb0", marginTop: 2, lineHeight: 1.2 }}>
