@@ -3384,9 +3384,9 @@ function IdlePage() {
   useEffect(() => {
     const total = idle.grassOddishCaptured ?? 0;
     if (total <= 0) return;
-    const t = setTimeout(() => { void submitOddishCaptures(total); }, 3500);
+    const t = setTimeout(() => { void submitOddishCaptures(total, identity?.name); }, 3500);
     return () => clearTimeout(t);
-  }, [idle.grassOddishCaptured]);
+  }, [idle.grassOddishCaptured, identity?.name]);
   // Recarrega o top do ranking do evento quando o modal abrir.
   useEffect(() => {
     if (!oddishRankOpen) return;
@@ -3395,7 +3395,7 @@ function IdlePage() {
     (async () => {
       try {
         const total = idle.grassOddishCaptured ?? 0;
-        if (total > 0) { try { await submitOddishCaptures(total); } catch {} }
+        if (total > 0) { try { await submitOddishCaptures(total, identity?.name); } catch {} }
         const rows = await fetchOddishTop(100);
         if (!cancelled) setOddishRankRows(rows);
       } finally {
@@ -3403,7 +3403,7 @@ function IdlePage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [oddishRankOpen, idle.grassOddishCaptured]);
+  }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   const viewW = viewSize.w / zoom;
   const viewH = viewSize.h / zoom;
   const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
