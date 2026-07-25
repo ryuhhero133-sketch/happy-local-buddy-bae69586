@@ -4291,12 +4291,13 @@ function IdlePage() {
                   else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
                   else captured = false;
                 }
-              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
+              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || target.sp === "rayquaza" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
                 // 🐉⚡⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
                 const isRaichuMy = target.sp === "raichu";
                 const isBlastoiseMy = target.sp === "blastoise_shiny";
-                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : isBlastoiseMy ? 1000 : DRAGONITE_SHINY_MIN_BALLS;
-                const label = isRaichuMy ? "RAICHU ✦" : target.sp === "zapdos" ? "ZAPDOS" : isBlastoiseMy ? "BLASTOISE ✦" : "DRAGONITE ✦";
+                const isRayquaza = target.sp === "rayquaza";
+                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : isBlastoiseMy ? 1000 : isRayquaza ? RAYQUAZA_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
+                const label = isRaichuMy ? "RAICHU ✦" : target.sp === "zapdos" ? "ZAPDOS" : isBlastoiseMy ? "BLASTOISE ✦" : isRayquaza ? "RAYQUAZA ✦" : "DRAGONITE ✦";
                 if (usedBall.id !== "ultraball") {
                   captured = false;
                   pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
@@ -4311,8 +4312,8 @@ function IdlePage() {
                     }
                     pushFxAt(target.x, target.y - 70, `${nowCount}/${minBalls}`, "enemyDmg");
                   } else {
-                    // Raichu Mítico: quase impossível — 0.3% por lançamento após o umbral.
-                    const catchChance = isRaichuMy ? 0.003 : 0.02;
+                    // Raichu Mítico / Rayquaza: quase impossível — 0.3% por lançamento após o umbral.
+                    const catchChance = (isRaichuMy || isRayquaza) ? 0.003 : 0.02;
                     captured = Math.random() < catchChance;
                   }
                 }
