@@ -398,12 +398,26 @@ export async function submitOddishCaptures(captures: number, username?: string |
   if (!nameArg || !userId) return;
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("oddish_event_leaderboard").upsert({
-      user_id: userId,
-      username: nameArg,
-      captures: safe,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
+    const existing = await (supabase as any)
+      .from("oddish_event_leaderboard")
+      .select("captures")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existing.data) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any)
+        .from("oddish_event_leaderboard")
+        .update({ username: nameArg, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from("oddish_event_leaderboard").insert({
+        user_id: userId,
+        username: nameArg,
+        captures: safe,
+        updated_at: new Date().toISOString(),
+      });
+    }
   } catch (e) {
     if (!submittedByRpc) console.warn("[oddish rank] backup exc:", e);
   }
