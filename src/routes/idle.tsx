@@ -4155,6 +4155,14 @@ function IdlePage() {
             if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
             if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
           }
+          // ⚡✦ RAICHU MÍTICO — drop garantido de Stone Elétrica ao derrotar
+          if (target.sp === "raichu") {
+            drops.push("stone_electric");
+            // 60% chance de vir uma stone extra, 25% chance de vir 2 extras
+            if (Math.random() < 0.60) drops.push("stone_electric");
+            if (Math.random() < 0.25) drops.push("stone_electric");
+            pushChat("⚡✦ Raichu Mítico caiu e deixou Stone Elétrica!", "cap");
+          }
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
