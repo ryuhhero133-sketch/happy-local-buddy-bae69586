@@ -331,3 +331,64 @@ export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
   const merged = mergeRankedRows(rows, legacy, online);
   return merged.length ? merged.slice(0, limit) : online;
 }
+
+// ============================================================
+// Ranking do evento Grass Oddish (capturas totais por jogador).
+// Requer o SQL em SUPABASE_ODDISH_LEADERBOARD.sql.
+// ============================================================
+export type OddishRankRow = {
+  user_id: string;
+  username: string;
+  captures: number;
+  updated_at: string;
+};
+
+/** Envia/atualiza a contagem de Oddish capturados no evento. */
+export async function submitOddishCaptures(captures: number): Promise<void> {
+  const safe = Math.max(0, Math.floor(captures || 0));
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).rpc("record_oddish_captures", { _captures: safe });
+    if (error) console.warn("[oddish rank] submit:", error.message);
+  } catch (e) {
+    console.warn("[oddish rank] submit exc:", e);
+  }
+}
+
+/** Top N do ranking global do evento Grass Oddish. */
+export async function fetchOddishTop(limit = 100): Promise<OddishRankRow[]> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc("get_oddish_top", { _limit: limit });
+    if (!error && Array.isArray(data)) {
+      return (data as OddishRankRow[]).map((r) => ({
+        user_id: r.user_id,
+        username: r.username || "Treinador",
+        captures: Math.max(0, Math.floor(r.captures || 0)),
+        updated_at: r.updated_at,
+      }));
+    }
+    if (error) console.warn("[oddish rank] top rpc:", error.message);
+  } catch (e) {
+    console.warn("[oddish rank] top exc:", e);
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from("oddish_event_leaderboard")
+      .select("user_id, username, captures, updated_at")
+      .order("captures", { ascending: false })
+      .order("updated_at", { ascending: true })
+      .limit(limit);
+    if (error) { console.warn("[oddish rank] top table:", error.message); return []; }
+    return ((data ?? []) as OddishRankRow[]).map((r) => ({
+      user_id: r.user_id,
+      username: r.username || "Treinador",
+      captures: Math.max(0, Math.floor(r.captures || 0)),
+      updated_at: r.updated_at,
+    }));
+  } catch (e) {
+    console.warn("[oddish rank] top table exc:", e);
+    return [];
+  }
+}
