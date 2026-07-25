@@ -2099,6 +2099,23 @@ function IdlePage() {
   const [chatTick, setChatTick] = useState(0);
   const [grassOddishSplash, setGrassOddishSplash] = useState<boolean>(false);
   const [oddishNoStone, setOddishNoStone] = useState<{ have: number; need: number } | null>(null);
+  const [oddishConfirm, setOddishConfirm] = useState<{ have: number; need: number } | null>(null);
+  const enterGrassOddish = () => {
+    setIdle((cur) => {
+      const need = 20;
+      const have = cur.items?.stone_grass ?? 0;
+      if (have < need) { setOddishNoStone({ have, need }); return cur; }
+      try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
+      pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
+      return {
+        ...cur,
+        items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
+        grassOddishReturnMap: cur.currentMap === "grass_oddish" ? cur.grassOddishReturnMap : cur.currentMap,
+        currentMap: "grass_oddish",
+      };
+    });
+    setOddishConfirm(null);
+  };
   useEffect(() => {
     if (idle.currentMap !== "grass_oddish") return;
     setGrassOddishSplash(true);
@@ -6732,6 +6749,111 @@ function IdlePage() {
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
+      {/* 🌿 MODAL — Confirmar entrada no Evento Grass Oddish */}
+      {oddishConfirm && (
+        <div
+          onClick={() => setOddishConfirm(null)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 10000,
+            display: "grid", placeItems: "center",
+            background: "radial-gradient(circle at 50% 45%, rgba(30,90,40,0.82) 0%, rgba(6,20,10,0.94) 70%)",
+            backdropFilter: "blur(8px)",
+            animation: "fadeIn 0.28s ease-out",
+            cursor: "pointer",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              width: "min(480px, 92vw)",
+              padding: "28px 26px 22px",
+              borderRadius: 20,
+              background: "linear-gradient(160deg,#0f2010 0%,#1a3d1c 55%,#2b5f2e 100%)",
+              border: "3px solid #8dfa8d",
+              boxShadow: "0 0 60px rgba(141,250,141,0.55), 0 0 120px rgba(141,250,141,0.25), inset 0 0 40px rgba(141,250,141,0.14)",
+              textAlign: "center",
+              overflow: "hidden",
+              cursor: "default",
+            }}
+          >
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 20% 20%, rgba(180,255,180,0.25), transparent 55%), radial-gradient(circle at 85% 85%, rgba(80,220,120,0.28), transparent 60%)" }} />
+            <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", fontSize: 10, letterSpacing: 6, color: "#8affb0", fontWeight: 900, textShadow: "0 0 12px #8affb0", background: "#0a1a0a", padding: "3px 12px", borderRadius: 999, border: "1px solid #8dfa8d" }}>
+              ✦ EVENTO GRASS ODDISH ✦
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 6, marginBottom: 10, position: "relative" }}>
+              <img src={oddishUrl} alt="Oddish" className="cash-pack-float" style={{ width: 62, height: 62, objectFit: "contain", imageRendering: "pixelated" as any, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} />
+              <img src={oddishUrl} alt="Oddish" className="cash-pack-float" style={{ width: 78, height: 78, objectFit: "contain", imageRendering: "pixelated" as any, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", animationDelay: "0.4s" }} />
+              <img src={oddishUrl} alt="Oddish" className="cash-pack-float" style={{ width: 62, height: 62, objectFit: "contain", imageRendering: "pixelated" as any, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", animationDelay: "0.8s" }} />
+            </div>
+
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: 1, textShadow: "0 0 12px rgba(141,250,141,0.7)", position: "relative" }}>
+              Entrar no Vale dos Oddish?
+            </div>
+            <div style={{ fontSize: 12, color: "#d6ffd6", marginTop: 8, lineHeight: 1.5, position: "relative" }}>
+              Um mapa especial onde só nascem <b style={{ color: "#8affb0" }}>Oddish</b> nas raridades
+              {" "}<b>Raro</b>, <b style={{ color: "#c98aff" }}>Épico</b> e <b style={{ color: "#ffd76a" }}>Mítico</b>.
+              <br />Taxa de captura padrão do servidor.
+            </div>
+
+            <div style={{
+              marginTop: 14,
+              display: "flex", justifyContent: "center", alignItems: "center", gap: 10,
+              padding: "10px 14px",
+              borderRadius: 12,
+              background: "linear-gradient(135deg,#0a1a0a,#1a3d1c)",
+              border: "1px solid #8dfa8d",
+              boxShadow: "inset 0 0 20px rgba(141,250,141,0.15)",
+              position: "relative",
+            }}>
+              <div style={{ fontSize: 11, color: "#c8e8c8", fontWeight: 700 }}>Custo</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#8affb0", textShadow: "0 0 10px rgba(141,250,141,0.7)" }}>
+                {oddishConfirm.need}
+              </div>
+              <div style={{ fontSize: 18 }}>🌿</div>
+              <div style={{ width: 1, height: 22, background: "rgba(141,250,141,0.4)", margin: "0 6px" }} />
+              <div style={{ fontSize: 11, color: "#c8e8c8", fontWeight: 700 }}>Você tem</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff" }}>
+                {oddishConfirm.have}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 18, position: "relative" }}>
+              <button
+                onClick={() => setOddishConfirm(null)}
+                style={{
+                  padding: "10px 20px",
+                  fontSize: 11, fontWeight: 900, letterSpacing: 1,
+                  color: "#d6ffd6",
+                  background: "linear-gradient(135deg,#1a2a1a,#0f1a0f)",
+                  border: "2px solid #4a6a4a",
+                  borderRadius: 12,
+                  cursor: "pointer",
+                }}
+              >
+                CANCELAR
+              </button>
+              <button
+                onClick={enterGrassOddish}
+                style={{
+                  padding: "10px 22px",
+                  fontSize: 12, fontWeight: 900, letterSpacing: 1,
+                  color: "#0a2010",
+                  background: "linear-gradient(135deg,#d6ffd6,#8dfa8d 60%,#3ec96f)",
+                  border: "2px solid #fff",
+                  borderRadius: 12,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 18px rgba(141,250,141,0.55)",
+                }}
+              >
+                ENTRAR (-20 🌿)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 🌿 MODAL — Faltam Stones Verdejantes */}
       {oddishNoStone && (
         <div
@@ -10343,30 +10465,25 @@ function IdlePage() {
           <div
             onClick={(ev) => {
               ev.stopPropagation();
-              setIdle((cur) => {
-                const inEvent = cur.currentMap === "grass_oddish";
-                if (inEvent) {
-                  const back = cur.grassOddishReturnMap ?? "arena";
+              const cur = idle;
+              const inEvent = cur.currentMap === "grass_oddish";
+              if (inEvent) {
+                setIdle((s) => {
+                  const back = s.grassOddishReturnMap ?? "arena";
                   try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Você saiu do evento.", tone: "info" } })); } catch {}
                   pushChat("🌿 Você saiu do evento Grass Oddish.", "info");
-                  return { ...cur, currentMap: back, grassOddishReturnMap: undefined };
-                }
-                const need = 20;
-                const have = cur.items?.stone_grass ?? 0;
-                if (have < need) {
-                  setOddishNoStone({ have, need });
-                  pushChat(`🌿 Grass Oddish: precisa de ${need} Stone Verdejante (você tem ${have}).`, "info");
-                  return cur;
-                }
-                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
-                pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
-                return {
-                  ...cur,
-                  items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
-                  grassOddishReturnMap: cur.currentMap === "grass_oddish" ? cur.grassOddishReturnMap : cur.currentMap,
-                  currentMap: "grass_oddish",
-                };
-              });
+                  return { ...s, currentMap: back, grassOddishReturnMap: undefined };
+                });
+                return;
+              }
+              const need = 20;
+              const have = cur.items?.stone_grass ?? 0;
+              if (have < need) {
+                setOddishNoStone({ have, need });
+                pushChat(`🌿 Grass Oddish: precisa de ${need} Stone Verdejante (você tem ${have}).`, "info");
+                return;
+              }
+              setOddishConfirm({ have, need });
             }}
             style={{
               position: "relative",
