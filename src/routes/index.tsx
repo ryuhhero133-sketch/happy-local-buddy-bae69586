@@ -603,6 +603,7 @@ const SPECIES_GIF: Record<Species, string> = {
   moltres_shiny: moltresShinyGif, onix_shiny: onixShinyGif,
   lickitung: oddishGif, lickitung_shiny: oddishGif, mewtwo_event: oddishGif, oddish_shiny: oddishGif,
   riolu: mewGif,
+  rayquaza: dragoniteGif,
 
 };
 
@@ -660,6 +661,7 @@ const SPECIES_NAME: Record<Species, string> = {
   moltres_shiny: "MOLTRES ✧", onix_shiny: "ONIX ✧",
   lickitung: "LICKITUNG", lickitung_shiny: "LICKITUNG ✦", mewtwo_event: "MEWTWO ✦✧", oddish_shiny: "ODDISH ✦",
   riolu: "BLACK MITIC BRILHANT PLUS",
+  rayquaza: "RAYQUAZA ✦",
 };
 
 

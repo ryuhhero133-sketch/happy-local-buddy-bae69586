@@ -235,6 +235,7 @@ import lucarioAuraAsset from "@/assets/lucario-aura.webp.asset.json";
 import mewAuraAsset from "@/assets/mew-aura.webp.asset.json";
 import rioluAsset from "@/assets/riolu.gif.asset.json";
 import raichuAsset from "@/assets/raichu.gif.asset.json";
+import rayquazaAsset from "@/assets/rayquaza.gif.asset.json";
 import oddishAsset from "@/assets/oddish.gif.asset.json";
 import bellsproutAsset from "@/assets/bellsprout.gif.asset.json";
 import weedleAsset from "@/assets/weedle.gif.asset.json";
@@ -418,6 +419,7 @@ const lucarioAuraUrl = assetUrlFromJson(lucarioAuraAsset);
 const mewAuraUrl = assetUrlFromJson(mewAuraAsset);
 const rioluUrl = assetUrlFromJson(rioluAsset);
 const raichuUrl = assetUrlFromJson(raichuAsset);
+const rayquazaUrl = assetUrlFromJson(rayquazaAsset);
 const oddishUrl = assetUrlFromJson(oddishAsset);
 const bellsproutUrl = assetUrlFromJson(bellsproutAsset);
 const weedleUrl = assetUrlFromJson(weedleAsset);
@@ -603,6 +605,7 @@ const GIF: Partial<Record<Species, string>> = {
   oddish_shiny: assetUrlFromJson(oddishShinyGifAsset),
   riolu: rioluUrl,
   raichu: raichuUrl,
+  rayquaza: rayquazaUrl,
 };
 
 
@@ -661,7 +664,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   lucario: "fighting", pinsir: "fighting", riolu: "fighting",
   // Flying
   pidgey: "flying", pidgeotto: "flying", pidgeot: "flying",
-  fearow: "flying", spearow: "flying",
+  fearow: "flying", spearow: "flying", rayquaza: "flying",
   // Normal
   rattata_f: "normal", raticate_f: "normal",
   meowth: "normal", persian: "normal",
@@ -3230,6 +3233,7 @@ function IdlePage() {
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
   const RAICHU_MYTHIC_MIN_BALLS = 2000;
+  const RAYQUAZA_MIN_BALLS = 2000;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
@@ -4163,6 +4167,13 @@ function IdlePage() {
             if (Math.random() < 0.25) drops.push("stone_electric");
             pushChat("⚡✦ Raichu Mítico caiu e deixou Stone Elétrica!", "cap");
           }
+          // 🐉✦ RAYQUAZA MÍTICO — drop garantido de Stone Dragão ao derrotar
+          if (target.sp === "rayquaza") {
+            drops.push("stone_dragon");
+            if (Math.random() < 0.60) drops.push("stone_dragon");
+            if (Math.random() < 0.25) drops.push("stone_dragon");
+            pushChat("🐉✦ Rayquaza Mítico caiu e deixou Stone Dragão!", "cap");
+          }
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
@@ -4280,12 +4291,13 @@ function IdlePage() {
                   else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
                   else captured = false;
                 }
-              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
+              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || target.sp === "rayquaza" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
                 // 🐉⚡⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
                 const isRaichuMy = target.sp === "raichu";
                 const isBlastoiseMy = target.sp === "blastoise_shiny";
-                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : isBlastoiseMy ? 1000 : DRAGONITE_SHINY_MIN_BALLS;
-                const label = isRaichuMy ? "RAICHU ✦" : target.sp === "zapdos" ? "ZAPDOS" : isBlastoiseMy ? "BLASTOISE ✦" : "DRAGONITE ✦";
+                const isRayquaza = target.sp === "rayquaza";
+                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : isBlastoiseMy ? 1000 : isRayquaza ? RAYQUAZA_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
+                const label = isRaichuMy ? "RAICHU ✦" : target.sp === "zapdos" ? "ZAPDOS" : isBlastoiseMy ? "BLASTOISE ✦" : isRayquaza ? "RAYQUAZA ✦" : "DRAGONITE ✦";
                 if (usedBall.id !== "ultraball") {
                   captured = false;
                   pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
@@ -4300,8 +4312,8 @@ function IdlePage() {
                     }
                     pushFxAt(target.x, target.y - 70, `${nowCount}/${minBalls}`, "enemyDmg");
                   } else {
-                    // Raichu Mítico: quase impossível — 0.3% por lançamento após o umbral.
-                    const catchChance = isRaichuMy ? 0.003 : 0.02;
+                    // Raichu Mítico / Rayquaza: quase impossível — 0.3% por lançamento após o umbral.
+                    const catchChance = (isRaichuMy || isRayquaza) ? 0.003 : 0.02;
                     captured = Math.random() < catchChance;
                   }
                 }
@@ -5640,6 +5652,19 @@ function IdlePage() {
                   : "⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (2000 Ultra Balls para capturar)",
                 "cap"
               );
+            }
+          }
+        }
+        // 🐉✦ RAYQUAZA MÍTICO — spawn RARO exclusivo do Grass Oddish (carrega Stone Dragão)
+        {
+          const isGrass = idle.currentMap === "grass_oddish";
+          if (isGrass) {
+            const rayOnMap = enemies.some((e) => e.sp === "rayquaza");
+            if (!rayOnMap && Math.random() < 0.006) {
+              pool = ["rayquaza"] as Species[];
+              forcedRarity = "mythic_shiny";
+              mapLvRange = [500, 500];
+              pushChat("🐉✦ RAYQUAZA MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Dragão 🐉 (2000 Ultra Balls para capturar)", "cap");
             }
           }
         }
@@ -8667,6 +8692,26 @@ function IdlePage() {
                         textShadow: "0 0 4px #fff4a1, 0 1px 0 #fff",
                         filter: "drop-shadow(0 0 3px #fff8b8)",
                       }}>⚡</span>
+                    </div>
+                  )}
+                  {e.sp === "rayquaza" && !camouflaged && (
+                    <div style={{
+                      position: "absolute", top: -46, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      width: 24, height: 24, borderRadius: "50%",
+                      background: "radial-gradient(circle at 50% 40%, #b5ffd8 0%, #22c07a 45%, #0a5a3a 100%)",
+                      border: "2px solid #d8ffec",
+                      boxShadow: "0 0 12px rgba(60,230,150,0.95), 0 0 24px rgba(60,230,150,0.6), inset 0 0 6px rgba(200,255,220,0.9)",
+                      display: "grid", placeItems: "center",
+                      pointerEvents: "none",
+                      animation: "pulse 1.1s ease-in-out infinite",
+                    }}>
+                      <span style={{
+                        fontSize: 14, lineHeight: 1, fontWeight: 900,
+                        color: "#062a1a",
+                        textShadow: "0 0 4px #b5ffd8, 0 1px 0 #fff",
+                        filter: "drop-shadow(0 0 3px #d8ffec)",
+                      }}>🐉</span>
                     </div>
                   )}
                   {e.menace && (
