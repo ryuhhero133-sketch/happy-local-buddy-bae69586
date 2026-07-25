@@ -5603,11 +5603,17 @@ function IdlePage() {
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
         } else if (idle.currentMap === "grass_oddish") {
-          // 🌿 EVENTO GRASS ODDISH — só Oddish, raridades Raro/Épico/Mítico.
+          // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
           // Captura usa as MESMAS taxas globais do servidor.
-          pool = ["oddish"] as Species[];
-          const rr = Math.random();
-          forcedRarity = rr < 0.60 ? "rare" : rr < 0.90 ? "epic" : "mythic";
+          const shinyRoll = Math.random();
+          if (shinyRoll < 0.12) {
+            pool = ["oddish_shiny"] as Species[];
+            forcedRarity = "mythic_shiny";
+          } else {
+            pool = ["oddish"] as Species[];
+            const rr = Math.random();
+            forcedRarity = rr < 0.60 ? "rare" : rr < 0.90 ? "epic" : "mythic";
+          }
           mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") {
           // Odisséia Oddish — mapa aberto 24h. Não captura aqui.
