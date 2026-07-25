@@ -5920,10 +5920,14 @@ function IdlePage() {
 
   const activeTime = now - idle.startedAt;
   const rawMap = IDLE_MAPS[idle.currentMap];
-  // Grass Oddish rotaciona 2 backgrounds a cada 4 min pra ampliar a área do evento
+  // Grass Oddish rotaciona 3 backgrounds a cada 4 min pra ampliar a área do evento
   const grassOddishBg2 = assetUrlFromJson(mapGrassOddish2Asset);
+  const grassOddishBg3 = assetUrlFromJson(mapGrassOddish3Asset);
   const map = idle.currentMap === "grass_oddish"
-    ? { ...rawMap, bg: Math.floor(now / (4 * 60 * 1000)) % 2 === 0 ? rawMap.bg : grassOddishBg2 }
+    ? { ...rawMap, bg: (() => {
+        const idx = Math.floor(now / (4 * 60 * 1000)) % 3;
+        return idx === 0 ? rawMap.bg : idx === 1 ? grassOddishBg2 : grassOddishBg3;
+      })() }
     : rawMap;
   const visibleBuildings = BUILDINGS;
   const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#1a3d1a";
