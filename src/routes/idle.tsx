@@ -2064,23 +2064,19 @@ function IdlePage() {
         const ms = st.msUntilChange;
         if (ms <= 5 * 60 * 1000 && ms > 4 * 60 * 1000 && !seen.has(key("t5"))) {
           seen.add(key("t5"));
-          pushChat(`🌿 ODISSÉIA ODDISH — Portal abre em 5 minutos! Prepare-se, treinador.`, "info");
           try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: "Portal abre em 5 minutos!", tone: "info" } })); } catch {}
         }
         if (ms <= 60 * 1000 && ms > 30 * 1000 && !seen.has(key("t1"))) {
           seen.add(key("t1"));
-          pushChat(`🌿 ODISSÉIA ODDISH — 1 MINUTO para a abertura!`, "hit");
           try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: "1 minuto para abrir!", tone: "warn" } })); } catch {}
         }
       }
       if (st.phase === "open" && !seen.has(key("open"))) {
         seen.add(key("open"));
-        pushChat(`✦ PORTAL ABERTO — ODISSÉIA ODDISH! Janela de 30 min pra todos os treinadores. Corre! 🌿✨`, "cap");
         try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 PORTAL ABERTO!", body: "ODISSÉIA ODDISH — janela de 30 min ativa pra geral!", tone: "success" } })); } catch {}
       }
       if (st.phase === "open" && st.msUntilChange <= 60 * 1000 && st.msUntilChange > 30 * 1000 && !seen.has(key("closing"))) {
         seen.add(key("closing"));
-        pushChat(`⏳ ODISSÉIA ODDISH — Portal fecha em 1 minuto!`, "hit");
       }
       // Auto-retorno: portal fechou e o jogador ainda está no mapa do evento.
       if (st.phase !== "open") {
@@ -2113,7 +2109,6 @@ function IdlePage() {
   const enterGrassOddish = () => {
     if (!ODDISH_EVENT.enabled) {
       try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
-      pushChat("🌿 O evento Grass Oddish foi encerrado.", "info");
       setOddishConfirm(null);
       return;
     }
@@ -2122,7 +2117,6 @@ function IdlePage() {
       const have = cur.items?.stone_grass ?? 0;
       if (have < need) { setOddishNoStone({ have, need }); return cur; }
       try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
-      pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
       return {
         ...cur,
         items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
@@ -2139,7 +2133,6 @@ function IdlePage() {
     if (!inEvent) return;
     setIdle((s) => ({ ...s, currentMap: "arena", grassOddishReturnMap: undefined }));
     try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado. Você voltou para a Arena.", tone: "info" } })); } catch {}
-    pushChat("🌿 Evento Grass Oddish encerrado. Todos foram levados para a Arena.", "info");
   }, [idle.currentMap]);
   useEffect(() => {
     if (idle.currentMap !== "grass_oddish") return;
@@ -10788,8 +10781,7 @@ function IdlePage() {
               ev.stopPropagation();
               if (!ODDISH_EVENT.enabled) {
                 try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
-                pushChat("🌿 O evento Grass Oddish foi encerrado.", "info");
-                return;
+                          return;
               }
               const cur = idle;
               const inEvent = cur.currentMap === "grass_oddish";
