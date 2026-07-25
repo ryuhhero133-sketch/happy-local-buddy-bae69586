@@ -3262,12 +3262,8 @@ function IdlePage() {
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
-    ch.on("broadcast", { event: "capture" }, (payload) => {
-      const p = payload.payload as { id: string; name: string; sp: string; rarity: string; chancePct: number };
-      if (!p || p.id === identity.id) return;
-      const spName = String(p.sp).replace(/_/g, " ").toUpperCase();
-      pushChat(`🌍 ${p.name} capturou ${spName} (${p.rarity} · ${p.chancePct.toFixed(1)}%)`, "cap");
-    });
+    // Capturas globais de outros jogadores agora vão só como toast leve —
+    // sem lotar o chat / feed.
     ch.on("broadcast", { event: "say" }, (payload) => {
       const p = payload.payload as { id: string; name: string; text: string };
       if (!p || p.id === identity.id) return;
