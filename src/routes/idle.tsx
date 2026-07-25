@@ -152,6 +152,7 @@ import mapCadeiaF1Asset from "@/assets/map-cadeia-f1.png.asset.json";
 import mapMythshinyEventAsset from "@/assets/map-mythshiny-event.png.asset.json";
 import mapOddish1Asset from "@/assets/map-oddish-1.png.asset.json";
 import mapGrassOddish2Asset from "@/assets/grass-oddish-2.png.asset.json";
+import mapGrassOddish3Asset from "@/assets/grass-oddish-3.png.asset.json";
 import mapOddish2Asset from "@/assets/map-oddish-2.png.asset.json";
 import mapOddish3Url from "@/assets/map-oddish3.png";
 import absolStartMapAsset from "@/assets/absol-start-map.png.asset.json";
@@ -5602,11 +5603,17 @@ function IdlePage() {
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
         } else if (idle.currentMap === "grass_oddish") {
-          // 🌿 EVENTO GRASS ODDISH — só Oddish, raridades Raro/Épico/Mítico.
+          // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
           // Captura usa as MESMAS taxas globais do servidor.
-          pool = ["oddish"] as Species[];
-          const rr = Math.random();
-          forcedRarity = rr < 0.60 ? "rare" : rr < 0.90 ? "epic" : "mythic";
+          const shinyRoll = Math.random();
+          if (shinyRoll < 0.12) {
+            pool = ["oddish_shiny"] as Species[];
+            forcedRarity = "mythic_shiny";
+          } else {
+            pool = ["oddish"] as Species[];
+            const rr = Math.random();
+            forcedRarity = rr < 0.60 ? "rare" : rr < 0.90 ? "epic" : "mythic";
+          }
           mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") {
           // Odisséia Oddish — mapa aberto 24h. Não captura aqui.
@@ -5885,12 +5892,12 @@ function IdlePage() {
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 24 : 16;
+  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 32 : 16;
 
   function spawnEnemies(): Enemy[] {
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "grass_oddish";
-    const initial = isGrassOddish ? 12 + Math.floor(Math.random() * 4) : 6 + Math.floor(Math.random() * 3); // Grass Oddish: 12-15, outros: 6-8
+    const initial = isGrassOddish ? 18 + Math.floor(Math.random() * 5) : 6 + Math.floor(Math.random() * 3); // Grass Oddish: 18-22, outros: 6-8
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
@@ -5919,10 +5926,14 @@ function IdlePage() {
 
   const activeTime = now - idle.startedAt;
   const rawMap = IDLE_MAPS[idle.currentMap];
-  // Grass Oddish rotaciona 2 backgrounds a cada 4 min pra ampliar a área do evento
+  // Grass Oddish rotaciona 3 backgrounds a cada 4 min pra ampliar a área do evento
   const grassOddishBg2 = assetUrlFromJson(mapGrassOddish2Asset);
+  const grassOddishBg3 = assetUrlFromJson(mapGrassOddish3Asset);
   const map = idle.currentMap === "grass_oddish"
-    ? { ...rawMap, bg: Math.floor(now / (4 * 60 * 1000)) % 2 === 0 ? rawMap.bg : grassOddishBg2 }
+    ? { ...rawMap, bg: (() => {
+        const idx = Math.floor(now / (4 * 60 * 1000)) % 3;
+        return idx === 0 ? rawMap.bg : idx === 1 ? grassOddishBg2 : grassOddishBg3;
+      })() }
     : rawMap;
   const visibleBuildings = BUILDINGS;
   const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#1a3d1a";
