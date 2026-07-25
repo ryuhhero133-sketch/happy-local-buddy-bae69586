@@ -1879,6 +1879,8 @@ function IdlePage() {
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
+  // Alterna anúncios de XP/kill no chat (1 sim, 1 não) para reduzir spam.
+  const xpChatAltRef = useRef(0);
 
   // ==== ÁUDIO ====
   const [audioSettings, setAudioSettings] = useState(() => {
@@ -2062,23 +2064,19 @@ function IdlePage() {
         const ms = st.msUntilChange;
         if (ms <= 5 * 60 * 1000 && ms > 4 * 60 * 1000 && !seen.has(key("t5"))) {
           seen.add(key("t5"));
-          pushChat(`🌿 ODISSÉIA ODDISH — Portal abre em 5 minutos! Prepare-se, treinador.`, "info");
           try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: "Portal abre em 5 minutos!", tone: "info" } })); } catch {}
         }
         if (ms <= 60 * 1000 && ms > 30 * 1000 && !seen.has(key("t1"))) {
           seen.add(key("t1"));
-          pushChat(`🌿 ODISSÉIA ODDISH — 1 MINUTO para a abertura!`, "hit");
           try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: "1 minuto para abrir!", tone: "warn" } })); } catch {}
         }
       }
       if (st.phase === "open" && !seen.has(key("open"))) {
         seen.add(key("open"));
-        pushChat(`✦ PORTAL ABERTO — ODISSÉIA ODDISH! Janela de 30 min pra todos os treinadores. Corre! 🌿✨`, "cap");
         try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 PORTAL ABERTO!", body: "ODISSÉIA ODDISH — janela de 30 min ativa pra geral!", tone: "success" } })); } catch {}
       }
       if (st.phase === "open" && st.msUntilChange <= 60 * 1000 && st.msUntilChange > 30 * 1000 && !seen.has(key("closing"))) {
         seen.add(key("closing"));
-        pushChat(`⏳ ODISSÉIA ODDISH — Portal fecha em 1 minuto!`, "hit");
       }
       // Auto-retorno: portal fechou e o jogador ainda está no mapa do evento.
       if (st.phase !== "open") {
@@ -2111,7 +2109,6 @@ function IdlePage() {
   const enterGrassOddish = () => {
     if (!ODDISH_EVENT.enabled) {
       try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
-      pushChat("🌿 O evento Grass Oddish foi encerrado.", "info");
       setOddishConfirm(null);
       return;
     }
@@ -2120,7 +2117,6 @@ function IdlePage() {
       const have = cur.items?.stone_grass ?? 0;
       if (have < need) { setOddishNoStone({ have, need }); return cur; }
       try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
-      pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
       return {
         ...cur,
         items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
@@ -2137,7 +2133,6 @@ function IdlePage() {
     if (!inEvent) return;
     setIdle((s) => ({ ...s, currentMap: "arena", grassOddishReturnMap: undefined }));
     try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado. Você voltou para a Arena.", tone: "info" } })); } catch {}
-    pushChat("🌿 Evento Grass Oddish encerrado. Todos foram levados para a Arena.", "info");
   }, [idle.currentMap]);
   useEffect(() => {
     if (idle.currentMap !== "grass_oddish") return;
@@ -2251,6 +2246,31 @@ function IdlePage() {
   const [bmpSwapTarget, setBmpSwapTarget] = useState<Species | null>(null);
   const [bmpSwapMsg, setBmpSwapMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [cashShopOpen, setCashShopOpen] = useState(false);
+
+  // ESC global: fecha modais / painéis abertos, ou volta pra tela de batalha.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      // Prioridade: modais → painéis → tabs secundárias.
+      if (statsCardPet) { setStatsCardPet(null); return; }
+      if (cashShopOpen) { setCashShopOpen(false); return; }
+      if (blackEggHudOpen) { setBlackEggHudOpen(false); return; }
+      if (governanteOpen) { setGovernanteOpen(false); return; }
+      if (bmpSwapOpen) { setBmpSwapOpen(false); return; }
+      if (showAutoSettings) { setShowAutoSettings(false); return; }
+      if (oddishNoStone) { setOddishNoStone(null); return; }
+      if (oddishConfirm) { setOddishConfirm(null); return; }
+      if (oddishRankOpen) { setOddishRankOpen(false); return; }
+      if (grassOddishSplash) { setGrassOddishSplash(false); return; }
+      if (tab !== "batalha") { setTab("batalha"); return; }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
+
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
@@ -3260,12 +3280,8 @@ function IdlePage() {
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
-    ch.on("broadcast", { event: "capture" }, (payload) => {
-      const p = payload.payload as { id: string; name: string; sp: string; rarity: string; chancePct: number };
-      if (!p || p.id === identity.id) return;
-      const spName = String(p.sp).replace(/_/g, " ").toUpperCase();
-      pushChat(`🌍 ${p.name} capturou ${spName} (${p.rarity} · ${p.chancePct.toFixed(1)}%)`, "cap");
-    });
+    // Capturas globais de outros jogadores agora vão só como toast leve —
+    // sem lotar o chat / feed.
     ch.on("broadcast", { event: "say" }, (payload) => {
       const p = payload.payload as { id: string; name: string; text: string };
       if (!p || p.id === identity.id) return;
@@ -4166,7 +4182,10 @@ function IdlePage() {
           if (rarityBonus > 0) bonusParts.push(`Líder ${leaderRarity}+${Math.round(rarityBonus * 100)}%`);
           if (synergyBonus > 0) bonusParts.push(`Sinergia ${synergyRarity}+${Math.round(synergyBonus * 100)}%`);
           const suffix = bonusParts.length ? ` (${bonusParts.join(" · ")})` : "";
-          pushChat(`+${xp} EXP · +${gold} ouro${suffix}`, "info");
+          // Anuncia XP no chat só 1 a cada 2 (o floating text sempre mostra).
+          if ((xpChatAltRef.current++ & 1) === 0) {
+            pushChat(`+${xp} EXP · +${gold} ouro${suffix}`, "info");
+          }
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
           const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
@@ -4429,7 +4448,7 @@ function IdlePage() {
                 const rColor = rarityColorMap[np.rarity] ?? "#f5cf6b";
                 pushFxAt(target.x, target.y - 70, `★ ${usedBall.name.toUpperCase()} ★`, "capture");
                 pushFxAt(target.x, target.y - 100, `${rLabel.toUpperCase()}!`, "capture");
-                pushChat(`★ Capturado (${rLabel}) com ${usedBall.name}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
+                // (captura não anuncia no chat — floating text já mostra ★)
                 // fx visual: contorna a chat com a cor da raridade (via console info)
                 void rColor;
                 // Broadcast global da captura
@@ -4449,15 +4468,15 @@ function IdlePage() {
                 } catch { /* ignore */ }
                 playBonus();
                 // Vai direto para a Coleção (não entra no time automaticamente)
-                pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
+                // (sem chat — o floating "★" e a Coleção falam por si)
 
               } else {
                 pushFxAt(target.x, target.y - 70, `${usedBall.name} falhou`, "enemyDmg");
-                pushChat(`✗ ${usedBall.name} falhou em capturar ${target.sp.replace(/_/g, " ").toUpperCase()}.`, "hit");
+                // (falha de pokébola: só floating text, sem spam no chat)
               }
             } else {
               pushFxAt(target.x, target.y - 70, "sem pokébola", "enemyDmg");
-              pushChat(`Sem Pokébolas no estoque — compre na loja para capturar.`, "info");
+              // (sem pokébola: floating text apenas)
             }
 
             const capturedInc = captured ? 1 : 0;
@@ -10787,8 +10806,7 @@ function IdlePage() {
               ev.stopPropagation();
               if (!ODDISH_EVENT.enabled) {
                 try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
-                pushChat("🌿 O evento Grass Oddish foi encerrado.", "info");
-                return;
+                          return;
               }
               const cur = idle;
               const inEvent = cur.currentMap === "grass_oddish";
