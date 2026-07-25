@@ -13303,9 +13303,9 @@ function TabOverlay({
       .map((uid) => collection.find((e) => e.uid === uid))
       .filter((e): e is CollectionEntry => !!e)
       .filter((e) => !teamUidSet.has(e.uid) && !lockedSet.has(e.uid))
-      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: CRAFT_BY_RARITY[e.rarity] ?? 1 }));
+      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: 1 }));
     if (entries.length === 0) return;
-    const totalGain = entries.reduce((s, e) => s + e.gain, 0);
+    const totalGain = entries.length;
     setFragConfirm({ entries, totalGain });
   };
   const confirmFrag = () => {
