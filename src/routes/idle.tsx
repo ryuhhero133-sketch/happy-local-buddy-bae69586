@@ -3424,7 +3424,7 @@ function IdlePage() {
       });
       try {
         await recordRankedScore(idle.trainerLevel ?? 1, 0, null);
-        const top = await fetchTopRanked(200);
+        const top = await fetchTopRanked(30);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
           name: r.username || "Treinador",
