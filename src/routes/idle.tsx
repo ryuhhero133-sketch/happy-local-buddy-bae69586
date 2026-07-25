@@ -10477,26 +10477,37 @@ function IdlePage() {
                             {([
                               { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
                               { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
+                              { id: 3 as const, label: "🔮 Continente III", sub: trainerLv >= 10000 ? "Hexagonal Champions" : `🔒 Requer Lv 10.000 (você: ${trainerLv.toLocaleString()})` },
                             ]).map((t) => {
                               const active = worldTab === t.id;
-                              const locked = t.id === 2 && !hasGovCard;
+                              const locked = (t.id === 2 && !hasGovCard) || (t.id === 3 && trainerLv < 10000);
+                              const isHex = t.id === 3;
                               return (
                                 <button
                                   key={t.id}
-                                  onClick={() => { if (locked) return; playClick(); setWorldTab(t.id); }}
+                                  onClick={() => {
+                                    if (locked) return;
+                                    playClick();
+                                    if (isHex) {
+                                      setWorldMapOpen(false);
+                                      navigate({ to: "/hexchampions" });
+                                      return;
+                                    }
+                                    setWorldTab(t.id);
+                                  }}
                                   disabled={locked}
                                   style={{
                                     flex: 1,
                                     background: active
                                       ? "linear-gradient(135deg, #3d2a08, #6a4818)"
-                                      : locked ? "#160a1e" : "#1a1420",
-                                    border: `2px solid ${active ? "#f5cf6b" : locked ? "#3a2a4a" : "#5a4a6a"}`,
-                                    color: active ? "#ffe08a" : locked ? "#5a4a6a" : "#c8b8d0",
+                                      : locked ? "#160a1e" : isHex ? "linear-gradient(135deg, #1a0a2e, #3a1a5a)" : "#1a1420",
+                                    border: `2px solid ${active ? "#f5cf6b" : locked ? "#3a2a4a" : isHex ? "#a06de0" : "#5a4a6a"}`,
+                                    color: active ? "#ffe08a" : locked ? "#5a4a6a" : isHex ? "#e6d3ff" : "#c8b8d0",
                                     borderRadius: 8,
                                     padding: "8px 10px",
                                     cursor: locked ? "not-allowed" : "pointer",
                                     textAlign: "left",
-                                    boxShadow: active ? "0 0 14px rgba(245,207,107,0.5)" : undefined,
+                                    boxShadow: active ? "0 0 14px rgba(245,207,107,0.5)" : isHex && !locked ? "0 0 14px rgba(160,109,224,0.5)" : undefined,
                                   }}
                                 >
                                   <div style={{ fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>{t.label}</div>
