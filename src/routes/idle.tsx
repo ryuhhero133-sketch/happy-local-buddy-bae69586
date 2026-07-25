@@ -2098,6 +2098,7 @@ function IdlePage() {
   const [teamCollapsed, setTeamCollapsed] = useState<boolean>(false);
   const [chatTick, setChatTick] = useState(0);
   const [grassOddishSplash, setGrassOddishSplash] = useState<boolean>(false);
+  const [oddishNoStone, setOddishNoStone] = useState<{ have: number; need: number } | null>(null);
   useEffect(() => {
     if (idle.currentMap !== "grass_oddish") return;
     setGrassOddishSplash(true);
