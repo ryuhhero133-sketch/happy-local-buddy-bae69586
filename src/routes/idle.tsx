@@ -10261,7 +10261,7 @@ function IdlePage() {
                 const need = 20;
                 const have = cur.items?.stone_grass ?? 0;
                 if (have < need) {
-                  try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `Precisa de ${need} Stone Verdejante (você tem ${have}).`, tone: "warn" } })); } catch {}
+                  setOddishNoStone({ have, need });
                   pushChat(`🌿 Grass Oddish: precisa de ${need} Stone Verdejante (você tem ${have}).`, "info");
                   return cur;
                 }
