@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IdleRouteImport } from './routes/idle'
+import { Route as HexchampionsRouteImport } from './routes/hexchampions'
 import { Route as IndexRouteImport } from './routes/index'
 
 const IdleRoute = IdleRouteImport.update({
   id: '/idle',
   path: '/idle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HexchampionsRoute = HexchampionsRouteImport.update({
+  id: '/hexchampions',
+  path: '/hexchampions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,27 +31,31 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/hexchampions': typeof HexchampionsRoute
   '/idle': typeof IdleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/hexchampions': typeof HexchampionsRoute
   '/idle': typeof IdleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/hexchampions': typeof HexchampionsRoute
   '/idle': typeof IdleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/idle'
+  fullPaths: '/' | '/hexchampions' | '/idle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/idle'
-  id: '__root__' | '/' | '/idle'
+  to: '/' | '/hexchampions' | '/idle'
+  id: '__root__' | '/' | '/hexchampions' | '/idle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HexchampionsRoute: typeof HexchampionsRoute
   IdleRoute: typeof IdleRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/idle'
       fullPath: '/idle'
       preLoaderRoute: typeof IdleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hexchampions': {
+      id: '/hexchampions'
+      path: '/hexchampions'
+      fullPath: '/hexchampions'
+      preLoaderRoute: typeof HexchampionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,8 +87,19 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HexchampionsRoute: HexchampionsRoute,
   IdleRoute: IdleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
