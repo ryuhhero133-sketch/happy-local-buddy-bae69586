@@ -5613,18 +5613,25 @@ function IdlePage() {
           }
         }
         // ⚡ ZAPDOS EVENT — ENCERRADO
-        // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey
+        // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey e Grass Oddish
         {
-          const oddyMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3"];
+          const oddyMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3", "grass_oddish"];
           const isOddy = oddyMaps.includes(idle.currentMap as string);
           if (isOddy) {
             const raichuOnMap = enemies.some((e) => e.sp === "raichu");
-            // ~0.4% de chance por tentativa de spawn, no máximo 1 por mapa
-            if (!raichuOnMap && Math.random() < 0.004) {
+            const isGrass = idle.currentMap === "grass_oddish";
+            // ~0.4% Odyssey / ~0.8% Grass Oddish, no máximo 1 por mapa
+            const chance = isGrass ? 0.008 : 0.004;
+            if (!raichuOnMap && Math.random() < chance) {
               pool = ["raichu"] as Species[];
-              forcedRarity = "mythic_shiny";
-              mapLvRange = [500, 500];
-              pushChat("⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (1600 Ultra Balls para capturar)", "cap");
+              forcedRarity = isGrass ? "mythic" : "mythic_shiny";
+              mapLvRange = isGrass ? [Math.max(1, leaderLv), leaderLv + 5] : [500, 500];
+              pushChat(
+                isGrass
+                  ? "⚡✦ RAICHU MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Elétrica ⚡"
+                  : "⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (1600 Ultra Balls para capturar)",
+                "cap"
+              );
             }
           }
         }
