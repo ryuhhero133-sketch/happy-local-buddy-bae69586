@@ -462,6 +462,8 @@ type IdleMapId =
   | "evento_myth"
   // Evento Oddish Odyssey — 24h aberto, 3 mapas conectados por portal
   | "oddish_o1" | "oddish_o2" | "oddish_o3"
+  // Evento Grass Oddish — mapa exclusivo, entrada custa 20 Stone Verdejante
+  | "grass_oddish"
   // Continente do Governante — acesso via Carta do Governante
   | "absol_start" | "governante_hall";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
@@ -517,6 +519,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   oddish_o1: { name: "Odisséia Oddish — Bosque",   diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
   oddish_o2: { name: "Odisséia Oddish — Clareira", diff: "EVENTO", bg: assetUrlFromJson(mapOddish2Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
   oddish_o3: { name: "Odisséia Oddish — Caverna Sombria", diff: "EVENTO", bg: mapOddish3Url, rate: 9.0, minLevel: 1, maxLevel: 9999, element: "Fantasma/Caos", stars: 7 },
+  grass_oddish: { name: "🌿 Grass Oddish", diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta", stars: 6, overlay: "rgba(120,255,140,0.18)" },
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
 };
@@ -920,6 +923,8 @@ type IdleState = {
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   redeemedCodes?: Record<string, boolean>;
   blackMiticPlusPending?: number; // ovos Plus emitidos pelo Governante que ainda precisam ser marcados no painel
+  grassOddishCaptured?: number; // contador do evento Grass Oddish
+  grassOddishReturnMap?: IdleMapId; // mapa de origem antes de entrar no evento
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
@@ -4361,7 +4366,7 @@ function IdlePage() {
               queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
             }
             const newCollection = capturedPet && !colFull
-              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits }]
+              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits, ...(s.currentMap === "grass_oddish" ? { event: "grass_oddish" } : {}) }]
               : prevCol;
             // Anuncia traits sorteados no chat
             if (capturedPet && capturedPet.traits && capturedPet.traits.length > 0) {
@@ -4417,10 +4422,18 @@ function IdlePage() {
             const itemsWithBalls = surpriseBalls > 0
               ? { ...newItems, pokeball: (newItems.pokeball ?? 0) + surpriseBalls }
               : newItems;
+            const isGrassOddishAuto = captured && s.currentMap === "grass_oddish";
+            if (isGrassOddishAuto) {
+              const total = (s.grassOddishCaptured ?? 0) + 1;
+              queueMicrotask(() => {
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
+              });
+            }
             return {
               ...applied.state,
               pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0) },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
+              grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
               items: itemsWithBalls,
               caughtSpecies: newCaught,
@@ -4932,12 +4945,20 @@ function IdlePage() {
           return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
         }
         const isOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3";
+        const isGrassOddish = s.currentMap === "grass_oddish";
         const finalLevel = isOddishEvent ? 1 : np.level;
+        if (isGrassOddish) {
+          const total = (s.grassOddishCaptured ?? 0) + 1;
+          queueMicrotask(() => {
+            try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
+          });
+        }
         return {
           ...s,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
+          grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddish ? 1 : 0),
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
-          collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled, ...(isOddishEvent ? { event: "oddish_odyssey" } : {}) }],
+          collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled, ...(isOddishEvent ? { event: "oddish_odyssey" } : {}), ...(isGrassOddish ? { event: "grass_oddish" } : {}) }],
         };
       });
     } else {
@@ -5534,6 +5555,13 @@ function IdlePage() {
           // Pareia com o líder — grande variação para não ficar previsível
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
+        } else if (idle.currentMap === "grass_oddish") {
+          // 🌿 EVENTO GRASS ODDISH — só Oddish, raridades Raro/Épico/Mítico.
+          // Captura usa as MESMAS taxas globais do servidor.
+          pool = ["oddish"] as Species[];
+          const rr = Math.random();
+          forcedRarity = rr < 0.60 ? "rare" : rr < 0.90 ? "epic" : "mythic";
+          mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") {
           // Odisséia Oddish — mapa aberto 24h. Não captura aqui.
           // Bastante Oddish Shiny, Scizor e mons legais aleatórios.
@@ -9344,6 +9372,7 @@ function IdlePage() {
                   { key: "o3-o1", target: "oddish_o1", x: 80, y: WORLD_H - 100, arriveX: WORLD_W - 120, arriveY: 120, color: "#7ef27a" },
                   { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
                 ],
+                grass_oddish: [],
                 absol_start: [
                   { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
                 ],
@@ -10157,9 +10186,66 @@ function IdlePage() {
             </div>
           </div>
 
-
-
-
+          {/* BANNER — Evento Grass Oddish (custa 20 Stone Verdejante) */}
+          <div
+            onClick={() => {
+              const s = idle;
+              const inEvent = s.currentMap === "grass_oddish";
+              if (inEvent) {
+                const back = s.grassOddishReturnMap ?? "arena";
+                setIdle((cur) => ({ ...cur, currentMap: back, grassOddishReturnMap: undefined }));
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Você saiu do evento.", tone: "info" } })); } catch {}
+                return;
+              }
+              const need = 20;
+              const have = s.items?.stone_grass ?? 0;
+              if (have < need) {
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `Precisa de ${need} Stone Verdejante (você tem ${have}).`, tone: "warn" } })); } catch {}
+                return;
+              }
+              setIdle((cur) => ({
+                ...cur,
+                items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
+                grassOddishReturnMap: cur.currentMap === "grass_oddish" ? cur.grassOddishReturnMap : cur.currentMap,
+                currentMap: "grass_oddish",
+              }));
+              try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
+              pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
+            }}
+            style={{
+              position: "relative",
+              marginTop: 6,
+              background: "linear-gradient(135deg,#0f2010 0%,#1a3d1c 55%,#2b5f2e 100%)",
+              border: "2px solid #8dfa8d",
+              borderRadius: 12,
+              padding: "10px 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              overflow: "hidden",
+              cursor: "pointer",
+              boxShadow: "0 4px 18px rgba(141,250,141,0.25), inset 0 0 24px rgba(141,250,141,0.10)",
+            }}
+            title="Evento Grass Oddish"
+          >
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 85% 30%, rgba(180,255,180,0.22), transparent 55%), radial-gradient(circle at 10% 80%, rgba(80,200,120,0.22), transparent 60%)" }} />
+            <div style={{ width: 58, height: 58, flexShrink: 0, borderRadius: "50%", overflow: "hidden", border: "2px solid #d6ffd6", boxShadow: "0 0 12px rgba(141,250,141,0.6), inset 0 0 8px rgba(0,0,0,0.4)", background: "#0a1a0a", display: "grid", placeItems: "center", fontSize: 34 }}>🌿</div>
+            <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: "#d6ffd6", letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}>✦ GRASS ODDISH</div>
+              <div className="cash-pack-float" style={{ fontSize: 12, fontWeight: 900, color: "#8affb0", marginTop: 2, lineHeight: 1.2 }}>
+                {idle.currentMap === "grass_oddish" ? "SAIR DO EVENTO" : "ENTRAR (20 🌿)"}
+              </div>
+              <div style={{ fontSize: 9.5, color: "#c8e8c8", marginTop: 3, lineHeight: 1.3, fontFamily: "monospace" }}>
+                Oddish capturados: <b style={{ color: "#fff" }}>{idle.grassOddishCaptured ?? 0}</b>
+              </div>
+              <div style={{ fontSize: 8.5, color: "#a8d0a8", marginTop: 2, lineHeight: 1.25 }}>
+                Só Oddish (Raro/Épico/Mítico). Taxa de captura padrão.
+              </div>
+              <span style={{ position: "absolute", top: 6, right: 8, fontSize: 9, fontWeight: 900, letterSpacing: 1, background: idle.currentMap === "grass_oddish" ? "linear-gradient(135deg,#8affb0,#3ec96f)" : "linear-gradient(135deg,#d6ffd6,#8dfa8d)", color: "#0a2010", padding: "2px 7px", borderRadius: 10, boxShadow: "0 0 10px rgba(141,250,141,0.7)" }}>
+                {idle.currentMap === "grass_oddish" ? "DENTRO" : "ABERTO"}
+              </span>
+            </div>
+          </div>
 
           {/* Guia do Prof. Carvalho removido a pedido do usuário */}
 
