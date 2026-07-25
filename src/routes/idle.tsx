@@ -14,7 +14,7 @@ import navLoja from "@/assets/icons/nav-loja.png";
 import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
 import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
-import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
+import iconFragmentCrystal from "@/assets/icon-cristal-prisma.png.asset.json";
 import iconWorldGlobe from "@/assets/icon-world-globe-v2.png.asset.json";
 import iconCrystalBlue from "@/assets/icon-crystal-blue-diamond.png.asset.json";
 import iconCashPackage from "@/assets/icon-cash-package.png.asset.json";
