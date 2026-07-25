@@ -73,7 +73,7 @@ import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
-import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
+import { fetchTopRanked, fetchTopPrismaRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
 import { computeTeamSynergies, computePower } from "@/game/synergies";
@@ -3207,7 +3207,7 @@ function IdlePage() {
           leader_rarity: null,
           level: team[0]?.level ?? 1,
           trainer_level: idle.trainerLevel ?? 1,
-          craft_points: idle.craftPoints ?? 0,
+          craft_points: Math.max(0, idle.items?.cristal_fragmentado ?? 0),
           updated_at: new Date().toISOString(),
         });
       } catch { /* multiplayer via DB polling */ }
@@ -3424,7 +3424,7 @@ function IdlePage() {
       });
       try {
         await recordRankedScore(idle.trainerLevel ?? 1, Math.max(0, idle.items?.cristal_fragmentado ?? 0), null);
-        const top = await fetchTopRanked(30);
+        const top = rankMode === "craft" ? await fetchTopPrismaRanked(30) : await fetchTopRanked(30);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
           name: r.username || "Treinador",
@@ -3436,7 +3436,7 @@ function IdlePage() {
           guild_name: r.guild_name ?? null,
         }));
 
-        if (rows.length === 0) {
+        if (rows.length === 0 && rankMode === "trainer") {
           const orderCol = rankMode === "craft" ? "craft_points" : "trainer_level";
           const { data, error } = await gameDb
             .from("players")
@@ -3449,7 +3449,7 @@ function IdlePage() {
 
         if (!rows.some((r) => r.id === (identity?.id ?? "local-trainer"))) rows.push(meRow());
         else {
-          // Atualiza a linha do usuário local com os valores reais (max nv poke + craft total).
+          // Atualiza a linha do usuário local com os valores reais (max nv poke + prisma total).
           rows = rows.map((r) => (r.id === (identity?.id ?? "local-trainer") ? { ...r, ...meRow() } : r));
         }
         rows.sort((a, b) => {
@@ -3457,7 +3457,7 @@ function IdlePage() {
           const bv = rankMode === "craft" ? b.craft_points : b.trainer_level;
           return bv - av;
         });
-        rows = rows.slice(0, 200);
+        rows = rankMode === "craft" ? rows.filter((r) => r.craft_points > 0).slice(0, 30) : rows.slice(0, 30);
         if (!cancelled) setRankRows(rows);
         try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), rows })); } catch { /* ignore */ }
       } catch (e) {
@@ -3468,7 +3468,7 @@ function IdlePage() {
       finally { if (!cancelled) setRankLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.craftPoints, idle.collection, team]);
+  }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.items?.cristal_fragmentado, idle.collection, team]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -8423,12 +8423,12 @@ function IdlePage() {
                           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
                           const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e8e8e8" : i === 2 ? "#f0a44a" : "#ffe9a8";
                           const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
-                          const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
+                          const mainLabel = rankMode === "craft" ? "Cristal Prisma" : "Treinador Lv";
                           const isMe = !!identity?.id && r.id === identity.id;
                           const isTop30 = i < 30;
                           const rubyAmount = i === 0 ? 15 : i === 1 ? 13 : i === 2 ? 11 : i === 3 ? 7 : 3;
                           const rubyFlag = `RANKED_RUBY_KEY_${rankMode.toUpperCase()}`;
-                          const rubyModeLabel = rankMode === "craft" ? "Craft" : "Treinador";
+                          const rubyModeLabel = rankMode === "craft" ? "Cristal Prisma" : "Treinador";
                           const alreadyClaimed = !!idle.redeemedCodes?.[rubyFlag];
                           const canClaim = isMe && isTop30 && !alreadyClaimed;
                           const claimRubyKey = () => {
