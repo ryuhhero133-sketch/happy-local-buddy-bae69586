@@ -7347,7 +7347,7 @@ function IdlePage() {
         </div>
       )}
       {/* ❄️ Overlay de Congelamento — ativo quando a Chave Ruby do Ranked CRAFT foi coletada. */}
-      {idle.redeemedCodes?.RANKED_RUBY_KEY_CRAFT && (
+      {false && idle.redeemedCodes?.RANKED_RUBY_KEY_CRAFT && (
         <>
           <style>{`
             @keyframes rm-ice-drift { 0%{background-position:0 0,0 0} 100%{background-position:600px 400px,-500px 350px} }
