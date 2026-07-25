@@ -2099,6 +2099,23 @@ function IdlePage() {
   const [chatTick, setChatTick] = useState(0);
   const [grassOddishSplash, setGrassOddishSplash] = useState<boolean>(false);
   const [oddishNoStone, setOddishNoStone] = useState<{ have: number; need: number } | null>(null);
+  const [oddishConfirm, setOddishConfirm] = useState<{ have: number; need: number } | null>(null);
+  const enterGrassOddish = () => {
+    setIdle((cur) => {
+      const need = 20;
+      const have = cur.items?.stone_grass ?? 0;
+      if (have < need) { setOddishNoStone({ have, need }); return cur; }
+      try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
+      pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
+      return {
+        ...cur,
+        items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
+        grassOddishReturnMap: cur.currentMap === "grass_oddish" ? cur.grassOddishReturnMap : cur.currentMap,
+        currentMap: "grass_oddish",
+      };
+    });
+    setOddishConfirm(null);
+  };
   useEffect(() => {
     if (idle.currentMap !== "grass_oddish") return;
     setGrassOddishSplash(true);
