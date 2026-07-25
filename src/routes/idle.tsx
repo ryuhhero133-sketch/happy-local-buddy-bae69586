@@ -8476,7 +8476,10 @@ function IdlePage() {
                                     ⭐ {(r.leader_species ?? "—").replace(/_/g, " ")}
                                   </span>
                                   <span>🎓 Tr {r.trainer_level}</span>
-                                  <span>⚒️ {r.craft_points}</span>
+                                  <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                                    <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={12} height={12} style={{ imageRendering: "pixelated" }} />
+                                    {r.craft_points}
+                                  </span>
                                 </div>
                                 {isTop30 && isMe && (
                                   <div style={{ marginTop: 6 }}>
