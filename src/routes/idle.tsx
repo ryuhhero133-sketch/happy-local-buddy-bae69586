@@ -13304,13 +13304,14 @@ function TabOverlay({
     });
   };
   const openFragConfirm = (uids: string[]) => {
+    const PRISMA_BY_RARITY: Record<string, number> = { common: 1, uncommon: 1, rare: 2, epic: 3, legendary: 5, mythic: 10, mythic_shiny: 20 };
     const entries = uids
       .map((uid) => collection.find((e) => e.uid === uid))
       .filter((e): e is CollectionEntry => !!e)
       .filter((e) => !teamUidSet.has(e.uid) && !lockedSet.has(e.uid))
-      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: 1 }));
+      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: PRISMA_BY_RARITY[e.rarity] ?? 1 }));
     if (entries.length === 0) return;
-    const totalGain = entries.length;
+    const totalGain = entries.reduce((s, e) => s + e.gain, 0);
     setFragConfirm({ entries, totalGain });
   };
   const confirmFrag = () => {
