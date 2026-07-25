@@ -8549,7 +8549,12 @@ function IdlePage() {
                               </div>
                               <div style={{ textAlign: "right" }}>
                                 <div style={{ fontSize: 9, opacity: 0.6, textTransform: "uppercase", letterSpacing: 0.5 }}>{mainLabel}</div>
-                                <div style={{ fontWeight: 900, fontSize: 20, color: topColor, lineHeight: 1 }}>{mainVal}</div>
+                                <div style={{ fontWeight: 900, fontSize: 20, color: topColor, lineHeight: 1, display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
+                                  {rankMode === "craft" && (
+                                    <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={20} height={20} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(180,220,255,0.8))" }} />
+                                  )}
+                                  {mainVal}
+                                </div>
                               </div>
                             </div>
                           );
