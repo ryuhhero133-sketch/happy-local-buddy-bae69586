@@ -8386,7 +8386,7 @@ function IdlePage() {
                                return;
                              }
                                const ok = typeof window !== "undefined"
-                                 ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta POR RANKING (Craft e Treinador são separados) e NÃO poderá ser coletada novamente neste ranking.${rankMode === "craft" ? "\n\n❄️ ATENÇÃO: ao coletar no ranking de CRAFT, seus PONTOS DE CRAFT serão CONGELADOS — você não ganha mais pontos ao fragmentar e o efeito de gelo aparece na tela." : ""}\n\nDeseja confirmar?`)
+                                 ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta e NÃO poderá ser coletada novamente.\n\nDeseja confirmar?`)
                                  : true;
                              if (!ok) return;
                              const fresh = idleRef.current;
