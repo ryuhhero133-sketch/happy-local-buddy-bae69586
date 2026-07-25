@@ -605,6 +605,7 @@ const GIF: Partial<Record<Species, string>> = {
   oddish_shiny: assetUrlFromJson(oddishShinyGifAsset),
   riolu: rioluUrl,
   raichu: raichuUrl,
+  rayquaza: rayquazaUrl,
 };
 
 
