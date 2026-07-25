@@ -8346,30 +8346,18 @@ function IdlePage() {
                     >×</button>
                   </div>
 
-                  {/* Tabs */}
+                  {/* Ranking único: Nível do Treinador */}
                   <div style={{ display: "flex", gap: 6, padding: "10px 14px 0", background: "rgba(0,0,0,0.2)" }}>
-                    {([
-                      { k: "trainer", label: "🎓 Nível Treinador" },
-                      { k: "craft", label: "⚒️ Pontos de Craft" },
-                    ] as { k: RankMode; label: string }[]).map((t) => {
-                      const active = rankMode === t.k;
-                      return (
-                        <button
-                          key={t.k}
-                          onClick={() => setRankMode(t.k)}
-                          style={{
-                            flex: 1, padding: "8px 6px", fontSize: 11, fontWeight: 700,
-                            background: active ? "linear-gradient(180deg, #ffd94d, #d99b1a)" : "rgba(255,255,255,0.04)",
-                            color: active ? "#2b1a0a" : "#ffe9a8",
-                            border: `1px solid ${active ? "#ffd94d" : "rgba(255,214,80,0.2)"}`,
-                            borderRadius: "8px 8px 0 0",
-                            cursor: "pointer",
-                            borderBottom: active ? "none" : "1px solid rgba(255,214,80,0.2)",
-                          }}
-                        >{t.label}</button>
-                      );
-                    })}
+                    <div style={{
+                      flex: 1, padding: "8px 6px", fontSize: 11, fontWeight: 700,
+                      background: "linear-gradient(180deg, #ffd94d, #d99b1a)",
+                      color: "#2b1a0a",
+                      border: "1px solid #ffd94d",
+                      borderRadius: "8px 8px 0 0",
+                      textAlign: "center",
+                    }}>🎓 Nível Treinador</div>
                   </div>
+
 
                   {/* List */}
                   <div style={{ overflow: "auto", padding: 14, flex: 1 }}>
