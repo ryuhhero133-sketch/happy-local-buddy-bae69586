@@ -8360,7 +8360,7 @@ function IdlePage() {
                           animation: "shimmerRank 4s linear infinite",
                         }}>RANKING GLOBAL</div>
                         <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
-                          🏆 TOP 30 TREINADORES DO MUNDO · atualizado a cada 3h
+                          🏆 TOP 30 TREINADORES · 🔷 Cristal Prisma · atualizado a cada 2h
                         </div>
                       </div>
                     </div>
