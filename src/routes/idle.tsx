@@ -8649,6 +8649,26 @@ function IdlePage() {
                     </>
                   )}
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
+                  {e.sp === "raichu" && !camouflaged && (
+                    <div style={{
+                      position: "absolute", top: -46, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      width: 24, height: 24, borderRadius: "50%",
+                      background: "radial-gradient(circle at 50% 40%, #fff4a1 0%, #ffd23f 45%, #b57a00 100%)",
+                      border: "2px solid #fff8b8",
+                      boxShadow: "0 0 12px rgba(255,220,80,0.95), 0 0 24px rgba(255,220,80,0.6), inset 0 0 6px rgba(255,255,180,0.9)",
+                      display: "grid", placeItems: "center",
+                      pointerEvents: "none",
+                      animation: "pulse 1.1s ease-in-out infinite",
+                    }}>
+                      <span style={{
+                        fontSize: 14, lineHeight: 1, fontWeight: 900,
+                        color: "#3a2600",
+                        textShadow: "0 0 4px #fff4a1, 0 1px 0 #fff",
+                        filter: "drop-shadow(0 0 3px #fff8b8)",
+                      }}>⚡</span>
+                    </div>
+                  )}
                   {e.menace && (
                     <div style={{
                       position: "absolute", top: -52, left: "50%",
