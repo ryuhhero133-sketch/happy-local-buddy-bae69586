@@ -2276,11 +2276,14 @@ function IdlePage() {
       if (oddishConfirm) { setOddishConfirm(null); return; }
       if (oddishRankOpen) { setOddishRankOpen(false); return; }
       if (grassOddishSplash) { setGrassOddishSplash(false); return; }
+      if (worldMapOpen) { setWorldMapOpen(false); return; }
+      if (rankOpen) { setRankOpen(false); return; }
       if (tab !== "batalha") { setTab("batalha"); return; }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
+  }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, worldMapOpen, rankOpen, tab]);
+
 
   // Hotkeys globais: ESPAÇO = liga/desliga auto; 1/2/3 = trocar pokébola (poké/great/ultra).
   useEffect(() => {
