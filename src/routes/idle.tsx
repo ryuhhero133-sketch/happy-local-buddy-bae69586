@@ -3422,7 +3422,7 @@ function IdlePage() {
         guild_name: null,
       });
       try {
-        await recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
+        await recordRankedScore(idle.trainerLevel ?? 1, 0, null);
         const top = await fetchTopRanked(200);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
