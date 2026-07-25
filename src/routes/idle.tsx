@@ -235,6 +235,7 @@ import lucarioAuraAsset from "@/assets/lucario-aura.webp.asset.json";
 import mewAuraAsset from "@/assets/mew-aura.webp.asset.json";
 import rioluAsset from "@/assets/riolu.gif.asset.json";
 import raichuAsset from "@/assets/raichu.gif.asset.json";
+import rayquazaAsset from "@/assets/rayquaza.gif.asset.json";
 import oddishAsset from "@/assets/oddish.gif.asset.json";
 import bellsproutAsset from "@/assets/bellsprout.gif.asset.json";
 import weedleAsset from "@/assets/weedle.gif.asset.json";
