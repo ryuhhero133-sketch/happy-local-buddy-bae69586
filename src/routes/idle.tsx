@@ -419,6 +419,7 @@ const lucarioAuraUrl = assetUrlFromJson(lucarioAuraAsset);
 const mewAuraUrl = assetUrlFromJson(mewAuraAsset);
 const rioluUrl = assetUrlFromJson(rioluAsset);
 const raichuUrl = assetUrlFromJson(raichuAsset);
+const rayquazaUrl = assetUrlFromJson(rayquazaAsset);
 const oddishUrl = assetUrlFromJson(oddishAsset);
 const bellsproutUrl = assetUrlFromJson(bellsproutAsset);
 const weedleUrl = assetUrlFromJson(weedleAsset);
