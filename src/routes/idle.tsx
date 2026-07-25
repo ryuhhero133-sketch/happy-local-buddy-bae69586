@@ -1879,8 +1879,19 @@ function IdlePage() {
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
-  // Alterna anúncios de XP/kill no chat (1 sim, 1 não) para reduzir spam.
-  const xpChatAltRef = useRef(0);
+  // Acumula XP/ouro/kills por mapa e anuncia no chat só a cada ~30s (evita spam e sobrecarga).
+  const xpAccumRef = useRef({ xp: 0, gold: 0, kills: 0, map: "" as string });
+  useEffect(() => {
+    const id = setInterval(() => {
+      const a = xpAccumRef.current;
+      if (a.kills > 0) {
+        pushChat(`📊 Resumo (${a.map || "mapa"}): ${a.kills} kills · +${a.xp.toLocaleString()} EXP · +${a.gold.toLocaleString()} ouro`, "info");
+        xpAccumRef.current = { xp: 0, gold: 0, kills: 0, map: "" };
+      }
+    }, 30000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ==== ÁUDIO ====
   const [audioSettings, setAudioSettings] = useState(() => {
@@ -4182,10 +4193,11 @@ function IdlePage() {
           if (rarityBonus > 0) bonusParts.push(`Líder ${leaderRarity}+${Math.round(rarityBonus * 100)}%`);
           if (synergyBonus > 0) bonusParts.push(`Sinergia ${synergyRarity}+${Math.round(synergyBonus * 100)}%`);
           const suffix = bonusParts.length ? ` (${bonusParts.join(" · ")})` : "";
-          // Anuncia XP no chat só 1 a cada 2 (o floating text sempre mostra).
-          if ((xpChatAltRef.current++ & 1) === 0) {
-            pushChat(`+${xp} EXP · +${gold} ouro${suffix}`, "info");
-          }
+          // Acumula ganhos e deixa o timer (30s) anunciar o resumo no chat.
+          xpAccumRef.current.xp += xp;
+          xpAccumRef.current.gold += gold;
+          xpAccumRef.current.kills += 1;
+          xpAccumRef.current.map = idle.currentMap;
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
           const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
