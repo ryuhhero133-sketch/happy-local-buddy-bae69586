@@ -2246,6 +2246,31 @@ function IdlePage() {
   const [bmpSwapTarget, setBmpSwapTarget] = useState<Species | null>(null);
   const [bmpSwapMsg, setBmpSwapMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [cashShopOpen, setCashShopOpen] = useState(false);
+
+  // ESC global: fecha modais / painéis abertos, ou volta pra tela de batalha.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      // Prioridade: modais → painéis → tabs secundárias.
+      if (statsCardPet) { setStatsCardPet(null); return; }
+      if (cashShopOpen) { setCashShopOpen(false); return; }
+      if (blackEggHudOpen) { setBlackEggHudOpen(false); return; }
+      if (governanteOpen) { setGovernanteOpen(false); return; }
+      if (bmpSwapOpen) { setBmpSwapOpen(false); return; }
+      if (showAutoSettings) { setShowAutoSettings(false); return; }
+      if (oddishNoStone) { setOddishNoStone(null); return; }
+      if (oddishConfirm) { setOddishConfirm(null); return; }
+      if (oddishRankOpen) { setOddishRankOpen(false); return; }
+      if (grassOddishSplash) { setGrassOddishSplash(false); return; }
+      if (tab !== "batalha") { setTab("batalha"); return; }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
+
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
