@@ -5664,7 +5664,7 @@ function IdlePage() {
               pool = ["rayquaza"] as Species[];
               forcedRarity = "mythic_shiny";
               mapLvRange = [500, 500];
-              pushChat("🐉✦ RAYQUAZA MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Dragão 🐉 (2000 Ultra Balls para capturar)", "cap");
+              pushChat("🐉✦ RAYQUAZA MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Dragão 🐉 (3000 Ultra Balls para capturar)", "cap");
             }
           }
         }
