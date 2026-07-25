@@ -42,8 +42,8 @@ using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
 -- Upsert seguro: só permite o valor subir (evita rollback por save antigo).
--- Aceita `_username` do cliente (nome do treinador local, ex.: guests) e cai
--- pro JWT quando não vier. Isso corrige o caso "todo mundo aparece como Treinador".
+-- Aceita `_username` do cliente e, quando ele não vier/for fallback, busca
+-- o nome real em `profiles.username`. Isso corrige "todo mundo aparece como Treinador".
 drop function if exists public.record_oddish_captures(integer);
 drop function if exists public.record_oddish_captures(integer, text);
 create or replace function public.record_oddish_captures(_captures integer, _username text default null)
@@ -61,8 +61,14 @@ begin
     raise exception 'not authenticated';
   end if;
 
+  select nullif(btrim(p.username), '') into _name
+  from public.profiles p
+  where p.id = _uid
+  limit 1;
+
   _name := coalesce(
-    nullif(btrim(_username), ''),
+    nullif(nullif(btrim(_username), ''), 'Treinador'),
+    nullif(_name, 'Treinador'),
     nullif(current_setting('request.jwt.claims', true)::jsonb -> 'user_metadata' ->> 'username', ''),
     nullif(current_setting('request.jwt.claims', true)::jsonb -> 'user_metadata' ->> 'name', ''),
     'Treinador'
@@ -79,6 +85,15 @@ end;
 $$;
 
 grant execute on function public.record_oddish_captures(integer, text) to authenticated;
+
+-- Corrige nomes antigos já gravados como fallback no ranking.
+update public.oddish_event_leaderboard o
+set username = left(btrim(p.username), 24),
+    updated_at = now()
+from public.profiles p
+where o.user_id = p.id
+  and nullif(btrim(p.username), '') is not null
+  and o.username = 'Treinador';
 
 create or replace function public.get_oddish_top(_limit integer default 100)
 returns table (

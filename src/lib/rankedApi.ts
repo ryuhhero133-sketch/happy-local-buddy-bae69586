@@ -46,6 +46,38 @@ function safeInt(value: unknown, fallback = 0) {
   return Number.isFinite(n) ? Math.floor(n) : fallback;
 }
 
+function cleanTrainerName(value: unknown): string | null {
+  const name = String(value ?? "").trim().replace(/\s+/g, " ").slice(0, 24);
+  if (!name || name.toLowerCase() === "treinador") return null;
+  return name;
+}
+
+async function resolveTrainerName(preferred?: string | null): Promise<{ userId: string | null; name: string | null }> {
+  const preferredName = cleanTrainerName(preferred);
+  const { data: auth } = await supabase.auth.getUser();
+  const user = auth?.user ?? null;
+  if (!user) return { userId: null, name: preferredName };
+
+  let profileName: string | null = null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
+      .from("profiles")
+      .select("username")
+      .eq("id", user.id)
+      .maybeSingle();
+    profileName = cleanTrainerName(data?.username);
+  } catch {
+    profileName = null;
+  }
+
+  const metadataName = cleanTrainerName(user.user_metadata?.username)
+    ?? cleanTrainerName(user.user_metadata?.name)
+    ?? cleanTrainerName(user.email?.split("@")[0]);
+
+  return { userId: user.id, name: preferredName ?? profileName ?? metadataName };
+}
+
 function inferTrainerLevelFromScore(score: unknown) {
   const n = safeInt(score, 0);
   return n > 0 ? Math.max(1, Math.min(10000, Math.floor(n / 100))) : 1;
@@ -346,33 +378,48 @@ export type OddishRankRow = {
 /** Envia/atualiza a contagem de Oddish capturados no evento. */
 export async function submitOddishCaptures(captures: number, username?: string | null): Promise<void> {
   const safe = Math.max(0, Math.floor(captures || 0));
-  const nameArg = (username ?? "").toString().trim().slice(0, 24) || null;
+  const { userId, name: nameArg } = await resolveTrainerName(username);
+  let submittedByRpc = false;
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase as any).rpc("record_oddish_captures", { _captures: safe, _username: nameArg });
-    if (!error) return;
-    // Fallback: RPC antiga sem parâmetro _username.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const legacy = await (supabase as any).rpc("record_oddish_captures", { _captures: safe });
-    if (legacy.error) console.warn("[oddish rank] submit:", legacy.error.message);
+    if (!error) submittedByRpc = true;
+    else {
+      // Fallback: RPC antiga sem parâmetro _username.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const legacy = await (supabase as any).rpc("record_oddish_captures", { _captures: safe });
+      if (legacy.error) console.warn("[oddish rank] submit:", legacy.error.message);
+      else submittedByRpc = true;
+    }
   } catch (e) {
     console.warn("[oddish rank] submit exc:", e);
   }
-  // Backup direto: atualiza o username na tabela para autenticados (RLS: auth.uid = user_id).
-  if (!nameArg) return;
+  // Backup direto sempre roda quando há nome real: corrige linhas antigas presas como "Treinador".
+  if (!nameArg || !userId) return;
   try {
-    const { data: auth } = await supabase.auth.getUser();
-    const user = auth?.user;
-    if (!user) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("oddish_event_leaderboard").upsert({
-      user_id: user.id,
-      username: nameArg,
-      captures: safe,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
+    const existing = await (supabase as any)
+      .from("oddish_event_leaderboard")
+      .select("captures")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existing.data) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any)
+        .from("oddish_event_leaderboard")
+        .update({ username: nameArg, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from("oddish_event_leaderboard").insert({
+        user_id: userId,
+        username: nameArg,
+        captures: safe,
+        updated_at: new Date().toISOString(),
+      });
+    }
   } catch (e) {
-    console.warn("[oddish rank] backup exc:", e);
+    if (!submittedByRpc) console.warn("[oddish rank] backup exc:", e);
   }
 }
 
