@@ -7083,6 +7083,102 @@ function IdlePage() {
         </div>
       )}
 
+      {/* 🏆 RANKING GLOBAL — Grass Oddish */}
+      {oddishRankOpen && (
+        <div
+          onClick={() => setOddishRankOpen(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 10000,
+            display: "grid", placeItems: "center",
+            background: "radial-gradient(circle at 50% 45%, rgba(20,60,30,0.9) 0%, rgba(4,14,8,0.96) 70%)",
+            backdropFilter: "blur(6px)",
+            animation: "fadeIn 0.25s ease-out",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              width: "min(560px, 94vw)",
+              maxHeight: "82vh",
+              display: "flex", flexDirection: "column",
+              padding: "18px 20px 16px",
+              borderRadius: 18,
+              background: "linear-gradient(160deg,#0f2010 0%,#1a3d1c 55%,#2b5f2e 100%)",
+              border: "3px solid #8dfa8d",
+              boxShadow: "0 0 50px rgba(141,250,141,0.5), inset 0 0 30px rgba(141,250,141,0.12)",
+            }}
+          >
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", borderRadius: 18, background: "radial-gradient(circle at 20% 15%, rgba(180,255,180,0.18), transparent 55%), radial-gradient(circle at 85% 85%, rgba(80,220,120,0.22), transparent 60%)" }} />
+
+            <div style={{ position: "relative", textAlign: "center", marginBottom: 10 }}>
+              <div style={{ fontSize: 10, letterSpacing: 6, color: "#8affb0", fontWeight: 900, textShadow: "0 0 10px #8affb0" }}>✦ RANKING GLOBAL ✦</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#eaffea", marginTop: 2, textShadow: "0 2px 0 rgba(0,0,0,0.5)" }}>
+                🏆 Grass Oddish
+              </div>
+              <div style={{ fontSize: 10.5, color: "#c8e8c8", marginTop: 4, lineHeight: 1.35 }}>
+                Total de Oddish capturados — atualizado ao vivo. Quando o evento encerrar, o pódio final fica visível pra todos.
+              </div>
+              <div style={{ fontSize: 10, color: "#a8d0a8", marginTop: 6 }}>
+                Seus capturados: <b style={{ color: "#fff" }}>{idle.grassOddishCaptured ?? 0}</b>
+              </div>
+            </div>
+
+            <div style={{ position: "relative", flex: 1, overflowY: "auto", background: "rgba(0,0,0,0.35)", borderRadius: 12, border: "1px solid rgba(141,250,141,0.35)", padding: 6 }}>
+              {oddishRankLoading && oddishRankRows.length === 0 && (
+                <div style={{ padding: 20, textAlign: "center", color: "#c8e8c8", fontSize: 12 }}>Carregando ranking…</div>
+              )}
+              {!oddishRankLoading && oddishRankRows.length === 0 && (
+                <div style={{ padding: 20, textAlign: "center", color: "#c8e8c8", fontSize: 12 }}>
+                  Ninguém pontuou ainda. Seja o primeiro a capturar Oddish no evento!
+                </div>
+              )}
+              {oddishRankRows.map((r, i) => {
+                const pos = i + 1;
+                const medal = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `#${pos}`;
+                const isMe = r.user_id === identity?.id;
+                return (
+                  <div key={r.user_id} style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "6px 10px",
+                    borderRadius: 8,
+                    marginBottom: 4,
+                    background: isMe ? "linear-gradient(90deg, rgba(141,250,141,0.28), rgba(141,250,141,0.05))" : (pos <= 3 ? "rgba(141,250,141,0.10)" : "transparent"),
+                    border: isMe ? "1px solid #8dfa8d" : "1px solid transparent",
+                  }}>
+                    <div style={{ width: 38, fontSize: pos <= 3 ? 16 : 12, fontWeight: 900, color: pos === 1 ? "#ffd66b" : pos === 2 ? "#d0d8e0" : pos === 3 ? "#e79a5a" : "#c8e8c8", textAlign: "center" }}>{medal}</div>
+                    <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800, color: isMe ? "#fff" : "#eaffea", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {r.username}{isMe ? " (você)" : ""}
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "#8affb0", textShadow: "0 0 6px rgba(141,250,141,0.5)" }}>
+                      {r.captures.toLocaleString("pt-BR")} 🌿
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setOddishRankOpen(false)}
+              style={{
+                marginTop: 12,
+                padding: "10px 22px",
+                fontSize: 12, fontWeight: 900, letterSpacing: 1,
+                color: "#0a1a0a",
+                background: "linear-gradient(135deg,#d6ffd6,#8dfa8d)",
+                border: "2px solid #fff",
+                borderRadius: 12,
+                cursor: "pointer",
+                boxShadow: "0 4px 18px rgba(141,250,141,0.45)",
+                position: "relative",
+              }}
+            >
+              FECHAR ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 🌿 SPLASH — Entrada no Evento Grass Oddish */}
       {grassOddishSplash && (
         <div
