@@ -2109,6 +2109,12 @@ function IdlePage() {
   const [oddishRankRows, setOddishRankRows] = useState<OddishRankRow[]>([]);
   const [oddishRankLoading, setOddishRankLoading] = useState<boolean>(false);
   const enterGrassOddish = () => {
+    if (!ODDISH_EVENT.enabled) {
+      try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
+      pushChat("🌿 O evento Grass Oddish foi encerrado.", "info");
+      setOddishConfirm(null);
+      return;
+    }
     setIdle((cur) => {
       const need = 20;
       const have = cur.items?.stone_grass ?? 0;
@@ -2124,6 +2130,15 @@ function IdlePage() {
     });
     setOddishConfirm(null);
   };
+  // Auto-eject: evento encerrado → volta pra arena e bloqueia.
+  useEffect(() => {
+    if (ODDISH_EVENT.enabled) return;
+    const inEvent = idle.currentMap === "grass_oddish" || idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
+    if (!inEvent) return;
+    setIdle((s) => ({ ...s, currentMap: "arena", grassOddishReturnMap: undefined }));
+    try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado. Você voltou para a Arena.", tone: "info" } })); } catch {}
+    pushChat("🌿 Evento Grass Oddish encerrado. Todos foram levados para a Arena.", "info");
+  }, [idle.currentMap]);
   useEffect(() => {
     if (idle.currentMap !== "grass_oddish") return;
     setGrassOddishSplash(true);
