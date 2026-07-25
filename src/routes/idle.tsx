@@ -3229,7 +3229,7 @@ function IdlePage() {
   const bossBallsRef = useRef<Map<number, number>>(new Map());
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
-  const RAICHU_MYTHIC_MIN_BALLS = 1000;
+  const RAICHU_MYTHIC_MIN_BALLS = 2000;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
@@ -5637,7 +5637,7 @@ function IdlePage() {
               pushChat(
                 isGrass
                   ? "⚡✦ RAICHU MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Elétrica ⚡"
-                  : "⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (1600 Ultra Balls para capturar)",
+                  : "⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (2000 Ultra Balls para capturar)",
                 "cap"
               );
             }
