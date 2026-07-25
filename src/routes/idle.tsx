@@ -5888,7 +5888,8 @@ function IdlePage() {
 
   function spawnEnemies(): Enemy[] {
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
-    const initial = 6 + Math.floor(Math.random() * 3); // 6-8
+    const isGrassOddish = idle.currentMap === "grass_oddish";
+    const initial = isGrassOddish ? 12 + Math.floor(Math.random() * 4) : 6 + Math.floor(Math.random() * 3); // Grass Oddish: 12-15, outros: 6-8
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
