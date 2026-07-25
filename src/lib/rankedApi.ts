@@ -344,14 +344,35 @@ export type OddishRankRow = {
 };
 
 /** Envia/atualiza a contagem de Oddish capturados no evento. */
-export async function submitOddishCaptures(captures: number): Promise<void> {
+export async function submitOddishCaptures(captures: number, username?: string | null): Promise<void> {
   const safe = Math.max(0, Math.floor(captures || 0));
+  const nameArg = (username ?? "").toString().trim().slice(0, 24) || null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any).rpc("record_oddish_captures", { _captures: safe });
-    if (error) console.warn("[oddish rank] submit:", error.message);
+    const { error } = await (supabase as any).rpc("record_oddish_captures", { _captures: safe, _username: nameArg });
+    if (!error) return;
+    // Fallback: RPC antiga sem parâmetro _username.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const legacy = await (supabase as any).rpc("record_oddish_captures", { _captures: safe });
+    if (legacy.error) console.warn("[oddish rank] submit:", legacy.error.message);
   } catch (e) {
     console.warn("[oddish rank] submit exc:", e);
+  }
+  // Backup direto: atualiza o username na tabela para autenticados (RLS: auth.uid = user_id).
+  if (!nameArg) return;
+  try {
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth?.user;
+    if (!user) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("oddish_event_leaderboard").upsert({
+      user_id: user.id,
+      username: nameArg,
+      captures: safe,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+  } catch (e) {
+    console.warn("[oddish rank] backup exc:", e);
   }
 }
 
