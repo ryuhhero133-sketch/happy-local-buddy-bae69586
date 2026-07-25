@@ -5646,6 +5646,19 @@ function IdlePage() {
             }
           }
         }
+        // 🐉✦ RAYQUAZA MÍTICO — spawn RARO exclusivo do Grass Oddish (carrega Stone Dragão)
+        {
+          const isGrass = idle.currentMap === "grass_oddish";
+          if (isGrass) {
+            const rayOnMap = enemies.some((e) => e.sp === "rayquaza");
+            if (!rayOnMap && Math.random() < 0.006) {
+              pool = ["rayquaza"] as Species[];
+              forcedRarity = "mythic_shiny";
+              mapLvRange = [500, 500];
+              pushChat("🐉✦ RAYQUAZA MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Dragão 🐉 (2000 Ultra Balls para capturar)", "cap");
+            }
+          }
+        }
         // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas.
         {
           const BANNED = new Set<Species>(["darkrai", "dragonite", "dragonite_shiny"] as Species[]);
