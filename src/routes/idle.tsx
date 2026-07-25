@@ -3424,7 +3424,7 @@ function IdlePage() {
         guild_name: null,
       });
       try {
-        await recordRankedScore(idle.trainerLevel ?? 1, 0, null);
+        await recordRankedScore(idle.trainerLevel ?? 1, Math.max(0, idle.items?.cristal_fragmentado ?? 0), null);
         const top = await fetchTopRanked(30);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
