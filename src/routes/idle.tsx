@@ -2282,6 +2282,38 @@ function IdlePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
 
+  // Hotkeys globais: ESPAÇO = liga/desliga auto; 1/2/3 = trocar pokébola (poké/great/ultra).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        setIdle((s) => {
+          const ab = s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
+          const next = !ab.enabled;
+          setAuto(next);
+          if (!next) { walkTargetRef.current = null; setWalkingTo(null); }
+          return { ...s, autoBattle: { ...ab, enabled: next } };
+        });
+        return;
+      }
+      if (e.key === "1" || e.key === "2" || e.key === "3") {
+        const map: Record<string, "pokeball" | "greatball" | "ultraball"> = { "1": "pokeball", "2": "greatball", "3": "ultraball" };
+        const pick = map[e.key];
+        setIdle((s) => {
+          const ab = s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
+          return { ...s, autoBattle: { ...ab, preferredBall: pick, useBall: true } };
+        });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+
+
   const MYTHIC_EGG_CODE_KEY = "rubym.mythicEggCode.used";
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
