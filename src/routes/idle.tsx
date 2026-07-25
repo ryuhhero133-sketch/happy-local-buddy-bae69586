@@ -8429,30 +8429,11 @@ function IdlePage() {
                           const rubyFlag = `RANKED_RUBY_KEY_${rankMode.toUpperCase()}`;
                           const rubyModeLabel = rankMode === "craft" ? "Cristal Prisma" : "Treinador";
                           const alreadyClaimed = !!idle.redeemedCodes?.[rubyFlag];
-                          const canClaim = isMe && isTop30 && !alreadyClaimed;
+                          // 🔒 Coleta de Chave Ruby bloqueada globalmente (evento encerrado)
+                          const rubyClaimLocked = true;
+                          const canClaim = false;
                           const claimRubyKey = () => {
-                            const base = idleRef.current;
-                            if (base.redeemedCodes?.[rubyFlag]) {
-                              pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
-                              return;
-                            }
-                            const ok = typeof window !== "undefined"
-                              ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta e NÃO poderá ser coletada novamente.\n\nDeseja confirmar?`)
-                              : true;
-                            if (!ok) return;
-                            const fresh = idleRef.current;
-                            if (fresh.redeemedCodes?.[rubyFlag]) {
-                              pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
-                              return;
-                            }
-                            const next: IdleState = {
-                              ...fresh,
-                              items: { ...fresh.items, chave_ruby: (fresh.items?.chave_ruby ?? 0) + rubyAmount },
-                              redeemedCodes: { ...(fresh.redeemedCodes ?? {}), [rubyFlag]: true },
-                            };
-                            setIdle(next);
-                            try { persistCodeReward(next); } catch { /* ignore */ }
-                            pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked ${rubyModeLabel}! (coleta única por ranking)`, "cap");
+                            pushChat("🔒 Coleta de Chave Ruby está temporariamente desativada.", "info");
                           };
 
                           // Estilos por tier
