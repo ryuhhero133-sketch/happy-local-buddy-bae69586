@@ -6732,6 +6732,99 @@ function IdlePage() {
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
+      {/* 🌿 MODAL — Faltam Stones Verdejantes */}
+      {oddishNoStone && (
+        <div
+          onClick={() => setOddishNoStone(null)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 10000,
+            display: "grid", placeItems: "center",
+            background: "radial-gradient(circle at 50% 45%, rgba(30,90,40,0.75) 0%, rgba(6,20,10,0.92) 70%)",
+            backdropFilter: "blur(8px)",
+            animation: "fadeIn 0.28s ease-out",
+            cursor: "pointer",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              width: "min(440px, 92vw)",
+              padding: "26px 24px 20px",
+              borderRadius: 20,
+              background: "linear-gradient(160deg,#170a0a 0%,#3a1616 55%,#5a2a2a 100%)",
+              border: "3px solid #ff9a9a",
+              boxShadow: "0 0 60px rgba(255,140,140,0.55), 0 0 120px rgba(255,120,120,0.25), inset 0 0 40px rgba(255,180,180,0.12)",
+              textAlign: "center",
+              overflow: "hidden",
+              cursor: "default",
+            }}
+          >
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 20% 20%, rgba(255,200,200,0.22), transparent 55%), radial-gradient(circle at 85% 85%, rgba(220,80,80,0.24), transparent 60%)" }} />
+            <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", fontSize: 10, letterSpacing: 6, color: "#ffd0d0", fontWeight: 900, textShadow: "0 0 12px #ff9a9a", background: "#2a0d0d", padding: "3px 12px", borderRadius: 999, border: "1px solid #ff9a9a" }}>
+              ✦ EVENTO BLOQUEADO ✦
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 6, marginBottom: 10, position: "relative" }}>
+              <div style={{ width: 74, height: 74, borderRadius: "50%", overflow: "hidden", border: "2px solid #d6ffd6", boxShadow: "0 0 18px rgba(141,250,141,0.7)", background: "radial-gradient(circle at 50% 40%, #1a3d1c 0%, #0a1a0a 80%)", display: "grid", placeItems: "center" }}>
+                <img src={oddishUrl} alt="Oddish" style={{ width: "94%", height: "94%", objectFit: "contain", imageRendering: "pixelated" as any, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6)) grayscale(0.3)" }} />
+              </div>
+            </div>
+
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: 1, textShadow: "0 0 12px rgba(255,150,150,0.7)", position: "relative" }}>
+              Você precisa de Stone Verdejante 🌿
+            </div>
+            <div style={{ fontSize: 12, color: "#ffd6d6", marginTop: 8, lineHeight: 1.45, position: "relative" }}>
+              Para entrar no evento <b style={{ color: "#8affb0" }}>Grass Oddish</b> são necessárias
+              {" "}<b style={{ color: "#fff" }}>{oddishNoStone.need} 🌿</b>.
+            </div>
+
+            <div style={{
+              marginTop: 14,
+              display: "flex", justifyContent: "center", alignItems: "center", gap: 12,
+              padding: "10px 14px",
+              borderRadius: 12,
+              background: "linear-gradient(135deg,#0f2010,#1a3d1c)",
+              border: "1px solid #8dfa8d",
+              boxShadow: "inset 0 0 20px rgba(141,250,141,0.15)",
+              position: "relative",
+            }}>
+              <div style={{ fontSize: 11, color: "#c8e8c8", fontWeight: 700 }}>Você tem</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#ff9a9a", textShadow: "0 0 10px rgba(255,140,140,0.6)" }}>
+                {oddishNoStone.have}
+              </div>
+              <div style={{ fontSize: 14, color: "#8affb0", fontWeight: 900 }}>/</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#8affb0", textShadow: "0 0 10px rgba(141,250,141,0.7)" }}>
+                {oddishNoStone.need}
+              </div>
+              <div style={{ fontSize: 16 }}>🌿</div>
+            </div>
+
+            <div style={{ fontSize: 10.5, color: "#c8b8b8", marginTop: 12, lineHeight: 1.4, position: "relative" }}>
+              Dica: Stones Verdejantes caem de Pokémon do tipo Planta e podem ser encontradas em baús elementais.
+            </div>
+
+            <button
+              onClick={() => setOddishNoStone(null)}
+              style={{
+                marginTop: 16,
+                padding: "10px 22px",
+                fontSize: 12, fontWeight: 900, letterSpacing: 1,
+                color: "#170a0a",
+                background: "linear-gradient(135deg,#ffd0d0,#ff9a9a)",
+                border: "2px solid #fff",
+                borderRadius: 12,
+                cursor: "pointer",
+                boxShadow: "0 4px 18px rgba(255,140,140,0.45)",
+                position: "relative",
+              }}
+            >
+              FECHAR ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 🌿 SPLASH — Entrada no Evento Grass Oddish */}
       {grassOddishSplash && (
         <div
