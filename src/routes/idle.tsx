@@ -3361,6 +3361,28 @@ function IdlePage() {
   const [rankRows, setRankRows] = useState<RankRow[]>([]);
   const [rankLoading, setRankLoading] = useState(false);
   const [rankMode, setRankMode] = useState<RankMode>("trainer");
+
+  // Hotkeys: M = mapa mundi, R = ranking, B = mochila, C = coleção. ESC fecha mapa/rank.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      if (e.key === "Escape") {
+        if (worldMapOpen) { setWorldMapOpen(false); return; }
+        if (rankOpen) { setRankOpen(false); return; }
+        return;
+      }
+      const k = e.key.toLowerCase();
+      if (k === "m") { e.preventDefault(); setWorldMapOpen((v) => !v); return; }
+      if (k === "r") { e.preventDefault(); setRankOpen((v) => !v); return; }
+      if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
+      if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [worldMapOpen, rankOpen]);
+
   const RANK_CACHE_TTL_MS = 60 * 1000; // 1 minuto — mostra o nível atual da galera
   const rankCacheKey = (mode: RankMode) => `rank_cache_v3_live_level_${mode}`;
   useEffect(() => {
