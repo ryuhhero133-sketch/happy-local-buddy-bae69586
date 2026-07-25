@@ -7897,14 +7897,14 @@ function IdlePage() {
                 alignItems: "center",
                 justifyContent: "center",
               }}
-              title="Ranking — Top 20 níveis"
+              title="Ranking Global — Top 30"
             >
               <img
-                src={assetUrlFromJson(trophyIconAsset)}
+                src={assetUrlFromJson(rankMedalsRubyAsset)}
                 alt="Ranking"
-                width={30}
-                height={30}
-                style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}
+                width={34}
+                height={34}
+                style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(255,60,80,0.55)) drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}
                 draggable={false}
               />
             </button>
