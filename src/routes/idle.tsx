@@ -3472,9 +3472,6 @@ function IdlePage() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      const collection = idle.collection ?? [];
-      const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
-      const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
       void recordRankedScore(idle.trainerLevel ?? 1, Math.max(0, idle.items?.cristal_fragmentado ?? 0), null);
     }, 4500);
     return () => clearTimeout(t);
