@@ -5389,7 +5389,14 @@ function IdlePage() {
       const gain = frozen ? 0 : baseGain;
       const isEvent = entry.event === "oddish_odyssey";
       const safiraGain = isEvent ? (entry.species === "oddish_shiny" ? 20 : (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1)) : 0;
-      const bonus = safiraGain > 0 ? ` +${safiraGain} 💚 Safira Verde` : "";
+      // 🌿 Craft de Oddish/Oddish Shiny devolve Stone Verdejante (varia por raridade)
+      const isOddishSp = entry.species === "oddish" || entry.species === "oddish_shiny";
+      const stoneByRar: Record<string, number> = { common: 1, rare: 2, epic: 3, legendary: 4, mythic: 5, mythic_shiny: 10 };
+      const stoneGain = isOddishSp ? (entry.species === "oddish_shiny" ? 10 : (stoneByRar[entry.rarity] ?? 2)) : 0;
+      const bonusParts: string[] = [];
+      if (safiraGain > 0) bonusParts.push(`+${safiraGain} 💚 Safira Verde`);
+      if (stoneGain > 0) bonusParts.push(`+${stoneGain} 🌿 Stone Verdejante`);
+      const bonus = bonusParts.length ? ` ${bonusParts.join(" ")}` : "";
       if (frozen) {
         pushChat(`❄️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado, mas seus PONTOS DE CRAFT estão CONGELADOS pela Chave Ruby (Ranked Craft).${bonus}`, "info");
       } else {
@@ -5400,9 +5407,11 @@ function IdlePage() {
         ...s,
         collection: col.filter((e) => e.uid !== uid),
         craftPoints: (s.craftPoints ?? 0) + gain,
-        items: safiraGain > 0
-          ? { ...s.items, safira_verde: (s.items?.safira_verde ?? 0) + safiraGain }
-          : s.items,
+        items: {
+          ...s.items,
+          ...(safiraGain > 0 ? { safira_verde: (s.items?.safira_verde ?? 0) + safiraGain } : {}),
+          ...(stoneGain > 0 ? { stone_grass: (s.items?.stone_grass ?? 0) + stoneGain } : {}),
+        },
       };
     });
 
