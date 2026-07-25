@@ -4422,10 +4422,18 @@ function IdlePage() {
             const itemsWithBalls = surpriseBalls > 0
               ? { ...newItems, pokeball: (newItems.pokeball ?? 0) + surpriseBalls }
               : newItems;
+            const isGrassOddishAuto = captured && s.currentMap === "grass_oddish";
+            if (isGrassOddishAuto) {
+              const total = (s.grassOddishCaptured ?? 0) + 1;
+              queueMicrotask(() => {
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
+              });
+            }
             return {
               ...applied.state,
               pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0) },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
+              grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
               items: itemsWithBalls,
               caughtSpecies: newCaught,
