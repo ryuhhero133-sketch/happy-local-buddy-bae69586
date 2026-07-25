@@ -5884,7 +5884,7 @@ function IdlePage() {
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = 16;
+  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 24 : 16;
 
   function spawnEnemies(): Enemy[] {
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
