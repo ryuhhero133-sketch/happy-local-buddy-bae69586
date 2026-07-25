@@ -3236,6 +3236,9 @@ function IdlePage() {
   const ZAPDOS_MIN_BALLS = 1000;
   const RAICHU_MYTHIC_MIN_BALLS = 2000;
   const RAYQUAZA_MIN_BALLS = 3000;
+  const ONIX_SHINY_MIN_BALLS = 3000;
+  const RIOLU_MIN_BALLS = 3000;
+  const DRAGONITE_SHINY_GRASS_MIN_BALLS = 3000;
   useEffect(() => {
     if (!identity?.id) return;
     const ch = supabase.channel("rubym-captures-global");
@@ -4096,7 +4099,8 @@ function IdlePage() {
           const riderGoldMult = isRiderKill ? 4 : 1;
           const elemSyn = computeTeamSynergies(team);
           const mythEventXpMult = idle.currentMap === "evento_myth" ? 6 : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult);
+          const grassOddishXpMult = idle.currentMap === "grass_oddish" ? 3 : 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -4293,13 +4297,30 @@ function IdlePage() {
                   else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
                   else captured = false;
                 }
-              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || target.sp === "rayquaza" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
+              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || target.sp === "rayquaza" || target.sp === "onix_shiny" || target.sp === "riolu" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
                 // 🐉⚡⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
+                const inGrass = idle.currentMap === "grass_oddish";
                 const isRaichuMy = target.sp === "raichu";
                 const isBlastoiseMy = target.sp === "blastoise_shiny";
                 const isRayquaza = target.sp === "rayquaza";
-                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : isBlastoiseMy ? 1000 : isRayquaza ? RAYQUAZA_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
-                const label = isRaichuMy ? "RAICHU ✦" : target.sp === "zapdos" ? "ZAPDOS" : isBlastoiseMy ? "BLASTOISE ✦" : isRayquaza ? "RAYQUAZA ✦" : "DRAGONITE ✦";
+                const isOnixShiny = target.sp === "onix_shiny";
+                const isRiolu = target.sp === "riolu";
+                const isDragoShinyGrass = target.sp === "dragonite_shiny" && inGrass;
+                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS
+                  : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS
+                  : isBlastoiseMy ? 1000
+                  : isRayquaza ? RAYQUAZA_MIN_BALLS
+                  : isOnixShiny ? ONIX_SHINY_MIN_BALLS
+                  : isRiolu ? RIOLU_MIN_BALLS
+                  : isDragoShinyGrass ? DRAGONITE_SHINY_GRASS_MIN_BALLS
+                  : DRAGONITE_SHINY_MIN_BALLS;
+                const label = isRaichuMy ? "RAICHU ✦"
+                  : target.sp === "zapdos" ? "ZAPDOS"
+                  : isBlastoiseMy ? "BLASTOISE ✦"
+                  : isRayquaza ? "RAYQUAZA ✦"
+                  : isOnixShiny ? "ONIX ✦"
+                  : isRiolu ? "RIOLU ✦"
+                  : "DRAGONITE ✦";
                 if (usedBall.id !== "ultraball") {
                   captured = false;
                   pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
@@ -4314,8 +4335,8 @@ function IdlePage() {
                     }
                     pushFxAt(target.x, target.y - 70, `${nowCount}/${minBalls}`, "enemyDmg");
                   } else {
-                    // Raichu Mítico / Rayquaza: quase impossível — 0.3% por lançamento após o umbral.
-                    const catchChance = (isRaichuMy || isRayquaza) ? 0.003 : 0.02;
+                    // Bosses do Grass Oddish: quase impossível — 0.3% por lançamento após o umbral.
+                    const catchChance = (isRaichuMy || isRayquaza || isOnixShiny || isRiolu || isDragoShinyGrass) ? 0.003 : 0.02;
                     captured = Math.random() < catchChance;
                   }
                 }
@@ -5685,8 +5706,29 @@ function IdlePage() {
             }
           }
         }
-        // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas.
+        // ✦XP✦ Bosses raros exclusivos do Grass Oddish — Dragonite Shiny / Onix Shiny / Riolu
         {
+          const isGrass = idle.currentMap === "grass_oddish";
+          if (isGrass && !forcedRarity) {
+            const rare: Array<{ sp: Species; chance: number; lv: number; label: string }> = [
+              { sp: "dragonite_shiny" as Species, chance: 0.005, lv: 500, label: "🐲✦ DRAGONITE SHINY" },
+              { sp: "onix_shiny" as Species, chance: 0.005, lv: 400, label: "🪨✦ ONIX SHINY" },
+              { sp: "riolu" as Species, chance: 0.006, lv: 300, label: "🐺✦ RIOLU" },
+            ];
+            for (const b of rare) {
+              const already = enemies.some((e) => e.sp === b.sp);
+              if (!already && Math.random() < b.chance) {
+                pool = [b.sp] as Species[];
+                forcedRarity = "mythic_shiny";
+                mapLvRange = [b.lv, b.lv];
+                pushChat(`${b.label} apareceu no Grass Oddish! Ele carrega XP extra ⭐ (3000 Ultra Balls para capturar)`, "cap");
+                break;
+              }
+            }
+          }
+        }
+        // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas normais.
+        if (!forcedRarity) {
           const BANNED = new Set<Species>(["darkrai", "dragonite", "dragonite_shiny"] as Species[]);
           const filtered = pool.filter((p) => !BANNED.has(p));
           if (filtered.length > 0) pool = filtered;
@@ -8739,6 +8781,26 @@ function IdlePage() {
                         textShadow: "0 0 4px #b5ffd8, 0 1px 0 #fff",
                         filter: "drop-shadow(0 0 3px #d8ffec)",
                       }}>🐉</span>
+                    </div>
+                  )}
+                  {idle.currentMap === "grass_oddish" && !camouflaged && (e.sp === "dragonite_shiny" || e.sp === "onix_shiny" || e.sp === "riolu") && (
+                    <div style={{
+                      position: "absolute", top: -46, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      minWidth: 30, height: 22, padding: "0 6px", borderRadius: 11,
+                      background: "radial-gradient(circle at 50% 40%, #fff5b8 0%, #ffcf3a 45%, #a86400 100%)",
+                      border: "2px solid #fff8c8",
+                      boxShadow: "0 0 12px rgba(255,210,80,0.95), 0 0 24px rgba(255,210,80,0.55), inset 0 0 6px rgba(255,255,200,0.9)",
+                      display: "grid", placeItems: "center",
+                      pointerEvents: "none",
+                      animation: "pulse 1.1s ease-in-out infinite",
+                    }}>
+                      <span style={{
+                        fontSize: 11, lineHeight: 1, fontWeight: 900,
+                        color: "#3a2600", letterSpacing: 0.5,
+                        textShadow: "0 0 4px #fff5b8, 0 1px 0 #fff",
+                        filter: "drop-shadow(0 0 3px #fff8c8)",
+                      }}>⭐XP</span>
                     </div>
                   )}
                   {e.menace && (
