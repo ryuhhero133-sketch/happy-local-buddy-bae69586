@@ -5534,7 +5534,7 @@ function IdlePage() {
       const col = s.collection ?? [];
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
-      const frozen = !!s.redeemedCodes?.RANKED_RUBY_KEY_CRAFT;
+      const frozen = false; // 🔓 descongelado — pontos de craft voltaram a somar normalmente.
       const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
       const gain = frozen ? 0 : baseGain;
       const isEvent = entry.event === "oddish_odyssey";
