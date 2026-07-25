@@ -8385,60 +8385,86 @@ function IdlePage() {
                     ) : rankRows.length === 0 ? (
                       <div style={{ textAlign: "center", padding: 40, opacity: 0.7 }}>Nenhum treinador encontrado.</div>
                     ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                        {rankRows.map((r, i) => {
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {rankRows.slice(0, 30).map((r, i) => {
                           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
-                          const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e5e5e5" : i === 2 ? "#d99b1a" : "#ffe9a8";
+                          const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e8e8e8" : i === 2 ? "#f0a44a" : "#ffe9a8";
                           const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
                           const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
                           const isMe = !!identity?.id && r.id === identity.id;
-                           const isTop50 = i < 50;
-                           const rubyAmount = i === 0 ? 15 : i === 1 ? 13 : i === 2 ? 11 : i === 3 ? 7 : 3;
-                           const rubyFlag = `RANKED_RUBY_KEY_${rankMode.toUpperCase()}`;
-                           const rubyModeLabel = rankMode === "craft" ? "Craft" : "Treinador";
-                           const alreadyClaimed = !!idle.redeemedCodes?.[rubyFlag];
-                           const canClaim = isMe && isTop50 && !alreadyClaimed;
-                           const claimRubyKey = () => {
-                             const base = idleRef.current;
-                             if (base.redeemedCodes?.[rubyFlag]) {
-                               pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
-                               return;
-                             }
-                               const ok = typeof window !== "undefined"
-                                 ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta e NÃO poderá ser coletada novamente.\n\nDeseja confirmar?`)
-                                 : true;
-                             if (!ok) return;
-                             const fresh = idleRef.current;
-                             if (fresh.redeemedCodes?.[rubyFlag]) {
-                               pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
-                               return;
-                             }
-                             const next: IdleState = {
-                               ...fresh,
-                               items: { ...fresh.items, chave_ruby: (fresh.items?.chave_ruby ?? 0) + rubyAmount },
-                               redeemedCodes: { ...(fresh.redeemedCodes ?? {}), [rubyFlag]: true },
-                             };
-                             setIdle(next);
-                             try { persistCodeReward(next); } catch { /* ignore */ }
-                             pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked ${rubyModeLabel}! (coleta única por ranking)`, "cap");
-                           };
+                          const isTop30 = i < 30;
+                          const rubyAmount = i === 0 ? 15 : i === 1 ? 13 : i === 2 ? 11 : i === 3 ? 7 : 3;
+                          const rubyFlag = `RANKED_RUBY_KEY_${rankMode.toUpperCase()}`;
+                          const rubyModeLabel = rankMode === "craft" ? "Craft" : "Treinador";
+                          const alreadyClaimed = !!idle.redeemedCodes?.[rubyFlag];
+                          const canClaim = isMe && isTop30 && !alreadyClaimed;
+                          const claimRubyKey = () => {
+                            const base = idleRef.current;
+                            if (base.redeemedCodes?.[rubyFlag]) {
+                              pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
+                              return;
+                            }
+                            const ok = typeof window !== "undefined"
+                              ? window.confirm(`🔴 Coletar ${rubyAmount}× Chave Ruby (Ranked ${rubyModeLabel})?\n\nEsta recompensa é ÚNICA por conta e NÃO poderá ser coletada novamente.\n\nDeseja confirmar?`)
+                              : true;
+                            if (!ok) return;
+                            const fresh = idleRef.current;
+                            if (fresh.redeemedCodes?.[rubyFlag]) {
+                              pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
+                              return;
+                            }
+                            const next: IdleState = {
+                              ...fresh,
+                              items: { ...fresh.items, chave_ruby: (fresh.items?.chave_ruby ?? 0) + rubyAmount },
+                              redeemedCodes: { ...(fresh.redeemedCodes ?? {}), [rubyFlag]: true },
+                            };
+                            setIdle(next);
+                            try { persistCodeReward(next); } catch { /* ignore */ }
+                            pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked ${rubyModeLabel}! (coleta única por ranking)`, "cap");
+                          };
 
+                          // Estilos por tier
+                          const tierBg =
+                            i === 0 ? "linear-gradient(90deg, rgba(255,214,80,0.35) 0%, rgba(255,180,60,0.12) 55%, rgba(0,0,0,0.15) 100%)"
+                            : i === 1 ? "linear-gradient(90deg, rgba(220,220,230,0.28) 0%, rgba(180,190,210,0.08) 55%, rgba(0,0,0,0.15) 100%)"
+                            : i === 2 ? "linear-gradient(90deg, rgba(240,164,74,0.28) 0%, rgba(200,120,60,0.08) 55%, rgba(0,0,0,0.15) 100%)"
+                            : i < 10 ? "linear-gradient(90deg, rgba(255,80,110,0.10), rgba(255,255,255,0.02))"
+                            : "rgba(255,255,255,0.03)";
+                          const tierBorder =
+                            i === 0 ? "rgba(255,214,80,0.7)"
+                            : i === 1 ? "rgba(220,220,230,0.55)"
+                            : i === 2 ? "rgba(240,164,74,0.55)"
+                            : i < 10 ? "rgba(255,80,110,0.25)"
+                            : "rgba(255,255,255,0.06)";
+                          const tierGlow =
+                            i === 0 ? "0 0 18px rgba(255,214,80,0.35), inset 0 1px 0 rgba(255,255,255,0.1)"
+                            : i === 1 ? "0 0 14px rgba(220,220,230,0.25)"
+                            : i === 2 ? "0 0 14px rgba(240,164,74,0.30)"
+                            : "none";
 
                           return (
                             <div key={r.id} style={{
                               display: "grid",
-                              gridTemplateColumns: "48px 1fr auto",
+                              gridTemplateColumns: "54px 1fr auto",
                               alignItems: "center",
                               gap: 12,
-                              padding: "10px 12px",
-                              background: i < 3
-                                ? "linear-gradient(90deg, rgba(255,214,80,0.15), rgba(255,214,80,0.03))"
-                                : "rgba(255,255,255,0.03)",
-                              border: `1px solid ${i < 3 ? "rgba(255,214,80,0.4)" : "rgba(255,255,255,0.06)"}`,
-                              borderRadius: 10,
-                              boxShadow: i < 3 ? "0 2px 8px rgba(255,214,80,0.1)" : "none",
+                              padding: i < 3 ? "12px 14px" : "10px 12px",
+                              background: tierBg,
+                              border: `1px solid ${tierBorder}`,
+                              borderRadius: 12,
+                              boxShadow: tierGlow,
+                              outline: isMe ? "2px solid rgba(125,255,155,0.7)" : "none",
+                              outlineOffset: isMe ? -2 : 0,
+                              transition: "transform 0.15s",
                             }}>
-                              <div style={{ fontWeight: 800, color: topColor, fontSize: i < 3 ? 22 : 15, textAlign: "center" }}>{medal}</div>
+                              <div style={{
+                                fontWeight: 900,
+                                color: topColor,
+                                fontSize: i < 3 ? 26 : 15,
+                                textAlign: "center",
+                                textShadow: i < 3 ? `0 0 10px ${topColor}` : "none",
+                              }}>{medal}</div>
+
                               <div style={{ overflow: "hidden", minWidth: 0 }}>
                                 <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                   {r.name}
