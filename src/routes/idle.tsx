@@ -3385,8 +3385,8 @@ function IdlePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [worldMapOpen, rankOpen]);
 
-  const RANK_CACHE_TTL_MS = 60 * 1000; // 1 minuto — mostra o nível atual da galera
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v3_live_level_${mode}`;
+  const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking global atualiza a cada 2 horas
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v4_prisma_2h_${mode}`;
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
