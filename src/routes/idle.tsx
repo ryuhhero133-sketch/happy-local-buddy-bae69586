@@ -4454,15 +4454,15 @@ function IdlePage() {
                 } catch { /* ignore */ }
                 playBonus();
                 // Vai direto para a Coleção (não entra no time automaticamente)
-                pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
+                // (sem chat — o floating "★" e a Coleção falam por si)
 
               } else {
                 pushFxAt(target.x, target.y - 70, `${usedBall.name} falhou`, "enemyDmg");
-                pushChat(`✗ ${usedBall.name} falhou em capturar ${target.sp.replace(/_/g, " ").toUpperCase()}.`, "hit");
+                // (falha de pokébola: só floating text, sem spam no chat)
               }
             } else {
               pushFxAt(target.x, target.y - 70, "sem pokébola", "enemyDmg");
-              pushChat(`Sem Pokébolas no estoque — compre na loja para capturar.`, "info");
+              // (sem pokébola: floating text apenas)
             }
 
             const capturedInc = captured ? 1 : 0;
