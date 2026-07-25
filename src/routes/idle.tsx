@@ -10360,30 +10360,25 @@ function IdlePage() {
           <div
             onClick={(ev) => {
               ev.stopPropagation();
-              setIdle((cur) => {
-                const inEvent = cur.currentMap === "grass_oddish";
-                if (inEvent) {
-                  const back = cur.grassOddishReturnMap ?? "arena";
+              const cur = idle;
+              const inEvent = cur.currentMap === "grass_oddish";
+              if (inEvent) {
+                setIdle((s) => {
+                  const back = s.grassOddishReturnMap ?? "arena";
                   try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Você saiu do evento.", tone: "info" } })); } catch {}
                   pushChat("🌿 Você saiu do evento Grass Oddish.", "info");
-                  return { ...cur, currentMap: back, grassOddishReturnMap: undefined };
-                }
-                const need = 20;
-                const have = cur.items?.stone_grass ?? 0;
-                if (have < need) {
-                  setOddishNoStone({ have, need });
-                  pushChat(`🌿 Grass Oddish: precisa de ${need} Stone Verdejante (você tem ${have}).`, "info");
-                  return cur;
-                }
-                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Entrou no evento! -20 Stone Verdejante.", tone: "success" } })); } catch {}
-                pushChat("🌿 Você entrou no evento Grass Oddish!", "info");
-                return {
-                  ...cur,
-                  items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
-                  grassOddishReturnMap: cur.currentMap === "grass_oddish" ? cur.grassOddishReturnMap : cur.currentMap,
-                  currentMap: "grass_oddish",
-                };
-              });
+                  return { ...s, currentMap: back, grassOddishReturnMap: undefined };
+                });
+                return;
+              }
+              const need = 20;
+              const have = cur.items?.stone_grass ?? 0;
+              if (have < need) {
+                setOddishNoStone({ have, need });
+                pushChat(`🌿 Grass Oddish: precisa de ${need} Stone Verdejante (você tem ${have}).`, "info");
+                return;
+              }
+              setOddishConfirm({ have, need });
             }}
             style={{
               position: "relative",
