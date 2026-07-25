@@ -8314,50 +8314,68 @@ function IdlePage() {
                 <div
                   onClick={(e) => e.stopPropagation()}
                   style={{
-                    width: "min(640px, 96vw)", maxHeight: "88vh", display: "flex", flexDirection: "column",
-                    background: "linear-gradient(180deg, #1a0f2a 0%, #241536 50%, #2b1a3d 100%)",
-                    border: "2px solid #ffd94d",
-                    borderRadius: 16,
-                    boxShadow: "0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,214,80,0.35), inset 0 1px 0 rgba(255,255,255,0.1)",
+                    width: "min(680px, 96vw)", maxHeight: "90vh", display: "flex", flexDirection: "column",
+                    background:
+                      "radial-gradient(ellipse at top, rgba(255,60,80,0.18), transparent 60%), linear-gradient(180deg, #140a24 0%, #1c1030 45%, #2a1642 100%)",
+                    border: "2px solid transparent",
+                    borderRadius: 18,
+                    backgroundClip: "padding-box",
+                    boxShadow:
+                      "0 25px 80px rgba(0,0,0,0.9), 0 0 60px rgba(255,214,80,0.28), 0 0 40px rgba(255,60,80,0.25), inset 0 1px 0 rgba(255,255,255,0.08)",
                     color: "#ffe9a8",
                     overflow: "hidden",
+                    position: "relative",
                   }}
                 >
+                  {/* Borda dupla ouro/ruby */}
+                  <div style={{
+                    position: "absolute", inset: 0, borderRadius: 18, pointerEvents: "none",
+                    background: "linear-gradient(135deg, #ffd94d 0%, #ff2a4d 50%, #ffd94d 100%)",
+                    padding: 2, WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                    WebkitMaskComposite: "xor", maskComposite: "exclude",
+                  }} />
+
                   {/* Header */}
                   <div style={{
                     display: "flex", justifyContent: "space-between", alignItems: "center",
-                    padding: "16px 18px",
-                    background: "linear-gradient(180deg, rgba(255,214,80,0.18), rgba(255,214,80,0.02))",
+                    padding: "18px 20px",
+                    background: "linear-gradient(180deg, rgba(255,214,80,0.22) 0%, rgba(255,60,80,0.12) 60%, rgba(0,0,0,0.15) 100%)",
                     borderBottom: "1px solid rgba(255,214,80,0.35)",
+                    position: "relative",
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <img src={assetUrlFromJson(trophyIconAsset)} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(255,214,80,0.7))" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                      <img
+                        src={assetUrlFromJson(rankMedalsRubyAsset)}
+                        alt=""
+                        width={56}
+                        height={56}
+                        style={{ filter: "drop-shadow(0 0 10px rgba(255,60,80,0.6)) drop-shadow(0 0 6px rgba(255,214,80,0.5))" }}
+                      />
                       <div>
-                        <div style={{ fontWeight: 900, fontSize: 18, color: "#ffd94d", letterSpacing: 0.5 }}>RANKING GLOBAL</div>
-                        <div style={{ fontSize: 10, opacity: 0.7 }}>Top 50 treinadores do mundo</div>
+                        <div style={{
+                          fontWeight: 900, fontSize: 20, letterSpacing: 1.2,
+                          background: "linear-gradient(90deg,#ffd94d,#ffb347,#ff5577,#ffd94d)",
+                          backgroundSize: "200% 100%",
+                          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                          animation: "shimmerRank 4s linear infinite",
+                        }}>RANKING GLOBAL</div>
+                        <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
+                          🏆 TOP 30 TREINADORES DO MUNDO · atualizado a cada 3h
+                        </div>
                       </div>
                     </div>
                     <button
                       onClick={() => setRankOpen(false)}
                       style={{
                         background: "rgba(255,214,80,0.12)", border: "1px solid rgba(255,214,80,0.4)",
-                        color: "#ffe9a8", cursor: "pointer", fontSize: 18, width: 32, height: 32,
-                        borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                        color: "#ffe9a8", cursor: "pointer", fontSize: 18, width: 34, height: 34,
+                        borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
                       }}
                     >×</button>
                   </div>
+                  <style>{`@keyframes shimmerRank { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }`}</style>
 
-                  {/* Ranking único: Nível do Treinador */}
-                  <div style={{ display: "flex", gap: 6, padding: "10px 14px 0", background: "rgba(0,0,0,0.2)" }}>
-                    <div style={{
-                      flex: 1, padding: "8px 6px", fontSize: 11, fontWeight: 700,
-                      background: "linear-gradient(180deg, #ffd94d, #d99b1a)",
-                      color: "#2b1a0a",
-                      border: "1px solid #ffd94d",
-                      borderRadius: "8px 8px 0 0",
-                      textAlign: "center",
-                    }}>🎓 Nível Treinador</div>
-                  </div>
+
 
 
                   {/* List */}
