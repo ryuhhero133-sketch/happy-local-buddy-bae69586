@@ -5548,11 +5548,8 @@ function IdlePage() {
       if (safiraGain > 0) bonusParts.push(`+${safiraGain} 💚 Safira Verde`);
       if (stoneGain > 0) bonusParts.push(`+${stoneGain} 🌿 Stone Verdejante`);
       const bonus = bonusParts.length ? ` ${bonusParts.join(" ")}` : "";
-      if (frozen) {
-        pushChat(`❄️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado, mas seus PONTOS DE CRAFT estão CONGELADOS pela Chave Ruby (Ranked Craft).${bonus}`, "info");
-      } else {
-        pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${gain} pts de craft${bonus}).`, "cap");
-      }
+      const crystalGain = baseGain; // 💎 Cristal Fragmentado por raridade
+      pushChat(`⚒️ ${entry.species.replace(/_/g, " ").toUpperCase()} fragmentado (+${crystalGain} 💎 Cristal Fragmentado${bonus}).`, "cap");
       consumedUidsRef.current.add(uid);
       return {
         ...s,
@@ -5560,6 +5557,7 @@ function IdlePage() {
         craftPoints: (s.craftPoints ?? 0) + gain,
         items: {
           ...s.items,
+          cristal_fragmentado: (s.items?.cristal_fragmentado ?? 0) + crystalGain,
           ...(safiraGain > 0 ? { safira_verde: (s.items?.safira_verde ?? 0) + safiraGain } : {}),
           ...(stoneGain > 0 ? { stone_grass: (s.items?.stone_grass ?? 0) + stoneGain } : {}),
         },
