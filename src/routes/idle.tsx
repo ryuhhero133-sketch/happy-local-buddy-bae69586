@@ -5539,6 +5539,13 @@ function IdlePage() {
           // Pareia com o líder — grande variação para não ficar previsível
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
+        } else if (idle.currentMap === "grass_oddish") {
+          // 🌿 EVENTO GRASS ODDISH — só Oddish, raridades Raro/Épico/Mítico.
+          // Captura usa as MESMAS taxas globais do servidor.
+          pool = ["oddish"] as Species[];
+          const rr = Math.random();
+          forcedRarity = rr < 0.60 ? "rare" : rr < 0.90 ? "epic" : "mythic";
+          mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") {
           // Odisséia Oddish — mapa aberto 24h. Não captura aqui.
           // Bastante Oddish Shiny, Scizor e mons legais aleatórios.
