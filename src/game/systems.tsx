@@ -156,7 +156,9 @@ export type Species =
   // Evento Odisséia Oddish — Lickitung (sonífero) + Mewtwo (mítico plus) + Oddish Shiny raro
   | "lickitung" | "lickitung_shiny" | "mewtwo_event" | "oddish_shiny"
   // Black Mitic Brilhant Plus — exclusivo Governante (código CARTARIOLU)
-  | "riolu";
+  | "riolu"
+  // Rayquaza — evento Grass Oddish (dragão mítico, carrega Stone Dragão)
+  | "rayquaza";
 
 
 
