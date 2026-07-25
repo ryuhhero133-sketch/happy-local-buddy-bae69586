@@ -1881,6 +1881,17 @@ function IdlePage() {
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
   // Acumula XP/ouro/kills por mapa e anuncia no chat só a cada ~30s (evita spam e sobrecarga).
   const xpAccumRef = useRef({ xp: 0, gold: 0, kills: 0, map: "" as string });
+  useEffect(() => {
+    const id = setInterval(() => {
+      const a = xpAccumRef.current;
+      if (a.kills > 0) {
+        pushChat(`📊 Resumo (${a.map || "mapa"}): ${a.kills} kills · +${a.xp.toLocaleString()} EXP · +${a.gold.toLocaleString()} ouro`, "info");
+        xpAccumRef.current = { xp: 0, gold: 0, kills: 0, map: "" };
+      }
+    }, 30000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ==== ÁUDIO ====
   const [audioSettings, setAudioSettings] = useState(() => {
