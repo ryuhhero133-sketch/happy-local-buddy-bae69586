@@ -3479,7 +3479,7 @@ function IdlePage() {
       void recordRankedScore(idle.trainerLevel ?? 1, Math.max(0, idle.items?.cristal_fragmentado ?? 0), null);
     }, 4500);
     return () => clearTimeout(t);
-  }, [idle.trainerLevel, idle.craftPoints, idle.collection]);
+  }, [idle.trainerLevel, idle.items?.cristal_fragmentado]);
   // Ranking do evento Grass Oddish: envia o total de capturas com debounce.
   useEffect(() => {
     const total = idle.grassOddishCaptured ?? 0;
