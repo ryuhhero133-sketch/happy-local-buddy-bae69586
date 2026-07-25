@@ -2947,7 +2947,7 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
         leader_rarity: leader?.rarity ?? null,
         level: leader?.level ?? 1,
         trainer_level: trainerLevel,
-        craft_points: capturePoints,
+        craft_points: 0,
         guild_name: guild?.name ?? null,
         updated_at: new Date().toISOString(),
       });
@@ -2960,10 +2960,10 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
   // ===== TOP RANKED — envia score (debounced) =====
   useEffect(() => {
     const t = setTimeout(() => {
-      void recordRankedScore(trainerLevel, capturePoints, guild?.name ?? null);
+      void recordRankedScore(trainerLevel, 0, guild?.name ?? null);
     }, 4000);
     return () => clearTimeout(t);
-  }, [trainerLevel, capturePoints, guild?.name]);
+  }, [trainerLevel, guild?.name]);
 
   useEffect(() => {
     let active = true;
@@ -5460,7 +5460,7 @@ function Game({ initial, onReset }: { initial: SaveState; onReset: () => void })
           {rankedOpen && !encounter && (
             <RankedOverlay
               players={remotePlayers}
-              me={{ id: identity.id, name: identity.name, trainer_level: trainerLevel, craft_points: capturePoints, leader_species: leader?.species ?? null }}
+              me={{ id: identity.id, name: identity.name, trainer_level: trainerLevel, craft_points: 0, leader_species: leader?.species ?? null }}
               speciesGif={SPECIES_GIF as unknown as Record<string, string>}
               onClose={closeBackToMenu(() => setRankedOpen(false))}
             />
@@ -8572,8 +8572,8 @@ function RankedOverlay({ players, me, speciesGif, onClose }: {
         mapped = players.map((p) => ({
           id: p.id, name: p.name,
           trainer_level: p.trainer_level ?? p.level ?? 1,
-          craft_points: p.craft_points ?? 0,
-          score: (p.trainer_level ?? p.level ?? 1) * 100 + (p.craft_points ?? 0),
+          craft_points: 0,
+          score: (p.trainer_level ?? p.level ?? 1) * 100,
           guild_name: p.guild_name ?? null,
           leader_species: p.leader_species,
           isMe: p.id === me.id,
@@ -8584,12 +8584,12 @@ function RankedOverlay({ players, me, speciesGif, onClose }: {
       if (!mapped.some((r) => r.id === me.id)) {
         mapped.push({
           id: me.id, name: me.name,
-          trainer_level: me.trainer_level, craft_points: me.craft_points,
-          score: me.trainer_level * 100 + me.craft_points,
+          trainer_level: me.trainer_level, craft_points: 0,
+          score: me.trainer_level * 100,
           guild_name: null, leader_species: me.leader_species, isMe: true,
         });
       }
-      mapped.sort((a, b) => b.score - a.score);
+      mapped.sort((a, b) => b.trainer_level - a.trainer_level || a.name.localeCompare(b.name));
       setRows(mapped.slice(0, 200));
       setEndsAt(season ? new Date(season.ends_at).getTime() : null);
       setLoading(false);
@@ -8599,7 +8599,7 @@ function RankedOverlay({ players, me, speciesGif, onClose }: {
     const t = setInterval(load, 60 * 1000);
     const c = setInterval(() => setNow(Date.now()), 1000);
     return () => { active = false; clearInterval(t); clearInterval(c); };
-  }, [me.id, me.name, me.trainer_level, me.craft_points, me.leader_species, players]);
+  }, [me.id, me.name, me.trainer_level, me.leader_species, players]);
 
 
   const myRank = rows.findIndex((r) => r.id === me.id) + 1;
@@ -8646,7 +8646,7 @@ function RankedOverlay({ players, me, speciesGif, onClose }: {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 9 }}>{r.isMe && "★ "}{r.name}{r.guild_name ? ` · ⚔ ${r.guild_name}` : ""}</div>
-                  <div style={{ fontSize: 7, opacity: 0.7 }}>💎 {r.craft_points} craft · score {r.score}</div>
+                  <div style={{ fontSize: 7, opacity: 0.7 }}>Ranking por nível do treinador</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontSize: 12, color: "#fbbf24", fontWeight: 700 }}>Lv {r.trainer_level}</div>
