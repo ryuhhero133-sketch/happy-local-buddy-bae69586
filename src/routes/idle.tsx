@@ -5637,7 +5637,7 @@ function IdlePage() {
               pushChat(
                 isGrass
                   ? "⚡✦ RAICHU MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Elétrica ⚡"
-                  : "⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (1600 Ultra Balls para capturar)",
+                  : "⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (2000 Ultra Balls para capturar)",
                 "cap"
               );
             }
