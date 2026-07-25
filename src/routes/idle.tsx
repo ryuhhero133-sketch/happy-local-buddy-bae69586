@@ -3386,7 +3386,7 @@ function IdlePage() {
   }, [worldMapOpen, rankOpen]);
 
   const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking global atualiza a cada 2 horas
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v4_prisma_2h_${mode}`;
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v5_prisma_token_only_2h_${mode}`;
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
@@ -3437,11 +3437,10 @@ function IdlePage() {
         }));
 
         if (rows.length === 0 && rankMode === "trainer") {
-          const orderCol = rankMode === "craft" ? "craft_points" : "trainer_level";
           const { data, error } = await gameDb
             .from("players")
             .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,guild_name")
-            .order(orderCol, { ascending: false })
+            .order("trainer_level", { ascending: false })
             .limit(200);
           if (error) console.warn("[idle ranked] players:", error.message);
           rows = (data as RankRow[] | null) ?? [];
