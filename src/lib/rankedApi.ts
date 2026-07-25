@@ -372,7 +372,6 @@ export async function fetchTopPrismaRanked(limit = 30): Promise<RankedRow[]> {
     const { data, error } = await (supabase as any)
       .from("ranked_scores")
       .select("user_id, username, trainer_level, pokedex_count, updated_at")
-      .gt("pokedex_count", 0)
       .order("pokedex_count", { ascending: false })
       .order("updated_at", { ascending: true })
       .limit(limit);
