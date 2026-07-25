@@ -9347,6 +9347,7 @@ function IdlePage() {
                   { key: "o3-o1", target: "oddish_o1", x: 80, y: WORLD_H - 100, arriveX: WORLD_W - 120, arriveY: 120, color: "#7ef27a" },
                   { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
                 ],
+                grass_oddish: [],
                 absol_start: [
                   { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
                 ],
