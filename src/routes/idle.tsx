@@ -2097,6 +2097,13 @@ function IdlePage() {
   const [chatFilter, setChatFilter] = useState<"all" | "system" | "world" | "captures">("all");
   const [teamCollapsed, setTeamCollapsed] = useState<boolean>(false);
   const [chatTick, setChatTick] = useState(0);
+  const [grassOddishSplash, setGrassOddishSplash] = useState<boolean>(false);
+  useEffect(() => {
+    if (idle.currentMap !== "grass_oddish") return;
+    setGrassOddishSplash(true);
+    const t = setTimeout(() => setGrassOddishSplash(false), 4200);
+    return () => clearTimeout(t);
+  }, [idle.currentMap]);
   useEffect(() => {
     if (chatCooldownUntil <= Date.now()) return;
     const iv = setInterval(() => setChatTick((n) => n + 1), 1000);
