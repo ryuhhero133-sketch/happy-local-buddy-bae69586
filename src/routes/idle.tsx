@@ -10477,10 +10477,10 @@ function IdlePage() {
                             {([
                               { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
                               { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
-                              { id: 3 as const, label: "🔮 Continente III", sub: trainerLv >= 10000 ? "Hexagonal Champions" : `🔒 Requer Lv 10.000 (você: ${trainerLv.toLocaleString()})` },
+                              { id: 3 as const, label: "🔮 Continente III", sub: "Hexagonal Champions" },
                             ]).map((t) => {
                               const active = worldTab === t.id;
-                              const locked = (t.id === 2 && !hasGovCard) || (t.id === 3 && trainerLv < 10000);
+                              const locked = (t.id === 2 && !hasGovCard);
                               const isHex = t.id === 3;
                               return (
                                 <button
