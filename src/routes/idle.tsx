@@ -2109,6 +2109,12 @@ function IdlePage() {
   const [oddishRankRows, setOddishRankRows] = useState<OddishRankRow[]>([]);
   const [oddishRankLoading, setOddishRankLoading] = useState<boolean>(false);
   const enterGrassOddish = () => {
+    if (!ODDISH_EVENT.enabled) {
+      try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
+      pushChat("🌿 O evento Grass Oddish foi encerrado.", "info");
+      setOddishConfirm(null);
+      return;
+    }
     setIdle((cur) => {
       const need = 20;
       const have = cur.items?.stone_grass ?? 0;
@@ -2124,6 +2130,15 @@ function IdlePage() {
     });
     setOddishConfirm(null);
   };
+  // Auto-eject: evento encerrado → volta pra arena e bloqueia.
+  useEffect(() => {
+    if (ODDISH_EVENT.enabled) return;
+    const inEvent = idle.currentMap === "grass_oddish" || idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
+    if (!inEvent) return;
+    setIdle((s) => ({ ...s, currentMap: "arena", grassOddishReturnMap: undefined }));
+    try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado. Você voltou para a Arena.", tone: "info" } })); } catch {}
+    pushChat("🌿 Evento Grass Oddish encerrado. Todos foram levados para a Arena.", "info");
+  }, [idle.currentMap]);
   useEffect(() => {
     if (idle.currentMap !== "grass_oddish") return;
     setGrassOddishSplash(true);
@@ -10770,6 +10785,11 @@ function IdlePage() {
           <div
             onClick={(ev) => {
               ev.stopPropagation();
+              if (!ODDISH_EVENT.enabled) {
+                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
+                pushChat("🌿 O evento Grass Oddish foi encerrado.", "info");
+                return;
+              }
               const cur = idle;
               const inEvent = cur.currentMap === "grass_oddish";
               if (inEvent) {
@@ -10814,16 +10834,16 @@ function IdlePage() {
             <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "#d6ffd6", letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}>✦ GRASS ODDISH</div>
               <div className="cash-pack-float" style={{ fontSize: 12, fontWeight: 900, color: "#8affb0", marginTop: 2, lineHeight: 1.2 }}>
-                {idle.currentMap === "grass_oddish" ? "SAIR DO EVENTO" : "ENTRAR (20 🌿)"}
+                {!ODDISH_EVENT.enabled ? "EVENTO ENCERRADO" : (idle.currentMap === "grass_oddish" ? "SAIR DO EVENTO" : "ENTRAR (20 🌿)")}
               </div>
               <div style={{ fontSize: 9.5, color: "#c8e8c8", marginTop: 3, lineHeight: 1.3, fontFamily: "monospace" }}>
                 Oddish capturados: <b style={{ color: "#fff" }}>{idle.grassOddishCaptured ?? 0}</b>
               </div>
               <div style={{ fontSize: 8.5, color: "#a8d0a8", marginTop: 2, lineHeight: 1.25 }}>
-                Só Oddish (Raro/Épico/Mítico). Taxa de captura padrão.
+                {!ODDISH_EVENT.enabled ? "Mapa bloqueado. Ranking preservado." : "Só Oddish (Raro/Épico/Mítico). Taxa de captura padrão."}
               </div>
-              <span style={{ position: "absolute", top: 6, right: 8, fontSize: 9, fontWeight: 900, letterSpacing: 1, background: idle.currentMap === "grass_oddish" ? "linear-gradient(135deg,#8affb0,#3ec96f)" : "linear-gradient(135deg,#d6ffd6,#8dfa8d)", color: "#0a2010", padding: "2px 7px", borderRadius: 10, boxShadow: "0 0 10px rgba(141,250,141,0.7)" }}>
-                {idle.currentMap === "grass_oddish" ? "DENTRO" : "ABERTO"}
+              <span style={{ position: "absolute", top: 6, right: 8, fontSize: 9, fontWeight: 900, letterSpacing: 1, background: !ODDISH_EVENT.enabled ? "linear-gradient(135deg,#888,#444)" : (idle.currentMap === "grass_oddish" ? "linear-gradient(135deg,#8affb0,#3ec96f)" : "linear-gradient(135deg,#d6ffd6,#8dfa8d)"), color: "#0a2010", padding: "2px 7px", borderRadius: 10, boxShadow: "0 0 10px rgba(141,250,141,0.7)" }}>
+                {!ODDISH_EVENT.enabled ? "ENCERRADO" : (idle.currentMap === "grass_oddish" ? "DENTRO" : "ABERTO")}
               </span>
             </div>
           </div>
