@@ -3474,7 +3474,7 @@ function IdlePage() {
       const collection = idle.collection ?? [];
       const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
       const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
-      void recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
+      void recordRankedScore(idle.trainerLevel ?? 1, 0, null);
     }, 4500);
     return () => clearTimeout(t);
   }, [idle.trainerLevel, idle.craftPoints, idle.collection]);
