@@ -3411,14 +3411,13 @@ function IdlePage() {
         ...team.map((p) => p?.level ?? 0),
         ...collection.map((p) => p?.level ?? 0),
       );
-      const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
-      const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
+      const prismaTotal = Math.max(0, idle.items?.cristal_fragmentado ?? 0);
       const meRow = (): RankRow => ({
         id: identity?.id ?? "local-trainer",
         name: identity?.name || "Treinador",
         level: maxPokeLevel,
         trainer_level: idle.trainerLevel ?? 1,
-        craft_points: totalCraft,
+        craft_points: prismaTotal,
         leader_species: team[0]?.species ?? null,
         leader_rarity: team[0]?.rarity ?? null,
         guild_name: null,
