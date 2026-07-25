@@ -664,7 +664,7 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   lucario: "fighting", pinsir: "fighting", riolu: "fighting",
   // Flying
   pidgey: "flying", pidgeotto: "flying", pidgeot: "flying",
-  fearow: "flying", spearow: "flying",
+  fearow: "flying", spearow: "flying", rayquaza: "flying",
   // Normal
   rattata_f: "normal", raticate_f: "normal",
   meowth: "normal", persian: "normal",
