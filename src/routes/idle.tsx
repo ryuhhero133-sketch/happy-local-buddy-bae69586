@@ -4296,13 +4296,30 @@ function IdlePage() {
                   else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
                   else captured = false;
                 }
-              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || target.sp === "rayquaza" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
+              } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || target.sp === "rayquaza" || target.sp === "onix_shiny" || target.sp === "riolu" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
                 // 🐉⚡⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
+                const inGrass = idle.currentMap === "grass_oddish";
                 const isRaichuMy = target.sp === "raichu";
                 const isBlastoiseMy = target.sp === "blastoise_shiny";
                 const isRayquaza = target.sp === "rayquaza";
-                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS : isBlastoiseMy ? 1000 : isRayquaza ? RAYQUAZA_MIN_BALLS : DRAGONITE_SHINY_MIN_BALLS;
-                const label = isRaichuMy ? "RAICHU ✦" : target.sp === "zapdos" ? "ZAPDOS" : isBlastoiseMy ? "BLASTOISE ✦" : isRayquaza ? "RAYQUAZA ✦" : "DRAGONITE ✦";
+                const isOnixShiny = target.sp === "onix_shiny";
+                const isRiolu = target.sp === "riolu";
+                const isDragoShinyGrass = target.sp === "dragonite_shiny" && inGrass;
+                const minBalls = isRaichuMy ? RAICHU_MYTHIC_MIN_BALLS
+                  : target.sp === "zapdos" ? ZAPDOS_MIN_BALLS
+                  : isBlastoiseMy ? 1000
+                  : isRayquaza ? RAYQUAZA_MIN_BALLS
+                  : isOnixShiny ? ONIX_SHINY_MIN_BALLS
+                  : isRiolu ? RIOLU_MIN_BALLS
+                  : isDragoShinyGrass ? DRAGONITE_SHINY_GRASS_MIN_BALLS
+                  : DRAGONITE_SHINY_MIN_BALLS;
+                const label = isRaichuMy ? "RAICHU ✦"
+                  : target.sp === "zapdos" ? "ZAPDOS"
+                  : isBlastoiseMy ? "BLASTOISE ✦"
+                  : isRayquaza ? "RAYQUAZA ✦"
+                  : isOnixShiny ? "ONIX ✦"
+                  : isRiolu ? "RIOLU ✦"
+                  : "DRAGONITE ✦";
                 if (usedBall.id !== "ultraball") {
                   captured = false;
                   pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
@@ -4317,8 +4334,8 @@ function IdlePage() {
                     }
                     pushFxAt(target.x, target.y - 70, `${nowCount}/${minBalls}`, "enemyDmg");
                   } else {
-                    // Raichu Mítico / Rayquaza: quase impossível — 0.3% por lançamento após o umbral.
-                    const catchChance = (isRaichuMy || isRayquaza) ? 0.003 : 0.02;
+                    // Bosses do Grass Oddish: quase impossível — 0.3% por lançamento após o umbral.
+                    const catchChance = (isRaichuMy || isRayquaza || isOnixShiny || isRiolu || isDragoShinyGrass) ? 0.003 : 0.02;
                     captured = Math.random() < catchChance;
                   }
                 }
