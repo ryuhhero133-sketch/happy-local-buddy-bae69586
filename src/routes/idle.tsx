@@ -5120,10 +5120,7 @@ function IdlePage() {
       pushFxAt(target.x, target.y - 70, `★ CAPTUROU! ★`, "capture");
       pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
       pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
-      if (rolled.length > 0) {
-        const tLabels = rolled.map((id) => { const t = TRAITS[id]; return t ? `${t.icon} ${t.name}` : id; }).join(" · ");
-        pushChat(`✨ Traits: ${tLabels}`, "cap");
-      }
+      // Traits não são anunciados no chat.
       playBonus();
       setEnemies((prev) => prev.filter((e) => e.id !== enemyId));
       setIdle((s) => {
