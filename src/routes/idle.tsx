@@ -8694,6 +8694,26 @@ function IdlePage() {
                       }}>⚡</span>
                     </div>
                   )}
+                  {e.sp === "rayquaza" && !camouflaged && (
+                    <div style={{
+                      position: "absolute", top: -46, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      width: 24, height: 24, borderRadius: "50%",
+                      background: "radial-gradient(circle at 50% 40%, #b5ffd8 0%, #22c07a 45%, #0a5a3a 100%)",
+                      border: "2px solid #d8ffec",
+                      boxShadow: "0 0 12px rgba(60,230,150,0.95), 0 0 24px rgba(60,230,150,0.6), inset 0 0 6px rgba(200,255,220,0.9)",
+                      display: "grid", placeItems: "center",
+                      pointerEvents: "none",
+                      animation: "pulse 1.1s ease-in-out infinite",
+                    }}>
+                      <span style={{
+                        fontSize: 14, lineHeight: 1, fontWeight: 900,
+                        color: "#062a1a",
+                        textShadow: "0 0 4px #b5ffd8, 0 1px 0 #fff",
+                        filter: "drop-shadow(0 0 3px #d8ffec)",
+                      }}>🐉</span>
+                    </div>
+                  )}
                   {e.menace && (
                     <div style={{
                       position: "absolute", top: -52, left: "50%",
