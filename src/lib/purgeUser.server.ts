@@ -16,6 +16,7 @@ export const PURGE_TARGETS: Target[] = [
   { table: "market_listings", columns: ["seller_id", "buyer_id"] },
   { table: "marketplace_offers", columns: ["seller_id", "buyer_id"] },
   { table: "marketplace_pokemon", columns: ["seller_id", "buyer_id"] },
+  { table: "pokemon_market", columns: ["seller_id", "buyer_id", "user_id"] },
   { table: "pending_purchases", columns: ["user_id"] },
   { table: "cashshop_tickets", columns: ["user_id"] },
   { table: "cashshop_messages", columns: ["user_id"] },
