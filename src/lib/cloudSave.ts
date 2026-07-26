@@ -12,6 +12,48 @@ let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingData: unknown = null;
 let lastCloudSaveError: string | null = null;
 
+// ===== Guarda de versão =====
+// Guarda o savedAt do último snapshot conhecido (lido da nuvem ou escrito por nós).
+// Qualquer tentativa de gravar um snapshot MAIS ANTIGO que esse é rejeitada —
+// impede que uma aba velha / outro dispositivo sobrescreva progresso novo.
+let lastKnownSavedAt = 0;
+let saveLockedReason: string | null = null;
+
+function snapshotSavedAt(data: unknown): number {
+  const v = (data as { savedAt?: unknown } | null)?.savedAt;
+  return typeof v === "number" && Number.isFinite(v) ? v : 0;
+}
+
+/** Registra o savedAt vindo da nuvem na hidratação inicial. */
+export function noteRemoteSavedAt(at: number) {
+  if (Number.isFinite(at) && at > lastKnownSavedAt) lastKnownSavedAt = at;
+}
+
+/**
+ * Bloqueia/desbloqueia toda gravação na nuvem. Usado quando a leitura inicial
+ * falha: sem saber o estado remoto, gravar significaria apagar progresso.
+ */
+export function setCloudSaveLock(reason: string | null) {
+  saveLockedReason = reason;
+}
+export function isCloudSaveLocked() {
+  return saveLockedReason;
+}
+
+function canWrite(data: unknown): boolean {
+  if (saveLockedReason) {
+    lastCloudSaveError = `gravação bloqueada: ${saveLockedReason}`;
+    return false;
+  }
+  const at = snapshotSavedAt(data);
+  if (at && lastKnownSavedAt && at < lastKnownSavedAt) {
+    lastCloudSaveError = "snapshot antigo ignorado (proteção de progresso)";
+    console.warn("[cloudSave] stale snapshot rejected", { at, lastKnownSavedAt });
+    return false;
+  }
+  return true;
+}
+
 export function getCloudSaveLastError() {
   return lastCloudSaveError;
 }
