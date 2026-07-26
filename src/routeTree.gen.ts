@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IdleRouteImport } from './routes/idle'
 import { Route as HexchampionsRouteImport } from './routes/hexchampions'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicPurgeUserRouteImport } from './routes/api/public/purge-user'
 
 const IdleRoute = IdleRouteImport.update({
   id: '/idle',
@@ -28,35 +29,44 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPurgeUserRoute = ApiPublicPurgeUserRouteImport.update({
+  id: '/api/public/purge-user',
+  path: '/api/public/purge-user',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/hexchampions': typeof HexchampionsRoute
   '/idle': typeof IdleRoute
+  '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/hexchampions': typeof HexchampionsRoute
   '/idle': typeof IdleRoute
+  '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/hexchampions': typeof HexchampionsRoute
   '/idle': typeof IdleRoute
+  '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/hexchampions' | '/idle'
+  fullPaths: '/' | '/hexchampions' | '/idle' | '/api/public/purge-user'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/hexchampions' | '/idle'
-  id: '__root__' | '/' | '/hexchampions' | '/idle'
+  to: '/' | '/hexchampions' | '/idle' | '/api/public/purge-user'
+  id: '__root__' | '/' | '/hexchampions' | '/idle' | '/api/public/purge-user'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HexchampionsRoute: typeof HexchampionsRoute
   IdleRoute: typeof IdleRoute
+  ApiPublicPurgeUserRoute: typeof ApiPublicPurgeUserRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/purge-user': {
+      id: '/api/public/purge-user'
+      path: '/api/public/purge-user'
+      fullPath: '/api/public/purge-user'
+      preLoaderRoute: typeof ApiPublicPurgeUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,17 +106,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HexchampionsRoute: HexchampionsRoute,
   IdleRoute: IdleRoute,
+  ApiPublicPurgeUserRoute: ApiPublicPurgeUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
