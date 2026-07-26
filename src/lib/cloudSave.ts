@@ -106,12 +106,30 @@ async function upsert(uid: string, snapshot: unknown) {
   if (!response.ok) throw new Error(await parseRestError(response));
 }
 
+/** Grava com até 3 tentativas (rede instável não deve custar progresso). */
+async function upsertWithRetry(uid: string, snapshot: unknown, attempts = 3) {
+  let lastErr: unknown = null;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      await upsert(uid, snapshot);
+      const at = snapshotSavedAt(snapshot);
+      if (at > lastKnownSavedAt) lastKnownSavedAt = at;
+      return;
+    } catch (e) {
+      lastErr = e;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 700 * (i + 1)));
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+}
+
 /** Debounced push (1.5s) — usar durante gameplay. */
 export function scheduleCloudSync(data: unknown) {
   if (!isFullCloudSave(data)) {
     console.warn("[cloudSave] ignored partial snapshot");
     return;
   }
+  if (!canWrite(data)) return;
   pendingData = data;
   if (syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(async () => {
@@ -125,7 +143,8 @@ export function scheduleCloudSync(data: unknown) {
         lastCloudSaveError = "sem sessão/login ativo";
         return;
       }
-      await upsert(uid, snapshot);
+      if (!canWrite(snapshot)) return;
+      await upsertWithRetry(uid, snapshot);
       lastCloudSaveError = null;
     } catch (e) {
       lastCloudSaveError = e instanceof Error ? e.message : String(e);
@@ -134,16 +153,17 @@ export function scheduleCloudSync(data: unknown) {
   }, 1500);
 }
 
-/** Push imediato (botão Salvar, level-up, beforeunload). */
+/** Push imediato (botão Salvar, level-up, beforeunload, checkpoint 30min). */
 export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
   if (!isFullCloudSave(data)) {
     lastCloudSaveError = "snapshot incompleto";
     console.warn("[cloudSave] pushNow ignored partial snapshot");
     return false;
   }
+  if (!canWrite(data)) return false;
   try {
     const { uid } = await getAuthedRestHeaders();
-    await upsert(uid, data);
+    await upsertWithRetry(uid, data);
     lastCloudSaveError = null;
     return true;
   } catch (e) {
@@ -153,21 +173,44 @@ export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
   }
 }
 
+export type CloudFetchResult =
+  | { status: "ok"; data: unknown }
+  | { status: "empty" }
+  | { status: "error"; message: string };
+
+/**
+ * Leitura da nuvem que DISTINGUE "conta nova (vazio)" de "falha de leitura".
+ * Essencial: em caso de erro o jogo NÃO pode gravar, senão apaga o save bom.
+ */
+export async function fetchCloudSaveResult(userId: string, attempts = 3): Promise<CloudFetchResult> {
+  let lastMessage = "falha de leitura";
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const { headers } = await getAuthedRestHeaders();
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+        { headers },
+      );
+      if (!response.ok) throw new Error(await parseRestError(response));
+      const rows = (await response.json()) as Array<{ data?: unknown }>;
+      lastCloudSaveError = null;
+      const data = rows[0]?.data ?? null;
+      if (!data) return { status: "empty" };
+      noteRemoteSavedAt(snapshotSavedAt(data));
+      return { status: "ok", data };
+    } catch (e) {
+      lastMessage = e instanceof Error ? e.message : String(e);
+      lastCloudSaveError = lastMessage;
+      console.warn("[cloudSave] fetch failed", e);
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 800 * (i + 1)));
+    }
+  }
+  return { status: "error", message: lastMessage };
+}
+
 export async function fetchCloudSave(userId: string): Promise<unknown | null> {
-  try {
-    const { headers } = await getAuthedRestHeaders();
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
-      { headers },
-    );
-    if (!response.ok) throw new Error(await parseRestError(response));
-    const rows = (await response.json()) as Array<{ data?: unknown }>;
-    lastCloudSaveError = null;
-    return rows[0]?.data ?? null;
-  } catch (e) {
-    lastCloudSaveError = e instanceof Error ? e.message : String(e);
-    console.warn("[cloudSave] fetch failed", e);
-    return null;
+  const r = await fetchCloudSaveResult(userId);
+  return r.status === "ok" ? r.data : null;
   }
 }
 
