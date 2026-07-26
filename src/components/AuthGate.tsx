@@ -105,7 +105,19 @@ async function preloadCloudSave(userId: string) {
   }
 }
 
+/** Nunca deixa uma promise pendurada travar a tela de login. */
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label}: tempo esgotado`)), ms);
+    p.then(
+      (v) => { clearTimeout(t); resolve(v); },
+      (e) => { clearTimeout(t); reject(e); },
+    );
+  });
+}
+
 type Mode = "login" | "signup" | "reset";
+
 
 /* ───────────────────────────── AUTH GATE ───────────────────────────── */
 
