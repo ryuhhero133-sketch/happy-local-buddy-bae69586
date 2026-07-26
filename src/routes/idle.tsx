@@ -1857,7 +1857,7 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; xpTitle?: boolean };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
@@ -4222,7 +4222,8 @@ function IdlePage() {
           const elemSyn = computeTeamSynergies(team);
           const mythEventXpMult = idle.currentMap === "evento_myth" ? 6 : 1;
           const grassOddishXpMult = idle.currentMap === "grass_oddish" ? 3 : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult);
+          const xpTitleMult = target.xpTitle ? 2 : 1; // 🏷️ título XP dobra a experiência
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * xpTitleMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -4580,7 +4581,7 @@ function IdlePage() {
             const capPenalty = overCap > 0 ? Math.max(0.05, 1 - overCap * 0.2) : 1;
             const finalScale = lvScale * capPenalty;
             const mythEvKillMult = idle.currentMap === "evento_myth" ? 6 : 1;
-            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult));
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult * (target.xpTitle ? 2 : 1)));
             const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3)) : 0;
             const totalTrainerXp = killTrainerXp + captureTrainerXp;
             const applied = applyTrainerXp(s, totalTrainerXp);
@@ -6048,7 +6049,10 @@ function IdlePage() {
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
       }
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss };
+      // 🏷️ TÍTULO DE XP — a partir do Lv 5.000 de treinador, alguns selvagens
+      // nascem com o título "XP" acima da cabeça e valem 2x de experiência.
+      const xpTitle = (idle.trainerLevel ?? 1) >= 5000 && Math.random() < 0.12;
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, xpTitle, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss };
 
 
     }
@@ -9084,6 +9088,24 @@ function IdlePage() {
                         textShadow: "0 0 4px #fff5b8, 0 1px 0 #fff",
                         filter: "drop-shadow(0 0 3px #fff8c8)",
                       }}>⭐XP</span>
+                    </div>
+                  )}
+                  {e.xpTitle && !camouflaged && (
+                    <div style={{
+                      position: "absolute", top: -64, left: "50%",
+                      transform: `translateX(-50%) scaleX(${sx})`,
+                      display: "flex", alignItems: "center", gap: 4,
+                      padding: "2px 8px", borderRadius: 999,
+                      background: "linear-gradient(180deg, #fff6c0 0%, #ffd23f 45%, #a86a00 100%)",
+                      border: "2px solid #fffbe0",
+                      boxShadow: "0 0 12px rgba(255,210,80,0.95), 0 0 26px rgba(255,180,40,0.55), inset 0 1px 0 rgba(255,255,255,0.9)",
+                      pointerEvents: "none", whiteSpace: "nowrap",
+                      animation: "pulse 1.4s ease-in-out infinite",
+                    }}>
+                      <span style={{
+                        fontSize: 10, lineHeight: 1, fontWeight: 900, letterSpacing: 1,
+                        color: "#3a2600", textShadow: "0 1px 0 rgba(255,255,255,0.7)",
+                      }}>⭐ XP x2</span>
                     </div>
                   )}
                   {e.menace && (
