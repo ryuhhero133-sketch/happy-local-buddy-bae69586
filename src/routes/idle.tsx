@@ -8481,10 +8481,26 @@ function IdlePage() {
                           animation: "shimmerRank 4s linear infinite",
                         }}>RANKING GLOBAL</div>
                         <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
-                          🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · atualiza a cada 2h
+                          🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
                         </div>
                       </div>
                     </div>
+                    <button
+                      onClick={() => {
+                        try {
+                          localStorage.removeItem(rankCacheKey("trainer"));
+                          localStorage.removeItem(rankCacheKey("craft"));
+                        } catch { /* ignore */ }
+                        setRankRefreshTick((v) => v + 1);
+                      }}
+                      title="Atualizar ranking agora"
+                      style={{
+                        background: "rgba(120,220,255,0.12)", border: "1px solid rgba(120,220,255,0.4)",
+                        color: "#bfefff", cursor: "pointer", fontSize: 15, height: 34, padding: "0 12px",
+                        borderRadius: 10, display: "flex", alignItems: "center", gap: 6, fontWeight: 900,
+                        marginRight: 8,
+                      }}
+                    >{rankLoading ? "⏳" : "🔄"} Atualizar</button>
                     <button
                       onClick={() => setRankOpen(false)}
                       style={{
@@ -8493,6 +8509,7 @@ function IdlePage() {
                         borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
                       }}
                     >×</button>
+
                   </div>
                   <style>{`@keyframes shimmerRank { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }`}</style>
 
