@@ -64,8 +64,15 @@ function isFullCloudSave(data: unknown): data is { idle: unknown; team: unknown;
   return Boolean(value.idle && Array.isArray(value.team) && Array.isArray(value.restingBench));
 }
 
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label}: tempo esgotado`)), ms);
+    p.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+  });
+}
+
 async function getAuthedRestHeaders() {
-  const { data: sess } = await supabase.auth.getSession();
+  const { data: sess } = await withTimeout(supabase.auth.getSession(), 8000, "sessão");
   const session = sess.session;
   if (!session?.user?.id || !session.access_token) {
     throw new Error("sem sessão/login ativo");
@@ -102,6 +109,7 @@ async function upsert(uid: string, snapshot: unknown) {
       Prefer: "resolution=merge-duplicates,return=minimal",
     },
     body: JSON.stringify({ user_id: uid, data: snapshot, updated_at: new Date().toISOString() }),
+    signal: AbortSignal.timeout(15000),
   });
   if (!response.ok) throw new Error(await parseRestError(response));
 }
@@ -189,7 +197,7 @@ export async function fetchCloudSaveResult(userId: string, attempts = 3): Promis
       const { headers } = await getAuthedRestHeaders();
       const response = await fetch(
         `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
-        { headers },
+        { headers, signal: AbortSignal.timeout(12000) },
       );
       if (!response.ok) throw new Error(await parseRestError(response));
       const rows = (await response.json()) as Array<{ data?: unknown }>;

@@ -105,7 +105,19 @@ async function preloadCloudSave(userId: string) {
   }
 }
 
+/** Nunca deixa uma promise pendurada travar a tela de login. */
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label}: tempo esgotado`)), ms);
+    p.then(
+      (v) => { clearTimeout(t); resolve(v); },
+      (e) => { clearTimeout(t); reject(e); },
+    );
+  });
+}
+
 type Mode = "login" | "signup" | "reset";
+
 
 /* ───────────────────────────── AUTH GATE ───────────────────────────── */
 
@@ -187,11 +199,33 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     // Em F5 não desloga: a sessão ativa é necessária para reidratar/salvar no Supabase
     // antes de qualquer cache local ser usado. Logout manual continua limpando tudo.
-    supabase.auth.getSession().then(({ data }) => {
-      log("initial session", data.session?.user?.id ?? null);
-      setSession(data.session);
+    // getSession() pode travar (lock do Supabase entre abas / rede ruim) e deixar
+    // o jogador preso no "Conectando ao servidor..." — por isso tem timeout.
+    let settled = false;
+    const finishInitial = (sess: Session | null) => {
+      if (settled) return;
+      settled = true;
+      setSession(sess);
       setChecking(false);
-    });
+    };
+    const initialTimer = setTimeout(() => {
+      if (!settled) {
+        warn("getSession() demorou demais — liberando tela de login");
+        finishInitial(null);
+      }
+    }, 8000);
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        log("initial session", data.session?.user?.id ?? null);
+        finishInitial(data.session);
+      })
+      .catch((e) => {
+        warn("getSession falhou", e);
+        finishInitial(null);
+      })
+      .finally(() => clearTimeout(initialTimer));
+
 
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -220,11 +254,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setBootstrapping(true);
       const uid = currentUid;
       try {
-        const username = await ensureProfile(uid);
+        const username = await withTimeout(ensureProfile(uid), 12000, "perfil");
         if (cancelled) return;
 
         if (username && username.trim().length > 0) {
-          await preloadCloudSave(uid);
+          try {
+            await withTimeout(preloadCloudSave(uid), 15000, "save da nuvem");
+          } catch (e) {
+            warn("preloadCloudSave timeout — seguindo com cache local", e);
+          }
           if (cancelled) return;
           setIdentity(writeIdentity(uid, username));
           setNeedsChar(false);
@@ -244,11 +282,21 @@ export function AuthGate({ children }: { children: ReactNode }) {
         }
       } catch (e) {
         warn("bootstrap falhou", e);
-        setIdentity(null);
-        setNeedsChar(true);
+        // Se já existe identidade local dessa MESMA conta, entra com ela em vez
+        // de mandar o jogador pra criação de personagem (perigo de duplicar).
+        const local = loadIdentity();
+        if (local && local.id === uid) {
+          log("bootstrap com fallback local", local.name);
+          setIdentity(local);
+          setNeedsChar(false);
+        } else {
+          setIdentity(null);
+          setNeedsChar(true);
+        }
       } finally {
         if (!cancelled) setBootstrapping(false);
       }
+
     })();
     return () => {
       cancelled = true;
@@ -633,10 +681,11 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
     try {
       if (mode === "login") {
         log("signIn", email);
-        const { error, data } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
+        const { error, data } = await withTimeout(
+          supabase.auth.signInWithPassword({ email: email.trim(), password }),
+          15000,
+          "login",
+        );
         if (error) throw error;
         log("signIn ok", data.user?.id);
       } else if (mode === "signup") {
