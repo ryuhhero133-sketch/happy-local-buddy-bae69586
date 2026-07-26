@@ -2921,27 +2921,55 @@ function IdlePage() {
       "VIPEGG30F", "VIPEGG30G", "VIPEGG30H", "VIPEGG30I", "VIPEGG30J",
     ];
     if (vipEgg30Codes.includes(raw)) {
-      const base = idleRef.current;
-      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
-      const charizardEgg = Math.random() < 0.35;
-      const eggId = charizardEgg ? "egg_charizard" : "egg_epic";
-      const eggName = charizardEgg ? "Ovo do Charizard 🔥" : "Ovo Épico ✦✦";
-      const next: IdleState = {
-        ...base,
-        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 1000) },
-        items: {
-          ...base.items,
-          book_vip_30: (base.items.book_vip_30 ?? 0) + 1,
-          [eggId]: ((base.items as Record<string, number>)[eggId] ?? 0) + 1,
-        },
-        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
-      };
-      setIdle(next);
-      persistCodeReward(next);
-      try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: `👑 Livro VIP 30 dias + 1× ${eggName} + 1 000 💎 Cristais entregues!` });
-      setCodeInput("");
-      pushChat(`🎉 Código ${raw}: 1× Livro VIP 30d + 1× ${eggName} + 1 000 💎 Cristais.`, "cap");
+      const base0 = idleRef.current;
+      if (base0.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      setCodeMsg({ kind: "ok", text: "⏳ Validando código..." });
+      void (async () => {
+        // Uso único GLOBAL: reserva o código no banco (unique em `code`).
+        // Se outra conta já resgatou, o insert falha e nada é entregue.
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any).from("code_redemptions").insert({
+            code: raw,
+            user_id: identity?.id ?? null,
+            username: identity?.name ?? null,
+          });
+          if (error) {
+            const dup = error.code === "23505" || /duplicate|unique/i.test(error.message ?? "");
+            setCodeMsg({
+              kind: "err",
+              text: dup
+                ? "Código já foi utilizado por outra conta."
+                : "Não foi possível validar o código agora. Tente novamente.",
+            });
+            return;
+          }
+        } catch {
+          setCodeMsg({ kind: "err", text: "Sem conexão para validar o código. Tente novamente." });
+          return;
+        }
+
+        const base = idleRef.current;
+        const charizardEgg = Math.random() < 0.35;
+        const eggId = charizardEgg ? "egg_charizard" : "egg_epic";
+        const eggName = charizardEgg ? "Ovo do Charizard 🔥" : "Ovo Épico ✦✦";
+        const next: IdleState = {
+          ...base,
+          bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 1000) },
+          items: {
+            ...base.items,
+            book_vip_30: (base.items.book_vip_30 ?? 0) + 1,
+            [eggId]: ((base.items as Record<string, number>)[eggId] ?? 0) + 1,
+          },
+          redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+        };
+        setIdle(next);
+        persistCodeReward(next);
+        try { localStorage.setItem(codeKey, "1"); } catch {}
+        setCodeMsg({ kind: "ok", text: `👑 Livro VIP 30 dias + 1× ${eggName} + 1 000 💎 Cristais entregues!` });
+        setCodeInput("");
+        pushChat(`🎉 Código ${raw}: 1× Livro VIP 30d + 1× ${eggName} + 1 000 💎 Cristais.`, "cap");
+      })();
       return;
     }
 
