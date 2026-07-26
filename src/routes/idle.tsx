@@ -7021,6 +7021,26 @@ function IdlePage() {
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
+      {/* 🛡️ AVISO — leitura da nuvem falhou: salvamento pausado p/ não apagar progresso */}
+      {cloudSaveBlocked && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+          padding: "8px 14px", flexWrap: "wrap",
+          background: "linear-gradient(90deg,#4a0f10,#7a1a1c,#4a0f10)",
+          borderBottom: "2px solid #ffb84d", color: "#ffe9c7",
+          fontWeight: 800, fontSize: 13, boxShadow: "0 6px 20px rgba(0,0,0,.6)",
+        }}>
+          <span>⚠️ Não conseguimos ler seu progresso na nuvem. Salvamento PAUSADO para proteger seus dados.</span>
+          <button
+            onClick={() => { setCloudSaveBlocked(false); cloudBlobHydratedRef.current = false; setCloudBlobReady(false); setCloudRetryTick((t) => t + 1); }}
+            style={{
+              padding: "5px 12px", borderRadius: 8, cursor: "pointer",
+              border: "1px solid #ffd27a", background: "#2a0a0b", color: "#ffd27a", fontWeight: 900, fontSize: 12,
+            }}
+          >🔄 Tentar novamente</button>
+        </div>
+      )}
       {/* 🌿 MODAL — Confirmar entrada no Evento Grass Oddish */}
       {oddishConfirm && (
         <div
