@@ -3580,7 +3580,7 @@ function IdlePage() {
       finally { if (!cancelled) setRankLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.items?.cristal_fragmentado, idle.collection, team]);
+  }, [rankOpen, rankMode, rankRefreshTick, identity?.id, identity?.name, idle.trainerLevel, idle.items?.cristal_fragmentado, idle.collection, team]);
 
   useEffect(() => {
     const t = setTimeout(() => {
