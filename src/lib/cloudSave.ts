@@ -211,7 +211,6 @@ export async function fetchCloudSaveResult(userId: string, attempts = 3): Promis
 export async function fetchCloudSave(userId: string): Promise<unknown | null> {
   const r = await fetchCloudSaveResult(userId);
   return r.status === "ok" ? r.data : null;
-  }
 }
 
 export async function deleteCloudSave(userId: string): Promise<void> {
