@@ -681,10 +681,11 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
     try {
       if (mode === "login") {
         log("signIn", email);
-        const { error, data } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
+        const { error, data } = await withTimeout(
+          supabase.auth.signInWithPassword({ email: email.trim(), password }),
+          15000,
+          "login",
+        );
         if (error) throw error;
         log("signIn ok", data.user?.id);
       } else if (mode === "signup") {
