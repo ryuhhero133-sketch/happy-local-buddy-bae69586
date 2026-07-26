@@ -2915,6 +2915,38 @@ function IdlePage() {
       return;
     }
 
+    // VIPEGG30 pack — VIP 30 dias + 1 Ovo Épico (chance de Charizard/inicial) + 1000 Cristais
+    const vipEgg30Codes = [
+      "VIPEGG30A", "VIPEGG30B", "VIPEGG30C", "VIPEGG30D", "VIPEGG30E",
+      "VIPEGG30F", "VIPEGG30G", "VIPEGG30H", "VIPEGG30I", "VIPEGG30J",
+    ];
+    if (vipEgg30Codes.includes(raw)) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const charizardEgg = Math.random() < 0.35;
+      const eggId = charizardEgg ? "egg_charizard" : "egg_epic";
+      const eggName = charizardEgg ? "Ovo do Charizard 🔥" : "Ovo Épico ✦✦";
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + 1000) },
+        items: {
+          ...base.items,
+          book_vip_30: (base.items.book_vip_30 ?? 0) + 1,
+          [eggId]: ((base.items as Record<string, number>)[eggId] ?? 0) + 1,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: `👑 Livro VIP 30 dias + 1× ${eggName} + 1 000 💎 Cristais entregues!` });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: 1× Livro VIP 30d + 1× ${eggName} + 1 000 💎 Cristais.`, "cap");
+      return;
+    }
+
+
+
 
     // RESGTT55 — abre o Painel de Troca Black Mitic Plus (reutilizável)
     if (raw === "RESGTT55" || raw === "RESGTT77" || raw === "RESGTT78") {
