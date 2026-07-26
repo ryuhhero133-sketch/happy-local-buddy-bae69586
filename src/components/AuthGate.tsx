@@ -254,11 +254,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setBootstrapping(true);
       const uid = currentUid;
       try {
-        const username = await ensureProfile(uid);
+        const username = await withTimeout(ensureProfile(uid), 12000, "perfil");
         if (cancelled) return;
 
         if (username && username.trim().length > 0) {
-          await preloadCloudSave(uid);
+          try {
+            await withTimeout(preloadCloudSave(uid), 15000, "save da nuvem");
+          } catch (e) {
+            warn("preloadCloudSave timeout — seguindo com cache local", e);
+          }
           if (cancelled) return;
           setIdentity(writeIdentity(uid, username));
           setNeedsChar(false);
@@ -278,11 +282,21 @@ export function AuthGate({ children }: { children: ReactNode }) {
         }
       } catch (e) {
         warn("bootstrap falhou", e);
-        setIdentity(null);
-        setNeedsChar(true);
+        // Se já existe identidade local dessa MESMA conta, entra com ela em vez
+        // de mandar o jogador pra criação de personagem (perigo de duplicar).
+        const local = loadIdentity();
+        if (local && local.id === uid) {
+          log("bootstrap com fallback local", local.name);
+          setIdentity(local);
+          setNeedsChar(false);
+        } else {
+          setIdentity(null);
+          setNeedsChar(true);
+        }
       } finally {
         if (!cancelled) setBootstrapping(false);
       }
+
     })();
     return () => {
       cancelled = true;
