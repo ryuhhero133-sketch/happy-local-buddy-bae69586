@@ -3493,24 +3493,29 @@ function IdlePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [worldMapOpen, rankOpen]);
 
-  const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking global atualiza a cada 2 horas
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v6_prisma_global_2h_${mode}`;
+  const [rankRefreshTick, setRankRefreshTick] = useState(0);
+  const RANK_CACHE_TTL_MS = 2 * 60 * 1000; // 2min — puxa os níveis atuais e some com contas deletadas
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v7_live_2min_${mode}`;
+
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
     const key = rankCacheKey(rankMode);
-    // Serve cache local se ainda dentro da janela de 3h
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const parsed = JSON.parse(raw) as { at: number; rows: RankRow[] };
-        if (parsed && Date.now() - parsed.at < RANK_CACHE_TTL_MS && Array.isArray(parsed.rows)) {
-          setRankRows(parsed.rows);
-          setRankLoading(false);
-          return;
+    // Serve cache local só por 2 minutos; "Atualizar agora" ignora o cache.
+    if (rankRefreshTick === 0) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { at: number; rows: RankRow[] };
+          if (parsed && Date.now() - parsed.at < RANK_CACHE_TTL_MS && Array.isArray(parsed.rows)) {
+            setRankRows(parsed.rows);
+            setRankLoading(false);
+            return;
+          }
         }
-      }
-    } catch { /* ignore */ }
+      } catch { /* ignore */ }
+    }
+
     setRankLoading(true);
     (async () => {
       const collection = idle.collection ?? [];
@@ -3575,7 +3580,7 @@ function IdlePage() {
       finally { if (!cancelled) setRankLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.items?.cristal_fragmentado, idle.collection, team]);
+  }, [rankOpen, rankMode, rankRefreshTick, identity?.id, identity?.name, idle.trainerLevel, idle.items?.cristal_fragmentado, idle.collection, team]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -8476,10 +8481,26 @@ function IdlePage() {
                           animation: "shimmerRank 4s linear infinite",
                         }}>RANKING GLOBAL</div>
                         <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
-                          🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · atualiza a cada 2h
+                          🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
                         </div>
                       </div>
                     </div>
+                    <button
+                      onClick={() => {
+                        try {
+                          localStorage.removeItem(rankCacheKey("trainer"));
+                          localStorage.removeItem(rankCacheKey("craft"));
+                        } catch { /* ignore */ }
+                        setRankRefreshTick((v) => v + 1);
+                      }}
+                      title="Atualizar ranking agora"
+                      style={{
+                        background: "rgba(120,220,255,0.12)", border: "1px solid rgba(120,220,255,0.4)",
+                        color: "#bfefff", cursor: "pointer", fontSize: 15, height: 34, padding: "0 12px",
+                        borderRadius: 10, display: "flex", alignItems: "center", gap: 6, fontWeight: 900,
+                        marginRight: 8,
+                      }}
+                    >{rankLoading ? "⏳" : "🔄"} Atualizar</button>
                     <button
                       onClick={() => setRankOpen(false)}
                       style={{
@@ -8488,6 +8509,7 @@ function IdlePage() {
                         borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
                       }}
                     >×</button>
+
                   </div>
                   <style>{`@keyframes shimmerRank { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }`}</style>
 
