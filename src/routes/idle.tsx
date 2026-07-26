@@ -72,7 +72,8 @@ import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
-import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
+import { toast } from "sonner";
+import { fetchCloudSaveResult, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync, setCloudSaveLock } from "@/lib/cloudSave";
 import { fetchTopRanked, fetchTopPrismaRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
@@ -1575,18 +1576,45 @@ function IdlePage() {
   // e sobrescreve o cache local — evita rollback após F5 / trocar de dispositivo.
   const cloudBlobHydratedRef = useRef(false);
   const [cloudBlobReady, setCloudBlobReady] = useState(false);
+  const [cloudSaveBlocked, setCloudSaveBlocked] = useState(false);
+  const [cloudRetryTick, setCloudRetryTick] = useState(0);
   useEffect(() => {
     if (cloudBlobHydratedRef.current) return;
     let cancelled = false;
+    // Trava a gravação até confirmarmos o que existe na nuvem.
+    setCloudSaveLock("aguardando leitura da nuvem");
     (async () => {
       try {
         const { data: sess } = await supabase.auth.getSession();
         const uid = sess.session?.user?.id;
-        if (!uid) return;
-        const blob = (await fetchCloudSave(uid)) as
+        if (!uid) {
+          // Sem login não há nuvem para proteger.
+          setCloudSaveLock(null);
+          return;
+        }
+        const result = await fetchCloudSaveResult(uid);
+        if (cancelled) return;
+
+        // 🛡️ FALHA DE LEITURA: nunca liberar gravação — senão o autosave
+        // apagaria o save bom da nuvem com o estado local/inicial.
+        if (result.status === "error") {
+          setCloudSaveLock(`leitura falhou: ${result.message}`);
+          setCloudSaveBlocked(true);
+          toast.error("Não conseguimos carregar seu progresso da nuvem. O salvamento está PAUSADO para não apagar seus dados. Toque em Tentar novamente.", { duration: 12000 });
+          return;
+        }
+
+        setCloudSaveBlocked(false);
+        setCloudSaveLock(null);
+        if (result.status === "empty") {
+          cloudBlobHydratedRef.current = true;
+          return;
+        }
+
+        const blob = result.data as
           | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
           | null;
-        if (cancelled || !blob) return;
+        if (!blob) { cloudBlobHydratedRef.current = true; return; }
         if (blob.idle) {
           setIdle((prev) => {
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
@@ -1612,12 +1640,14 @@ function IdlePage() {
         cloudBlobHydratedRef.current = true;
       } catch (e) {
         console.warn("[cloudBlob] hydrate failed", e);
+        setCloudSaveLock("erro inesperado na leitura da nuvem");
+        setCloudSaveBlocked(true);
       } finally {
         if (!cancelled) setCloudBlobReady(true);
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [cloudRetryTick]);
 
   // Autosave do BLOB completo — debounced (1.5s) sempre que idle/team/bench mudam.
   const buildFullBlob = useCallback(() => ({
@@ -1627,9 +1657,25 @@ function IdlePage() {
     savedAt: Date.now(),
   }), [restingBench]);
   useEffect(() => {
-    if (!cloudBlobReady) return;
+    if (!cloudBlobReady || cloudSaveBlocked) return;
     scheduleCloudSync(buildFullBlob());
-  }, [idle, team, restingBench, buildFullBlob, cloudBlobReady]);
+  }, [idle, team, restingBench, buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
+
+  // ⏱️ CHECKPOINT GARANTIDO — a cada 30 minutos força um save na nuvem,
+  // mesmo que nada tenha mudado, para nunca existir uma janela longa sem backup.
+  useEffect(() => {
+    if (!cloudBlobReady || cloudSaveBlocked) return;
+    const CHECKPOINT_MS = 30 * 60 * 1000;
+    const id = setInterval(() => {
+      void (async () => {
+        const ok = await pushCloudSaveNow(buildFullBlob());
+        if (ok) toast.success("✅ Checkpoint automático: progresso salvo na nuvem", { duration: 3000 });
+        else toast.error(`⚠️ Checkpoint falhou: ${getCloudSaveLastError() ?? "erro"}`, { duration: 6000 });
+      })();
+    }, CHECKPOINT_MS);
+    return () => clearInterval(id);
+  }, [buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
+
 
   // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
   useEffect(() => {
@@ -6975,6 +7021,26 @@ function IdlePage() {
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
+      {/* 🛡️ AVISO — leitura da nuvem falhou: salvamento pausado p/ não apagar progresso */}
+      {cloudSaveBlocked && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+          padding: "8px 14px", flexWrap: "wrap",
+          background: "linear-gradient(90deg,#4a0f10,#7a1a1c,#4a0f10)",
+          borderBottom: "2px solid #ffb84d", color: "#ffe9c7",
+          fontWeight: 800, fontSize: 13, boxShadow: "0 6px 20px rgba(0,0,0,.6)",
+        }}>
+          <span>⚠️ Não conseguimos ler seu progresso na nuvem. Salvamento PAUSADO para proteger seus dados.</span>
+          <button
+            onClick={() => { setCloudSaveBlocked(false); cloudBlobHydratedRef.current = false; setCloudBlobReady(false); setCloudRetryTick((t) => t + 1); }}
+            style={{
+              padding: "5px 12px", borderRadius: 8, cursor: "pointer",
+              border: "1px solid #ffd27a", background: "#2a0a0b", color: "#ffd27a", fontWeight: 900, fontSize: 12,
+            }}
+          >🔄 Tentar novamente</button>
+        </div>
+      )}
       {/* 🌿 MODAL — Confirmar entrada no Evento Grass Oddish */}
       {oddishConfirm && (
         <div
