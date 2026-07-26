@@ -365,9 +365,29 @@ export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
   return merged.length ? merged.slice(0, limit) : online;
 }
 
-/** Top N do Cristal Prisma: usa só o token independente salvo em ranked_scores.pokedex_count. */
+/** Top N do Cristal Prisma: RPC global (todos os jogadores) com fallback na tabela. */
 export async function fetchTopPrismaRanked(limit = 30): Promise<RankedRow[]> {
   try {
+    // Fonte principal: função global que também lê o Prisma real dos saves.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rpc = await (supabase as any).rpc("top_prisma_ranked", { _limit: limit });
+    if (!rpc.error && Array.isArray(rpc.data) && rpc.data.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (rpc.data as any[]).map((r) => {
+        const prisma = Math.max(0, safeInt(r.prisma ?? 0, 0));
+        return {
+          user_id: String(r.user_id),
+          username: r.username || "Treinador",
+          trainer_level: Math.max(1, Math.min(10000, safeInt(r.trainer_level ?? 1, 1))),
+          craft_points: prisma,
+          guild_name: null,
+          score: prisma,
+          updated_at: r.updated_at || new Date().toISOString(),
+        } satisfies RankedRow;
+      }).filter((r) => r.craft_points > 0).slice(0, limit);
+    }
+    if (rpc.error) console.warn("[ranked prisma] rpc:", rpc.error.message);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from("ranked_scores")
