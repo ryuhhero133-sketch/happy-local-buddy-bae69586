@@ -3501,18 +3501,21 @@ function IdlePage() {
     if (!rankOpen) return;
     let cancelled = false;
     const key = rankCacheKey(rankMode);
-    // Serve cache local se ainda dentro da janela de 3h
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const parsed = JSON.parse(raw) as { at: number; rows: RankRow[] };
-        if (parsed && Date.now() - parsed.at < RANK_CACHE_TTL_MS && Array.isArray(parsed.rows)) {
-          setRankRows(parsed.rows);
-          setRankLoading(false);
-          return;
+    // Serve cache local só por 2 minutos; "Atualizar agora" ignora o cache.
+    if (rankRefreshTick === 0) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { at: number; rows: RankRow[] };
+          if (parsed && Date.now() - parsed.at < RANK_CACHE_TTL_MS && Array.isArray(parsed.rows)) {
+            setRankRows(parsed.rows);
+            setRankLoading(false);
+            return;
+          }
         }
-      }
-    } catch { /* ignore */ }
+      } catch { /* ignore */ }
+    }
+
     setRankLoading(true);
     (async () => {
       const collection = idle.collection ?? [];
