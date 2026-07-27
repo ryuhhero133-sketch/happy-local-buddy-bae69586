@@ -3596,6 +3596,21 @@ function IdlePage() {
     return () => { cancelled = true; };
   }, [rankOpen, rankMode, rankRefreshTick, identity?.id, identity?.name, idle.trainerLevel, idle.items?.cristal_fragmentado, idle.collection, team]);
 
+  // Ranking congelado: revalida sozinho apenas a cada 2 horas.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      try {
+        localStorage.removeItem(rankCacheKey("trainer"));
+        localStorage.removeItem(rankCacheKey("craft"));
+      } catch { /* ignore */ }
+      setRankRefreshTick((v) => v + 1);
+    }, RANK_CACHE_TTL_MS);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+
   useEffect(() => {
     const t = setTimeout(() => {
       void recordRankedScore(idle.trainerLevel ?? 1, Math.max(0, idle.items?.cristal_fragmentado ?? 0), null);
