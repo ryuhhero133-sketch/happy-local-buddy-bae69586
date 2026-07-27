@@ -4,13 +4,16 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const SAVE_KEY = "rubym.save.v2";
+const CLOUD_PENDING_KEY = "rubym.cloud.pending.v1";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingData: unknown = null;
 let lastCloudSaveError: string | null = null;
+let retryDelayMs = 5000;
 
 // ===== Guarda de versão =====
 // Guarda o savedAt do último snapshot conhecido (lido da nuvem ou escrito por nós).
@@ -22,6 +25,53 @@ let saveLockedReason: string | null = null;
 function snapshotSavedAt(data: unknown): number {
   const v = (data as { savedAt?: unknown } | null)?.savedAt;
   return typeof v === "number" && Number.isFinite(v) ? v : 0;
+}
+
+type PendingCloudEnvelope = {
+  queuedAt: number;
+  snapshotSavedAt: number;
+  snapshot: unknown;
+};
+
+function readPendingEnvelope(): PendingCloudEnvelope | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(CLOUD_PENDING_KEY);
+    if (!raw) return null;
+    const env = JSON.parse(raw) as PendingCloudEnvelope;
+    if (!env || !isFullCloudSave(env.snapshot)) return null;
+    return env;
+  } catch {
+    return null;
+  }
+}
+
+function writePendingSnapshot(snapshot: unknown) {
+  if (typeof window === "undefined" || !isFullCloudSave(snapshot)) return;
+  try {
+    const env: PendingCloudEnvelope = {
+      queuedAt: Date.now(),
+      snapshotSavedAt: snapshotSavedAt(snapshot),
+      snapshot,
+    };
+    window.localStorage.setItem(CLOUD_PENDING_KEY, JSON.stringify(env));
+  } catch (e) {
+    console.warn("[cloudSave] pending queue write failed", e);
+  }
+}
+
+function clearPendingSnapshot(savedAt: number) {
+  if (typeof window === "undefined") return;
+  try {
+    const env = readPendingEnvelope();
+    if (!env || env.snapshotSavedAt <= savedAt) window.localStorage.removeItem(CLOUD_PENDING_KEY);
+  } catch { /* ignore */ }
+}
+
+export function getPendingCloudSaveInfo() {
+  const env = readPendingEnvelope();
+  if (!env) return null;
+  return { queuedAt: env.queuedAt, snapshotSavedAt: env.snapshotSavedAt };
 }
 
 /** Registra o savedAt vindo da nuvem na hidratação inicial. */
@@ -122,6 +172,8 @@ async function upsertWithRetry(uid: string, snapshot: unknown, attempts = 3) {
       await upsert(uid, snapshot);
       const at = snapshotSavedAt(snapshot);
       if (at > lastKnownSavedAt) lastKnownSavedAt = at;
+      clearPendingSnapshot(at || Date.now());
+      retryDelayMs = 5000;
       return;
     } catch (e) {
       lastErr = e;
@@ -131,13 +183,70 @@ async function upsertWithRetry(uid: string, snapshot: unknown, attempts = 3) {
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
+function schedulePendingRetry() {
+  if (typeof window === "undefined") return;
+  if (retryTimer) return;
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    void attemptPendingCloudSave();
+  }, retryDelayMs);
+  retryDelayMs = Math.min(120000, Math.floor(retryDelayMs * 1.6));
+}
+
+function ensureRetryListeners() {
+  if (typeof window === "undefined") return;
+  const w = window as typeof window & { __rubymCloudRetryListeners?: boolean };
+  if (w.__rubymCloudRetryListeners) return;
+  w.__rubymCloudRetryListeners = true;
+  window.addEventListener("online", () => void attemptPendingCloudSave());
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void attemptPendingCloudSave();
+  });
+}
+
+export async function attemptPendingCloudSave(): Promise<boolean> {
+  ensureRetryListeners();
+  const env = readPendingEnvelope();
+  if (!env) return true;
+  if (saveLockedReason) {
+    lastCloudSaveError = `save aguardando nuvem: ${saveLockedReason}`;
+    schedulePendingRetry();
+    return false;
+  }
+  const snapshot = env.snapshot;
+  const at = snapshotSavedAt(snapshot);
+  if (at && lastKnownSavedAt && at < lastKnownSavedAt) {
+    lastCloudSaveError = "snapshot antigo ignorado (proteção de progresso)";
+    clearPendingSnapshot(at);
+    return true;
+  }
+  try {
+    const { uid } = await getAuthedRestHeaders();
+    await upsertWithRetry(uid, snapshot, 2);
+    lastCloudSaveError = null;
+    return true;
+  } catch (e) {
+    lastCloudSaveError = e instanceof Error ? e.message : String(e);
+    console.warn("[cloudSave] pending retry failed", e);
+    schedulePendingRetry();
+    return false;
+  }
+}
+
 /** Debounced push (1.5s) — usar durante gameplay. */
 export function scheduleCloudSync(data: unknown) {
+  ensureRetryListeners();
   if (!isFullCloudSave(data)) {
     console.warn("[cloudSave] ignored partial snapshot");
     return;
   }
-  if (!canWrite(data)) return;
+  // Primeiro guarda localmente em uma fila durável. Se a rede/banco falhar,
+  // o snapshot continua no navegador e será reenviado automaticamente.
+  writePendingSnapshot(data);
+  if (!canWrite(data)) {
+    schedulePendingRetry();
+    return;
+  }
   pendingData = data;
   if (syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(async () => {
@@ -149,34 +258,47 @@ export function scheduleCloudSync(data: unknown) {
       const uid = sess.session?.user?.id;
       if (!uid || !snapshot) {
         lastCloudSaveError = "sem sessão/login ativo";
+        schedulePendingRetry();
         return;
       }
-      if (!canWrite(snapshot)) return;
+      if (!canWrite(snapshot)) {
+        schedulePendingRetry();
+        return;
+      }
       await upsertWithRetry(uid, snapshot);
       lastCloudSaveError = null;
+      void attemptPendingCloudSave();
     } catch (e) {
       lastCloudSaveError = e instanceof Error ? e.message : String(e);
       console.warn("[cloudSave] sync failed", e);
+      schedulePendingRetry();
     }
   }, 1500);
 }
 
 /** Push imediato (botão Salvar, level-up, beforeunload, checkpoint 30min). */
 export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
+  ensureRetryListeners();
   if (!isFullCloudSave(data)) {
     lastCloudSaveError = "snapshot incompleto";
     console.warn("[cloudSave] pushNow ignored partial snapshot");
     return false;
   }
-  if (!canWrite(data)) return false;
+  writePendingSnapshot(data);
+  if (!canWrite(data)) {
+    schedulePendingRetry();
+    return false;
+  }
   try {
     const { uid } = await getAuthedRestHeaders();
     await upsertWithRetry(uid, data);
     lastCloudSaveError = null;
+    void attemptPendingCloudSave();
     return true;
   } catch (e) {
     lastCloudSaveError = e instanceof Error ? e.message : String(e);
     console.warn("[cloudSave] pushNow failed", e);
+    schedulePendingRetry();
     return false;
   }
 }

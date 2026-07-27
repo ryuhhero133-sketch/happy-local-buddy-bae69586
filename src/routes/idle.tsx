@@ -73,7 +73,7 @@ import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { toast } from "sonner";
-import { fetchCloudSaveResult, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync, setCloudSaveLock } from "@/lib/cloudSave";
+import { attemptPendingCloudSave, fetchCloudSaveResult, getCloudSaveLastError, getPendingCloudSaveInfo, pushCloudSaveNow, scheduleCloudSync, setCloudSaveLock } from "@/lib/cloudSave";
 import { fetchTopRanked, fetchTopPrismaRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
@@ -1578,6 +1578,11 @@ function IdlePage() {
   const [cloudBlobReady, setCloudBlobReady] = useState(false);
   const [cloudSaveBlocked, setCloudSaveBlocked] = useState(false);
   const [cloudRetryTick, setCloudRetryTick] = useState(0);
+  const [cloudQueueTick, setCloudQueueTick] = useState(0);
+  const pendingCloudSave = useMemo(() => {
+    void cloudQueueTick;
+    return getPendingCloudSaveInfo();
+  }, [cloudQueueTick]);
   useEffect(() => {
     if (cloudBlobHydratedRef.current) return;
     let cancelled = false;
@@ -1600,7 +1605,7 @@ function IdlePage() {
         if (result.status === "error") {
           setCloudSaveLock(`leitura falhou: ${result.message}`);
           setCloudSaveBlocked(true);
-          toast.error("Não conseguimos carregar seu progresso da nuvem. O salvamento está PAUSADO para não apagar seus dados. Toque em Tentar novamente.", { duration: 12000 });
+          toast.error("Nuvem instável: seu progresso desta sessão fica protegido neste aparelho e será reenviado automaticamente.", { duration: 12000 });
           return;
         }
 
@@ -1671,24 +1676,33 @@ function IdlePage() {
     savedAt: Date.now(),
   }), [restingBench]);
   useEffect(() => {
-    if (!cloudBlobReady || cloudSaveBlocked) return;
+    if (!cloudBlobReady) return;
+    // Mesmo com a nuvem bloqueada, scheduleCloudSync grava uma fila local durável.
+    // Assim o jogador pode continuar jogando sem perder o progresso da sessão.
     scheduleCloudSync(buildFullBlob());
+    setCloudQueueTick((t) => t + 1);
   }, [idle, team, restingBench, buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
+
+  useEffect(() => {
+    const id = setInterval(() => setCloudQueueTick((t) => t + 1), 5000);
+    return () => clearInterval(id);
+  }, []);
 
   // ⏱️ CHECKPOINT GARANTIDO — a cada 30 minutos força um save na nuvem,
   // mesmo que nada tenha mudado, para nunca existir uma janela longa sem backup.
   useEffect(() => {
-    if (!cloudBlobReady || cloudSaveBlocked) return;
+    if (!cloudBlobReady) return;
     const CHECKPOINT_MS = 30 * 60 * 1000;
     const id = setInterval(() => {
       void (async () => {
         const ok = await pushCloudSaveNow(buildFullBlob());
+        setCloudQueueTick((t) => t + 1);
         if (ok) toast.success("✅ Checkpoint automático: progresso salvo na nuvem", { duration: 3000 });
-        else toast.error(`⚠️ Checkpoint falhou: ${getCloudSaveLastError() ?? "erro"}`, { duration: 6000 });
+        else toast.info("🛡️ Checkpoint guardado localmente; a nuvem será reenviada automaticamente.", { duration: 6000 });
       })();
     }, CHECKPOINT_MS);
     return () => clearInterval(id);
-  }, [buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
+  }, [buildFullBlob, cloudBlobReady]);
 
 
   // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
@@ -1696,6 +1710,7 @@ function IdlePage() {
     const flush = () => {
       if (!cloudBlobReady) return;
       void pushCloudSaveNow(buildFullBlob());
+      setCloudQueueTick((t) => t + 1);
     };
     window.addEventListener("beforeunload", flush);
     const onVisibilityChange = () => {
@@ -6412,7 +6427,7 @@ function IdlePage() {
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
-      {/* 🛡️ AVISO — leitura da nuvem falhou: salvamento pausado p/ não apagar progresso */}
+      {/* 🛡️ AVISO — leitura da nuvem falhou: progresso local protegido e retry automático */}
       {cloudSaveBlocked && (
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999,
@@ -6422,14 +6437,14 @@ function IdlePage() {
           borderBottom: "2px solid #ffb84d", color: "#ffe9c7",
           fontWeight: 800, fontSize: 13, boxShadow: "0 6px 20px rgba(0,0,0,.6)",
         }}>
-          <span>⚠️ Não conseguimos ler seu progresso na nuvem. Salvamento PAUSADO para proteger seus dados.</span>
+          <span>🛡️ Nuvem instável: seu progresso fica protegido neste aparelho e será reenviado automático.</span>
           <button
-            onClick={() => { setCloudSaveBlocked(false); cloudBlobHydratedRef.current = false; setCloudBlobReady(false); setCloudRetryTick((t) => t + 1); }}
+            onClick={() => { void attemptPendingCloudSave(); setCloudSaveBlocked(false); cloudBlobHydratedRef.current = false; setCloudBlobReady(false); setCloudRetryTick((t) => t + 1); setCloudQueueTick((t) => t + 1); }}
             style={{
               padding: "5px 12px", borderRadius: 8, cursor: "pointer",
               border: "1px solid #ffd27a", background: "#2a0a0b", color: "#ffd27a", fontWeight: 900, fontSize: 12,
             }}
-          >🔄 Tentar novamente</button>
+          >🔄 Reenviar agora</button>
         </div>
       )}
       {/* 🌿 MODAL — Confirmar entrada no Evento Grass Oddish */}
@@ -10587,32 +10602,39 @@ function IdlePage() {
             onClick={async () => {
               playClick();
               if (!cloudBlobReady) {
-                pushChat("⏳ Aguarde carregar o save da nuvem antes de salvar.", "info");
+                pushChat("⏳ Aguarde carregar o save da nuvem. O progresso atual já fica protegido neste aparelho.", "info");
                 return;
               }
               try {
                 const ok = await pushCloudSaveNow(buildFullBlob());
-                await serverSync.pushNow();
-                pushChat(ok ? "☁️ Progresso salvo na nuvem!" : `⚠️ Não salvou na nuvem: ${getCloudSaveLastError() ?? "verifique a tabela game_saves"}.`, "info");
+                try { await serverSync.pushNow(); } catch { /* sync normalizado é best-effort */ }
+                setCloudQueueTick((t) => t + 1);
+                if (ok) {
+                  pushChat("☁️ Progresso salvo na nuvem!", "info");
+                } else {
+                  void attemptPendingCloudSave().finally(() => setCloudQueueTick((t) => t + 1));
+                  pushChat(`🛡️ Ainda não confirmou na nuvem. O progresso ficou protegido localmente e será reenviado automático (${getCloudSaveLastError() ?? "rede/banco instável"}).`, "info");
+                }
               } catch (e) {
-                pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
+                setCloudQueueTick((t) => t + 1);
+                pushChat("🛡️ Falha temporária na nuvem. O progresso ficou protegido localmente e será reenviado automático.", "info");
               }
             }}
-            title="Salvar progresso na nuvem"
+            title={pendingCloudSave ? "Há progresso aguardando confirmação na nuvem" : "Salvar progresso na nuvem"}
             style={{
               flex: 1, maxWidth: 130,
-              background: "linear-gradient(180deg, #22d3ee33 0%, #22d3ee11 100%)",
-              color: "#22d3ee",
-              border: "1px solid #22d3ee88",
+              background: pendingCloudSave ? "linear-gradient(180deg, #fbbf2433 0%, #f59e0b11 100%)" : "linear-gradient(180deg, #22d3ee33 0%, #22d3ee11 100%)",
+              color: pendingCloudSave ? "#fbbf24" : "#22d3ee",
+              border: pendingCloudSave ? "1px solid #fbbf2488" : "1px solid #22d3ee88",
               padding: "8px 6px", cursor: "pointer",
               borderRadius: 10, display: "flex", flexDirection: "column",
               alignItems: "center", gap: 4, fontSize: 11, position: "relative",
-              boxShadow: "0 0 14px #22d3ee55, inset 0 1px 0 #22d3ee44",
+              boxShadow: pendingCloudSave ? "0 0 14px #fbbf2455, inset 0 1px 0 #fbbf2444" : "0 0 14px #22d3ee55, inset 0 1px 0 #22d3ee44",
               fontWeight: 700, letterSpacing: 0.3,
             }}
           >
-            <span style={{ fontSize: 28, lineHeight: 1, filter: "drop-shadow(0 0 8px #22d3ee)" }}>☁️</span>
-            <span>Salvar</span>
+            <span style={{ fontSize: 28, lineHeight: 1, filter: pendingCloudSave ? "drop-shadow(0 0 8px #fbbf24)" : "drop-shadow(0 0 8px #22d3ee)" }}>{pendingCloudSave ? "🛡️" : "☁️"}</span>
+            <span>{pendingCloudSave ? "Protegido" : "Salvar"}</span>
           </button>
         </div>
       </div>
