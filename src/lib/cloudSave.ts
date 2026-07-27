@@ -74,6 +74,54 @@ export function getPendingCloudSaveInfo() {
   return { queuedAt: env.queuedAt, snapshotSavedAt: env.snapshotSavedAt };
 }
 
+// ===== BACKUP LOCAL (rede de segurança) =====
+// Guarda os 3 snapshots completos mais recentes no aparelho. Se a nuvem
+// estiver vazia/instável ou trouxer um save MAIS ANTIGO, restauramos daqui —
+// assim ninguém volta ao zero nem leva rollback longo.
+const LOCAL_BACKUP_KEY = "rubym.local.backup.v1";
+const LOCAL_BACKUP_MAX = 3;
+
+type LocalBackupEntry = { savedAt: number; snapshot: unknown };
+
+function readLocalBackups(): LocalBackupEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(LOCAL_BACKUP_KEY);
+    if (!raw) return [];
+    const list = JSON.parse(raw) as LocalBackupEntry[];
+    if (!Array.isArray(list)) return [];
+    return list.filter((e) => e && isFullCloudSave(e.snapshot));
+  } catch {
+    return [];
+  }
+}
+
+export function writeLocalBackup(snapshot: unknown) {
+  if (typeof window === "undefined" || !isFullCloudSave(snapshot)) return;
+  const at = snapshotSavedAt(snapshot) || Date.now();
+  try {
+    const list = readLocalBackups().filter((e) => e.savedAt !== at);
+    list.push({ savedAt: at, snapshot });
+    list.sort((a, b) => b.savedAt - a.savedAt);
+    window.localStorage.setItem(
+      LOCAL_BACKUP_KEY,
+      JSON.stringify(list.slice(0, LOCAL_BACKUP_MAX)),
+    );
+  } catch (e) {
+    console.warn("[cloudSave] local backup write failed", e);
+  }
+}
+
+/** Melhor snapshot disponível offline (fila pendente + backups locais). */
+export function getBestLocalSnapshot(): { savedAt: number; snapshot: unknown } | null {
+  const candidates: LocalBackupEntry[] = readLocalBackups();
+  const env = readPendingEnvelope();
+  if (env) candidates.push({ savedAt: env.snapshotSavedAt, snapshot: env.snapshot });
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => b.savedAt - a.savedAt);
+  return candidates[0];
+}
+
 /** Registra o savedAt vindo da nuvem na hidratação inicial. */
 export function noteRemoteSavedAt(at: number) {
   if (Number.isFinite(at) && at > lastKnownSavedAt) lastKnownSavedAt = at;
