@@ -1729,7 +1729,9 @@ function IdlePage() {
     const CHECKPOINT_MS = 5 * 60 * 1000;
     const id = setInterval(() => {
       void (async () => {
-        const ok = await pushCloudSaveNow(buildFullBlob());
+        const blob = buildFullBlob();
+        writeLocalBackup(blob); // rede de segurança no aparelho
+        const ok = await pushCloudSaveNow(blob);
         setCloudQueueTick((t) => t + 1);
         if (ok) toast.success("✅ Checkpoint automático: progresso salvo na nuvem", { duration: 3000 });
         else toast.info("🛡️ Checkpoint guardado localmente; a nuvem será reenviada automaticamente.", { duration: 6000 });
