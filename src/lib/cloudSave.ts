@@ -410,18 +410,23 @@ export async function fetchCloudSaveResult(userId: string, attempts = 3): Promis
           { headers: retryAuth.headers, signal: AbortSignal.timeout(12000) },
         );
       }
-      if (!response.ok) throw new Error(await parseRestError(response));
+      if (!response.ok) {
+        const message = await parseRestError(response);
+        noteDiagnostics("read", response.status, message);
+        throw new Error(message);
+      }
 
       const rows = (await response.json()) as Array<{ data?: unknown }>;
       lastCloudSaveError = null;
+      lastDiagnostics = null;
       const data = rows[0]?.data ?? null;
       if (!data) return { status: "empty" };
       noteRemoteSavedAt(snapshotSavedAt(data));
       return { status: "ok", data };
     } catch (e) {
       lastMessage = e instanceof Error ? e.message : String(e);
+      if (!lastDiagnostics || lastDiagnostics.stage !== "read") noteDiagnostics("read", null, lastMessage);
       lastCloudSaveError = lastMessage;
-      console.warn("[cloudSave] fetch failed", e);
       if (i < attempts - 1) await new Promise((r) => setTimeout(r, 800 * (i + 1)));
     }
   }
