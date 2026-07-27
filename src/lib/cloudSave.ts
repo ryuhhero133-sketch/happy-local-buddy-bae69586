@@ -445,6 +445,7 @@ export function scheduleCloudSync(data: unknown) {
   // Primeiro guarda localmente em uma fila durável. Se a rede/banco falhar,
   // o snapshot continua no navegador e será reenviado automaticamente.
   writePendingSnapshot(data);
+  writeLocalBackup(data);
   if (!canWrite(data)) {
     schedulePendingRetry();
     return;
@@ -487,6 +488,7 @@ export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
     return false;
   }
   writePendingSnapshot(data);
+  writeLocalBackup(data);
   if (!canWrite(data)) {
     schedulePendingRetry();
     return false;
