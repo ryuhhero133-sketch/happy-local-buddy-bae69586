@@ -301,7 +301,7 @@ export function grantUltra200Bundle(): Reward[] {
 
 // ---------- MYTHVIP30 (ovo mítico + VIP 30d) ----------
 export const MYTHVIP30_KEY = "rubym.mythvip30CodeUsed";
-export const SECRET_MYTHVIP30_CODE = "MYTHVIP30";
+export const SECRET_MYTHVIP30_CODE = "__DISABLED_SECRET_MYTHVIP30_CODE__";
 export const isMythVip30Used = () => safeGet<boolean>(MYTHVIP30_KEY, false);
 export const setMythVip30Used = () => safeSet(MYTHVIP30_KEY, true);
 export function grantMythVip30Bundle(): Reward[] {
@@ -327,7 +327,7 @@ export function grantMythVip30Bundle(): Reward[] {
 
 // ---------- CRYSTAL20K ----------
 export const CRYSTAL20K_KEY = "rubym.crystal20kCodeUsed";
-export const SECRET_CRYSTAL20K_CODE = "CRYSTAL20K";
+export const SECRET_CRYSTAL20K_CODE = "__DISABLED_SECRET_CRYSTAL20K_CODE__";
 export const isCrystal20kUsed = () => safeGet<boolean>(CRYSTAL20K_KEY, false);
 export const setCrystal20kUsed = () => safeSet(CRYSTAL20K_KEY, true);
 export function grantCrystal20kBundle(): Reward[] {
@@ -343,7 +343,7 @@ export function grantCrystal20kBundle(): Reward[] {
 
 // ---------- CHARIZ50 (ovo Charizard Lv50 + 2k cristal) ----------
 export const CHARIZ50_KEY = "rubym.chariz50CodeUsed";
-export const SECRET_CHARIZ50_CODE = "CHARIZ50";
+export const SECRET_CHARIZ50_CODE = "__DISABLED_SECRET_CHARIZ50_CODE__";
 export const isChariz50Used = () => safeGet<boolean>(CHARIZ50_KEY, false);
 export const setChariz50Used = () => safeSet(CHARIZ50_KEY, true);
 export function grantChariz50Bundle(): Reward[] {
@@ -365,7 +365,7 @@ export function grantChariz50Bundle(): Reward[] {
 
 // ---------- EMERALD60 (60 Esmeraldas) ----------
 export const EMERALD60_KEY = "rubym.emerald60CodeUsed";
-export const SECRET_EMERALD60_CODE = "EMERALD60";
+export const SECRET_EMERALD60_CODE = "__DISABLED_SECRET_EMERALD60_CODE__";
 const CASHSHOP_EMERALD_KEY = "rubym.cashshop.emerald.v1";
 export const isEmerald60Used = () => safeGet<boolean>(EMERALD60_KEY, false);
 export const setEmerald60Used = () => safeSet(EMERALD60_KEY, true);
@@ -415,7 +415,7 @@ export function tryRedeemCode(code: string):
     if (isCrystal20kUsed()) return { kind: "already-used" };
     return { kind: "masterball", bundle: grantCrystal20kBundle() };
   }
-  if (c === SECRET_CHARIZ50_CODE || c === "CHARIZARD50" || c === "CHARIZ50LV" || c === "CHAR50") {
+  if (c === SECRET_CHARIZ50_CODE) {
     if (isChariz50Used()) {
       // permite re-resgatar limpando a flag manualmente via console; por ora, entrega novamente
       safeSet(CHARIZ50_KEY, false);
