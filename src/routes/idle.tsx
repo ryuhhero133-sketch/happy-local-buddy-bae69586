@@ -1688,11 +1688,11 @@ function IdlePage() {
     return () => clearInterval(id);
   }, []);
 
-  // ⏱️ CHECKPOINT GARANTIDO — a cada 30 minutos força um save na nuvem,
+  // ⏱️ CHECKPOINT GARANTIDO — a cada 5 minutos força um save na nuvem,
   // mesmo que nada tenha mudado, para nunca existir uma janela longa sem backup.
   useEffect(() => {
     if (!cloudBlobReady) return;
-    const CHECKPOINT_MS = 30 * 60 * 1000;
+    const CHECKPOINT_MS = 5 * 60 * 1000;
     const id = setInterval(() => {
       void (async () => {
         const ok = await pushCloudSaveNow(buildFullBlob());
