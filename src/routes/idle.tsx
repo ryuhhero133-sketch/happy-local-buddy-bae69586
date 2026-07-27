@@ -10620,21 +10620,21 @@ function IdlePage() {
                 pushChat("🛡️ Falha temporária na nuvem. O progresso ficou protegido localmente e será reenviado automático.", "info");
               }
             }}
-            title="Salvar progresso na nuvem"
+            title={pendingCloudSave ? "Há progresso aguardando confirmação na nuvem" : "Salvar progresso na nuvem"}
             style={{
               flex: 1, maxWidth: 130,
-              background: "linear-gradient(180deg, #22d3ee33 0%, #22d3ee11 100%)",
-              color: "#22d3ee",
-              border: "1px solid #22d3ee88",
+              background: pendingCloudSave ? "linear-gradient(180deg, #fbbf2433 0%, #f59e0b11 100%)" : "linear-gradient(180deg, #22d3ee33 0%, #22d3ee11 100%)",
+              color: pendingCloudSave ? "#fbbf24" : "#22d3ee",
+              border: pendingCloudSave ? "1px solid #fbbf2488" : "1px solid #22d3ee88",
               padding: "8px 6px", cursor: "pointer",
               borderRadius: 10, display: "flex", flexDirection: "column",
               alignItems: "center", gap: 4, fontSize: 11, position: "relative",
-              boxShadow: "0 0 14px #22d3ee55, inset 0 1px 0 #22d3ee44",
+              boxShadow: pendingCloudSave ? "0 0 14px #fbbf2455, inset 0 1px 0 #fbbf2444" : "0 0 14px #22d3ee55, inset 0 1px 0 #22d3ee44",
               fontWeight: 700, letterSpacing: 0.3,
             }}
           >
-            <span style={{ fontSize: 28, lineHeight: 1, filter: "drop-shadow(0 0 8px #22d3ee)" }}>☁️</span>
-            <span>Salvar</span>
+            <span style={{ fontSize: 28, lineHeight: 1, filter: pendingCloudSave ? "drop-shadow(0 0 8px #fbbf24)" : "drop-shadow(0 0 8px #22d3ee)" }}>{pendingCloudSave ? "🛡️" : "☁️"}</span>
+            <span>{pendingCloudSave ? "Protegido" : "Salvar"}</span>
           </button>
         </div>
       </div>
