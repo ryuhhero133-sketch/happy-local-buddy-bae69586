@@ -162,6 +162,40 @@ async function parseRestError(response: Response) {
   }
 }
 
+// ===== Diagnóstico =====
+// Guarda a causa real da última falha para conseguirmos distinguir
+// sessão (401), permissão/RLS (403/42501), trigger do banco (400/500),
+// rede/timeout e quota de localStorage.
+export type CloudSaveDiagnostics = {
+  at: number;
+  stage: "write" | "read";
+  status: number | null;
+  category: "sessao" | "permissao" | "banco" | "rede" | "config" | "local" | "desconhecido";
+  message: string;
+};
+let lastDiagnostics: CloudSaveDiagnostics | null = null;
+
+export function getCloudSaveDiagnostics() {
+  return lastDiagnostics;
+}
+
+function classify(status: number | null, message: string): CloudSaveDiagnostics["category"] {
+  const m = message.toLowerCase();
+  if (status === 401 || m.includes("sem sessão") || m.includes("jwt")) return "sessao";
+  if (status === 403 || m.includes("row-level security") || m.includes("42501") || m.includes("permission denied")) return "permissao";
+  if (status === 400 || status === 409 || (status !== null && status >= 500)) return "banco";
+  if (m.includes("tempo esgotado") || m.includes("timeout") || m.includes("failed to fetch") || m.includes("abort") || m.includes("network")) return "rede";
+  if (m.includes("não configurado")) return "config";
+  if (m.includes("quota") || m.includes("exceeded")) return "local";
+  return "desconhecido";
+}
+
+function noteDiagnostics(stage: CloudSaveDiagnostics["stage"], status: number | null, message: string) {
+  lastDiagnostics = { at: Date.now(), stage, status, category: classify(status, message), message };
+  lastCloudSaveError = message;
+  console.warn(`[cloudSave] ${stage} falhou (${lastDiagnostics.category})`, { status, message });
+}
+
 async function upsertOnce(snapshot: unknown, forceRefresh: boolean) {
   const { uid, headers } = await getAuthedRestHeaders(forceRefresh);
   const response = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`, {
@@ -176,14 +210,40 @@ async function upsertOnce(snapshot: unknown, forceRefresh: boolean) {
   return response;
 }
 
-async function upsert(_uid: string, snapshot: unknown) {
+/**
+ * Caminho alternativo pelo próprio supabase-js. Ele monta headers/refresh
+ * sozinho, então cobre casos em que o fetch cru falha (apikey, CORS, token).
+ */
+async function upsertViaClient(uid: string, snapshot: unknown) {
+  const { error } = await supabase
+    .from("game_saves")
+    .upsert({ user_id: uid, data: snapshot, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  if (error) throw new Error([error.message, error.hint, error.details, error.code].filter(Boolean).join(" · "));
+}
+
+async function upsert(uid: string, snapshot: unknown) {
   let response = await upsertOnce(snapshot, false);
   // 401/403 => token vencido ou trocado: renova e tenta uma vez mais.
   if (response.status === 401 || response.status === 403) {
     response = await upsertOnce(snapshot, true);
   }
-  if (!response.ok) throw new Error(await parseRestError(response));
+  if (!response.ok) {
+    const message = await parseRestError(response);
+    noteDiagnostics("write", response.status, message);
+    // Última cartada: gravar pelo cliente oficial antes de desistir.
+    try {
+      await upsertViaClient(uid, snapshot);
+      lastCloudSaveError = null;
+      return;
+    } catch (fallbackError) {
+      const fbMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+      noteDiagnostics("write", response.status, `${message} | fallback: ${fbMessage}`);
+      throw new Error(message);
+    }
+  }
+  lastDiagnostics = null;
 }
+
 
 
 /** Grava com até 3 tentativas (rede instável não deve custar progresso). */
