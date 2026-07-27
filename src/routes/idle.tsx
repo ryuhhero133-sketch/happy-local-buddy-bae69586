@@ -3508,14 +3508,14 @@ function IdlePage() {
   }, [worldMapOpen, rankOpen]);
 
   const [rankRefreshTick, setRankRefreshTick] = useState(0);
-  const RANK_CACHE_TTL_MS = 2 * 60 * 1000; // 2min — puxa os níveis atuais e some com contas deletadas
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v7_live_2min_${mode}`;
+  const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking congelado, sem atualizar direto
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v8_frozen_2h_${mode}`;
 
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
     const key = rankCacheKey(rankMode);
-    // Serve cache local só por 2 minutos; "Atualizar agora" ignora o cache.
+    // Serve cache local por 2 horas — o ranking fica congelado nesse período.
     if (rankRefreshTick === 0) {
       try {
         const raw = localStorage.getItem(key);
@@ -8499,22 +8499,15 @@ function IdlePage() {
                         </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        try {
-                          localStorage.removeItem(rankCacheKey("trainer"));
-                          localStorage.removeItem(rankCacheKey("craft"));
-                        } catch { /* ignore */ }
-                        setRankRefreshTick((v) => v + 1);
-                      }}
-                      title="Atualizar ranking agora"
+                    <div
+                      title="O ranking global é congelado e atualiza a cada 2 horas"
                       style={{
-                        background: "rgba(120,220,255,0.12)", border: "1px solid rgba(120,220,255,0.4)",
-                        color: "#bfefff", cursor: "pointer", fontSize: 15, height: 34, padding: "0 12px",
-                        borderRadius: 10, display: "flex", alignItems: "center", gap: 6, fontWeight: 900,
+                        background: "rgba(120,220,255,0.08)", border: "1px solid rgba(120,220,255,0.25)",
+                        color: "#9fd8ee", fontSize: 12, height: 34, padding: "0 12px",
+                        borderRadius: 10, display: "flex", alignItems: "center", gap: 6, fontWeight: 800,
                         marginRight: 8,
                       }}
-                    >{rankLoading ? "⏳" : "🔄"} Atualizar</button>
+                    >{rankLoading ? "⏳ carregando…" : "🕒 Atualiza a cada 2h"}</div>
                     <button
                       onClick={() => setRankOpen(false)}
                       style={{
