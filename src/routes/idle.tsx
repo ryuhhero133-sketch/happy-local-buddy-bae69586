@@ -3516,7 +3516,7 @@ function IdlePage() {
     let cancelled = false;
     const key = rankCacheKey(rankMode);
     // Serve cache local por 2 horas — o ranking fica congelado nesse período.
-    if (rankRefreshTick === 0) {
+    {
       try {
         const raw = localStorage.getItem(key);
         if (raw) {
