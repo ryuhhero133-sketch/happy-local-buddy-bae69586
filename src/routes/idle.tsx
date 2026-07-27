@@ -10613,7 +10613,11 @@ function IdlePage() {
                   pushChat("☁️ Progresso salvo na nuvem!", "info");
                 } else {
                   void attemptPendingCloudSave().finally(() => setCloudQueueTick((t) => t + 1));
-                  pushChat(`🛡️ Ainda não confirmou na nuvem. O progresso ficou protegido localmente e será reenviado automático (${getCloudSaveLastError() ?? "rede/banco instável"}).`, "info");
+                  const diag = getCloudSaveDiagnostics();
+                  const causa = diag
+                    ? ({ sessao: "sessão expirada", permissao: "permissão/RLS no banco", banco: "banco recusou (trigger/limite)", rede: "rede instável", config: "configuração do Supabase", local: "armazenamento do navegador cheio", desconhecido: "causa desconhecida" } as const)[diag.category]
+                    : "rede/banco instável";
+                  pushChat(`🛡️ Ainda não confirmou na nuvem (${causa}). O progresso ficou protegido localmente e será reenviado automático. [${getCloudSaveLastError() ?? "sem detalhe"}]`, "info");
                 }
               } catch (e) {
                 setCloudQueueTick((t) => t + 1);
