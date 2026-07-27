@@ -8499,22 +8499,15 @@ function IdlePage() {
                         </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        try {
-                          localStorage.removeItem(rankCacheKey("trainer"));
-                          localStorage.removeItem(rankCacheKey("craft"));
-                        } catch { /* ignore */ }
-                        setRankRefreshTick((v) => v + 1);
-                      }}
-                      title="Atualizar ranking agora"
+                    <div
+                      title="O ranking global é congelado e atualiza a cada 2 horas"
                       style={{
-                        background: "rgba(120,220,255,0.12)", border: "1px solid rgba(120,220,255,0.4)",
-                        color: "#bfefff", cursor: "pointer", fontSize: 15, height: 34, padding: "0 12px",
-                        borderRadius: 10, display: "flex", alignItems: "center", gap: 6, fontWeight: 900,
+                        background: "rgba(120,220,255,0.08)", border: "1px solid rgba(120,220,255,0.25)",
+                        color: "#9fd8ee", fontSize: 12, height: 34, padding: "0 12px",
+                        borderRadius: 10, display: "flex", alignItems: "center", gap: 6, fontWeight: 800,
                         marginRight: 8,
                       }}
-                    >{rankLoading ? "⏳" : "🔄"} Atualizar</button>
+                    >{rankLoading ? "⏳ carregando…" : "🕒 Atualiza a cada 2h"}</div>
                     <button
                       onClick={() => setRankOpen(false)}
                       style={{
