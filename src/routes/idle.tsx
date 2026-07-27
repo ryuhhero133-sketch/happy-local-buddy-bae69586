@@ -1588,7 +1588,38 @@ function IdlePage() {
     let cancelled = false;
     // Trava a gravação até confirmarmos o que existe na nuvem.
     setCloudSaveLock("aguardando leitura da nuvem");
+
+    // Aplica um snapshot completo (vindo da nuvem OU do backup local).
+    const applyBlob = (raw: unknown) => {
+      const blob = raw as
+        | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
+        | null;
+      if (!blob) return;
+      if (blob.idle) {
+        setIdle((prev) => {
+          const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
+          if (!IDLE_MAPS[merged.currentMap]) merged.currentMap = "arena";
+          const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
+          if (!uskins.includes("default")) uskins.unshift("default");
+          merged.unlockedSkins = uskins;
+          merged.autoHeal = { ...(merged.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: merged.autoHeal?.enabled ?? true };
+          return merged;
+        });
+      }
+      if (Array.isArray(blob.team) && blob.team.length > 0) {
+        setTeam(blob.team.slice(0, 6));
+      } else if (Array.isArray(blob.party) && blob.party.length > 0) {
+        setTeam(blob.party.slice(0, 5));
+      }
+      if (Array.isArray(blob.restingBench)) {
+        setRestingBench(blob.restingBench);
+      } else if (Array.isArray(blob.party) && blob.party.length > 5) {
+        setRestingBench(blob.party.slice(5));
+      }
+    };
+
     (async () => {
+      const local = getBestLocalSnapshot();
       try {
         const { data: sess } = await supabase.auth.getSession();
         const uid = sess.session?.user?.id;
@@ -1605,48 +1636,51 @@ function IdlePage() {
         if (result.status === "error") {
           setCloudSaveLock(`leitura falhou: ${result.message}`);
           setCloudSaveBlocked(true);
-          toast.error("Nuvem instável: seu progresso desta sessão fica protegido neste aparelho e será reenviado automaticamente.", { duration: 12000 });
+          // Restaura o backup local para o jogador não voltar ao zero.
+          if (local) {
+            applyBlob(local.snapshot);
+            cloudBlobHydratedRef.current = true;
+            toast.info("💾 Progresso restaurado do backup deste aparelho — reenviaremos à nuvem assim que ela responder.", { duration: 10000 });
+          } else {
+            toast.error("Nuvem instável: seu progresso desta sessão fica protegido neste aparelho e será reenviado automaticamente.", { duration: 12000 });
+          }
           return;
         }
 
         setCloudSaveBlocked(false);
         setCloudSaveLock(null);
+
+        const cloudAt =
+          result.status === "ok"
+            ? Number((result.data as { savedAt?: unknown } | null)?.savedAt ?? 0) || 0
+            : 0;
+        const localAt = local?.savedAt ?? 0;
+
+        // O snapshot local só vence quando é comprovadamente MAIS NOVO
+        // (evita rollback quando a última gravação não chegou ao banco).
+        if (local && localAt > cloudAt) {
+          applyBlob(local.snapshot);
+          cloudBlobHydratedRef.current = true;
+          toast.success("💾 Progresso mais recente recuperado do backup local.", { duration: 6000 });
+          void attemptPendingCloudSave();
+          return;
+        }
+
         if (result.status === "empty") {
           cloudBlobHydratedRef.current = true;
           return;
         }
 
-        const blob = result.data as
-          | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
-          | null;
-        if (!blob) { cloudBlobHydratedRef.current = true; return; }
-        if (blob.idle) {
-          setIdle((prev) => {
-            const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
-            // Sanitiza
-            if (!IDLE_MAPS[merged.currentMap]) merged.currentMap = "arena";
-            const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
-            if (!uskins.includes("default")) uskins.unshift("default");
-            merged.unlockedSkins = uskins;
-            merged.autoHeal = { ...(merged.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: merged.autoHeal?.enabled ?? true };
-            return merged;
-          });
-        }
-        if (Array.isArray(blob.team) && blob.team.length > 0) {
-          setTeam(blob.team.slice(0, 6));
-        } else if (Array.isArray(blob.party) && blob.party.length > 0) {
-          setTeam(blob.party.slice(0, 5));
-        }
-        if (Array.isArray(blob.restingBench)) {
-          setRestingBench(blob.restingBench);
-        } else if (Array.isArray(blob.party) && blob.party.length > 5) {
-          setRestingBench(blob.party.slice(5));
-        }
+        applyBlob(result.data);
         cloudBlobHydratedRef.current = true;
       } catch (e) {
         console.warn("[cloudBlob] hydrate failed", e);
         setCloudSaveLock("erro inesperado na leitura da nuvem");
         setCloudSaveBlocked(true);
+        if (local) {
+          applyBlob(local.snapshot);
+          cloudBlobHydratedRef.current = true;
+        }
       } finally {
         if (!cancelled) setCloudBlobReady(true);
       }
