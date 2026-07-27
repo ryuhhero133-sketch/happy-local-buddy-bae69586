@@ -217,7 +217,7 @@ async function upsertOnce(snapshot: unknown, forceRefresh: boolean) {
 async function upsertViaClient(uid: string, snapshot: unknown) {
   const { error } = await supabase
     .from("game_saves")
-    .upsert({ user_id: uid, data: snapshot, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+    .upsert({ user_id: uid, data: snapshot as never, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
   if (error) throw new Error([error.message, error.hint, error.details, error.code].filter(Boolean).join(" · "));
 }
 
