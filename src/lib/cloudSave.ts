@@ -338,12 +338,20 @@ export async function fetchCloudSaveResult(userId: string, attempts = 3): Promis
   let lastMessage = "falha de leitura";
   for (let i = 0; i < attempts; i++) {
     try {
-      const { headers } = await getAuthedRestHeaders();
-      const response = await fetch(
+      const { headers } = await getAuthedRestHeaders(i > 0);
+      let response = await fetch(
         `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
         { headers, signal: AbortSignal.timeout(12000) },
       );
+      if (response.status === 401 || response.status === 403) {
+        const retryAuth = await getAuthedRestHeaders(true);
+        response = await fetch(
+          `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+          { headers: retryAuth.headers, signal: AbortSignal.timeout(12000) },
+        );
+      }
       if (!response.ok) throw new Error(await parseRestError(response));
+
       const rows = (await response.json()) as Array<{ data?: unknown }>;
       lastCloudSaveError = null;
       const data = rows[0]?.data ?? null;
