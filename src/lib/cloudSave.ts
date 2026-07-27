@@ -121,9 +121,21 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   });
 }
 
-async function getAuthedRestHeaders() {
-  const { data: sess } = await withTimeout(supabase.auth.getSession(), 8000, "sessão");
-  const session = sess.session;
+async function getAuthedRestHeaders(forceRefresh = false) {
+  let session = (await withTimeout(supabase.auth.getSession(), 8000, "sessão")).data.session;
+
+  // Token expirado/quase expirando é a causa nº1 de "não salvou" em sessões
+  // longas: o PostgREST devolve 401 e o save era descartado. Renovamos antes.
+  const expSoon = session?.expires_at ? session.expires_at * 1000 - Date.now() < 60_000 : false;
+  if (forceRefresh || !session || expSoon) {
+    try {
+      const refreshed = await withTimeout(supabase.auth.refreshSession(), 8000, "renovar sessão");
+      if (refreshed.data.session) session = refreshed.data.session;
+    } catch (e) {
+      console.warn("[cloudSave] refreshSession falhou", e);
+    }
+  }
+
   if (!session?.user?.id || !session.access_token) {
     throw new Error("sem sessão/login ativo");
   }
@@ -150,8 +162,8 @@ async function parseRestError(response: Response) {
   }
 }
 
-async function upsert(uid: string, snapshot: unknown) {
-  const { headers } = await getAuthedRestHeaders();
+async function upsertOnce(snapshot: unknown, forceRefresh: boolean) {
+  const { uid, headers } = await getAuthedRestHeaders(forceRefresh);
   const response = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`, {
     method: "POST",
     headers: {
@@ -161,8 +173,18 @@ async function upsert(uid: string, snapshot: unknown) {
     body: JSON.stringify({ user_id: uid, data: snapshot, updated_at: new Date().toISOString() }),
     signal: AbortSignal.timeout(15000),
   });
+  return response;
+}
+
+async function upsert(_uid: string, snapshot: unknown) {
+  let response = await upsertOnce(snapshot, false);
+  // 401/403 => token vencido ou trocado: renova e tenta uma vez mais.
+  if (response.status === 401 || response.status === 403) {
+    response = await upsertOnce(snapshot, true);
+  }
   if (!response.ok) throw new Error(await parseRestError(response));
 }
+
 
 /** Grava com até 3 tentativas (rede instável não deve custar progresso). */
 async function upsertWithRetry(uid: string, snapshot: unknown, attempts = 3) {
