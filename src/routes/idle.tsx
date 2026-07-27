@@ -1649,6 +1649,20 @@ function IdlePage() {
     return () => { cancelled = true; };
   }, [cloudRetryTick]);
 
+  // Auto-retry: se a leitura da nuvem falhou (rede/permissão), tenta de novo
+  // sozinho a cada 15s. Sem isso o jogador fica com o save PAUSADO até
+  // apertar o botão manual — e acaba perdendo progresso da sessão.
+  useEffect(() => {
+    if (!cloudSaveBlocked) return;
+    const iv = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      cloudBlobHydratedRef.current = false;
+      setCloudRetryTick((t) => t + 1);
+    }, 15000);
+    return () => clearInterval(iv);
+  }, [cloudSaveBlocked]);
+
+
   // Autosave do BLOB completo — debounced (1.5s) sempre que idle/team/bench mudam.
   const buildFullBlob = useCallback(() => ({
     idle: idleRef.current,
