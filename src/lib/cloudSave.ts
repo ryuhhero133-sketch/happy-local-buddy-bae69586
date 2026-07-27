@@ -190,11 +190,83 @@ function classify(status: number | null, message: string): CloudSaveDiagnostics[
   return "desconhecido";
 }
 
+const LOG_KEY = "rubym.cloud.log.v1";
+
+/** Histórico das últimas falhas (fica no aparelho, ajuda a diagnosticar). */
+export function getCloudSaveLog(): CloudSaveDiagnostics[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(LOG_KEY);
+    const parsed = raw ? (JSON.parse(raw) as CloudSaveDiagnostics[]) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function appendLog(entry: CloudSaveDiagnostics) {
+  if (typeof window === "undefined") return;
+  try {
+    const list = [entry, ...getCloudSaveLog()].slice(0, 20);
+    window.localStorage.setItem(LOG_KEY, JSON.stringify(list));
+  } catch {
+    /* quota: log é descartável, nunca deve impedir o save */
+  }
+}
+
 function noteDiagnostics(stage: CloudSaveDiagnostics["stage"], status: number | null, message: string) {
   lastDiagnostics = { at: Date.now(), stage, status, category: classify(status, message), message };
   lastCloudSaveError = message;
+  appendLog(lastDiagnostics);
   console.warn(`[cloudSave] ${stage} falhou (${lastDiagnostics.category})`, { status, message });
 }
+
+/**
+ * Teste de saúde: diz exatamente qual operação o banco está recusando
+ * (SELECT / UPDATE) sem alterar nenhum dado do jogador.
+ */
+export async function runCloudSaveSelfTest(): Promise<{
+  session: boolean;
+  select: string;
+  write: string;
+}> {
+  const result = { session: false, select: "não testado", write: "não testado" };
+  let uid = "";
+  let headers: Record<string, string>;
+  try {
+    const authed = await getAuthedRestHeaders(false);
+    uid = authed.uid;
+    headers = authed.headers;
+    result.session = true;
+  } catch (e) {
+    result.select = result.write = e instanceof Error ? e.message : String(e);
+    return result;
+  }
+  try {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/game_saves?select=user_id,updated_at&user_id=eq.${uid}`,
+      { headers, signal: AbortSignal.timeout(12000) },
+    );
+    result.select = r.ok ? "ok" : `${r.status}: ${await parseRestError(r)}`;
+  } catch (e) {
+    result.select = e instanceof Error ? e.message : String(e);
+  }
+  try {
+    // Só toca em updated_at de uma linha que já existe — nada de progresso muda.
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?user_id=eq.${uid}`, {
+      method: "PATCH",
+      headers: { ...headers, Prefer: "return=minimal" },
+      body: JSON.stringify({ updated_at: new Date().toISOString() }),
+      signal: AbortSignal.timeout(12000),
+    });
+    result.write = r.ok ? "ok" : `${r.status}: ${await parseRestError(r)}`;
+  } catch (e) {
+    result.write = e instanceof Error ? e.message : String(e);
+  }
+  console.info("[cloudSave] self-test", result);
+  return result;
+}
+
 
 async function upsertOnce(snapshot: unknown, forceRefresh: boolean) {
   const { uid, headers } = await getAuthedRestHeaders(forceRefresh);
