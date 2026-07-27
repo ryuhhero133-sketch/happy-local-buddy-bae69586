@@ -73,7 +73,7 @@ import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { toast } from "sonner";
-import { fetchCloudSaveResult, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync, setCloudSaveLock } from "@/lib/cloudSave";
+import { attemptPendingCloudSave, fetchCloudSaveResult, getCloudSaveLastError, getPendingCloudSaveInfo, pushCloudSaveNow, scheduleCloudSync, setCloudSaveLock } from "@/lib/cloudSave";
 import { fetchTopRanked, fetchTopPrismaRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
@@ -1578,6 +1578,11 @@ function IdlePage() {
   const [cloudBlobReady, setCloudBlobReady] = useState(false);
   const [cloudSaveBlocked, setCloudSaveBlocked] = useState(false);
   const [cloudRetryTick, setCloudRetryTick] = useState(0);
+  const [cloudQueueTick, setCloudQueueTick] = useState(0);
+  const pendingCloudSave = useMemo(() => {
+    void cloudQueueTick;
+    return getPendingCloudSaveInfo();
+  }, [cloudQueueTick]);
   useEffect(() => {
     if (cloudBlobHydratedRef.current) return;
     let cancelled = false;
@@ -1600,7 +1605,7 @@ function IdlePage() {
         if (result.status === "error") {
           setCloudSaveLock(`leitura falhou: ${result.message}`);
           setCloudSaveBlocked(true);
-          toast.error("Não conseguimos carregar seu progresso da nuvem. O salvamento está PAUSADO para não apagar seus dados. Toque em Tentar novamente.", { duration: 12000 });
+          toast.error("Nuvem instável: seu progresso desta sessão fica protegido neste aparelho e será reenviado automaticamente.", { duration: 12000 });
           return;
         }
 
@@ -1671,24 +1676,33 @@ function IdlePage() {
     savedAt: Date.now(),
   }), [restingBench]);
   useEffect(() => {
-    if (!cloudBlobReady || cloudSaveBlocked) return;
+    if (!cloudBlobReady) return;
+    // Mesmo com a nuvem bloqueada, scheduleCloudSync grava uma fila local durável.
+    // Assim o jogador pode continuar jogando sem perder o progresso da sessão.
     scheduleCloudSync(buildFullBlob());
+    setCloudQueueTick((t) => t + 1);
   }, [idle, team, restingBench, buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
+
+  useEffect(() => {
+    const id = setInterval(() => setCloudQueueTick((t) => t + 1), 5000);
+    return () => clearInterval(id);
+  }, []);
 
   // ⏱️ CHECKPOINT GARANTIDO — a cada 30 minutos força um save na nuvem,
   // mesmo que nada tenha mudado, para nunca existir uma janela longa sem backup.
   useEffect(() => {
-    if (!cloudBlobReady || cloudSaveBlocked) return;
+    if (!cloudBlobReady) return;
     const CHECKPOINT_MS = 30 * 60 * 1000;
     const id = setInterval(() => {
       void (async () => {
         const ok = await pushCloudSaveNow(buildFullBlob());
+        setCloudQueueTick((t) => t + 1);
         if (ok) toast.success("✅ Checkpoint automático: progresso salvo na nuvem", { duration: 3000 });
-        else toast.error(`⚠️ Checkpoint falhou: ${getCloudSaveLastError() ?? "erro"}`, { duration: 6000 });
+        else toast.info("🛡️ Checkpoint guardado localmente; a nuvem será reenviada automaticamente.", { duration: 6000 });
       })();
     }, CHECKPOINT_MS);
     return () => clearInterval(id);
-  }, [buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
+  }, [buildFullBlob, cloudBlobReady]);
 
 
   // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
@@ -1696,6 +1710,7 @@ function IdlePage() {
     const flush = () => {
       if (!cloudBlobReady) return;
       void pushCloudSaveNow(buildFullBlob());
+      setCloudQueueTick((t) => t + 1);
     };
     window.addEventListener("beforeunload", flush);
     const onVisibilityChange = () => {
