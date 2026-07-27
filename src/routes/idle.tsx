@@ -10602,15 +10602,22 @@ function IdlePage() {
             onClick={async () => {
               playClick();
               if (!cloudBlobReady) {
-                pushChat("⏳ Aguarde carregar o save da nuvem antes de salvar.", "info");
+                pushChat("⏳ Aguarde carregar o save da nuvem. O progresso atual já fica protegido neste aparelho.", "info");
                 return;
               }
               try {
                 const ok = await pushCloudSaveNow(buildFullBlob());
-                await serverSync.pushNow();
-                pushChat(ok ? "☁️ Progresso salvo na nuvem!" : `⚠️ Não salvou na nuvem: ${getCloudSaveLastError() ?? "verifique a tabela game_saves"}.`, "info");
+                try { await serverSync.pushNow(); } catch { /* sync normalizado é best-effort */ }
+                setCloudQueueTick((t) => t + 1);
+                if (ok) {
+                  pushChat("☁️ Progresso salvo na nuvem!", "info");
+                } else {
+                  void attemptPendingCloudSave().finally(() => setCloudQueueTick((t) => t + 1));
+                  pushChat(`🛡️ Ainda não confirmou na nuvem. O progresso ficou protegido localmente e será reenviado automático (${getCloudSaveLastError() ?? "rede/banco instável"}).`, "info");
+                }
               } catch (e) {
-                pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
+                setCloudQueueTick((t) => t + 1);
+                pushChat("🛡️ Falha temporária na nuvem. O progresso ficou protegido localmente e será reenviado automático.", "info");
               }
             }}
             title="Salvar progresso na nuvem"
