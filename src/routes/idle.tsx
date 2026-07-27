@@ -3516,7 +3516,7 @@ function IdlePage() {
     let cancelled = false;
     const key = rankCacheKey(rankMode);
     // Serve cache local por 2 horas — o ranking fica congelado nesse período.
-    if (rankRefreshTick === 0) {
+    {
       try {
         const raw = localStorage.getItem(key);
         if (raw) {
@@ -3595,6 +3595,21 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [rankOpen, rankMode, rankRefreshTick, identity?.id, identity?.name, idle.trainerLevel, idle.items?.cristal_fragmentado, idle.collection, team]);
+
+  // Ranking congelado: revalida sozinho apenas a cada 2 horas.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      try {
+        localStorage.removeItem(rankCacheKey("trainer"));
+        localStorage.removeItem(rankCacheKey("craft"));
+      } catch { /* ignore */ }
+      setRankRefreshTick((v) => v + 1);
+    }, RANK_CACHE_TTL_MS);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
   useEffect(() => {
     const t = setTimeout(() => {
