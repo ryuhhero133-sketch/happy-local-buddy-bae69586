@@ -3508,14 +3508,14 @@ function IdlePage() {
   }, [worldMapOpen, rankOpen]);
 
   const [rankRefreshTick, setRankRefreshTick] = useState(0);
-  const RANK_CACHE_TTL_MS = 2 * 60 * 1000; // 2min — puxa os níveis atuais e some com contas deletadas
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v7_live_2min_${mode}`;
+  const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking congelado, sem atualizar direto
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v8_frozen_2h_${mode}`;
 
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
     const key = rankCacheKey(rankMode);
-    // Serve cache local só por 2 minutos; "Atualizar agora" ignora o cache.
+    // Serve cache local por 2 horas — o ranking fica congelado nesse período.
     if (rankRefreshTick === 0) {
       try {
         const raw = localStorage.getItem(key);
