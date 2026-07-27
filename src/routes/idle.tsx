@@ -73,7 +73,7 @@ import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { toast } from "sonner";
-import { attemptPendingCloudSave, fetchCloudSaveResult, getCloudSaveLastError, getPendingCloudSaveInfo, pushCloudSaveNow, scheduleCloudSync, setCloudSaveLock } from "@/lib/cloudSave";
+import { attemptPendingCloudSave, fetchCloudSaveResult, getCloudSaveDiagnostics, getCloudSaveLastError, getPendingCloudSaveInfo, pushCloudSaveNow, scheduleCloudSync, setCloudSaveLock } from "@/lib/cloudSave";
 import { fetchTopRanked, fetchTopPrismaRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
@@ -10613,7 +10613,11 @@ function IdlePage() {
                   pushChat("☁️ Progresso salvo na nuvem!", "info");
                 } else {
                   void attemptPendingCloudSave().finally(() => setCloudQueueTick((t) => t + 1));
-                  pushChat(`🛡️ Ainda não confirmou na nuvem. O progresso ficou protegido localmente e será reenviado automático (${getCloudSaveLastError() ?? "rede/banco instável"}).`, "info");
+                  const diag = getCloudSaveDiagnostics();
+                  const causa = diag
+                    ? ({ sessao: "sessão expirada", permissao: "permissão/RLS no banco", banco: "banco recusou (trigger/limite)", rede: "rede instável", config: "configuração do Supabase", local: "armazenamento do navegador cheio", desconhecido: "causa desconhecida" } as const)[diag.category]
+                    : "rede/banco instável";
+                  pushChat(`🛡️ Ainda não confirmou na nuvem (${causa}). O progresso ficou protegido localmente e será reenviado automático. [${getCloudSaveLastError() ?? "sem detalhe"}]`, "info");
                 }
               } catch (e) {
                 setCloudQueueTick((t) => t + 1);
