@@ -7206,58 +7206,25 @@ function IdlePage() {
                   );
                 })}
               </div>
-              {/* Composer do chat global — cooldown 10 min por jogador */}
-              {(() => {
-                void chatTick;
-                const now = Date.now();
-                const remainMs = Math.max(0, chatCooldownUntil - now);
-                const onCd = remainMs > 0;
-                const mm = Math.floor(remainMs / 60000);
-                const ss = Math.floor((remainMs % 60000) / 1000).toString().padStart(2, "0");
-                const send = () => {
-                  const text = chatInput.trim().slice(0, 140);
-                  if (!text || onCd) return;
-                  const name = identity?.name ?? "Treinador";
-                  pushChat(`💬 ${name}: ${text}`, "info");
-                  void captureChanRef.current?.send({
-                    type: "broadcast",
-                    event: "say",
-                    payload: { id: identity?.id ?? "self", name, text },
-                  });
-                  setChatInput("");
-                  setChatCooldownUntil(Date.now() + 10 * 60 * 1000);
-                };
-                return (
-                  <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
-                    <input
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") send(); }}
-                      placeholder={onCd ? `Aguarde ${mm}:${ss}` : "Falar no chat geral (1x a cada 10 min)"}
-                      maxLength={140}
-                      disabled={onCd}
-                      style={{
-                        flex: 1, background: "#0e0818", color: "#f3e5c5",
-                        border: "1px solid rgba(107,212,255,0.25)", borderRadius: 6,
-                        padding: "6px 8px", fontSize: 11, outline: "none",
-                        opacity: onCd ? 0.6 : 1,
-                      }}
-                    />
-                    <button
-                      onClick={send}
-                      disabled={onCd || !chatInput.trim()}
-                      style={{
-                        background: onCd ? "#3a1010" : "#1e3a5f", color: "#fff",
-                        border: "1px solid rgba(107,212,255,0.4)", borderRadius: 6,
-                        padding: "6px 10px", fontSize: 11, fontWeight: 800,
-                        cursor: onCd ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      {onCd ? `${mm}:${ss}` : "Enviar"}
-                    </button>
-                  </div>
-                );
-              })()}
+              {/* Chat global de jogadores BLOQUEADO temporariamente */}
+              <div
+                style={{
+                  marginTop: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#1a0d0d",
+                  border: "1px solid rgba(255,107,107,0.35)",
+                  borderRadius: 6,
+                  padding: "7px 9px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#ffb3b3",
+                }}
+              >
+                🔒 Chat global desativado — apenas avisos do sistema.
+              </div>
+
             </Panel>
           </div>
         </div>
