@@ -2158,6 +2158,34 @@ function IdlePage() {
   };
 
   // ============================================================
+  // AVISO GLOBAL — BANIMENTOS & ESTRUTURAÇÃO DO SERVIDOR
+  // Roda a cada 5 minutos, alternando mensagens.
+  // ============================================================
+  const banNoticeIdxRef = useRef(0);
+  useEffect(() => {
+    const NOTICES: string[] = [
+      "🛡 AVISO OFICIAL: algumas contas foram BANIDAS permanentemente por tentativa de burlar o servidor. O servidor segue sendo estruturado e balanceado — obrigado a quem joga limpo!",
+      "🚫 Um agradecimento especial aos gênios que passaram horas tentando furar nossa segurança... e conseguiram exatamente NADA. Contas banidas, tempo perdido. Valeu pelo esforço! 😄",
+      "⚙ Estruturação em andamento: balanceamento, anti-cheat e performance sendo reforçados a cada ciclo. Quem tentar trapacear vira mais um nome na lista de banidos.",
+      "🏆 Enquanto uns evoluíram de verdade, outros evoluíram só no ban. Obrigado pela dedicação em perder tempo — o servidor continua de pé, e vocês não. 😉",
+      "🔒 Sistema anti-fraude ativo 24h. Toda alteração suspeita é registrada e resulta em banimento permanente. Servidor em constante estruturação e balanceamento.",
+    ];
+    const fire = () => {
+      const msg = NOTICES[banNoticeIdxRef.current % NOTICES.length];
+      banNoticeIdxRef.current++;
+      pushChat(msg, "lv");
+    };
+    const t = setTimeout(fire, 8000);
+    const iv = setInterval(fire, 5 * 60 * 1000);
+    return () => {
+      clearTimeout(t);
+      clearInterval(iv);
+    };
+  }, []);
+
+
+
+  // ============================================================
   // AVISO GLOBAL — ODISSÉIA ODDISH
   // O evento abre no mesmo horário pra todo mundo (startedAt fixo).
   // Aqui despachamos toasts/chat sincronizados: T-5min, T-1min, ABERTO, FECHADO.
