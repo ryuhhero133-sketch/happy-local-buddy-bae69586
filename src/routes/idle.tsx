@@ -2461,7 +2461,7 @@ function IdlePage() {
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
 
     // Todos os códigos de resgate foram desativados.
-    setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
+    setCodeMsg({ kind: "err", text: "Todos os códigos de recompensa foram desativados." });
   };
 
 
@@ -10494,7 +10494,7 @@ function IdlePage() {
                 onClick={() => {
                   if (isDisabled) {
                     playClick();
-                    pushChat("🛒 Marketplace em breve — ainda não habilitado.", "info");
+                    pushChat("🛒 Marketplace desativado temporariamente.", "info");
                     return;
                   }
                   playClick();
