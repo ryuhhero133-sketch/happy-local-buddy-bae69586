@@ -2461,7 +2461,7 @@ function IdlePage() {
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
 
     // Todos os códigos de resgate foram desativados.
-    setCodeMsg({ kind: "err", text: "Código inválido ou expirado." });
+    setCodeMsg({ kind: "err", text: "Todos os códigos de recompensa foram desativados." });
   };
 
 
@@ -2755,7 +2755,8 @@ function IdlePage() {
       }
       const k = e.key.toLowerCase();
       if (k === "m") { e.preventDefault(); setWorldMapOpen((v) => !v); return; }
-      if (k === "r") { e.preventDefault(); setRankOpen((v) => !v); return; }
+      // Ranked desativado temporariamente
+      if (k === "r") { e.preventDefault(); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); collect(); return; }
     };
@@ -7292,7 +7293,7 @@ function IdlePage() {
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
-              onClick={() => { playClick(); setRankOpen(true); }}
+              onClick={() => { playClick(); pushChat("🏆 Ranked desativado temporariamente.", "info"); }}
               style={{
                 ...zoomBtn,
                 padding: 0,
@@ -10478,7 +10479,7 @@ function IdlePage() {
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
-            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d" },
+            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
             // Carteira bloqueada temporariamente
             // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
           ] as const).map((t) => {
@@ -10493,7 +10494,7 @@ function IdlePage() {
                 onClick={() => {
                   if (isDisabled) {
                     playClick();
-                    pushChat("🛒 Marketplace em breve — ainda não habilitado.", "info");
+                    pushChat("🛒 Marketplace desativado temporariamente.", "info");
                     return;
                   }
                   playClick();
