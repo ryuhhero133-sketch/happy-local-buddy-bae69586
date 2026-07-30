@@ -7293,7 +7293,7 @@ function IdlePage() {
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
-              onClick={() => { playClick(); setRankOpen(true); }}
+              onClick={() => { playClick(); pushChat("🏆 Ranked desativado temporariamente.", "info"); }}
               style={{
                 ...zoomBtn,
                 padding: 0,
