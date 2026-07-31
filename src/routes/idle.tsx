@@ -13299,6 +13299,7 @@ function TabOverlay({
           egg_boost_69: "Cristal do Despertar ✦",
           stone_pack_all: "Pacote das Seis Stones 💠",
           cristal_fragmentado: "Cristal Prisma 🔷",
+          fragmento_vermelho: "Fragmento Vermelho 🔻",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
