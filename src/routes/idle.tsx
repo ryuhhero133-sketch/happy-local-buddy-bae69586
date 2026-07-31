@@ -10242,6 +10242,36 @@ function IdlePage() {
             </button>
           </div>
 
+          {/* 🔻 Fragmentos vermelhos voando do pokémon derrotado até a COLETA */}
+          {redShardFx.length > 0 && (
+            <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9000 }} aria-hidden="true">
+              {redShardFx.map((s) => (
+                <img
+                  key={s.id}
+                  src={redShardImg}
+                  alt=""
+                  width={26}
+                  height={26}
+                  style={{
+                    position: "fixed",
+                    left: s.x - 13,
+                    top: s.y - 13,
+                    width: 26,
+                    height: 26,
+                    imageRendering: "pixelated",
+                    filter: "drop-shadow(0 0 8px #ff2d2d)",
+                    animation: "redShardFly 1.1s cubic-bezier(0.35,0.05,0.4,1) forwards",
+                    animationDelay: `${s.delay}ms`,
+                    ["--rsx" as any]: `${s.dx}px`,
+                    ["--rsy" as any]: `${s.dy}px`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+
+
 
 
 
