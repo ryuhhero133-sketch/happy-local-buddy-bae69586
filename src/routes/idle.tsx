@@ -5579,6 +5579,7 @@ function IdlePage() {
       const gold = Math.floor(s.pending.gold);
       const rubies = Math.floor(s.pending.rubies);
       const crystals = Math.floor(s.pending.crystals);
+      const redshards = Math.floor(s.pending.redshards ?? 0);
       try {
         const raw = localStorage.getItem("rubym.save.v2");
         if (raw) {
@@ -5589,11 +5590,14 @@ function IdlePage() {
           localStorage.setItem("rubym.save.v2", JSON.stringify(save));
         }
       } catch { /* ignore */ }
-      pushFxAt(trainerPos.x, trainerPos.y - 60, `+${gold} ouro · +${crystals} 💎`, "gold");
+      pushFxAt(trainerPos.x, trainerPos.y - 60, `+${gold} ouro · +${crystals} 💎${redshards > 0 ? ` · +${redshards} 🔻` : ""}`, "gold");
       return {
         ...s,
-        pending: { gold: 0, rubies: 0, crystals: 0 },
+        pending: { gold: 0, rubies: 0, crystals: 0, redshards: 0 },
         bank: { gold: s.bank.gold + gold, crystals: s.bank.crystals + crystals },
+        items: redshards > 0
+          ? { ...s.items, fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) + redshards }
+          : s.items,
       };
     });
   };
