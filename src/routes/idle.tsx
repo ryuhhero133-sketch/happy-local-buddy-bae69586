@@ -1008,6 +1008,7 @@ const ITEM_IMG: Record<string, string> = {
   incenso_mel_raro_24h: (new URL("../assets/incense-24h.png", import.meta.url)).href,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
   cristal_fragmentado: assetUrlFromJson(iconFragmentCrystal),
+  fragmento_vermelho: redShardImg,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
