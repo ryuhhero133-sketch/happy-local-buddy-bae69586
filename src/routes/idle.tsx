@@ -193,6 +193,7 @@ import collectIconImg from "@/assets/icons/collect-icon.png";
 import rubyGemAsset from "@/assets/ruby-gem.png.asset.json";
 import crystalRedAsset from "@/assets/items/icon-crystal-red.png.asset.json";
 const crystalRedImg = assetUrlFromJson(crystalRedAsset);
+import redShardImg from "@/assets/icon-fragmento-vermelho.png";
 const crystalGreenImg = assetUrlFromJson(iconCrystalBlue);
 import treeOakAsset from "@/assets/tree-oak.png.asset.json";
 import treePineAsset from "@/assets/tree-pine.png.asset.json";
@@ -909,7 +910,7 @@ type Task = { id: string; title: string; reward: number; progress: number; targe
 type IdleState = {
   startedAt: number;
   lastTickAt: number;
-  pending: { gold: number; rubies: number; crystals: number };
+  pending: { gold: number; rubies: number; crystals: number; redshards?: number };
   totals: { gold: number; captured: number; kills?: number };
   currentMap: IdleMapId;
   tasks: Task[];
@@ -1008,6 +1009,7 @@ const ITEM_IMG: Record<string, string> = {
   incenso_mel_raro_24h: (new URL("../assets/incense-24h.png", import.meta.url)).href,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
   cristal_fragmentado: assetUrlFromJson(iconFragmentCrystal),
+  fragmento_vermelho: redShardImg,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -1098,7 +1100,7 @@ function freshIdle(): IdleState {
   const now = Date.now();
   return {
     startedAt: now, lastTickAt: now,
-    pending: { gold: 0, rubies: 0, crystals: 0 },
+    pending: { gold: 0, rubies: 0, crystals: 0, redshards: 0 },
     totals: { gold: 0, captured: 0, kills: 0 },
     currentMap: "arena",
     tasks: DEFAULT_TASKS(),
@@ -1978,6 +1980,35 @@ function IdlePage() {
   const enemyIdRef = useRef(1);
   const chestIdRef = useRef(1);
   const fxIdRef = useRef(1);
+  // 🔻 Fragmento Vermelho — sprites que voam do pokémon derrotado até o painel COLETA
+  const coletaRef = useRef<HTMLDivElement | null>(null);
+  const camViewRef = useRef({ camX: 0, camY: 0, zoom: 1 });
+  const shardIdRef = useRef(1);
+  const [redShardFx, setRedShardFx] = useState<{ id: number; x: number; y: number; dx: number; dy: number; delay: number }[]>([]);
+  const flyRedShards = (worldX: number, worldY: number, qty: number) => {
+    const vp = viewportRef.current?.getBoundingClientRect();
+    const dest = coletaRef.current?.getBoundingClientRect();
+    if (!vp || !dest) return;
+    const { camX, camY, zoom } = camViewRef.current;
+    const sx = vp.left + (worldX - camX) * zoom;
+    const sy = vp.top + (worldY - camY) * zoom;
+    if (sx < vp.left - 80 || sx > vp.right + 80 || sy < vp.top - 80 || sy > vp.bottom + 80) return;
+    const tx = dest.left + dest.width / 2;
+    const ty = dest.top + dest.height / 2;
+    const batch = Array.from({ length: Math.min(5, qty) }, (_, i) => {
+      const jx = (Math.random() - 0.5) * 46;
+      const jy = (Math.random() - 0.5) * 30;
+      return {
+        id: shardIdRef.current++,
+        x: sx + jx, y: sy + jy,
+        dx: tx - (sx + jx), dy: ty - (sy + jy),
+        delay: i * 90,
+      };
+    });
+    setRedShardFx((p) => [...p.slice(-40), ...batch]);
+    const ids = new Set(batch.map((b) => b.id));
+    window.setTimeout(() => setRedShardFx((p) => p.filter((s) => !ids.has(s.id))), 1500 + batch.length * 90);
+  };
   const [tab, setTab] = useState<"inicio" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas">("batalha");
   const [skinId, setSkinId] = useState<string>(() => {
     if (typeof window === "undefined") return "default";
@@ -2932,6 +2963,7 @@ function IdlePage() {
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * zoom) / zoom;
   const renderCamY = Math.round(camY * zoom) / zoom;
+  camViewRef.current = { camX: renderCamX, camY: renderCamY, zoom };
   const renderTrainerX = Math.round(trainerPos.x * zoom) / zoom;
   const renderTrainerY = Math.round(trainerPos.y * zoom) / zoom;
   const renderFollowerX = Math.round(followerState.x * zoom) / zoom;
@@ -3736,6 +3768,16 @@ function IdlePage() {
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
+          // 🔻 CRISTAL VERMELHO — todo pokémon derrotado dropa fragmentos por raridade (1 a 5).
+          const RED_SHARDS_BY_RARITY: Record<string, number> = {
+            common: 1, uncommon: 2, rare: 3, epic: 4,
+            legendary: 5, mythic: 5, mythic_shiny: 5,
+          };
+          const redShardGain = RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1;
+          flyRedShards(target.x, target.y - 20, redShardGain);
+          pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
+
+
           // XP para o líder + drena energia. Se ORB DE TIME estiver ativo, TODOS ganham EXP.
           const teamOrbActive = !!(idle.buffs.teamOrbUntil && Date.now() < idle.buffs.teamOrbUntil);
           setTeam((tm) => {
@@ -4046,7 +4088,7 @@ function IdlePage() {
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0) },
+              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0), redshards: (s.pending.redshards ?? 0) + redShardGain },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
@@ -5537,6 +5579,7 @@ function IdlePage() {
       const gold = Math.floor(s.pending.gold);
       const rubies = Math.floor(s.pending.rubies);
       const crystals = Math.floor(s.pending.crystals);
+      const redshards = Math.floor(s.pending.redshards ?? 0);
       try {
         const raw = localStorage.getItem("rubym.save.v2");
         if (raw) {
@@ -5547,11 +5590,14 @@ function IdlePage() {
           localStorage.setItem("rubym.save.v2", JSON.stringify(save));
         }
       } catch { /* ignore */ }
-      pushFxAt(trainerPos.x, trainerPos.y - 60, `+${gold} ouro · +${crystals} 💎`, "gold");
+      pushFxAt(trainerPos.x, trainerPos.y - 60, `+${gold} ouro · +${crystals} 💎${redshards > 0 ? ` · +${redshards} 🔻` : ""}`, "gold");
       return {
         ...s,
-        pending: { gold: 0, rubies: 0, crystals: 0 },
+        pending: { gold: 0, rubies: 0, crystals: 0, redshards: 0 },
         bank: { gold: s.bank.gold + gold, crystals: s.bank.crystals + crystals },
+        items: redshards > 0
+          ? { ...s.items, fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) + redshards }
+          : s.items,
       };
     });
   };
@@ -10144,7 +10190,7 @@ function IdlePage() {
 
 
           {/* COLETA — logo abaixo do mapa, destaque */}
-          <div style={{
+          <div ref={coletaRef} style={{
             background: "linear-gradient(135deg, #2a1a3e, #3d2b52)",
             border: "2px solid #f5cf6b",
             borderRadius: 10, padding: 10,
@@ -10158,6 +10204,20 @@ function IdlePage() {
             <div style={{ display: "flex", justifyContent: "space-around", alignItems: "center", marginBottom: 8, fontSize: 13, fontWeight: 700 }}>
               <span title="Ouro" style={{ color: "#f4c430" }}>● {fmtK(idle.pending.gold)}</span>
               <span title="Cristais">💎 {Math.floor(idle.pending.crystals)}</span>
+              <span
+                title="Fragmento de Cristal Vermelho — dropado por qualquer pokémon derrotado (1 a 5 por raridade)"
+                style={{ color: "#ff5c5c", display: "inline-flex", alignItems: "center", gap: 4, textShadow: "0 0 8px #ff2d2d88" }}
+              >
+                <img
+                  src={redShardImg}
+                  alt="Fragmento Vermelho"
+                  width={18}
+                  height={18}
+                  loading="lazy"
+                  style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 5px #ff2d2daa)" }}
+                />
+                {Math.floor(idle.pending.redshards ?? 0)}
+              </span>
             </div>
             <button
               onClick={collect}
@@ -10181,6 +10241,36 @@ function IdlePage() {
               COLETAR
             </button>
           </div>
+
+          {/* 🔻 Fragmentos vermelhos voando do pokémon derrotado até a COLETA */}
+          {redShardFx.length > 0 && (
+            <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9000 }} aria-hidden="true">
+              {redShardFx.map((s) => (
+                <img
+                  key={s.id}
+                  src={redShardImg}
+                  alt=""
+                  width={26}
+                  height={26}
+                  style={{
+                    position: "fixed",
+                    left: s.x - 13,
+                    top: s.y - 13,
+                    width: 26,
+                    height: 26,
+                    imageRendering: "pixelated",
+                    filter: "drop-shadow(0 0 8px #ff2d2d)",
+                    animation: "redShardFly 1.1s cubic-bezier(0.35,0.05,0.4,1) forwards",
+                    animationDelay: `${s.delay}ms`,
+                    ["--rsx" as any]: `${s.dx}px`,
+                    ["--rsy" as any]: `${s.dy}px`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+
 
 
 
@@ -13209,6 +13299,7 @@ function TabOverlay({
           egg_boost_69: "Cristal do Despertar ✦",
           stone_pack_all: "Pacote das Seis Stones 💠",
           cristal_fragmentado: "Cristal Prisma 🔷",
+          fragmento_vermelho: "Fragmento Vermelho 🔻",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -13261,6 +13352,7 @@ function TabOverlay({
           egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
           stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
           cristal_fragmentado: "Cristal Prisma 🔷 · token obtido ao fragmentar Pokémon da coleção (1 por Pokémon). Vale no Ranking Global de Prisma — atualizado a cada 2 horas.",
+          fragmento_vermelho: "Fragmento Vermelho 🔻 · fragmento de Cristal Vermelho dropado por QUALQUER pokémon derrotado. A quantidade escala pela raridade do alvo: Comum 1 · Incomum 2 · Raro 3 · Épico 4 · Lendário/Mítico 5. Aparece na COLETA e vai para a mochila ao clicar em COLETAR.",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
