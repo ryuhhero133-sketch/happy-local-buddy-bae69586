@@ -910,7 +910,7 @@ type Task = { id: string; title: string; reward: number; progress: number; targe
 type IdleState = {
   startedAt: number;
   lastTickAt: number;
-  pending: { gold: number; rubies: number; crystals: number };
+  pending: { gold: number; rubies: number; crystals: number; redshards?: number };
   totals: { gold: number; captured: number; kills?: number };
   currentMap: IdleMapId;
   tasks: Task[];
