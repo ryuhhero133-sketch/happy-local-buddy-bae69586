@@ -3768,6 +3768,16 @@ function IdlePage() {
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
 
+          // 🔻 CRISTAL VERMELHO — todo pokémon derrotado dropa fragmentos por raridade (1 a 5).
+          const RED_SHARDS_BY_RARITY: Record<string, number> = {
+            common: 1, uncommon: 2, rare: 3, epic: 4,
+            legendary: 5, mythic: 5, mythic_shiny: 5,
+          };
+          const redShardGain = RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1;
+          flyRedShards(target.x, target.y - 20, redShardGain);
+          pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
+
+
           // XP para o líder + drena energia. Se ORB DE TIME estiver ativo, TODOS ganham EXP.
           const teamOrbActive = !!(idle.buffs.teamOrbUntil && Date.now() < idle.buffs.teamOrbUntil);
           setTeam((tm) => {
