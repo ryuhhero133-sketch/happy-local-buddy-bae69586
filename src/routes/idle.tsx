@@ -2963,6 +2963,7 @@ function IdlePage() {
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * zoom) / zoom;
   const renderCamY = Math.round(camY * zoom) / zoom;
+  camViewRef.current = { camX: renderCamX, camY: renderCamY, zoom };
   const renderTrainerX = Math.round(trainerPos.x * zoom) / zoom;
   const renderTrainerY = Math.round(trainerPos.y * zoom) / zoom;
   const renderFollowerX = Math.round(followerState.x * zoom) / zoom;
