@@ -1980,6 +1980,35 @@ function IdlePage() {
   const enemyIdRef = useRef(1);
   const chestIdRef = useRef(1);
   const fxIdRef = useRef(1);
+  // 🔻 Fragmento Vermelho — sprites que voam do pokémon derrotado até o painel COLETA
+  const coletaRef = useRef<HTMLDivElement | null>(null);
+  const camViewRef = useRef({ camX: 0, camY: 0, zoom: 1 });
+  const shardIdRef = useRef(1);
+  const [redShardFx, setRedShardFx] = useState<{ id: number; x: number; y: number; dx: number; dy: number; delay: number }[]>([]);
+  const flyRedShards = (worldX: number, worldY: number, qty: number) => {
+    const vp = viewportRef.current?.getBoundingClientRect();
+    const dest = coletaRef.current?.getBoundingClientRect();
+    if (!vp || !dest) return;
+    const { camX, camY, zoom } = camViewRef.current;
+    const sx = vp.left + (worldX - camX) * zoom;
+    const sy = vp.top + (worldY - camY) * zoom;
+    if (sx < vp.left - 80 || sx > vp.right + 80 || sy < vp.top - 80 || sy > vp.bottom + 80) return;
+    const tx = dest.left + dest.width / 2;
+    const ty = dest.top + dest.height / 2;
+    const batch = Array.from({ length: Math.min(5, qty) }, (_, i) => {
+      const jx = (Math.random() - 0.5) * 46;
+      const jy = (Math.random() - 0.5) * 30;
+      return {
+        id: shardIdRef.current++,
+        x: sx + jx, y: sy + jy,
+        dx: tx - (sx + jx), dy: ty - (sy + jy),
+        delay: i * 90,
+      };
+    });
+    setRedShardFx((p) => [...p.slice(-40), ...batch]);
+    const ids = new Set(batch.map((b) => b.id));
+    window.setTimeout(() => setRedShardFx((p) => p.filter((s) => !ids.has(s.id))), 1500 + batch.length * 90);
+  };
   const [tab, setTab] = useState<"inicio" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas">("batalha");
   const [skinId, setSkinId] = useState<string>(() => {
     if (typeof window === "undefined") return "default";
