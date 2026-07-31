@@ -10190,7 +10190,7 @@ function IdlePage() {
 
 
           {/* COLETA — logo abaixo do mapa, destaque */}
-          <div style={{
+          <div ref={coletaRef} style={{
             background: "linear-gradient(135deg, #2a1a3e, #3d2b52)",
             border: "2px solid #f5cf6b",
             borderRadius: 10, padding: 10,
@@ -10204,6 +10204,20 @@ function IdlePage() {
             <div style={{ display: "flex", justifyContent: "space-around", alignItems: "center", marginBottom: 8, fontSize: 13, fontWeight: 700 }}>
               <span title="Ouro" style={{ color: "#f4c430" }}>● {fmtK(idle.pending.gold)}</span>
               <span title="Cristais">💎 {Math.floor(idle.pending.crystals)}</span>
+              <span
+                title="Fragmento de Cristal Vermelho — dropado por qualquer pokémon derrotado (1 a 5 por raridade)"
+                style={{ color: "#ff5c5c", display: "inline-flex", alignItems: "center", gap: 4, textShadow: "0 0 8px #ff2d2d88" }}
+              >
+                <img
+                  src={redShardImg}
+                  alt="Fragmento Vermelho"
+                  width={18}
+                  height={18}
+                  loading="lazy"
+                  style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 5px #ff2d2daa)" }}
+                />
+                {Math.floor(idle.pending.redshards ?? 0)}
+              </span>
             </div>
             <button
               onClick={collect}
