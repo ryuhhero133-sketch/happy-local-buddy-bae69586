@@ -9166,7 +9166,7 @@ function IdlePage() {
             const bEmoji = nearBuilding === "lab" ? "🏦" : nearBuilding === "azul" ? "🏡" : "🏠";
             const bLabel = nearBuilding === "lab" ? "Banco Medieval" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
             const bDesc = nearBuilding === "lab"
-              ? `Guardar itens · taxa ${VAULT_FEE_SHARDS} 🔻 por depósito"
+              ? `Guardar itens · taxa ${VAULT_FEE_SHARDS} 🔻 por depósito`
               : nearBuilding === "azul"
                 ? "Restaura energia em 5 min"
                 : "Descansar (leva 1 hora)";
