@@ -196,6 +196,7 @@ import crystalRedAsset from "@/assets/items/icon-crystal-red.png.asset.json";
 const crystalRedImg = assetUrlFromJson(crystalRedAsset);
 import redShardImg from "@/assets/icon-fragmento-vermelho.png";
 import { recordIpLog, fetchIpLogs, type IpLogRow } from "@/lib/ipLog";
+import { recordIpLog, fetchIpLogs, type IpLogRow } from "@/lib/ipLog";
 const crystalGreenImg = assetUrlFromJson(iconCrystalBlue);
 import treeOakAsset from "@/assets/tree-oak.png.asset.json";
 import treePineAsset from "@/assets/tree-pine.png.asset.json";
@@ -940,6 +941,17 @@ type IdleState = {
 
 // 🔻 Fragmento Vermelho — teto de acumulação na COLETA (igual ao ouro, sem travar em 5)
 export const RED_SHARD_PENDING_CAP = 50_000;
+
+// 🏦 Banco Medieval — taxa por operação, paga em Fragmento Vermelho.
+export const VAULT_FEE_SHARDS = 25;
+
+// 🔻 Pedágio em Fragmento Vermelho para viajar a mapas de alto nível.
+export function redShardTravelCost(minLevel: number): number {
+  if (minLevel >= 1000) return 500;
+  if (minLevel >= 500) return 200;
+  if (minLevel >= 200) return 50;
+  return 0;
+}
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
 
@@ -2803,6 +2815,11 @@ function IdlePage() {
   };
   type RankMode = "trainer" | "craft";
   const [rankOpen, setRankOpen] = useState(false);
+  const [vaultOpen, setVaultOpen] = useState(false);
+  const [netLogOpen, setNetLogOpen] = useState(false);
+  const [myIp, setMyIp] = useState<string | null>(null);
+  const [netLogs, setNetLogs] = useState<IpLogRow[]>([]);
+  const [netLogLoading, setNetLogLoading] = useState(false);
   const [rankRows, setRankRows] = useState<RankRow[]>([]);
   const [rankLoading, setRankLoading] = useState(false);
   const [rankMode, setRankMode] = useState<RankMode>("trainer");
@@ -9687,6 +9704,16 @@ function IdlePage() {
                   setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - cost } }));
                   pushChat(`💎 Pagou ${cost} cristais para entrar em ${targetMap.name}.`, "cap");
                 }
+                const shardToll = redShardTravelCost(targetMap.minLevel);
+                if (shardToll > 0 && idle.currentMap !== g.target) {
+                  const have = idle.items?.fragmento_vermelho ?? 0;
+                  if (have < shardToll) {
+                    pushChat(`🔻 ${targetMap.name} exige ${shardToll} Fragmentos Vermelhos para viajar (você tem ${have}).`, "info");
+                    return;
+                  }
+                  setIdle((s) => ({ ...s, items: { ...s.items, fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - shardToll } }));
+                  pushChat(`🔻 Pagou ${shardToll} Fragmentos Vermelhos para entrar em ${targetMap.name}.`, "cap");
+                }
                 playClick();
                 goTo(targetMap.name, g.x, g.y, () => {
                   setIdle((s) => ({ ...s, currentMap: g.target }));
@@ -10107,7 +10134,10 @@ function IdlePage() {
                     const gold = 1000;
                     const crystalOk = cost === 0 || idle.bank.crystals >= cost;
                     const goldOk = idle.bank.gold >= gold;
-                    const canGo = lvOk && crystalOk;
+                    const shardToll = redShardTravelCost(tm.minLevel);
+                    const shardHave = idle.items?.fragmento_vermelho ?? 0;
+                    const shardOk = shardToll === 0 || shardHave >= shardToll;
+                    const canGo = lvOk && crystalOk && shardOk;
                     const close = () => setPendingGate(null);
                     return (
                       <div
@@ -10143,6 +10173,14 @@ function IdlePage() {
                                 <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>💎 Custo de entrada</span>
                                 <span style={{ color: crystalOk ? "#7fd8ff" : "#ff8888", fontWeight: 900 }}>
                                   {cost} cristais {crystalOk ? "" : `(você: ${idle.bank.crystals})`}
+                                </span>
+                              </div>
+                            )}
+                            {shardToll > 0 && (
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${shardOk ? "#ff6b6b" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
+                                <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🔻 Pedágio de rota</span>
+                                <span style={{ color: shardOk ? "#ff9b9b" : "#ff8888", fontWeight: 900 }}>
+                                  {shardToll} fragmentos {shardOk ? "" : `(você: ${shardHave})`}
                                 </span>
                               </div>
                             )}
@@ -10926,8 +10964,16 @@ function IdlePage() {
 
 
       {identity && (
-        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100 }}>
-          {identity.name}
+        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
+          <span>{identity.name}</span>
+          <span style={{ fontFamily: "monospace", color: "#7fd8ff", fontSize: 9 }}>
+            🌐 IP: {myIp ?? "detectando..."}
+          </span>
+          <button
+            onClick={() => { setNetLogOpen(true); void loadNetLogs(); }}
+            title="Log de rede / farm"
+            style={{ alignSelf: "flex-start", background: "rgba(0,0,0,0.55)", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "2px 7px", fontSize: 9, fontWeight: 800, cursor: "pointer", letterSpacing: 0.6 }}
+          >📜 LOG</button>
         </div>
       )}
 
