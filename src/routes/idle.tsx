@@ -196,7 +196,6 @@ import crystalRedAsset from "@/assets/items/icon-crystal-red.png.asset.json";
 const crystalRedImg = assetUrlFromJson(crystalRedAsset);
 import redShardImg from "@/assets/icon-fragmento-vermelho.png";
 import { recordIpLog, fetchIpLogs, type IpLogRow } from "@/lib/ipLog";
-import { recordIpLog, fetchIpLogs, type IpLogRow } from "@/lib/ipLog";
 const crystalGreenImg = assetUrlFromJson(iconCrystalBlue);
 import treeOakAsset from "@/assets/tree-oak.png.asset.json";
 import treePineAsset from "@/assets/tree-pine.png.asset.json";
@@ -11030,7 +11029,7 @@ function IdlePage() {
             {ITEM_IMG[id] ? (
               <img src={ITEM_IMG[id]} alt="" width={28} height={28} loading="lazy" style={{ imageRendering: "pixelated" }} />
             ) : (
-              <ItemPixelIcon id={id} size={28} color={ITEM_COLOR[id] ?? "#f5cf6b"} />
+              <ItemPixelIcon id={id} size={28} color={ITEM_COLORS[id] ?? "#f5cf6b"} />
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: "#ffe89a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{id}</div>
