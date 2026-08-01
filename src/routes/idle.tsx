@@ -62,6 +62,7 @@ import bookExpImg from "@/assets/icons/book-exp.png";
 import potionIconAsset from "@/assets/potion-icon.png.asset.json";
 import houseLarImg from "@/assets/house-lar.png";
 import houseLabImg from "@/assets/house-lab.png";
+import houseBankImg from "@/assets/house-bank.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
@@ -194,6 +195,7 @@ import rubyGemAsset from "@/assets/ruby-gem.png.asset.json";
 import crystalRedAsset from "@/assets/items/icon-crystal-red.png.asset.json";
 const crystalRedImg = assetUrlFromJson(crystalRedAsset);
 import redShardImg from "@/assets/icon-fragmento-vermelho.png";
+import { recordIpLog, fetchIpLogs, type IpLogRow } from "@/lib/ipLog";
 const crystalGreenImg = assetUrlFromJson(iconCrystalBlue);
 import treeOakAsset from "@/assets/tree-oak.png.asset.json";
 import treePineAsset from "@/assets/tree-pine.png.asset.json";
@@ -933,7 +935,22 @@ type IdleState = {
   blackMiticPlusPending?: number; // ovos Plus emitidos pelo Governante que ainda precisam ser marcados no painel
   grassOddishCaptured?: number; // contador do evento Grass Oddish
   grassOddishReturnMap?: IdleMapId; // mapa de origem antes de entrar no evento
+  vault?: Record<string, number>; // 🏦 Banco Medieval — itens guardados (taxa em Fragmento Vermelho)
 };
+
+// 🔻 Fragmento Vermelho — teto de acumulação na COLETA (igual ao ouro, sem travar em 5)
+export const RED_SHARD_PENDING_CAP = 50_000;
+
+// 🏦 Banco Medieval — taxa por operação, paga em Fragmento Vermelho.
+export const VAULT_FEE_SHARDS = 25;
+
+// 🔻 Pedágio em Fragmento Vermelho para viajar a mapas de alto nível.
+export function redShardTravelCost(minLevel: number): number {
+  if (minLevel >= 1000) return 500;
+  if (minLevel >= 500) return 200;
+  if (minLevel >= 200) return 50;
+  return 0;
+}
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
 
@@ -1118,6 +1135,7 @@ function freshIdle(): IdleState {
     trainerXp: 0,
     unlockedSkins: ["default"],
     redeemedCodes: {},
+    vault: {},
   };
 }
 function saveIdle(s: IdleState) {
@@ -2373,7 +2391,7 @@ function IdlePage() {
   // ---- Prédios do mundo (Laboratório + Lar) ----
   type Building = { key: "lab" | "lar" | "azul"; label: string; emoji: string; color: string; x: number; y: number; w: number; h: number; interactR: number };
   const BUILDINGS = useMemo<Building[]>(() => [
-    { key: "lab",  label: "Laboratório", emoji: "🔬", color: "#c084fc", x: 520,  y: 640, w: 148, h: 168, interactR: 100 },
+    { key: "lab",  label: "Banco Medieval", emoji: "🏦", color: "#f5cf6b", x: 520,  y: 640, w: 148, h: 168, interactR: 100 },
     { key: "lar",  label: "Lar",         emoji: "🏠", color: "#5ec26a", x: 1400, y: 640, w: 148, h: 168, interactR: 100 },
     { key: "azul", label: "Casa Azul",   emoji: "🏡", color: "#4a9eff", x: 1600, y: 640, w: 148, h: 168, interactR: 100 },
   ], []);
@@ -2796,6 +2814,11 @@ function IdlePage() {
   };
   type RankMode = "trainer" | "craft";
   const [rankOpen, setRankOpen] = useState(false);
+  const [vaultOpen, setVaultOpen] = useState(false);
+  const [netLogOpen, setNetLogOpen] = useState(false);
+  const [myIp, setMyIp] = useState<string | null>(null);
+  const [netLogs, setNetLogs] = useState<IpLogRow[]>([]);
+  const [netLogLoading, setNetLogLoading] = useState(false);
   const [rankRows, setRankRows] = useState<RankRow[]>([]);
   const [rankLoading, setRankLoading] = useState(false);
   const [rankMode, setRankMode] = useState<RankMode>("trainer");
@@ -2807,6 +2830,8 @@ function IdlePage() {
       const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       if (e.key === "Escape") {
+        if (netLogOpen) { setNetLogOpen(false); return; }
+        if (vaultOpen) { setVaultOpen(false); return; }
         if (worldMapOpen) { setWorldMapOpen(false); return; }
         if (rankOpen) { setRankOpen(false); return; }
         return;
@@ -2820,7 +2845,27 @@ function IdlePage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [worldMapOpen, rankOpen]);
+  }, [worldMapOpen, rankOpen, vaultOpen, netLogOpen]);
+
+  // 🌐 Registra IP/rede do acesso e expõe no HUD.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const ip = await recordIpLog(identity?.name ?? null);
+      if (!cancelled && ip) setMyIp(ip);
+    })();
+    return () => { cancelled = true; };
+  }, [identity?.id, identity?.name]);
+
+  const loadNetLogs = useCallback(async () => {
+    setNetLogLoading(true);
+    try {
+      const rows = await fetchIpLogs(120);
+      setNetLogs(rows);
+    } finally {
+      setNetLogLoading(false);
+    }
+  }, []);
 
   const [rankRefreshTick, setRankRefreshTick] = useState(0);
   const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking congelado, sem atualizar direto
@@ -2986,6 +3031,7 @@ function IdlePage() {
           gold: prev.pending.gold + goldGain,
           rubies: prev.pending.rubies + rubyGain,
           crystals: prev.pending.crystals + crystalGain,
+          redshards: Math.min(RED_SHARD_PENDING_CAP, prev.pending.redshards ?? 0),
         },
       };
       saveIdle(next);
@@ -4088,7 +4134,7 @@ function IdlePage() {
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0), redshards: (s.pending.redshards ?? 0) + redShardGain },
+              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0), redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + redShardGain) },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
@@ -4115,6 +4161,7 @@ function IdlePage() {
             gold: s.pending.gold + inc.g,
             rubies: s.pending.rubies + inc.r,
             crystals: s.pending.crystals + inc.c,
+            redshards: Math.min(RED_SHARD_PENDING_CAP, s.pending.redshards ?? 0),
           },
         };
         const nt = ns.tasks.map((t) => t.id === "t2" && !t.done
@@ -8187,7 +8234,7 @@ function IdlePage() {
                   }}
                 >
                   <img
-                    src={b.key === "lab" ? houseLabImg : houseLarImg}
+                    src={b.key === "lab" ? houseBankImg : houseLarImg}
                     alt={b.label}
                     width={b.w}
                     height={b.h}
@@ -9153,15 +9200,15 @@ function IdlePage() {
 
           {/* Prompt de interação com prédio */}
           {nearBuilding && (() => {
-            const bColor = nearBuilding === "lab" ? "#c084fc" : nearBuilding === "azul" ? "#4a9eff" : "#5ec26a";
-            const bEmoji = nearBuilding === "lab" ? "🔬" : nearBuilding === "azul" ? "🏡" : "🏠";
-            const bLabel = nearBuilding === "lab" ? "Laboratório" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
+            const bColor = nearBuilding === "lab" ? "#f5cf6b" : nearBuilding === "azul" ? "#4a9eff" : "#5ec26a";
+            const bEmoji = nearBuilding === "lab" ? "🏦" : nearBuilding === "azul" ? "🏡" : "🏠";
+            const bLabel = nearBuilding === "lab" ? "Banco Medieval" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
             const bDesc = nearBuilding === "lab"
-              ? "Resetar sua jornada"
+              ? `Guardar itens · taxa ${VAULT_FEE_SHARDS} 🔻 por depósito`
               : nearBuilding === "azul"
                 ? "Restaura energia em 5 min"
                 : "Descansar (leva 1 hora)";
-            const bAction = nearBuilding === "lab" ? "RESETAR" : "DESCANSAR";
+            const bAction = nearBuilding === "lab" ? "ABRIR COFRE" : "DESCANSAR";
             return (
               <div style={{
                 position: "absolute", bottom: 78, left: "50%", transform: "translateX(-50%)",
@@ -9179,7 +9226,7 @@ function IdlePage() {
                 </div>
                 <button
                   onClick={() => {
-                    if (nearBuilding === "lab") resetAccount();
+                    if (nearBuilding === "lab") { setVaultOpen(true); setNearBuilding(null); }
                     else if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
                     else restAtHome("lar");
                   }}
@@ -9678,6 +9725,16 @@ function IdlePage() {
                   setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - cost } }));
                   pushChat(`💎 Pagou ${cost} cristais para entrar em ${targetMap.name}.`, "cap");
                 }
+                const shardToll = redShardTravelCost(targetMap.minLevel);
+                if (shardToll > 0 && idle.currentMap !== g.target) {
+                  const have = idle.items?.fragmento_vermelho ?? 0;
+                  if (have < shardToll) {
+                    pushChat(`🔻 ${targetMap.name} exige ${shardToll} Fragmentos Vermelhos para viajar (você tem ${have}).`, "info");
+                    return;
+                  }
+                  setIdle((s) => ({ ...s, items: { ...s.items, fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - shardToll } }));
+                  pushChat(`🔻 Pagou ${shardToll} Fragmentos Vermelhos para entrar em ${targetMap.name}.`, "cap");
+                }
                 playClick();
                 goTo(targetMap.name, g.x, g.y, () => {
                   setIdle((s) => ({ ...s, currentMap: g.target }));
@@ -10098,7 +10155,10 @@ function IdlePage() {
                     const gold = 1000;
                     const crystalOk = cost === 0 || idle.bank.crystals >= cost;
                     const goldOk = idle.bank.gold >= gold;
-                    const canGo = lvOk && crystalOk;
+                    const shardToll = redShardTravelCost(tm.minLevel);
+                    const shardHave = idle.items?.fragmento_vermelho ?? 0;
+                    const shardOk = shardToll === 0 || shardHave >= shardToll;
+                    const canGo = lvOk && crystalOk && shardOk;
                     const close = () => setPendingGate(null);
                     return (
                       <div
@@ -10134,6 +10194,14 @@ function IdlePage() {
                                 <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>💎 Custo de entrada</span>
                                 <span style={{ color: crystalOk ? "#7fd8ff" : "#ff8888", fontWeight: 900 }}>
                                   {cost} cristais {crystalOk ? "" : `(você: ${idle.bank.crystals})`}
+                                </span>
+                              </div>
+                            )}
+                            {shardToll > 0 && (
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${shardOk ? "#ff6b6b" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
+                                <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🔻 Pedágio de rota</span>
+                                <span style={{ color: shardOk ? "#ff9b9b" : "#ff8888", fontWeight: 900 }}>
+                                  {shardToll} fragmentos {shardOk ? "" : `(você: ${shardHave})`}
                                 </span>
                               </div>
                             )}
@@ -10917,14 +10985,123 @@ function IdlePage() {
 
 
       {identity && (
-        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100 }}>
-          {identity.name}
+        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
+          <span>{identity.name}</span>
+          <span style={{ fontFamily: "monospace", color: "#7fd8ff", fontSize: 9 }}>
+            🌐 IP: {myIp ?? "detectando..."}
+          </span>
+          <button
+            onClick={() => { setNetLogOpen(true); void loadNetLogs(); }}
+            title="Log de rede / farm"
+            style={{ alignSelf: "flex-start", background: "rgba(0,0,0,0.55)", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "2px 7px", fontSize: 9, fontWeight: 800, cursor: "pointer", letterSpacing: 0.6 }}
+          >📜 LOG</button>
         </div>
       )}
 
 
 
 
+
+      {/* ═══ 🏦 BANCO MEDIEVAL — cofre de itens (taxa em Fragmento Vermelho) ═══ */}
+      {vaultOpen && (() => {
+        const shards = idle.items?.fragmento_vermelho ?? 0;
+        const vault = idle.vault ?? {};
+        const bagEntries = Object.entries(idle.items ?? {}).filter(([id, n]) => n > 0 && id !== "fragmento_vermelho");
+        const vaultEntries = Object.entries(vault).filter(([, n]) => n > 0);
+        const move = (id: string, qty: number, toVault: boolean) => {
+          if (shards < VAULT_FEE_SHARDS) { pushChat(`🔻 O banqueiro exige ${VAULT_FEE_SHARDS} Fragmentos Vermelhos por operação.`, "info"); return; }
+          setIdle((st) => {
+            const items = { ...(st.items ?? {}) };
+            const vlt = { ...(st.vault ?? {}) };
+            const have = toVault ? (items[id] ?? 0) : (vlt[id] ?? 0);
+            const q = Math.max(1, Math.min(qty, have));
+            if (q <= 0) return st;
+            if (toVault) { items[id] = have - q; vlt[id] = (vlt[id] ?? 0) + q; }
+            else { vlt[id] = have - q; items[id] = (items[id] ?? 0) + q; }
+            items.fragmento_vermelho = (items.fragmento_vermelho ?? 0) - VAULT_FEE_SHARDS;
+            return { ...st, items, vault: vlt };
+          });
+          playClick();
+          pushChat(toVault ? `🏦 Guardou ${qty}x no cofre (−${VAULT_FEE_SHARDS} 🔻).` : `🏦 Retirou ${qty}x do cofre (−${VAULT_FEE_SHARDS} 🔻).`, "cap");
+        };
+        const Cell = ({ id, n, toVault }: { id: string; n: number; toVault: boolean }) => (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(245,207,107,0.3)", borderRadius: 8, padding: "6px 8px" }}>
+            {ITEM_IMG[id] ? (
+              <img src={ITEM_IMG[id]} alt="" width={28} height={28} loading="lazy" style={{ imageRendering: "pixelated" }} />
+            ) : (
+              <ItemPixelIcon id={id} size={28} color={ITEM_COLORS[id] ?? "#f5cf6b"} />
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#ffe89a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{id}</div>
+              <div style={{ fontSize: 10, color: "#c8b8d0" }}>x{n}</div>
+            </div>
+            <button onClick={() => move(id, 1, toVault)} style={{ background: "#2a1a2e", border: "1px solid #f5cf6b", color: "#ffe89a", borderRadius: 6, padding: "4px 7px", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>{toVault ? "▶ 1" : "◀ 1"}</button>
+            <button onClick={() => move(id, n, toVault)} style={{ background: "#2a1a2e", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "4px 7px", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>{toVault ? "▶ TUDO" : "◀ TUDO"}</button>
+          </div>
+        );
+        return (
+          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "min(760px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #241a12 0%, #0e0906 100%)", border: "3px solid #f5cf6b", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(245,207,107,0.35)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <img src={houseBankImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 17, letterSpacing: 1.4, fontFamily: "'Cinzel', Georgia, serif" }}>🏦 BANCO MEDIEVAL</div>
+                  <div style={{ color: "#c8b8d0", fontSize: 10.5 }}>Guarde seus itens em segurança · taxa de {VAULT_FEE_SHARDS} 🔻 por operação</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(0,0,0,0.45)", border: "1px solid #ff6b6b", borderRadius: 8, padding: "5px 9px" }}>
+                  <img src={redShardImg} alt="" width={18} height={18} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                  <span style={{ color: "#ff9b9b", fontWeight: 900, fontSize: 12 }}>{shards}</span>
+                </div>
+                <button onClick={() => setVaultOpen(false)} style={{ background: "#2a1a2e", border: "1px solid #6a4a70", color: "#c8b8d0", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🎒 MOCHILA</div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {bagEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Mochila vazia.</div>
+                      : bagEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault />)}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🗄 COFRE</div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {vaultEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre vazio.</div>
+                      : vaultEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault={false} />)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
+      {netLogOpen && (
+        <div onClick={() => setNetLogOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "min(720px, 100%)", maxHeight: "85vh", overflowY: "auto", background: "linear-gradient(160deg, #0d1824 0%, #05080d 100%)", border: "3px solid #6bd4ff", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(107,212,255,0.3)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: "#bfe9ff", fontWeight: 900, fontSize: 16, letterSpacing: 1.4 }}>📜 LOG DE REDE</div>
+                <div style={{ color: "#7f95a8", fontSize: 10.5 }}>Seu IP atual: <b style={{ color: "#7fd8ff", fontFamily: "monospace" }}>{myIp ?? "—"}</b> · sessão de farm: {fmtHMS(activeTime)}</div>
+              </div>
+              <button onClick={() => void loadNetLogs()} style={{ background: "#10222f", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>🔄 ATUALIZAR</button>
+              <button onClick={() => setNetLogOpen(false)} style={{ background: "#10222f", border: "1px solid #3b5a6b", color: "#9ab", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
+            </div>
+            <div style={{ display: "grid", gap: 5 }}>
+              {netLogLoading && <div style={{ color: "#7f95a8", fontSize: 11 }}>Carregando registros...</div>}
+              {!netLogLoading && netLogs.length === 0 && <div style={{ color: "#7f95a8", fontSize: 11 }}>Nenhum registro de acesso encontrado.</div>}
+              {netLogs.map((r) => (
+                <div key={r.id} style={{ display: "flex", gap: 10, alignItems: "center", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(107,212,255,0.18)", borderRadius: 8, padding: "6px 9px", fontSize: 10.5 }}>
+                  <span style={{ color: "#7fd8ff", fontFamily: "monospace", fontWeight: 900, minWidth: 118 }}>{r.ip}</span>
+                  <span style={{ color: "#ffe89a", fontWeight: 800, minWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.username ?? r.user_id.slice(0, 8)}</span>
+                  <span style={{ color: "#8fa4b4", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.user_agent ?? "—"}</span>
+                  <span style={{ color: "#7f95a8" }}>{new Date(r.created_at).toLocaleString("pt-BR")}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ Modal do NPC Trocador (aberto ao clicar no NPC no mapa) ═══ */}
       {worldTraderOpen && (() => {
