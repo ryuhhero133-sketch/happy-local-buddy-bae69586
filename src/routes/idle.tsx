@@ -11003,6 +11003,107 @@ function IdlePage() {
 
 
 
+      {/* ═══ 🏦 BANCO MEDIEVAL — cofre de itens (taxa em Fragmento Vermelho) ═══ */}
+      {vaultOpen && (() => {
+        const shards = idle.items?.fragmento_vermelho ?? 0;
+        const vault = idle.vault ?? {};
+        const bagEntries = Object.entries(idle.items ?? {}).filter(([id, n]) => n > 0 && id !== "fragmento_vermelho");
+        const vaultEntries = Object.entries(vault).filter(([, n]) => n > 0);
+        const move = (id: string, qty: number, toVault: boolean) => {
+          if (shards < VAULT_FEE_SHARDS) { pushChat(`🔻 O banqueiro exige ${VAULT_FEE_SHARDS} Fragmentos Vermelhos por operação.`, "info"); return; }
+          setIdle((st) => {
+            const items = { ...(st.items ?? {}) };
+            const vlt = { ...(st.vault ?? {}) };
+            const have = toVault ? (items[id] ?? 0) : (vlt[id] ?? 0);
+            const q = Math.max(1, Math.min(qty, have));
+            if (q <= 0) return st;
+            if (toVault) { items[id] = have - q; vlt[id] = (vlt[id] ?? 0) + q; }
+            else { vlt[id] = have - q; items[id] = (items[id] ?? 0) + q; }
+            items.fragmento_vermelho = (items.fragmento_vermelho ?? 0) - VAULT_FEE_SHARDS;
+            return { ...st, items, vault: vlt };
+          });
+          playClick();
+          pushChat(toVault ? `🏦 Guardou ${qty}x no cofre (−${VAULT_FEE_SHARDS} 🔻).` : `🏦 Retirou ${qty}x do cofre (−${VAULT_FEE_SHARDS} 🔻).`, "cap");
+        };
+        const Cell = ({ id, n, toVault }: { id: string; n: number; toVault: boolean }) => (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(245,207,107,0.3)", borderRadius: 8, padding: "6px 8px" }}>
+            {ITEM_IMG[id] ? (
+              <img src={ITEM_IMG[id]} alt="" width={28} height={28} loading="lazy" style={{ imageRendering: "pixelated" }} />
+            ) : (
+              <ItemPixelIcon id={id} size={28} color={ITEM_COLOR[id] ?? "#f5cf6b"} />
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#ffe89a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{id}</div>
+              <div style={{ fontSize: 10, color: "#c8b8d0" }}>x{n}</div>
+            </div>
+            <button onClick={() => move(id, 1, toVault)} style={{ background: "#2a1a2e", border: "1px solid #f5cf6b", color: "#ffe89a", borderRadius: 6, padding: "4px 7px", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>{toVault ? "▶ 1" : "◀ 1"}</button>
+            <button onClick={() => move(id, n, toVault)} style={{ background: "#2a1a2e", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "4px 7px", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>{toVault ? "▶ TUDO" : "◀ TUDO"}</button>
+          </div>
+        );
+        return (
+          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "min(760px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #241a12 0%, #0e0906 100%)", border: "3px solid #f5cf6b", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(245,207,107,0.35)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <img src={houseBankImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 17, letterSpacing: 1.4, fontFamily: "'Cinzel', Georgia, serif" }}>🏦 BANCO MEDIEVAL</div>
+                  <div style={{ color: "#c8b8d0", fontSize: 10.5 }}>Guarde seus itens em segurança · taxa de {VAULT_FEE_SHARDS} 🔻 por operação</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(0,0,0,0.45)", border: "1px solid #ff6b6b", borderRadius: 8, padding: "5px 9px" }}>
+                  <img src={redShardImg} alt="" width={18} height={18} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                  <span style={{ color: "#ff9b9b", fontWeight: 900, fontSize: 12 }}>{shards}</span>
+                </div>
+                <button onClick={() => setVaultOpen(false)} style={{ background: "#2a1a2e", border: "1px solid #6a4a70", color: "#c8b8d0", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🎒 MOCHILA</div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {bagEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Mochila vazia.</div>
+                      : bagEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault />)}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🗄 COFRE</div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {vaultEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre vazio.</div>
+                      : vaultEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault={false} />)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
+      {netLogOpen && (
+        <div onClick={() => setNetLogOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "min(720px, 100%)", maxHeight: "85vh", overflowY: "auto", background: "linear-gradient(160deg, #0d1824 0%, #05080d 100%)", border: "3px solid #6bd4ff", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(107,212,255,0.3)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: "#bfe9ff", fontWeight: 900, fontSize: 16, letterSpacing: 1.4 }}>📜 LOG DE REDE</div>
+                <div style={{ color: "#7f95a8", fontSize: 10.5 }}>Seu IP atual: <b style={{ color: "#7fd8ff", fontFamily: "monospace" }}>{myIp ?? "—"}</b> · sessão de farm: {fmtHMS(activeTime)}</div>
+              </div>
+              <button onClick={() => void loadNetLogs()} style={{ background: "#10222f", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>🔄 ATUALIZAR</button>
+              <button onClick={() => setNetLogOpen(false)} style={{ background: "#10222f", border: "1px solid #3b5a6b", color: "#9ab", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
+            </div>
+            <div style={{ display: "grid", gap: 5 }}>
+              {netLogLoading && <div style={{ color: "#7f95a8", fontSize: 11 }}>Carregando registros...</div>}
+              {!netLogLoading && netLogs.length === 0 && <div style={{ color: "#7f95a8", fontSize: 11 }}>Nenhum registro de acesso encontrado.</div>}
+              {netLogs.map((r) => (
+                <div key={r.id} style={{ display: "flex", gap: 10, alignItems: "center", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(107,212,255,0.18)", borderRadius: 8, padding: "6px 9px", fontSize: 10.5 }}>
+                  <span style={{ color: "#7fd8ff", fontFamily: "monospace", fontWeight: 900, minWidth: 118 }}>{r.ip}</span>
+                  <span style={{ color: "#ffe89a", fontWeight: 800, minWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.username ?? r.user_id.slice(0, 8)}</span>
+                  <span style={{ color: "#8fa4b4", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.user_agent ?? "—"}</span>
+                  <span style={{ color: "#7f95a8" }}>{new Date(r.created_at).toLocaleString("pt-BR")}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ═══ Modal do NPC Trocador (aberto ao clicar no NPC no mapa) ═══ */}
       {worldTraderOpen && (() => {
         const collection = idle.collection ?? [];
