@@ -46,7 +46,7 @@ export async function recordIpLog(username?: string | null): Promise<string | nu
   const ip = await detectPublicIp();
   if (!ip) return null;
   try {
-    await supabase.rpc("log_player_ip", {
+    await (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<unknown>)("log_player_ip", {
       _ip: ip,
       _user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 400) : null,
       _username: username ?? null,
