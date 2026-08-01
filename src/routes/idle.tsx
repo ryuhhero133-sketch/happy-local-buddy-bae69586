@@ -62,6 +62,7 @@ import bookExpImg from "@/assets/icons/book-exp.png";
 import potionIconAsset from "@/assets/potion-icon.png.asset.json";
 import houseLarImg from "@/assets/house-lar.png";
 import houseLabImg from "@/assets/house-lab.png";
+import houseBankImg from "@/assets/house-bank.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
@@ -194,6 +195,7 @@ import rubyGemAsset from "@/assets/ruby-gem.png.asset.json";
 import crystalRedAsset from "@/assets/items/icon-crystal-red.png.asset.json";
 const crystalRedImg = assetUrlFromJson(crystalRedAsset);
 import redShardImg from "@/assets/icon-fragmento-vermelho.png";
+import { recordIpLog, fetchIpLogs, type IpLogRow } from "@/lib/ipLog";
 const crystalGreenImg = assetUrlFromJson(iconCrystalBlue);
 import treeOakAsset from "@/assets/tree-oak.png.asset.json";
 import treePineAsset from "@/assets/tree-pine.png.asset.json";
@@ -933,7 +935,11 @@ type IdleState = {
   blackMiticPlusPending?: number; // ovos Plus emitidos pelo Governante que ainda precisam ser marcados no painel
   grassOddishCaptured?: number; // contador do evento Grass Oddish
   grassOddishReturnMap?: IdleMapId; // mapa de origem antes de entrar no evento
+  vault?: Record<string, number>; // 🏦 Banco Medieval — itens guardados (taxa em Fragmento Vermelho)
 };
+
+// 🔻 Fragmento Vermelho — teto de acumulação na COLETA (igual ao ouro, sem travar em 5)
+export const RED_SHARD_PENDING_CAP = 50_000;
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
 
@@ -1118,6 +1124,7 @@ function freshIdle(): IdleState {
     trainerXp: 0,
     unlockedSkins: ["default"],
     redeemedCodes: {},
+    vault: {},
   };
 }
 function saveIdle(s: IdleState) {
@@ -2373,7 +2380,7 @@ function IdlePage() {
   // ---- Prédios do mundo (Laboratório + Lar) ----
   type Building = { key: "lab" | "lar" | "azul"; label: string; emoji: string; color: string; x: number; y: number; w: number; h: number; interactR: number };
   const BUILDINGS = useMemo<Building[]>(() => [
-    { key: "lab",  label: "Laboratório", emoji: "🔬", color: "#c084fc", x: 520,  y: 640, w: 148, h: 168, interactR: 100 },
+    { key: "lab",  label: "Banco Medieval", emoji: "🏦", color: "#f5cf6b", x: 520,  y: 640, w: 148, h: 168, interactR: 100 },
     { key: "lar",  label: "Lar",         emoji: "🏠", color: "#5ec26a", x: 1400, y: 640, w: 148, h: 168, interactR: 100 },
     { key: "azul", label: "Casa Azul",   emoji: "🏡", color: "#4a9eff", x: 1600, y: 640, w: 148, h: 168, interactR: 100 },
   ], []);
@@ -2986,6 +2993,7 @@ function IdlePage() {
           gold: prev.pending.gold + goldGain,
           rubies: prev.pending.rubies + rubyGain,
           crystals: prev.pending.crystals + crystalGain,
+          redshards: Math.min(RED_SHARD_PENDING_CAP, prev.pending.redshards ?? 0),
         },
       };
       saveIdle(next);
@@ -4088,7 +4096,7 @@ function IdlePage() {
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0), redshards: (s.pending.redshards ?? 0) + redShardGain },
+              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0), redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + redShardGain) },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
@@ -4115,6 +4123,7 @@ function IdlePage() {
             gold: s.pending.gold + inc.g,
             rubies: s.pending.rubies + inc.r,
             crystals: s.pending.crystals + inc.c,
+            redshards: Math.min(RED_SHARD_PENDING_CAP, s.pending.redshards ?? 0),
           },
         };
         const nt = ns.tasks.map((t) => t.id === "t2" && !t.done
@@ -8187,7 +8196,7 @@ function IdlePage() {
                   }}
                 >
                   <img
-                    src={b.key === "lab" ? houseLabImg : houseLarImg}
+                    src={b.key === "lab" ? houseBankImg : houseLarImg}
                     alt={b.label}
                     width={b.w}
                     height={b.h}
@@ -9153,15 +9162,15 @@ function IdlePage() {
 
           {/* Prompt de interação com prédio */}
           {nearBuilding && (() => {
-            const bColor = nearBuilding === "lab" ? "#c084fc" : nearBuilding === "azul" ? "#4a9eff" : "#5ec26a";
-            const bEmoji = nearBuilding === "lab" ? "🔬" : nearBuilding === "azul" ? "🏡" : "🏠";
-            const bLabel = nearBuilding === "lab" ? "Laboratório" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
+            const bColor = nearBuilding === "lab" ? "#f5cf6b" : nearBuilding === "azul" ? "#4a9eff" : "#5ec26a";
+            const bEmoji = nearBuilding === "lab" ? "🏦" : nearBuilding === "azul" ? "🏡" : "🏠";
+            const bLabel = nearBuilding === "lab" ? "Banco Medieval" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
             const bDesc = nearBuilding === "lab"
-              ? "Resetar sua jornada"
+              ? `Guardar itens · taxa ${VAULT_FEE_SHARDS} 🔻 por depósito"
               : nearBuilding === "azul"
                 ? "Restaura energia em 5 min"
                 : "Descansar (leva 1 hora)";
-            const bAction = nearBuilding === "lab" ? "RESETAR" : "DESCANSAR";
+            const bAction = nearBuilding === "lab" ? "ABRIR COFRE" : "DESCANSAR";
             return (
               <div style={{
                 position: "absolute", bottom: 78, left: "50%", transform: "translateX(-50%)",
@@ -9179,7 +9188,7 @@ function IdlePage() {
                 </div>
                 <button
                   onClick={() => {
-                    if (nearBuilding === "lab") resetAccount();
+                    if (nearBuilding === "lab") { setVaultOpen(true); setNearBuilding(null); }
                     else if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
                     else restAtHome("lar");
                   }}
