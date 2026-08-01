@@ -2831,6 +2831,8 @@ function IdlePage() {
       const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       if (e.key === "Escape") {
+        if (netLogOpen) { setNetLogOpen(false); return; }
+        if (vaultOpen) { setVaultOpen(false); return; }
         if (worldMapOpen) { setWorldMapOpen(false); return; }
         if (rankOpen) { setRankOpen(false); return; }
         return;
@@ -2844,7 +2846,27 @@ function IdlePage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [worldMapOpen, rankOpen]);
+  }, [worldMapOpen, rankOpen, vaultOpen, netLogOpen]);
+
+  // 🌐 Registra IP/rede do acesso e expõe no HUD.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const ip = await recordIpLog(identity?.name ?? null);
+      if (!cancelled && ip) setMyIp(ip);
+    })();
+    return () => { cancelled = true; };
+  }, [identity?.id, identity?.name]);
+
+  const loadNetLogs = useCallback(async () => {
+    setNetLogLoading(true);
+    try {
+      const rows = await fetchIpLogs(120);
+      setNetLogs(rows);
+    } finally {
+      setNetLogLoading(false);
+    }
+  }, []);
 
   const [rankRefreshTick, setRankRefreshTick] = useState(0);
   const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking congelado, sem atualizar direto
