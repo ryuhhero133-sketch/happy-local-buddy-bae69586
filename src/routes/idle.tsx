@@ -5311,6 +5311,13 @@ function IdlePage() {
           // Pareia com o líder — grande variação para não ficar previsível
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
+        } else if (idle.currentMap === "vale_fragmentos") {
+          // 🔻 VALE DOS FRAGMENTOS VERMELHOS — spawn constante e capturável.
+          pool = (["geodude", "graveler", "golem", "onix", "rhyhorn", "cubone", "marowak", "machop", "machoke", "machamp", "sandshrew", "sandslash", "tyranitar", "krookodile"] as Species[]).filter(hasGif);
+          if (pool.length === 0) pool = ["geodude"] as Species[];
+          const rr = Math.random();
+          forcedRarity = rr < 0.55 ? "uncommon" : rr < 0.85 ? "rare" : rr < 0.97 ? "epic" : "legendary";
+          mapLvRange = [Math.max(1, leaderLv - 4), leaderLv + 6];
         } else if (idle.currentMap === "grass_oddish") {
           // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
           // Captura usa as MESMAS taxas globais do servidor.
