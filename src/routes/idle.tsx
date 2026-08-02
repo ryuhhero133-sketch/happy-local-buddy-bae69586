@@ -63,6 +63,8 @@ import potionIconAsset from "@/assets/potion-icon.png.asset.json";
 import houseLarImg from "@/assets/house-lar.png";
 import houseLabImg from "@/assets/house-lab.png";
 import houseBankImg from "@/assets/house-bank.png";
+import houseGymImg from "@/assets/house-gym.png";
+import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
@@ -473,6 +475,8 @@ type IdleMapId =
   | "oddish_o1" | "oddish_o2" | "oddish_o3"
   // Evento Grass Oddish — mapa exclusivo, entrada custa 20 Stone Verdejante
   | "grass_oddish"
+  // Evento Vale dos Fragmentos Vermelhos — abre 1h a cada 5h, entrada pelo Ginásio Medieval
+  | "vale_fragmentos"
   // Continente do Governante — acesso via Carta do Governante
   | "absol_start" | "governante_hall";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
@@ -529,6 +533,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   oddish_o2: { name: "Odisséia Oddish — Clareira", diff: "EVENTO", bg: assetUrlFromJson(mapOddish2Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
   oddish_o3: { name: "Odisséia Oddish — Caverna Sombria", diff: "EVENTO", bg: mapOddish3Url, rate: 9.0, minLevel: 1, maxLevel: 9999, element: "Fantasma/Caos", stars: 7 },
   grass_oddish: { name: "🌿 Grass Oddish", diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta", stars: 6, overlay: "rgba(120,255,140,0.18)" },
+  vale_fragmentos: { name: "🔻 Vale dos Fragmentos Vermelhos", diff: "EVENTO", bg: mapValeFragmentosImg, rate: 9.0, minLevel: 1, maxLevel: 9999, element: "Cristal", stars: 7, overlay: "rgba(255,60,60,0.14)" },
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
 };
@@ -936,6 +941,9 @@ type IdleState = {
   grassOddishCaptured?: number; // contador do evento Grass Oddish
   grassOddishReturnMap?: IdleMapId; // mapa de origem antes de entrar no evento
   vault?: Record<string, number>; // 🏦 Banco Medieval — itens guardados (taxa em Fragmento Vermelho)
+  pokeVault?: CollectionEntry[];   // 🏦 Banco Medieval — pokémons armazenados PARA SEMPRE (preservados na 3ª Season)
+  valeReturnMap?: IdleMapId;       // mapa de origem antes de entrar no Vale dos Fragmentos
+  hideIp?: boolean;                // 🔒 privacidade: oculta o IP na tela (continua registrado no servidor)
 };
 
 // 🔻 Fragmento Vermelho — teto de acumulação na COLETA (igual ao ouro, sem travar em 5)
@@ -943,6 +951,23 @@ export const RED_SHARD_PENDING_CAP = 50_000;
 
 // 🏦 Banco Medieval — taxa por operação, paga em Fragmento Vermelho.
 export const VAULT_FEE_SHARDS = 25;
+
+// 🏦 Banco Medieval — armazenar POKÉMON permanentemente (Black Mitic Plus é grátis).
+export const POKE_VAULT_FEE_SHARDS = 20_000;
+export const POKE_VAULT_SLOTS = 200;
+
+// 🏰 Ginásio Medieval — portal para o Vale dos Fragmentos Vermelhos.
+export const GYM_ENTRY_SHARDS = 20_000;
+
+// 🔻 Evento Vale dos Fragmentos: abre 1 hora a cada 5 horas (ciclo global, igual pra todos).
+export const VALE_CYCLE_MS = 5 * 60 * 60 * 1000;
+export const VALE_OPEN_MS = 60 * 60 * 1000;
+export function valeEventStatus(now: number = Date.now()): { open: boolean; msUntilChange: number } {
+  const t = now % VALE_CYCLE_MS;
+  return t < VALE_OPEN_MS
+    ? { open: true, msUntilChange: VALE_OPEN_MS - t }
+    : { open: false, msUntilChange: VALE_CYCLE_MS - t };
+}
 
 // 🔻 Pedágio em Fragmento Vermelho para viajar a mapas de alto nível.
 export function redShardTravelCost(minLevel: number): number {
@@ -1865,7 +1890,7 @@ function IdlePage() {
   const restingRef = useRef<boolean>(false);
   useEffect(() => { restingRef.current = restingUntil !== null; }, [restingUntil]);
   // ===== Interação com prédios do mundo =====
-  const [nearBuilding, setNearBuilding] = useState<"lab" | "lar" | "azul" | null>(null);
+  const [nearBuilding, setNearBuilding] = useState<"lab" | "lar" | "azul" | "gym" | null>(null);
   const [eggOpenResult, setEggOpenResult] = useState<{ sp: string; rarity: string } | null>(null);
 
   // ===== Detalhes de Pokémon (modal ao clicar no card) + Casa Azul picker =====
@@ -2027,7 +2052,7 @@ function IdlePage() {
     const ids = new Set(batch.map((b) => b.id));
     window.setTimeout(() => setRedShardFx((p) => p.filter((s) => !ids.has(s.id))), 1500 + batch.length * 90);
   };
-  const [tab, setTab] = useState<"inicio" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas">("batalha");
+  const [tab, setTab] = useState<"inicio" | "wiki" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas">("batalha");
   const [skinId, setSkinId] = useState<string>(() => {
     if (typeof window === "undefined") return "default";
     try { return localStorage.getItem(SKIN_KEY) || "default"; } catch { return "default"; }
@@ -2389,9 +2414,10 @@ function IdlePage() {
   const obstacles = useMemo(() => buildObstacles(WORLD_W, WORLD_H, idle.currentMap), [idle.currentMap]);
 
   // ---- Prédios do mundo (Laboratório + Lar) ----
-  type Building = { key: "lab" | "lar" | "azul"; label: string; emoji: string; color: string; x: number; y: number; w: number; h: number; interactR: number };
+  type Building = { key: "lab" | "lar" | "azul" | "gym"; label: string; emoji: string; color: string; x: number; y: number; w: number; h: number; interactR: number };
   const BUILDINGS = useMemo<Building[]>(() => [
     { key: "lab",  label: "Banco Medieval", emoji: "🏦", color: "#f5cf6b", x: 520,  y: 640, w: 148, h: 168, interactR: 100 },
+    { key: "gym",  label: "Ginásio Medieval", emoji: "🏰", color: "#ff5c5c", x: 900, y: 700, w: 158, h: 178, interactR: 105 },
     { key: "lar",  label: "Lar",         emoji: "🏠", color: "#5ec26a", x: 1400, y: 640, w: 148, h: 168, interactR: 100 },
     { key: "azul", label: "Casa Azul",   emoji: "🏡", color: "#4a9eff", x: 1600, y: 640, w: 148, h: 168, interactR: 100 },
   ], []);
@@ -2815,6 +2841,23 @@ function IdlePage() {
   type RankMode = "trainer" | "craft";
   const [rankOpen, setRankOpen] = useState(false);
   const [vaultOpen, setVaultOpen] = useState(false);
+  const [vaultTab, setVaultTab] = useState<"itens" | "pokemon">("itens");
+  const [gymOpen, setGymOpen] = useState(false);
+  const [valeTick, setValeTick] = useState(0);
+  useEffect(() => {
+    const iv = setInterval(() => setValeTick((v) => v + 1), 1000);
+    return () => clearInterval(iv);
+  }, []);
+  // 🔻 Vale dos Fragmentos: evento acabou → devolve o jogador ao mapa anterior.
+  useEffect(() => {
+    if (idle.currentMap !== "vale_fragmentos") return;
+    if (valeEventStatus().open) return;
+    setIdle((s) => {
+      if (s.currentMap !== "vale_fragmentos") return s;
+      return { ...s, currentMap: s.valeReturnMap ?? "arena", valeReturnMap: undefined };
+    });
+    try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🔻 Vale dos Fragmentos", body: "Evento encerrado — você foi teletransportado de volta.", tone: "info" } })); } catch { /* ignore */ }
+  }, [valeTick, idle.currentMap]);
   const [netLogOpen, setNetLogOpen] = useState(false);
   const [myIp, setMyIp] = useState<string | null>(null);
   const [netLogs, setNetLogs] = useState<IpLogRow[]>([]);
@@ -2831,6 +2874,7 @@ function IdlePage() {
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       if (e.key === "Escape") {
         if (netLogOpen) { setNetLogOpen(false); return; }
+        if (gymOpen) { setGymOpen(false); return; }
         if (vaultOpen) { setVaultOpen(false); return; }
         if (worldMapOpen) { setWorldMapOpen(false); return; }
         if (rankOpen) { setRankOpen(false); return; }
@@ -2845,7 +2889,7 @@ function IdlePage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [worldMapOpen, rankOpen, vaultOpen, netLogOpen]);
+  }, [worldMapOpen, rankOpen, vaultOpen, netLogOpen, gymOpen]);
 
   // 🌐 Registra IP/rede do acesso e expõe no HUD.
   useEffect(() => {
@@ -3819,7 +3863,10 @@ function IdlePage() {
             common: 1, uncommon: 2, rare: 3, epic: 4,
             legendary: 5, mythic: 5, mythic_shiny: 5,
           };
-          const redShardGain = RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1;
+          // 🔻 No Vale dos Fragmentos Vermelhos qualquer pokémon dropa de 5 a 20 fragmentos.
+          const redShardGain = idle.currentMap === "vale_fragmentos"
+            ? 5 + Math.floor(Math.random() * 16)
+            : (RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1);
           flyRedShards(target.x, target.y - 20, redShardGain);
           pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
 
@@ -4654,9 +4701,12 @@ function IdlePage() {
             try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
           });
         }
+        // 🔻 Vale dos Fragmentos: capturar também dropa 5 a 20 fragmentos.
+        const valeCaptureShards = s.currentMap === "vale_fragmentos" ? 5 + Math.floor(Math.random() * 16) : 0;
         return {
           ...s,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
+          pending: { ...s.pending, redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + valeCaptureShards) },
           grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddish ? 1 : 0),
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
           collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled, ...(isOddishEvent ? { event: "oddish_odyssey" } : {}), ...(isGrassOddish ? { event: "grass_oddish" } : {}) }],
@@ -5261,6 +5311,13 @@ function IdlePage() {
           // Pareia com o líder — grande variação para não ficar previsível
           const leadForRange = Math.max(1, leaderLv);
           mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
+        } else if (idle.currentMap === "vale_fragmentos") {
+          // 🔻 VALE DOS FRAGMENTOS VERMELHOS — spawn constante e capturável.
+          pool = (["onix", "golem", "cubone", "diglett", "sandshrew", "sandslash", "machop", "machoke", "machamp", "primeape", "tyranitar", "krookodile", "aerodactyl", "pinsir"] as Species[]).filter(hasGif);
+          if (pool.length === 0) pool = ["onix"] as Species[];
+          const rr = Math.random();
+          forcedRarity = rr < 0.55 ? "uncommon" : rr < 0.85 ? "rare" : rr < 0.97 ? "epic" : "legendary";
+          mapLvRange = [Math.max(1, leaderLv - 4), leaderLv + 6];
         } else if (idle.currentMap === "grass_oddish") {
           // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
           // Captura usa as MESMAS taxas globais do servidor.
@@ -6264,7 +6321,7 @@ function IdlePage() {
 
   // ---- Detecta proximidade dos prédios (Lab / Lar) ----
   useEffect(() => {
-    let near: "lab" | "lar" | "azul" | null = null;
+    let near: "lab" | "lar" | "azul" | "gym" | null = null;
     for (const b of BUILDINGS) {
       const dx = trainerPos.x - b.x;
       const dy = trainerPos.y - (b.y - b.h / 2);
@@ -8234,7 +8291,7 @@ function IdlePage() {
                   }}
                 >
                   <img
-                    src={b.key === "lab" ? houseBankImg : houseLarImg}
+                    src={b.key === "lab" ? houseBankImg : b.key === "gym" ? houseGymImg : houseLarImg}
                     alt={b.label}
                     width={b.w}
                     height={b.h}
@@ -9200,15 +9257,17 @@ function IdlePage() {
 
           {/* Prompt de interação com prédio */}
           {nearBuilding && (() => {
-            const bColor = nearBuilding === "lab" ? "#f5cf6b" : nearBuilding === "azul" ? "#4a9eff" : "#5ec26a";
-            const bEmoji = nearBuilding === "lab" ? "🏦" : nearBuilding === "azul" ? "🏡" : "🏠";
-            const bLabel = nearBuilding === "lab" ? "Banco Medieval" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
+            const bColor = nearBuilding === "lab" ? "#f5cf6b" : nearBuilding === "gym" ? "#ff5c5c" : nearBuilding === "azul" ? "#4a9eff" : "#5ec26a";
+            const bEmoji = nearBuilding === "lab" ? "🏦" : nearBuilding === "gym" ? "🏰" : nearBuilding === "azul" ? "🏡" : "🏠";
+            const bLabel = nearBuilding === "lab" ? "Banco Medieval" : nearBuilding === "gym" ? "Ginásio Medieval" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
             const bDesc = nearBuilding === "lab"
-              ? `Guardar itens · taxa ${VAULT_FEE_SHARDS} 🔻 por depósito`
+              ? `Guardar itens e pokémons · ${VAULT_FEE_SHARDS} 🔻 por item · ${POKE_VAULT_FEE_SHARDS.toLocaleString("pt-BR")} 🔻 por pokémon`
+              : nearBuilding === "gym"
+              ? `Portal do Vale dos Fragmentos · ${GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻`
               : nearBuilding === "azul"
                 ? "Restaura energia em 5 min"
                 : "Descansar (leva 1 hora)";
-            const bAction = nearBuilding === "lab" ? "ABRIR COFRE" : "DESCANSAR";
+            const bAction = nearBuilding === "lab" ? "ABRIR COFRE" : nearBuilding === "gym" ? "ENTRAR" : "DESCANSAR";
             return (
               <div style={{
                 position: "absolute", bottom: 78, left: "50%", transform: "translateX(-50%)",
@@ -9227,6 +9286,7 @@ function IdlePage() {
                 <button
                   onClick={() => {
                     if (nearBuilding === "lab") { setVaultOpen(true); setNearBuilding(null); }
+                    else if (nearBuilding === "gym") { setGymOpen(true); setNearBuilding(null); }
                     else if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
                     else restAtHome("lar");
                   }}
@@ -9638,6 +9698,7 @@ function IdlePage() {
                   { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
                 ],
                 grass_oddish: [],
+                vale_fragmentos: [],
                 absol_start: [
                   { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
                 ],
@@ -10624,6 +10685,7 @@ function IdlePage() {
         <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "center", gap: 4, background: "linear-gradient(180deg,#0b0510 0%,#160a20 100%)", padding: "8px 0", borderTop: "1px solid rgba(245,207,107,0.15)" }}>
           {([
             { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
+            { id: "wiki",     label: "Wiki",     img: navInicio,    color: "#c084fc" },
             { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
             { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b" },
             
@@ -10988,13 +11050,20 @@ function IdlePage() {
         <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
           <span>{identity.name}</span>
           <span style={{ fontFamily: "monospace", color: "#7fd8ff", fontSize: 9 }}>
-            🌐 IP: {myIp ?? "detectando..."}
+            🌐 IP: {idle.hideIp ? "•••.•••.•••.•••" : (myIp ?? "detectando...")}
           </span>
-          <button
-            onClick={() => { setNetLogOpen(true); void loadNetLogs(); }}
-            title="Log de rede / farm"
-            style={{ alignSelf: "flex-start", background: "rgba(0,0,0,0.55)", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "2px 7px", fontSize: 9, fontWeight: 800, cursor: "pointer", letterSpacing: 0.6 }}
-          >📜 LOG</button>
+          <div style={{ display: "flex", gap: 4 }}>
+            <button
+              onClick={() => { setNetLogOpen(true); void loadNetLogs(); }}
+              title="Log de rede / farm"
+              style={{ background: "rgba(0,0,0,0.55)", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "2px 7px", fontSize: 9, fontWeight: 800, cursor: "pointer", letterSpacing: 0.6 }}
+            >📜 LOG</button>
+            <button
+              onClick={() => { setIdle((s) => ({ ...s, hideIp: !s.hideIp })); playClick(); }}
+              title="Oculta o IP na tela (continua registrado no servidor por segurança)"
+              style={{ background: "rgba(0,0,0,0.55)", border: `1px solid ${idle.hideIp ? "#7ee88a" : "#6a4a70"}`, color: idle.hideIp ? "#9dfaa8" : "#c8b8d0", borderRadius: 6, padding: "2px 7px", fontSize: 9, fontWeight: 800, cursor: "pointer", letterSpacing: 0.6 }}
+            >{idle.hideIp ? "👁 MOSTRAR IP" : "🔒 OCULTAR IP"}</button>
+          </div>
         </div>
       )}
 
@@ -11023,6 +11092,52 @@ function IdlePage() {
           });
           playClick();
           pushChat(toVault ? `🏦 Guardou ${qty}x no cofre (−${VAULT_FEE_SHARDS} 🔻).` : `🏦 Retirou ${qty}x do cofre (−${VAULT_FEE_SHARDS} 🔻).`, "cap");
+        };
+        // 🏦 Pokémon: guardar PARA SEMPRE (preservado na 3ª Season). BMP é grátis.
+        const isBmpEntry = (e: CollectionEntry) => !!e.event && e.event.startsWith("black_mitic");
+        const pokeVault = idle.pokeVault ?? [];
+        const storable = (idle.collection ?? []).filter((e) => !team.some((p) => p.uid === e.uid));
+        const storePoke = (e: CollectionEntry) => {
+          const fee = isBmpEntry(e) ? 0 : POKE_VAULT_FEE_SHARDS;
+          if (pokeVault.length >= POKE_VAULT_SLOTS) { pushChat(`🏦 Cofre de pokémons cheio (${POKE_VAULT_SLOTS} vagas).`, "info"); return; }
+          if (shards < fee) { pushChat(`🔻 Precisa de ${fee.toLocaleString("pt-BR")} Fragmentos Vermelhos para guardar este pokémon.`, "info"); return; }
+          setIdle((st) => {
+            const items = { ...(st.items ?? {}) };
+            if (fee > 0) items.fragmento_vermelho = (items.fragmento_vermelho ?? 0) - fee;
+            return {
+              ...st,
+              items,
+              collection: (st.collection ?? []).filter((c) => c.uid !== e.uid),
+              pokeVault: [...(st.pokeVault ?? []), e],
+            };
+          });
+          playClick();
+          pushChat(fee === 0 ? `🏦 ${e.species.replace(/_/g, " ")} guardado GRÁTIS (Black Mitic Plus).` : `🏦 ${e.species.replace(/_/g, " ")} guardado para sempre (−${fee.toLocaleString("pt-BR")} 🔻).`, "cap");
+        };
+        const withdrawPoke = (e: CollectionEntry) => {
+          setIdle((st) => ({
+            ...st,
+            pokeVault: (st.pokeVault ?? []).filter((c) => c.uid !== e.uid),
+            collection: [...(st.collection ?? []), e],
+          }));
+          playClick();
+          pushChat(`🏦 ${e.species.replace(/_/g, " ")} retirado do cofre.`, "cap");
+        };
+        const PokeRow = ({ e, stored }: { e: CollectionEntry; stored: boolean }) => {
+          const bmp = isBmpEntry(e);
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: bmp ? "linear-gradient(120deg, rgba(160,102,255,0.22), rgba(0,0,0,0.4))" : "rgba(0,0,0,0.35)", border: `1px solid ${bmp ? "rgba(160,102,255,0.55)" : "rgba(245,207,107,0.3)"}`, borderRadius: 8, padding: "6px 8px" }}>
+              {GIF[e.species] && <img src={GIF[e.species]} alt="" width={30} height={30} loading="lazy" style={{ imageRendering: "pixelated" }} />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: bmp ? "#e9d5ff" : "#ffe89a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.species.replace(/_/g, " ").toUpperCase()}</div>
+                <div style={{ fontSize: 9.5, color: bmp ? "#c9a8ff" : "#c8b8d0" }}>Nv. {e.level} · {bmp ? "BLACK MITIC PLUS · GRÁTIS" : e.rarity.toUpperCase()}</div>
+              </div>
+              <button
+                onClick={() => (stored ? withdrawPoke(e) : storePoke(e))}
+                style={{ background: "#2a1a2e", border: `1px solid ${stored ? "#6bd4ff" : "#f5cf6b"}`, color: stored ? "#bfe9ff" : "#ffe89a", borderRadius: 6, padding: "4px 8px", fontSize: 10, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" }}
+              >{stored ? "◀ RETIRAR" : bmp ? "▶ GRÁTIS" : `▶ ${fmtK(POKE_VAULT_FEE_SHARDS)} 🔻`}</button>
+            </div>
+          );
         };
         const Cell = ({ id, n, toVault }: { id: string; n: number; toVault: boolean }) => (
           <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(245,207,107,0.3)", borderRadius: 8, padding: "6px 8px" }}>
@@ -11054,22 +11169,114 @@ function IdlePage() {
                 </div>
                 <button onClick={() => setVaultOpen(false)} style={{ background: "#2a1a2e", border: "1px solid #6a4a70", color: "#c8b8d0", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div>
-                  <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🎒 MOCHILA</div>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    {bagEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Mochila vazia.</div>
-                      : bagEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault />)}
+              <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                {(["itens", "pokemon"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => { setVaultTab(t); playClick(); }}
+                    style={{
+                      flex: 1, padding: "7px 10px", borderRadius: 8, cursor: "pointer",
+                      background: vaultTab === t ? "linear-gradient(180deg,#f5cf6b,#b8862a)" : "rgba(0,0,0,0.4)",
+                      border: `1px solid ${vaultTab === t ? "#ffe89a" : "#6a4a70"}`,
+                      color: vaultTab === t ? "#2a1a08" : "#c8b8d0",
+                      fontWeight: 900, fontSize: 11, letterSpacing: 1,
+                    }}
+                  >{t === "itens" ? "🗄 ITENS" : "🐾 POKÉMONS"}</button>
+                ))}
+              </div>
+              {vaultTab === "pokemon" && (
+                <div style={{ background: "rgba(160,102,255,0.12)", border: "1px solid rgba(160,102,255,0.4)", borderRadius: 8, padding: "7px 10px", marginBottom: 10, fontSize: 10.5, color: "#e0cbff", lineHeight: 1.5 }}>
+                  🛡 Pokémons guardados aqui são <b>preservados na 3ª Season</b> (não serão resetados).<br />
+                  Taxa: <b>{POKE_VAULT_FEE_SHARDS.toLocaleString("pt-BR")} 🔻</b> por pokémon · <b>Black Mitic Plus é grátis</b> · vagas usadas: <b>{pokeVault.length}/{POKE_VAULT_SLOTS}</b>
+                </div>
+              )}
+              {vaultTab === "itens" ? (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🎒 MOCHILA</div>
+                    <div style={{ display: "grid", gap: 6 }}>
+                      {bagEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Mochila vazia.</div>
+                        : bagEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault />)}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🗄 COFRE</div>
+                    <div style={{ display: "grid", gap: 6 }}>
+                      {vaultEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre vazio.</div>
+                        : vaultEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault={false} />)}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🗄 COFRE</div>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    {vaultEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre vazio.</div>
-                      : vaultEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault={false} />)}
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🐾 COLEÇÃO ({storable.length})</div>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
+                      {storable.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Nenhum pokémon disponível (os do time não podem ser guardados).</div>
+                        : storable.map((e) => <PokeRow key={e.uid} e={e} stored={false} />)}
+                    </div>
                   </div>
+                  <div>
+                    <div style={{ color: "#e0cbff", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🏦 COFRE ETERNO ({pokeVault.length}/{POKE_VAULT_SLOTS})</div>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
+                      {pokeVault.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre eterno vazio.</div>
+                        : pokeVault.map((e) => <PokeRow key={e.uid} e={e} stored />)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ═══ 🏰 GINÁSIO MEDIEVAL — portal do Vale dos Fragmentos Vermelhos ═══ */}
+      {gymOpen && (() => {
+        const shards = idle.items?.fragmento_vermelho ?? 0;
+        const st = valeEventStatus();
+        const canEnter = st.open && shards >= GYM_ENTRY_SHARDS && idle.currentMap !== "vale_fragmentos";
+        const enter = () => {
+          if (!canEnter) return;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - GYM_ENTRY_SHARDS },
+            valeReturnMap: s.currentMap,
+            currentMap: "vale_fragmentos",
+          }));
+          playClick();
+          pushChat(`🏰 Você entrou no Vale dos Fragmentos Vermelhos (−${GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻).`, "cap");
+          setGymOpen(false);
+        };
+        return (
+          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "min(560px, 100%)", background: "linear-gradient(160deg, #2a1010 0%, #0d0505 100%)", border: "3px solid #ff5c5c", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(255,92,92,0.35)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <img src={houseGymImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#ff9b9b", fontWeight: 900, fontSize: 17, letterSpacing: 1.4, fontFamily: "'Cinzel', Georgia, serif" }}>🏰 GINÁSIO MEDIEVAL</div>
+                  <div style={{ color: "#c8b8d0", fontSize: 10.5 }}>Portal para o Vale dos Fragmentos Vermelhos</div>
+                </div>
+                <button onClick={() => setGymOpen(false)} style={{ background: "#2a1a1a", border: "1px solid #6a4a4a", color: "#c8b8d0", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
+              </div>
+              <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,92,92,0.35)", borderRadius: 10, padding: 12, fontSize: 11.5, color: "#f0d8d8", lineHeight: 1.7 }}>
+                <div>🔻 Cada pokémon derrotado ou capturado dropa <b>5 a 20 Fragmentos Vermelhos</b>.</div>
+                <div>⏱ O evento fica aberto <b>1 hora</b> e reabre <b>a cada 5 horas</b>.</div>
+                <div>💰 Entrada: <b style={{ color: "#ff9b9b" }}>{GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻</b> · você tem <b style={{ color: shards >= GYM_ENTRY_SHARDS ? "#7ee88a" : "#ff8b8b" }}>{shards.toLocaleString("pt-BR")} 🔻</b></div>
+                <div style={{ marginTop: 6, color: st.open ? "#7ee88a" : "#ffb86b", fontWeight: 900 }}>
+                  {st.open ? `🟢 ABERTO — fecha em ${fmtHMS(st.msUntilChange)}` : `🔴 FECHADO — abre em ${fmtHMS(st.msUntilChange)}`}
                 </div>
               </div>
+              <button
+                onClick={enter}
+                disabled={!canEnter}
+                style={{
+                  width: "100%", marginTop: 12, padding: "11px 0", borderRadius: 10,
+                  background: canEnter ? "linear-gradient(180deg,#ff6b6b,#8b1a1a)" : "#2a1a1a",
+                  border: `1px solid ${canEnter ? "#ffb3b3" : "#5a3a3a"}`,
+                  color: canEnter ? "#fff" : "#7a6a6a", fontWeight: 900, fontSize: 13, letterSpacing: 1.4,
+                  cursor: canEnter ? "pointer" : "not-allowed",
+                }}
+              >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
             </div>
           </div>
         );
@@ -13003,6 +13210,7 @@ function TabOverlay({
     tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
     tab === "tarefas"   ? "TAREFAS" :
+    tab === "wiki"      ? "WIKI · 3ª SEASON" :
     tab === "inicio"    ? "INÍCIO" : "";
   const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
   const [itemDetail, setItemDetail] = useState<string | null>(null);
@@ -14864,6 +15072,68 @@ function TabOverlay({
         );
       })()}
 
+
+      {tab === "wiki" && (() => {
+        const Sec = ({ title, color, children }: { title: string; color: string; children: React.ReactNode }) => (
+          <div style={{ background: "linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,0,0,0.35))", border: `1px solid ${color}55`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
+            <div style={{ color, fontWeight: 900, fontSize: 12.5, letterSpacing: 1.2, marginBottom: 7, fontFamily: "'Cinzel', Georgia, serif" }}>{title}</div>
+            <div style={{ fontSize: 11, color: "#e6dcf0", lineHeight: 1.75 }}>{children}</div>
+          </div>
+        );
+        return (
+          <div style={{ padding: 12, overflowY: "auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 12 }}>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, fontFamily: "'Cinzel', Georgia, serif" }}>📖 WIKI — 3ª SEASON</div>
+              <div style={{ fontSize: 10.5, color: "#a898b8" }}>Tudo que você precisa saber antes do reset</div>
+            </div>
+
+            <Sec title="♻ O QUE SERÁ RESETADO" color="#ff8b8b">
+              • Nível do treinador e XP<br />
+              • Nível dos pokémons do time e da coleção<br />
+              • Ouro, Cristais e progresso de mapas / quests<br />
+              • Rankings globais (Treinador e Cristal Prisma)
+            </Sec>
+
+            <Sec title="🛡 O QUE SERÁ PRESERVADO" color="#7ee88a">
+              • Todo pokémon guardado no <b>Banco Medieval</b> (Cofre Eterno)<br />
+              • Taxa: {POKE_VAULT_FEE_SHARDS.toLocaleString("pt-BR")} 🔻 por pokémon · <b>Black Mitic Plus é grátis</b><br />
+              • Vagas do cofre: {POKE_VAULT_SLOTS} pokémons
+            </Sec>
+
+            <Sec title="✨ NOVOS SISTEMAS" color="#c084fc">
+              • <b>PvP</b> — duelos entre treinadores<br />
+              • <b>Party</b> — grupos de até 5 jogadores com XP compartilhado<br />
+              • <b>Mercado dolarizado</b> — negociação com moeda global<br />
+              • <b>Ginásio Medieval</b> — portal para o Vale dos Fragmentos Vermelhos
+            </Sec>
+
+            <Sec title="🔻 VALE DOS FRAGMENTOS VERMELHOS" color="#ff5c5c">
+              • Entrada pelo Ginásio Medieval: {GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻<br />
+              • Abre por <b>1 hora</b> e reabre <b>a cada 5 horas</b><br />
+              • Cada pokémon derrotado ou capturado dropa <b>5 a 20 🔻</b>
+            </Sec>
+
+            <Sec title="⚙ MECÂNICAS EXISTENTES" color="#6bd4ff">
+              • <b>Raridades:</b> Comum → Incomum → Raro → Épico → Lendário → Mítico → Mítico Shiny → Black Mitic Plus<br />
+              • <b>Eggs:</b> incubação, afinidade e alimentação com Stones elementais<br />
+              • <b>AFK / Idle:</b> auto-batalha, auto-potion e coleta acumulada<br />
+              • <b>Sinergias:</b> bônus elementais por composição do time
+            </Sec>
+
+            <Sec title="📊 TAXAS OFICIAIS" color="#ffd66b">
+              • Captura (Poké/Great/Ultra): Comum 55/75/90% · Raro 18/35/55% · Épico 8/18/35% · Lendário 3/8/18%<br />
+              • Mítico: 0.2/0.8/2.8% · Mítico Shiny: 0.1/0.3/1.8% · Master Ball: 100%<br />
+              • Fragmento Vermelho: 1 a 5 por abate (5 a 20 no Vale)<br />
+              • Teto de acumulação na coleta: {RED_SHARD_PENDING_CAP.toLocaleString("pt-BR")} 🔻
+            </Sec>
+
+            <Sec title="🔒 PRIVACIDADE" color="#a898b8">
+              O botão <b>🔒 Ocultar IP</b> esconde seu endereço da tela (ideal para prints e streams).
+              O registro continua salvo internamente apenas para segurança e anti-cheat.
+            </Sec>
+          </div>
+        );
+      })()}
 
       {tab === "inicio" && (
         <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6 }}>
