@@ -13203,6 +13203,7 @@ function TabOverlay({
     tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
     tab === "tarefas"   ? "TAREFAS" :
+    tab === "wiki"      ? "WIKI · 3ª SEASON" :
     tab === "inicio"    ? "INÍCIO" : "";
   const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
   const [itemDetail, setItemDetail] = useState<string | null>(null);
