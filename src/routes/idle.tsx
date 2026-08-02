@@ -15066,6 +15066,68 @@ function TabOverlay({
       })()}
 
 
+      {tab === "wiki" && (() => {
+        const Sec = ({ title, color, children }: { title: string; color: string; children: React.ReactNode }) => (
+          <div style={{ background: "linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,0,0,0.35))", border: `1px solid ${color}55`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
+            <div style={{ color, fontWeight: 900, fontSize: 12.5, letterSpacing: 1.2, marginBottom: 7, fontFamily: "'Cinzel', Georgia, serif" }}>{title}</div>
+            <div style={{ fontSize: 11, color: "#e6dcf0", lineHeight: 1.75 }}>{children}</div>
+          </div>
+        );
+        return (
+          <div style={{ padding: 12, overflowY: "auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 12 }}>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, fontFamily: "'Cinzel', Georgia, serif" }}>📖 WIKI — 3ª SEASON</div>
+              <div style={{ fontSize: 10.5, color: "#a898b8" }}>Tudo que você precisa saber antes do reset</div>
+            </div>
+
+            <Sec title="♻ O QUE SERÁ RESETADO" color="#ff8b8b">
+              • Nível do treinador e XP<br />
+              • Nível dos pokémons do time e da coleção<br />
+              • Ouro, Cristais e progresso de mapas / quests<br />
+              • Rankings globais (Treinador e Cristal Prisma)
+            </Sec>
+
+            <Sec title="🛡 O QUE SERÁ PRESERVADO" color="#7ee88a">
+              • Todo pokémon guardado no <b>Banco Medieval</b> (Cofre Eterno)<br />
+              • Taxa: {POKE_VAULT_FEE_SHARDS.toLocaleString("pt-BR")} 🔻 por pokémon · <b>Black Mitic Plus é grátis</b><br />
+              • Vagas do cofre: {POKE_VAULT_SLOTS} pokémons
+            </Sec>
+
+            <Sec title="✨ NOVOS SISTEMAS" color="#c084fc">
+              • <b>PvP</b> — duelos entre treinadores<br />
+              • <b>Party</b> — grupos de até 5 jogadores com XP compartilhado<br />
+              • <b>Mercado dolarizado</b> — negociação com moeda global<br />
+              • <b>Ginásio Medieval</b> — portal para o Vale dos Fragmentos Vermelhos
+            </Sec>
+
+            <Sec title="🔻 VALE DOS FRAGMENTOS VERMELHOS" color="#ff5c5c">
+              • Entrada pelo Ginásio Medieval: {GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻<br />
+              • Abre por <b>1 hora</b> e reabre <b>a cada 5 horas</b><br />
+              • Cada pokémon derrotado ou capturado dropa <b>5 a 20 🔻</b>
+            </Sec>
+
+            <Sec title="⚙ MECÂNICAS EXISTENTES" color="#6bd4ff">
+              • <b>Raridades:</b> Comum → Incomum → Raro → Épico → Lendário → Mítico → Mítico Shiny → Black Mitic Plus<br />
+              • <b>Eggs:</b> incubação, afinidade e alimentação com Stones elementais<br />
+              • <b>AFK / Idle:</b> auto-batalha, auto-potion e coleta acumulada<br />
+              • <b>Sinergias:</b> bônus elementais por composição do time
+            </Sec>
+
+            <Sec title="📊 TAXAS OFICIAIS" color="#ffd66b">
+              • Captura (Poké/Great/Ultra): Comum 55/75/90% · Raro 18/35/55% · Épico 8/18/35% · Lendário 3/8/18%<br />
+              • Mítico: 0.2/0.8/2.8% · Mítico Shiny: 0.1/0.3/1.8% · Master Ball: 100%<br />
+              • Fragmento Vermelho: 1 a 5 por abate (5 a 20 no Vale)<br />
+              • Teto de acumulação na coleta: {RED_SHARD_PENDING_CAP.toLocaleString("pt-BR")} 🔻
+            </Sec>
+
+            <Sec title="🔒 PRIVACIDADE" color="#a898b8">
+              O botão <b>🔒 Ocultar IP</b> esconde seu endereço da tela (ideal para prints e streams).
+              O registro continua salvo internamente apenas para segurança e anti-cheat.
+            </Sec>
+          </div>
+        );
+      })()}
+
       {tab === "inicio" && (
         <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6 }}>
           <p style={{ marginTop: 0 }}>Bem-vindo ao <strong style={{ color: "#f5cf6b" }}>Modo Idle</strong>!</p>
