@@ -9709,6 +9709,16 @@ function IdlePage() {
                 ],
                 grass_oddish: [],
                 vale_fragmentos: [],
+                gym_carmesim: [
+                  { key: "gym1-gym2", target: "gym_gelo_sombra", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#9fe8ff" },
+                ],
+                gym_gelo_sombra: [
+                  { key: "gym2-gym1", target: "gym_carmesim", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#ff8b8b" },
+                  { key: "gym2-gym3", target: "gym_arcano", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#c58bff" },
+                ],
+                gym_arcano: [
+                  { key: "gym3-gym2", target: "gym_gelo_sombra", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#9fe8ff" },
+                ],
                 absol_start: [
                   { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
                 ],
