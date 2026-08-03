@@ -5742,9 +5742,14 @@ function IdlePage() {
       const apexHpMult = isApex ? 4.5 : 1;
       const menaceHpMult = isMenace ? 18 : 1;
       const mythEventHpMult = isMythShinyEvent ? 3.5 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult);
+      // 🏰 Ginásio Medieval — HP muito maior por andar (endgame).
+      const gymFloorHere = GYM_FLOOR_BY_ID[idle.currentMap];
+      const gymHpMult = gymFloorHere ? gymFloorHere.hpMult : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult * gymHpMult);
       const isAggro = isMenace ? false : true; // menace começa passivo
-      const aggroR = elite ? 300 : isApex ? 360 : isMythShinyEvent ? 480 : 220 + Math.floor(Math.random() * 60);
+      // IA mais inteligente no Ginásio: percebe o treinador de muito mais longe.
+      const aggroR = gymFloorHere ? (gymFloorHere.id === "gym_arcano" ? 900 : gymFloorHere.id === "gym_gelo_sombra" ? 720 : 560)
+        : elite ? 300 : isApex ? 360 : isMythShinyEvent ? 480 : 220 + Math.floor(Math.random() * 60);
 
       // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
       let disguise: Species | undefined = undefined;
