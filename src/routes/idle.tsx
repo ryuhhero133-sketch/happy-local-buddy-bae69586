@@ -11415,13 +11415,15 @@ function IdlePage() {
         );
       })()}
 
-      {/* ═══ 🏰 GINÁSIO MEDIEVAL — portal do Vale dos Fragmentos Vermelhos ═══ */}
+      {/* ═══ 🏰 GINÁSIO MEDIEVAL — endgame: 3 andares + portal do Vale ═══ */}
       {gymOpen && (() => {
         const shards = idle.items?.fragmento_vermelho ?? 0;
         const st = valeEventStatus();
-        const canEnter = st.open && shards >= GYM_ENTRY_SHARDS && idle.currentMap !== "vale_fragmentos";
-        const enter = () => {
-          if (!canEnter) return;
+        const lv = idle.trainerLevel ?? 1;
+        const hasBmp = (idle.collection ?? []).some((e) => typeof e.event === "string" && e.event.startsWith("black_mitic"));
+        const canEnterVale = st.open && shards >= GYM_ENTRY_SHARDS && idle.currentMap !== "vale_fragmentos";
+        const enterVale = () => {
+          if (!canEnterVale) return;
           setIdle((s) => ({
             ...s,
             items: { ...(s.items ?? {}), fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - GYM_ENTRY_SHARDS },
@@ -11432,40 +11434,94 @@ function IdlePage() {
           pushChat(`🏰 Você entrou no Vale dos Fragmentos Vermelhos (−${GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻).`, "cap");
           setGymOpen(false);
         };
+        const enterFloor = (f: GymFloorDef) => {
+          if (lv < f.reqLevel || shards < f.entryShards || (f.requiresBmp && !hasBmp) || idle.currentMap === f.id) return;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - f.entryShards },
+            valeReturnMap: isGymMap(s.currentMap) ? s.valeReturnMap : s.currentMap,
+            currentMap: f.id,
+          }));
+          playClick();
+          pushChat(`🏰 Você adentrou o ${f.label} (−${f.entryShards.toLocaleString("pt-BR")} 🔻). Prepare-se.`, "cap");
+          setGymOpen(false);
+        };
         return (
-          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ width: "min(560px, 100%)", background: "linear-gradient(160deg, #2a1010 0%, #0d0505 100%)", border: "3px solid #ff5c5c", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(255,92,92,0.35)" }}>
+          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.88)", display: "grid", placeItems: "center", padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "min(680px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #2a1010 0%, #0d0505 60%, #150a20 100%)", border: "3px solid #ff5c5c", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(255,92,92,0.35)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                 <img src={houseGymImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ color: "#ff9b9b", fontWeight: 900, fontSize: 17, letterSpacing: 1.4, fontFamily: "'Cinzel', Georgia, serif" }}>🏰 GINÁSIO MEDIEVAL</div>
-                  <div style={{ color: "#c8b8d0", fontSize: 10.5 }}>Portal para o Vale dos Fragmentos Vermelhos</div>
+                  <div style={{ color: "#c8b8d0", fontSize: 10.5 }}>Conteúdo de endgame · 3 andares encadeados · Santuário Arcano exclusivo Black Mythic</div>
                 </div>
                 <button onClick={() => setGymOpen(false)} style={{ background: "#2a1a1a", border: "1px solid #6a4a4a", color: "#c8b8d0", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
               </div>
-              <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,92,92,0.35)", borderRadius: 10, padding: 12, fontSize: 11.5, color: "#f0d8d8", lineHeight: 1.7 }}>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {GYM_FLOORS.map((f) => {
+                  const lvOk = lv >= f.reqLevel;
+                  const shOk = shards >= f.entryShards;
+                  const bmpOk = !f.requiresBmp || hasBmp;
+                  const here = idle.currentMap === f.id;
+                  const ok = lvOk && shOk && bmpOk && !here;
+                  return (
+                    <div key={f.id} style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${f.color}55`, borderRadius: 12, padding: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ color: f.color, fontWeight: 900, fontSize: 13.5, letterSpacing: 1, fontFamily: "'Cinzel', Georgia, serif" }}>{f.label}</div>
+                          <div style={{ color: "#c8b8d0", fontSize: 10.5, lineHeight: 1.5, marginTop: 2 }}>{f.desc}</div>
+                        </div>
+                        {f.requiresBmp && <div style={{ color: "#c58bff", fontSize: 10, fontWeight: 900 }}>✦ BLACK MYTHIC</div>}
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8, fontSize: 10.5 }}>
+                        <span style={{ color: lvOk ? "#7ee88a" : "#ff8b8b", fontWeight: 800 }}>Nv {f.reqLevel.toLocaleString("pt-BR")}+</span>
+                        <span style={{ color: shOk ? "#7ee88a" : "#ff8b8b", fontWeight: 800 }}>{f.entryShards.toLocaleString("pt-BR")} 🔻</span>
+                        <span style={{ color: "#ffb86b" }}>HP ×{f.hpMult} · DANO ×{f.dmgMult}</span>
+                        <span style={{ color: "#9fe8ff" }}>Drop {f.shards[0]}–{f.shards[1]} 🔻</span>
+                        <span style={{ color: "#ff8bd0" }}>Captura ×{f.captureMult}</span>
+                      </div>
+                      <button
+                        onClick={() => enterFloor(f)}
+                        disabled={!ok}
+                        style={{
+                          width: "100%", marginTop: 10, padding: "9px 0", borderRadius: 10,
+                          background: ok ? `linear-gradient(180deg,${f.color},#1a0a1a)` : "#241a24",
+                          border: `1px solid ${ok ? f.color : "#5a3a5a"}`,
+                          color: ok ? "#0d0510" : "#7a6a7a", fontWeight: 900, fontSize: 12, letterSpacing: 1.2,
+                          cursor: ok ? "pointer" : "not-allowed",
+                        }}
+                      >{here ? "VOCÊ ESTÁ AQUI" : !bmpOk ? "EXIGE UM BLACK MITIC PLUS" : !lvOk ? `NÍVEL INSUFICIENTE` : !shOk ? "FRAGMENTOS INSUFICIENTES" : "ADENTRAR 🏰"}</button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ marginTop: 14, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,92,92,0.35)", borderRadius: 10, padding: 12, fontSize: 11.5, color: "#f0d8d8", lineHeight: 1.7 }}>
+                <div style={{ color: "#ff9b9b", fontWeight: 900, marginBottom: 4 }}>🔻 VALE DOS FRAGMENTOS VERMELHOS</div>
                 <div>🔻 Cada pokémon derrotado ou capturado dropa <b>5 a 20 Fragmentos Vermelhos</b>.</div>
-                <div>⏱ O evento fica aberto <b>1 hora</b> e reabre <b>a cada 5 horas</b>.</div>
+                <div>⏱ Aberto <b>1 hora</b>, reabre <b>a cada 5 horas</b>.</div>
                 <div>💰 Entrada: <b style={{ color: "#ff9b9b" }}>{GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻</b> · você tem <b style={{ color: shards >= GYM_ENTRY_SHARDS ? "#7ee88a" : "#ff8b8b" }}>{shards.toLocaleString("pt-BR")} 🔻</b></div>
                 <div style={{ marginTop: 6, color: st.open ? "#7ee88a" : "#ffb86b", fontWeight: 900 }}>
                   {st.open ? `🟢 ABERTO — fecha em ${fmtHMS(st.msUntilChange)}` : `🔴 FECHADO — abre em ${fmtHMS(st.msUntilChange)}`}
                 </div>
+                <button
+                  onClick={enterVale}
+                  disabled={!canEnterVale}
+                  style={{
+                    width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 10,
+                    background: canEnterVale ? "linear-gradient(180deg,#ff6b6b,#8b1a1a)" : "#2a1a1a",
+                    border: `1px solid ${canEnterVale ? "#ffb3b3" : "#5a3a3a"}`,
+                    color: canEnterVale ? "#fff" : "#7a6a6a", fontWeight: 900, fontSize: 12.5, letterSpacing: 1.3,
+                    cursor: canEnterVale ? "pointer" : "not-allowed",
+                  }}
+                >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
               </div>
-              <button
-                onClick={enter}
-                disabled={!canEnter}
-                style={{
-                  width: "100%", marginTop: 12, padding: "11px 0", borderRadius: 10,
-                  background: canEnter ? "linear-gradient(180deg,#ff6b6b,#8b1a1a)" : "#2a1a1a",
-                  border: `1px solid ${canEnter ? "#ffb3b3" : "#5a3a3a"}`,
-                  color: canEnter ? "#fff" : "#7a6a6a", fontWeight: 900, fontSize: 13, letterSpacing: 1.4,
-                  cursor: canEnter ? "pointer" : "not-allowed",
-                }}
-              >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
             </div>
           </div>
         );
       })()}
+
 
       {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
       {netLogOpen && (
