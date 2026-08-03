@@ -540,6 +540,10 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   oddish_o3: { name: "Odisséia Oddish — Caverna Sombria", diff: "EVENTO", bg: mapOddish3Url, rate: 9.0, minLevel: 1, maxLevel: 9999, element: "Fantasma/Caos", stars: 7 },
   grass_oddish: { name: "🌿 Grass Oddish", diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta", stars: 6, overlay: "rgba(120,255,140,0.18)" },
   vale_fragmentos: { name: "🔻 Vale dos Fragmentos Vermelhos", diff: "EVENTO", bg: mapValeFragmentosImg, rate: 9.0, minLevel: 1, maxLevel: 9999, element: "Cristal", stars: 7, overlay: "rgba(255,60,60,0.14)" },
+  // ═══ 🏰 GINÁSIO MEDIEVAL — 3 andares de endgame ═══
+  gym_carmesim:    { name: "🏰 Ginásio — Salão Carmesim",  diff: "GINÁSIO",   bg: assetUrlFromJson(mapGymCarmesimAsset),  rate: 24.0, minLevel: 1, maxLevel: 9999, element: "Cristal/Pedra", stars: 9 },
+  gym_gelo_sombra: { name: "🏰 Ginásio — Véu Gélido",      diff: "GINÁSIO+",  bg: assetUrlFromJson(mapGymGeloSombraAsset), rate: 30.0, minLevel: 1, maxLevel: 9999, element: "Gelo/Sombra",   stars: 10 },
+  gym_arcano:      { name: "🏰 Ginásio — Santuário Arcano", diff: "BLACK MYTHIC", bg: assetUrlFromJson(mapGymArcanoAsset), rate: 38.0, minLevel: 1, maxLevel: 9999, element: "Arcano",        stars: 10, overlay: "rgba(120,60,200,0.10)" },
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
 };
