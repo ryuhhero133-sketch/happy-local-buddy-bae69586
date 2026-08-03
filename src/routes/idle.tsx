@@ -1037,8 +1037,8 @@ export function isGymMap(m: string): boolean { return m === "gym_carmesim" || m 
 
 /** Pool de espécies por andar do Ginásio (endgame — espécies fracas removidas). */
 export const GYM_POOLS: Record<GymFloorId, string[]> = {
-  gym_carmesim: ["golem", "onix", "machamp", "primeape", "pinsir", "aerodactyl", "krookodile", "rhydon", "kabutops", "steelix"],
-  gym_gelo_sombra: ["abomasnow", "articuno", "gengar", "umbreon", "absol", "lapras_shiny", "tyranitar", "gyarados", "scizor", "weavile"],
+  gym_carmesim: ["golem", "onix", "machamp", "primeape", "pinsir", "aerodactyl", "krookodile", "kabutops", "nidoking_shiny", "golem"],
+  gym_gelo_sombra: ["abomasnow", "articuno", "gengar", "umbreon", "lapras_shiny", "snorlax_mythic", "tyranitar", "gyarados", "scizor", "suicune_shiny"],
   gym_arcano: ["darkrai", "dialga", "mewtwo", "lugia", "ho_oh", "groudon", "deoxys", "dragonite_shiny", "charizard_shiny", "rayquaza"],
 };
 
