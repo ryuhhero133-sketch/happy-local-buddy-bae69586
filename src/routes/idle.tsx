@@ -481,6 +481,8 @@ type IdleMapId =
   | "grass_oddish"
   // Evento Vale dos Fragmentos Vermelhos — abre 1h a cada 5h, entrada pelo Ginásio Medieval
   | "vale_fragmentos"
+  // 🏰 Ginásio Medieval — 3 andares endgame (Carmesim → Gelo/Sombra → Arcano)
+  | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
   // Continente do Governante — acesso via Carta do Governante
   | "absol_start" | "governante_hall";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
