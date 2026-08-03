@@ -963,11 +963,122 @@ export const RED_SHARD_PENDING_CAP = 50_000;
 export const VAULT_FEE_SHARDS = 25;
 
 // 🏦 Banco Medieval — armazenar POKÉMON permanentemente (Black Mitic Plus é grátis).
-export const POKE_VAULT_FEE_SHARDS = 20_000;
+// Custo atualizado na 3ª Season: 30.000 🔻. O limite de vagas NÃO mudou.
+export const POKE_VAULT_FEE_SHARDS = 30_000;
 export const POKE_VAULT_SLOTS = 200;
 
 // 🏰 Ginásio Medieval — portal para o Vale dos Fragmentos Vermelhos.
 export const GYM_ENTRY_SHARDS = 20_000;
+
+// ═══════════════════════════════════════════════════════════════
+// 🏰 GINÁSIO MEDIEVAL — CONTEÚDO DE ENDGAME (3 andares)
+// Cada andar exige nível de treinador + pedágio em Fragmento Vermelho.
+// Dificuldade, drops e dureza de captura escalam por andar.
+// ═══════════════════════════════════════════════════════════════
+export type GymFloorId = "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano";
+export type GymFloorDef = {
+  id: GymFloorId;
+  label: string;
+  desc: string;
+  color: string;
+  reqLevel: number;
+  entryShards: number;
+  /** multiplicadores de dificuldade */
+  hpMult: number;
+  dmgMult: number;
+  /** multiplicador aplicado à chance de captura (quanto menor, mais difícil) */
+  captureMult: number;
+  /** faixa de fragmentos por abate */
+  shards: [number, number];
+  /** exige possuir um Black Mitic Plus para entrar */
+  requiresBmp?: boolean;
+};
+export const GYM_FLOORS: GymFloorDef[] = [
+  {
+    id: "gym_carmesim",
+    label: "Salão Carmesim",
+    desc: "Veias de cristal vermelho e guardiões de pedra. Primeiro teste do Ginásio.",
+    color: "#ff5c5c",
+    reqLevel: 1500,
+    entryShards: 20_000,
+    hpMult: 6,
+    dmgMult: 2.2,
+    captureMult: 0.20,
+    shards: [30, 90],
+  },
+  {
+    id: "gym_gelo_sombra",
+    label: "Véu Gélido",
+    desc: "Metade gelo eterno, metade sombra. Inimigos mais rápidos, mais duros e mais agressivos.",
+    color: "#9fe8ff",
+    reqLevel: 4000,
+    entryShards: 45_000,
+    hpMult: 12,
+    dmgMult: 3.4,
+    captureMult: 0.10,
+    shards: [60, 180],
+  },
+  {
+    id: "gym_arcano",
+    label: "Santuário Arcano · Black Mythic",
+    desc: "Área exclusiva Black Mythic. Chefes arcanos, recompensas únicas e captura quase impossível.",
+    color: "#c58bff",
+    reqLevel: 8000,
+    entryShards: 90_000,
+    hpMult: 24,
+    dmgMult: 4.8,
+    captureMult: 0.04,
+    shards: [120, 360],
+    requiresBmp: true,
+  },
+];
+export const GYM_FLOOR_BY_ID: Record<string, GymFloorDef> = Object.fromEntries(GYM_FLOORS.map((f) => [f.id, f]));
+export function isGymMap(m: string): boolean { return m === "gym_carmesim" || m === "gym_gelo_sombra" || m === "gym_arcano"; }
+
+/** Pool de espécies por andar do Ginásio (endgame — espécies fracas removidas). */
+export const GYM_POOLS: Record<GymFloorId, string[]> = {
+  gym_carmesim: ["golem", "onix", "machamp", "primeape", "pinsir", "aerodactyl", "krookodile", "rhydon", "kabutops", "steelix"],
+  gym_gelo_sombra: ["abomasnow", "articuno", "gengar", "umbreon", "absol", "lapras_shiny", "tyranitar", "gyarados", "scizor", "weavile"],
+  gym_arcano: ["darkrai", "dialga", "mewtwo", "lugia", "ho_oh", "groudon", "deoxys", "dragonite_shiny", "charizard_shiny", "rayquaza"],
+};
+
+/**
+ * Drops raros do Ginásio Medieval. Cada andar tem sua tabela; taxas muito baixas
+ * nos itens mais valiosos para não inflacionar a economia.
+ */
+export const GYM_RARE_DROPS: Record<GymFloorId, Array<{ id: string; chance: number }>> = {
+  gym_carmesim: [
+    { id: "ultraball", chance: 0.030 },
+    { id: "fragmento_antigo", chance: 0.020 },
+    { id: "pergaminho_teleporte", chance: 0.012 },
+    { id: "medalha_medieval", chance: 0.006 },
+    { id: "pedra_mistica", chance: 0.0030 },
+    { id: "orb_suprema", chance: 0.0012 },
+    { id: "nucleo_arcano", chance: 0.0006 },
+    { id: "cristal_negro", chance: 0.0002 },
+  ],
+  gym_gelo_sombra: [
+    { id: "ultraball", chance: 0.055 },
+    { id: "fragmento_antigo", chance: 0.035 },
+    { id: "pergaminho_teleporte", chance: 0.022 },
+    { id: "medalha_medieval", chance: 0.012 },
+    { id: "pedra_mistica", chance: 0.0070 },
+    { id: "orb_suprema", chance: 0.0028 },
+    { id: "nucleo_arcano", chance: 0.0014 },
+    { id: "cristal_negro", chance: 0.0006 },
+  ],
+  gym_arcano: [
+    { id: "ultraball", chance: 0.090 },
+    { id: "fragmento_antigo", chance: 0.060 },
+    { id: "pergaminho_teleporte", chance: 0.040 },
+    { id: "medalha_medieval", chance: 0.024 },
+    { id: "pedra_mistica", chance: 0.0150 },
+    { id: "orb_suprema", chance: 0.0060 },
+    { id: "nucleo_arcano", chance: 0.0030 },
+    { id: "cristal_negro", chance: 0.0015 },
+  ],
+};
+
 
 // 🔻 Evento Vale dos Fragmentos: abre 1 hora a cada 5 horas (ciclo global, igual pra todos).
 export const VALE_CYCLE_MS = 5 * 60 * 60 * 1000;
