@@ -3786,6 +3786,12 @@ function IdlePage() {
           }
         }
 
+        // 🏰 GINÁSIO MEDIEVAL — inimigos batem muito mais forte por andar.
+        {
+          const gf = GYM_FLOOR_BY_ID[idle.currentMap];
+          if (gf) eDmg = Math.floor(eDmg * gf.dmgMult);
+        }
+
         // 💀 PERIGO ABISSAL — dano brutal, pode matar em 3 hits
         if (target.menace) {
           eDmg = Math.floor(eDmg * 3.2);
@@ -3985,9 +3991,24 @@ function IdlePage() {
             legendary: 5, mythic: 5, mythic_shiny: 5,
           };
           // 🔻 No Vale dos Fragmentos Vermelhos qualquer pokémon dropa de 5 a 20 fragmentos.
-          const redShardGain = idle.currentMap === "vale_fragmentos"
+          const gymFloorDrop = GYM_FLOOR_BY_ID[idle.currentMap];
+          const redShardGain = gymFloorDrop
+            ? gymFloorDrop.shards[0] + Math.floor(Math.random() * (gymFloorDrop.shards[1] - gymFloorDrop.shards[0] + 1))
+            : idle.currentMap === "vale_fragmentos"
             ? 5 + Math.floor(Math.random() * 16)
             : (RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1);
+          // 🏰 Drops raros do Ginásio Medieval — itens especiais com taxas muito baixas.
+          if (gymFloorDrop) {
+            const bossBonus = (target.apex || target.eventLegendary) ? 3 : 1;
+            for (const d of GYM_RARE_DROPS[gymFloorDrop.id]) {
+              if (Math.random() < d.chance * (1 + totalBonus) * honeyMult * bossBonus) {
+                drops.push(d.id);
+                if (d.id === "cristal_negro" || d.id === "nucleo_arcano" || d.id === "orb_suprema") {
+                  pushChat(`✦ DROP LENDÁRIO DO GINÁSIO: ${GYM_DROP_LABELS[d.id] ?? d.id}!`, "cap");
+                }
+              }
+            }
+          }
           flyRedShards(target.x, target.y - 20, redShardGain);
           pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
 
@@ -4178,7 +4199,8 @@ function IdlePage() {
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
                  const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
-                captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult;
+                const gymCapMult = GYM_FLOOR_BY_ID[idle.currentMap]?.captureMult ?? 1;
+                captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult * gymCapMult;
               }
               if (captured) {
                 const rolled = rollTraits(target.rarity);
@@ -4775,7 +4797,8 @@ function IdlePage() {
       const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
       const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
       const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
-      chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult);
+      const gymCapMult = GYM_FLOOR_BY_ID[curMap]?.captureMult ?? 1;
+      chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult * gymCapMult);
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
