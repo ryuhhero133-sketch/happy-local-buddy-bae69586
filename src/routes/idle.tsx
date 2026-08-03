@@ -65,6 +65,10 @@ import houseLabImg from "@/assets/house-lab.png";
 import houseBankImg from "@/assets/house-bank.png";
 import houseGymImg from "@/assets/house-gym.png";
 import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
+// 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
+import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
+import mapGymGeloSombraAsset from "@/assets/gym-gelo-sombra.png.asset.json";
+import mapGymArcanoAsset from "@/assets/gym-arcano.png.asset.json";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
@@ -477,6 +481,8 @@ type IdleMapId =
   | "grass_oddish"
   // Evento Vale dos Fragmentos Vermelhos — abre 1h a cada 5h, entrada pelo Ginásio Medieval
   | "vale_fragmentos"
+  // 🏰 Ginásio Medieval — 3 andares endgame (Carmesim → Gelo/Sombra → Arcano)
+  | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
   // Continente do Governante — acesso via Carta do Governante
   | "absol_start" | "governante_hall";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
@@ -534,6 +540,10 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   oddish_o3: { name: "Odisséia Oddish — Caverna Sombria", diff: "EVENTO", bg: mapOddish3Url, rate: 9.0, minLevel: 1, maxLevel: 9999, element: "Fantasma/Caos", stars: 7 },
   grass_oddish: { name: "🌿 Grass Oddish", diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta", stars: 6, overlay: "rgba(120,255,140,0.18)" },
   vale_fragmentos: { name: "🔻 Vale dos Fragmentos Vermelhos", diff: "EVENTO", bg: mapValeFragmentosImg, rate: 9.0, minLevel: 1, maxLevel: 9999, element: "Cristal", stars: 7, overlay: "rgba(255,60,60,0.14)" },
+  // ═══ 🏰 GINÁSIO MEDIEVAL — 3 andares de endgame ═══
+  gym_carmesim:    { name: "🏰 Ginásio — Salão Carmesim",  diff: "GINÁSIO",   bg: assetUrlFromJson(mapGymCarmesimAsset),  rate: 24.0, minLevel: 1, maxLevel: 9999, element: "Cristal/Pedra", stars: 9 },
+  gym_gelo_sombra: { name: "🏰 Ginásio — Véu Gélido",      diff: "GINÁSIO+",  bg: assetUrlFromJson(mapGymGeloSombraAsset), rate: 30.0, minLevel: 1, maxLevel: 9999, element: "Gelo/Sombra",   stars: 10 },
+  gym_arcano:      { name: "🏰 Ginásio — Santuário Arcano", diff: "BLACK MYTHIC", bg: assetUrlFromJson(mapGymArcanoAsset), rate: 38.0, minLevel: 1, maxLevel: 9999, element: "Arcano",        stars: 10, overlay: "rgba(120,60,200,0.10)" },
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
 };
@@ -953,11 +963,133 @@ export const RED_SHARD_PENDING_CAP = 50_000;
 export const VAULT_FEE_SHARDS = 25;
 
 // 🏦 Banco Medieval — armazenar POKÉMON permanentemente (Black Mitic Plus é grátis).
-export const POKE_VAULT_FEE_SHARDS = 20_000;
+// Custo atualizado na 3ª Season: 30.000 🔻. O limite de vagas NÃO mudou.
+export const POKE_VAULT_FEE_SHARDS = 30_000;
 export const POKE_VAULT_SLOTS = 200;
 
 // 🏰 Ginásio Medieval — portal para o Vale dos Fragmentos Vermelhos.
 export const GYM_ENTRY_SHARDS = 20_000;
+
+// ═══════════════════════════════════════════════════════════════
+// 🏰 GINÁSIO MEDIEVAL — CONTEÚDO DE ENDGAME (3 andares)
+// Cada andar exige nível de treinador + pedágio em Fragmento Vermelho.
+// Dificuldade, drops e dureza de captura escalam por andar.
+// ═══════════════════════════════════════════════════════════════
+export type GymFloorId = "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano";
+export type GymFloorDef = {
+  id: GymFloorId;
+  label: string;
+  desc: string;
+  color: string;
+  reqLevel: number;
+  entryShards: number;
+  /** multiplicadores de dificuldade */
+  hpMult: number;
+  dmgMult: number;
+  /** multiplicador aplicado à chance de captura (quanto menor, mais difícil) */
+  captureMult: number;
+  /** faixa de fragmentos por abate */
+  shards: [number, number];
+  /** exige possuir um Black Mitic Plus para entrar */
+  requiresBmp?: boolean;
+};
+export const GYM_FLOORS: GymFloorDef[] = [
+  {
+    id: "gym_carmesim",
+    label: "Salão Carmesim",
+    desc: "Veias de cristal vermelho e guardiões de pedra. Primeiro teste do Ginásio.",
+    color: "#ff5c5c",
+    reqLevel: 1500,
+    entryShards: 20_000,
+    hpMult: 6,
+    dmgMult: 2.2,
+    captureMult: 0.20,
+    shards: [30, 90],
+  },
+  {
+    id: "gym_gelo_sombra",
+    label: "Véu Gélido",
+    desc: "Metade gelo eterno, metade sombra. Inimigos mais rápidos, mais duros e mais agressivos.",
+    color: "#9fe8ff",
+    reqLevel: 4000,
+    entryShards: 45_000,
+    hpMult: 12,
+    dmgMult: 3.4,
+    captureMult: 0.10,
+    shards: [60, 180],
+  },
+  {
+    id: "gym_arcano",
+    label: "Santuário Arcano · Black Mythic",
+    desc: "Área exclusiva Black Mythic. Chefes arcanos, recompensas únicas e captura quase impossível.",
+    color: "#c58bff",
+    reqLevel: 8000,
+    entryShards: 90_000,
+    hpMult: 24,
+    dmgMult: 4.8,
+    captureMult: 0.04,
+    shards: [120, 360],
+    requiresBmp: true,
+  },
+];
+export const GYM_FLOOR_BY_ID: Record<string, GymFloorDef> = Object.fromEntries(GYM_FLOORS.map((f) => [f.id, f]));
+export function isGymMap(m: string): boolean { return m === "gym_carmesim" || m === "gym_gelo_sombra" || m === "gym_arcano"; }
+
+/** Pool de espécies por andar do Ginásio (endgame — espécies fracas removidas). */
+export const GYM_POOLS: Record<GymFloorId, string[]> = {
+  gym_carmesim: ["golem", "onix", "machamp", "primeape", "pinsir", "aerodactyl", "krookodile", "kabutops", "nidoking_shiny", "golem"],
+  gym_gelo_sombra: ["abomasnow", "articuno", "gengar", "umbreon", "lapras_shiny", "snorlax_mythic", "tyranitar", "gyarados", "scizor", "suicune_shiny"],
+  gym_arcano: ["darkrai", "dialga", "mewtwo", "lugia", "ho_oh", "groudon", "deoxys", "dragonite_shiny", "charizard_shiny", "rayquaza"],
+};
+
+/**
+ * Drops raros do Ginásio Medieval. Cada andar tem sua tabela; taxas muito baixas
+ * nos itens mais valiosos para não inflacionar a economia.
+ */
+/** Nomes exibidos dos itens exclusivos do Ginásio Medieval. */
+export const GYM_DROP_LABELS: Record<string, string> = {
+  orb_suprema: "Orb Suprema ✦✦✦",
+  pergaminho_teleporte: "Pergaminho de Teleporte 📜",
+  fragmento_antigo: "Fragmento Antigo 🗿",
+  pedra_mistica: "Pedra Mística 🔮",
+  medalha_medieval: "Medalha Medieval 🏅",
+  nucleo_arcano: "Núcleo Arcano 🌀",
+  cristal_negro: "Cristal Negro 🖤",
+};
+
+export const GYM_RARE_DROPS: Record<GymFloorId, Array<{ id: string; chance: number }>> = {
+  gym_carmesim: [
+    { id: "ultraball", chance: 0.030 },
+    { id: "fragmento_antigo", chance: 0.020 },
+    { id: "pergaminho_teleporte", chance: 0.012 },
+    { id: "medalha_medieval", chance: 0.006 },
+    { id: "pedra_mistica", chance: 0.0030 },
+    { id: "orb_suprema", chance: 0.0012 },
+    { id: "nucleo_arcano", chance: 0.0006 },
+    { id: "cristal_negro", chance: 0.0002 },
+  ],
+  gym_gelo_sombra: [
+    { id: "ultraball", chance: 0.055 },
+    { id: "fragmento_antigo", chance: 0.035 },
+    { id: "pergaminho_teleporte", chance: 0.022 },
+    { id: "medalha_medieval", chance: 0.012 },
+    { id: "pedra_mistica", chance: 0.0070 },
+    { id: "orb_suprema", chance: 0.0028 },
+    { id: "nucleo_arcano", chance: 0.0014 },
+    { id: "cristal_negro", chance: 0.0006 },
+  ],
+  gym_arcano: [
+    { id: "ultraball", chance: 0.090 },
+    { id: "fragmento_antigo", chance: 0.060 },
+    { id: "pergaminho_teleporte", chance: 0.040 },
+    { id: "medalha_medieval", chance: 0.024 },
+    { id: "pedra_mistica", chance: 0.0150 },
+    { id: "orb_suprema", chance: 0.0060 },
+    { id: "nucleo_arcano", chance: 0.0030 },
+    { id: "cristal_negro", chance: 0.0015 },
+  ],
+};
+
 
 // 🔻 Evento Vale dos Fragmentos: abre 1 hora a cada 5 horas (ciclo global, igual pra todos).
 export const VALE_CYCLE_MS = 5 * 60 * 60 * 1000;
@@ -3665,6 +3797,12 @@ function IdlePage() {
           }
         }
 
+        // 🏰 GINÁSIO MEDIEVAL — inimigos batem muito mais forte por andar.
+        {
+          const gf = GYM_FLOOR_BY_ID[idle.currentMap];
+          if (gf) eDmg = Math.floor(eDmg * gf.dmgMult);
+        }
+
         // 💀 PERIGO ABISSAL — dano brutal, pode matar em 3 hits
         if (target.menace) {
           eDmg = Math.floor(eDmg * 3.2);
@@ -3864,9 +4002,24 @@ function IdlePage() {
             legendary: 5, mythic: 5, mythic_shiny: 5,
           };
           // 🔻 No Vale dos Fragmentos Vermelhos qualquer pokémon dropa de 5 a 20 fragmentos.
-          const redShardGain = idle.currentMap === "vale_fragmentos"
+          const gymFloorDrop = GYM_FLOOR_BY_ID[idle.currentMap];
+          const redShardGain = gymFloorDrop
+            ? gymFloorDrop.shards[0] + Math.floor(Math.random() * (gymFloorDrop.shards[1] - gymFloorDrop.shards[0] + 1))
+            : idle.currentMap === "vale_fragmentos"
             ? 5 + Math.floor(Math.random() * 16)
             : (RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1);
+          // 🏰 Drops raros do Ginásio Medieval — itens especiais com taxas muito baixas.
+          if (gymFloorDrop) {
+            const bossBonus = (target.apex || target.eventLegendary) ? 3 : 1;
+            for (const d of GYM_RARE_DROPS[gymFloorDrop.id]) {
+              if (Math.random() < d.chance * (1 + totalBonus) * honeyMult * bossBonus) {
+                drops.push(d.id);
+                if (d.id === "cristal_negro" || d.id === "nucleo_arcano" || d.id === "orb_suprema") {
+                  pushChat(`✦ DROP LENDÁRIO DO GINÁSIO: ${GYM_DROP_LABELS[d.id] ?? d.id}!`, "cap");
+                }
+              }
+            }
+          }
           flyRedShards(target.x, target.y - 20, redShardGain);
           pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
 
@@ -4057,7 +4210,8 @@ function IdlePage() {
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
                  const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
-                captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult;
+                const gymCapMult = GYM_FLOOR_BY_ID[idle.currentMap]?.captureMult ?? 1;
+                captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult * gymCapMult;
               }
               if (captured) {
                 const rolled = rollTraits(target.rarity);
@@ -4654,7 +4808,8 @@ function IdlePage() {
       const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
       const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
       const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
-      chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult);
+      const gymCapMult = GYM_FLOOR_BY_ID[curMap]?.captureMult ?? 1;
+      chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult * gymCapMult);
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
@@ -5318,6 +5473,21 @@ function IdlePage() {
           const rr = Math.random();
           forcedRarity = rr < 0.55 ? "uncommon" : rr < 0.85 ? "rare" : rr < 0.97 ? "epic" : "legendary";
           mapLvRange = [Math.max(1, leaderLv - 4), leaderLv + 6];
+        } else if (isGymMap(idle.currentMap)) {
+          // 🏰 GINÁSIO MEDIEVAL — endgame. Espécies fortes, raridades altas, níveis acima do líder.
+          const floor = GYM_FLOOR_BY_ID[idle.currentMap]!;
+          pool = (GYM_POOLS[floor.id] as Species[]).filter(hasGif);
+          if (pool.length === 0) pool = ["tyranitar"] as Species[];
+          const rr = Math.random();
+          if (floor.id === "gym_carmesim") {
+            forcedRarity = rr < 0.45 ? "rare" : rr < 0.85 ? "epic" : "legendary";
+          } else if (floor.id === "gym_gelo_sombra") {
+            forcedRarity = rr < 0.35 ? "epic" : rr < 0.85 ? "legendary" : "mythic";
+          } else {
+            forcedRarity = rr < 0.55 ? "legendary" : rr < 0.92 ? "mythic" : "mythic_shiny";
+          }
+          const bump = floor.id === "gym_carmesim" ? 25 : floor.id === "gym_gelo_sombra" ? 60 : 120;
+          mapLvRange = [Math.max(1, leaderLv + Math.floor(bump * 0.4)), leaderLv + bump];
         } else if (idle.currentMap === "grass_oddish") {
           // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
           // Captura usa as MESMAS taxas globais do servidor.
@@ -5606,9 +5776,14 @@ function IdlePage() {
       const apexHpMult = isApex ? 4.5 : 1;
       const menaceHpMult = isMenace ? 18 : 1;
       const mythEventHpMult = isMythShinyEvent ? 3.5 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult);
+      // 🏰 Ginásio Medieval — HP muito maior por andar (endgame).
+      const gymFloorHere = GYM_FLOOR_BY_ID[idle.currentMap];
+      const gymHpMult = gymFloorHere ? gymFloorHere.hpMult : 1;
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult * gymHpMult);
       const isAggro = isMenace ? false : true; // menace começa passivo
-      const aggroR = elite ? 300 : isApex ? 360 : isMythShinyEvent ? 480 : 220 + Math.floor(Math.random() * 60);
+      // IA mais inteligente no Ginásio: percebe o treinador de muito mais longe.
+      const aggroR = gymFloorHere ? (gymFloorHere.id === "gym_arcano" ? 900 : gymFloorHere.id === "gym_gelo_sombra" ? 720 : 560)
+        : elite ? 300 : isApex ? 360 : isMythShinyEvent ? 480 : 220 + Math.floor(Math.random() * 60);
 
       // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
       let disguise: Species | undefined = undefined;
@@ -9699,6 +9874,16 @@ function IdlePage() {
                 ],
                 grass_oddish: [],
                 vale_fragmentos: [],
+                gym_carmesim: [
+                  { key: "gym1-gym2", target: "gym_gelo_sombra", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#9fe8ff" },
+                ],
+                gym_gelo_sombra: [
+                  { key: "gym2-gym1", target: "gym_carmesim", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#ff8b8b" },
+                  { key: "gym2-gym3", target: "gym_arcano", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#c58bff" },
+                ],
+                gym_arcano: [
+                  { key: "gym3-gym2", target: "gym_gelo_sombra", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#9fe8ff" },
+                ],
                 absol_start: [
                   { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
                 ],
@@ -11230,13 +11415,15 @@ function IdlePage() {
         );
       })()}
 
-      {/* ═══ 🏰 GINÁSIO MEDIEVAL — portal do Vale dos Fragmentos Vermelhos ═══ */}
+      {/* ═══ 🏰 GINÁSIO MEDIEVAL — endgame: 3 andares + portal do Vale ═══ */}
       {gymOpen && (() => {
         const shards = idle.items?.fragmento_vermelho ?? 0;
         const st = valeEventStatus();
-        const canEnter = st.open && shards >= GYM_ENTRY_SHARDS && idle.currentMap !== "vale_fragmentos";
-        const enter = () => {
-          if (!canEnter) return;
+        const lv = idle.trainerLevel ?? 1;
+        const hasBmp = (idle.collection ?? []).some((e) => typeof e.event === "string" && e.event.startsWith("black_mitic"));
+        const canEnterVale = st.open && shards >= GYM_ENTRY_SHARDS && idle.currentMap !== "vale_fragmentos";
+        const enterVale = () => {
+          if (!canEnterVale) return;
           setIdle((s) => ({
             ...s,
             items: { ...(s.items ?? {}), fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - GYM_ENTRY_SHARDS },
@@ -11247,40 +11434,94 @@ function IdlePage() {
           pushChat(`🏰 Você entrou no Vale dos Fragmentos Vermelhos (−${GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻).`, "cap");
           setGymOpen(false);
         };
+        const enterFloor = (f: GymFloorDef) => {
+          if (lv < f.reqLevel || shards < f.entryShards || (f.requiresBmp && !hasBmp) || idle.currentMap === f.id) return;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - f.entryShards },
+            valeReturnMap: isGymMap(s.currentMap) ? s.valeReturnMap : s.currentMap,
+            currentMap: f.id,
+          }));
+          playClick();
+          pushChat(`🏰 Você adentrou o ${f.label} (−${f.entryShards.toLocaleString("pt-BR")} 🔻). Prepare-se.`, "cap");
+          setGymOpen(false);
+        };
         return (
-          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ width: "min(560px, 100%)", background: "linear-gradient(160deg, #2a1010 0%, #0d0505 100%)", border: "3px solid #ff5c5c", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(255,92,92,0.35)" }}>
+          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.88)", display: "grid", placeItems: "center", padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "min(680px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #2a1010 0%, #0d0505 60%, #150a20 100%)", border: "3px solid #ff5c5c", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(255,92,92,0.35)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                 <img src={houseGymImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ color: "#ff9b9b", fontWeight: 900, fontSize: 17, letterSpacing: 1.4, fontFamily: "'Cinzel', Georgia, serif" }}>🏰 GINÁSIO MEDIEVAL</div>
-                  <div style={{ color: "#c8b8d0", fontSize: 10.5 }}>Portal para o Vale dos Fragmentos Vermelhos</div>
+                  <div style={{ color: "#c8b8d0", fontSize: 10.5 }}>Conteúdo de endgame · 3 andares encadeados · Santuário Arcano exclusivo Black Mythic</div>
                 </div>
                 <button onClick={() => setGymOpen(false)} style={{ background: "#2a1a1a", border: "1px solid #6a4a4a", color: "#c8b8d0", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
               </div>
-              <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,92,92,0.35)", borderRadius: 10, padding: 12, fontSize: 11.5, color: "#f0d8d8", lineHeight: 1.7 }}>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {GYM_FLOORS.map((f) => {
+                  const lvOk = lv >= f.reqLevel;
+                  const shOk = shards >= f.entryShards;
+                  const bmpOk = !f.requiresBmp || hasBmp;
+                  const here = idle.currentMap === f.id;
+                  const ok = lvOk && shOk && bmpOk && !here;
+                  return (
+                    <div key={f.id} style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${f.color}55`, borderRadius: 12, padding: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ color: f.color, fontWeight: 900, fontSize: 13.5, letterSpacing: 1, fontFamily: "'Cinzel', Georgia, serif" }}>{f.label}</div>
+                          <div style={{ color: "#c8b8d0", fontSize: 10.5, lineHeight: 1.5, marginTop: 2 }}>{f.desc}</div>
+                        </div>
+                        {f.requiresBmp && <div style={{ color: "#c58bff", fontSize: 10, fontWeight: 900 }}>✦ BLACK MYTHIC</div>}
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8, fontSize: 10.5 }}>
+                        <span style={{ color: lvOk ? "#7ee88a" : "#ff8b8b", fontWeight: 800 }}>Nv {f.reqLevel.toLocaleString("pt-BR")}+</span>
+                        <span style={{ color: shOk ? "#7ee88a" : "#ff8b8b", fontWeight: 800 }}>{f.entryShards.toLocaleString("pt-BR")} 🔻</span>
+                        <span style={{ color: "#ffb86b" }}>HP ×{f.hpMult} · DANO ×{f.dmgMult}</span>
+                        <span style={{ color: "#9fe8ff" }}>Drop {f.shards[0]}–{f.shards[1]} 🔻</span>
+                        <span style={{ color: "#ff8bd0" }}>Captura ×{f.captureMult}</span>
+                      </div>
+                      <button
+                        onClick={() => enterFloor(f)}
+                        disabled={!ok}
+                        style={{
+                          width: "100%", marginTop: 10, padding: "9px 0", borderRadius: 10,
+                          background: ok ? `linear-gradient(180deg,${f.color},#1a0a1a)` : "#241a24",
+                          border: `1px solid ${ok ? f.color : "#5a3a5a"}`,
+                          color: ok ? "#0d0510" : "#7a6a7a", fontWeight: 900, fontSize: 12, letterSpacing: 1.2,
+                          cursor: ok ? "pointer" : "not-allowed",
+                        }}
+                      >{here ? "VOCÊ ESTÁ AQUI" : !bmpOk ? "EXIGE UM BLACK MITIC PLUS" : !lvOk ? `NÍVEL INSUFICIENTE` : !shOk ? "FRAGMENTOS INSUFICIENTES" : "ADENTRAR 🏰"}</button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ marginTop: 14, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,92,92,0.35)", borderRadius: 10, padding: 12, fontSize: 11.5, color: "#f0d8d8", lineHeight: 1.7 }}>
+                <div style={{ color: "#ff9b9b", fontWeight: 900, marginBottom: 4 }}>🔻 VALE DOS FRAGMENTOS VERMELHOS</div>
                 <div>🔻 Cada pokémon derrotado ou capturado dropa <b>5 a 20 Fragmentos Vermelhos</b>.</div>
-                <div>⏱ O evento fica aberto <b>1 hora</b> e reabre <b>a cada 5 horas</b>.</div>
+                <div>⏱ Aberto <b>1 hora</b>, reabre <b>a cada 5 horas</b>.</div>
                 <div>💰 Entrada: <b style={{ color: "#ff9b9b" }}>{GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻</b> · você tem <b style={{ color: shards >= GYM_ENTRY_SHARDS ? "#7ee88a" : "#ff8b8b" }}>{shards.toLocaleString("pt-BR")} 🔻</b></div>
                 <div style={{ marginTop: 6, color: st.open ? "#7ee88a" : "#ffb86b", fontWeight: 900 }}>
                   {st.open ? `🟢 ABERTO — fecha em ${fmtHMS(st.msUntilChange)}` : `🔴 FECHADO — abre em ${fmtHMS(st.msUntilChange)}`}
                 </div>
+                <button
+                  onClick={enterVale}
+                  disabled={!canEnterVale}
+                  style={{
+                    width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 10,
+                    background: canEnterVale ? "linear-gradient(180deg,#ff6b6b,#8b1a1a)" : "#2a1a1a",
+                    border: `1px solid ${canEnterVale ? "#ffb3b3" : "#5a3a3a"}`,
+                    color: canEnterVale ? "#fff" : "#7a6a6a", fontWeight: 900, fontSize: 12.5, letterSpacing: 1.3,
+                    cursor: canEnterVale ? "pointer" : "not-allowed",
+                  }}
+                >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
               </div>
-              <button
-                onClick={enter}
-                disabled={!canEnter}
-                style={{
-                  width: "100%", marginTop: 12, padding: "11px 0", borderRadius: 10,
-                  background: canEnter ? "linear-gradient(180deg,#ff6b6b,#8b1a1a)" : "#2a1a1a",
-                  border: `1px solid ${canEnter ? "#ffb3b3" : "#5a3a3a"}`,
-                  color: canEnter ? "#fff" : "#7a6a6a", fontWeight: 900, fontSize: 13, letterSpacing: 1.4,
-                  cursor: canEnter ? "pointer" : "not-allowed",
-                }}
-              >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
             </div>
           </div>
         );
       })()}
+
 
       {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
       {netLogOpen && (
@@ -13685,6 +13926,10 @@ function TabOverlay({
           stone_pack_all: "Pacote das Seis Stones 💠",
           cristal_fragmentado: "Cristal Prisma 🔷",
           fragmento_vermelho: "Fragmento Vermelho 🔻",
+          orb_suprema: "Orb Suprema ✦✦✦", pergaminho_teleporte: "Pergaminho de Teleporte 📜",
+          fragmento_antigo: "Fragmento Antigo 🗿", pedra_mistica: "Pedra Mística 🔮",
+          medalha_medieval: "Medalha Medieval 🏅", nucleo_arcano: "Núcleo Arcano 🌀",
+          cristal_negro: "Cristal Negro 🖤",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -13737,6 +13982,13 @@ function TabOverlay({
           egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
           stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
           cristal_fragmentado: "Cristal Prisma 🔷 · token obtido ao fragmentar Pokémon da coleção (1 por Pokémon). Vale no Ranking Global de Prisma — atualizado a cada 2 horas.",
+          orb_suprema: "Orb Suprema ✦✦✦ · relíquia do Ginásio Medieval. Item de altíssimo valor, drop extremamente raro.",
+          pergaminho_teleporte: "Pergaminho de Teleporte 📜 · relíquia do Ginásio Medieval usada em viagens arcanas.",
+          fragmento_antigo: "Fragmento Antigo 🗿 · fragmento de eras esquecidas, encontrado nos salões do Ginásio.",
+          pedra_mistica: "Pedra Mística 🔮 · pedra saturada de magia antiga. Drop muito raro do Ginásio.",
+          medalha_medieval: "Medalha Medieval 🏅 · prova de vitória nos andares do Ginásio Medieval.",
+          nucleo_arcano: "Núcleo Arcano 🌀 · núcleo do Santuário Arcano (área Black Mythic). Drop quase impossível.",
+          cristal_negro: "Cristal Negro 🖤 · o item mais raro do Ginásio Medieval. Nasce apenas onde o Black Mythic caminha.",
           fragmento_vermelho: "Fragmento Vermelho 🔻 · fragmento de Cristal Vermelho dropado por QUALQUER pokémon derrotado. A quantidade escala pela raridade do alvo: Comum 1 · Incomum 2 · Raro 3 · Épico 4 · Lendário/Mítico 5. Aparece na COLETA e vai para a mochila ao clicar em COLETAR.",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
