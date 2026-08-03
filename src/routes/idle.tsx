@@ -65,6 +65,10 @@ import houseLabImg from "@/assets/house-lab.png";
 import houseBankImg from "@/assets/house-bank.png";
 import houseGymImg from "@/assets/house-gym.png";
 import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
+// 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
+import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
+import mapGymGeloSombraAsset from "@/assets/gym-gelo-sombra.png.asset.json";
+import mapGymArcanoAsset from "@/assets/gym-arcano.png.asset.json";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
