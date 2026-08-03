@@ -1046,6 +1046,17 @@ export const GYM_POOLS: Record<GymFloorId, string[]> = {
  * Drops raros do Ginásio Medieval. Cada andar tem sua tabela; taxas muito baixas
  * nos itens mais valiosos para não inflacionar a economia.
  */
+/** Nomes exibidos dos itens exclusivos do Ginásio Medieval. */
+export const GYM_DROP_LABELS: Record<string, string> = {
+  orb_suprema: "Orb Suprema ✦✦✦",
+  pergaminho_teleporte: "Pergaminho de Teleporte 📜",
+  fragmento_antigo: "Fragmento Antigo 🗿",
+  pedra_mistica: "Pedra Mística 🔮",
+  medalha_medieval: "Medalha Medieval 🏅",
+  nucleo_arcano: "Núcleo Arcano 🌀",
+  cristal_negro: "Cristal Negro 🖤",
+};
+
 export const GYM_RARE_DROPS: Record<GymFloorId, Array<{ id: string; chance: number }>> = {
   gym_carmesim: [
     { id: "ultraball", chance: 0.030 },
@@ -13859,6 +13870,10 @@ function TabOverlay({
           stone_pack_all: "Pacote das Seis Stones 💠",
           cristal_fragmentado: "Cristal Prisma 🔷",
           fragmento_vermelho: "Fragmento Vermelho 🔻",
+          orb_suprema: "Orb Suprema ✦✦✦", pergaminho_teleporte: "Pergaminho de Teleporte 📜",
+          fragmento_antigo: "Fragmento Antigo 🗿", pedra_mistica: "Pedra Mística 🔮",
+          medalha_medieval: "Medalha Medieval 🏅", nucleo_arcano: "Núcleo Arcano 🌀",
+          cristal_negro: "Cristal Negro 🖤",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -13911,6 +13926,13 @@ function TabOverlay({
           egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
           stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
           cristal_fragmentado: "Cristal Prisma 🔷 · token obtido ao fragmentar Pokémon da coleção (1 por Pokémon). Vale no Ranking Global de Prisma — atualizado a cada 2 horas.",
+          orb_suprema: "Orb Suprema ✦✦✦ · relíquia do Ginásio Medieval. Item de altíssimo valor, drop extremamente raro.",
+          pergaminho_teleporte: "Pergaminho de Teleporte 📜 · relíquia do Ginásio Medieval usada em viagens arcanas.",
+          fragmento_antigo: "Fragmento Antigo 🗿 · fragmento de eras esquecidas, encontrado nos salões do Ginásio.",
+          pedra_mistica: "Pedra Mística 🔮 · pedra saturada de magia antiga. Drop muito raro do Ginásio.",
+          medalha_medieval: "Medalha Medieval 🏅 · prova de vitória nos andares do Ginásio Medieval.",
+          nucleo_arcano: "Núcleo Arcano 🌀 · núcleo do Santuário Arcano (área Black Mythic). Drop quase impossível.",
+          cristal_negro: "Cristal Negro 🖤 · o item mais raro do Ginásio Medieval. Nasce apenas onde o Black Mythic caminha.",
           fragmento_vermelho: "Fragmento Vermelho 🔻 · fragmento de Cristal Vermelho dropado por QUALQUER pokémon derrotado. A quantidade escala pela raridade do alvo: Comum 1 · Incomum 2 · Raro 3 · Épico 4 · Lendário/Mítico 5. Aparece na COLETA e vai para a mochila ao clicar em COLETAR.",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
