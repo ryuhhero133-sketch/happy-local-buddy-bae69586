@@ -5439,6 +5439,21 @@ function IdlePage() {
           const rr = Math.random();
           forcedRarity = rr < 0.55 ? "uncommon" : rr < 0.85 ? "rare" : rr < 0.97 ? "epic" : "legendary";
           mapLvRange = [Math.max(1, leaderLv - 4), leaderLv + 6];
+        } else if (isGymMap(idle.currentMap)) {
+          // 🏰 GINÁSIO MEDIEVAL — endgame. Espécies fortes, raridades altas, níveis acima do líder.
+          const floor = GYM_FLOOR_BY_ID[idle.currentMap]!;
+          pool = (GYM_POOLS[floor.id] as Species[]).filter(hasGif);
+          if (pool.length === 0) pool = ["tyranitar"] as Species[];
+          const rr = Math.random();
+          if (floor.id === "gym_carmesim") {
+            forcedRarity = rr < 0.45 ? "rare" : rr < 0.85 ? "epic" : "legendary";
+          } else if (floor.id === "gym_gelo_sombra") {
+            forcedRarity = rr < 0.35 ? "epic" : rr < 0.85 ? "legendary" : "mythic";
+          } else {
+            forcedRarity = rr < 0.55 ? "legendary" : rr < 0.92 ? "mythic" : "mythic_shiny";
+          }
+          const bump = floor.id === "gym_carmesim" ? 25 : floor.id === "gym_gelo_sombra" ? 60 : 120;
+          mapLvRange = [Math.max(1, leaderLv + Math.floor(bump * 0.4)), leaderLv + bump];
         } else if (idle.currentMap === "grass_oddish") {
           // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
           // Captura usa as MESMAS taxas globais do servidor.
