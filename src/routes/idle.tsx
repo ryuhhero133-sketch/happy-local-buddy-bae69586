@@ -2695,9 +2695,38 @@ function IdlePage() {
     } catch { /* ignore */ }
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
 
-    // Todos os códigos de resgate foram desativados.
-    setCodeMsg({ kind: "err", text: "Todos os códigos de recompensa foram desativados." });
+    // 🎁 Pacote: 3 Ovos Épicos + 20.000 Cristais + 50 Ultra Ball + VIP 60 dias
+    if (raw === "EGGVIP60K") {
+      const nowT = Date.now();
+      const curUntil = Math.max(idleRef.current.buffs.expMultUntil ?? 0, idleRef.current.buffs.goldMultUntil ?? 0);
+      const curMult = curUntil > nowT ? Math.max(idleRef.current.buffs.expMult ?? 0, idleRef.current.buffs.goldMult ?? 0) : 0;
+      const remaining = curUntil > nowT ? curUntil - nowT : 0;
+      const newUntil = nowT + remaining + 60 * 24 * 3600_000;
+      const newMult = Math.max(curMult, 0.40);
+      const cur = idleRef.current;
+      const next: IdleState = {
+        ...cur,
+        items: {
+          ...cur.items,
+          egg_epic: (cur.items.egg_epic ?? 0) + 3,
+          ultraball: (cur.items.ultraball ?? 0) + 50,
+        },
+        bank: { ...cur.bank, crystals: (cur.bank?.crystals ?? 0) + 20000 },
+        buffs: { ...cur.buffs, expMult: newMult, expMultUntil: newUntil, goldMult: newMult, goldMultUntil: newUntil },
+        redeemedCodes: { ...(cur.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      pushChat("🎁 Código resgatado: 3× Ovo Épico, 20.000 Cristais, 50× Ultra Ball e VIP 60 dias!", "cap");
+      setCodeMsg({ kind: "ok", text: "Resgatado! 3× Ovo Épico ✦✦, 20.000 Cristais, 50× Ultra Ball e VIP 60 dias (+40% XP/Ouro)." });
+      return;
+    }
+
+    // Nenhum outro código de resgate está ativo.
+    setCodeMsg({ kind: "err", text: "Código inválido ou desativado." });
   };
+
 
 
 
