@@ -2703,6 +2703,8 @@ function IdlePage() {
       // 1 Black Mitic Egg ✦ (Black Plus)
       BLACKPLUS30K: { items: { black_mitic_egg: 1 }, label: "1× Black Mitic Egg ✦ e 30.000 Cristais" },
       BLACKEGG30K: { items: { black_mitic_egg: 1 }, label: "1× Black Mitic Egg ✦ e 30.000 Cristais" },
+      // 1 Ovo do Charizard Mítico ✦
+      CHARIZMITIC30K: { items: { egg_charizard_mythic: 1 }, label: "1× Ovo do Charizard Mítico ✦ e 30.000 Cristais" },
       // Carta Lendária (Incubadora) + Carta do Governante
       CARTAGOVLEND1: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
       CARTAGOVLEND2: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
@@ -5045,7 +5047,7 @@ function IdlePage() {
       } else {
         pushChat(`Livro VIP usado (+${Math.round(newMult*100)}% ouro e EXP por ${cfg.label}).`, "cap");
       }
-    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia" || id === "egg_dragonite") {
+    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_charizard_mythic" || id === "egg_lugia" || id === "egg_dragonite") {
       openEgg(id as EggId);
     } else if (id === "premium_box") {
       setIdle((s) => ({
@@ -5177,7 +5179,7 @@ function IdlePage() {
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
-  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite";
+  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
     egg_common: { weights: { common: 70, uncommon: 25, rare: 5 } },
     egg_rare:   { weights: { uncommon: 20, rare: 55, epic: 22, legendary: 3 } },
@@ -5185,6 +5187,7 @@ function IdlePage() {
     egg_mystic: { weights: { common: 25, uncommon: 25, rare: 22, epic: 16, legendary: 9, mythic: 2, mythic_shiny: 1 } },
     egg_aura:   { weights: { mythic: 100 } },
     egg_charizard: { weights: { mythic: 100 } },
+    egg_charizard_mythic: { weights: { mythic_shiny: 100 } },
     egg_lugia:  { weights: { mythic: 100 } },
     egg_dragonite: { weights: { mythic: 100 } },
   };
@@ -5204,7 +5207,7 @@ function IdlePage() {
     let sp: Species;
     if (eggId === "egg_aura") {
       sp = (Math.random() < 0.5 ? "lucario" : "mew") as Species;
-    } else if (eggId === "egg_charizard") {
+    } else if (eggId === "egg_charizard" || eggId === "egg_charizard_mythic") {
       sp = "charizard_shiny" as Species;
     } else if (eggId === "egg_lugia") {
       sp = "lugia" as Species;
@@ -5217,7 +5220,7 @@ function IdlePage() {
       sp = pickFrom[Math.floor(Math.random() * pickFrom.length)] as Species;
     }
     const rarity = rollEggRarity(eggId);
-    const fixedLv = eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" ? 50 : eggId === "egg_dragonite" ? 100 : Math.max(1, leaderLv);
+    const fixedLv = eggId === "egg_charizard_mythic" ? 500 : eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" ? 50 : eggId === "egg_dragonite" ? 100 : Math.max(1, leaderLv);
     const pet = makePet(sp, fixedLv, rarity as Rarity);
 
     setIdle((s) => {
@@ -13447,8 +13450,8 @@ function TabOverlay({
   onBuyTeleportScroll: (qty?: number) => void;
   onBuyBook: (bk: ShopBook, qty?: number) => void;
   onBuyPotion: (qty?: number) => void;
-  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
-  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
+  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
+  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
 
   onBuyChestAmulet: () => void;
 
@@ -13956,7 +13959,7 @@ function TabOverlay({
           skin_ticket: "Ticket de Skin ✦",
           bau_esmeralda: "Baú de Esmeralda 💠",
           chave_ruby: "Chave Ruby 🔴",
-          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_charizard_mythic: "Ovo do Charizard Mítico ✦", egg_lugia: "Ovo de Lugia ✦",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
           safira_verde: "Safira Verde 💚",
@@ -14008,6 +14011,7 @@ function TabOverlay({
           egg_mystic: "Ovo Místico · pode chocar espécies míticas.",
           egg_aura: "Ovo da Aura · espécies especiais com aura elemental.",
           egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
+          egg_charizard_mythic: "Ovo do Charizard Mítico ✦ · choca um Charizard Mítico ✦ nível 500.",
           egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
           safira_verde: "Safira Verde 💚 · moeda do evento Oddish. Converte em Esmeraldas (200:1) na Cash Shop.",
           berry: "Baga · restaura um pouco de HP em batalha.",
@@ -14037,7 +14041,7 @@ function TabOverlay({
           cristal_negro: "Cristal Negro 🖤 · o item mais raro do Ginásio Medieval. Nasce apenas onde o Black Mythic caminha.",
           fragmento_vermelho: "Fragmento Vermelho 🔻 · fragmento de Cristal Vermelho dropado por QUALQUER pokémon derrotado. A quantidade escala pela raridade do alvo: Comum 1 · Incomum 2 · Raro 3 · Épico 4 · Lendário/Mítico 5. Aparece na COLETA e vai para a mochila ao clicar em COLETAR.",
         };
-        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_mythic: "#ff3d6b", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
           if (id === "potion" || id === "revive" || id === "berry") return "potions";
