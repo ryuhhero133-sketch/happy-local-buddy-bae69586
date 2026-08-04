@@ -2695,31 +2695,48 @@ function IdlePage() {
     } catch { /* ignore */ }
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
 
-    // 🎁 Pacote: 3 Ovos Épicos + 20.000 Cristais + 50 Ultra Ball + VIP 60 dias
-    if (raw === "EGGVIP60K") {
+    // 🎁 Códigos ativos — todos entregam 30.000 Cristais
+    type CodeReward = { items?: Record<string, number>; vipDays?: number; label: string };
+    const CODE_TABLE: Record<string, CodeReward> = {
+      // 3 Ovos Épicos + 50 Ultra Ball + VIP 60 dias
+      EGGVIP60K: { items: { egg_epic: 3, ultraball: 50 }, vipDays: 60, label: "3× Ovo Épico ✦✦, 50× Ultra Ball, VIP 60 dias e 30.000 Cristais" },
+      // 1 Black Mitic Egg ✦ (Black Plus)
+      BLACKPLUS30K: { items: { black_mitic_egg: 1 }, label: "1× Black Mitic Egg ✦ e 30.000 Cristais" },
+      BLACKEGG30K: { items: { black_mitic_egg: 1 }, label: "1× Black Mitic Egg ✦ e 30.000 Cristais" },
+      // Carta Lendária (Incubadora) + Carta do Governante
+      CARTAGOVLEND1: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
+      CARTAGOVLEND2: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
+    };
+
+    const reward = CODE_TABLE[raw];
+    if (reward) {
       const nowT = Date.now();
-      const curUntil = Math.max(idleRef.current.buffs.expMultUntil ?? 0, idleRef.current.buffs.goldMultUntil ?? 0);
-      const curMult = curUntil > nowT ? Math.max(idleRef.current.buffs.expMult ?? 0, idleRef.current.buffs.goldMult ?? 0) : 0;
-      const remaining = curUntil > nowT ? curUntil - nowT : 0;
-      const newUntil = nowT + remaining + 60 * 24 * 3600_000;
-      const newMult = Math.max(curMult, 0.40);
       const cur = idleRef.current;
+      const nextItems: Record<string, number> = { ...cur.items };
+      for (const [id, qty] of Object.entries(reward.items ?? {})) {
+        nextItems[id] = (nextItems[id] ?? 0) + qty;
+      }
+      let buffs = cur.buffs;
+      if (reward.vipDays) {
+        const curUntil = Math.max(cur.buffs.expMultUntil ?? 0, cur.buffs.goldMultUntil ?? 0);
+        const curMult = curUntil > nowT ? Math.max(cur.buffs.expMult ?? 0, cur.buffs.goldMult ?? 0) : 0;
+        const remaining = curUntil > nowT ? curUntil - nowT : 0;
+        const newUntil = nowT + remaining + reward.vipDays * 24 * 3600_000;
+        const newMult = Math.max(curMult, 0.40);
+        buffs = { ...cur.buffs, expMult: newMult, expMultUntil: newUntil, goldMult: newMult, goldMultUntil: newUntil };
+      }
       const next: IdleState = {
         ...cur,
-        items: {
-          ...cur.items,
-          egg_epic: (cur.items.egg_epic ?? 0) + 3,
-          ultraball: (cur.items.ultraball ?? 0) + 50,
-        },
-        bank: { ...cur.bank, crystals: (cur.bank?.crystals ?? 0) + 20000 },
-        buffs: { ...cur.buffs, expMult: newMult, expMultUntil: newUntil, goldMult: newMult, goldMultUntil: newUntil },
+        items: nextItems as typeof cur.items,
+        bank: { ...cur.bank, crystals: (cur.bank?.crystals ?? 0) + 30000 },
+        buffs,
         redeemedCodes: { ...(cur.redeemedCodes ?? {}), [raw]: true },
       };
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
-      pushChat("🎁 Código resgatado: 3× Ovo Épico, 20.000 Cristais, 50× Ultra Ball e VIP 60 dias!", "cap");
-      setCodeMsg({ kind: "ok", text: "Resgatado! 3× Ovo Épico ✦✦, 20.000 Cristais, 50× Ultra Ball e VIP 60 dias (+40% XP/Ouro)." });
+      pushChat(`🎁 Código resgatado: ${reward.label}!`, "cap");
+      setCodeMsg({ kind: "ok", text: `Resgatado! ${reward.label}.` });
       return;
     }
 
