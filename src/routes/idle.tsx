@@ -28,6 +28,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
+import { ProfessorOakGuide } from "@/components/ProfessorOakGuide";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
 
@@ -10268,21 +10269,6 @@ function IdlePage() {
                   </div>
 
                   <MapGlobeButton />
-                </div>
-              );
-            })()}
-          </Panel>
-
-
-
-
-
-
-
-
-
-
-
           {bigMapOpen && (
             <div
               onClick={() => setBigMapOpen(false)}
@@ -10383,7 +10369,8 @@ function IdlePage() {
                 </div>
               </div>
             </div>
-          </Panel>
+          )}
+
 
 
           {worldMapOpen && createPortal((() => {
@@ -10399,11 +10386,8 @@ function IdlePage() {
                         { id: "deserto", x: 92, y: 58 },
                         { id: "venofogo", x: 48, y: 84 },
                         { id: "fantasma", x: 14, y: 88 },
-                        { id: "mina_cristal", x: 78, y: 86 },
-                        { id: "cemiterio_assombrado", x: 92, y: 88 },
                       ];
                       const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
-                        { id: "vale_shards", x: 50, y: 50 },
                         { id: "grass_oddish", x: 25, y: 30 },
                       ];
                       const ALL_PINS = [...WORLD_PINS_C1, ...WORLD_PINS_C2];
@@ -10504,7 +10488,7 @@ function IdlePage() {
                       const crystalOk = cost === 0 || idle.bank.crystals >= cost;
                       const goldOk = idle.bank.gold >= gold;
                       const shardToll = redShardTravelCost(tm.minLevel);
-                      const shardOk = idle.bank.redShards >= shardToll;
+                      const shardOk = (idle.items?.fragmento_vermelho ?? 0) >= shardToll;
                       const canGo = lvOk && crystalOk && goldOk && shardOk;
                       const close = () => setPendingGate(null);
 
@@ -10583,8 +10567,22 @@ function IdlePage() {
                         </div>
                       );
                     })(), document.body)}
-            </div>
+                </div>
+              );
+            })()}
           </Panel>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -12834,17 +12832,8 @@ function IdlePage() {
       })()}
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
-      <ProfessorOakGuide
-        trainerLevel={idle.trainerLevel ?? 1}
-        hasPokemon={team.length > 0}
-        currentMap={idle.currentMap}
-        gold={idle.bank.gold}
-        onCommand={(cmd) => {
-          if (cmd === "open_shop") setTab("loja");
-          if (cmd === "open_map") setWorldMapOpen(true);
-          if (cmd === "open_team") setTab("pokemon");
-        }}
-      />
+      <SmartGuideHud hasPokemon={team.length > 0} />
+
 
 
       {/* ============ LOJINHA CASH ============ */}
@@ -12882,7 +12871,8 @@ function IdlePage() {
         setCodeInput={setCodeInput}
         codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
-      />
+      />}
+
 
       <BlackMiticEggHud
         open={blackEggHudOpen}
@@ -16665,3 +16655,14 @@ function GovernanteDialog(props: {
 
 
 
+
+function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
+  const [closed, setClosed] = useState(false);
+  if (closed) return null;
+  return (
+    <ProfessorOakGuide
+      topic={hasPokemon ? "autohunt" : "welcome"}
+      onClose={() => setClosed(true)}
+    />
+  );
+}
