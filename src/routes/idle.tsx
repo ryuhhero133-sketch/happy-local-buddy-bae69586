@@ -12879,7 +12879,7 @@ function IdlePage() {
                                 <button
                                   onClick={() => setWorldMapOpen(false)}
                                   style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
-                                >✕</button>
+                                >✕ FECHAR</button>
                               </div>
                             </div>
 
