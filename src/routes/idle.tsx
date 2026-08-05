@@ -10229,7 +10229,7 @@ function IdlePage() {
                   </div>
                   <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
                     {/* Admin Button (Lordryuhhh exclusive) */}
-                    {identity?.email === "lordryuhhhuyuyghh@gmail.com" && (
+                    {false && (
                       <button 
                         onClick={() => setIsAdminOpen(true)}
                         style={{
@@ -10257,17 +10257,6 @@ function IdlePage() {
                       {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
                     </div>
 
-                    {/* Backpack (Mochila) */}
-                    <button 
-                      onClick={() => setBagOpen(true)}
-                      style={{ position: "relative", background: "none", border: "none", padding: 0, cursor: "pointer" }}
-                    >
-                      <img src={navMochila} alt="Mochila" width={64} height={64} style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.6))" }} />
-                      {Object.values(idle.items).some(v => v > 0) && (
-                        <div style={{ position: "absolute", top: 4, right: 4, width: 12, height: 12, borderRadius: "50%", background: "#ff4d4d", border: "2px solid #fff", boxShadow: "0 0 5px rgba(255,77,77,0.8)" }} />
-                      )}
-                    </button>
-                  </div>
                   <div style={{ display: "flex", justifyContent: "center" }}>
                     <button
                       onClick={() => { playClick(); setWorldMapOpen(true); }}
@@ -10385,8 +10374,8 @@ function IdlePage() {
                       <div
                         onClick={() => setWorldMapOpen(false)}
                         style={{
-                          position: "fixed", inset: 0, zIndex: 9998,
-                          background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center",
+                          position: "fixed", inset: 0, zIndex: 100000,
+                          background: "rgba(0,0,0,0.95)", display: "grid", placeItems: "center",
                           padding: 16, cursor: "pointer",
                         }}
                       >
@@ -10397,7 +10386,7 @@ function IdlePage() {
                             border: "3px solid #f5cf6b",
                             borderRadius: 16,
                             padding: 12,
-                            maxWidth: 1100, width: "100%",
+                            maxWidth: 1100, width: "100%", position: "relative",
                             cursor: "default",
                             boxShadow: "0 0 80px rgba(245,207,107,0.5)",
                           }}
