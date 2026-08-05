@@ -10507,7 +10507,6 @@ function IdlePage() {
                       const shardToll = redShardTravelCost(tm.minLevel);
                       const shardOk = idle.bank.redShards >= shardToll;
                       const canGo = lvOk && crystalOk && goldOk && shardOk;
-
                       const close = () => setPendingGate(null);
 
                       return (
