@@ -12838,9 +12838,8 @@ function IdlePage() {
           { id: "governante_hall", x: 85, y: 85 },
         ];
 
-        const [continent, setContinent] = useState<1 | 2 | 3>(1);
-        const bg = continent === 1 ? worldMapGlobeAsset : (continent === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
-        const PINS = continent === 1 ? WORLD_PINS_C1 : (continent === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3);
+        const bg = worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
+        const PINS = worldTab === 1 ? WORLD_PINS_C1 : (worldTab === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3);
         const trainerLv = idle.trainerLevel ?? 1;
         const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
 
@@ -12864,11 +12863,11 @@ function IdlePage() {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
-                  🌏 MAPA MUNDI — {continent === 1 ? "CONTINENTE 1" : (continent === 2 ? "CONTINENTE 2" : "CONTINENTE 3")}
+                  🌏 MAPA MUNDI — {worldTab === 1 ? "CONTINENTE 1" : (worldTab === 2 ? "CONTINENTE 2" : "CONTINENTE 3")}
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button
-                    onClick={() => setContinent(continent === 1 ? 2 : (continent === 2 ? 3 : 1))}
+                    onClick={() => setWorldTab(worldTab === 1 ? 2 : (worldTab === 2 ? 3 : 1))}
                     style={{
                       background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
                       border: "none", color: "#160a20",
@@ -12958,6 +12957,7 @@ function IdlePage() {
           </div>
         );
       })(), document.body)}
+
 
     </div>
   );
