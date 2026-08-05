@@ -3072,7 +3072,12 @@ function IdlePage() {
         return;
       }
       const k = e.key.toLowerCase();
-      if (k === "m") { e.preventDefault(); setWorldMapOpen((v) => !v); return; }
+      if (k === "m") { 
+        e.preventDefault(); 
+        if (tab !== "batalha") setTab("batalha");
+        setWorldMapOpen((v) => !v); 
+        return; 
+      }
       // Ranked desativado temporariamente
       if (k === "r") { e.preventDefault(); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
