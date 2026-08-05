@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles } from "lucide-react";
+import { FlaskConical, Sparkles, ShieldCheck } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -294,6 +294,7 @@ const laprasShinyUrl = assetUrlFromJson(laprasShinyAsset);
 const charizardShinyUrl = assetUrlFromJson(charizardShinyAsset);
 const snorlaxMythicUrl = assetUrlFromJson(snorlaxMythicAsset);
 const darkraiUrl = assetUrlFromJson(darkraiAsset);
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 const hoOhUrl = assetUrlFromJson(hoOhAsset);
 const magmortarUrl = assetUrlFromJson(magmortarAsset);
 import lugiaAsset from "@/assets/lugia.gif.asset.json";
@@ -1554,6 +1555,7 @@ function IdlePage() {
     }
   }, [team]);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
   // ============= Server sync (Supabase anti-cheat) =============
