@@ -3232,11 +3232,12 @@ function IdlePage() {
       const k = e.key.toLowerCase();
       if (k === "m") { 
         e.preventDefault(); 
-        // Forçar aba de batalha garante que os dados do mapa (IDLE_MAPS) estejam no escopo correto
+        console.log("M key pressed, current worldMapOpen:", worldMapOpen);
         setTab("batalha");
         setWorldMapOpen((v) => !v); 
         return; 
       }
+
       // Ranked desativado temporariamente
       if (k === "r") { e.preventDefault(); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
