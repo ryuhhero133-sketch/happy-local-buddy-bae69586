@@ -10715,7 +10715,7 @@ function IdlePage() {
         redShards={sessionRedShards}
         kills={sessionKills}
         activeTime={activeTime}
-        trainerLevel={idle.trainer.level}
+        trainerLevel={idle.trainerLevel ?? 1}
       />
 
       {/* 🔻 Fragmentos vermelhos voando do pokémon derrotado até a COLETA */}
