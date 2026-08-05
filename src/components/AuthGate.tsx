@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
+import { obfuscate, deobfuscate } from "@/lib/utils";
 import type { Session } from "@supabase/supabase-js";
 const loginBgAsset = { url: "/login-bg.png" };
 
@@ -31,7 +32,7 @@ export function loadIdentity(): LocalIdentity | null {
   try {
     const raw = localStorage.getItem(IDENTITY_KEY);
     if (!raw) return null;
-    const id = JSON.parse(raw) as LocalIdentity;
+    const id = deobfuscate(raw) as LocalIdentity;
     if (!id?.name || !id?.id) return null;
     return id;
   } catch {
@@ -42,7 +43,7 @@ export function loadIdentity(): LocalIdentity | null {
 function writeIdentity(id: string, name: string) {
   const identity: LocalIdentity = { id, name, secretKey: "", createdAt: Date.now() };
   try {
-    localStorage.setItem(IDENTITY_KEY, JSON.stringify(identity));
+    localStorage.setItem(IDENTITY_KEY, obfuscate(identity));
   } catch {
     /* ignore */
   }
@@ -83,12 +84,12 @@ async function preloadCloudSave(userId: string) {
     log("preloadCloudSave start", userId);
     const cloud = await fetchCloudSave(userId);
     if (isCloudBlob(cloud)) {
-      if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
+      if (cloud.idle) localStorage.setItem(IDLE_KEY, obfuscate(cloud.idle));
       const party = Array.isArray(cloud.party)
         ? cloud.party
         : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
       if (party.length > 0) {
-        localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+        localStorage.setItem(SAVE_KEY, obfuscate({ party }));
         // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
         // não pode reabrir o modal de starter em outro navegador/F5.
         try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }

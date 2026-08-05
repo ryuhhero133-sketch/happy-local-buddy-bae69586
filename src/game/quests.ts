@@ -1,4 +1,5 @@
 // Sistema de Quests / Modo História — definições + persistência local.
+import { obfuscate, deobfuscate } from "@/lib/utils";
 //
 // Cada quest é uma sequência de etapas (steps). Cada etapa é endereçada a um
 // NPC; o jogador conversa com o NPC (ou abre o Quest Log) e clica em
@@ -281,11 +282,11 @@ const STORAGE_KEY = "rubym.quests.v1";
 
 export function loadQuestProgress(): ProgressMap {
   if (typeof window === "undefined") return {};
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
+  try { return deobfuscate(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
 }
 export function saveQuestProgress(p: ProgressMap) {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch { /* ignore */ }
+  try { localStorage.setItem(STORAGE_KEY, obfuscate(p)); } catch { /* ignore */ }
 }
 
 export function getStepIndex(questId: string): number | "done" {
