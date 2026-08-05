@@ -232,6 +232,8 @@ function TabBody({
       return <InvisibleTab config={config} setConfig={setConfig} />;
     case "teleport":
       return <TeleportTab />;
+    case "reports":
+      return <ReportsTab />;
     case "logs":
       return <LogsTab />;
     case "config":
