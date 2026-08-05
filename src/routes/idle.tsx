@@ -10389,8 +10389,27 @@ function IdlePage() {
                       ];
                       const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
                         { id: "grass_oddish", x: 25, y: 30 },
+                        { id: "vale_rochas", x: 15, y: 20 },
+                        { id: "vale_planta", x: 35, y: 25 },
+                        { id: "vale_gelo", x: 55, y: 30 },
+                        { id: "vale_veneno", x: 75, y: 35 },
+                        { id: "vale_fogo", x: 90, y: 40 },
+                        { id: "vulcao_ativo", x: 85, y: 60 },
+                        { id: "nucleo_primordial", x: 95, y: 80 },
+                        { id: "abismo_gelo", x: 10, y: 40 },
+                        { id: "abismo_veneno", x: 15, y: 50 },
+                        { id: "abismo_raio", x: 20, y: 60 },
+                        { id: "abismo_sombra", x: 25, y: 70 },
+                        { id: "abismo_dragao", x: 30, y: 80 },
                       ];
-                      const ALL_PINS = [...WORLD_PINS_C1, ...WORLD_PINS_C2];
+                      const GOV_PINS: Array<{ id: IdleMapId; x: number; y: number }> = hasGovCard ? [
+                        { id: "absol_start", x: 70, y: 70 },
+                        { id: "governante_hall", x: 80, y: 85 },
+                      ] : [];
+
+                      const [continent, setContinent] = useState<1 | 2>(1);
+                      const bg = continent === 1 ? worldMapGlobeAsset : worldMapContinent2Asset;
+                      const PINS = continent === 1 ? WORLD_PINS_C1 : [...WORLD_PINS_C2, ...GOV_PINS];
                       const trainerLv = idle.trainerLevel ?? 1;
 
                       return (
@@ -10413,23 +10432,35 @@ function IdlePage() {
                           >
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                               <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
-                                🌏 MAPA MUNDI
+                                🌏 MAPA MUNDI — {continent === 1 ? "CONTINENTE 1" : "CONTINENTE 2"}
                               </div>
-                              <button
-                                onClick={() => setWorldMapOpen(false)}
-                                style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
-                              >✕</button>
+                              <div style={{ display: "flex", gap: 10 }}>
+                                <button
+                                  onClick={() => setContinent(continent === 1 ? 2 : 1)}
+                                  style={{
+                                    background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
+                                    border: "none", color: "#160a20",
+                                    borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 14,
+                                    boxShadow: "0 0 10px rgba(245,207,107,0.3)"
+                                  }}
+                                >TROCAR CONTINENTE</button>
+                                <button
+                                  onClick={() => setWorldMapOpen(false)}
+                                  style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
+                                >✕</button>
+                              </div>
                             </div>
 
                             <div style={{
                               width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
-                              background: `url(${assetUrlFromJson(worldMapContinent2Asset)}) center/cover`, position: "relative",
+                              background: `url(${assetUrlFromJson(bg)}) center/cover`, position: "relative",
                               border: "2px solid rgba(245,207,107,0.3)",
                             }}>
                               <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
                               
-                              {ALL_PINS.map((pin) => {
+                              {PINS.map((pin) => {
                                 const m = IDLE_MAPS[pin.id];
+                                if (!m) return null;
                                 const ok = trainerLv >= m.minLevel;
                                 const current = idle.currentMap === pin.id;
                                 return (
