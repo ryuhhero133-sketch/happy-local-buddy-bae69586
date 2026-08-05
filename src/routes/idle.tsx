@@ -16655,3 +16655,14 @@ function GovernanteDialog(props: {
 
 
 
+
+function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
+  const [closed, setClosed] = useState(false);
+  if (closed) return null;
+  return (
+    <ProfessorOakGuide
+      topic={hasPokemon ? "autohunt" : "welcome"}
+      onClose={() => setClosed(true)}
+    />
+  );
+}
