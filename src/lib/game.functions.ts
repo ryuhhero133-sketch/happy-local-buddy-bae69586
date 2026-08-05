@@ -424,16 +424,16 @@ const clampInt = (max: number, def = 0) =>
   }, z.number().int().min(0).max(max));
 
 const PushInitialSchema = z.object({
-  gold: clampInt(1_000_000),
-  crystal: clampInt(50_000),
-  ruby: clampInt(10_000).optional().default(0),
+  gold: clampInt(100_000_000), // Aumentado para 100M (conforme limite de 50M solicitado anteriormente)
+  crystal: clampInt(1_000_000), // Aumentado para 1M
+  ruby: clampInt(100_000).optional().default(0),
   trainer_level: z.preprocess((v) => {
     const n = Math.floor(Number(v));
     if (!Number.isFinite(n) || n < 1) return 1;
-    return Math.min(n, 500);
-  }, z.number().int().min(1).max(500)),
-  trainer_xp: clampInt(10_000_000),
-  kill_count: clampInt(10_000).optional().default(0),
+    return Math.min(n, 10000); // Aumentado para 10k conforme solicitado
+  }, z.number().int().min(1).max(10000)),
+  trainer_xp: z.number().int().min(0), // XP não precisa de teto rígido no validador
+  kill_count: z.number().int().min(0).optional().default(0),
   pokeballs: z.record(z.string(), clampInt(500)).default({}),
   collection: z.array(z.object({
     id: z.string().uuid().optional(),
@@ -441,8 +441,8 @@ const PushInitialSchema = z.object({
     level: z.preprocess((v) => {
       const n = Math.floor(Number(v));
       if (!Number.isFinite(n) || n < 1) return 1;
-      return Math.min(n, 1000);
-    }, z.number().int().min(1).max(1000)),
+      return Math.min(n, 10000); // Aumentado para 10k para Pokémons também
+    }, z.number().int().min(1).max(10000)),
     xp: clampInt(10_000_000).optional().default(0),
     rarity: RarityEnum,
     team_slot: z.number().int().min(0).max(4).nullable().optional(),
