@@ -10291,6 +10291,9 @@ function IdlePage() {
                 </div>
               );
 
+              return (
+                <div key="map-section">
+
 
 
                   {bigMapOpen && (
