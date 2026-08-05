@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IdleRouteImport } from './routes/idle'
 import { Route as HexchampionsRouteImport } from './routes/hexchampions'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as IdleFixRouteImport } from './routes/idle.fix'
 import { Route as ApiPublicPurgeUserRouteImport } from './routes/api/public/purge-user'
 
 const IdleRoute = IdleRouteImport.update({
@@ -29,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IdleFixRoute = IdleFixRouteImport.update({
+  id: '/fix',
+  path: '/fix',
+  getParentRoute: () => IdleRoute,
+} as any)
 const ApiPublicPurgeUserRoute = ApiPublicPurgeUserRouteImport.update({
   id: '/api/public/purge-user',
   path: '/api/public/purge-user',
@@ -38,34 +44,48 @@ const ApiPublicPurgeUserRoute = ApiPublicPurgeUserRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/hexchampions': typeof HexchampionsRoute
-  '/idle': typeof IdleRoute
+  '/idle': typeof IdleRouteWithChildren
+  '/idle/fix': typeof IdleFixRoute
   '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/hexchampions': typeof HexchampionsRoute
-  '/idle': typeof IdleRoute
+  '/idle': typeof IdleRouteWithChildren
+  '/idle/fix': typeof IdleFixRoute
   '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/hexchampions': typeof HexchampionsRoute
-  '/idle': typeof IdleRoute
+  '/idle': typeof IdleRouteWithChildren
+  '/idle/fix': typeof IdleFixRoute
   '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/hexchampions' | '/idle' | '/api/public/purge-user'
+  fullPaths:
+    | '/'
+    | '/hexchampions'
+    | '/idle'
+    | '/idle/fix'
+    | '/api/public/purge-user'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/hexchampions' | '/idle' | '/api/public/purge-user'
-  id: '__root__' | '/' | '/hexchampions' | '/idle' | '/api/public/purge-user'
+  to: '/' | '/hexchampions' | '/idle' | '/idle/fix' | '/api/public/purge-user'
+  id:
+    | '__root__'
+    | '/'
+    | '/hexchampions'
+    | '/idle'
+    | '/idle/fix'
+    | '/api/public/purge-user'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HexchampionsRoute: typeof HexchampionsRoute
-  IdleRoute: typeof IdleRoute
+  IdleRoute: typeof IdleRouteWithChildren
   ApiPublicPurgeUserRoute: typeof ApiPublicPurgeUserRoute
 }
 
@@ -92,6 +112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/idle/fix': {
+      id: '/idle/fix'
+      path: '/fix'
+      fullPath: '/idle/fix'
+      preLoaderRoute: typeof IdleFixRouteImport
+      parentRoute: typeof IdleRoute
+    }
     '/api/public/purge-user': {
       id: '/api/public/purge-user'
       path: '/api/public/purge-user'
@@ -102,22 +129,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface IdleRouteChildren {
+  IdleFixRoute: typeof IdleFixRoute
+}
+
+const IdleRouteChildren: IdleRouteChildren = {
+  IdleFixRoute: IdleFixRoute,
+}
+
+const IdleRouteWithChildren = IdleRoute._addFileChildren(IdleRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HexchampionsRoute: HexchampionsRoute,
-  IdleRoute: IdleRoute,
+  IdleRoute: IdleRouteWithChildren,
   ApiPublicPurgeUserRoute: ApiPublicPurgeUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
