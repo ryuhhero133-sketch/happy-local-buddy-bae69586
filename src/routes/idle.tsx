@@ -12812,8 +12812,6 @@ function IdlePage() {
         governanteHallMapAsset={governanteHallMapAsset}
         assetUrlFromJson={assetUrlFromJson}
       />, document.body)}
-                      
-                      const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
                         { id: "arena", x: 15, y: 22 },
                         { id: "terra", x: 32, y: 16 },
                         { id: "deserto_purpura", x: 54, y: 20 },
