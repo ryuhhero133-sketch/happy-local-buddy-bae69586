@@ -1,7 +1,5 @@
 // Persistência da cena de batalha (inimigos + status do treinador) entre reloads.
-// Motivação: se o jogador recebe paralisia/veneno/debuff e dá F5, os timers
-// zeravam — abrindo brecha de abuso. Agora fica salvo por até 15 min,
-// escopado ao mapa atual. Se mudar de mapa, o snapshot é descartado.
+import { obfuscate, deobfuscate } from "./utils";
 
 const KEY = "rubym.battleScene.v1";
 const TTL_MS = 15 * 60 * 1000;
