@@ -81,6 +81,7 @@ import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battle
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { toast } from "sonner";
 import { attemptPendingCloudSave, fetchCloudSaveResult, getBestLocalSnapshot, getCloudSaveDiagnostics, getCloudSaveLastError, getPendingCloudSaveInfo, pushCloudSaveNow, scheduleCloudSync, setCloudSaveLock, writeLocalBackup } from "@/lib/cloudSave";
+import { FarmingReportFloating } from "@/components/FarmingReportFloating";
 import { fetchTopRanked, fetchTopPrismaRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
@@ -2202,6 +2203,11 @@ function IdlePage() {
   useEffect(() => { autoRef.current = auto; }, [auto]);
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
   // Acumula XP/ouro/kills por mapa e anuncia no chat só a cada ~30s (evita spam e sobrecarga).
+  const [sessionGold, setSessionGold] = useState(0);
+  const [sessionCrystals, setSessionCrystals] = useState(0);
+  const [sessionRedShards, setSessionRedShards] = useState(0);
+  const [sessionKills, setSessionKills] = useState(0);
+
   const xpAccumRef = useRef({ xp: 0, gold: 0, kills: 0, map: "" as string });
   useEffect(() => {
     const id = setInterval(() => {
@@ -4074,6 +4080,7 @@ function IdlePage() {
           }
           flyRedShards(target.x, target.y - 20, redShardGain);
           pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
+          setSessionRedShards(s => s + redShardGain);
 
 
           // XP para o líder + drena energia. Se ORB DE TIME estiver ativo, TODOS ganham EXP.
@@ -10702,7 +10709,16 @@ function IdlePage() {
             </button>
           </div>
 
-          {/* 🔻 Fragmentos vermelhos voando do pokémon derrotado até a COLETA */}
+      <FarmingReportFloating 
+        gold={sessionGold} 
+        crystals={sessionCrystals} 
+        redShards={sessionRedShards}
+        kills={sessionKills}
+        activeTime={activeTime}
+        trainerLevel={idle.trainerLevel ?? 1}
+      />
+
+      {/* 🔻 Fragmentos vermelhos voando do pokémon derrotado até a COLETA */}
           {redShardFx.length > 0 && (
             <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9000 }} aria-hidden="true">
               {redShardFx.map((s) => (
