@@ -12,6 +12,7 @@ export const SESSION_TOKEN_KEY = "rubym.sessionToken.v1";
 export type LocalIdentity = {
   id: string;
   name: string;
+  email?: string;
   secretKey: string;
   createdAt: number;
 };
@@ -40,8 +41,8 @@ export function loadIdentity(): LocalIdentity | null {
   }
 }
 
-function writeIdentity(id: string, name: string) {
-  const identity: LocalIdentity = { id, name, secretKey: "", createdAt: Date.now() };
+function writeIdentity(id: string, name: string, email?: string) {
+  const identity: LocalIdentity = { id, name, email, secretKey: "", createdAt: Date.now() };
   try {
     localStorage.setItem(IDENTITY_KEY, obfuscate(identity));
   } catch {
@@ -265,7 +266,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
             warn("preloadCloudSave timeout — seguindo com cache local", e);
           }
           if (cancelled) return;
-          setIdentity(writeIdentity(uid, username));
+          setIdentity(writeIdentity(uid, username, session?.user?.email));
           setNeedsChar(false);
           // last_login best-effort
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -324,7 +325,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         userId={session.user.id}
         defaultName={session.user.email?.split("@")[0] ?? ""}
         onCreated={(name) => {
-          setIdentity(writeIdentity(session.user.id, name));
+          setIdentity(writeIdentity(session.user.id, name, session.user.email));
           setNeedsChar(false);
         }}
       />

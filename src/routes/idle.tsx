@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles } from "lucide-react";
+import { FlaskConical, Sparkles, ShieldCheck } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -294,6 +294,7 @@ const laprasShinyUrl = assetUrlFromJson(laprasShinyAsset);
 const charizardShinyUrl = assetUrlFromJson(charizardShinyAsset);
 const snorlaxMythicUrl = assetUrlFromJson(snorlaxMythicAsset);
 const darkraiUrl = assetUrlFromJson(darkraiAsset);
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 const hoOhUrl = assetUrlFromJson(hoOhAsset);
 const magmortarUrl = assetUrlFromJson(magmortarAsset);
 import lugiaAsset from "@/assets/lugia.gif.asset.json";
@@ -1554,6 +1555,7 @@ function IdlePage() {
     }
   }, [team]);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
   // ============= Server sync (Supabase anti-cheat) =============
@@ -2185,6 +2187,7 @@ function IdlePage() {
     window.setTimeout(() => setRedShardFx((p) => p.filter((s) => !ids.has(s.id))), 1500 + batch.length * 90);
   };
   const [tab, setTab] = useState<"inicio" | "wiki" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas">("batalha");
+  const [bagOpen, setBagOpen] = useState(false);
   const [skinId, setSkinId] = useState<string>(() => {
     if (typeof window === "undefined") return "default";
     try { return localStorage.getItem(SKIN_KEY) || "default"; } catch { return "default"; }
@@ -10203,7 +10206,7 @@ function IdlePage() {
               );
 
               return (
-                <>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <div style={{ position: "relative" }}>
                     {renderMap(true, false)}
                     <button
@@ -10217,38 +10220,80 @@ function IdlePage() {
                       }}
                     >⛶</button>
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
-                    {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
-                    {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
-                    <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
-                      <button
-                        onClick={() => { playClick(); setWorldMapOpen(true); }}
-                        className="world-globe-btn"
-                        title="Abrir Mapa Mundi"
+                  <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+                    {/* Admin Button (Lordryuhhh exclusive) */}
+                    {identity?.email === "lordryuhhhuyuyghh@gmail.com" && (
+                      <button 
+                        onClick={() => setIsAdminOpen(true)}
                         style={{
-                          background: "linear-gradient(135deg, #1a1230 0%, #3a2560 55%, #1a1230 100%)",
-                          border: "1px solid #f5cf6b",
-                          color: "#f5cf6b",
-                          borderRadius: 10, padding: "6px 14px 6px 8px",
-                          fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
+                          background: "linear-gradient(180deg, #9333ea, #6b21a8)",
+                          border: "1px solid #c084fc66",
+                          borderRadius: 12,
+                          width: 48,
+                          height: 48,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.1)",
                           cursor: "pointer",
-                          boxShadow: "0 0 14px rgba(245,207,107,0.4), inset 0 1px 0 rgba(255,240,180,0.25)",
-                          display: "inline-flex", alignItems: "center", gap: 6,
-                          textShadow: "0 1px 0 rgba(0,0,0,0.5)",
+                          transition: "transform 0.1s"
                         }}
+                        onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.92)")}
+                        onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
                       >
-                        <img
-                          src={assetUrlFromJson(iconWorldGlobe)}
-                          alt=""
-                          width={28}
-                          height={28}
-                          className="world-globe-spin"
-                          style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
-                        />
-                        MAPA MUNDI
+                        <ShieldCheck size={28} color="#fff" strokeWidth={2.5} />
                       </button>
+                    )}
+
+                    <div style={{ fontSize: 11, color: "#c8b8d0", textAlign: "center", flex: 1 }}>
+                      {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
+                      {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
                     </div>
+
+                    {/* Backpack (Mochila) */}
+                    <button 
+                      onClick={() => setBagOpen(true)}
+                      style={{ position: "relative", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                    >
+                      <img src={navMochila} alt="Mochila" width={64} height={64} style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.6))" }} />
+                      {Object.values(idle.items).some(v => v > 0) && (
+                        <div style={{ position: "absolute", top: 4, right: 4, width: 12, height: 12, borderRadius: "50%", background: "#ff4d4d", border: "2px solid #fff", boxShadow: "0 0 5px rgba(255,77,77,0.8)" }} />
+                      )}
+                    </button>
                   </div>
+                  <div style={{ display: "flex", justifyContent: "center" }}>
+                    <button
+                      onClick={() => { playClick(); setWorldMapOpen(true); }}
+                      className="world-globe-btn"
+                      title="Abrir Mapa Mundi"
+                      style={{
+                        background: "linear-gradient(135deg, #1a1230 0%, #3a2560 55%, #1a1230 100%)",
+                        border: "1px solid #f5cf6b",
+                        color: "#f5cf6b",
+                        borderRadius: 10, padding: "6px 14px 6px 8px",
+                        fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
+                        cursor: "pointer",
+                        boxShadow: "0 0 14px rgba(245,207,107,0.4), inset 0 1px 0 rgba(255,240,180,0.25)",
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        textShadow: "0 1px 0 rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      <img
+                        src={assetUrlFromJson(iconWorldGlobe)}
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="world-globe-spin"
+                        style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
+                      />
+                      MAPA MUNDI
+                    </button>
+                  </div>
+                </div>
+              );
+
+              return (
+                <div key="map-section">
 
 
 
@@ -10492,7 +10537,9 @@ function IdlePage() {
 
 
                   {pendingGate && (() => {
-                    const tm = IDLE_MAPS[pendingGate.target as keyof typeof IDLE_MAPS];
+                    const pg = pendingGate!;
+                    const tmKey = pg.target as keyof typeof IDLE_MAPS;
+                    const tm = IDLE_MAPS[tmKey];
                     const trainerLv = idle.trainerLevel ?? 1;
                     const lvOk = trainerLv >= tm.minLevel;
                     const cost = tm.entryCrystals ?? 0;
@@ -10523,7 +10570,7 @@ function IdlePage() {
                             {tm.name}
                           </div>
                           <div style={{ textAlign: "center", color: "#c8b8d0", fontSize: 11, marginBottom: 14 }}>
-                            {tm.diff} {tm.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(tm.stars)}</span> : null} · {tm.element ?? "—"}
+                            {tm.diff} {(tm.stars ?? 0) > 0 ? <span style={{ color: "#ffd94d" }}>{"★".repeat(tm.stars ?? 0)}</span> : null} · {tm.element ?? "—"}
                           </div>
 
                           <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
@@ -10574,6 +10621,7 @@ function IdlePage() {
                             <button
                               disabled={!canGo}
                               onClick={() => {
+                                if (!pendingGate) return;
                                 const g = pendingGate.gate;
                                 const wasBig = pendingGate.fromBig;
                                 setPendingGate(null);
@@ -10595,7 +10643,7 @@ function IdlePage() {
                       </div>
                     );
                   })()}
-                </>
+                </div>
               );
             })()}
           </Panel>
