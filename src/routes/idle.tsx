@@ -10219,26 +10219,64 @@ function IdlePage() {
                       }}
                     >⛶</button>
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
-                    {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
-                    {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
-                    <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
-                      <button
-                        onClick={() => { playClick(); setWorldMapOpen(true); }}
-                        className="world-globe-btn"
-                        title="Abrir Mapa Mundi"
+                  <div style={{ marginTop: 8, display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+                    {/* Admin Button (Lordryuhhh exclusive) */}
+                    {identity?.email === "lordryuhhhuyuyghh@gmail.com" && (
+                      <button 
+                        onClick={() => setIsAdminOpen(true)}
                         style={{
-                          background: "linear-gradient(135deg, #1a1230 0%, #3a2560 55%, #1a1230 100%)",
-                          border: "1px solid #f5cf6b",
-                          color: "#f5cf6b",
-                          borderRadius: 10, padding: "6px 14px 6px 8px",
-                          fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
+                          background: "linear-gradient(180deg, #9333ea, #6b21a8)",
+                          border: "1px solid #c084fc66",
+                          borderRadius: 12,
+                          width: 48,
+                          height: 48,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.1)",
                           cursor: "pointer",
-                          boxShadow: "0 0 14px rgba(245,207,107,0.4), inset 0 1px 0 rgba(255,240,180,0.25)",
-                          display: "inline-flex", alignItems: "center", gap: 6,
-                          textShadow: "0 1px 0 rgba(0,0,0,0.5)",
+                          transition: "transform 0.1s"
                         }}
+                        onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.92)")}
+                        onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
                       >
+                        <ShieldCheck size={28} color="#fff" strokeWidth={2.5} />
+                      </button>
+                    )}
+
+                    <div style={{ fontSize: 11, color: "#c8b8d0", textAlign: "center", flex: 1 }}>
+                      {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
+                      {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
+                    </div>
+
+                    {/* Backpack (Mochila) */}
+                    <button 
+                      onClick={() => setBagOpen(true)}
+                      style={{ position: "relative", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                    >
+                      <img src={navMochila} alt="Mochila" width={64} height={64} style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.6))" }} />
+                      {Object.values(idle.items).some(v => v > 0) && (
+                        <div style={{ position: "absolute", top: 4, right: 4, width: 12, height: 12, borderRadius: "50%", background: "#ff4d4d", border: "2px solid #fff", boxShadow: "0 0 5px rgba(255,77,77,0.8)" }} />
+                      )}
+                    </button>
+                  </div>
+                  <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
+                    <button
+                      onClick={() => { playClick(); setWorldMapOpen(true); }}
+                      className="world-globe-btn"
+                      title="Abrir Mapa Mundi"
+                      style={{
+                        background: "linear-gradient(135deg, #1a1230 0%, #3a2560 55%, #1a1230 100%)",
+                        border: "1px solid #f5cf6b",
+                        color: "#f5cf6b",
+                        borderRadius: 10, padding: "6px 14px 6px 8px",
+                        fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
+                        cursor: "pointer",
+                        boxShadow: "0 0 14px rgba(245,207,107,0.4), inset 0 1px 0 rgba(255,240,180,0.25)",
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        textShadow: "0 1px 0 rgba(0,0,0,0.5)",
+                      }}
+                    >
                         <img
                           src={assetUrlFromJson(iconWorldGlobe)}
                           alt=""
