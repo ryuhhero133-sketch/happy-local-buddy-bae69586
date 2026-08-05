@@ -12893,7 +12893,8 @@ function IdlePage() {
                               {PINS.map((pin) => {
                                 const m = IDLE_MAPS[pin.id];
                                 if (!m) return null;
-                                const isLocked = (m.minLevel ?? 0) > trainerLv;
+                                const isGovMap = pin.id === "absol_start" || pin.id === "governante_hall";
+                                const isLocked = ((m.minLevel ?? 0) > trainerLv) || (isGovMap && !hasGovCard);
                                 return (
                                   <div
                                     key={pin.id}
