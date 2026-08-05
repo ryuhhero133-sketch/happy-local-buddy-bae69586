@@ -11,7 +11,7 @@ const WORLD_H = 1000;
 // However, given the build errors, the structure is clearly broken.
 // I will attempt to fix the most obvious syntax errors in one shot.
 
-export const Route = createFileRoute('/idle')({
+export const Route = createFileRoute('/idle/fix')({
   component: IdleComponent,
 });
 
