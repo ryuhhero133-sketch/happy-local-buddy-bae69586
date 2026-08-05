@@ -10351,7 +10351,7 @@ function IdlePage() {
                       <div
                         onClick={() => setWorldMapOpen(false)}
                         style={{
-                          position: "fixed", inset: 0, zIndex: 100000,
+                          position: "fixed", inset: 0, zIndex: 999999,
                           background: "rgba(0,0,0,0.95)", display: "grid", placeItems: "center",
                           padding: 16, cursor: "pointer",
                         }}
