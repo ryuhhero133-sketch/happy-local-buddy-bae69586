@@ -2370,11 +2370,13 @@ function IdlePage() {
   const banNoticeIdxRef = useRef(0);
   useEffect(() => {
     const NOTICES: string[] = [
+      "🌟 VEM AI A 3° SEASON O SHOW ESTA PRA COMEÇAR! Fiquem atentos às novidades no Wiki e no Banco Medieval. 🎪",
       "🚫 Um agradecimento especial aos gênios que passaram horas tentando furar nossa segurança... e conseguiram exatamente NADA. Contas banidas, tempo perdido. Valeu pelo esforço! 😄",
       "⚙ Estruturação em andamento: balanceamento, anti-cheat e performance sendo reforçados a cada ciclo. Quem tentar trapacear vira mais um nome na lista de banidos.",
       "🏆 Enquanto uns evoluíram de verdade, outros evoluíram só no ban. Obrigado pela dedicação em perder tempo — o servidor continua de pé, e vocês não. 😉",
       "🔒 Sistema anti-fraude ativo 24h. Toda alteração suspeita é registrada e resulta em banimento permanente. Servidor em constante estruturação e balanceamento.",
     ];
+
     const fire = () => {
       const msg = NOTICES[banNoticeIdxRef.current % NOTICES.length];
       banNoticeIdxRef.current++;
