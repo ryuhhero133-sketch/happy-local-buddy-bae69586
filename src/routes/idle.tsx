@@ -10275,201 +10275,10 @@ function IdlePage() {
                   </div>
 
                   <MapGlobeButton />
-          {bigMapOpen && (
-            <div
-              onClick={() => setBigMapOpen(false)}
-              style={{
-                position: "fixed", inset: 0, zIndex: 9998,
-                background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
-                padding: 24, cursor: "pointer",
-              }}
-            >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  background: "#0b0510", border: "3px solid #f5cf6b",
-                  borderRadius: 14, padding: 16, maxWidth: 720, width: "100%",
-                  cursor: "default", boxShadow: "0 0 60px rgba(245,207,107,0.4)",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                  <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 16, letterSpacing: 1 }}>
-                    🗺 {map.name} — clique num ponto pra viajar
-                  </div>
-                  <button
-                    onClick={() => setBigMapOpen(false)}
-                    style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}
-                  >✕</button>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <div style={{
-                    width: "100%",
-                    aspectRatio: `${WORLD_W} / ${WORLD_H}`, borderRadius: 6, overflow: "hidden",
-                    background: `url(${map.bg}) center/cover`, position: "relative",
-                    border: "1px solid rgba(245,207,107,0.4)",
-                    margin: "0 auto",
-                  }}>
-                    {visibleBuildings.map((b) => (
-                      <button
-                        key={b.key}
-                        title={`Ir ao ${b.label}`}
-                        onClick={() => { goTo(b.label, b.x, b.y - 40); setBigMapOpen(false); }}
-                        className="map-pulse-dot"
-                        style={{
-                          position: "absolute",
-                          left: `${(b.x / WORLD_W) * 100}%`,
-                          top: `${(b.y / WORLD_H) * 100}%`,
-                          transform: "translate(-50%,-50%)",
-                          fontSize: 22, lineHeight: 1,
-                          background: "transparent", border: "none", padding: 0,
-                          cursor: "pointer",
-                          filter: `drop-shadow(0 0 8px ${b.color})`,
-                        }}
-                      >{b.emoji}</button>
-                    ))}
-                    {currentGates.map((g) => {
-                      const targetMap = IDLE_MAPS[g.target];
-                      return (
-                        <button
-                          key={g.key}
-                          title={`Viajar para ${targetMap.name}`}
-                          onClick={() => {
-                            setPendingGate({ target: g.target, gate: g, fromBig: true });
-                          }}
-                          className="map-pulse-dot"
-                          style={{
-                            position: "absolute",
-                            left: `${(g.x / WORLD_W) * 100}%`,
-                            top: `${(g.y / WORLD_H) * 100}%`,
-                            transform: "translate(-50%,-50%)",
-                            fontSize: 18, lineHeight: 1,
-                            background: "transparent", border: "none", padding: 0,
-                            cursor: "pointer",
-                            filter: `drop-shadow(0 0 6px ${g.color})`,
-                          }}
-                        >●</button>
-                      );
-                    })}
-                    <div style={{
-                      position: "absolute",
-                      left: `${(trainerPos.x / WORLD_W) * 100}%`,
-                      top: `${(trainerPos.y / WORLD_H) * 100}%`,
-                      width: 16, height: 16, borderRadius: "50%",
-                      background: "#6bd4ff",
-                      border: "2px solid #fff",
-                      transform: "translate(-50%,-50%)",
-                      boxShadow: "0 0 8px #6bd4ff",
-                    }} />
-                  </div>
-                </div>
-                <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
-                  🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
-                    const tm = IDLE_MAPS[g.target];
-                    const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
-                    return (
-                      <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
-                        ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
 
 
 
 
-                    {pendingGate && createPortal((() => {
-                      const pg = pendingGate;
-                      const tmKey = pg.target as keyof typeof IDLE_MAPS;
-                      const tm = IDLE_MAPS[tmKey];
-                      const trainerLv = idle.trainerLevel ?? 1;
-                      const lvOk = trainerLv >= tm.minLevel;
-                      const cost = tm.entryCrystals ?? 0;
-                      const gold = 1000;
-                      const crystalOk = cost === 0 || idle.bank.crystals >= cost;
-                      const goldOk = idle.bank.gold >= gold;
-                      const shardToll = redShardTravelCost(tm.minLevel);
-                      const shardOk = (idle.items?.fragmento_vermelho ?? 0) >= shardToll;
-                      const canGo = lvOk && crystalOk && goldOk && shardOk;
-                      const close = () => setPendingGate(null);
-
-                      return (
-                        <div
-                          onClick={close}
-                          style={{
-                            position: "fixed", inset: 0, zIndex: 100000,
-                            background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
-                            padding: 24, cursor: "pointer",
-                          }}
-                        >
-                          <div
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                              background: "#160a20", border: "3px solid #f5cf6b",
-                              borderRadius: 16, padding: 20, maxWidth: 380, width: "100%",
-                              cursor: "default", boxShadow: "0 0 50px rgba(0,0,0,0.8)",
-                              textAlign: "center", position: "relative",
-                            }}
-                          >
-                            <div style={{ fontSize: 40, marginBottom: 10 }}>🚀</div>
-                            <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 18, marginBottom: 4, letterSpacing: 1 }}>PORTAL DE VIAGEM</div>
-                            <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 16 }}>Deseja viajar para <b style={{ color: "#fff" }}>{tm.name}</b>?</div>
-
-                            <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: 12, marginBottom: 20, textAlign: "left", fontSize: 12, display: "flex", flexDirection: "column", gap: 6 }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", color: lvOk ? "#7ef27a" : "#ff6b6b" }}>
-                                <span>Nível Necessário:</span>
-                                <b>Lv {tm.minLevel} {lvOk ? "✓" : "✗"}</b>
-                              </div>
-                              <div style={{ display: "flex", justifyContent: "space-between", color: goldOk ? "#fff" : "#ff6b6b" }}>
-                                <span>Taxa de Ouro:</span>
-                                <b>🪙 {gold.toLocaleString()}</b>
-                              </div>
-                              {cost > 0 && (
-                                <div style={{ display: "flex", justifyContent: "space-between", color: crystalOk ? "#5cd3ff" : "#ff6b6b" }}>
-                                  <span>Custo Cristais:</span>
-                                  <b>💎 {cost.toLocaleString()}</b>
-                                </div>
-                              )}
-                              {shardToll > 0 && (
-                                <div style={{ display: "flex", justifyContent: "space-between", color: shardOk ? "#ff4d4d" : "#ff6b6b" }}>
-                                  <span>Pedágio Shard:</span>
-                                  <b>🔴 {shardToll.toLocaleString()}</b>
-                                </div>
-                              )}
-                            </div>
-
-                            <div style={{ display: "flex", gap: 8 }}>
-                              <button
-                                onClick={close}
-                                style={{ flex: 1, background: "#2a1a2e", border: "1px solid #6a4a70", color: "#c8b8d0", borderRadius: 8, padding: "10px", fontWeight: 800, cursor: "pointer", fontSize: 12 }}
-                              >CANCELAR</button>
-                              <button
-                                disabled={!canGo}
-                                onClick={() => {
-                                  const g = pg.gate;
-                                  const wasBig = pg.fromBig;
-                                  setPendingGate(null);
-                                  travelToGate(g || { target: pg.target, arriveX: WORLD_W / 2, arriveY: WORLD_H / 2 } as any);
-                                  if (wasBig) setBigMapOpen(false);
-                                  setWorldMapOpen(false);
-                                }}
-                                style={{
-                                  flex: 2,
-                                  background: canGo ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "#3a2a2a",
-                                  border: "none", color: canGo ? "#160a20" : "#8a7a9c",
-                                  borderRadius: 8, padding: "10px", fontWeight: 900,
-                                  cursor: canGo ? "pointer" : "not-allowed",
-                                  fontSize: 12,
-                                  boxShadow: canGo ? "0 0 20px rgba(245,207,107,0.5)" : "none",
-                                }}
-                              >{canGo ? "VIAJAR" : "REQUISITOS NÃO ATENDIDOS"}</button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })(), document.body)}
                 </div>
               );
             })()}
@@ -16685,6 +16494,197 @@ function GovernanteDialog(props: {
                         </div>
                       );
                     })(), document.body)}
+                    {pendingGate && createPortal((() => {
+                      const pg = pendingGate;
+                      const tmKey = pg.target as keyof typeof IDLE_MAPS;
+                      const tm = IDLE_MAPS[tmKey];
+                      const trainerLv = idle.trainerLevel ?? 1;
+                      const lvOk = trainerLv >= tm.minLevel;
+                      const cost = tm.entryCrystals ?? 0;
+                      const gold = 1000;
+                      const crystalOk = cost === 0 || idle.bank.crystals >= cost;
+                      const goldOk = idle.bank.gold >= gold;
+                      const shardToll = redShardTravelCost(tm.minLevel);
+                      const shardOk = (idle.items?.fragmento_vermelho ?? 0) >= shardToll;
+                      const canGo = lvOk && crystalOk && goldOk && shardOk;
+                      const close = () => setPendingGate(null);
+
+                      return (
+                        <div
+                          onClick={close}
+                          style={{
+                            position: "fixed", inset: 0, zIndex: 100000,
+                            background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
+                            padding: 24, cursor: "pointer",
+                          }}
+                        >
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              background: "#160a20", border: "3px solid #f5cf6b",
+                              borderRadius: 16, padding: 20, maxWidth: 380, width: "100%",
+                              cursor: "default", boxShadow: "0 0 50px rgba(0,0,0,0.8)",
+                              textAlign: "center", position: "relative",
+                            }}
+                          >
+                            <div style={{ fontSize: 40, marginBottom: 10 }}>🚀</div>
+                            <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 18, marginBottom: 4, letterSpacing: 1 }}>PORTAL DE VIAGEM</div>
+                            <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 16 }}>Deseja viajar para <b style={{ color: "#fff" }}>{tm.name}</b>?</div>
+
+                            <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: 12, marginBottom: 20, textAlign: "left", fontSize: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: lvOk ? "#7ef27a" : "#ff6b6b" }}>
+                                <span>Nível Necessário:</span>
+                                <b>Lv {tm.minLevel} {lvOk ? "✓" : "✗"}</b>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: goldOk ? "#fff" : "#ff6b6b" }}>
+                                <span>Taxa de Ouro:</span>
+                                <b>🪙 {gold.toLocaleString()}</b>
+                              </div>
+                              {cost > 0 && (
+                                <div style={{ display: "flex", justifyContent: "space-between", color: crystalOk ? "#5cd3ff" : "#ff6b6b" }}>
+                                  <span>Custo Cristais:</span>
+                                  <b>💎 {cost.toLocaleString()}</b>
+                                </div>
+                              )}
+                              {shardToll > 0 && (
+                                <div style={{ display: "flex", justifyContent: "space-between", color: shardOk ? "#ff4d4d" : "#ff6b6b" }}>
+                                  <span>Pedágio Shard:</span>
+                                  <b>🔴 {shardToll.toLocaleString()}</b>
+                                </div>
+                              )}
+                            </div>
+
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                onClick={close}
+                                style={{ flex: 1, background: "#2a1a2e", border: "1px solid #6a4a70", color: "#c8b8d0", borderRadius: 8, padding: "10px", fontWeight: 800, cursor: "pointer", fontSize: 12 }}
+                              >CANCELAR</button>
+                              <button
+                                disabled={!canGo}
+                                onClick={() => {
+                                  const g = pg.gate;
+                                  const wasBig = pg.fromBig;
+                                  setPendingGate(null);
+                                  travelToGate(g || { target: pg.target, arriveX: WORLD_W / 2, arriveY: WORLD_H / 2 } as any);
+                                  if (wasBig) setBigMapOpen(false);
+                                  setWorldMapOpen(false);
+                                }}
+                                style={{
+                                  flex: 2,
+                                  background: canGo ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "#3a2a2a",
+                                  border: "none", color: canGo ? "#160a20" : "#8a7a9c",
+                                  borderRadius: 8, padding: "10px", fontWeight: 900,
+                                  cursor: canGo ? "pointer" : "not-allowed",
+                                  fontSize: 12,
+                                  boxShadow: canGo ? "0 0 20px rgba(245,207,107,0.5)" : "none",
+                                }}
+                              >{canGo ? "VIAJAR" : "REQUISITOS NÃO ATENDIDOS"}</button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })(), document.body)}
+          {bigMapOpen && (
+            <div
+              onClick={() => setBigMapOpen(false)}
+              style={{
+                position: "fixed", inset: 0, zIndex: 9998,
+                background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
+                padding: 24, cursor: "pointer",
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: "#0b0510", border: "3px solid #f5cf6b",
+                  borderRadius: 14, padding: 16, maxWidth: 720, width: "100%",
+                  cursor: "default", boxShadow: "0 0 60px rgba(245,207,107,0.4)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 16, letterSpacing: 1 }}>
+                    🗺 {map.name} — clique num ponto pra viajar
+                  </div>
+                  <button
+                    onClick={() => setBigMapOpen(false)}
+                    style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}
+                  >✕</button>
+                </div>
+                <div style={{ position: "relative" }}>
+                  <div style={{
+                    width: "100%",
+                    aspectRatio: `${WORLD_W} / ${WORLD_H}`, borderRadius: 6, overflow: "hidden",
+                    background: `url(${map.bg}) center/cover`, position: "relative",
+                    border: "1px solid rgba(245,207,107,0.4)",
+                    margin: "0 auto",
+                  }}>
+                    {visibleBuildings.map((b) => (
+                      <button
+                        key={b.key}
+                        title={`Ir ao ${b.label}`}
+                        onClick={() => { goTo(b.label, b.x, b.y - 40); setBigMapOpen(false); }}
+                        className="map-pulse-dot"
+                        style={{
+                          position: "absolute",
+                          left: `${(b.x / WORLD_W) * 100}%`,
+                          top: `${(b.y / WORLD_H) * 100}%`,
+                          transform: "translate(-50%,-50%)",
+                          fontSize: 22, lineHeight: 1,
+                          background: "transparent", border: "none", padding: 0,
+                          cursor: "pointer",
+                          filter: `drop-shadow(0 0 8px ${b.color})`,
+                        }}
+                      >{b.emoji}</button>
+                    ))}
+                    {currentGates.map((g) => {
+                      const targetMap = IDLE_MAPS[g.target];
+                      return (
+                        <button
+                          key={g.key}
+                          title={`Viajar para ${targetMap.name}`}
+                          onClick={() => {
+                            setPendingGate({ target: g.target, gate: g, fromBig: true });
+                          }}
+                          className="map-pulse-dot"
+                          style={{
+                            position: "absolute",
+                            left: `${(g.x / WORLD_W) * 100}%`,
+                            top: `${(g.y / WORLD_H) * 100}%`,
+                            transform: "translate(-50%,-50%)",
+                            fontSize: 18, lineHeight: 1,
+                            background: "transparent", border: "none", padding: 0,
+                            cursor: "pointer",
+                            filter: `drop-shadow(0 0 6px ${g.color})`,
+                          }}
+                        >●</button>
+                      );
+                    })}
+                    <div style={{
+                      position: "absolute",
+                      left: `${(trainerPos.x / WORLD_W) * 100}%`,
+                      top: `${(trainerPos.y / WORLD_H) * 100}%`,
+                      width: 16, height: 16, borderRadius: "50%",
+                      background: "#6bd4ff",
+                      border: "2px solid #fff",
+                      transform: "translate(-50%,-50%)",
+                      boxShadow: "0 0 8px #6bd4ff",
+                    }} />
+                  </div>
+                </div>
+                <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
+                  🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
+                    const tm = IDLE_MAPS[g.target];
+                    const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
+                    return (
+                      <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
+                        ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
     </div>,
     document.body
   );
