@@ -276,7 +276,7 @@ export const attemptCapture = createServerFn({ method: "POST" })
     const { CAPTURE_RATES, SPECIES_BASE } = await import("./game.balance.server");
 
     // Validação básica de espécie e raridade
-    const speciesInfo = SPECIES_BASE[data.species as any];
+    const speciesInfo = SPECIES_BASE[data.species];
     if (!speciesInfo || (speciesInfo.rarity !== data.rarity && data.rarity !== "mythic_shiny")) {
       return { ok: false as const, reason: "invalid_capture_data" };
     }
