@@ -10438,10 +10438,10 @@ function IdlePage() {
 
                             <div style={{
                               width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
-                              background: "linear-gradient(to bottom, #1a2a4a, #0b0510)", position: "relative",
+                              background: `url(${assetUrlFromJson(worldMapContinent2Asset)}) center/cover`, position: "relative",
                               border: "2px solid rgba(245,207,107,0.3)",
                             }}>
-                              <div style={{ position: "absolute", inset: 0, opacity: 0.3, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
+                              <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
                               
                               {ALL_PINS.map((pin) => {
                                 const m = IDLE_MAPS[pin.id];
