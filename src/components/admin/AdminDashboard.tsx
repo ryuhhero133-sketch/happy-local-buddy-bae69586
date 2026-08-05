@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   getConfig,
   saveConfig,
@@ -232,6 +233,8 @@ function TabBody({
       return <InvisibleTab config={config} setConfig={setConfig} />;
     case "teleport":
       return <TeleportTab />;
+    case "reports":
+      return <ReportsTab />;
     case "logs":
       return <LogsTab />;
     case "config":
@@ -858,6 +861,118 @@ function GiftsTab() {
           <li>Requer a tabela <code className="text-amber-200">admin_gifts</code> criada — veja SUPABASE_SETUP.md.</li>
         </ul>
       </Card>
+    </div>
+  );
+}
+
+function ReportsTab() {
+  const [data, setData] = useState<{ id: string; user_id: string; username: string; kind: string; detail: any; created_at: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState<"save_delta" | "ip" | "all">("save_delta");
+
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const { data: res, error } = await supabase
+        .from("audit_events" as any)
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      
+      if (error) throw error;
+      setData((res as any) || []);
+    } catch (e) {
+      console.error("Audit load failed", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { refresh(); }, []);
+
+  const filtered = data.filter(d => filter === "all" ? true : d.kind === filter);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          {(["save_delta", "ip", "all"] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1 rounded-md text-[10px] uppercase font-bold transition ${filter === f ? "bg-fuchsia-500 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+            >
+              {f.replace("_", " ")}
+            </button>
+          ))}
+        </div>
+        <button 
+          onClick={refresh} 
+          disabled={loading}
+          className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 disabled:opacity-50"
+        >
+          {loading ? "CARREGANDO..." : "🔄 ATUALIZAR"}
+        </button>
+      </div>
+
+      <Card title="Relatório de Auditoria (Últimos 100 eventos)">
+        <div className="rounded-lg border border-slate-800 bg-slate-950/60 max-h-[65vh] overflow-y-auto">
+          <table className="w-full text-[10px]">
+            <thead className="bg-slate-900/80 text-slate-500 sticky top-0">
+              <tr>
+                <th className="text-left px-3 py-2">Data</th>
+                <th className="text-left px-3 py-2">Jogador</th>
+                <th className="text-left px-3 py-2">Tipo</th>
+                <th className="text-left px-3 py-2">Detalhes (Delta)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/50">
+              {filtered.map((d) => {
+                const isSuspect = d.kind === "save_delta" && (
+                  (d.detail.level_to - d.detail.level_from) > 10 || 
+                  (d.detail.gold_to - d.detail.gold_from) > 1000000
+                );
+                return (
+                  <tr key={d.id} className={`${isSuspect ? "bg-rose-500/5" : ""} hover:bg-white/5`}>
+                    <td className="px-3 py-2 text-slate-500 font-mono">
+                      {new Date(d.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="text-amber-200 font-bold">{d.username || "Desconhecido"}</div>
+                      <div className="text-[9px] text-slate-600 truncate max-w-[80px]">{d.user_id}</div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                        d.kind === "save_delta" ? "bg-blue-500/10 text-blue-400" : "bg-amber-500/10 text-amber-400"
+                      }`}>
+                        {d.kind}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-slate-400 leading-tight">
+                      {d.kind === "save_delta" ? (
+                        <div className="space-y-0.5">
+                          <div>LV: <span className="text-slate-300">{d.detail.level_from}</span> → <span className={d.detail.level_to > d.detail.level_from + 5 ? "text-rose-400 font-bold" : "text-emerald-400"}>{d.detail.level_to}</span></div>
+                          <div>GOLD: <span className="text-slate-300">{d.detail.gold_from?.toLocaleString()}</span> → <span className="text-emerald-400">{d.detail.gold_to?.toLocaleString()}</span></div>
+                        </div>
+                      ) : (
+                        <pre className="text-[9px] truncate max-w-[200px]">{JSON.stringify(d.detail)}</pre>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && !loading && (
+                <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-600">Nenhum registro suspeito encontrado.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+      
+      <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 text-xs text-rose-300/80">
+        <p className="font-bold mb-1">🛡️ Análise de Segurança:</p>
+        <p>A brecha de edição direta foi fechada com o trigger <code className="text-rose-200">enforce_game_save_caps</code>. Saltos de nível acima de 5 por save são automaticamente barrados e registrados aqui como "save_delta".</p>
+      </div>
     </div>
   );
 }
