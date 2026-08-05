@@ -3242,6 +3242,15 @@ function IdlePage() {
       if (k === "r") { e.preventDefault(); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); collect(); return; }
+      // Admin shortcut: Shift + A (Only for the admin UUID)
+      if (e.shiftKey && k === "a") {
+        const isAdmin = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+        if (isAdmin) {
+          e.preventDefault();
+          setIsAdminOpen((v) => !v);
+          return;
+        }
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -12970,6 +12979,11 @@ function IdlePage() {
           </div>
         );
       })(), document.body)}
+
+      {isAdminOpen && createPortal(
+        <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
+        document.body
+      )}
 
     </div>
   );
