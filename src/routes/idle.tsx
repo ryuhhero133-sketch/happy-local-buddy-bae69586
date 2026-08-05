@@ -10382,8 +10382,10 @@ function IdlePage() {
                   })}
                 </div>
               </div>
+              </div>
             </div>
           </Panel>
+
           {worldMapOpen && createPortal((() => {
                       const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                       const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
