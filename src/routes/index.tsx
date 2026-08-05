@@ -1,4 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 
 // =========================================================================
 // 🛡️ SISTEMA DE SEGURANÇA ZERO TRUST — ATIVO 🛡️
@@ -17,3 +18,11 @@ export const Route = createFileRoute('/')({
 });
 
 import { AuthGate } from '@/components/AuthGate';
+
+function IdleRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    void navigate({ to: '/idle', replace: true });
+  }, [navigate]);
+  return null;
+}
