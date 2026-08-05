@@ -2539,6 +2539,164 @@ function IdlePage() {
   // ---- Mundo em pixels + câmera que segue o treinador ----
   const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
   const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+              type GateDef = {
+                key: string;
+                target: IdleMapId;
+                x: number; y: number;
+                arriveX: number; arriveY: number;
+                color: string;
+              };
+              // Fluxo: arena → praia → neve → deserto → caverna
+              const gatesByMap: Record<IdleMapId, GateDef[]> = {
+                arena: [
+                  { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
+                  { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
+                  { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
+                  { key: "to-vale_rochas", target: "vale_rochas", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
+                ],
+                terra: [
+                  { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-venofogo", target: "venofogo", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,           color: "#ff5c2e" },
+                  { key: "to-fantasma", target: "fantasma", x: 60,          y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a259ff" },
+                  { key: "to-deserto_purpura", target: "deserto_purpura", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#b45adc" },
+                ],
+                deserto_purpura: [
+                  { key: "to-terra", target: "terra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9873a" },
+                  { key: "to-terry", target: "terry", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
+                ],
+                terry: [
+                  { key: "to-deserto_purpura", target: "deserto_purpura", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
+                  { key: "to-n2", target: "n2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
+                ],
+                n2: [
+                  { key: "to-terry", target: "terry", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
+                  { key: "to-n3", target: "n3", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#e8b878" },
+                ],
+                n3: [
+                  { key: "to-n2", target: "n2", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
+                  { key: "to-pantano_fogo", target: "pantano_fogo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
+                ],
+                pantano_fogo: [
+                  { key: "to-n3", target: "n3", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e8b878" },
+                  { key: "to-abismo_gelo", target: "abismo_gelo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
+                ],
+                abismo_gelo: [
+                  { key: "ag-back", target: "pantano_fogo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
+                  { key: "ag-next", target: "abismo_veneno", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
+                ],
+                abismo_veneno: [
+                  { key: "av-back", target: "abismo_gelo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
+                  { key: "av-next", target: "abismo_raio", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
+                ],
+                abismo_raio: [
+                  { key: "ar-back", target: "abismo_veneno", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
+                  { key: "ar-next", target: "abismo_sombra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#28143c" },
+                ],
+                abismo_sombra: [
+                  { key: "as-back", target: "abismo_raio", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
+                  { key: "as-next", target: "abismo_dragao", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9628" },
+                ],
+                abismo_dragao: [
+                  { key: "ad-back", target: "abismo_sombra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#28143c" },
+                  { key: "ad-next", target: "cadeia_ab", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
+                ],
+                cadeia_ab: [
+                  { key: "cab-back", target: "abismo_dragao", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9628" },
+                  { key: "cab-next", target: "cadeia_ab1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                ],
+                cadeia_ab1: [
+                  { key: "cab1-back", target: "cadeia_ab", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
+                  { key: "cab1-next", target: "cadeia_f1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
+                ],
+                cadeia_f1: [
+                  { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                ],
+                evento_myth: [],
+                oddish_o1: [
+                  { key: "o1-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
+                ],
+                oddish_o2: [
+                  { key: "o2-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
+                ],
+                oddish_o3: [
+                  { key: "o3-o1", target: "oddish_o1", x: 80, y: WORLD_H - 100, arriveX: WORLD_W - 120, arriveY: 120, color: "#7ef27a" },
+                  { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
+                ],
+                grass_oddish: [],
+                vale_fragmentos: [],
+                gym_carmesim: [
+                  { key: "gym1-gym2", target: "gym_gelo_sombra", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#9fe8ff" },
+                ],
+                gym_gelo_sombra: [
+                  { key: "gym2-gym1", target: "gym_carmesim", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#ff8b8b" },
+                  { key: "gym2-gym3", target: "gym_arcano", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#c58bff" },
+                ],
+                gym_arcano: [
+                  { key: "gym3-gym2", target: "gym_gelo_sombra", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#9fe8ff" },
+                ],
+                absol_start: [
+                  { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
+                ],
+                governante_hall: [
+                  { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
+                ],
+                venofogo: [
+                  { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
+                ],
+                fantasma: [
+                  { key: "to-terra", target: "terra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9873a" },
+                ],
+                praia: [
+                  { key: "to-arena",   target: "arena",   x: WORLD_W - 60, y: 60,          arriveX: 100,           arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-deserto", target: "deserto", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#f5b25c" },
+                ],
+                neve: [
+                  { key: "to-arena",   target: "arena",   x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#7ef27a" },
+                  { key: "to-caverna", target: "caverna", x: 60,          y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
+                ],
+                deserto: [
+                  { key: "to-praia",    target: "praia",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#5cd3ff" },
+                ],
+                caverna: [
+                  { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
+                ],
+                // ═══ Cadeia endgame — portais visíveis; ao entrar, exige nível ═══
+                vale_rochas: [
+                  { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
+                  { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
+                ],
+                vale_planta: [
+                  { key: "vp-back", target: "vale_rochas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#a08770" },
+                  { key: "vp-next", target: "vale_gelo",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ce6ff" },
+                ],
+                vale_gelo: [
+                  { key: "vg-back", target: "vale_planta", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#7ef27a" },
+                  { key: "vg-next", target: "vale_veneno", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
+                ],
+                vale_veneno: [
+                  { key: "vv-back", target: "vale_gelo",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#8ce6ff" },
+                  { key: "vv-next", target: "vale_fogo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5f2d" },
+                ],
+                vale_fogo: [
+                  { key: "vf-back", target: "vale_veneno",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#b45adc" },
+                  { key: "vf-next", target: "vulcao_ativo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
+                ],
+                vulcao_ativo: [
+                  { key: "va-back", target: "vale_fogo",         x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#ff5f2d" },
+                  { key: "va-next", target: "nucleo_primordial", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
+                ],
+                nucleo_primordial: [
+                  { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
+                  { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
+                ],
+                // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
+                gelius1: [
+                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7fd8ff" },
+                ],
+                gelius2: [
+                  { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+              };
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
@@ -9906,164 +10064,6 @@ function IdlePage() {
                 setAuto(false);
                 pushChat(`Indo para ${label}…`, "info");
               };
-              type GateDef = {
-                key: string;
-                target: IdleMapId;
-                x: number; y: number;
-                arriveX: number; arriveY: number;
-                color: string;
-              };
-              // Fluxo: arena → praia → neve → deserto → caverna
-              const gatesByMap: Record<IdleMapId, GateDef[]> = {
-                arena: [
-                  { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
-                  { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
-                  { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
-                  { key: "to-vale_rochas", target: "vale_rochas", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
-                ],
-                terra: [
-                  { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-venofogo", target: "venofogo", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,           color: "#ff5c2e" },
-                  { key: "to-fantasma", target: "fantasma", x: 60,          y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a259ff" },
-                  { key: "to-deserto_purpura", target: "deserto_purpura", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#b45adc" },
-                ],
-                deserto_purpura: [
-                  { key: "to-terra", target: "terra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9873a" },
-                  { key: "to-terry", target: "terry", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
-                ],
-                terry: [
-                  { key: "to-deserto_purpura", target: "deserto_purpura", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
-                  { key: "to-n2", target: "n2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
-                ],
-                n2: [
-                  { key: "to-terry", target: "terry", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
-                  { key: "to-n3", target: "n3", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#e8b878" },
-                ],
-                n3: [
-                  { key: "to-n2", target: "n2", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
-                  { key: "to-pantano_fogo", target: "pantano_fogo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
-                ],
-                pantano_fogo: [
-                  { key: "to-n3", target: "n3", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e8b878" },
-                  { key: "to-abismo_gelo", target: "abismo_gelo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
-                ],
-                abismo_gelo: [
-                  { key: "ag-back", target: "pantano_fogo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
-                  { key: "ag-next", target: "abismo_veneno", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
-                ],
-                abismo_veneno: [
-                  { key: "av-back", target: "abismo_gelo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
-                  { key: "av-next", target: "abismo_raio", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
-                ],
-                abismo_raio: [
-                  { key: "ar-back", target: "abismo_veneno", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
-                  { key: "ar-next", target: "abismo_sombra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#28143c" },
-                ],
-                abismo_sombra: [
-                  { key: "as-back", target: "abismo_raio", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
-                  { key: "as-next", target: "abismo_dragao", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9628" },
-                ],
-                abismo_dragao: [
-                  { key: "ad-back", target: "abismo_sombra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#28143c" },
-                  { key: "ad-next", target: "cadeia_ab", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
-                ],
-                cadeia_ab: [
-                  { key: "cab-back", target: "abismo_dragao", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9628" },
-                  { key: "cab-next", target: "cadeia_ab1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c084fc" },
-                ],
-                cadeia_ab1: [
-                  { key: "cab1-back", target: "cadeia_ab", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
-                  { key: "cab1-next", target: "cadeia_f1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
-                ],
-                cadeia_f1: [
-                  { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
-                ],
-                evento_myth: [],
-                oddish_o1: [
-                  { key: "o1-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
-                ],
-                oddish_o2: [
-                  { key: "o2-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
-                ],
-                oddish_o3: [
-                  { key: "o3-o1", target: "oddish_o1", x: 80, y: WORLD_H - 100, arriveX: WORLD_W - 120, arriveY: 120, color: "#7ef27a" },
-                  { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
-                ],
-                grass_oddish: [],
-                vale_fragmentos: [],
-                gym_carmesim: [
-                  { key: "gym1-gym2", target: "gym_gelo_sombra", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#9fe8ff" },
-                ],
-                gym_gelo_sombra: [
-                  { key: "gym2-gym1", target: "gym_carmesim", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#ff8b8b" },
-                  { key: "gym2-gym3", target: "gym_arcano", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#c58bff" },
-                ],
-                gym_arcano: [
-                  { key: "gym3-gym2", target: "gym_gelo_sombra", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#9fe8ff" },
-                ],
-                absol_start: [
-                  { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
-                ],
-                governante_hall: [
-                  { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
-                ],
-                venofogo: [
-                  { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
-                ],
-                fantasma: [
-                  { key: "to-terra", target: "terra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9873a" },
-                ],
-                praia: [
-                  { key: "to-arena",   target: "arena",   x: WORLD_W - 60, y: 60,          arriveX: 100,           arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-deserto", target: "deserto", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#f5b25c" },
-                ],
-                neve: [
-                  { key: "to-arena",   target: "arena",   x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#7ef27a" },
-                  { key: "to-caverna", target: "caverna", x: 60,          y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
-                ],
-                deserto: [
-                  { key: "to-praia",    target: "praia",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#5cd3ff" },
-                ],
-                caverna: [
-                  { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
-                ],
-                // ═══ Cadeia endgame — portais visíveis; ao entrar, exige nível ═══
-                vale_rochas: [
-                  { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
-                  { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
-                ],
-                vale_planta: [
-                  { key: "vp-back", target: "vale_rochas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#a08770" },
-                  { key: "vp-next", target: "vale_gelo",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ce6ff" },
-                ],
-                vale_gelo: [
-                  { key: "vg-back", target: "vale_planta", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#7ef27a" },
-                  { key: "vg-next", target: "vale_veneno", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
-                ],
-                vale_veneno: [
-                  { key: "vv-back", target: "vale_gelo",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#8ce6ff" },
-                  { key: "vv-next", target: "vale_fogo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5f2d" },
-                ],
-                vale_fogo: [
-                  { key: "vf-back", target: "vale_veneno",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#b45adc" },
-                  { key: "vf-next", target: "vulcao_ativo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
-                ],
-                vulcao_ativo: [
-                  { key: "va-back", target: "vale_fogo",         x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#ff5f2d" },
-                  { key: "va-next", target: "nucleo_primordial", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
-                ],
-                nucleo_primordial: [
-                  { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
-                  { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
-                ],
-                // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
-                gelius1: [
-                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7fd8ff" },
-                ],
-                gelius2: [
-                  { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-              };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 const targetMap = IDLE_MAPS[g.target];
@@ -12800,6 +12800,294 @@ function IdlePage() {
           pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
         }}
       />
+      {/* --- MAPPED PORTALS --- */}
+          {worldMapOpen && createPortal((() => {
+                      const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
+                      const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
+                        { id: "arena", x: 15, y: 22 },
+                        { id: "terra", x: 32, y: 16 },
+                        { id: "deserto_purpura", x: 54, y: 20 },
+                        { id: "pantano_fogo", x: 87, y: 26 },
+                        { id: "praia", x: 12, y: 60 },
+                        { id: "caverna", x: 42, y: 48 },
+                        { id: "neve", x: 74, y: 46 },
+                        { id: "deserto", x: 92, y: 58 },
+                        { id: "venofogo", x: 48, y: 84 },
+                        { id: "fantasma", x: 14, y: 88 },
+                      ];
+                      const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
+                        { id: "grass_oddish", x: 25, y: 30 },
+                        { id: "vale_rochas", x: 15, y: 20 },
+                        { id: "vale_planta", x: 35, y: 25 },
+                        { id: "vale_gelo", x: 55, y: 30 },
+                        { id: "vale_veneno", x: 75, y: 35 },
+                        { id: "vale_fogo", x: 90, y: 40 },
+                        { id: "vulcao_ativo", x: 85, y: 60 },
+                        { id: "nucleo_primordial", x: 95, y: 80 },
+                        { id: "abismo_gelo", x: 10, y: 40 },
+                        { id: "abismo_veneno", x: 15, y: 50 },
+                        { id: "abismo_raio", x: 20, y: 60 },
+                        { id: "abismo_sombra", x: 25, y: 70 },
+                        { id: "abismo_dragao", x: 30, y: 80 },
+                      ];
+                      const GOV_PINS: Array<{ id: IdleMapId; x: number; y: number }> = hasGovCard ? [
+                        { id: "absol_start", x: 70, y: 70 },
+                        { id: "governante_hall", x: 80, y: 85 },
+                      ] : [];
+
+                      const [continent, setContinent] = useState<1 | 2>(1);
+                      const bg = continent === 1 ? worldMapGlobeAsset : worldMapContinent2Asset;
+                      const PINS = continent === 1 ? WORLD_PINS_C1 : [...WORLD_PINS_C2, ...GOV_PINS];
+                      const trainerLv = idle.trainerLevel ?? 1;
+
+                      return (
+                        <div
+                          onClick={() => setWorldMapOpen(false)}
+                          style={{
+                            position: "fixed", inset: 0, zIndex: 99999,
+                            background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center",
+                            padding: 20, cursor: "pointer",
+                          }}
+                        >
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              background: "#0b0510", border: "4px solid #f5cf6b",
+                              borderRadius: 20, padding: 24, maxWidth: 900, width: "100%",
+                              cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.5)",
+                              position: "relative",
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                              <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
+                                🌏 MAPA MUNDI — {continent === 1 ? "CONTINENTE 1" : "CONTINENTE 2"}
+                              </div>
+                              <div style={{ display: "flex", gap: 10 }}>
+                                <button
+                                  onClick={() => setContinent(continent === 1 ? 2 : 1)}
+                                  style={{
+                                    background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
+                                    border: "none", color: "#160a20",
+                                    borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 14,
+                                    boxShadow: "0 0 10px rgba(245,207,107,0.3)"
+                                  }}
+                                >TROCAR CONTINENTE</button>
+                                <button
+                                  onClick={() => setWorldMapOpen(false)}
+                                  style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
+                                >✕</button>
+                              </div>
+                            </div>
+
+                            <div style={{
+                              width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
+                              background: `url(${assetUrlFromJson(bg)}) center/cover`, position: "relative",
+                              border: "2px solid rgba(245,207,107,0.3)",
+                            }}>
+                              <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
+                              
+                              {PINS.map((pin) => {
+                                const m = IDLE_MAPS[pin.id];
+                                if (!m) return null;
+                                const isLocked = (m.minLevel ?? 0) > trainerLv;
+                                return (
+                                  <div
+                                    key={pin.id}
+                                    onClick={() => {
+                                      if (isLocked) {
+                                        pushChat(`Nível insuficiente para ${m.name} (mín: ${m.minLevel})`, "info");
+                                        return;
+                                      }
+                                      setIdle((s) => ({ ...s, currentMap: pin.id }));
+                                      setWorldMapOpen(false);
+                                      pushChat(`Viajou para ${m.name}!`, "info");
+                                    }}
+                                    style={{
+                                      position: "absolute",
+                                      left: `${pin.x}%`, top: `${pin.y}%`,
+                                      width: 24, height: 24,
+                                      background: isLocked ? "#444" : "radial-gradient(circle, #f5cf6b, #d9a441)",
+                                      border: "2px solid #fff", borderRadius: "50%",
+                                      cursor: isLocked ? "not-allowed" : "pointer",
+                                      transform: "translate(-50%, -50%)",
+                                      boxShadow: "0 0 15px rgba(245,207,107,0.8)",
+                                      zIndex: 10,
+                                      display: "grid", placeItems: "center",
+                                      transition: "transform 0.2s",
+                                    }}
+                                    className="world-pin"
+                                    title={isLocked ? `${m.name} (Bloqueado)` : m.name}
+                                  >
+                                    <div style={{ fontSize: 10, color: isLocked ? "#888" : "#2a1500", fontWeight: 900 }}>
+                                      {isLocked ? "🔒" : "📍"}
+                                    </div>
+                                    <div style={{
+                                      position: "absolute", top: 28, left: "50%", transform: "translateX(-50%)",
+                                      background: "rgba(0,0,0,0.8)", padding: "2px 8px", borderRadius: 6,
+                                      color: isLocked ? "#aaa" : "#f5cf6b", fontSize: 11, fontWeight: 900,
+                                      whiteSpace: "nowrap", border: "1px solid rgba(245,207,107,0.3)",
+                                      pointerEvents: "none", opacity: 0, transition: "opacity 0.2s"
+                                    }} className="pin-label">
+                                      {m.name} {isLocked && `(Lv ${m.minLevel})`}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            
+                            <div style={{ marginTop: 16, display: "flex", gap: 12, justifyContent: "center" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#f5cf6b", border: "1px solid #fff" }} />
+                                <span style={{ color: "#d0b8f0", fontSize: 12 }}>Descoberto</span>
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#444", border: "1px solid #666" }} />
+                                <span style={{ color: "#d0b8f0", fontSize: 12 }}>Bloqueado</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })(), document.body)}
+
+          {pendingGate && createPortal((() => {
+                      const m = IDLE_MAPS[pendingGate.target as IdleMapId];
+                      return (
+                        <div
+                          style={{
+                            position: "fixed", inset: 0, zIndex: 100000,
+                            background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
+                            padding: 20, backdropFilter: "blur(5px)",
+                          }}
+                        >
+                          <div style={{
+                            background: "linear-gradient(135deg, #1a0f26, #2d1a4d)",
+                            border: "3px solid #f5cf6b", borderRadius: 24, padding: 32,
+                            maxWidth: 440, width: "100%", textAlign: "center",
+                            boxShadow: "0 0 60px rgba(245,207,107,0.4), inset 0 0 30px rgba(167,139,250,0.15)",
+                          }}>
+                            <div style={{ fontSize: 40, marginBottom: 12 }}>🌀</div>
+                            <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, marginBottom: 10 }}>
+                              VIAJAR PARA?
+                            </div>
+                            <div style={{ color: "#d0b8f0", fontSize: 16, marginBottom: 24, lineHeight: 1.5 }}>
+                              Deseja cruzar o portal para <br/>
+                              <b style={{ color: "#fff", fontSize: 20 }}>{m?.name || "Desconhecido"}</b>?
+                            </div>
+                            <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+                              <button
+                                onClick={() => {
+                                  setIdle((s) => ({
+                                    ...s,
+                                    currentMap: pendingGate.target as IdleMapId,
+                                    trainerPos: { x: pendingGate.gate.arriveX, y: pendingGate.gate.arriveY }
+                                  }));
+                                  setPendingGate(null);
+                                  if (pendingGate.fromBig) setBigMapOpen(false);
+                                  pushChat(`Você viajou para ${m?.name}!`, "info");
+                                }}
+                                style={{
+                                  background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
+                                  border: "none", color: "#160a20", borderRadius: 12,
+                                  padding: "12px 28px", fontWeight: 900, cursor: "pointer",
+                                  fontSize: 16, boxShadow: "0 4px 15px rgba(245,207,107,0.3)"
+                                }}
+                              >SIM, VIAJAR</button>
+                              <button
+                                onClick={() => setPendingGate(null)}
+                                style={{
+                                  background: "rgba(255,255,255,0.05)",
+                                  border: "2px solid rgba(245,207,107,0.3)", color: "#f5cf6b",
+                                  borderRadius: 12, padding: "12px 28px", fontWeight: 900,
+                                  cursor: "pointer", fontSize: 16
+                                }}
+                              >CANCELAR</button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })(), document.body)}
+
+          {bigMapOpen && (
+            createPortal((() => {
+              const m = IDLE_MAPS[idle.currentMap as IdleMapId];
+              const leaderLv = team[0]?.level ?? 1;
+              const goTo = (label: string, x: number, y: number, onArrive?: () => void) => {
+                walkTargetRef.current = { x, y, label, onArrive, resumeAuto: autoRef.current };
+                setWalkingTo(label);
+                setAuto(false);
+                setBigMapOpen(false);
+                pushChat(`Indo para ${label}…`, "info");
+              };
+              const currentGates = gatesByMap[idle.currentMap as IdleMapId] || [];
+              
+              return (
+                <div 
+                  onClick={() => setBigMapOpen(false)}
+                  style={{
+                    position: "fixed", inset: 0, zIndex: 99990,
+                    background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
+                    padding: 20, cursor: "pointer", backdropFilter: "blur(3px)",
+                  }}
+                >
+                  <div 
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      background: "linear-gradient(180deg, #1a0f26, #0b0510)",
+                      border: "4px solid #3d2b52", borderRadius: 24, padding: 24,
+                      maxWidth: 900, width: "100%", cursor: "default",
+                      boxShadow: "0 0 50px rgba(0,0,0,0.8), inset 0 0 30px rgba(61,43,82,0.3)",
+                      position: "relative",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                      <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2 }}>
+                        🗺️ MAPA LOCAL: {m?.name}
+                      </div>
+                      <button 
+                        onClick={() => setBigMapOpen(false)}
+                        style={{ background: "#3a1010", border: "2px solid #3d2b52", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
+                      >✕</button>
+                    </div>
+
+                    <div style={{
+                      width: "100%", aspectRatio: "16/9", borderRadius: 16, overflow: "hidden",
+                      background: `url(${m?.bg}) center/cover`, position: "relative",
+                      border: "3px solid #3d2b52", boxShadow: "inset 0 0 40px rgba(0,0,0,0.5)",
+                    }}>
+                      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.15)" }} />
+                      
+                      {currentGates.map((g: any) => (
+                        <div
+                          key={g.key}
+                          onClick={() => setPendingGate({ target: g.target, gate: g, fromBig: true })}
+                          style={{
+                            position: "absolute", left: `${(g.x / WORLD_W) * 100}%`, top: `${(g.y / WORLD_H) * 100}%`,
+                            width: 32, height: 32, transform: "translate(-50%, -50%)",
+                            background: `radial-gradient(circle, ${g.color}, transparent)`,
+                            border: `2px solid ${g.color}`, borderRadius: "50%", cursor: "pointer",
+                            boxShadow: `0 0 20px ${g.color}`, zIndex: 10,
+                            display: "grid", placeItems: "center", animation: "pulse 2s infinite",
+                          }}
+                          title={`Portal para ${IDLE_MAPS[g.target as IdleMapId]?.name}`}
+                        >
+                          <div style={{ fontSize: 14 }}>🌀</div>
+                        </div>
+                      ))}
+
+                      {/* Trainer marker */}
+                      <div style={{
+                        position: "absolute", left: `${(trainerPos.x / WORLD_W) * 100}%`, top: `${(trainerPos.y / WORLD_H) * 100}%`,
+                        width: 14, height: 14, background: "#fff", border: "2px solid #f5cf6b",
+                        borderRadius: "50%", transform: "translate(-50%, -50%)",
+                        boxShadow: "0 0 10px #fff", zIndex: 20,
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })(), document.body)
+          )}
     </div>
   );
 }
@@ -16034,295 +16322,7 @@ function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: n
       </div>
       {/* Portals moved to top-level for maximum reliability */}
     </div>
-\n      {/* --- MAPPED PORTALS --- */}\n
-          {worldMapOpen && createPortal((() => {
-                      const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
-                      const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
-                        { id: "arena", x: 15, y: 22 },
-                        { id: "terra", x: 32, y: 16 },
-                        { id: "deserto_purpura", x: 54, y: 20 },
-                        { id: "pantano_fogo", x: 87, y: 26 },
-                        { id: "praia", x: 12, y: 60 },
-                        { id: "caverna", x: 42, y: 48 },
-                        { id: "neve", x: 74, y: 46 },
-                        { id: "deserto", x: 92, y: 58 },
-                        { id: "venofogo", x: 48, y: 84 },
-                        { id: "fantasma", x: 14, y: 88 },
-                      ];
-                      const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
-                        { id: "grass_oddish", x: 25, y: 30 },
-                        { id: "vale_rochas", x: 15, y: 20 },
-                        { id: "vale_planta", x: 35, y: 25 },
-                        { id: "vale_gelo", x: 55, y: 30 },
-                        { id: "vale_veneno", x: 75, y: 35 },
-                        { id: "vale_fogo", x: 90, y: 40 },
-                        { id: "vulcao_ativo", x: 85, y: 60 },
-                        { id: "nucleo_primordial", x: 95, y: 80 },
-                        { id: "abismo_gelo", x: 10, y: 40 },
-                        { id: "abismo_veneno", x: 15, y: 50 },
-                        { id: "abismo_raio", x: 20, y: 60 },
-                        { id: "abismo_sombra", x: 25, y: 70 },
-                        { id: "abismo_dragao", x: 30, y: 80 },
-                      ];
-                      const GOV_PINS: Array<{ id: IdleMapId; x: number; y: number }> = hasGovCard ? [
-                        { id: "absol_start", x: 70, y: 70 },
-                        { id: "governante_hall", x: 80, y: 85 },
-                      ] : [];
-
-                      const [continent, setContinent] = useState<1 | 2>(1);
-                      const bg = continent === 1 ? worldMapGlobeAsset : worldMapContinent2Asset;
-                      const PINS = continent === 1 ? WORLD_PINS_C1 : [...WORLD_PINS_C2, ...GOV_PINS];
-                      const trainerLv = idle.trainerLevel ?? 1;
-
-                      return (
-                        <div
-                          onClick={() => setWorldMapOpen(false)}
-                          style={{
-                            position: "fixed", inset: 0, zIndex: 99999,
-                            background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center",
-                            padding: 20, cursor: "pointer",
-                          }}
-                        >
-                          <div
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                              background: "#0b0510", border: "4px solid #f5cf6b",
-                              borderRadius: 20, padding: 24, maxWidth: 900, width: "100%",
-                              cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.5)",
-                              position: "relative",
-                            }}
-                          >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                              <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
-                                🌏 MAPA MUNDI — {continent === 1 ? "CONTINENTE 1" : "CONTINENTE 2"}
-                              </div>
-                              <div style={{ display: "flex", gap: 10 }}>
-                                <button
-                                  onClick={() => setContinent(continent === 1 ? 2 : 1)}
-                                  style={{
-                                    background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
-                                    border: "none", color: "#160a20",
-                                    borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 14,
-                                    boxShadow: "0 0 10px rgba(245,207,107,0.3)"
-                                  }}
-                                >TROCAR CONTINENTE</button>
-                                <button
-                                  onClick={() => setWorldMapOpen(false)}
-                                  style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
-                                >✕</button>
-                              </div>
-                            </div>
-
-                            <div style={{
-                              width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
-                              background: `url(${assetUrlFromJson(bg)}) center/cover`, position: "relative",
-                              border: "2px solid rgba(245,207,107,0.3)",
-                            }}>
-                              <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
-                              
-                              {PINS.map((pin) => {
-                                const m = IDLE_MAPS[pin.id];
-                                if (!m) return null;
-                                const isLocked = (m.minLevel ?? 0) > trainerLv;
-                                return (
-                                  <div
-                                    key={pin.id}
-                                    onClick={() => {
-                                      if (isLocked) {
-                                        pushChat(`Nível insuficiente para ${m.name} (mín: ${m.minLevel})`, "info");
-                                        return;
-                                      }
-                                      setIdle((s) => ({ ...s, currentMap: pin.id }));
-                                      setWorldMapOpen(false);
-                                      pushChat(`Viajou para ${m.name}!`, "info");
-                                    }}
-                                    style={{
-                                      position: "absolute",
-                                      left: `${pin.x}%`, top: `${pin.y}%`,
-                                      width: 24, height: 24,
-                                      background: isLocked ? "#444" : "radial-gradient(circle, #f5cf6b, #d9a441)",
-                                      border: "2px solid #fff", borderRadius: "50%",
-                                      cursor: isLocked ? "not-allowed" : "pointer",
-                                      transform: "translate(-50%, -50%)",
-                                      boxShadow: "0 0 15px rgba(245,207,107,0.8)",
-                                      zIndex: 10,
-                                      display: "grid", placeItems: "center",
-                                      transition: "transform 0.2s",
-                                    }}
-                                    className="world-pin"
-                                    title={isLocked ? `${m.name} (Bloqueado)` : m.name}
-                                  >
-                                    <div style={{ fontSize: 10, color: isLocked ? "#888" : "#2a1500", fontWeight: 900 }}>
-                                      {isLocked ? "🔒" : "📍"}
-                                    </div>
-                                    <div style={{
-                                      position: "absolute", top: 28, left: "50%", transform: "translateX(-50%)",
-                                      background: "rgba(0,0,0,0.8)", padding: "2px 8px", borderRadius: 6,
-                                      color: isLocked ? "#aaa" : "#f5cf6b", fontSize: 11, fontWeight: 900,
-                                      whiteSpace: "nowrap", border: "1px solid rgba(245,207,107,0.3)",
-                                      pointerEvents: "none", opacity: 0, transition: "opacity 0.2s"
-                                    }} className="pin-label">
-                                      {m.name} {isLocked && `(Lv ${m.minLevel})`}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            
-                            <div style={{ marginTop: 16, display: "flex", gap: 12, justifyContent: "center" }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#f5cf6b", border: "1px solid #fff" }} />
-                                <span style={{ color: "#d0b8f0", fontSize: 12 }}>Descoberto</span>
-                              </div>
-                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#444", border: "1px solid #666" }} />
-                                <span style={{ color: "#d0b8f0", fontSize: 12 }}>Bloqueado</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })(), document.body)}
-
-          {pendingGate && createPortal((() => {
-                      const m = IDLE_MAPS[pendingGate.target as IdleMapId];
-                      return (
-                        <div
-                          style={{
-                            position: "fixed", inset: 0, zIndex: 100000,
-                            background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
-                            padding: 20, backdropFilter: "blur(5px)",
-                          }}
-                        >
-                          <div style={{
-                            background: "linear-gradient(135deg, #1a0f26, #2d1a4d)",
-                            border: "3px solid #f5cf6b", borderRadius: 24, padding: 32,
-                            maxWidth: 440, width: "100%", textAlign: "center",
-                            boxShadow: "0 0 60px rgba(245,207,107,0.4), inset 0 0 30px rgba(167,139,250,0.15)",
-                          }}>
-                            <div style={{ fontSize: 40, marginBottom: 12 }}>🌀</div>
-                            <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, marginBottom: 10 }}>
-                              VIAJAR PARA?
-                            </div>
-                            <div style={{ color: "#d0b8f0", fontSize: 16, marginBottom: 24, lineHeight: 1.5 }}>
-                              Deseja cruzar o portal para <br/>
-                              <b style={{ color: "#fff", fontSize: 20 }}>{m?.name || "Desconhecido"}</b>?
-                            </div>
-                            <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-                              <button
-                                onClick={() => {
-                                  setIdle((s) => ({
-                                    ...s,
-                                    currentMap: pendingGate.target as IdleMapId,
-                                    trainerPos: { x: pendingGate.gate.arriveX, y: pendingGate.gate.arriveY }
-                                  }));
-                                  setPendingGate(null);
-                                  if (pendingGate.fromBig) setBigMapOpen(false);
-                                  pushChat(`Você viajou para ${m?.name}!`, "info");
-                                }}
-                                style={{
-                                  background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
-                                  border: "none", color: "#160a20", borderRadius: 12,
-                                  padding: "12px 28px", fontWeight: 900, cursor: "pointer",
-                                  fontSize: 16, boxShadow: "0 4px 15px rgba(245,207,107,0.3)"
-                                }}
-                              >SIM, VIAJAR</button>
-                              <button
-                                onClick={() => setPendingGate(null)}
-                                style={{
-                                  background: "rgba(255,255,255,0.05)",
-                                  border: "2px solid rgba(245,207,107,0.3)", color: "#f5cf6b",
-                                  borderRadius: 12, padding: "12px 28px", fontWeight: 900,
-                                  cursor: "pointer", fontSize: 16
-                                }}
-                              >CANCELAR</button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })(), document.body)}
-
-          {bigMapOpen && (
-            createPortal((() => {
-              const m = IDLE_MAPS[idle.currentMap as IdleMapId];
-              const leaderLv = team[0]?.level ?? 1;
-              const goTo = (label: string, x: number, y: number, onArrive?: () => void) => {
-                walkTargetRef.current = { x, y, label, onArrive, resumeAuto: autoRef.current };
-                setWalkingTo(label);
-                setAuto(false);
-                setBigMapOpen(false);
-                pushChat(`Indo para ${label}…`, "info");
-              };
-              const currentGates = gatesByMap[idle.currentMap as IdleMapId] || [];
-              
-              return (
-                <div 
-                  onClick={() => setBigMapOpen(false)}
-                  style={{
-                    position: "fixed", inset: 0, zIndex: 99990,
-                    background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
-                    padding: 20, cursor: "pointer", backdropFilter: "blur(3px)",
-                  }}
-                >
-                  <div 
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      background: "linear-gradient(180deg, #1a0f26, #0b0510)",
-                      border: "4px solid #3d2b52", borderRadius: 24, padding: 24,
-                      maxWidth: 900, width: "100%", cursor: "default",
-                      boxShadow: "0 0 50px rgba(0,0,0,0.8), inset 0 0 30px rgba(61,43,82,0.3)",
-                      position: "relative",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                      <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2 }}>
-                        🗺️ MAPA LOCAL: {m?.name}
-                      </div>
-                      <button 
-                        onClick={() => setBigMapOpen(false)}
-                        style={{ background: "#3a1010", border: "2px solid #3d2b52", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
-                      >✕</button>
-                    </div>
-
-                    <div style={{
-                      width: "100%", aspectRatio: "16/9", borderRadius: 16, overflow: "hidden",
-                      background: `url(${m?.bg}) center/cover`, position: "relative",
-                      border: "3px solid #3d2b52", boxShadow: "inset 0 0 40px rgba(0,0,0,0.5)",
-                    }}>
-                      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.15)" }} />
-                      
-                      {currentGates.map((g: any) => (
-                        <div
-                          key={g.key}
-                          onClick={() => setPendingGate({ target: g.target, gate: g, fromBig: true })}
-                          style={{
-                            position: "absolute", left: `${(g.x / WORLD_W) * 100}%`, top: `${(g.y / WORLD_H) * 100}%`,
-                            width: 32, height: 32, transform: "translate(-50%, -50%)",
-                            background: `radial-gradient(circle, ${g.color}, transparent)`,
-                            border: `2px solid ${g.color}`, borderRadius: "50%", cursor: "pointer",
-                            boxShadow: `0 0 20px ${g.color}`, zIndex: 10,
-                            display: "grid", placeItems: "center", animation: "pulse 2s infinite",
-                          }}
-                          title={`Portal para ${IDLE_MAPS[g.target as IdleMapId]?.name}`}
-                        >
-                          <div style={{ fontSize: 14 }}>🌀</div>
-                        </div>
-                      ))}
-
-                      {/* Trainer marker */}
-                      <div style={{
-                        position: "absolute", left: `${(trainerPos.x / WORLD_W) * 100}%`, top: `${(trainerPos.y / WORLD_H) * 100}%`,
-                        width: 14, height: 14, background: "#fff", border: "2px solid #f5cf6b",
-                        borderRadius: "50%", transform: "translate(-50%, -50%)",
-                        boxShadow: "0 0 10px #fff", zIndex: 20,
-                      }} />
-                    </div>
-                  </div>
-                </div>
-              );
-            })(), document.body)
-          )}
-\n  );
+  );
 }
 function StatBar({ label, value, max, pct, color }: { label: string; value: number; max: number; pct: number; color: string }) {
   return (
