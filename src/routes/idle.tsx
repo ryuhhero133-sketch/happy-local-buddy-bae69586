@@ -12937,7 +12937,7 @@ function IdlePage() {
                                       whiteSpace: "nowrap", border: "1px solid rgba(245,207,107,0.3)",
                                       pointerEvents: "none", opacity: 0, transition: "opacity 0.2s"
                                     }} className="pin-label">
-                                      {m.name} {isLocked && `(Lv ${m.minLevel})`}
+                                      {m.name} {isLocked && ((isGovMap && !hasGovCard) ? " (Requer Carta)" : ` (Lv ${m.minLevel})`)}
                                     </div>
                                   </div>
                                 );
