@@ -12881,6 +12881,115 @@ function IdlePage() {
         const PINS = worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1);
         const hasGov = (idle.items?.carta_governante ?? 0) > 0;
         return (
+          <div 
+            onClick={() => setWorldMapOpen(false)} 
+            style={{ 
+              position: "fixed", inset: 0, zIndex: 99999, 
+              background: "rgba(0,0,0,0.9)", display: "grid", 
+              placeItems: "center", padding: 20, cursor: "pointer" 
+            }}
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()} 
+              style={{ 
+                background: "#0b0510", border: "4px solid #f5cf6b", borderRadius: 20, 
+                padding: 24, maxWidth: 900, width: "100%", cursor: "default", 
+                boxShadow: "0 0 80px rgba(245,207,107,0.5)", position: "relative" 
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🌏 MAPA MUNDI — CONT. {worldTab}</h2>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button 
+                    onClick={() => setWorldTab(t => t === 3 ? 1 : (t + 1) as 1|2|3)} 
+                    style={{ 
+                      background: "linear-gradient(135deg, #f5cf6b, #d9a441)", border: "none", 
+                      color: "#160a20", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >TROCAR CONTINENTE</button>
+                  <button 
+                    onClick={() => setWorldMapOpen(false)} 
+                    style={{ 
+                      background: "#3a1010", border: "2px solid #f5cf6b", 
+                      color: "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >✕</button>
+                </div>
+              </div>
+              
+              <div style={{ 
+                width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", 
+                background: `#000 url(${assetUrlFromJson(bg)}) center/cover no-repeat`, 
+                position: "relative", border: "2px solid rgba(245,207,107,0.3)" 
+              }}>
+                {PINS.map(pin => {
+                  const m = IDLE_MAPS[pin.id]; if (!m) return null;
+                  const isGovMap = pin.id === "absol_start" || pin.id === "governante_hall";
+                  const locked = ((m.minLevel ?? 0) > (idle.trainerLevel ?? 1)) || (isGovMap && !hasGov);
+                  return (
+                    <div 
+                      key={pin.id} 
+                      onClick={() => { 
+                        if (locked) return; 
+                        setIdle(s => ({ ...s, currentMap: pin.id })); 
+                        setWorldMapOpen(false); 
+                      }}
+                      style={{ 
+                        position: "absolute", left: `${pin.x}%`, top: `${pin.y}%`, 
+                        width: 24, height: 24, 
+                        background: locked ? "#444" : "#f5cf6b", 
+                        border: "2px solid #fff", borderRadius: "50%", 
+                        cursor: locked ? "not-allowed" : "pointer", 
+                        transform: "translate(-50%,-50%)", 
+                        boxShadow: "0 0 10px #f5cf6b",
+                        zIndex: 10
+                      }}
+                    >
+                      <div style={{ 
+                        position: "absolute", top: 28, left: "50%", 
+                        transform: "translateX(-50%)", background: "rgba(0,0,0,0.85)", 
+                        padding: "3px 8px", borderRadius: 6, 
+                        color: locked ? "#888" : "#f5cf6b", fontSize: 11, 
+                        whiteSpace: "nowrap", border: "1px solid rgba(245,207,107,0.3)",
+                        pointerEvents: "none", fontWeight: 700
+                      }}>
+                        {m.name} {locked && `(Lv.${m.minLevel})`}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div style={{ marginTop: 12, textAlign: "center", color: "#8a7a9c", fontSize: 11 }}>
+                Use as teclas direcionais ou o mouse para escolher seu destino. 
+                Bloqueado? Aumente seu Nível de Treinador.
+              </div>
+            </div>
+          </div>
+        );
+      })(), document.body)}
+        const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
+          { id: "arena", x: 15, y: 22 }, { id: "terra", x: 32, y: 16 }, { id: "deserto_purpura", x: 54, y: 20 },
+          { id: "pantano_fogo", x: 87, y: 26 }, { id: "praia", x: 12, y: 60 }, { id: "caverna", x: 42, y: 48 },
+          { id: "neve", x: 74, y: 46 }, { id: "deserto", x: 92, y: 58 }, { id: "venofogo", x: 48, y: 84 }, { id: "fantasma", x: 14, y: 88 },
+        ];
+        const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
+          { id: "grass_oddish", x: 25, y: 30 }, { id: "vale_rochas", x: 15, y: 20 }, { id: "vale_planta", x: 35, y: 25 },
+          { id: "vale_gelo", x: 55, y: 30 }, { id: "vale_veneno", x: 75, y: 35 }, { id: "vale_fogo", x: 90, y: 40 },
+          { id: "vulcao_ativo", x: 85, y: 60 }, { id: "nucleo_primordial", x: 95, y: 80 }, { id: "abismo_gelo", x: 10, y: 40 },
+          { id: "abismo_veneno", x: 15, y: 50 }, { id: "abismo_raio", x: 20, y: 60 }, { id: "abismo_sombra", x: 25, y: 70 },
+          { id: "abismo_dragao", x: 30, y: 80 },
+        ];
+        const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
+          { id: "cadeia_ab", x: 20, y: 30 }, { id: "cadeia_ab1", x: 40, y: 50 }, { id: "cadeia_f1", x: 60, y: 70 },
+          { id: "evento_myth", x: 80, y: 40 }, { id: "absol_start", x: 15, y: 80 }, { id: "governante_hall", x: 85, y: 85 },
+        ];
+        const bg = worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
+        const PINS = worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1);
+        const hasGov = (idle.items?.carta_governante ?? 0) > 0;
+        return (
           <div onClick={() => setWorldMapOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: "#0b0510", border: "4px solid #f5cf6b", borderRadius: 20, padding: 24, maxWidth: 900, width: "100%", cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.5)", position: "relative" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
