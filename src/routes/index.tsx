@@ -9,7 +9,11 @@ import { createFileRoute } from '@tanstack/react-router';
 // =========================================================================
 
 export const Route = createFileRoute('/')({
-  component: () => <AuthGate />,
+  component: () => (
+    <AuthGate>
+      <IdleRedirect />
+    </AuthGate>
+  ),
 });
 
 import { AuthGate } from '@/components/AuthGate';

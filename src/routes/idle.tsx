@@ -28,6 +28,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
+import { ProfessorOakGuide } from "@/components/ProfessorOakGuide";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
 
@@ -10385,11 +10386,8 @@ function IdlePage() {
                         { id: "deserto", x: 92, y: 58 },
                         { id: "venofogo", x: 48, y: 84 },
                         { id: "fantasma", x: 14, y: 88 },
-                        { id: "mina_cristal", x: 78, y: 86 },
-                        { id: "cemiterio_assombrado", x: 92, y: 88 },
                       ];
                       const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
-                        { id: "vale_shards", x: 50, y: 50 },
                         { id: "grass_oddish", x: 25, y: 30 },
                       ];
                       const ALL_PINS = [...WORLD_PINS_C1, ...WORLD_PINS_C2];
@@ -10490,7 +10488,7 @@ function IdlePage() {
                       const crystalOk = cost === 0 || idle.bank.crystals >= cost;
                       const goldOk = idle.bank.gold >= gold;
                       const shardToll = redShardTravelCost(tm.minLevel);
-                      const shardOk = idle.bank.redShards >= shardToll;
+                      const shardOk = (idle.items?.fragmento_vermelho ?? 0) >= shardToll;
                       const canGo = lvOk && crystalOk && goldOk && shardOk;
                       const close = () => setPendingGate(null);
 
