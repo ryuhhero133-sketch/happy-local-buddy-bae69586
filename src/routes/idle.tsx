@@ -12830,14 +12830,18 @@ function IdlePage() {
                         { id: "abismo_sombra", x: 25, y: 70 },
                         { id: "abismo_dragao", x: 30, y: 80 },
                       ];
-                      const GOV_PINS: Array<{ id: IdleMapId; x: number; y: number }> = [
-                        { id: "absol_start", x: 30, y: 40 },
-                        { id: "governante_hall", x: 60, y: 60 },
+                      const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
+                        { id: "cadeia_ab", x: 20, y: 30 },
+                        { id: "cadeia_ab1", x: 40, y: 50 },
+                        { id: "cadeia_f1", x: 60, y: 70 },
+                        { id: "evento_myth", x: 80, y: 40 },
+                        { id: "absol_start", x: 15, y: 80 },
+                        { id: "governante_hall", x: 85, y: 85 },
                       ];
 
                       const [continent, setContinent] = useState<1 | 2 | 3>(1);
                       const bg = continent === 1 ? worldMapGlobeAsset : (continent === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
-                      const PINS = continent === 1 ? WORLD_PINS_C1 : (continent === 2 ? WORLD_PINS_C2 : (hasGovCard ? GOV_PINS : []));
+                      const PINS = continent === 1 ? WORLD_PINS_C1 : (continent === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3);
                       const trainerLv = idle.trainerLevel ?? 1;
 
                       return (
