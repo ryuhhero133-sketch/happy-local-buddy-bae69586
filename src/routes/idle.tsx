@@ -12812,7 +12812,10 @@ function IdlePage() {
         governanteHallMapAsset={governanteHallMapAsset}
         assetUrlFromJson={assetUrlFromJson}
       />, document.body)}
-          )}
+          }
+        )
+      }
+
     </div>
   );
 }
