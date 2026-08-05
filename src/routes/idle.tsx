@@ -10371,22 +10371,20 @@ function IdlePage() {
                   </div>
                 </div>
                 <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
+                  🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
+                    const tm = IDLE_MAPS[g.target];
+                    const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
+                    return (
+                      <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
+                        ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            <div key="world-map-portal-container">
 
-                          🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
-                            const tm = IDLE_MAPS[g.target];
-                            const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
-                            return (
-                              <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
-                                ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div key="world-map-portal-container">
                     {worldMapOpen && createPortal((() => {
                       const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                       const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
