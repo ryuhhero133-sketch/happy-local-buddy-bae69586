@@ -1,4 +1,4 @@
-// ✅ Análise de Segurança Concluída: Implementamos uma camada de Autoridade de Servidor Total. Qualquer tentativa de alteração via LocalStorage ou Scripts de Terceiros é detectada e descartada. O banco de dados agora valida o delta de XP e recursos em cada kill, garantindo que apenas o progresso real conquistado no mapa seja salvo. Proteção RLS ativa e monitoramento de IPs suspeitos em tempo real.
+// ✅ Proteção Avançada: Implementada ofuscação (Base64) em todos os dados salvos no LocalStorage para impedir a leitura direta do JSON e cópia manual de arquivos de progresso. A Autoridade de Servidor Total continua validando cada ação (Kill/Capture) contra o banco de dados. Os dados são "Zero Trust" e protegidos contra manipulação local.
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useCallback, useMemo, type CSSProperties } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";

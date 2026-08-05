@@ -2,6 +2,7 @@
 // Fonte de verdade para tudo que não está nas tabelas normalizadas
 // (items, missões, skins, party, restingBench, buffs, etc.).
 import { supabase } from "@/integrations/supabase/client";
+import { obfuscate, deobfuscate } from "./utils";
 
 export const SAVE_KEY = "rubym.save.v2";
 const CLOUD_PENDING_KEY = "rubym.cloud.pending.v1";
@@ -38,7 +39,7 @@ function readPendingEnvelope(): PendingCloudEnvelope | null {
   try {
     const raw = window.localStorage.getItem(CLOUD_PENDING_KEY);
     if (!raw) return null;
-    const env = JSON.parse(raw) as PendingCloudEnvelope;
+    const env = deobfuscate(raw) as PendingCloudEnvelope;
     if (!env || !isFullCloudSave(env.snapshot)) return null;
     return env;
   } catch {
@@ -54,7 +55,7 @@ function writePendingSnapshot(snapshot: unknown) {
       snapshotSavedAt: snapshotSavedAt(snapshot),
       snapshot,
     };
-    window.localStorage.setItem(CLOUD_PENDING_KEY, JSON.stringify(env));
+    window.localStorage.setItem(CLOUD_PENDING_KEY, obfuscate(env));
   } catch (e) {
     console.warn("[cloudSave] pending queue write failed", e);
   }
@@ -88,7 +89,7 @@ function readLocalBackups(): LocalBackupEntry[] {
   try {
     const raw = window.localStorage.getItem(LOCAL_BACKUP_KEY);
     if (!raw) return [];
-    const list = JSON.parse(raw) as LocalBackupEntry[];
+    const list = deobfuscate(raw) as LocalBackupEntry[];
     if (!Array.isArray(list)) return [];
     return list.filter((e) => e && isFullCloudSave(e.snapshot));
   } catch {
@@ -105,7 +106,7 @@ export function writeLocalBackup(snapshot: unknown) {
     list.sort((a, b) => b.savedAt - a.savedAt);
     window.localStorage.setItem(
       LOCAL_BACKUP_KEY,
-      JSON.stringify(list.slice(0, LOCAL_BACKUP_MAX)),
+      obfuscate(list.slice(0, LOCAL_BACKUP_MAX)),
     );
   } catch (e) {
     console.warn("[cloudSave] local backup write failed", e);
@@ -245,7 +246,7 @@ export function getCloudSaveLog(): CloudSaveDiagnostics[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(LOG_KEY);
-    const parsed = raw ? (JSON.parse(raw) as CloudSaveDiagnostics[]) : [];
+    const parsed = raw ? (deobfuscate(raw) as CloudSaveDiagnostics[]) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -256,7 +257,7 @@ function appendLog(entry: CloudSaveDiagnostics) {
   if (typeof window === "undefined") return;
   try {
     const list = [entry, ...getCloudSaveLog()].slice(0, 20);
-    window.localStorage.setItem(LOG_KEY, JSON.stringify(list));
+    window.localStorage.setItem(LOG_KEY, obfuscate(list));
   } catch {
     /* quota: log é descartável, nunca deve impedir o save */
   }
