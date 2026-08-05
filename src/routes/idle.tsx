@@ -10228,34 +10228,11 @@ function IdlePage() {
                     >⛶</button>
                   </div>
                   <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
-                    {/* Admin Button (Lordryuhhh exclusive) */}
-                    {false && (
-                      <button 
-                        onClick={() => setIsAdminOpen(true)}
-                        style={{
-                          background: "linear-gradient(180deg, #9333ea, #6b21a8)",
-                          border: "1px solid #c084fc66",
-                          borderRadius: 12,
-                          width: 48,
-                          height: 48,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.1)",
-                          cursor: "pointer",
-                          transition: "transform 0.1s"
-                        }}
-                        onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.92)")}
-                        onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                      >
-                        <ShieldCheck size={28} color="#fff" strokeWidth={2.5} />
-                      </button>
-                    )}
-
                     <div style={{ fontSize: 11, color: "#c8b8d0", textAlign: "center", flex: 1 }}>
                       {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
                       {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
                     </div>
+                  </div>
 
                   <div style={{ display: "flex", justifyContent: "center" }}>
                     <button
