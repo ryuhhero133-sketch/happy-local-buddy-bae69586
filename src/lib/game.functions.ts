@@ -416,21 +416,21 @@ export const setActiveMap = createServerFn({ method: "POST" })
 
 const RarityEnum = z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]);
 const PushInitialSchema = z.object({
-  gold: z.number().int().min(0).max(50_000_000),
-  crystal: z.number().int().min(0).max(1_000_000),
-  ruby: z.number().int().min(0).max(1_000_000).optional().default(0),
-  trainer_level: z.number().int().min(1).max(10000),
-  trainer_xp: z.number().int().min(0).max(1_000_000_000),
-  kill_count: z.number().int().min(0).max(1_000_000).optional().default(0),
-  pokeballs: z.record(z.string(), z.number().int().min(0).max(9999)),
+  gold: z.number().int().min(0).max(1_000_000), // Reduzido drasticamente: ninguém começa com 50M
+  crystal: z.number().int().min(0).max(50_000), // Reduzido
+  ruby: z.number().int().min(0).max(10_000).optional().default(0),
+  trainer_level: z.number().int().min(1).max(500), // Ninguém começa nível 10k
+  trainer_xp: z.number().int().min(0).max(10_000_000),
+  kill_count: z.number().int().min(0).max(10_000).optional().default(0),
+  pokeballs: z.record(z.string(), z.number().int().min(0).max(500)),
   collection: z.array(z.object({
     id: z.string().uuid().optional(),
     species: z.string().min(1).max(64),
-    level: z.number().int().min(1).max(10000),
-    xp: z.number().int().min(0).max(1_000_000_000).optional().default(0),
+    level: z.number().int().min(1).max(1000), // Teto razoável para pets iniciais
+    xp: z.number().int().min(0).max(10_000_000).optional().default(0),
     rarity: RarityEnum,
     team_slot: z.number().int().min(0).max(4).nullable().optional(),
-  })).max(2000),
+  })).max(200), // Máximo 200 pokémons no push inicial
 });
 
 export const pushInitialState = createServerFn({ method: "POST" })
@@ -439,6 +439,15 @@ export const pushInitialState = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<{ ok: boolean; applied: boolean; reason?: string }> => {
     const supabase = context.supabase as any;
     const userId = context.userId;
+    const { SPECIES_BASE } = await import("./game.balance.server");
+
+    // Validação server-side da coleção recebida
+    for (const p of data.collection) {
+      const spec = SPECIES_BASE[p.species];
+      if (!spec || (spec.rarity !== p.rarity && p.rarity !== "mythic_shiny") || p.level < spec.minLv) {
+        return { ok: false, applied: false, reason: `invalid_pokemon_in_push: ${p.species}` };
+      }
+    }
 
     // Existe estado? Se sim e já tem progresso, ignora (server é canônico).
     const { data: cur } = await supabase.from("trainer_state")
