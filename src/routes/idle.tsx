@@ -12900,7 +12900,11 @@ function IdlePage() {
                                     key={pin.id}
                                     onClick={() => {
                                       if (isLocked) {
-                                        pushChat(`Nível insuficiente para ${m.name} (mín: ${m.minLevel})`, "info");
+                                        if (isGovMap && !hasGovCard) {
+                                          pushChat(`✦ Governante: você precisa da "Carta do Governante" para acessar este local.`, "cap");
+                                        } else {
+                                          pushChat(`Nível insuficiente para ${m.name} (mín: ${m.minLevel})`, "info");
+                                        }
                                         return;
                                       }
                                       setIdle((s) => ({ ...s, currentMap: pin.id }));
