@@ -10383,9 +10383,10 @@ function IdlePage() {
                 </div>
               </div>
             </div>
-            <div key="world-map-portal-container">
+          </Panel>
 
-                    {worldMapOpen && createPortal((() => {
+
+          {worldMapOpen && createPortal((() => {
                       const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                       const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
                         { id: "arena", x: 15, y: 22 },
@@ -10438,10 +10439,10 @@ function IdlePage() {
 
                             <div style={{
                               width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
-                              background: "linear-gradient(to bottom, #1a2a4a, #0b0510)", position: "relative",
+                              background: `url(${assetUrlFromJson(worldMapContinent2Asset)}) center/cover`, position: "relative",
                               border: "2px solid rgba(245,207,107,0.3)",
                             }}>
-                              <div style={{ position: "absolute", inset: 0, opacity: 0.3, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
+                              <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
                               
                               {ALL_PINS.map((pin) => {
                                 const m = IDLE_MAPS[pin.id];
@@ -10582,11 +10583,9 @@ function IdlePage() {
                         </div>
                       );
                     })(), document.body)}
-                  </div>
-                </div>
-              );
-            })()}
+            </div>
           </Panel>
+
 
 
 
@@ -12835,6 +12834,18 @@ function IdlePage() {
       })()}
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
+      <ProfessorOakGuide
+        trainerLevel={idle.trainerLevel ?? 1}
+        hasPokemon={team.length > 0}
+        currentMap={idle.currentMap}
+        gold={idle.bank.gold}
+        onCommand={(cmd) => {
+          if (cmd === "open_shop") setTab("loja");
+          if (cmd === "open_map") setWorldMapOpen(true);
+          if (cmd === "open_team") setTab("pokemon");
+        }}
+      />
+
 
       {/* ============ LOJINHA CASH ============ */}
       {cashShopOpen && <CashShopModal
