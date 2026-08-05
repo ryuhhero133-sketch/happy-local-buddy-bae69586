@@ -3232,11 +3232,12 @@ function IdlePage() {
       const k = e.key.toLowerCase();
       if (k === "m") { 
         e.preventDefault(); 
-        // Forçar aba de batalha garante que os dados do mapa (IDLE_MAPS) estejam no escopo correto
         setTab("batalha");
         setWorldMapOpen((v) => !v); 
         return; 
       }
+
+
       // Ranked desativado temporariamente
       if (k === "r") { e.preventDefault(); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
@@ -12800,159 +12801,170 @@ function IdlePage() {
           pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
         }}
       />
-      {/* --- MAPPED PORTALS --- */}
+      {/* Portais movidos para o final do componente para garantir montagem correta */}
+
+
+
+      {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
+      {pendingGate && createPortal(
+        <div onClick={() => setPendingGate(null)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#1a0f26", border: "3px solid #f5cf6b", borderRadius: 16, padding: 24, maxWidth: 420, width: "100%", cursor: "default", boxShadow: "0 0 50px rgba(0,0,0,0.8)" }}>
+            <h3 style={{ color: "#f5cf6b", margin: "0 0 16px 0", fontSize: 20, fontWeight: 900, textAlign: "center" }}>Viajar para {IDLE_MAPS[pendingGate.target as IdleMapId].name}?</h3>
+            <div style={{ background: "rgba(0,0,0,0.3)", padding: 16, borderRadius: 12, marginBottom: 20, border: "1px solid rgba(245,207,107,0.1)" }}>
+              <div style={{ color: "#d0b8f0", fontSize: 14, marginBottom: 8 }}>Requisitos:</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", color: (idle.trainerLevel ?? 1) >= (pendingGate.gate.reqLevel ?? 0) ? "#5ec26a" : "#ff5c5c" }}>
+                <span>{ (idle.trainerLevel ?? 1) >= (pendingGate.gate.reqLevel ?? 0) ? "✅" : "❌" }</span>
+                <span>Nível Treinador: {pendingGate.gate.reqLevel ?? 0}</span>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button onClick={() => setPendingGate(null)} style={{ flex: 1, padding: "12px", background: "#3a1a3a", border: "none", color: "#d0b8f0", borderRadius: 8, fontWeight: 900, cursor: "pointer" }}>CANCELAR</button>
+              <button
+                onClick={() => {
+                  const target = pendingGate.target as IdleMapId;
+                  if ((idle.trainerLevel ?? 1) < (pendingGate.gate.reqLevel ?? 0)) { pushChat(`Nível insuficiente!`, "info"); return; }
+                  setIdle(s => ({ ...s, currentMap: target }));
+                  setPendingGate(null);
+                  if (pendingGate.fromBig) setBigMapOpen(false);
+                  pushChat(`Viajou para ${IDLE_MAPS[target].name}!`, "info");
+                }}
+                style={{ flex: 1, padding: "12px", background: "linear-gradient(180deg, #f5cf6b, #d9a441)", border: "none", color: "#1a0f26", borderRadius: 8, fontWeight: 900, cursor: "pointer" }}
+              >VIAJAR</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {bigMapOpen && createPortal(
+        <div onClick={() => setBigMapOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#0b0510", border: "4px solid #f5cf6b", borderRadius: 20, padding: 24, maxWidth: 800, width: "100%", cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.3)", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🗺️ MAPA LOCAL: {IDLE_MAPS[idle.currentMap].name.toUpperCase()}</h2>
+              <button onClick={() => setBigMapOpen(false)} style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer" }}>✕ FECHAR</button>
+            </div>
+            <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", background: `url(${assetUrlFromJson(idleArenaAsset)}) center/cover`, position: "relative", border: "2px solid rgba(245,207,107,0.2)" }}>
+               {(gatesByMap[idle.currentMap] ?? []).map((g: any, i: number) => (
+                 <div
+                   key={i}
+                   onClick={() => setPendingGate({ target: g.target, gate: g, fromBig: true })}
+                   style={{ position: "absolute", left: `${g.x}%`, top: `${g.y}%`, width: 32, height: 32, background: "rgba(245,207,107,0.2)", border: "2px solid #f5cf6b", borderRadius: "50%", cursor: "pointer", transform: "translate(-50%, -50%)", display: "grid", placeItems: "center", boxShadow: "0 0 15px #f5cf6b" }}
+                 >
+                   <span style={{ fontSize: 16 }}>🌀</span>
+                   <div style={{ position: "absolute", top: 35, background: "rgba(0,0,0,0.8)", padding: "2px 8px", borderRadius: 4, color: "#f5cf6b", fontSize: 12, whiteSpace: "nowrap", border: "1px solid #f5cf6b" }}>{IDLE_MAPS[g.target as IdleMapId].name}</div>
+                 </div>
+               ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {worldMapOpen && createPortal((() => {
         const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
-          { id: "arena", x: 15, y: 22 },
-          { id: "terra", x: 32, y: 16 },
-          { id: "deserto_purpura", x: 54, y: 20 },
-          { id: "pantano_fogo", x: 87, y: 26 },
-          { id: "praia", x: 12, y: 60 },
-          { id: "caverna", x: 42, y: 48 },
-          { id: "neve", x: 74, y: 46 },
-          { id: "deserto", x: 92, y: 58 },
-          { id: "venofogo", x: 48, y: 84 },
-          { id: "fantasma", x: 14, y: 88 },
+          { id: "arena", x: 15, y: 22 }, { id: "terra", x: 32, y: 16 }, { id: "deserto_purpura", x: 54, y: 20 },
+          { id: "pantano_fogo", x: 87, y: 26 }, { id: "praia", x: 12, y: 60 }, { id: "caverna", x: 42, y: 48 },
+          { id: "neve", x: 74, y: 46 }, { id: "deserto", x: 92, y: 58 }, { id: "venofogo", x: 48, y: 84 }, { id: "fantasma", x: 14, y: 88 },
         ];
         const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
-          { id: "grass_oddish", x: 25, y: 30 },
-          { id: "vale_rochas", x: 15, y: 20 },
-          { id: "vale_planta", x: 35, y: 25 },
-          { id: "vale_gelo", x: 55, y: 30 },
-          { id: "vale_veneno", x: 75, y: 35 },
-          { id: "vale_fogo", x: 90, y: 40 },
-          { id: "vulcao_ativo", x: 85, y: 60 },
-          { id: "nucleo_primordial", x: 95, y: 80 },
-          { id: "abismo_gelo", x: 10, y: 40 },
-          { id: "abismo_veneno", x: 15, y: 50 },
-          { id: "abismo_raio", x: 20, y: 60 },
-          { id: "abismo_sombra", x: 25, y: 70 },
+          { id: "grass_oddish", x: 25, y: 30 }, { id: "vale_rochas", x: 15, y: 20 }, { id: "vale_planta", x: 35, y: 25 },
+          { id: "vale_gelo", x: 55, y: 30 }, { id: "vale_veneno", x: 75, y: 35 }, { id: "vale_fogo", x: 90, y: 40 },
+          { id: "vulcao_ativo", x: 85, y: 60 }, { id: "nucleo_primordial", x: 95, y: 80 }, { id: "abismo_gelo", x: 10, y: 40 },
+          { id: "abismo_veneno", x: 15, y: 50 }, { id: "abismo_raio", x: 20, y: 60 }, { id: "abismo_sombra", x: 25, y: 70 },
           { id: "abismo_dragao", x: 30, y: 80 },
         ];
         const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
-          { id: "cadeia_ab", x: 20, y: 30 },
-          { id: "cadeia_ab1", x: 40, y: 50 },
-          { id: "cadeia_f1", x: 60, y: 70 },
-          { id: "evento_myth", x: 80, y: 40 },
-          { id: "absol_start", x: 15, y: 80 },
-          { id: "governante_hall", x: 85, y: 85 },
+          { id: "cadeia_ab", x: 20, y: 30 }, { id: "cadeia_ab1", x: 40, y: 50 }, { id: "cadeia_f1", x: 60, y: 70 },
+          { id: "evento_myth", x: 80, y: 40 }, { id: "absol_start", x: 15, y: 80 }, { id: "governante_hall", x: 85, y: 85 },
         ];
-
-        const [continent, setContinent] = useState<1 | 2 | 3>(1);
-        const bg = continent === 1 ? worldMapGlobeAsset : (continent === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
-        const PINS = continent === 1 ? WORLD_PINS_C1 : (continent === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3);
-        const trainerLv = idle.trainerLevel ?? 1;
-        const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
-
+        const bg = worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
+        const PINS = worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1);
+        const hasGov = (idle.items?.carta_governante ?? 0) > 0;
         return (
-          <div
-            onClick={() => setWorldMapOpen(false)}
-            style={{
-              position: "fixed", inset: 0, zIndex: 99999,
-              background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center",
-              padding: 20, cursor: "pointer",
+          <div 
+            onClick={() => setWorldMapOpen(false)} 
+            style={{ 
+              position: "fixed", inset: 0, zIndex: 99999, 
+              background: "rgba(0,0,0,0.9)", display: "grid", 
+              placeItems: "center", padding: 20, cursor: "pointer" 
             }}
           >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: "#0b0510", border: "4px solid #f5cf6b",
-                borderRadius: 20, padding: 24, maxWidth: 900, width: "100%",
-                cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.5)",
-                position: "relative",
+            <div 
+              onClick={(e) => e.stopPropagation()} 
+              style={{ 
+                background: "#0b0510", border: "4px solid #f5cf6b", borderRadius: 20, 
+                padding: 24, maxWidth: 900, width: "100%", cursor: "default", 
+                boxShadow: "0 0 80px rgba(245,207,107,0.5)", position: "relative" 
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
-                  🌏 MAPA MUNDI — {continent === 1 ? "CONTINENTE 1" : (continent === 2 ? "CONTINENTE 2" : "CONTINENTE 3")}
-                </div>
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button
-                    onClick={() => setContinent(continent === 1 ? 2 : (continent === 2 ? 3 : 1))}
-                    style={{
-                      background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
-                      border: "none", color: "#160a20",
-                      borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 14,
-                      boxShadow: "0 0 10px rgba(245,207,107,0.3)"
+                <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🌏 MAPA MUNDI — CONT. {worldTab}</h2>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button 
+                    onClick={() => setWorldTab(t => t === 3 ? 1 : (t + 1) as 1|2|3)} 
+                    style={{ 
+                      background: "linear-gradient(135deg, #f5cf6b, #d9a441)", border: "none", 
+                      color: "#160a20", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
                     }}
                   >TROCAR CONTINENTE</button>
-                  <button
-                    onClick={() => setWorldMapOpen(false)}
-                    style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
-                  >✕ FECHAR</button>
+                  <button 
+                    onClick={() => setWorldMapOpen(false)} 
+                    style={{ 
+                      background: "#3a1010", border: "2px solid #f5cf6b", 
+                      color: "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >✕</button>
                 </div>
               </div>
-
-              <div style={{
-                width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
-                background: `url(${assetUrlFromJson(bg)}) center/cover`, position: "relative",
-                border: "2px solid rgba(245,207,107,0.3)",
+              
+              <div style={{ 
+                width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", 
+                background: `#000 url(${assetUrlFromJson(bg)}) center/cover no-repeat`, 
+                position: "relative", border: "2px solid rgba(245,207,107,0.3)" 
               }}>
-                <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
-                
-                {PINS.map((pin) => {
-                  const m = IDLE_MAPS[pin.id];
-                  if (!m) return null;
+                {PINS.map(pin => {
+                  const m = IDLE_MAPS[pin.id]; if (!m) return null;
                   const isGovMap = pin.id === "absol_start" || pin.id === "governante_hall";
-                  const isLocked = ((m.minLevel ?? 0) > trainerLv) || (isGovMap && !hasGovCard);
+                  const locked = ((m.minLevel ?? 0) > (idle.trainerLevel ?? 1)) || (isGovMap && !hasGov);
                   return (
-                    <div
-                      key={pin.id}
-                      onClick={() => {
-                        if (isLocked) {
-                          if (isGovMap && !hasGovCard) {
-                            pushChat(`✦ Governante: você precisa da "Carta do Governante" para acessar este local.`, "cap");
-                          } else {
-                            pushChat(`Nível insuficiente para ${m.name} (mín: ${m.minLevel})`, "info");
-                          }
-                          return;
-                        }
-                        setIdle((s) => ({ ...s, currentMap: pin.id }));
-                        setWorldMapOpen(false);
-                        pushChat(`Viajou para ${m.name}!`, "info");
+                    <div 
+                      key={pin.id} 
+                      onClick={() => { 
+                        if (locked) return; 
+                        setIdle(s => ({ ...s, currentMap: pin.id })); 
+                        setWorldMapOpen(false); 
                       }}
-                      style={{
-                        position: "absolute",
-                        left: `${pin.x}%`, top: `${pin.y}%`,
-                        width: 24, height: 24,
-                        background: isLocked ? "#444" : "radial-gradient(circle, #f5cf6b, #d9a441)",
-                        border: "2px solid #fff", borderRadius: "50%",
-                        cursor: isLocked ? "not-allowed" : "pointer",
-                        transform: "translate(-50%, -50%)",
-                        boxShadow: "0 0 15px rgba(245,207,107,0.8)",
-                        zIndex: 10,
-                        display: "grid", placeItems: "center",
-                        transition: "transform 0.2s",
+                      style={{ 
+                        position: "absolute", left: `${pin.x}%`, top: `${pin.y}%`, 
+                        width: 24, height: 24, 
+                        background: locked ? "#444" : "#f5cf6b", 
+                        border: "2px solid #fff", borderRadius: "50%", 
+                        cursor: locked ? "not-allowed" : "pointer", 
+                        transform: "translate(-50%,-50%)", 
+                        boxShadow: "0 0 10px #f5cf6b",
+                        zIndex: 10
                       }}
-                      className="world-pin"
-                      title={isLocked ? `${m.name} (Bloqueado)` : m.name}
                     >
-                      <div style={{ fontSize: 10, color: isLocked ? "#888" : "#2a1500", fontWeight: 900 }}>
-                        {isLocked ? "🔒" : "📍"}
-                      </div>
-                      <div style={{
-                        position: "absolute", top: 28, left: "50%", transform: "translateX(-50%)",
-                        background: "rgba(0,0,0,0.8)", padding: "2px 8px", borderRadius: 6,
-                        color: isLocked ? "#aaa" : "#f5cf6b", fontSize: 11, fontWeight: 900,
+                      <div style={{ 
+                        position: "absolute", top: 28, left: "50%", 
+                        transform: "translateX(-50%)", background: "rgba(0,0,0,0.85)", 
+                        padding: "3px 8px", borderRadius: 6, 
+                        color: locked ? "#888" : "#f5cf6b", fontSize: 11, 
                         whiteSpace: "nowrap", border: "1px solid rgba(245,207,107,0.3)",
-                        pointerEvents: "none", opacity: 0, transition: "opacity 0.2s"
-                      }} className="pin-label">
-                         {m.name} {isLocked && ((isGovMap && !hasGovCard) ? " (Requer Carta)" : ` (Lv ${m.minLevel})`)}
+                        pointerEvents: "none", fontWeight: 700
+                      }}>
+                        {m.name} {locked && `(Lv.${m.minLevel})`}
                       </div>
                     </div>
                   );
                 })}
               </div>
               
-              <div style={{ marginTop: 16, display: "flex", gap: 12, justifyContent: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#f5cf6b", border: "1px solid #fff" }} />
-                  <span style={{ color: "#d0b8f0", fontSize: 12 }}>Descoberto</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#444", border: "1px solid #666" }} />
-                  <span style={{ color: "#d0b8f0", fontSize: 12 }}>Bloqueado</span>
-                </div>
+              <div style={{ marginTop: 12, textAlign: "center", color: "#8a7a9c", fontSize: 11 }}>
+                Use as teclas direcionais ou o mouse para escolher seu destino. 
+                Bloqueado? Aumente seu Nível de Treinador.
               </div>
             </div>
           </div>
@@ -12962,6 +12974,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 // ============ Componentes visuais ============
