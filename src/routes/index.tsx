@@ -1,4 +1,4 @@
-// ✅ Proteção Avançada: Implementada ofuscação (Base64) em todos os dados salvos no LocalStorage. Pede pra ia analisar se as conexões estão seguras, ou se pode ser blindada, pois tu tens notado alguns canais abertos na rede, que poderiam ser brecha pra alguém malicioso>get e POST tão abertos  .. ANALISA AI E PASSA PRA MIM SE PODEMOS PROTEGER MAS AINDA . A Autoridade de Servidor Total continua validando cada ação contra o banco de dados.
+// ✅ Proteção Avançada: Implementada ofuscação (Base64) em todos os dados salvos no LocalStorage. Pede pra ia analisar se as conexões estão seguras, ou se pode ser blindada, pois tu tens notado alguns canais abertos na rede, que poderiam ser brecha pra alguém malicioso>get e POST tão abertos  .. ANALISA AI E PASSA PRA MIM SE PODEMOS PROTEGER MAS AINDA . foi atualizado ms vc n me informou anda que pedir. A Autoridade de Servidor Total continua validando cada ação contra o banco de dados.
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useCallback, useMemo, type CSSProperties } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
