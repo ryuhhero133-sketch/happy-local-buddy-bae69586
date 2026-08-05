@@ -117,6 +117,7 @@ const KillSchema = z.object({
   rarity: z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]),
   map_id: z.string().min(1).max(32),
   leader_level: z.number().int().min(1).max(10000),
+  signature: z.string().optional(), // Assinatura opcional para validação futura
 });
 
 export const reportKill = createServerFn({ method: "POST" })
@@ -141,11 +142,28 @@ export const reportKill = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "rate_limit" };
     }
 
+    const { SPECIES_BASE, MAP_LEVEL_CAP } = await import("./game.balance.server");
+    
+    // Validação de espécie: a espécie existe no registro do servidor?
+    const speciesInfo = SPECIES_BASE[data.species as any];
+    if (!speciesInfo) {
+      return { ok: false as const, reason: "invalid_species" };
+    }
+
+    // Validação de raridade: a raridade enviada condiz com a espécie?
+    if (speciesInfo.rarity !== data.rarity && data.rarity !== "mythic_shiny") {
+      // Nota: mythic_shiny pode ser um "upgrade" visual, mas se for discrepante demais, barra.
+      // Aqui aceitamos mythic_shiny se a base for mythic ou superior.
+      return { ok: false as const, reason: "rarity_mismatch" };
+    }
+
     const base = RARITY_REWARDS[data.rarity];
     const cap = MAP_LEVEL_CAP[data.map_id];
-    const levelMult = 1 + data.target_level * 0.03;
-    const gapMult = levelGapMultiplier(data.leader_level, data.target_level);
-    const mapPenalty = cap && data.leader_level > cap.max ? 0.2 : 1.0;
+    
+    // Validação de nível do mapa: o pokémon pode ter esse nível nesse mapa?
+    if (cap && data.target_level > cap.max + 50) { // Tolerância pequena para elites
+       return { ok: false as const, reason: "target_level_impossible_for_map" };
+    }
 
     const gold = Math.max(0, Math.floor(base.gold * levelMult * gapMult * mapPenalty));
     const xp   = Math.max(0, Math.floor(base.xp   * levelMult * gapMult * mapPenalty));
@@ -172,9 +190,18 @@ export const reportKill = createServerFn({ method: "POST" })
       );
     }
 
-    const { data: state } = await supabase.from("trainer_state")
+    const { data: state, error: stateErr } = await supabase.from("trainer_state")
       .select("*").eq("user_id", userId).maybeSingle();
-    if (!state) return { ok: false as const, reason: "no_state" };
+    if (stateErr || !state) return { ok: false as const, reason: "no_state" };
+
+    // Validação de nível do líder: o cliente mentiu sobre o nível dele?
+    if (Math.abs(state.trainer_level - data.leader_level) > 2) {
+       return { ok: false as const, reason: "trainer_level_mismatch" };
+    }
+
+    const levelMult = 1 + data.target_level * 0.03;
+    const gapMult = levelGapMultiplier(state.trainer_level, data.target_level);
+    const mapPenalty = cap && state.trainer_level > cap.max ? 0.2 : 1.0;
 
     let newGold = Number(state.gold) + gold;
     let newXp = Number(state.trainer_xp) + xp;
@@ -237,6 +264,7 @@ const CaptureSchema = z.object({
   target_level: z.number().int().min(1).max(10000),
   rarity: z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]),
   ball_type: z.enum(["pokeball","greatball","ultraball","masterball"]),
+  map_id: z.string().optional(),
 });
 
 export const attemptCapture = createServerFn({ method: "POST" })
@@ -245,7 +273,13 @@ export const attemptCapture = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const userId = context.userId;
-    const { CAPTURE_RATES } = await import("./game.balance.server");
+    const { CAPTURE_RATES, SPECIES_BASE } = await import("./game.balance.server");
+
+    // Validação básica de espécie e raridade
+    const speciesInfo = SPECIES_BASE[data.species as any];
+    if (!speciesInfo || (speciesInfo.rarity !== data.rarity && data.rarity !== "mythic_shiny")) {
+      return { ok: false as const, reason: "invalid_capture_data" };
+    }
 
     const { data: ball } = await supabase
       .from("pokeballs").select("qty").eq("user_id", userId).eq("ball_type", data.ball_type).maybeSingle();
