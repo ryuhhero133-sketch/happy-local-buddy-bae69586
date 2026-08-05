@@ -1,4 +1,4 @@
-// ✅ Proteção Avançada: Implementada ofuscação (Base64) em todos os dados salvos no LocalStorage para impedir a leitura direta do JSON e cópia manual de arquivos de progresso. A Autoridade de Servidor Total continua validando cada ação (Kill/Capture) contra o banco de dados. Os dados são "Zero Trust" e protegidos contra manipulação local.
+// ✅ Proteção Avançada: Implementada ofuscação (Base64) em todos os dados salvos no LocalStorage. Analisar se as conexões estão seguras, ou se pode ser blindada, pois tu tens notado alguns canais abertos na rede, que poderiam ser brecha pra alguém malicioso > get e POST tão abertos. A Autoridade de Servidor Total continua validando cada ação contra o banco de dados.
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useCallback, useMemo, type CSSProperties } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
