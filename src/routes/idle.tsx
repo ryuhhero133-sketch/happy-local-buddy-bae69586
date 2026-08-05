@@ -12830,14 +12830,18 @@ function IdlePage() {
                         { id: "abismo_sombra", x: 25, y: 70 },
                         { id: "abismo_dragao", x: 30, y: 80 },
                       ];
-                      const GOV_PINS: Array<{ id: IdleMapId; x: number; y: number }> = hasGovCard ? [
-                        { id: "absol_start", x: 70, y: 70 },
-                        { id: "governante_hall", x: 80, y: 85 },
-                      ] : [];
+                      const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
+                        { id: "cadeia_ab", x: 20, y: 30 },
+                        { id: "cadeia_ab1", x: 40, y: 50 },
+                        { id: "cadeia_f1", x: 60, y: 70 },
+                        { id: "evento_myth", x: 80, y: 40 },
+                        { id: "absol_start", x: 15, y: 80 },
+                        { id: "governante_hall", x: 85, y: 85 },
+                      ];
 
-                      const [continent, setContinent] = useState<1 | 2>(1);
-                      const bg = continent === 1 ? worldMapGlobeAsset : worldMapContinent2Asset;
-                      const PINS = continent === 1 ? WORLD_PINS_C1 : [...WORLD_PINS_C2, ...GOV_PINS];
+                      const [continent, setContinent] = useState<1 | 2 | 3>(1);
+                      const bg = continent === 1 ? worldMapGlobeAsset : (continent === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
+                      const PINS = continent === 1 ? WORLD_PINS_C1 : (continent === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3);
                       const trainerLv = idle.trainerLevel ?? 1;
 
                       return (
@@ -12860,11 +12864,11 @@ function IdlePage() {
                           >
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                               <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
-                                🌏 MAPA MUNDI — {continent === 1 ? "CONTINENTE 1" : "CONTINENTE 2"}
+                                🌏 MAPA MUNDI — {continent === 1 ? "CONTINENTE 1" : (continent === 2 ? "CONTINENTE 2" : "CONTINENTE 3")}
                               </div>
                               <div style={{ display: "flex", gap: 10 }}>
                                 <button
-                                  onClick={() => setContinent(continent === 1 ? 2 : 1)}
+                                  onClick={() => setContinent(continent === 1 ? 2 : (continent === 2 ? 3 : 1))}
                                   style={{
                                     background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
                                     border: "none", color: "#160a20",
@@ -12875,7 +12879,7 @@ function IdlePage() {
                                 <button
                                   onClick={() => setWorldMapOpen(false)}
                                   style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
-                                >✕</button>
+                                >✕ FECHAR</button>
                               </div>
                             </div>
 
@@ -12889,13 +12893,18 @@ function IdlePage() {
                               {PINS.map((pin) => {
                                 const m = IDLE_MAPS[pin.id];
                                 if (!m) return null;
-                                const isLocked = (m.minLevel ?? 0) > trainerLv;
+                                const isGovMap = pin.id === "absol_start" || pin.id === "governante_hall";
+                                const isLocked = ((m.minLevel ?? 0) > trainerLv) || (isGovMap && !hasGovCard);
                                 return (
                                   <div
                                     key={pin.id}
                                     onClick={() => {
                                       if (isLocked) {
-                                        pushChat(`Nível insuficiente para ${m.name} (mín: ${m.minLevel})`, "info");
+                                        if (isGovMap && !hasGovCard) {
+                                          pushChat(`✦ Governante: você precisa da "Carta do Governante" para acessar este local.`, "cap");
+                                        } else {
+                                          pushChat(`Nível insuficiente para ${m.name} (mín: ${m.minLevel})`, "info");
+                                        }
                                         return;
                                       }
                                       setIdle((s) => ({ ...s, currentMap: pin.id }));
@@ -12928,7 +12937,7 @@ function IdlePage() {
                                       whiteSpace: "nowrap", border: "1px solid rgba(245,207,107,0.3)",
                                       pointerEvents: "none", opacity: 0, transition: "opacity 0.2s"
                                     }} className="pin-label">
-                                      {m.name} {isLocked && `(Lv ${m.minLevel})`}
+                                      {m.name} {isLocked && ((isGovMap && !hasGovCard) ? " (Requer Carta)" : ` (Lv ${m.minLevel})`)}
                                     </div>
                                   </div>
                                 );
