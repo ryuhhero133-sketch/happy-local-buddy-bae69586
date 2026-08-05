@@ -10205,7 +10205,7 @@ function IdlePage() {
               );
 
               return (
-                <>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <div style={{ position: "relative" }}>
                     {renderMap(true, false)}
                     <button
@@ -10219,7 +10219,7 @@ function IdlePage() {
                       }}
                     >⛶</button>
                   </div>
-                  <div style={{ marginTop: 8, display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
                     {/* Admin Button (Lordryuhhh exclusive) */}
                     {identity?.email === "lordryuhhhuyuyghh@gmail.com" && (
                       <button 
@@ -10260,7 +10260,7 @@ function IdlePage() {
                       )}
                     </button>
                   </div>
-                  <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
+                  <div style={{ display: "flex", justifyContent: "center" }}>
                     <button
                       onClick={() => { playClick(); setWorldMapOpen(true); }}
                       className="world-globe-btn"
@@ -10277,18 +10277,19 @@ function IdlePage() {
                         textShadow: "0 1px 0 rgba(0,0,0,0.5)",
                       }}
                     >
-                        <img
-                          src={assetUrlFromJson(iconWorldGlobe)}
-                          alt=""
-                          width={28}
-                          height={28}
-                          className="world-globe-spin"
-                          style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
-                        />
-                        MAPA MUNDI
-                      </button>
-                    </div>
+                      <img
+                        src={assetUrlFromJson(iconWorldGlobe)}
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="world-globe-spin"
+                        style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
+                      />
+                      MAPA MUNDI
+                    </button>
                   </div>
+                </div>
+              );
 
 
 
