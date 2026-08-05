@@ -12907,6 +12907,7 @@ function IdlePage() {
 
 
 
+
         return (
           <div
             onClick={() => setWorldMapOpen(false)}
