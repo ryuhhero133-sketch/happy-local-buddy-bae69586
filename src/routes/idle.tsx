@@ -3074,7 +3074,8 @@ function IdlePage() {
       const k = e.key.toLowerCase();
       if (k === "m") { 
         e.preventDefault(); 
-        if (tab !== "batalha") setTab("batalha");
+        // Forçar aba de batalha garante que os dados do mapa (IDLE_MAPS) estejam no escopo correto
+        setTab("batalha");
         setWorldMapOpen((v) => !v); 
         return; 
       }
@@ -3085,7 +3086,7 @@ function IdlePage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [worldMapOpen, rankOpen, vaultOpen, netLogOpen, gymOpen]);
+  }, [worldMapOpen, rankOpen, vaultOpen, netLogOpen, gymOpen, tab]);
 
   // 🌐 Registra IP/rede do acesso e expõe no HUD.
   useEffect(() => {
