@@ -10236,7 +10236,7 @@ function IdlePage() {
 
                   <div style={{ display: "flex", justifyContent: "center" }}>
                     <button
-                      onClick={() => { playClick(); setWorldMapOpen(true); }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); playClick(); setWorldMapOpen(true); }}
                       className="world-globe-btn"
                       title="Abrir Mapa Mundi"
                       style={{
