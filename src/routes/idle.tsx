@@ -2187,6 +2187,7 @@ function IdlePage() {
     window.setTimeout(() => setRedShardFx((p) => p.filter((s) => !ids.has(s.id))), 1500 + batch.length * 90);
   };
   const [tab, setTab] = useState<"inicio" | "wiki" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas">("batalha");
+  const [bagOpen, setBagOpen] = useState(false);
   const [skinId, setSkinId] = useState<string>(() => {
     if (typeof window === "undefined") return "default";
     try { return localStorage.getItem(SKIN_KEY) || "default"; } catch { return "default"; }
@@ -10618,6 +10619,7 @@ function IdlePage() {
                             <button
                               disabled={!canGo}
                               onClick={() => {
+                                if (!pendingGate) return;
                                 const g = pendingGate.gate;
                                 const wasBig = pendingGate.fromBig;
                                 setPendingGate(null);
