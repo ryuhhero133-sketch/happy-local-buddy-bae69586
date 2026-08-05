@@ -2370,11 +2370,13 @@ function IdlePage() {
   const banNoticeIdxRef = useRef(0);
   useEffect(() => {
     const NOTICES: string[] = [
+      "🌟 VEM AI A 3° SEASON O SHOW ESTA PRA COMEÇAR! Fiquem atentos às novidades no Wiki e no Banco Medieval. 🎪",
       "🚫 Um agradecimento especial aos gênios que passaram horas tentando furar nossa segurança... e conseguiram exatamente NADA. Contas banidas, tempo perdido. Valeu pelo esforço! 😄",
       "⚙ Estruturação em andamento: balanceamento, anti-cheat e performance sendo reforçados a cada ciclo. Quem tentar trapacear vira mais um nome na lista de banidos.",
       "🏆 Enquanto uns evoluíram de verdade, outros evoluíram só no ban. Obrigado pela dedicação em perder tempo — o servidor continua de pé, e vocês não. 😉",
       "🔒 Sistema anti-fraude ativo 24h. Toda alteração suspeita é registrada e resulta em banimento permanente. Servidor em constante estruturação e balanceamento.",
     ];
+
     const fire = () => {
       const msg = NOTICES[banNoticeIdxRef.current % NOTICES.length];
       banNoticeIdxRef.current++;
@@ -7599,6 +7601,54 @@ function IdlePage() {
               </div>
 
             </Panel>
+            
+            {/* HUD de Aviso Temporário (Bichinho Animado) */}
+            <div style={{ 
+              marginTop: 10,
+              background: "linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05))",
+              border: "2px solid #a855f7",
+              borderRadius: 12,
+              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              boxShadow: "0 4px 15px rgba(168, 85, 247, 0.25)",
+              animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+            }}>
+              <div style={{ width: 44, height: 44, position: "relative" }}>
+                <img 
+                  src={assetUrlFromJson(rioluAsset)} 
+                  alt="Riolu" 
+                  style={{ 
+                    width: "100%", 
+                    height: "100%", 
+                    imageRendering: "pixelated",
+                    animation: "autoIconPulse 1.5s ease-in-out infinite"
+                  }} 
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ 
+                  color: "#d8b4fe", 
+                  fontSize: 12, 
+                  fontWeight: 900, 
+                  letterSpacing: 1, 
+                  textShadow: "0 0 8px rgba(168, 85, 247, 0.8)" 
+                }}>
+                  📢 AVISO TEMPORADA
+                </div>
+                <div style={{ 
+                  color: "#fff", 
+                  fontSize: 10.5, 
+                  fontWeight: 700,
+                  marginTop: 2,
+                  lineHeight: 1.3
+                }}>
+                  VEM AI A 3° SEASON O SHOW ESTA PRA COMEÇAR. 🎪🌟
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
