@@ -10506,7 +10506,8 @@ function IdlePage() {
                         </div>
                       </div>
                     );
-                  })()}
+                  })(), document.body)}
+
 
 
                   {pendingGate && (() => {
