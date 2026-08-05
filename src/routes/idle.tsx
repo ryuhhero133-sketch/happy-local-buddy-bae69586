@@ -12832,6 +12832,18 @@ function IdlePage() {
       })()}
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
+      <ProfessorOakGuide
+        trainerLevel={idle.trainerLevel ?? 1}
+        hasPokemon={team.length > 0}
+        currentMap={idle.currentMap}
+        gold={idle.bank.gold}
+        onCommand={(cmd) => {
+          if (cmd === "open_shop") setTab("loja");
+          if (cmd === "open_map") setWorldMapOpen(true);
+          if (cmd === "open_team") setTab("pokemon");
+        }}
+      />
+
 
       {/* ============ LOJINHA CASH ============ */}
       {cashShopOpen && <CashShopModal
