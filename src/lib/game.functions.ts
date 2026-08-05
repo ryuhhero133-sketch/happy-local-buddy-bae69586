@@ -130,6 +130,7 @@ export const reportKill = createServerFn({ method: "POST" })
       RARITY_REWARDS, MAP_LEVEL_CAP, levelGapMultiplier,
       ULTRA_BALL_DROP_CHANCE, xpForTrainerLevel,
       KILL_MILESTONE, KILL_MILESTONE_REWARD_BALLS,
+      SPECIES_BASE,
     } = await import("./game.balance.server");
 
     // Anti-flood: máx 6 kills/segundo.
@@ -142,18 +143,14 @@ export const reportKill = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "rate_limit" };
     }
 
-    const { SPECIES_BASE, MAP_LEVEL_CAP } = await import("./game.balance.server");
-    
     // Validação de espécie: a espécie existe no registro do servidor?
-    const speciesInfo = SPECIES_BASE[data.species as any];
+    const speciesInfo = SPECIES_BASE[data.species];
     if (!speciesInfo) {
       return { ok: false as const, reason: "invalid_species" };
     }
 
     // Validação de raridade: a raridade enviada condiz com a espécie?
     if (speciesInfo.rarity !== data.rarity && data.rarity !== "mythic_shiny") {
-      // Nota: mythic_shiny pode ser um "upgrade" visual, mas se for discrepante demais, barra.
-      // Aqui aceitamos mythic_shiny se a base for mythic ou superior.
       return { ok: false as const, reason: "rarity_mismatch" };
     }
 
@@ -161,9 +158,22 @@ export const reportKill = createServerFn({ method: "POST" })
     const cap = MAP_LEVEL_CAP[data.map_id];
     
     // Validação de nível do mapa: o pokémon pode ter esse nível nesse mapa?
-    if (cap && data.target_level > cap.max + 50) { // Tolerância pequena para elites
+    if (cap && data.target_level > cap.max + 50) { 
        return { ok: false as const, reason: "target_level_impossible_for_map" };
     }
+
+    const { data: state, error: stateErr } = await supabase.from("trainer_state")
+      .select("*").eq("user_id", userId).maybeSingle();
+    if (stateErr || !state) return { ok: false as const, reason: "no_state" };
+
+    // Validação de nível do líder: o cliente mentiu sobre o nível dele?
+    if (Math.abs(state.trainer_level - data.leader_level) > 2) {
+       return { ok: false as const, reason: "trainer_level_mismatch" };
+    }
+
+    const levelMult = 1 + data.target_level * 0.03;
+    const gapMult = levelGapMultiplier(state.trainer_level, data.target_level);
+    const mapPenalty = cap && state.trainer_level > cap.max ? 0.2 : 1.0;
 
     const gold = Math.max(0, Math.floor(base.gold * levelMult * gapMult * mapPenalty));
     const xp   = Math.max(0, Math.floor(base.xp   * levelMult * gapMult * mapPenalty));
@@ -189,19 +199,6 @@ export const reportKill = createServerFn({ method: "POST" })
         { onConflict: "user_id,ball_type" },
       );
     }
-
-    const { data: state, error: stateErr } = await supabase.from("trainer_state")
-      .select("*").eq("user_id", userId).maybeSingle();
-    if (stateErr || !state) return { ok: false as const, reason: "no_state" };
-
-    // Validação de nível do líder: o cliente mentiu sobre o nível dele?
-    if (Math.abs(state.trainer_level - data.leader_level) > 2) {
-       return { ok: false as const, reason: "trainer_level_mismatch" };
-    }
-
-    const levelMult = 1 + data.target_level * 0.03;
-    const gapMult = levelGapMultiplier(state.trainer_level, data.target_level);
-    const mapPenalty = cap && state.trainer_level > cap.max ? 0.2 : 1.0;
 
     let newGold = Number(state.gold) + gold;
     let newXp = Number(state.trainer_xp) + xp;
