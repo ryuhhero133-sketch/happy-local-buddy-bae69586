@@ -415,27 +415,54 @@ export const setActiveMap = createServerFn({ method: "POST" })
 // Só age se o trainer_state ainda estiver zerado (evita sobrescrever server-side legítimo).
 
 const RarityEnum = z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]);
+// Clampa em vez de rejeitar: valores acima do teto são cortados (nunca derrubam o boot do jogo).
+const clampInt = (max: number, def = 0) =>
+  z.preprocess((v) => {
+    const n = Math.floor(Number(v));
+    if (!Number.isFinite(n)) return def;
+    return Math.min(Math.max(n, 0), max);
+  }, z.number().int().min(0).max(max));
+
 const PushInitialSchema = z.object({
-  gold: z.number().int().min(0).max(1_000_000), // Reduzido drasticamente: ninguém começa com 50M
-  crystal: z.number().int().min(0).max(50_000), // Reduzido
-  ruby: z.number().int().min(0).max(10_000).optional().default(0),
-  trainer_level: z.number().int().min(1).max(500), // Ninguém começa nível 10k
-  trainer_xp: z.number().int().min(0).max(10_000_000),
-  kill_count: z.number().int().min(0).max(10_000).optional().default(0),
-  pokeballs: z.record(z.string(), z.number().int().min(0).max(500)),
+  gold: clampInt(1_000_000),
+  crystal: clampInt(50_000),
+  ruby: clampInt(10_000).optional().default(0),
+  trainer_level: z.preprocess((v) => {
+    const n = Math.floor(Number(v));
+    if (!Number.isFinite(n) || n < 1) return 1;
+    return Math.min(n, 500);
+  }, z.number().int().min(1).max(500)),
+  trainer_xp: clampInt(10_000_000),
+  kill_count: clampInt(10_000).optional().default(0),
+  pokeballs: z.record(z.string(), clampInt(500)).default({}),
   collection: z.array(z.object({
     id: z.string().uuid().optional(),
     species: z.string().min(1).max(64),
-    level: z.number().int().min(1).max(1000), // Teto razoável para pets iniciais
-    xp: z.number().int().min(0).max(10_000_000).optional().default(0),
+    level: z.preprocess((v) => {
+      const n = Math.floor(Number(v));
+      if (!Number.isFinite(n) || n < 1) return 1;
+      return Math.min(n, 1000);
+    }, z.number().int().min(1).max(1000)),
+    xp: clampInt(10_000_000).optional().default(0),
     rarity: RarityEnum,
     team_slot: z.number().int().min(0).max(4).nullable().optional(),
-  })).max(200), // Máximo 200 pokémons no push inicial
+  })).max(200).default([]),
 });
 
 export const pushInitialState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => PushInitialSchema.parse(data))
+  .inputValidator((data: unknown) => {
+    const parsed = PushInitialSchema.safeParse(data);
+    // Payload irrecuperável: envia um snapshot vazio em vez de estourar erro no cliente.
+    if (!parsed.success) {
+      return PushInitialSchema.parse({
+        gold: 0, crystal: 0, trainer_level: 1, trainer_xp: 0,
+        pokeballs: {}, collection: [],
+      });
+    }
+    return parsed.data;
+  })
+
   .handler(async ({ data, context }): Promise<{ ok: boolean; applied: boolean; reason?: string }> => {
     const supabase = context.supabase as any;
     const userId = context.userId;
