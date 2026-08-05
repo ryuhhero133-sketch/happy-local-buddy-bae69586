@@ -12864,6 +12864,47 @@ function IdlePage() {
       )}
 
       {worldMapOpen && createPortal((() => {
+        const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
+          { id: "arena", x: 15, y: 22 },
+          { id: "terra", x: 32, y: 16 },
+          { id: "deserto_purpura", x: 54, y: 20 },
+          { id: "pantano_fogo", x: 87, y: 26 },
+          { id: "praia", x: 12, y: 60 },
+          { id: "caverna", x: 42, y: 48 },
+          { id: "neve", x: 74, y: 46 },
+          { id: "deserto", x: 92, y: 58 },
+          { id: "venofogo", x: 48, y: 84 },
+          { id: "fantasma", x: 14, y: 88 },
+        ];
+        const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
+          { id: "grass_oddish", x: 25, y: 30 },
+          { id: "vale_rochas", x: 15, y: 20 },
+          { id: "vale_planta", x: 35, y: 25 },
+          { id: "vale_gelo", x: 55, y: 30 },
+          { id: "vale_veneno", x: 75, y: 35 },
+          { id: "vale_fogo", x: 90, y: 40 },
+          { id: "vulcao_ativo", x: 85, y: 60 },
+          { id: "nucleo_primordial", x: 95, y: 80 },
+          { id: "abismo_gelo", x: 10, y: 40 },
+          { id: "abismo_veneno", x: 15, y: 50 },
+          { id: "abismo_raio", x: 20, y: 60 },
+          { id: "abismo_sombra", x: 25, y: 70 },
+          { id: "abismo_dragao", x: 30, y: 80 },
+        ];
+        const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
+          { id: "cadeia_ab", x: 20, y: 30 },
+          { id: "cadeia_ab1", x: 40, y: 50 },
+          { id: "cadeia_f1", x: 60, y: 70 },
+          { id: "evento_myth", x: 80, y: 40 },
+          { id: "absol_start", x: 15, y: 80 },
+          { id: "governante_hall", x: 85, y: 85 },
+        ];
+
+        const bg = worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
+        const PINS = worldTab === 1 ? WORLD_PINS_C1 : (worldTab === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3);
+        const trainerLv = idle.trainerLevel ?? 1;
+        const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
+
 
         const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "arena", x: 15, y: 22 },
