@@ -880,7 +880,7 @@ function ReportsTab() {
         .limit(100);
       
       if (error) throw error;
-      setData(res || []);
+      setData((res as any) || []);
     } catch (e) {
       console.error("Audit load failed", e);
     } finally {
