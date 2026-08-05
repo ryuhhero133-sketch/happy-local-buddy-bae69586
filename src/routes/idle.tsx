@@ -12844,18 +12844,19 @@ function IdlePage() {
               <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🗺️ MAPA LOCAL: {IDLE_MAPS[idle.currentMap].name.toUpperCase()}</h2>
               <button onClick={() => setBigMapOpen(false)} style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer" }}>✕ FECHAR</button>
             </div>
-            <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", background: `url(${assetUrlFromJson(MAP_ASSETS[idle.currentMap] ?? idleArenaAsset)}) center/cover`, position: "relative", border: "2px solid rgba(245,207,107,0.2)" }}>
+            <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", background: `url(${assetUrlFromJson(idleArenaAsset)}) center/cover`, position: "relative", border: "2px solid rgba(245,207,107,0.2)" }}>
                {/* Portais do mapa atual */}
-               {(gatesByMap[idle.currentMap] ?? []).map((g, i) => (
+               {(gatesByMap[idle.currentMap] ?? []).map((g: any, i: number) => (
                  <div
                    key={i}
-                   onClick={() => setPendingGate({ target: g.to, gate: g, fromBig: true })}
+                   onClick={() => setPendingGate({ target: g.target, gate: g, fromBig: true })}
                    style={{ position: "absolute", left: `${g.x}%`, top: `${g.y}%`, width: 32, height: 32, background: "rgba(245,207,107,0.2)", border: "2px solid #f5cf6b", borderRadius: "50%", cursor: "pointer", transform: "translate(-50%, -50%)", display: "grid", placeItems: "center", boxShadow: "0 0 15px #f5cf6b" }}
                  >
                    <span style={{ fontSize: 16 }}>🌀</span>
-                   <div style={{ position: "absolute", top: 35, background: "rgba(0,0,0,0.8)", padding: "2px 8px", borderRadius: 4, color: "#f5cf6b", fontSize: 12, whiteSpace: "nowrap", border: "1px solid #f5cf6b" }}>{IDLE_MAPS[g.to].name}</div>
+                   <div style={{ position: "absolute", top: 35, background: "rgba(0,0,0,0.8)", padding: "2px 8px", borderRadius: 4, color: "#f5cf6b", fontSize: 12, whiteSpace: "nowrap", border: "1px solid #f5cf6b" }}>{IDLE_MAPS[g.target as IdleMapId].name}</div>
                  </div>
                ))}
+
             </div>
           </div>
         </div>,
