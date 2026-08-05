@@ -6036,8 +6036,8 @@ function IdlePage() {
     if (qty < 1 || price < 1 || price > 100_000_000) { pushChat("Quantidade ou preço inválido.", "info"); return false; }
     // Confirma criação com .select().single() — se o insert falhar por RLS/check,
     // detectamos ANTES de descontar o estoque local. Se retornar row, é seguro debitar.
-    const { data, error } = await supabase
-      .from("market_listings")
+    const { data, error } = await (supabase
+      .from("market_listings") as any)
       .insert({
         seller_id: identity.id,
         seller_name: identity.name || "Treinador",
@@ -6072,8 +6072,8 @@ function IdlePage() {
     // Usa count em vez de .select().maybeSingle() — a policy de SELECT
     // pode filtrar a linha após sold_at deixar de ser null e retornar data=null
     // mesmo com o UPDATE tendo funcionado.
-    const { error, count } = await supabase
-      .from("market_listings")
+    const { error, count } = await (supabase
+      .from("market_listings") as any)
       .update(
         { buyer_id: identity.id, sold_at: new Date().toISOString() },
         { count: "exact" },

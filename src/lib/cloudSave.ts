@@ -335,9 +335,9 @@ async function upsertOnce(snapshot: unknown, forceRefresh: boolean) {
  * sozinho, então cobre casos em que o fetch cru falha (apikey, CORS, token).
  */
 async function upsertViaClient(uid: string, snapshot: unknown) {
-  const { error } = await supabase
-    .from("game_saves")
-    .upsert({ user_id: uid, data: snapshot as never, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  const { error } = await (supabase
+    .from("game_saves") as any)
+    .upsert({ user_id: uid, data: snapshot as any, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
   if (error) throw new Error([error.message, error.hint, error.details, error.code].filter(Boolean).join(" · "));
 }
 
