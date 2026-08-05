@@ -10982,7 +10982,7 @@ function IdlePage() {
             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
             // Carteira bloqueada temporariamente
             // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
-          ] as const).map((t) => {
+          ] as const.map((t) => {
 
             const active = tab === t.id;
             const showActive = active;
@@ -13086,7 +13086,7 @@ function IdlePage() {
 
           pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
         }}
-      />)}
+      />
     </div>
   );
 }
