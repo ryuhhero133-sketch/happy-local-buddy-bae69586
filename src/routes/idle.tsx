@@ -12830,10 +12830,10 @@ function IdlePage() {
                         { id: "abismo_sombra", x: 25, y: 70 },
                         { id: "abismo_dragao", x: 30, y: 80 },
                       ];
-                      const GOV_PINS: Array<{ id: IdleMapId; x: number; y: number }> = hasGovCard ? [
-                        { id: "absol_start", x: 70, y: 70 },
-                        { id: "governante_hall", x: 80, y: 85 },
-                      ] : [];
+                      const GOV_PINS: Array<{ id: IdleMapId; x: number; y: number }> = [
+                        { id: "absol_start", x: 30, y: 40 },
+                        { id: "governante_hall", x: 60, y: 60 },
+                      ];
 
                       const [continent, setContinent] = useState<1 | 2 | 3>(1);
                       const bg = continent === 1 ? worldMapGlobeAsset : (continent === 2 ? worldMapContinent2Asset : worldMapGlobeAsset);
