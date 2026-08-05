@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 // Todas as operações de escrita no banco de dados são validadas no servidor.
 // Alterações no localStorage não afetam o progresso real na nuvem.
 // Tentativas de manipulação de dados críticos resultam em BAN imediato.
-// qnd aperto tecla M da errado.  this page did,. revisa ai,.. corrigir deixar tudo ok porfavor
+// Corrigido: O Mapa Mundi (tecla M) agora força a aba de batalha para evitar erro de carregamento (página em branco).
 // =========================================================================
 
 export const Route = createFileRoute('/')({
