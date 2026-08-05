@@ -2370,7 +2370,6 @@ function IdlePage() {
   const banNoticeIdxRef = useRef(0);
   useEffect(() => {
     const NOTICES: string[] = [
-      "🛡 AVISO OFICIAL: algumas contas foram BANIDAS permanentemente por tentativa de burlar o servidor. O servidor segue sendo estruturado e balanceado — obrigado a quem joga limpo!",
       "🚫 Um agradecimento especial aos gênios que passaram horas tentando furar nossa segurança... e conseguiram exatamente NADA. Contas banidas, tempo perdido. Valeu pelo esforço! 😄",
       "⚙ Estruturação em andamento: balanceamento, anti-cheat e performance sendo reforçados a cada ciclo. Quem tentar trapacear vira mais um nome na lista de banidos.",
       "🏆 Enquanto uns evoluíram de verdade, outros evoluíram só no ban. Obrigado pela dedicação em perder tempo — o servidor continua de pé, e vocês não. 😉",
