@@ -10379,140 +10379,6 @@ function IdlePage() {
 
 
 
-          {worldMapOpen && createPortal((() => {
-                      const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
-                      const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
-                        { id: "arena", x: 15, y: 22 },
-                        { id: "terra", x: 32, y: 16 },
-                        { id: "deserto_purpura", x: 54, y: 20 },
-                        { id: "pantano_fogo", x: 87, y: 26 },
-                        { id: "praia", x: 12, y: 60 },
-                        { id: "caverna", x: 42, y: 48 },
-                        { id: "neve", x: 74, y: 46 },
-                        { id: "deserto", x: 92, y: 58 },
-                        { id: "venofogo", x: 48, y: 84 },
-                        { id: "fantasma", x: 14, y: 88 },
-                      ];
-                      const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
-                        { id: "grass_oddish", x: 25, y: 30 },
-                        { id: "vale_rochas", x: 15, y: 20 },
-                        { id: "vale_planta", x: 35, y: 25 },
-                        { id: "vale_gelo", x: 55, y: 30 },
-                        { id: "vale_veneno", x: 75, y: 35 },
-                        { id: "vale_fogo", x: 90, y: 40 },
-                        { id: "vulcao_ativo", x: 85, y: 60 },
-                        { id: "nucleo_primordial", x: 95, y: 80 },
-                        { id: "abismo_gelo", x: 10, y: 40 },
-                        { id: "abismo_veneno", x: 15, y: 50 },
-                        { id: "abismo_raio", x: 20, y: 60 },
-                        { id: "abismo_sombra", x: 25, y: 70 },
-                        { id: "abismo_dragao", x: 30, y: 80 },
-                      ];
-                      const GOV_PINS: Array<{ id: IdleMapId; x: number; y: number }> = hasGovCard ? [
-                        { id: "absol_start", x: 70, y: 70 },
-                        { id: "governante_hall", x: 80, y: 85 },
-                      ] : [];
-
-                      const [continent, setContinent] = useState<1 | 2>(1);
-                      const bg = continent === 1 ? worldMapGlobeAsset : worldMapContinent2Asset;
-                      const PINS = continent === 1 ? WORLD_PINS_C1 : [...WORLD_PINS_C2, ...GOV_PINS];
-                      const trainerLv = idle.trainerLevel ?? 1;
-
-                      return (
-                        <div
-                          onClick={() => setWorldMapOpen(false)}
-                          style={{
-                            position: "fixed", inset: 0, zIndex: 99999,
-                            background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center",
-                            padding: 20, cursor: "pointer",
-                          }}
-                        >
-                          <div
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                              background: "#0b0510", border: "4px solid #f5cf6b",
-                              borderRadius: 20, padding: 24, maxWidth: 900, width: "100%",
-                              cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.5)",
-                              position: "relative",
-                            }}
-                          >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                              <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
-                                🌏 MAPA MUNDI — {continent === 1 ? "CONTINENTE 1" : "CONTINENTE 2"}
-                              </div>
-                              <div style={{ display: "flex", gap: 10 }}>
-                                <button
-                                  onClick={() => setContinent(continent === 1 ? 2 : 1)}
-                                  style={{
-                                    background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
-                                    border: "none", color: "#160a20",
-                                    borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 14,
-                                    boxShadow: "0 0 10px rgba(245,207,107,0.3)"
-                                  }}
-                                >TROCAR CONTINENTE</button>
-                                <button
-                                  onClick={() => setWorldMapOpen(false)}
-                                  style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
-                                >✕</button>
-                              </div>
-                            </div>
-
-                            <div style={{
-                              width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
-                              background: `url(${assetUrlFromJson(bg)}) center/cover`, position: "relative",
-                              border: "2px solid rgba(245,207,107,0.3)",
-                            }}>
-                              <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
-                              
-                              {PINS.map((pin) => {
-                                const m = IDLE_MAPS[pin.id];
-                                if (!m) return null;
-                                const ok = trainerLv >= m.minLevel;
-                                const current = idle.currentMap === pin.id;
-                                return (
-                                  <button
-                                    key={pin.id}
-                                    onClick={() => {
-                                      if (ok) {
-                                        setPendingGate({ target: pin.id, gate: null, fromBig: false });
-                                      } else {
-                                        try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Mapa Bloqueado", body: `Nível ${m.minLevel} necessário!`, tone: "error" } })); } catch {}
-                                      }
-                                    }}
-                                    style={{
-                                      position: "absolute",
-                                      left: `${pin.x}%`, top: `${pin.y}%`,
-                                      background: current ? "#7ef27a" : ok ? "#f5cf6b" : "#4a3a5a",
-                                      border: `3px solid ${current ? "#fff" : "#1a0a20"}`,
-                                      borderRadius: "50%", width: 18, height: 18,
-                                      cursor: ok ? "pointer" : "not-allowed",
-                                      transform: "translate(-50%,-50%)",
-                                      boxShadow: current ? "0 0 15px #7ef27a" : ok ? "0 0 10px rgba(245,207,107,0.5)" : "none",
-                                      zIndex: current ? 10 : 5,
-                                      animation: current ? "worldPinPulse 1.6s ease-in-out infinite" : undefined,
-                                    }}
-                                    title={`${m.name} (Lv ${m.minLevel})`}
-                                  />
-                                );
-                              })}
-
-                              <div style={{ position: "absolute", bottom: 12, left: 12, background: "rgba(0,0,0,0.7)", padding: "8px 12px", borderRadius: 8, border: "1px solid #f5cf6b", display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#fff" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#7ef27a" }} /> Você está aqui
-                                </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#f5cf6b" }} /> Desbloqueado
-                                </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#4a3a5a" }} /> Bloqueado
-                                </div>
-                              </div>
-                            </div>
-                            <style>{`@keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }`}</style>
-                          </div>
-                        </div>
-                      );
-                    })(), document.body)}
 
                     {pendingGate && createPortal((() => {
                       const pg = pendingGate;
@@ -16685,6 +16551,140 @@ function GovernanteDialog(props: {
           </div>
         </div>
       </div>
+          {worldMapOpen && createPortal((() => {
+                      const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
+                      const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
+                        { id: "arena", x: 15, y: 22 },
+                        { id: "terra", x: 32, y: 16 },
+                        { id: "deserto_purpura", x: 54, y: 20 },
+                        { id: "pantano_fogo", x: 87, y: 26 },
+                        { id: "praia", x: 12, y: 60 },
+                        { id: "caverna", x: 42, y: 48 },
+                        { id: "neve", x: 74, y: 46 },
+                        { id: "deserto", x: 92, y: 58 },
+                        { id: "venofogo", x: 48, y: 84 },
+                        { id: "fantasma", x: 14, y: 88 },
+                      ];
+                      const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
+                        { id: "grass_oddish", x: 25, y: 30 },
+                        { id: "vale_rochas", x: 15, y: 20 },
+                        { id: "vale_planta", x: 35, y: 25 },
+                        { id: "vale_gelo", x: 55, y: 30 },
+                        { id: "vale_veneno", x: 75, y: 35 },
+                        { id: "vale_fogo", x: 90, y: 40 },
+                        { id: "vulcao_ativo", x: 85, y: 60 },
+                        { id: "nucleo_primordial", x: 95, y: 80 },
+                        { id: "abismo_gelo", x: 10, y: 40 },
+                        { id: "abismo_veneno", x: 15, y: 50 },
+                        { id: "abismo_raio", x: 20, y: 60 },
+                        { id: "abismo_sombra", x: 25, y: 70 },
+                        { id: "abismo_dragao", x: 30, y: 80 },
+                      ];
+                      const GOV_PINS: Array<{ id: IdleMapId; x: number; y: number }> = hasGovCard ? [
+                        { id: "absol_start", x: 70, y: 70 },
+                        { id: "governante_hall", x: 80, y: 85 },
+                      ] : [];
+
+                      const [continent, setContinent] = useState<1 | 2>(1);
+                      const bg = continent === 1 ? worldMapGlobeAsset : worldMapContinent2Asset;
+                      const PINS = continent === 1 ? WORLD_PINS_C1 : [...WORLD_PINS_C2, ...GOV_PINS];
+                      const trainerLv = idle.trainerLevel ?? 1;
+
+                      return (
+                        <div
+                          onClick={() => setWorldMapOpen(false)}
+                          style={{
+                            position: "fixed", inset: 0, zIndex: 99999,
+                            background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center",
+                            padding: 20, cursor: "pointer",
+                          }}
+                        >
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              background: "#0b0510", border: "4px solid #f5cf6b",
+                              borderRadius: 20, padding: 24, maxWidth: 900, width: "100%",
+                              cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.5)",
+                              position: "relative",
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                              <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
+                                🌏 MAPA MUNDI — {continent === 1 ? "CONTINENTE 1" : "CONTINENTE 2"}
+                              </div>
+                              <div style={{ display: "flex", gap: 10 }}>
+                                <button
+                                  onClick={() => setContinent(continent === 1 ? 2 : 1)}
+                                  style={{
+                                    background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
+                                    border: "none", color: "#160a20",
+                                    borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 14,
+                                    boxShadow: "0 0 10px rgba(245,207,107,0.3)"
+                                  }}
+                                >TROCAR CONTINENTE</button>
+                                <button
+                                  onClick={() => setWorldMapOpen(false)}
+                                  style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
+                                >✕</button>
+                              </div>
+                            </div>
+
+                            <div style={{
+                              width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
+                              background: `url(${assetUrlFromJson(bg)}) center/cover`, position: "relative",
+                              border: "2px solid rgba(245,207,107,0.3)",
+                            }}>
+                              <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
+                              
+                              {PINS.map((pin) => {
+                                const m = IDLE_MAPS[pin.id];
+                                if (!m) return null;
+                                const ok = trainerLv >= m.minLevel;
+                                const current = idle.currentMap === pin.id;
+                                return (
+                                  <button
+                                    key={pin.id}
+                                    onClick={() => {
+                                      if (ok) {
+                                        setPendingGate({ target: pin.id, gate: null, fromBig: false });
+                                      } else {
+                                        try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Mapa Bloqueado", body: `Nível ${m.minLevel} necessário!`, tone: "error" } })); } catch {}
+                                      }
+                                    }}
+                                    style={{
+                                      position: "absolute",
+                                      left: `${pin.x}%`, top: `${pin.y}%`,
+                                      background: current ? "#7ef27a" : ok ? "#f5cf6b" : "#4a3a5a",
+                                      border: `3px solid ${current ? "#fff" : "#1a0a20"}`,
+                                      borderRadius: "50%", width: 18, height: 18,
+                                      cursor: ok ? "pointer" : "not-allowed",
+                                      transform: "translate(-50%,-50%)",
+                                      boxShadow: current ? "0 0 15px #7ef27a" : ok ? "0 0 10px rgba(245,207,107,0.5)" : "none",
+                                      zIndex: current ? 10 : 5,
+                                      animation: current ? "worldPinPulse 1.6s ease-in-out infinite" : undefined,
+                                    }}
+                                    title={`${m.name} (Lv ${m.minLevel})`}
+                                  />
+                                );
+                              })}
+
+                              <div style={{ position: "absolute", bottom: 12, left: 12, background: "rgba(0,0,0,0.7)", padding: "8px 12px", borderRadius: 8, border: "1px solid #f5cf6b", display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#fff" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#7ef27a" }} /> Você está aqui
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#f5cf6b" }} /> Desbloqueado
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#4a3a5a" }} /> Bloqueado
+                                </div>
+                              </div>
+                            </div>
+                            <style>{`@keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }`}</style>
+                          </div>
+                        </div>
+                      );
+                    })(), document.body)}
     </div>,
     document.body
   );
