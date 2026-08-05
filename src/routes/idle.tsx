@@ -10236,7 +10236,7 @@ function IdlePage() {
 
                   <div style={{ display: "flex", justifyContent: "center" }}>
                     <button
-                      onClick={() => { playClick(); setWorldMapOpen(true); }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); playClick(); setWorldMapOpen(true); }}
                       className="world-globe-btn"
                       title="Abrir Mapa Mundi"
                       style={{
@@ -10311,8 +10311,12 @@ function IdlePage() {
                       </div>
                     </div>
                   )}
+                </div>
+              );
 
-                  {createPortal(worldMapOpen && (() => {
+              return (
+                <div key="world-map-portal-container">
+                  {worldMapOpen && createPortal((() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
                       { id: "arena", x: 15, y: 22 },
@@ -10351,7 +10355,7 @@ function IdlePage() {
                       <div
                         onClick={() => setWorldMapOpen(false)}
                         style={{
-                          position: "fixed", inset: 0, zIndex: 100000,
+                          position: "fixed", inset: 0, zIndex: 999999,
                           background: "rgba(0,0,0,0.95)", display: "grid", placeItems: "center",
                           padding: 16, cursor: "pointer",
                         }}
