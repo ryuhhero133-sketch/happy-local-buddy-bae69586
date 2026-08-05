@@ -10982,7 +10982,7 @@ function IdlePage() {
             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
             // Carteira bloqueada temporariamente
             // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
-          ] as const.map((t) => {
+          ] as const).map((t) => {
 
             const active = tab === t.id;
             const showActive = active;
@@ -12839,8 +12839,7 @@ function IdlePage() {
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
 
       {/* ============ LOJINHA CASH ============ */}
-      {cashShopOpen && (
-        <CashShopModal
+      {cashShopOpen && <CashShopModal
           open={cashShopOpen}
           onClose={() => setCashShopOpen(false)}
           identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
