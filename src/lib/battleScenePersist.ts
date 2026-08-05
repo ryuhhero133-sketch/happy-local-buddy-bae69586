@@ -1,7 +1,5 @@
 // Persistência da cena de batalha (inimigos + status do treinador) entre reloads.
-// Motivação: se o jogador recebe paralisia/veneno/debuff e dá F5, os timers
-// zeravam — abrindo brecha de abuso. Agora fica salvo por até 15 min,
-// escopado ao mapa atual. Se mudar de mapa, o snapshot é descartado.
+import { obfuscate, deobfuscate } from "./utils";
 
 const KEY = "rubym.battleScene.v1";
 const TTL_MS = 15 * 60 * 1000;
@@ -20,7 +18,7 @@ export function loadBattleScene(mapId: string): BattleScenePersist | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
-    const s = JSON.parse(raw) as BattleScenePersist;
+    const s = deobfuscate(raw) as BattleScenePersist;
     if (!s || s.mapId !== mapId) return null;
     if (Date.now() - (s.savedAt ?? 0) > TTL_MS) return null;
     return s;
@@ -29,7 +27,7 @@ export function loadBattleScene(mapId: string): BattleScenePersist | null {
 
 export function saveBattleScene(s: BattleScenePersist) {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(KEY, JSON.stringify({ ...s, savedAt: Date.now() })); }
+  try { localStorage.setItem(KEY, obfuscate({ ...s, savedAt: Date.now() })); }
   catch { /* quota */ }
 }
 
