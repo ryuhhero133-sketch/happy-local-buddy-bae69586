@@ -12837,7 +12837,7 @@ function IdlePage() {
 
                       const [continent, setContinent] = useState<1 | 2 | 3>(1);
                       const bg = continent === 1 ? worldMapGlobeAsset : (continent === 2 ? worldMapContinent2Asset : worldMapGlobeAsset);
-                      const PINS = continent === 1 ? WORLD_PINS_C1 : (continent === 2 ? WORLD_PINS_C2 : GOV_PINS);
+                      const PINS = continent === 1 ? WORLD_PINS_C1 : (continent === 2 ? WORLD_PINS_C2 : (hasGovCard ? GOV_PINS : []));
                       const trainerLv = idle.trainerLevel ?? 1;
 
                       return (
