@@ -117,7 +117,7 @@ const KillSchema = z.object({
   rarity: z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]),
   map_id: z.string().min(1).max(32),
   leader_level: z.number().int().min(1).max(10000),
-  signature: z.string().optional(), // Assinatura opcional para validação futura
+  security_hash: z.string().optional(), // Hash para validação de integridade cliente-servidor
 });
 
 export const reportKill = createServerFn({ method: "POST" })
