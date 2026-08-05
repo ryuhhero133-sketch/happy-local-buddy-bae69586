@@ -10537,7 +10537,7 @@ function IdlePage() {
 
 
                   {pendingGate && (() => {
-                    const pg = pendingGate;
+                    const pg = pendingGate!;
                     const tmKey = pg.target as keyof typeof IDLE_MAPS;
                     const tm = IDLE_MAPS[tmKey];
                     const trainerLv = idle.trainerLevel ?? 1;
