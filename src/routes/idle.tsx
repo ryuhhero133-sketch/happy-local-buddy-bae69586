@@ -81,6 +81,7 @@ import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battle
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { toast } from "sonner";
 import { attemptPendingCloudSave, fetchCloudSaveResult, getBestLocalSnapshot, getCloudSaveDiagnostics, getCloudSaveLastError, getPendingCloudSaveInfo, pushCloudSaveNow, scheduleCloudSync, setCloudSaveLock, writeLocalBackup } from "@/lib/cloudSave";
+import { FarmingReportFloating } from "@/components/FarmingReportFloating";
 import { fetchTopRanked, fetchTopPrismaRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
