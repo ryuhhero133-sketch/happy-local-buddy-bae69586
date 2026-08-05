@@ -10383,7 +10383,6 @@ function IdlePage() {
                 </div>
               </div>
             </div>
-          </Panel>
 
 
           {worldMapOpen && createPortal((() => {
