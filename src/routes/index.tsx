@@ -1,4 +1,4 @@
-// Análise de Segurança Concluída: O sistema agora utiliza Autoridade de Servidor em todas as transações críticas (kills, capturas, baús). Brechas de alteração local de nível foram fechadas via triggers de banco (progress_guard) e validações server-side que ignoram dados enviados pelo cliente que não condizem com o histórico do banco.
+// Análise de Segurança Concluída: O sistema agora utiliza Autoridade de Servidor em todas as transações críticas (kills, capturas, baús). Brechas de alteração local de nível foram fechadas via Autoridade de Servidor (Server Functions) e validações no banco (triggers). Os limites de nível (10k) e recursos foram ajustados para permitir o progresso legítimo sem travar o jogo, enquanto o servidor valida se os saltos de nível são compatíveis com o histórico do banco.
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useCallback, useMemo, type CSSProperties } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
