@@ -869,6 +869,7 @@ function ReportsTab() {
   const [data, setData] = useState<{ id: string; user_id: string; username: string; kind: string; detail: any; created_at: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<"save_delta" | "ip" | "all">("save_delta");
+  const [searchName, setSearchName] = useState("");
 
   const refresh = async () => {
     setLoading(true);
@@ -890,12 +891,16 @@ function ReportsTab() {
 
   useEffect(() => { refresh(); }, []);
 
-  const filtered = data.filter(d => filter === "all" ? true : d.kind === filter);
+  const filtered = data.filter(d => {
+    const matchesTab = filter === "all" ? true : d.kind === filter;
+    const matchesSearch = searchName ? (d.username || "").toLowerCase().includes(searchName.toLowerCase()) : true;
+    return matchesTab && matchesSearch;
+  });
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-wrap gap-2">
           {(["save_delta", "ip", "all"] as const).map(f => (
             <button
               key={f}
@@ -906,13 +911,23 @@ function ReportsTab() {
             </button>
           ))}
         </div>
-        <button 
-          onClick={refresh} 
-          disabled={loading}
-          className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 disabled:opacity-50"
-        >
-          {loading ? "CARREGANDO..." : "🔄 ATUALIZAR"}
-        </button>
+        
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+            placeholder="Buscar jogador..."
+            className="px-3 py-1 bg-slate-900 border border-slate-700 rounded-md text-[10px] text-amber-100 placeholder:text-slate-600 outline-none focus:border-fuchsia-500/50"
+          />
+          <button 
+            onClick={refresh} 
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-bold text-cyan-400 hover:bg-cyan-500/20 disabled:opacity-50"
+          >
+            {loading ? "CARREGANDO..." : "🔄 ATUALIZAR"}
+          </button>
+        </div>
       </div>
 
       <Card title="Relatório de Auditoria (Últimos 100 eventos)">
@@ -969,9 +984,15 @@ function ReportsTab() {
         </div>
       </Card>
       
-      <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 text-xs text-rose-300/80">
-        <p className="font-bold mb-1">🛡️ Análise de Segurança:</p>
-        <p>A brecha de edição direta foi fechada com o trigger <code className="text-rose-200">enforce_game_save_caps</code>. Saltos de nível acima de 5 por save são automaticamente barrados e registrados aqui como "save_delta".</p>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 text-xs text-rose-300/80">
+          <p className="font-bold mb-1">🛡️ Análise de Segurança:</p>
+          <p>A brecha de edição direta foi fechada com o trigger <code className="text-rose-200">enforce_game_save_caps</code>. Saltos de nível acima de 5 por save são automaticamente barrados e registrados aqui como "save_delta".</p>
+        </div>
+        <div className="p-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 text-xs text-cyan-300/80">
+          <p className="font-bold mb-1">🔍 Investigação por Jogador:</p>
+          <p>Use a busca acima para filtrar os logs de um jogador específico. Você pode cruzar os deltas de nível com os registros de IP para identificar padrões de exploração ou multi-contas.</p>
+        </div>
       </div>
     </div>
   );
