@@ -12801,7 +12801,69 @@ function IdlePage() {
         }}
       />
       {/* --- MAPPED PORTALS --- */}
+      {pendingGate && createPortal(
+        <div onClick={() => setPendingGate(null)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#1a0f26", border: "3px solid #f5cf6b", borderRadius: 16, padding: 24, maxWidth: 420, width: "100%", cursor: "default", boxShadow: "0 0 50px rgba(0,0,0,0.8)" }}>
+            <h3 style={{ color: "#f5cf6b", margin: "0 0 16px 0", fontSize: 20, fontWeight: 900, textAlign: "center" }}>Viajar para {IDLE_MAPS[pendingGate.target as IdleMapId].name}?</h3>
+            <div style={{ background: "rgba(0,0,0,0.3)", padding: 16, borderRadius: 12, marginBottom: 20, border: "1px solid rgba(245,207,107,0.1)" }}>
+              <div style={{ color: "#d0b8f0", fontSize: 14, marginBottom: 8 }}>Requisitos:</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", color: (idle.trainerLevel ?? 1) >= (pendingGate.gate.reqLevel ?? 0) ? "#5ec26a" : "#ff5c5c" }}>
+                <span>{ (idle.trainerLevel ?? 1) >= (pendingGate.gate.reqLevel ?? 0) ? "✅" : "❌" }</span>
+                <span>Nível Treinador: {pendingGate.gate.reqLevel ?? 0}</span>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={() => setPendingGate(null)}
+                style={{ flex: 1, padding: "12px", background: "#3a1a3a", border: "none", color: "#d0b8f0", borderRadius: 8, fontWeight: 900, cursor: "pointer" }}
+              >CANCELAR</button>
+              <button
+                onClick={() => {
+                  const target = pendingGate.target as IdleMapId;
+                  if ((idle.trainerLevel ?? 1) < (pendingGate.gate.reqLevel ?? 0)) {
+                    pushChat(`Nível insuficiente!`, "info");
+                    return;
+                  }
+                  setIdle(s => ({ ...s, currentMap: target }));
+                  setPendingGate(null);
+                  if (pendingGate.fromBig) setBigMapOpen(false);
+                  pushChat(`Viajou para ${IDLE_MAPS[target].name}!`, "info");
+                }}
+                style={{ flex: 1, padding: "12px", background: "linear-gradient(180deg, #f5cf6b, #d9a441)", border: "none", color: "#1a0f26", borderRadius: 8, fontWeight: 900, cursor: "pointer" }}
+              >VIAJAR</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {bigMapOpen && createPortal(
+        <div onClick={() => setBigMapOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#0b0510", border: "4px solid #f5cf6b", borderRadius: 20, padding: 24, maxWidth: 800, width: "100%", cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.3)", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🗺️ MAPA LOCAL: {IDLE_MAPS[idle.currentMap].name.toUpperCase()}</h2>
+              <button onClick={() => setBigMapOpen(false)} style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer" }}>✕ FECHAR</button>
+            </div>
+            <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", background: `url(${assetUrlFromJson(MAP_ASSETS[idle.currentMap] ?? idleArenaAsset)}) center/cover`, position: "relative", border: "2px solid rgba(245,207,107,0.2)" }}>
+               {/* Portais do mapa atual */}
+               {(gatesByMap[idle.currentMap] ?? []).map((g, i) => (
+                 <div
+                   key={i}
+                   onClick={() => setPendingGate({ target: g.to, gate: g, fromBig: true })}
+                   style={{ position: "absolute", left: `${g.x}%`, top: `${g.y}%`, width: 32, height: 32, background: "rgba(245,207,107,0.2)", border: "2px solid #f5cf6b", borderRadius: "50%", cursor: "pointer", transform: "translate(-50%, -50%)", display: "grid", placeItems: "center", boxShadow: "0 0 15px #f5cf6b" }}
+                 >
+                   <span style={{ fontSize: 16 }}>🌀</span>
+                   <div style={{ position: "absolute", top: 35, background: "rgba(0,0,0,0.8)", padding: "2px 8px", borderRadius: 4, color: "#f5cf6b", fontSize: 12, whiteSpace: "nowrap", border: "1px solid #f5cf6b" }}>{IDLE_MAPS[g.to].name}</div>
+                 </div>
+               ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {worldMapOpen && createPortal((() => {
+
         const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "arena", x: 15, y: 22 },
           { id: "terra", x: 32, y: 16 },
