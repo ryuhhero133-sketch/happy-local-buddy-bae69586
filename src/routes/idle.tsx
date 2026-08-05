@@ -12909,8 +12909,10 @@ function IdlePage() {
         );
       })(), document.body)}
 
+    </div>
   );
 }
+
 
 
 // ============ Componentes visuais ============
