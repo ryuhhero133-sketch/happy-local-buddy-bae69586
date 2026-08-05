@@ -12801,7 +12801,17 @@ function IdlePage() {
         }}
       />
       {/* --- MAPPED PORTALS --- */}
-          {worldMapOpen && createPortal((() => {
+      {worldMapOpen && createPortal(<WorldMapPortalContent 
+        idle={idle} 
+        setIdle={setIdle} 
+        setWorldMapOpen={setWorldMapOpen} 
+        pushChat={pushChat} 
+        IDLE_MAPS={IDLE_MAPS}
+        worldMapGlobeAsset={worldMapGlobeAsset}
+        worldMapContinent2Asset={worldMapContinent2Asset}
+        governanteHallMapAsset={governanteHallMapAsset}
+        assetUrlFromJson={assetUrlFromJson}
+      />, document.body)}
                       const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                       const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
                         { id: "arena", x: 15, y: 22 },
