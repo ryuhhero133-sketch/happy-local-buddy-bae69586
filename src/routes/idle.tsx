@@ -12882,7 +12882,8 @@ function IdlePage() {
         setCodeInput={setCodeInput}
         codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
-      />
+      />}
+
 
       <BlackMiticEggHud
         open={blackEggHudOpen}
