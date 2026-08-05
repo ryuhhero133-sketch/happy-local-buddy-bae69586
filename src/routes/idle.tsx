@@ -2539,6 +2539,164 @@ function IdlePage() {
   // ---- Mundo em pixels + câmera que segue o treinador ----
   const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
   const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+              type GateDef = {
+                key: string;
+                target: IdleMapId;
+                x: number; y: number;
+                arriveX: number; arriveY: number;
+                color: string;
+              };
+              // Fluxo: arena → praia → neve → deserto → caverna
+              const gatesByMap: Record<IdleMapId, GateDef[]> = {
+                arena: [
+                  { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
+                  { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
+                  { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
+                  { key: "to-vale_rochas", target: "vale_rochas", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
+                ],
+                terra: [
+                  { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-venofogo", target: "venofogo", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,           color: "#ff5c2e" },
+                  { key: "to-fantasma", target: "fantasma", x: 60,          y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a259ff" },
+                  { key: "to-deserto_purpura", target: "deserto_purpura", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#b45adc" },
+                ],
+                deserto_purpura: [
+                  { key: "to-terra", target: "terra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9873a" },
+                  { key: "to-terry", target: "terry", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
+                ],
+                terry: [
+                  { key: "to-deserto_purpura", target: "deserto_purpura", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
+                  { key: "to-n2", target: "n2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
+                ],
+                n2: [
+                  { key: "to-terry", target: "terry", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
+                  { key: "to-n3", target: "n3", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#e8b878" },
+                ],
+                n3: [
+                  { key: "to-n2", target: "n2", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
+                  { key: "to-pantano_fogo", target: "pantano_fogo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
+                ],
+                pantano_fogo: [
+                  { key: "to-n3", target: "n3", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e8b878" },
+                  { key: "to-abismo_gelo", target: "abismo_gelo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
+                ],
+                abismo_gelo: [
+                  { key: "ag-back", target: "pantano_fogo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
+                  { key: "ag-next", target: "abismo_veneno", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
+                ],
+                abismo_veneno: [
+                  { key: "av-back", target: "abismo_gelo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
+                  { key: "av-next", target: "abismo_raio", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
+                ],
+                abismo_raio: [
+                  { key: "ar-back", target: "abismo_veneno", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
+                  { key: "ar-next", target: "abismo_sombra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#28143c" },
+                ],
+                abismo_sombra: [
+                  { key: "as-back", target: "abismo_raio", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
+                  { key: "as-next", target: "abismo_dragao", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9628" },
+                ],
+                abismo_dragao: [
+                  { key: "ad-back", target: "abismo_sombra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#28143c" },
+                  { key: "ad-next", target: "cadeia_ab", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
+                ],
+                cadeia_ab: [
+                  { key: "cab-back", target: "abismo_dragao", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9628" },
+                  { key: "cab-next", target: "cadeia_ab1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                ],
+                cadeia_ab1: [
+                  { key: "cab1-back", target: "cadeia_ab", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
+                  { key: "cab1-next", target: "cadeia_f1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
+                ],
+                cadeia_f1: [
+                  { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
+                ],
+                evento_myth: [],
+                oddish_o1: [
+                  { key: "o1-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
+                ],
+                oddish_o2: [
+                  { key: "o2-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
+                ],
+                oddish_o3: [
+                  { key: "o3-o1", target: "oddish_o1", x: 80, y: WORLD_H - 100, arriveX: WORLD_W - 120, arriveY: 120, color: "#7ef27a" },
+                  { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
+                ],
+                grass_oddish: [],
+                vale_fragmentos: [],
+                gym_carmesim: [
+                  { key: "gym1-gym2", target: "gym_gelo_sombra", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#9fe8ff" },
+                ],
+                gym_gelo_sombra: [
+                  { key: "gym2-gym1", target: "gym_carmesim", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#ff8b8b" },
+                  { key: "gym2-gym3", target: "gym_arcano", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#c58bff" },
+                ],
+                gym_arcano: [
+                  { key: "gym3-gym2", target: "gym_gelo_sombra", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#9fe8ff" },
+                ],
+                absol_start: [
+                  { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
+                ],
+                governante_hall: [
+                  { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
+                ],
+                venofogo: [
+                  { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
+                ],
+                fantasma: [
+                  { key: "to-terra", target: "terra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9873a" },
+                ],
+                praia: [
+                  { key: "to-arena",   target: "arena",   x: WORLD_W - 60, y: 60,          arriveX: 100,           arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-deserto", target: "deserto", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#f5b25c" },
+                ],
+                neve: [
+                  { key: "to-arena",   target: "arena",   x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#7ef27a" },
+                  { key: "to-caverna", target: "caverna", x: 60,          y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
+                ],
+                deserto: [
+                  { key: "to-praia",    target: "praia",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#5cd3ff" },
+                ],
+                caverna: [
+                  { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
+                ],
+                // ═══ Cadeia endgame — portais visíveis; ao entrar, exige nível ═══
+                vale_rochas: [
+                  { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
+                  { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
+                ],
+                vale_planta: [
+                  { key: "vp-back", target: "vale_rochas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#a08770" },
+                  { key: "vp-next", target: "vale_gelo",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ce6ff" },
+                ],
+                vale_gelo: [
+                  { key: "vg-back", target: "vale_planta", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#7ef27a" },
+                  { key: "vg-next", target: "vale_veneno", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
+                ],
+                vale_veneno: [
+                  { key: "vv-back", target: "vale_gelo",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#8ce6ff" },
+                  { key: "vv-next", target: "vale_fogo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5f2d" },
+                ],
+                vale_fogo: [
+                  { key: "vf-back", target: "vale_veneno",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#b45adc" },
+                  { key: "vf-next", target: "vulcao_ativo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
+                ],
+                vulcao_ativo: [
+                  { key: "va-back", target: "vale_fogo",         x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#ff5f2d" },
+                  { key: "va-next", target: "nucleo_primordial", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
+                ],
+                nucleo_primordial: [
+                  { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
+                  { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
+                ],
+                // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
+                gelius1: [
+                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7fd8ff" },
+                ],
+                gelius2: [
+                  { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+              };
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
@@ -9905,164 +10063,6 @@ function IdlePage() {
                 setWalkingTo(label);
                 setAuto(false);
                 pushChat(`Indo para ${label}…`, "info");
-              };
-              type GateDef = {
-                key: string;
-                target: IdleMapId;
-                x: number; y: number;
-                arriveX: number; arriveY: number;
-                color: string;
-              };
-              // Fluxo: arena → praia → neve → deserto → caverna
-              const gatesByMap: Record<IdleMapId, GateDef[]> = {
-                arena: [
-                  { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
-                  { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
-                  { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
-                  { key: "to-vale_rochas", target: "vale_rochas", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
-                ],
-                terra: [
-                  { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-venofogo", target: "venofogo", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,           color: "#ff5c2e" },
-                  { key: "to-fantasma", target: "fantasma", x: 60,          y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a259ff" },
-                  { key: "to-deserto_purpura", target: "deserto_purpura", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#b45adc" },
-                ],
-                deserto_purpura: [
-                  { key: "to-terra", target: "terra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9873a" },
-                  { key: "to-terry", target: "terry", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
-                ],
-                terry: [
-                  { key: "to-deserto_purpura", target: "deserto_purpura", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
-                  { key: "to-n2", target: "n2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
-                ],
-                n2: [
-                  { key: "to-terry", target: "terry", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
-                  { key: "to-n3", target: "n3", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#e8b878" },
-                ],
-                n3: [
-                  { key: "to-n2", target: "n2", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
-                  { key: "to-pantano_fogo", target: "pantano_fogo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
-                ],
-                pantano_fogo: [
-                  { key: "to-n3", target: "n3", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e8b878" },
-                  { key: "to-abismo_gelo", target: "abismo_gelo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
-                ],
-                abismo_gelo: [
-                  { key: "ag-back", target: "pantano_fogo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
-                  { key: "ag-next", target: "abismo_veneno", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
-                ],
-                abismo_veneno: [
-                  { key: "av-back", target: "abismo_gelo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
-                  { key: "av-next", target: "abismo_raio", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
-                ],
-                abismo_raio: [
-                  { key: "ar-back", target: "abismo_veneno", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
-                  { key: "ar-next", target: "abismo_sombra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#28143c" },
-                ],
-                abismo_sombra: [
-                  { key: "as-back", target: "abismo_raio", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
-                  { key: "as-next", target: "abismo_dragao", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9628" },
-                ],
-                abismo_dragao: [
-                  { key: "ad-back", target: "abismo_sombra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#28143c" },
-                  { key: "ad-next", target: "cadeia_ab", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
-                ],
-                cadeia_ab: [
-                  { key: "cab-back", target: "abismo_dragao", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9628" },
-                  { key: "cab-next", target: "cadeia_ab1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c084fc" },
-                ],
-                cadeia_ab1: [
-                  { key: "cab1-back", target: "cadeia_ab", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
-                  { key: "cab1-next", target: "cadeia_f1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
-                ],
-                cadeia_f1: [
-                  { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
-                ],
-                evento_myth: [],
-                oddish_o1: [
-                  { key: "o1-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
-                ],
-                oddish_o2: [
-                  { key: "o2-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
-                ],
-                oddish_o3: [
-                  { key: "o3-o1", target: "oddish_o1", x: 80, y: WORLD_H - 100, arriveX: WORLD_W - 120, arriveY: 120, color: "#7ef27a" },
-                  { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
-                ],
-                grass_oddish: [],
-                vale_fragmentos: [],
-                gym_carmesim: [
-                  { key: "gym1-gym2", target: "gym_gelo_sombra", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#9fe8ff" },
-                ],
-                gym_gelo_sombra: [
-                  { key: "gym2-gym1", target: "gym_carmesim", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#ff8b8b" },
-                  { key: "gym2-gym3", target: "gym_arcano", x: WORLD_W - 80, y: 120, arriveX: 140, arriveY: WORLD_H - 160, color: "#c58bff" },
-                ],
-                gym_arcano: [
-                  { key: "gym3-gym2", target: "gym_gelo_sombra", x: 80, y: WORLD_H - 120, arriveX: WORLD_W - 140, arriveY: 160, color: "#9fe8ff" },
-                ],
-                absol_start: [
-                  { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
-                ],
-                governante_hall: [
-                  { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
-                ],
-                venofogo: [
-                  { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
-                ],
-                fantasma: [
-                  { key: "to-terra", target: "terra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9873a" },
-                ],
-                praia: [
-                  { key: "to-arena",   target: "arena",   x: WORLD_W - 60, y: 60,          arriveX: 100,           arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-deserto", target: "deserto", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#f5b25c" },
-                ],
-                neve: [
-                  { key: "to-arena",   target: "arena",   x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#7ef27a" },
-                  { key: "to-caverna", target: "caverna", x: 60,          y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
-                ],
-                deserto: [
-                  { key: "to-praia",    target: "praia",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#5cd3ff" },
-                ],
-                caverna: [
-                  { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
-                ],
-                // ═══ Cadeia endgame — portais visíveis; ao entrar, exige nível ═══
-                vale_rochas: [
-                  { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
-                  { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
-                ],
-                vale_planta: [
-                  { key: "vp-back", target: "vale_rochas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#a08770" },
-                  { key: "vp-next", target: "vale_gelo",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ce6ff" },
-                ],
-                vale_gelo: [
-                  { key: "vg-back", target: "vale_planta", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#7ef27a" },
-                  { key: "vg-next", target: "vale_veneno", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
-                ],
-                vale_veneno: [
-                  { key: "vv-back", target: "vale_gelo",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#8ce6ff" },
-                  { key: "vv-next", target: "vale_fogo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5f2d" },
-                ],
-                vale_fogo: [
-                  { key: "vf-back", target: "vale_veneno",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#b45adc" },
-                  { key: "vf-next", target: "vulcao_ativo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
-                ],
-                vulcao_ativo: [
-                  { key: "va-back", target: "vale_fogo",         x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#ff5f2d" },
-                  { key: "va-next", target: "nucleo_primordial", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
-                ],
-                nucleo_primordial: [
-                  { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
-                  { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
-                ],
-                // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
-                gelius1: [
-                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7fd8ff" },
-                ],
-                gelius2: [
-                  { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
