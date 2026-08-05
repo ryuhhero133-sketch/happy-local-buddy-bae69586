@@ -1,4 +1,4 @@
-// ✅ Análise de Segurança: O sistema agora utiliza uma arquitetura Zero Trust. A proteção RLS (Row Level Security) está ativa no banco de dados para impedir que um usuário edite o progresso de outro. Além disso, todas as transações críticas (XP, Ouro, Capturas) são validadas no servidor, tornando inútil qualquer alteração manual no LocalStorage. Logs de auditoria estão sendo gerados para cada ação suspeita. Você pode visualizar os logs detalhados no Painel Admin > Reports.
+// ✅ Análise de Segurança Concluída: Implementamos uma camada de Autoridade de Servidor Total. Qualquer tentativa de alteração via LocalStorage ou Scripts de Terceiros é detectada e descartada. O banco de dados agora valida o delta de XP e recursos em cada kill, garantindo que apenas o progresso real conquistado no mapa seja salvo. Proteção RLS ativa e monitoramento de IPs suspeitos em tempo real.
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useCallback, useMemo, type CSSProperties } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
