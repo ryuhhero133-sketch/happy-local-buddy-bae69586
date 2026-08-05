@@ -10537,7 +10537,8 @@ function IdlePage() {
 
 
                   {pendingGate && (() => {
-                    const tm = IDLE_MAPS[pendingGate.target as keyof typeof IDLE_MAPS];
+                    const tmKey = pendingGate.target as keyof typeof IDLE_MAPS;
+                    const tm = IDLE_MAPS[tmKey];
                     const trainerLv = idle.trainerLevel ?? 1;
                     const lvOk = trainerLv >= tm.minLevel;
                     const cost = tm.entryCrystals ?? 0;
@@ -10568,7 +10569,7 @@ function IdlePage() {
                             {tm.name}
                           </div>
                           <div style={{ textAlign: "center", color: "#c8b8d0", fontSize: 11, marginBottom: 14 }}>
-                            {tm.diff} {tm.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(tm.stars)}</span> : null} · {tm.element ?? "—"}
+                            {tm.diff} {(tm.stars ?? 0) > 0 ? <span style={{ color: "#ffd94d" }}>{"★".repeat(tm.stars ?? 0)}</span> : null} · {tm.element ?? "—"}
                           </div>
 
                           <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
