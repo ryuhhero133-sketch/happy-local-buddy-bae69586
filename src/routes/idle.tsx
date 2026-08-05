@@ -10969,7 +10969,7 @@ function IdlePage() {
 
         {/* ============ NAV INFERIOR ============ */}
         <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "center", gap: 4, background: "linear-gradient(180deg,#0b0510 0%,#160a20 100%)", padding: "8px 0", borderTop: "1px solid rgba(245,207,107,0.15)" }}>
-          {( [
+          {[
             { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
             { id: "wiki",     label: "Wiki",     img: navInicio,    color: "#c084fc" },
             { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
