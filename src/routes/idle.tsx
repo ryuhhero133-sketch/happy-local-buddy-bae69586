@@ -10591,6 +10591,7 @@ function IdlePage() {
 
 
 
+
           {/* COLETA — logo abaixo do mapa, destaque */}
           <div ref={coletaRef} style={{
             background: "linear-gradient(135deg, #2a1a3e, #3d2b52)",
