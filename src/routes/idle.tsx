@@ -10268,21 +10268,6 @@ function IdlePage() {
                   </div>
 
                   <MapGlobeButton />
-                </div>
-              );
-            })()}
-          </Panel>
-
-
-
-
-
-
-
-
-
-
-
           {bigMapOpen && (
             <div
               onClick={() => setBigMapOpen(false)}
@@ -10584,6 +10569,21 @@ function IdlePage() {
                         </div>
                       );
                     })(), document.body)}
+                </div>
+              );
+            })()}
+          </Panel>
+
+
+
+
+
+
+
+
+
+
+
 
 
 
