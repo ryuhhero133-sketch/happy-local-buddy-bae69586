@@ -16032,6 +16032,7 @@ function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: n
           </div>
         )}
       </div>
+      {/* Portals moved to top-level for maximum reliability */}
     </div>
   );
 }
