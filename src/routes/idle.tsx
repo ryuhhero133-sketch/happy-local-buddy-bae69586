@@ -10212,6 +10212,39 @@ function IdlePage() {
                 </div>
               );
 
+              const MapGlobeButton = () => (
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); playClick(); setWorldMapOpen(true); }}
+                    className="world-globe-btn"
+                    title="Abrir Mapa Mundi"
+                    style={{
+                      background: "linear-gradient(135deg, #1a1230 0%, #3a2560 55%, #1a1230 100%)",
+                      border: "1px solid #f5cf6b",
+                      color: "#f5cf6b",
+                      borderRadius: 10, padding: "6px 14px 6px 8px",
+                      fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
+                      cursor: "pointer",
+                      boxShadow: "0 0 14px rgba(245,207,107,0.4), inset 0 1px 0 rgba(255,240,180,0.25)",
+                      display: "inline-flex", alignItems: "center", gap: 6,
+                      textShadow: "0 1px 0 rgba(0,0,0,0.5)",
+                      position: "relative",
+                      zIndex: 10,
+                    }}
+                  >
+                    <img
+                      src={assetUrlFromJson(iconWorldGlobe)}
+                      alt=""
+                      width={28}
+                      height={28}
+                      className="world-globe-spin"
+                      style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
+                    />
+                    MAPA MUNDI
+                  </button>
+                </div>
+              );
+
               return (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <div style={{ position: "relative" }}>
@@ -10234,397 +10267,332 @@ function IdlePage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "center" }}>
-                    <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); playClick(); setWorldMapOpen(true); }}
-                      className="world-globe-btn"
-                      title="Abrir Mapa Mundi"
-                      style={{
-                        background: "linear-gradient(135deg, #1a1230 0%, #3a2560 55%, #1a1230 100%)",
-                        border: "1px solid #f5cf6b",
-                        color: "#f5cf6b",
-                        borderRadius: 10, padding: "6px 14px 6px 8px",
-                        fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
-                        cursor: "pointer",
-                        boxShadow: "0 0 14px rgba(245,207,107,0.4), inset 0 1px 0 rgba(255,240,180,0.25)",
-                        display: "inline-flex", alignItems: "center", gap: 6,
-                        textShadow: "0 1px 0 rgba(0,0,0,0.5)",
-                      }}
-                    >
-                      <img
-                        src={assetUrlFromJson(iconWorldGlobe)}
-                        alt=""
-                        width={28}
-                        height={28}
-                        className="world-globe-spin"
-                        style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
-                      />
-                      MAPA MUNDI
-                    </button>
-                  </div>
-                </div>
-              );
-
-              return (
-                <div key="map-section">
-
-
-
-                  {bigMapOpen && (
-                    <div
-                      onClick={() => setBigMapOpen(false)}
-                      style={{
-                        position: "fixed", inset: 0, zIndex: 9998,
-                        background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
-                        padding: 24, cursor: "pointer",
-                      }}
-                    >
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                          background: "#0b0510", border: "3px solid #f5cf6b",
-                          borderRadius: 14, padding: 16, maxWidth: 720, width: "100%",
-                          cursor: "default", boxShadow: "0 0 60px rgba(245,207,107,0.4)",
-                        }}
-                      >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                          <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 16, letterSpacing: 1 }}>
-                            🗺 {map.name} — clique num ponto pra viajar
-                          </div>
-                          <button
-                            onClick={() => setBigMapOpen(false)}
-                            style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}
-                          >✕</button>
-                        </div>
-                        {renderMap(true, true)}
-                        <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
-                          🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
-                            const tm = IDLE_MAPS[g.target];
-                            const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
-                            return (
-                              <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
-                                ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-
-              return (
-                <div key="world-map-portal-container">
-                  {worldMapOpen && createPortal((() => {
-                    const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
-                    const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
-                      { id: "arena", x: 15, y: 22 },
-                      { id: "terra", x: 32, y: 16 },
-                      { id: "deserto_purpura", x: 54, y: 20 },
-                      { id: "pantano_fogo", x: 87, y: 26 },
-                      { id: "praia", x: 12, y: 60 },
-                      { id: "venofogo", x: 26, y: 42 },
-                      { id: "terry", x: 40, y: 44 },
-                      { id: "n2", x: 47, y: 52 },
-                      { id: "n3", x: 53, y: 58 },
-                      { id: "fantasma", x: 60, y: 46 },
-                      { id: "caverna", x: 78, y: 52 },
-                      { id: "vale_rochas", x: 20, y: 78 },
-                      { id: "neve", x: 36, y: 74 },
-                      { id: "deserto", x: 48, y: 30 },
-                      { id: "abismo_gelo", x: 58, y: 82 },
-                      { id: "abismo_veneno", x: 66, y: 86 },
-                      { id: "abismo_dragao", x: 74, y: 88 },
-                      { id: "cadeia_ab", x: 80, y: 76 },
-                      { id: "cadeia_ab1", x: 86, y: 68 },
-                      { id: "cadeia_f1", x: 92, y: 58 },
-                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 90, y: 84 }] : []),
-                    ];
-                    const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
-                      { id: "absol_start" as IdleMapId, x: 18, y: 45 },
-                      { id: "governante_hall" as IdleMapId, x: 52, y: 55 },
-                    ];
-                    const activeTab = worldTab;
-                    const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : WORLD_PINS_C2;
-                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : worldMapContinent2Url;
-                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : "👑 TEMPLO DO GOVERNANTE · CONTINENTE II";
-                    const trainerLv = idle.trainerLevel ?? 1;
-                    const scrollsAvail = idle.items?.scroll_teleport ?? 0;
-                    return (
-                      <div
-                        onClick={() => setWorldMapOpen(false)}
-                        style={{
-                          position: "fixed", inset: 0, zIndex: 999999,
-                          background: "rgba(0,0,0,0.95)", display: "grid", placeItems: "center",
-                          padding: 16, cursor: "pointer",
-                        }}
-                      >
-                        <div
-                          onClick={(e) => e.stopPropagation()}
-                          style={{
-                            background: "#0b0510",
-                            border: "3px solid #f5cf6b",
-                            borderRadius: 16,
-                            padding: 12,
-                            maxWidth: 1100, width: "100%", position: "relative",
-                            cursor: "default",
-                            boxShadow: "0 0 80px rgba(245,207,107,0.5)",
-                          }}
-                        >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px", gap: 8 }}>
-                            <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 15, letterSpacing: 2 }}>
-                              {tabTitle}
-                            </div>
-                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                              <span style={{ background: scrollsAvail > 0 ? "linear-gradient(135deg,#3d2a08,#5a3d10)" : "#1a1420", border: `1px solid ${scrollsAvail > 0 ? "#f5cf6b" : "#4a3a52"}`, color: scrollsAvail > 0 ? "#ffe08a" : "#7a6a82", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 900 }}>
-                                📜 Pergaminho: {scrollsAvail}
-                              </span>
-                              <button
-                                onClick={() => setWorldMapOpen(false)}
-                                style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 12px", fontWeight: 800, cursor: "pointer" }}
-                              >✕</button>
-                            </div>
-                          </div>
-                          {/* Tabs de continentes */}
-                          <div style={{ display: "flex", gap: 6, marginBottom: 8, padding: "0 4px" }}>
-                            {([
-                              { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
-                              { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
-                              { id: 3 as const, label: "🔮 Continente III", sub: "Hexagonal Champions" },
-                            ]).map((t) => {
-                              const active = worldTab === t.id;
-                              const locked = (t.id === 2 && !hasGovCard);
-                              const isHex = t.id === 3;
-                              return (
-                                <button
-                                  key={t.id}
-                                  onClick={() => {
-                                    if (locked) return;
-                                    playClick();
-                                    if (isHex) {
-                                      setWorldMapOpen(false);
-                                      navigate({ to: "/hexchampions" });
-                                      return;
-                                    }
-                                    setWorldTab(t.id);
-                                  }}
-                                  disabled={locked}
-                                  style={{
-                                    flex: 1,
-                                    background: active
-                                      ? "linear-gradient(135deg, #3d2a08, #6a4818)"
-                                      : locked ? "#160a1e" : isHex ? "linear-gradient(135deg, #1a0a2e, #3a1a5a)" : "#1a1420",
-                                    border: `2px solid ${active ? "#f5cf6b" : locked ? "#3a2a4a" : isHex ? "#a06de0" : "#5a4a6a"}`,
-                                    color: active ? "#ffe08a" : locked ? "#5a4a6a" : isHex ? "#e6d3ff" : "#c8b8d0",
-                                    borderRadius: 8,
-                                    padding: "8px 10px",
-                                    cursor: locked ? "not-allowed" : "pointer",
-                                    textAlign: "left",
-                                    boxShadow: active ? "0 0 14px rgba(245,207,107,0.5)" : isHex && !locked ? "0 0 14px rgba(160,109,224,0.5)" : undefined,
-                                  }}
-                                >
-                                  <div style={{ fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>{t.label}</div>
-                                  <div style={{ fontSize: 10, opacity: 0.85, marginTop: 2 }}>{t.sub}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: `2px solid ${activeTab === 2 ? "#a06de0" : "#7a5a20"}`, boxShadow: activeTab === 2 ? "inset 0 0 60px rgba(120,60,180,0.6)" : "inset 0 0 40px rgba(0,0,0,0.6)" }}>
-                            <img
-                              src={bgUrl}
-                              alt={tabTitle}
-                              loading="lazy"
-                              width={1536}
-                              height={1024}
-                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                            />
-                            {WORLD_PINS.map((pin) => {
-                              const m = IDLE_MAPS[pin.id];
-                              if (!m) return null;
-                              const ok = trainerLv >= m.minLevel;
-                              const current = idle.currentMap === pin.id;
-                              return (
-                                <button
-                                  key={pin.id}
-                                  title={m.raid ? `${m.name} · RAID (chefes Lv variados)` : `${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}`}
-                                  onClick={() => {
-                                    if (current) { setWorldMapOpen(false); return; }
-                                    playClick();
-                                    const synthGate = {
-                                      key: `world-${pin.id}`,
-                                      target: pin.id,
-                                      x: WORLD_W / 2, y: WORLD_H / 2,
-                                      arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
-                                      color: "#f5cf6b",
-                                    };
-                                    // Pergaminho de Teleporte — se tiver e o mapa for elegível (nível OK), teleporta instantâneo sem custo
-                                    const scrolls = idle.items?.scroll_teleport ?? 0;
-                                    if (scrolls > 0 && (idle.trainerLevel ?? 1) >= m.minLevel) {
-                                      setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
-                                      setWorldMapOpen(false);
-                                      travelToGate(synthGate);
-                                      pushChat(`📜 Pergaminho de Teleporte consumido — viagem instantânea para ${m.name}.`, "cap");
-                                      return;
-                                    }
-                                    setWorldMapOpen(false);
-                                    setPendingGate({ target: pin.id, gate: synthGate, fromBig: false });
-                                  }}
-                                  style={{
-                                    position: "absolute",
-                                    left: `${pin.x}%`, top: `${pin.y}%`,
-                                    transform: "translate(-50%,-50%)",
-                                    background: current
-                                      ? "linear-gradient(135deg, #7ef27a, #4ec26a)"
-                                      : ok
-                                        ? "linear-gradient(135deg, rgba(245,207,107,0.95), rgba(217,164,65,0.95))"
-                                        : "rgba(30,20,40,0.85)",
-                                    border: `2px solid ${current ? "#fff" : ok ? "#fff2b8" : "#6a5a70"}`,
-                                    color: current ? "#0b1a0b" : ok ? "#1a0f26" : "#8a7a9c",
-                                    borderRadius: 20,
-                                    padding: "4px 10px",
-                                    fontSize: 10,
-                                    fontWeight: 900,
-                                    letterSpacing: 0.3,
-                                    cursor: "pointer",
-                                    boxShadow: current
-                                      ? "0 0 16px rgba(126,242,122,0.9), 0 0 4px #fff"
-                                      : ok
-                                        ? "0 0 12px rgba(245,207,107,0.7)"
-                                        : "0 2px 4px rgba(0,0,0,0.6)",
-                                    whiteSpace: "nowrap",
-                                    animation: current ? "worldPinPulse 1.6s ease-in-out infinite" : undefined,
-                                  }}
-                                >
-                                  {current ? "📍 " : ok ? "● " : "🔒 "}{m.name} <span style={{ opacity: 0.75, fontWeight: 700, color: m.raid ? "#ff8ad6" : undefined }}>{m.raid ? "RAID" : `Lv${m.minLevel}${m.maxLevel ? `-${m.maxLevel}` : ""}`}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <div style={{ marginTop: 10, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", fontSize: 11, color: "#c8b8d0" }}>
-                            <span>📍 Você está em <b style={{ color: "#7ef27a" }}>{map.name}</b></span>
-                            <span>🎖 Treinador Lv <b style={{ color: "#f5cf6b" }}>{trainerLv}</b></span>
-                            <span style={{ color: "#8a7a9c" }}>Clique num destino para viajar (🪙 1000 + 💎 taxa se houver).</span>
-                          </div>
-                          <style>{`@keyframes worldPinPulse { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.12); } }`}</style>
-                        </div>
-                      </div>
-                    );
-                  })(), document.body)}
-
-
-
-                  {pendingGate && (() => {
-                    const pg = pendingGate!;
-                    const tmKey = pg.target as keyof typeof IDLE_MAPS;
-                    const tm = IDLE_MAPS[tmKey];
-                    const trainerLv = idle.trainerLevel ?? 1;
-                    const lvOk = trainerLv >= tm.minLevel;
-                    const cost = tm.entryCrystals ?? 0;
-                    const gold = 1000;
-                    const crystalOk = cost === 0 || idle.bank.crystals >= cost;
-                    const goldOk = idle.bank.gold >= gold;
-                    const shardToll = redShardTravelCost(tm.minLevel);
-                    const shardHave = idle.items?.fragmento_vermelho ?? 0;
-                    const shardOk = shardToll === 0 || shardHave >= shardToll;
-                    const canGo = lvOk && crystalOk && shardOk;
-                    const close = () => setPendingGate(null);
-                    return (
-                      <div
-                        onClick={close}
-                        style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.82)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}
-                      >
-                        <div
-                          onClick={(e) => e.stopPropagation()}
-                          style={{
-                            background: "linear-gradient(160deg, #1a0f26 0%, #0b0510 100%)",
-                            border: "3px solid #f5cf6b", borderRadius: 16, padding: 20,
-                            maxWidth: 420, width: "100%", cursor: "default",
-                            boxShadow: "0 0 80px rgba(245,207,107,0.5), inset 0 0 30px rgba(245,207,107,0.08)",
-                          }}
-                        >
-                          <div style={{ textAlign: "center", color: "#f5cf6b", fontSize: 12, letterSpacing: 3, fontWeight: 900, marginBottom: 4 }}>PORTAL DE VIAGEM</div>
-                          <div style={{ textAlign: "center", color: "#fff", fontSize: 22, fontWeight: 900, marginBottom: 2, textShadow: "0 0 12px rgba(245,207,107,0.6)" }}>
-                            {tm.name}
-                          </div>
-                          <div style={{ textAlign: "center", color: "#c8b8d0", fontSize: 11, marginBottom: 14 }}>
-                            {tm.diff} {(tm.stars ?? 0) > 0 ? <span style={{ color: "#ffd94d" }}>{"★".repeat(tm.stars ?? 0)}</span> : null} · {tm.element ?? "—"}
-                          </div>
-
-                          <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${lvOk ? "#7ef27a" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
-                              <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🎖 Nível exigido</span>
-                              <span style={{ color: lvOk ? "#7ef27a" : "#ff8888", fontWeight: 900 }}>
-                                Lv {tm.minLevel} {lvOk ? "✓" : `(você: ${trainerLv})`}
-                              </span>
-                            </div>
-                            {cost > 0 && (
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${crystalOk ? "#7fd8ff" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
-                                <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>💎 Custo de entrada</span>
-                                <span style={{ color: crystalOk ? "#7fd8ff" : "#ff8888", fontWeight: 900 }}>
-                                  {cost} cristais {crystalOk ? "" : `(você: ${idle.bank.crystals})`}
-                                </span>
-                              </div>
-                            )}
-                            {shardToll > 0 && (
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${shardOk ? "#ff6b6b" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
-                                <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🔻 Pedágio de rota</span>
-                                <span style={{ color: shardOk ? "#ff9b9b" : "#ff8888", fontWeight: 900 }}>
-                                  {shardToll} fragmentos {shardOk ? "" : `(você: ${shardHave})`}
-                                </span>
-                              </div>
-                            )}
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${goldOk ? "#f5cf6b" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
-                              <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🪙 Taxa de teleporte</span>
-                              <span style={{ color: goldOk ? "#f5cf6b" : "#ff8888", fontWeight: 900 }}>
-                                {gold} ouro {goldOk ? "" : `(você: ${idle.bank.gold})`}
-                              </span>
-                            </div>
-                            {tm.raid ? (
-                              <div style={{ textAlign: "center", color: "#ff8ad6", fontSize: 10, fontWeight: 900, letterSpacing: 1.2 }}>
-                                ☠ ZONA DE RAID · chefes de níveis variados (não é faixa de progressão)
-                              </div>
-                            ) : tm.maxLevel && (
-                              <div style={{ textAlign: "center", color: "#8a7a9c", fontSize: 10 }}>
-                                Pokémon selvagens: Lv {tm.minLevel}–{tm.maxLevel}
-                              </div>
-                            )}
-                          </div>
-
-                          <div style={{ display: "flex", gap: 8 }}>
-                            <button
-                              onClick={close}
-                              style={{ flex: 1, background: "#2a1a2e", border: "1px solid #6a4a70", color: "#c8b8d0", borderRadius: 8, padding: "10px", fontWeight: 800, cursor: "pointer", fontSize: 12, letterSpacing: 1 }}
-                            >CANCELAR</button>
-                            <button
-                              disabled={!canGo}
-                              onClick={() => {
-                                if (!pendingGate) return;
-                                const g = pendingGate.gate;
-                                const wasBig = pendingGate.fromBig;
-                                setPendingGate(null);
-                                travelToGate(g);
-                                if (wasBig) setBigMapOpen(false);
-                              }}
-                              style={{
-                                flex: 2,
-                                background: canGo ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "#3a2a2a",
-                                border: `2px solid ${canGo ? "#fff2b8" : "#5a3a3a"}`,
-                                color: canGo ? "#1a0f26" : "#6a5a5a",
-                                borderRadius: 8, padding: "10px", fontWeight: 900, cursor: canGo ? "pointer" : "not-allowed",
-                                fontSize: 13, letterSpacing: 1,
-                                boxShadow: canGo ? "0 0 20px rgba(245,207,107,0.5)" : "none",
-                              }}
-                            >{lvOk ? (crystalOk ? "✓ VIAJAR" : "💎 CRISTAIS INSUFICIENTES") : "🔒 NÍVEL INSUFICIENTE"}</button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                  <MapGlobeButton />
                 </div>
               );
             })()}
           </Panel>
+
+
+
+
+
+
+
+
+
+
+
+          {bigMapOpen && (
+            <div
+              onClick={() => setBigMapOpen(false)}
+              style={{
+                position: "fixed", inset: 0, zIndex: 9998,
+                background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
+                padding: 24, cursor: "pointer",
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: "#0b0510", border: "3px solid #f5cf6b",
+                  borderRadius: 14, padding: 16, maxWidth: 720, width: "100%",
+                  cursor: "default", boxShadow: "0 0 60px rgba(245,207,107,0.4)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 16, letterSpacing: 1 }}>
+                    🗺 {map.name} — clique num ponto pra viajar
+                  </div>
+                  <button
+                    onClick={() => setBigMapOpen(false)}
+                    style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}
+                  >✕</button>
+                </div>
+                <div style={{ position: "relative" }}>
+                  <div style={{
+                    width: "100%",
+                    aspectRatio: `${WORLD_W} / ${WORLD_H}`, borderRadius: 6, overflow: "hidden",
+                    background: `url(${map.bg}) center/cover`, position: "relative",
+                    border: "1px solid rgba(245,207,107,0.4)",
+                    margin: "0 auto",
+                  }}>
+                    {visibleBuildings.map((b) => (
+                      <button
+                        key={b.key}
+                        title={`Ir ao ${b.label}`}
+                        onClick={() => { goTo(b.label, b.x, b.y - 40); setBigMapOpen(false); }}
+                        className="map-pulse-dot"
+                        style={{
+                          position: "absolute",
+                          left: `${(b.x / WORLD_W) * 100}%`,
+                          top: `${(b.y / WORLD_H) * 100}%`,
+                          transform: "translate(-50%,-50%)",
+                          fontSize: 22, lineHeight: 1,
+                          background: "transparent", border: "none", padding: 0,
+                          cursor: "pointer",
+                          filter: `drop-shadow(0 0 8px ${b.color})`,
+                        }}
+                      >{b.emoji}</button>
+                    ))}
+                    {currentGates.map((g) => {
+                      const targetMap = IDLE_MAPS[g.target];
+                      return (
+                        <button
+                          key={g.key}
+                          title={`Viajar para ${targetMap.name}`}
+                          onClick={() => {
+                            setPendingGate({ target: g.target, gate: g, fromBig: true });
+                          }}
+                          className="map-pulse-dot"
+                          style={{
+                            position: "absolute",
+                            left: `${(g.x / WORLD_W) * 100}%`,
+                            top: `${(g.y / WORLD_H) * 100}%`,
+                            transform: "translate(-50%,-50%)",
+                            fontSize: 18, lineHeight: 1,
+                            background: "transparent", border: "none", padding: 0,
+                            cursor: "pointer",
+                            filter: `drop-shadow(0 0 6px ${g.color})`,
+                          }}
+                        >●</button>
+                      );
+                    })}
+                    <div style={{
+                      position: "absolute",
+                      left: `${(trainerPos.x / WORLD_W) * 100}%`,
+                      top: `${(trainerPos.y / WORLD_H) * 100}%`,
+                      width: 16, height: 16, borderRadius: "50%",
+                      background: "#6bd4ff",
+                      border: "2px solid #fff",
+                      transform: "translate(-50%,-50%)",
+                      boxShadow: "0 0 8px #6bd4ff",
+                    }} />
+                  </div>
+                </div>
+                <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
+                  🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
+                    const tm = IDLE_MAPS[g.target];
+                    const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
+                    return (
+                      <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
+                        ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            <div key="world-map-portal-container">
+
+                    {worldMapOpen && createPortal((() => {
+                      const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
+                      const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
+                        { id: "arena", x: 15, y: 22 },
+                        { id: "terra", x: 32, y: 16 },
+                        { id: "deserto_purpura", x: 54, y: 20 },
+                        { id: "pantano_fogo", x: 87, y: 26 },
+                        { id: "praia", x: 12, y: 60 },
+                        { id: "caverna", x: 42, y: 48 },
+                        { id: "neve", x: 74, y: 46 },
+                        { id: "deserto", x: 92, y: 58 },
+                        { id: "venofogo", x: 48, y: 84 },
+                        { id: "fantasma", x: 14, y: 88 },
+                        { id: "mina_cristal", x: 78, y: 86 },
+                        { id: "cemiterio_assombrado", x: 92, y: 88 },
+                      ];
+                      const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
+                        { id: "vale_shards", x: 50, y: 50 },
+                        { id: "grass_oddish", x: 25, y: 30 },
+                      ];
+                      const ALL_PINS = [...WORLD_PINS_C1, ...WORLD_PINS_C2];
+                      const trainerLv = idle.trainerLevel ?? 1;
+
+                      return (
+                        <div
+                          onClick={() => setWorldMapOpen(false)}
+                          style={{
+                            position: "fixed", inset: 0, zIndex: 99999,
+                            background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center",
+                            padding: 20, cursor: "pointer",
+                          }}
+                        >
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              background: "#0b0510", border: "4px solid #f5cf6b",
+                              borderRadius: 20, padding: 24, maxWidth: 900, width: "100%",
+                              cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.5)",
+                              position: "relative",
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                              <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 24, letterSpacing: 2, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
+                                🌏 MAPA MUNDI
+                              </div>
+                              <button
+                                onClick={() => setWorldMapOpen(false)}
+                                style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer", fontSize: 16 }}
+                              >✕</button>
+                            </div>
+
+                            <div style={{
+                              width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden",
+                              background: "linear-gradient(to bottom, #1a2a4a, #0b0510)", position: "relative",
+                              border: "2px solid rgba(245,207,107,0.3)",
+                            }}>
+                              <div style={{ position: "absolute", inset: 0, opacity: 0.3, background: "radial-gradient(circle at 50% 50%, #3a2560 0%, transparent 70%)" }} />
+                              
+                              {ALL_PINS.map((pin) => {
+                                const m = IDLE_MAPS[pin.id];
+                                const ok = trainerLv >= m.minLevel;
+                                const current = idle.currentMap === pin.id;
+                                return (
+                                  <button
+                                    key={pin.id}
+                                    onClick={() => {
+                                      if (ok) {
+                                        setPendingGate({ target: pin.id, gate: null, fromBig: false });
+                                      } else {
+                                        try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Mapa Bloqueado", body: `Nível ${m.minLevel} necessário!`, tone: "error" } })); } catch {}
+                                      }
+                                    }}
+                                    style={{
+                                      position: "absolute",
+                                      left: `${pin.x}%`, top: `${pin.y}%`,
+                                      background: current ? "#7ef27a" : ok ? "#f5cf6b" : "#4a3a5a",
+                                      border: `3px solid ${current ? "#fff" : "#1a0a20"}`,
+                                      borderRadius: "50%", width: 18, height: 18,
+                                      cursor: ok ? "pointer" : "not-allowed",
+                                      transform: "translate(-50%,-50%)",
+                                      boxShadow: current ? "0 0 15px #7ef27a" : ok ? "0 0 10px rgba(245,207,107,0.5)" : "none",
+                                      zIndex: current ? 10 : 5,
+                                      animation: current ? "worldPinPulse 1.6s ease-in-out infinite" : undefined,
+                                    }}
+                                    title={`${m.name} (Lv ${m.minLevel})`}
+                                  />
+                                );
+                              })}
+
+                              <div style={{ position: "absolute", bottom: 12, left: 12, background: "rgba(0,0,0,0.7)", padding: "8px 12px", borderRadius: 8, border: "1px solid #f5cf6b", display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#fff" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#7ef27a" }} /> Você está aqui
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#f5cf6b" }} /> Desbloqueado
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#4a3a5a" }} /> Bloqueado
+                                </div>
+                              </div>
+                            </div>
+                            <style>{`@keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }`}</style>
+                          </div>
+                        </div>
+                      );
+                    })(), document.body)}
+
+                    {pendingGate && createPortal((() => {
+                      const pg = pendingGate;
+                      const tmKey = pg.target as keyof typeof IDLE_MAPS;
+                      const tm = IDLE_MAPS[tmKey];
+                      const trainerLv = idle.trainerLevel ?? 1;
+                      const lvOk = trainerLv >= tm.minLevel;
+                      const cost = tm.entryCrystals ?? 0;
+                      const gold = 1000;
+                      const crystalOk = cost === 0 || idle.bank.crystals >= cost;
+                      const goldOk = idle.bank.gold >= gold;
+                      const shardToll = redShardTravelCost(tm.minLevel);
+                      const shardOk = idle.bank.redShards >= shardToll;
+                      const canGo = lvOk && crystalOk && goldOk && shardOk;
+                      const close = () => setPendingGate(null);
+
+                      return (
+                        <div
+                          onClick={close}
+                          style={{
+                            position: "fixed", inset: 0, zIndex: 100000,
+                            background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
+                            padding: 24, cursor: "pointer",
+                          }}
+                        >
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              background: "#160a20", border: "3px solid #f5cf6b",
+                              borderRadius: 16, padding: 20, maxWidth: 380, width: "100%",
+                              cursor: "default", boxShadow: "0 0 50px rgba(0,0,0,0.8)",
+                              textAlign: "center", position: "relative",
+                            }}
+                          >
+                            <div style={{ fontSize: 40, marginBottom: 10 }}>🚀</div>
+                            <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 18, marginBottom: 4, letterSpacing: 1 }}>PORTAL DE VIAGEM</div>
+                            <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 16 }}>Deseja viajar para <b style={{ color: "#fff" }}>{tm.name}</b>?</div>
+
+                            <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: 12, marginBottom: 20, textAlign: "left", fontSize: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: lvOk ? "#7ef27a" : "#ff6b6b" }}>
+                                <span>Nível Necessário:</span>
+                                <b>Lv {tm.minLevel} {lvOk ? "✓" : "✗"}</b>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: goldOk ? "#fff" : "#ff6b6b" }}>
+                                <span>Taxa de Ouro:</span>
+                                <b>🪙 {gold.toLocaleString()}</b>
+                              </div>
+                              {cost > 0 && (
+                                <div style={{ display: "flex", justifyContent: "space-between", color: crystalOk ? "#5cd3ff" : "#ff6b6b" }}>
+                                  <span>Custo Cristais:</span>
+                                  <b>💎 {cost.toLocaleString()}</b>
+                                </div>
+                              )}
+                              {shardToll > 0 && (
+                                <div style={{ display: "flex", justifyContent: "space-between", color: shardOk ? "#ff4d4d" : "#ff6b6b" }}>
+                                  <span>Pedágio Shard:</span>
+                                  <b>🔴 {shardToll.toLocaleString()}</b>
+                                </div>
+                              )}
+                            </div>
+
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                onClick={close}
+                                style={{ flex: 1, background: "#2a1a2e", border: "1px solid #6a4a70", color: "#c8b8d0", borderRadius: 8, padding: "10px", fontWeight: 800, cursor: "pointer", fontSize: 12 }}
+                              >CANCELAR</button>
+                              <button
+                                disabled={!canGo}
+                                onClick={() => {
+                                  const g = pg.gate;
+                                  const wasBig = pg.fromBig;
+                                  setPendingGate(null);
+                                  travelToGate(g || { target: pg.target, arriveX: WORLD_W / 2, arriveY: WORLD_H / 2 } as any);
+                                  if (wasBig) setBigMapOpen(false);
+                                  setWorldMapOpen(false);
+                                }}
+                                style={{
+                                  flex: 2,
+                                  background: canGo ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "#3a2a2a",
+                                  border: "none", color: canGo ? "#160a20" : "#8a7a9c",
+                                  borderRadius: 8, padding: "10px", fontWeight: 900,
+                                  cursor: canGo ? "pointer" : "not-allowed",
+                                  fontSize: 12,
+                                  boxShadow: canGo ? "0 0 20px rgba(245,207,107,0.5)" : "none",
+                                }}
+                              >{canGo ? "VIAJAR" : "REQUISITOS NÃO ATENDIDOS"}</button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })(), document.body)}
+                  </div>
+                </div>
+              );
+            })()}
+          </Panel>
+
+
+
+
+
+
 
 
           {/* COLETA — logo abaixo do mapa, destaque */}
@@ -10996,8 +10964,6 @@ function IdlePage() {
           {/* Guia do Prof. Carvalho removido a pedido do usuário */}
 
         </div>
-
-
 
         {/* ============ NAV INFERIOR ============ */}
         <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "center", gap: 4, background: "linear-gradient(180deg,#0b0510 0%,#160a20 100%)", padding: "8px 0", borderTop: "1px solid rgba(245,207,107,0.15)" }}>
@@ -12871,19 +12837,19 @@ function IdlePage() {
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
 
       {/* ============ LOJINHA CASH ============ */}
-      <CashShopModal
-        open={cashShopOpen}
-        onClose={() => setCashShopOpen(false)}
-        identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
-        wallet={{
-          coins: idle.bank.gold,
-          crystals: idle.bank.crystals,
-          level: idle.trainerLevel ?? 1,
-          xp: idle.trainerXp ?? 0,
-          xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
-          safiras: idle.items?.safira_verde ?? 0,
-        }}
-        onSpendSafiras={(n) => {
+      {cashShopOpen && <CashShopModal
+          open={cashShopOpen}
+          onClose={() => setCashShopOpen(false)}
+          identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
+          wallet={{
+            coins: idle.bank.gold,
+            crystals: idle.bank.crystals,
+            level: idle.trainerLevel ?? 1,
+            xp: idle.trainerXp ?? 0,
+            xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
+            safiras: idle.items?.safira_verde ?? 0,
+          }}
+          onSpendSafiras={(n) => {
           const cur = idle.items?.safira_verde ?? 0;
           if (cur < n) return false;
           setIdle((s) => ({
@@ -13119,8 +13085,6 @@ function IdlePage() {
         }}
       />
     </div>
-
-
   );
 }
 
