@@ -12839,19 +12839,20 @@ function IdlePage() {
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
 
       {/* ============ LOJINHA CASH ============ */}
-      {cashShopOpen ? <CashShopModal
-        open={cashShopOpen}
-        onClose={() => setCashShopOpen(false)}
-        identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
-        wallet={{
-          coins: idle.bank.gold,
-          crystals: idle.bank.crystals,
-          level: idle.trainerLevel ?? 1,
-          xp: idle.trainerXp ?? 0,
-          xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
-          safiras: idle.items?.safira_verde ?? 0,
-        }}
-        onSpendSafiras={(n) => {
+      {cashShopOpen && (
+        <CashShopModal
+          open={cashShopOpen}
+          onClose={() => setCashShopOpen(false)}
+          identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
+          wallet={{
+            coins: idle.bank.gold,
+            crystals: idle.bank.crystals,
+            level: idle.trainerLevel ?? 1,
+            xp: idle.trainerXp ?? 0,
+            xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
+            safiras: idle.items?.safira_verde ?? 0,
+          }}
+          onSpendSafiras={(n) => {
           const cur = idle.items?.safira_verde ?? 0;
           if (cur < n) return false;
           setIdle((s) => ({
@@ -13085,7 +13086,7 @@ function IdlePage() {
 
           pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
         }}
-      />
+      />)}
     </div>
   );
 }
