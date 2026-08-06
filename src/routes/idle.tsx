@@ -10310,6 +10310,7 @@ function IdlePage() {
 
 
 
+              </div>
             {(() => {
               const leaderLv = team[0]?.level ?? 1;
               const goTo = (label: string, x: number, y: number, onArrive?: () => void) => {
