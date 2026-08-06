@@ -9839,9 +9839,8 @@ function IdlePage() {
             const ss = Math.floor((remaining % 60000) / 1000).toString().padStart(2, "0");
             const accent = restingKind === "azul" ? "#4a9eff" : "#5ec26a";
             const label = restingKind === "azul" ? "Descansando na Casa Azul" : "Descansando no Lar";
-            return (
-              <>
-                <div style={{
+  return (
+    <div style={{
                   position: "absolute", top: 10, right: 10, zIndex: 12,
                   background: "rgba(11,5,16,0.92)", border: `2px solid ${accent}`,
                   borderRadius: 10, padding: "10px 14px", minWidth: 200,
@@ -11303,9 +11302,7 @@ function IdlePage() {
       <style>{`
         .modern-team-panel, .modern-explore-panel { pointer-events: auto !important; }
       `}</style>
-    </div>
-  );
-}
+
 
 
 
