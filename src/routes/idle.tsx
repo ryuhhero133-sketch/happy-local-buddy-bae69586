@@ -10219,39 +10219,53 @@ function IdlePage() {
         {/* ============ COLUNA DIREITA (EQUIPE) ============ */}
         <div className="modern-team-panel">
           <Panel title="SUA EQUIPE" accent="#3d2b52">
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {team.map((p, i) => (
-                <div key={p.uid} style={{ 
-                  display: "flex", alignItems: "center", gap: 8, 
-                  background: i === 0 ? "rgba(245,207,107,0.18)" : "rgba(255,255,255,0.06)",
-                  padding: "6px 10px", borderRadius: 10,
-                  border: i === 0 ? "2px solid #f5cf6b" : "1px solid rgba(255,255,255,0.15)",
-                  boxShadow: i === 0 ? "0 0 12px rgba(245,207,107,0.25)" : "none",
-                  transition: "all 0.2s ease"
-                }}>
-                  <div style={{ width: 34, height: 34, background: "rgba(0,0,0,0.4)", borderRadius: 8, display: "grid", placeItems: "center", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <img src={GIF[p.species]} alt="" style={{ width: "90%", height: "90%", objectFit: "contain", imageRendering: "pixelated" }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", letterSpacing: 0.5 }}>
-                      {p.species.toUpperCase()}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 1 }}>
-                      <div style={{ fontSize: 9, color: "#c8b8d0", fontWeight: 700 }}>Lv.{p.level}</div>
-                      <div style={{ flex: 1, height: 3, background: "rgba(0,0,0,0.3)", borderRadius: 2, overflow: "hidden" }}>
-                        <div style={{ width: "100%", height: "100%", background: "#4ade80" }} />
+            <div className="team-modern-list">
+              {team.map((p, i) => {
+                const isLeader = i === 0;
+                const hpPct = 100; // Simulated for visual
+                const xpPct = Math.min(100, (p.xp / (100 + p.level * 20)) * 100);
+                
+                return (
+                  <div key={p.uid} className={`team-modern-card ${isLeader ? 'leader' : ''}`}>
+                    <div className="card-inner">
+                      <div className="pokemon-avatar-wrapper">
+                        <div className="pokemon-avatar-bg">
+                          <img src={GIF[p.species]} alt="" className="pokemon-gif" />
+                        </div>
+                        {isLeader && <div className="leader-badge">⚔️</div>}
+                      </div>
+                      
+                      <div className="pokemon-info">
+                        <div className="name-row">
+                          <span className="poke-name">{p.species.toUpperCase()}</span>
+                          <span className="poke-level">Lv.{p.level}</span>
+                        </div>
+                        
+                        <div className="stats-bars">
+                          <div className="bar-group">
+                            <div className="bar-label">HP</div>
+                            <div className="bar-bg hp">
+                              <div className="bar-fill hp" style={{ width: `${hpPct}%` }} />
+                            </div>
+                          </div>
+                          <div className="bar-group">
+                            <div className="bar-label">XP</div>
+                            <div className="bar-bg xp">
+                              <div className="bar-fill xp" style={{ width: `${xpPct}%` }} />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  {i === 0 && <span style={{ fontSize: 12, filter: "drop-shadow(0 0 4px #f5cf6b)" }}>⚔️</span>}
-                </div>
-              ))}
+                );
+              })}
               {Array.from({ length: 6 - team.length }).map((_, i) => (
-                <div key={`empty-${i}`} style={{ 
-                  height: 48, border: "2px dashed rgba(255,255,255,0.08)", 
-                  borderRadius: 10, display: "grid", placeItems: "center", 
-                  color: "rgba(255,255,255,0.15)", fontSize: 20, fontWeight: 300 
-                }}>+</div>
+                <div key={`empty-${i}`} className="team-modern-card empty">
+                  <div className="card-inner">
+                    <div className="empty-slot">+</div>
+                  </div>
+                </div>
               ))}
             </div>
           </Panel>
