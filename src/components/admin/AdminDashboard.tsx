@@ -954,7 +954,7 @@ function PlaceholderTab({ tabLabel }: { tabLabel: string }) {
 }
 
 function GiftsTab() {
-  const [username, setUsername] = useState("");
+  const [targetQuery, setTargetQuery] = useState("");
   const [kind, setKind] = useState<"gold" | "crystal" | "ruby" | "item" | "ball">("gold");
   const [itemId, setItemId] = useState("");
   const [qty, setQty] = useState(100);
@@ -965,20 +965,41 @@ function GiftsTab() {
   const needsItem = kind === "item" || kind === "ball";
 
   const submit = async () => {
+    if (!targetQuery.trim()) {
+      setMsg({ kind: "err", text: "Informe o Username, Email ou ID do jogador." });
+      return;
+    }
     setMsg(null);
     setBusy(true);
     try {
+      // Resolvemos o ID primeiro se for email ou UUID
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetQuery.trim());
+      const isEmail = targetQuery.includes("@");
+      
+      let finalUsername = targetQuery.trim();
+
+      if (isUuid || isEmail) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("username")
+          .or(`id.eq.${targetQuery.trim()},username.eq.${targetQuery.trim()}`)
+          .maybeSingle();
+        
+        if (p && (p as any).username) finalUsername = (p as any).username;
+      }
+
       const { sendGift } = await import("@/lib/adminGifts");
       const res = await sendGift({
-        username,
+        username: finalUsername,
         kind,
         itemId: needsItem ? itemId : undefined,
         qty,
         note,
-        sender: "Ryuuu",
+        sender: "Administração",
       });
+
       if (res.ok) {
-        setMsg({ kind: "ok", text: `✦ Presente enviado para "${username}". Será recebido no próximo login.` });
+        setMsg({ kind: "ok", text: `✦ Presente enviado para "${finalUsername}". Será recebido no próximo login.` });
         setQty(100);
         setNote("");
       } else {
@@ -991,84 +1012,148 @@ function GiftsTab() {
     }
   };
 
+  const PRESETS = [
+    { id: "potion", label: "Potion", kind: "item" },
+    { id: "super_potion", label: "Super Potion", kind: "item" },
+    { id: "revive", label: "Revive", kind: "item" },
+    { id: "rare_candy", label: "Rare Candy", kind: "item" },
+    { id: "event_box", label: "Caixa Premium", kind: "item" },
+    { id: "ultraball", label: "Ultra Ball", kind: "ball" },
+    { id: "masterball", label: "Master Ball", kind: "ball" },
+  ];
+
   return (
     <div className="grid lg:grid-cols-2 gap-5">
-      <Card title="Enviar presente a qualquer jogador">
-        <div className="space-y-3 text-xs">
+      <Card title="Enviar Presente (Username / Email / ID)">
+        <div className="space-y-4 text-xs">
           <label className="block space-y-1">
-            <span className="text-slate-400">Username do jogador (case-insensitive)</span>
+            <span className="text-slate-400">Destinatário (Username, ID ou Email)</span>
             <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="ex: ryu"
-              className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-amber-100"
+              value={targetQuery}
+              onChange={(e) => setTargetQuery(e.target.value)}
+              placeholder="Ex: player123 ou 61b4d001..."
+              className="w-full rounded border border-slate-800 bg-slate-950 px-2.5 py-2 text-amber-100 focus:border-fuchsia-500 outline-none"
             />
           </label>
-          <label className="block space-y-1">
-            <span className="text-slate-400">Tipo</span>
-            <select
-              value={kind}
-              onChange={(e) => setKind(e.target.value as typeof kind)}
-              className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-slate-200"
-            >
-              <option value="gold">Gold</option>
-              <option value="crystal">Crystal</option>
-              <option value="ruby">Ruby</option>
-              <option value="item">Item (inventário)</option>
-              <option value="ball">Pokébola</option>
-            </select>
-          </label>
-          {needsItem && (
+
+          <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1">
-              <span className="text-slate-400">
-                ID do item {kind === "ball" ? "(pokeball, greatball, fastball, ultraball, safariball, masterball)" : "(ex: potion, revive, incense, rare-candy, fruta_morango, event_box)"}
-              </span>
+              <span className="text-slate-400">Tipo de Recurso</span>
+              <select
+                value={kind}
+                onChange={(e) => setKind(e.target.value as any)}
+                className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-2 text-slate-200"
+              >
+                <option value="gold">Gold</option>
+                <option value="crystal">Crystal</option>
+                <option value="ruby">Ruby</option>
+                <option value="item">Item</option>
+                <option value="ball">Pokébola</option>
+              </select>
+            </label>
+            <label className="block space-y-1">
+              <span className="text-slate-400">Quantidade</span>
               <input
-                value={itemId}
-                onChange={(e) => setItemId(e.target.value)}
-                placeholder={kind === "ball" ? "pokeball" : "potion"}
-                className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-amber-100"
+                type="number"
+                min={1}
+                value={qty}
+                onChange={(e) => setQty(Number(e.target.value))}
+                className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-2 text-amber-100"
               />
             </label>
+          </div>
+
+          {needsItem && (
+            <div className="space-y-3">
+              <label className="block space-y-1">
+                <span className="text-slate-400">ID do Item</span>
+                <input
+                  value={itemId}
+                  onChange={(e) => setItemId(e.target.value)}
+                  placeholder="Ex: potion, ultraball..."
+                  className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-2 text-amber-100"
+                />
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {PRESETS.filter(p => kind === "item" ? p.kind === "item" : p.kind === "ball").map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => setItemId(p.id)}
+                    className={`px-2 py-1 rounded border text-[9px] transition ${itemId === p.id ? "bg-fuchsia-500/20 border-fuchsia-500 text-fuchsia-300" : "bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300"}`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
+
           <label className="block space-y-1">
-            <span className="text-slate-400">Quantidade</span>
-            <input
-              type="number"
-              min={1}
-              value={qty}
-              onChange={(e) => setQty(Number(e.target.value))}
-              className="w-32 rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-amber-100"
-            />
-          </label>
-          <label className="block space-y-1">
-            <span className="text-slate-400">Nota (opcional)</span>
-            <input
+            <span className="text-slate-400">Nota Personalizada</span>
+            <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Mensagem ao jogador"
-              className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-slate-200"
+              placeholder="Ex: Presente da staff pelo evento de reset!"
+              rows={2}
+              className="w-full rounded border border-slate-800 bg-slate-950 px-2.5 py-2 text-slate-200 resize-none"
             />
           </label>
+
           <button
             disabled={busy}
             onClick={submit}
-            className="rounded-md bg-gradient-to-b from-fuchsia-500 to-fuchsia-700 px-4 py-2 text-white disabled:opacity-50"
+            className="w-full rounded-lg bg-gradient-to-r from-fuchsia-600 to-amber-600 py-2.5 font-bold text-white shadow-lg shadow-fuchsia-900/20 hover:scale-[1.02] active:scale-95 transition disabled:opacity-50"
           >
-            {busy ? "Enviando..." : "Enviar presente"}
+            {busy ? "PROCESSANDO..." : "ENVIAR PRESENTE AGORA"}
           </button>
+
           {msg && (
-            <div className={msg.kind === "ok" ? "text-emerald-300" : "text-rose-300"}>{msg.text}</div>
+            <div className={`p-2 rounded border text-center font-medium ${msg.kind === "ok" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-rose-500/10 border-rose-500/30 text-rose-400"}`}>
+              {msg.text}
+            </div>
           )}
         </div>
       </Card>
-      <Card title="Como funciona">
-        <ul className="text-xs text-slate-400 space-y-2 list-disc pl-4">
-          <li>O presente é gravado em <code className="text-amber-200">admin_gifts</code> no Supabase.</li>
-          <li>O jogador recebe no próximo login. Itens/pokébolas viram <strong>bound</strong>.</li>
-          <li className="text-fuchsia-400 font-bold italic">Shift + A para abrir/fechar este painel.</li>
-        </ul>
+      
+      <Card title="Histórico de Envios">
+        <p className="text-[10px] text-slate-500 mb-4 italic">
+          Os presentes são entregues instantaneamente se o jogador estiver online ou no próximo login.
+        </p>
+        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+           <GiftHistoryList />
+        </div>
       </Card>
+    </div>
+  );
+}
+
+function GiftHistoryList() {
+  const [history, setHistory] = useState<any[]>([]);
+  useEffect(() => {
+    supabase.from("admin_gifts").select("*").order("created_at", { ascending: false }).limit(20)
+      .then(({ data }) => setHistory(data || []));
+  }, []);
+
+  if (history.length === 0) return <div className="text-center py-10 text-slate-600 text-[10px]">Nenhum envio recente.</div>;
+
+  return (
+    <div className="space-y-2">
+      {history.map(g => (
+        <div key={g.id} className="bg-slate-900/40 border border-slate-800 rounded-lg p-2 flex justify-between items-start gap-2">
+          <div className="min-w-0">
+            <div className="text-amber-100 font-bold truncate text-[10px]">{g.recipient_username}</div>
+            <div className="text-[9px] text-slate-400">
+              {g.kind === "item" || g.kind === "ball" ? `${g.item_id} x${g.qty}` : `${g.kind} x${g.qty}`}
+            </div>
+          </div>
+          <div className="text-right">
+             <div className={`text-[8px] font-bold px-1 rounded ${g.claimed_at ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"}`}>
+               {g.claimed_at ? "RECEBIDO" : "PENDENTE"}
+             </div>
+             <div className="text-[7px] text-slate-600 mt-1">{new Date(g.created_at).toLocaleDateString()}</div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

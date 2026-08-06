@@ -167,7 +167,7 @@ export const reportKill = createServerFn({ method: "POST" })
     if (stateErr || !state) return { ok: false as const, reason: "no_state" };
 
     // Validação de nível do líder: o cliente mentiu sobre o nível dele?
-    if (Math.abs(state.trainer_level - data.leader_level) > 2) {
+    if (Math.abs(state.trainer_level - data.leader_level) > 2 && state.trainer_level > 1) {
        return { ok: false as const, reason: "trainer_level_mismatch" };
     }
 
