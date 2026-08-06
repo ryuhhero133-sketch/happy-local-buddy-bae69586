@@ -187,7 +187,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
             .eq("id", sess.user.id)
             .maybeSingle();
 
-          // Se não for o admin, aplica as travas
+          if (profile?.account_status === "banned") {
+            await supabase.auth.signOut();
+            setKickedMessage("Esta conta foi banida permanentemente.");
+            return;
+          }
+
+          // Se não for o admin, aplica as travas de manutenção
           if (!isAdmin) {
             if (profile?.lock_until && new Date(profile.lock_until) > new Date()) {
               const diff = new Date(profile.lock_until).getTime() - Date.now();
@@ -198,16 +204,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
               return;
             }
 
-            if (profile?.account_status === "banned") {
-              await supabase.auth.signOut();
-              setKickedMessage("Esta conta foi banida permanentemente.");
-              return;
-            }
-
-            // Bloqueio geral para não-admins durante o reset
-            await supabase.auth.signOut();
-            setKickedMessage("Acesso restrito: Servidor em manutenção geral.");
-            return;
+            // Removido o bloqueio geral forçado para não-admins durante o desenvolvimento
+            // a menos que haja um lock_until explícito no perfil.
           }
         } catch (e) {
           warn("Erro ao verificar status da conta", e);

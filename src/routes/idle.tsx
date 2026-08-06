@@ -7076,7 +7076,7 @@ function IdlePage() {
         
         {/* Barra Superior Moderna (Arquitetura da Imagem) */}
         <div className="modern-top-bar" style={{ 
-          position: 'absolute', top: 0, left: 0, right: 0, height: '55px',
+          position: 'fixed', top: 0, left: 0, right: 0, height: '55px',
           background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)',
@@ -7120,7 +7120,7 @@ function IdlePage() {
 
         {/* Painel do Jogador (Card Compacto) */}
         <div className="player-panel-compact" style={{
-          position: 'absolute', top: '70px', left: '20px',
+          position: 'fixed', top: '70px', left: '20px',
           background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)',
           padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
           display: 'flex', gap: '12px', minWidth: '220px', pointerEvents: 'auto',
@@ -7138,14 +7138,14 @@ function IdlePage() {
               <div style={{ height: '100%', width: '100%', background: 'var(--hp-gradient)' }} />
             </div>
             <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(100, (((idle?.trainerXp || 0) || 0) / (Math.max(1, (idle?.trainerLevel || 1) || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
+              <div style={{ height: '100%', width: `${Math.min(100, (Number(idle?.trainerXp || 0) / Math.max(1, Number(idle?.trainerLevel || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
             </div>
           </div>
         </div>
 
         {/* Menu Lateral Direito (Barra de Ícones) */}
         <div className="side-icon-bar" style={{
-          position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
+          position: 'fixed', right: '20px', top: '50%', transform: 'translateY(-50%)',
           display: 'flex', flexDirection: 'column', gap: '12px', pointerEvents: 'auto',
           zIndex: 1003
         }}>
@@ -7157,7 +7157,7 @@ function IdlePage() {
 
         {/* Dock Inferior Moderna */}
         <div className="bottom-dock-container" style={{
-          position: 'absolute', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
+          position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
           background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)',
           padding: '8px 25px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.1)',
           display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
