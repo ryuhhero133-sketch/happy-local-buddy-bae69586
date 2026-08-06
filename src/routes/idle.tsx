@@ -15890,7 +15890,73 @@ function GovernanteDialog(props: {
 
 
 function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
-  return null;
+  const [visible, setVisible] = useState(false);
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!visible) return null;
+
+  const messages = [
+    "Olá, Treinador! Vejo que você está começando sua jornada no Idle Mon.",
+    "O mapa é o seu campo de batalha. Fique de olho nos Pokémon selvagens!",
+    "Use a Dock Inferior para gerenciar sua equipe e sua mochila.",
+    "A Barra Superior mostra seus recursos. Ouro e Cristais são essenciais.",
+    "No Menu Lateral Direito, você acessa o Ranking e o Mapa Mundi.",
+    "Boa sorte! Estarei por aqui se precisar de dicas."
+  ];
+
+  return createPortal(
+    <div style={{
+      position: 'fixed',
+      bottom: '120px',
+      right: '80px',
+      width: '240px',
+      background: 'rgba(0,0,0,0.85)',
+      backdropFilter: 'blur(8px)',
+      border: '1px solid #f5cf6b',
+      borderRadius: '12px',
+      padding: '12px',
+      color: '#fff',
+      zIndex: 10000,
+      pointerEvents: 'auto',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+      animation: 'fadeIn 0.3s ease-out'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', borderBottom: '1px solid rgba(245,207,107,0.3)', paddingBottom: '4px' }}>
+        <span style={{ fontSize: '20px' }}>🧙</span>
+        <span style={{ fontSize: '12px', fontWeight: 900, color: '#f5cf6b', letterSpacing: '1px' }}>GUIA INTELIGENTE</span>
+        <button onClick={() => setVisible(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>✕</button>
+      </div>
+      <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#e0e0e0', fontStyle: 'italic', minHeight: '40px' }}>
+        "{messages[step]}"
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', alignItems: 'center' }}>
+        <span style={{ fontSize: '9px', color: '#8a7a9c' }}>{step + 1} / {messages.length}</span>
+        <button 
+          onClick={() => setStep((s) => (s + 1) % messages.length)}
+          style={{ 
+            background: '#f5cf6b', 
+            border: 'none', 
+            borderRadius: '4px', 
+            padding: '3px 10px', 
+            fontSize: '10px', 
+            fontWeight: 800, 
+            cursor: 'pointer',
+            color: '#000'
+          }}
+        >
+          {step === messages.length - 1 ? "REINICIAR" : "PRÓXIMO"}
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
 }
 
 
