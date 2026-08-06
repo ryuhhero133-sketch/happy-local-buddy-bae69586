@@ -7057,7 +7057,7 @@ function IdlePage() {
       </div>
 
       {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
-      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none' }}>
+      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         
         {/* Barra Superior Moderna (Arquitetura da Imagem) */}
         <div className="modern-top-bar" style={{ 
@@ -7065,7 +7065,8 @@ function IdlePage() {
           background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)',
-          pointerEvents: 'auto'
+          pointerEvents: 'auto',
+          zIndex: 1001
         }}>
           {/* Lado Esquerdo: Localização e Info */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -7107,7 +7108,8 @@ function IdlePage() {
           position: 'absolute', top: '70px', left: '20px',
           background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)',
           padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', gap: '12px', minWidth: '220px', pointerEvents: 'auto'
+          display: 'flex', gap: '12px', minWidth: '220px', pointerEvents: 'auto',
+          zIndex: 1002
         }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', border: '2px solid #f5cf6b' }}>
             <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" style={{ width: '100%', height: '100%' }} />
@@ -7129,7 +7131,8 @@ function IdlePage() {
         {/* Menu Lateral Direito (Barra de Ícones) */}
         <div className="side-icon-bar" style={{
           position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
-          display: 'flex', flexDirection: 'column', gap: '12px', pointerEvents: 'auto'
+          display: 'flex', flexDirection: 'column', gap: '12px', pointerEvents: 'auto',
+          zIndex: 1003
         }}>
           <button className="side-btn" onClick={() => setRankOpen(true)} title="Ranking" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🏆</button>
           <button className="side-btn" onClick={() => setWorldMapOpen(true)} title="Mapa" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🗺️</button>
@@ -7142,7 +7145,8 @@ function IdlePage() {
           position: 'absolute', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
           background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)',
           padding: '8px 25px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+          display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+          zIndex: 1004
         }}>
           <button onClick={() => setTab("batalha")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#f5cf6b' : '#fff' }}>
             <span style={{ fontSize: '24px' }}>⚔️</span>
