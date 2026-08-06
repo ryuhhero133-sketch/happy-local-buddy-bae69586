@@ -7967,7 +7967,7 @@ function IdlePage() {
 
               if (buffs.length === 0) return null;
               return (
-                <div style={{ position: "absolute", top: 8, right: 8, zIndex: 55, display: "flex", flexDirection: "column", gap: 4 }}>
+                <>
                   <style>{`
                     @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
                     @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -8036,7 +8036,6 @@ function IdlePage() {
                 </div>
               );
             })()}
-
 
           </div>
 
@@ -9193,9 +9192,10 @@ function IdlePage() {
                   pointerEvents: "none",
                   filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.7))",
                 }}>
+      <>
+      </>
                   <img src={captureAnim.ballImg} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated" }} />
                 </div>
-
               );
             })()}
 
@@ -12028,8 +12028,10 @@ function IdlePage() {
 
 
 
+      {/* ============ LOJINHA CASH ============ */}
       {cashShopOpen && (
         <CashShopModal
+
           open={cashShopOpen}
           onClose={() => setCashShopOpen(false)}
           identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
@@ -12042,29 +12044,29 @@ function IdlePage() {
             safiras: idle.items?.safira_verde ?? 0,
           }}
           onSpendSafiras={(n) => {
-            const cur = idle.items?.safira_verde ?? 0;
-            if (cur < n) return false;
-            setIdle((s) => ({
-              ...s,
-              items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
-            }));
-            return true;
-          }}
-          onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
-          onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
-          onGrantItem={(id, qty) => {
-            setIdle((s) => ({
-              ...s,
-              items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
-            }));
-          }}
-          codeInput={codeInput}
-          setCodeInput={setCodeInput}
-          codeMsg={codeMsg}
-          onRedeemCode={() => redeemCrystalCode()}
-        />
-      )}
+          const cur = idle.items?.safira_verde ?? 0;
+          if (cur < n) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
+          }));
+          return true;
+        }}
 
+        onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
+        onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
+        onGrantItem={(id, qty) => {
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
+          }));
+        }}
+        codeInput={codeInput}
+        setCodeInput={setCodeInput}
+        codeMsg={codeMsg}
+        onRedeemCode={() => redeemCrystalCode()}
+      />
+    )}
 
 
 
