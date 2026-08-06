@@ -357,10 +357,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return (
       <PanelShell title="MANUTENÇÃO">
         <div className="space-y-4 text-center">
-          <p className="text-xs leading-relaxed" style={{ color: "#fca5a5" }}>
-            O servidor está em manutenção para melhorias.
-            <br />
-            Voltaremos em breve!
+          <p className="text-[10px] leading-relaxed" style={{ color: "#fca5a5" }}>
+            O sistema de acesso foi ajustado no AuthGate.tsx para garantir que a conta administrativa (lordryuhhhuyuyghh@gmail.com) sempre ignore a trava de manutenção, permitindo que você entre e teste o jogo enquanto ele permanece bloqueado para os demais jogadores. n consigo por a minha conta pra logar .. por q so aparece tela de manutencao.
           </p>
           <div className="pt-2">
             <PrimaryButton type="button" onClick={() => window.location.reload()}>
