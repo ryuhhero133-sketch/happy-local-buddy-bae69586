@@ -1253,7 +1253,9 @@ function loadIdle(): IdleState {
   try {
     const raw = localStorage.getItem(IDLE_KEY);
     if (raw) {
-      const s: IdleState = { ...freshIdle(), ...JSON.parse(raw) };
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return freshIdle();
+      const s: IdleState = { ...freshIdle(), ...parsed };
       // Presente de boas-vindas (evento): 1x Caixa Premium
       const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
       if (!flags.giftPremiumBoxV1) {

@@ -14,12 +14,16 @@ export function obfuscate(data: any): string {
 export function deobfuscate(str: string | null): any {
   if (!str) return null;
   try {
-    const json = decodeURIComponent(atob(str));
-    return JSON.parse(json);
+    const decoded = atob(str);
+    const json = decodeURIComponent(decoded);
+    const parsed = JSON.parse(json);
+    if (parsed && typeof parsed === 'object') return parsed;
+    return null;
   } catch (e) {
-    // Fallback for non-obfuscated legacy data
     try {
-      return JSON.parse(str);
+      const parsed = JSON.parse(str);
+      if (parsed && typeof parsed === 'object') return parsed;
+      return null;
     } catch {
       return null;
     }
