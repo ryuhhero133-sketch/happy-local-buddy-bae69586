@@ -39,6 +39,11 @@ import ballPokeImg from "@/assets/items/icon-pokeball.png";
 import ballGreatImg from "@/assets/items/icon-greatball.png";
 import ballUltraImg from "@/assets/items/icon-ultraball.png";
 import potionNewImg from "@/assets/items/icon-potion.png";
+import buffOrbXpImg from "@/assets/buff-orb-xp.png";
+import buffIncenseHoneyImg from "@/assets/buff-incense-honey.png";
+import buffTeamOrbImg from "@/assets/buff-team-orb.png";
+import orb24hImg from "@/assets/orb-24h.png";
+import incense24hImg from "@/assets/incense-24h.png";
 import premiumBoxImg from "@/assets/items/icon-premium-box.png";
 import chestEmeraldImg from "@/assets/chest-emerald.png";
 import chestAmuletImg from "@/assets/items/icon-chest-amulet.png";
@@ -413,9 +418,9 @@ const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
 const orbXpSupremeUrl = assetUrlFromJson(orbXpSupremeAsset);
 const orbXpTeamUrl = assetUrlFromJson(orbXpTeamAsset);
 // Ícones "de buff" bonitos (HUD do treinador) — orb XP, incenso e orb de time
-const buffOrbXpUrl = (new URL("../assets/buff-orb-xp.png", import.meta.url)).href;
-const buffIncenseHoneyUrl = (new URL("../assets/buff-incense-honey.png", import.meta.url)).href;
-const buffTeamOrbUrl = (new URL("../assets/buff-team-orb.png", import.meta.url)).href;
+const buffOrbXpUrl = buffOrbXpImg;
+const buffIncenseHoneyUrl = buffIncenseHoneyImg;
+const buffTeamOrbUrl = buffTeamOrbImg;
 const npcTraderUrl = assetUrlFromJson(npcTraderAsset);
 const redLakeUrl = assetUrlFromJson(redLakeAsset);
 const volcanoUrl = assetUrlFromJson(volcanoAsset);
@@ -1183,8 +1188,8 @@ const ITEM_IMG: Record<string, string> = {
   premium_box: premiumBoxImg,
   bau_esmeralda: chestEmeraldImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
-  orb_xp_supreme_24h: (new URL("../assets/orb-24h.png", import.meta.url)).href,
-  incenso_mel_raro_24h: (new URL("../assets/incense-24h.png", import.meta.url)).href,
+  orb_xp_supreme_24h: orb24hImg,
+  incenso_mel_raro_24h: incense24hImg,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
   cristal_fragmentado: assetUrlFromJson(iconFragmentCrystal),
   fragmento_vermelho: redShardImg,
