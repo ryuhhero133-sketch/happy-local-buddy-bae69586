@@ -11114,6 +11114,8 @@ function IdlePage() {
 
 
       {identity && (
+        <>
+
 
         <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
           <span>{identity.name}</span>
@@ -11297,7 +11299,7 @@ function IdlePage() {
             })()}
           </div>
         );
-      })}
+      })()}
 
       <style>{`
         .modern-team-panel, .modern-explore-panel { pointer-events: auto !important; }
@@ -13084,6 +13086,9 @@ function IdlePage() {
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
         document.body
       )}
+      </>
+      )}
+
 
     </div>
   );
