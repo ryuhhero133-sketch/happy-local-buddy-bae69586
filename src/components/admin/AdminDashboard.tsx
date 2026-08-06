@@ -151,7 +151,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     </>
   );
 
-  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6" || identity?.email === "lordryuhhhuyuyghh@gmail.com" || identity?.email === "lordryuhhhuyuyghh@gmail.com";
+  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6" || identity?.email === "lordryuhhhuyuyghh@gmail.com";
   if (!isAdminUuid) return null;
 
   return (
