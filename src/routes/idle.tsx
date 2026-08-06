@@ -100,6 +100,7 @@ import raikouAsset from "@/assets/legends/raikou.gif.asset.json";
 
 export type CollectionEntry = PetInstance & {
   collectedAt: number;
+  capturedAt?: number;
   count: number;
   shiny?: boolean;
   event?: string;
