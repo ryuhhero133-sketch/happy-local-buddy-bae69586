@@ -9446,10 +9446,14 @@ function IdlePage() {
               }}>
                 {map.name.toUpperCase()}
               </div>
-
+              <div style={{ fontSize: 10, color: "#c8b8d0", opacity: 0.8 }}>
+                {map.diff} · {fmtHMS(activeTime)}
+              </div>
+            </div>
 
             {/* Centro: Recursos */}
             <div style={{ display: "flex", gap: 12 }}>
+
               <div className="resource-pill" title="Ouro">
                 <span style={{ fontSize: 18 }}>🪙</span>
                 <span>{fmtK(idle.bank.gold)}</span>
@@ -11928,6 +11932,7 @@ function IdlePage() {
 
 
 
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12315,6 +12320,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
