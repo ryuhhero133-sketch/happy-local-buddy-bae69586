@@ -351,6 +351,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   // Trava de manutenção: apenas o admin pode entrar
   const isAdmin = session?.user?.email === "lordryuhhhuyuyghh@gmail.com";
+  // O modo de manutenção no banco de dados continua bloqueando jogadores normais,
+  // mas o admin sempre passa independentemente do valor de 'maintenance'.
   if (maintenance && !isAdmin) {
     return (
       <PanelShell title="MANUTENÇÃO">
