@@ -9594,7 +9594,6 @@ function IdlePage() {
                   <div ref={chatEndRef} />
                 </div>
               )}
-            </div>
           </div>
         </div>
 
