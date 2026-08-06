@@ -15099,10 +15099,11 @@ function TabOverlay({
               const color = "#8ec5ff";
               return (
                 <div style={{
-                  background: "linear-gradient(160deg, #0f1a2e 0%, #142238 100%)",
-                  border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12, padding: 14,
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
-                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
+
                 }}>
                   <img src={scrollTeleportUrl} alt="" width={64} height={64}
                     style={{ filter: `drop-shadow(0 0 10px ${color}bb)` }} />
