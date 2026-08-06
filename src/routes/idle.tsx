@@ -8333,7 +8333,16 @@ function IdlePage() {
               document.body
             )}
 
-        <div className="legacy-world-layer">
+        <div className="legacy-world-layer" style={{
+          position: "absolute",
+          left: 0, top: 0,
+          width: WORLD_W, height: WORLD_H,
+          transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
+          transformOrigin: "0 0",
+          zIndex: 1,
+          pointerEvents: "none",
+        }}>
+
             {/* Painel de Colmeia — posicionar Beedrills p/ produzir Incenso de Mel */}
             {honeyShop && (() => {
               const cocoonKey = honeyShop.cocoonKey;
