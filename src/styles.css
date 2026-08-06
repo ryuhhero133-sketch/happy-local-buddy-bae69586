@@ -504,15 +504,6 @@ html, body, #root {
   gap: 20px;
 }
 
-  border: 2px solid rgba(245, 207, 107, 0.4);
-  border-radius: 24px;
-  padding: 8px 16px;
-  display: flex;
-  gap: 12px;
-  z-index: 1000;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
-}
 
 .modern-floating-window {
   position: absolute;
