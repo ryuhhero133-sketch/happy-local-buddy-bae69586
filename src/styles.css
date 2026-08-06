@@ -188,16 +188,59 @@
   display: flex;
   gap: 15px;
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   padding: 8px 20px;
   border-radius: 20px;
   border: 1px solid var(--glass-border);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 
 .dock-item {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  color: #8a7a9c;
+}
+
+.dock-item span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.dock-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.dock-item.active {
+  background: rgba(245, 207, 107, 0.15);
+  color: #f5cf6b;
+  border: 1px solid rgba(245, 207, 107, 0.3);
+}
+
+.dock-item img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.dock-item:hover img {
+  transform: translateY(-4px);
+}
+
+.dock-item.active img {
+  filter: drop-shadow(0 0 8px rgba(245, 207, 107, 0.5));
+}
   align-items: center;
   gap: 4px;
   background: none;
