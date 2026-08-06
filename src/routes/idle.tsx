@@ -6997,8 +6997,8 @@ function IdlePage() {
                 <span className="stat-pill-label">HP 100%</span>
               </div>
               <div className="stat-pill-xp">
-                <div className="stat-pill-fill" style={{ width: `${Math.min(100, (idle.trainerXp / ((idle.trainerLevel || 1) * 100)) * 100)}%`, background: "var(--xp-gradient)" }} />
-                <span className="stat-pill-label">XP {Math.floor((idle.trainerXp / ((idle.trainerLevel || 1) * 100)) * 100)}%</span>
+                <div className="stat-pill-fill" style={{ width: `${Math.min(100, ((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%`, background: "var(--xp-gradient)" }} />
+                <span className="stat-pill-label">XP {Math.floor(((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%</span>
               </div>
             </div>
           </div>
@@ -7059,6 +7059,7 @@ function IdlePage() {
       </div>
 
       <div className="game-viewport-container" style={{ position: 'absolute', inset: 0, zIndex: 0 }}></div>
+
 
 
 
