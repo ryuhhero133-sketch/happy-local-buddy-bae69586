@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { loadIdentity } from "@/components/AuthGate";
 import {
   getConfig,
   saveConfig,
@@ -60,6 +61,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [config, setConfig] = useState<AdminConfig>(() => getConfig());
   const [query, setQuery] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const identity = useMemo(() => loadIdentity(), []);
 
   useEffect(() => {
     saveConfig(config);
