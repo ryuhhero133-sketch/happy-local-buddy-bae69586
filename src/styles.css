@@ -241,38 +241,6 @@
 .dock-item.active img {
   filter: drop-shadow(0 0 8px rgba(245, 207, 107, 0.5));
 }
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  min-width: 70px;
-}
-
-.dock-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.dock-item.active {
-  background: rgba(245, 207, 107, 0.15);
-  border: 1px solid rgba(245, 207, 107, 0.3);
-}
-
-.dock-item img {
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
-}
-
-.dock-item span {
-  font-size: 9px;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: 0.5px;
-}
 
 /* Game Viewport */
 .game-viewport-container {
