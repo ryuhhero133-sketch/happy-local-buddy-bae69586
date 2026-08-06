@@ -11335,11 +11335,9 @@ function IdlePage() {
                     </div>
                   </div>
                 </div>
-          )}
+                </div>
+              )}
             </div>
-          </Panel>
-        </div>
-
           </div>
         );
       })()}
