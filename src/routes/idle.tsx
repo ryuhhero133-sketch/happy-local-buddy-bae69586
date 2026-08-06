@@ -7959,85 +7959,13 @@ function IdlePage() {
                       <img src={b.img} alt={b.label} width={34} height={34} style={{ objectFit: "contain", display: "block" }} draggable={false} />
                     </div>
                     {b.subLabel && <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: 0.5, lineHeight: 1, color: b.textColor, textShadow: `0 0 4px ${b.glow}` }}>{b.subLabel}</span>}
+                    <span style={{ fontSize: 9, fontWeight: 700, lineHeight: 1, color: b.textColor, whiteSpace: "nowrap", textShadow: "0 1px 2px rgba(0,0,0,0.75)" }}>{fmtT(b.timeMs)}</span>
                   </div>
                 ))}
               </div>
             );
           })()}
 
-              if (buffs.length === 0) return null;
-              return (
-                <>
-                  <style>{`
-                    @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
-                    @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                  `}</style>
-                  {buffs.map(b => (
-                    <div
-                      key={b.key}
-                      title={b.label}
-                      style={{
-                        marginTop: 6,
-                        position: "relative",
-                        width: 48,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 2,
-                        padding: "5px 4px 4px",
-                        background: b.bg,
-                        border: `1.5px solid ${b.ring}`,
-                        borderRadius: 10,
-                        boxShadow: `0 0 14px ${b.glow}, inset 0 0 8px ${b.ringSoft}`,
-                      }}
-                    >
-                      {/* Halo giratório */}
-                      <div style={{
-                        position: "absolute", inset: -3, borderRadius: 12,
-                        pointerEvents: "none",
-                        background: `conic-gradient(from 0deg, transparent 0deg, ${b.ringSoft} 90deg, transparent 180deg, ${b.ringSoft} 270deg, transparent 360deg)`,
-                        opacity: 0.45,
-                        animation: "rmBuffSpin 6s linear infinite",
-                        WebkitMask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)",
-                        mask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)",
-                      }} />
-                      <div style={{
-                        width: 34, height: 34,
-                        display: "grid", placeItems: "center",
-                        animation: "rmBuffPulse 1.8s ease-in-out infinite",
-                        filter: `drop-shadow(0 0 6px ${b.glow})`,
-                      }}>
-                        <img
-                          src={b.img}
-                          alt={b.label}
-                          width={34}
-                          height={34}
-                          style={{ objectFit: "contain", display: "block" }}
-                          draggable={false}
-                        />
-                      </div>
-                      {b.subLabel && (
-                        <span style={{
-                          fontSize: 8, fontWeight: 800, letterSpacing: 0.5, lineHeight: 1,
-                          color: b.textColor,
-                          textShadow: `0 0 4px ${b.glow}`,
-                        }}>{b.subLabel}</span>
-                      )}
-                      <span style={{
-                        fontSize: 9, fontWeight: 700, lineHeight: 1,
-                        color: b.textColor,
-                        whiteSpace: "nowrap",
-                        textShadow: "0 1px 2px rgba(0,0,0,0.75)",
-                      }}>
-                        {fmtT(b.timeMs)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-
-          </div>
 
 
 
@@ -9253,7 +9181,9 @@ function IdlePage() {
                         imageRendering: "pixelated",
                         pointerEvents: "none",
                       }} />
-                    )}
+                    )
+                  )}
+
 
 
 
@@ -12068,6 +11998,7 @@ function IdlePage() {
         codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
       )}
+
 
 
 
