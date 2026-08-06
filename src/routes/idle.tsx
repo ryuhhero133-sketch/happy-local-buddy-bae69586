@@ -3250,7 +3250,7 @@ function IdlePage() {
         ];
         const isAdminUuid = identity?.id && adminUuids.includes(identity.id);
         
-        // Also check by email if ID is not yet in the list
+        // Also check by email
         const isAdminEmail = identity?.email === "lordryuhhhuyuyghh@gmail.com";
 
         if (isAdminUuid || isAdminEmail) {
