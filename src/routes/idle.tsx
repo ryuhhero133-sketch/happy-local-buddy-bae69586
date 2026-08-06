@@ -10853,10 +10853,8 @@ function IdlePage() {
             🏆 RANKING DO EVENTO
           </button>
         </div>
-
-
-        {/* Barra lateral removida por transição para floating UI */}
       </div>
+
 
 
 
