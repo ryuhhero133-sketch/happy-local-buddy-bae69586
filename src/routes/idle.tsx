@@ -9252,7 +9252,8 @@ function IdlePage() {
                         imageRendering: "pixelated",
                         pointerEvents: "none",
                       }} />
-                    )}
+                    )
+
 
                 </div>
               );
@@ -12026,7 +12027,9 @@ function IdlePage() {
 
 
       {/* ============ LOJINHA CASH ============ */}
-      {cashShopOpen && <CashShopModal
+      {cashShopOpen && (
+        <CashShopModal
+
           open={cashShopOpen}
           onClose={() => setCashShopOpen(false)}
           identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
@@ -12274,7 +12277,7 @@ function IdlePage() {
           pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
         }}
       />
-      {/* Portais movidos para o final do componente para garantir montagem correta */}
+
 
 
 
