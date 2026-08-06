@@ -14771,10 +14771,11 @@ function TabOverlay({
                      {/* Raridade / Badge BMP */}
                      <div style={{
                        fontSize: 9, padding: "2px 8px", borderRadius: 10,
-                       background: isBMP ? `linear-gradient(180deg, ${bmpAccent}, #4a1080)` : rColor,
-                       color: "#fff", justifySelf: "center", fontWeight: 900, letterSpacing: 1,
-                       boxShadow: isBMP ? `0 0 8px ${bmpAccent}bb` : undefined,
-                       border: isBMP ? "1px solid rgba(255,255,255,0.25)" : undefined,
+                        background: isBMP ? `linear-gradient(180deg, ${bmpAccent}, #4a1080)` : rColor,
+                        color: "#fff", justifySelf: "center", fontWeight: 900, letterSpacing: 1,
+                        boxShadow: isBMP ? `0 0 8px ${bmpAccent}44` : "0 2px 4px rgba(0,0,0,0.3)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+
                        position: "relative", zIndex: 1,
                      }}>
                        {isBMP ? (isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS") : entry.rarity.toUpperCase()}
