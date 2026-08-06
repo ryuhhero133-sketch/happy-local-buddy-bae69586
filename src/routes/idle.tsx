@@ -7135,11 +7135,11 @@ function IdlePage() {
               <span style={{ color: '#fff', fontSize: '13px', fontWeight: 800 }}>{identity?.name || "Treinador"}</span>
               <span style={{ background: '#f5cf6b', color: '#000', fontSize: '9px', fontWeight: 900, padding: '1px 4px', borderRadius: '4px' }}>Lv.{idle.trainerLevel || 1}</span>
             </div>
-            <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }} title="HP (Status)">
               <div style={{ height: '100%', width: '100%', background: 'var(--hp-gradient)' }} />
             </div>
-            <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(100, (Number(idle?.trainerXp || 0) / Math.max(1, Number(idle?.trainerLevel || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
+            <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }} title={`EXP: ${Number(idle?.trainerXp || 0).toLocaleString()} / ${((idle?.trainerLevel || 1) * 100).toLocaleString()}`}>
+              <div style={{ height: '100%', width: `${Math.min(100, (Number(idle?.trainerXp || 0) / Math.max(1, (Number(idle?.trainerLevel || 1) || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
             </div>
           </div>
         </div>
