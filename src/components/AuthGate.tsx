@@ -181,11 +181,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
         
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data: profile } = await (supabase as any)
+          const { data: profile, error: profileError } = await (supabase as any)
             .from("profiles")
-            .select("account_status, lock_until")
+            .select("account_status")
             .eq("id", sess.user.id)
             .maybeSingle();
+
+          if (profileError) {
+            console.warn("Erro ao buscar perfil:", profileError);
+          }
 
           if (profile?.account_status === "banned") {
             await supabase.auth.signOut();
@@ -193,14 +197,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
             return;
           }
 
-          // Apenas o admin pode logar durante a manutenção
           if (!isAdmin) {
             await supabase.auth.signOut();
             setKickedMessage("Servidor em manutenção. Apenas administradores podem logar no momento.");
             return;
           }
         } catch (e) {
-          warn("Erro ao verificar status da conta", e);
+          warn("Exceção ao verificar status da conta", e);
         }
       }
 

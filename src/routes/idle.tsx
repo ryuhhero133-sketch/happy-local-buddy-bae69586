@@ -1258,14 +1258,13 @@ function loadIdle(): IdleState {
       try {
         parsed = deobfuscate(raw);
         if (!parsed || typeof parsed !== 'object') {
-          // Fallback se deobfuscate falhar (ex: dados antigos legíveis)
           try {
             parsed = JSON.parse(raw);
           } catch {
+            console.warn("Falha ao recuperar dados (não é obfuscado nem JSON válido)");
             return freshIdle();
           }
         }
-        if (!parsed || typeof parsed !== 'object') return freshIdle();
       } catch (e) {
         console.error("Erro crítico ao carregar IDLE_KEY:", e);
         return freshIdle();
