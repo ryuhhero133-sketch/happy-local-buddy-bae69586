@@ -9437,17 +9437,6 @@ function IdlePage() {
             })}
           </div>
 
-
-
-
-
-
-
-
-
-
-          
-          {/* Top Bar horizontal compacta */}
           <div className="modern-top-bar">
             {/* Esquerda: Nome do Mapa */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
