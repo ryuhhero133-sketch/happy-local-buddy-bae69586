@@ -6972,6 +6972,7 @@ function IdlePage() {
   );
 
   return (
+    <>
     <div style={{
       height: "100vh",
       background: "#0b0510",
@@ -11300,6 +11301,13 @@ function IdlePage() {
           </div>
         );
       })()}
+      <style>{`
+        /* Fix for broken styles after HUD changes */
+        .modern-team-panel, .modern-explore-panel { pointer-events: auto !important; }
+      `}</style>
+    </>
+  );
+}
 
 
 
