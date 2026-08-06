@@ -7097,7 +7097,7 @@ function IdlePage() {
 
           {/* Lado Direito: Config */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-             <button onClick={() => setTab("config")} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>⚙️</button>
+             <button onClick={() => setTab("melhorias")} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>⚙️</button>
           </div>
         </div>
 
@@ -7130,10 +7130,10 @@ function IdlePage() {
           position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
           display: 'flex', flexDirection: 'column', gap: '12px', pointerEvents: 'auto'
         }}>
-          <button className="side-btn" onClick={() => setShowRank(true)} title="Ranking" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🏆</button>
+          <button className="side-btn" onClick={() => {}} title="Ranking" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🏆</button>
           <button className="side-btn" onClick={() => setWorldMapOpen(true)} title="Mapa" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🗺️</button>
           <button className="side-btn" onClick={() => setTab("loja")} title="Loja VIP" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>💎</button>
-          <button className="side-btn" onClick={() => setTab("config")} title="Config" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>⚙️</button>
+          <button className="side-btn" onClick={() => setTab("melhorias")} title="Config" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>⚙️</button>
         </div>
 
         {/* Dock Inferior Moderna */}
@@ -7166,6 +7166,7 @@ function IdlePage() {
         </div>
 
       </div>
+
 
 
       
