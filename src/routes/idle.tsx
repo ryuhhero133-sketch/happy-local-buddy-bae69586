@@ -10215,6 +10215,7 @@ function IdlePage() {
 
 
 
+
         {/* ============ COLUNA DIREITA (EQUIPE) ============ */}
         <div className="modern-team-panel">
           <Panel title="SUA EQUIPE" accent="#3d2b52">
