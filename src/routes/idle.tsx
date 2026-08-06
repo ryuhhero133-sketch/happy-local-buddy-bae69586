@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, ShieldCheck } from "lucide-react";
+import { obfuscate, deobfuscate } from "@/lib/utils";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -1255,12 +1256,21 @@ function loadIdle(): IdleState {
     if (raw) {
       let parsed;
       try {
-        parsed = JSON.parse(raw);
+        parsed = deobfuscate(raw);
+        if (!parsed || typeof parsed !== 'object') {
+          // Fallback se deobfuscate falhar (ex: dados antigos legíveis)
+          try {
+            parsed = JSON.parse(raw);
+          } catch {
+            return freshIdle();
+          }
+        }
         if (!parsed || typeof parsed !== 'object') return freshIdle();
       } catch (e) {
-        console.error("Erro crítico ao parsear IDLE_KEY:", e);
+        console.error("Erro crítico ao carregar IDLE_KEY:", e);
         return freshIdle();
       }
+      
       const s: IdleState = { ...freshIdle(), ...parsed };
       // Presente de boas-vindas (evento): 1x Caixa Premium
       const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
@@ -1268,13 +1278,13 @@ function loadIdle(): IdleState {
         s.items = { ...(s.items ?? {}), premium_box: (s.items?.premium_box ?? 0) + 1 };
         (s as unknown as { flags: Record<string, boolean> }).flags = { ...flags, giftPremiumBoxV1: true };
       }
-      // Auto-Poção sempre ativada ao entrar no jogo (usuário pode desativar depois na sessão)
+      // Auto-Poção sempre ativada ao entrar no jogo
       s.autoHeal = { ...(s.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: true };
-      // Garante lista de skins desbloqueadas (default sempre incluída)
+      
       const uskins = Array.isArray(s.unlockedSkins) ? s.unlockedSkins.slice() : [];
       if (!uskins.includes("default")) uskins.unshift("default");
       s.unlockedSkins = uskins;
-      // Sanitiza mapa removido (Pedreira Antiga)
+      
       if (!IDLE_MAPS[s.currentMap]) s.currentMap = "arena";
       return s;
     }
@@ -1307,7 +1317,7 @@ function freshIdle(): IdleState {
   };
 }
 function saveIdle(s: IdleState) {
-  try { localStorage.setItem(IDLE_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+  try { localStorage.setItem(IDLE_KEY, obfuscate(s)); } catch { /* ignore */ }
 }
 
 // XP-para-o-próximo-nível do TREINADOR (curva um pouco mais dura que a do pokémon)
