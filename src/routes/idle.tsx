@@ -9437,6 +9437,7 @@ function IdlePage() {
               );
             })}
           </div>
+          <div className="hud-overlay-layer" style={{ position: "fixed", inset: 0, zIndex: 1100, pointerEvents: "none" }}>
 
           <div className="modern-top-bar" style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '20px', zIndex: 1100 }}>
 
