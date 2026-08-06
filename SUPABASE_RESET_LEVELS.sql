@@ -13,10 +13,11 @@ SET
     trainer_xp = 0;
 
 -- 2. Resetar o nível de todos os pokémons na coleção para 1 e XP para 0
+-- A coluna correta na tabela pokemon_collection é 'xp'
 UPDATE public.pokemon_collection
 SET 
     level = 1,
-    experience = 0;
+    xp = 0;
 
 -- 3. Opcional: Registrar o reset na tabela de auditoria se o GM que executou for conhecido
 -- (Substitua o UUID do GM se necessário ao rodar manualmente)
