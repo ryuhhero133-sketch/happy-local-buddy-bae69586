@@ -10527,64 +10527,6 @@ function IdlePage() {
 
 
 
-
-
-
-
-
-          {/* COLETA — logo abaixo do mapa, destaque */}
-          <div ref={coletaRef} style={{
-            background: "linear-gradient(135deg, #2a1a3e, #3d2b52)",
-            border: "2px solid #f5cf6b",
-            borderRadius: 10, padding: 10,
-            boxShadow: "0 4px 14px rgba(245,207,107,0.25)",
-            flexShrink: 0,
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>COLETA</span>
-              <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 11 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-around", alignItems: "center", marginBottom: 8, fontSize: 13, fontWeight: 700 }}>
-              <span title="Ouro" style={{ color: "#f4c430" }}>● {fmtK(idle.pending.gold)}</span>
-              <span title="Cristais">💎 {Math.floor(idle.pending.crystals)}</span>
-              <span
-                title="Fragmento de Cristal Vermelho — dropado por qualquer pokémon derrotado (1 a 5 por raridade)"
-                style={{ color: "#ff5c5c", display: "inline-flex", alignItems: "center", gap: 4, textShadow: "0 0 8px #ff2d2d88" }}
-              >
-                <img
-                  src={redShardImg}
-                  alt="Fragmento Vermelho"
-                  width={18}
-                  height={18}
-                  loading="lazy"
-                  style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 5px #ff2d2daa)" }}
-                />
-                {Math.floor(idle.pending.redshards ?? 0)}
-              </span>
-            </div>
-            <button
-              onClick={collect}
-              style={{
-                width: "100%",
-                background: "linear-gradient(135deg, #7ef27a, #5ec26a)",
-                color: "#0b0510",
-                border: "2px solid #f5cf6b",
-                borderRadius: 8,
-                padding: "8px 12px",
-                fontWeight: 900,
-                fontSize: 14,
-                letterSpacing: 1.2,
-                cursor: "pointer",
-                boxShadow: "0 3px 10px rgba(126,242,122,0.5)",
-                textShadow: "0 1px 0 rgba(255,255,255,0.3)",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              }}
-            >
-              <img src={collectIconImg} alt="" width={26} height={26} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }} />
-              COLETAR
-            </button>
-          </div>
-
       <FarmingReportFloating 
         gold={sessionGold} 
         crystals={sessionCrystals} 
