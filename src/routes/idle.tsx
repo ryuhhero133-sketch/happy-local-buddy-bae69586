@@ -6981,8 +6981,8 @@ function IdlePage() {
       position: "relative"
     }}>
       {/* HUD Superior Moderna */}
-      <div className="modern-top-bar">
-        <div className="trainer-card-compact">
+      <div className="modern-top-bar" style={{ pointerEvents: 'none' }}>
+        <div className="trainer-card-compact" style={{ pointerEvents: 'auto' }}>
           <div className="trainer-avatar-glow">
             <img src={identity?.avatar_url || trainerAvatarAsset.url} alt="Avatar" />
           </div>
@@ -7004,7 +7004,7 @@ function IdlePage() {
           </div>
         </div>
 
-        <div className="currency-pill-container">
+        <div className="currency-pill-container" style={{ pointerEvents: 'auto' }}>
           <div className="currency-pill">
             <img src={navWallet} alt="Gold" />
             <span>{idle.bank.gold.toLocaleString()}</span>
@@ -7017,7 +7017,7 @@ function IdlePage() {
       </div>
 
       {/* Menu Lateral Direito */}
-      <div className="right-system-menu">
+      <div className="right-system-menu" style={{ zIndex: 1001 }}>
         <button className="menu-icon-btn" onClick={() => setBackpackOpen(true)} title="Mochila">
           <img src={navMochila} alt="Bag" />
         </button>
@@ -7032,8 +7032,8 @@ function IdlePage() {
         </button>
       </div>
 
-      {/* Dock Inferior Moderna */}
-      <div className="modern-bottom-dock">
+      {/* Dock Inferior */}
+      <div className="modern-bottom-dock" style={{ zIndex: 1001 }}>
         <div className="dock-inner">
           <button className="dock-item active" onClick={() => setActiveTab("battle")}>
             <img src={navBatalha} alt="Battle" />
@@ -7054,7 +7054,7 @@ function IdlePage() {
         </div>
       </div>
 
-      <div className="game-viewport-container" style={{ position: "relative", width: "100%", height: "100%", zIndex: 1 }}>
+      <div className="game-viewport-container" style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
 
       {/* 🛡️ AVISO — leitura da nuvem falhou: progresso local protegido e retry automático */}
       {cloudSaveBlocked && (
