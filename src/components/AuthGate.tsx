@@ -187,8 +187,14 @@ export function AuthGate({ children }: { children: ReactNode }) {
             .eq("id", sess.user.id)
             .maybeSingle();
 
-          // Se não for o admin, aplica as travas
+          // Se for o admin, libera sempre
           if (!isAdmin) {
+            if (profile?.account_status === "banned") {
+              await supabase.auth.signOut();
+              setKickedMessage("Esta conta foi banida permanentemente.");
+              return;
+            }
+
             if (profile?.lock_until && new Date(profile.lock_until) > new Date()) {
               const diff = new Date(profile.lock_until).getTime() - Date.now();
               const hours = Math.ceil(diff / (1000 * 60 * 60));
@@ -198,16 +204,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
               return;
             }
 
-            if (profile?.account_status === "banned") {
-              await supabase.auth.signOut();
-              setKickedMessage("Esta conta foi banida permanentemente.");
-              return;
-            }
-
-            // Bloqueio geral para não-admins durante o reset
-            await supabase.auth.signOut();
-            setKickedMessage("Acesso restrito: Servidor em manutenção geral.");
-            return;
+            // O bloqueio geral de reset (nuclear reset) deve ser controlado pelo banco.
+            // Se o usuário não está banido nem com lock_until futuro, permitimos o login.
           }
         } catch (e) {
           warn("Erro ao verificar status da conta", e);
