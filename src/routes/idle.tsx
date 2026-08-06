@@ -6973,6 +6973,7 @@ function IdlePage() {
 
   return (
     <div style={{
+
       height: "100vh",
       background: "#0b0510",
       color: "#f3e5c5",
@@ -7966,13 +7967,9 @@ function IdlePage() {
             );
           })()}
 
-
-
-
-
-
           {/* Clima estilo pixel-RPG */}
           {weather !== "clear" && (
+
             <div style={{
               position: "absolute", inset: 0, zIndex: 40,
               pointerEvents: "none", overflow: "hidden",
@@ -9184,17 +9181,13 @@ function IdlePage() {
                       }} />
                     )
                   )}
-
-
-
-
-
                 </div>
               );
             })}
 
             {/* Anel de cura durante o descanso */}
             {restingUntil !== null && (
+
               <>
                 <div style={{
                   position: "absolute",
@@ -12395,6 +12388,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
