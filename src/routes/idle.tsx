@@ -6972,7 +6972,7 @@ function IdlePage() {
   );
 
   return (
-    <div style={{
+    <div key="root-container" style={{
       height: "100vh",
       background: "#0b0510",
       color: "#f3e5c5",
@@ -11113,7 +11113,7 @@ function IdlePage() {
       `}</style>
 
 
-      {identity && (
+      {identity && (() => (
         <div key="player-identity-wrapper">
 
 
@@ -11138,7 +11138,8 @@ function IdlePage() {
           </div>
         </div>
         </div>
-      )}
+      ))()}
+
 
 
 
@@ -11301,6 +11302,7 @@ function IdlePage() {
                 </div>
               );
             })()}
+
           </div>
         );
       })()}
