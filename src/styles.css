@@ -158,11 +158,16 @@ html, body, #root {
 }
 
 .gb-font {
+  font-family: "Inter", system-ui, sans-serif;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+}
+
+.pixel-font {
   font-family: "VT323", "Press Start 2P", ui-monospace, "Courier New", monospace;
   letter-spacing: 0.5px;
-  line-height: 1.25;
-  text-rendering: geometricPrecision;
 }
+
 
 .pixelated {
   image-rendering: pixelated;
@@ -404,16 +409,17 @@ html, body, #root {
   left: 0;
   right: 0;
   height: 48px;
-  background: linear-gradient(180deg, rgba(11, 5, 16, 0.95) 0%, rgba(20, 10, 32, 0.9) 100%);
-  border-bottom: 2px solid rgba(245, 207, 107, 0.3);
+  background: linear-gradient(180deg, rgba(11, 5, 16, 0.98) 0%, rgba(20, 10, 32, 0.95) 100%);
+  border-bottom: 2px solid rgba(245, 207, 107, 0.4);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  z-index: 1000;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  padding: 0 20px;
+  z-index: 2000;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.7);
 }
+
 
 .resource-pill {
   display: flex;
@@ -433,18 +439,20 @@ html, body, #root {
 
 .trainer-card-compact {
   position: fixed;
-  top: 56px;
-  left: 12px;
-  width: 260px;
-  background: linear-gradient(160deg, rgba(28, 15, 46, 0.95) 0%, rgba(15, 5, 25, 0.98) 100%);
-  border: 2px solid rgba(192, 132, 252, 0.4);
-  border-radius: 16px;
-  padding: 12px;
+  top: 60px;
+  left: 20px;
+  width: 280px;
+  background: linear-gradient(160deg, rgba(28, 15, 46, 0.98) 0%, rgba(15, 5, 25, 0.98) 100%);
+  border: 2px solid rgba(245, 207, 107, 0.5);
+  border-radius: 18px;
+  padding: 14px;
   display: flex;
-  gap: 12px;
-  z-index: 999;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 0 16px rgba(192, 132, 252, 0.1);
+  gap: 14px;
+  z-index: 1500;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(245, 207, 107, 0.05);
+  backdrop-filter: blur(10px);
 }
+
 
 .trainer-avatar-box {
   width: 64px;
@@ -484,7 +492,18 @@ html, body, #root {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(11, 5, 16, 0.9);
+  background: rgba(11, 5, 16, 0.95);
+  z-index: 1800;
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(245, 207, 107, 0.6);
+  box-shadow: 0 0 40px rgba(245, 207, 107, 0.2), 0 10px 40px rgba(0,0,0,0.8);
+  border-radius: 24px;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
   border: 2px solid rgba(245, 207, 107, 0.4);
   border-radius: 24px;
   padding: 8px 16px;

@@ -9769,27 +9769,8 @@ function IdlePage() {
              }} />
           </div>
 
-          {/* Right Vertical System Menu */}
-          <div className="right-system-menu">
-            <div className="system-menu-btn" title="Ranking Global" onClick={() => setRankOpen(true)}>
-              <img src={assetUrlFromJson(rankMedalsRubyAsset)} alt="" width={28} height={28} />
-            </div>
-            <div className="system-menu-btn" title="Mapa Mundi" onClick={() => setWorldMapOpen(true)}>
-              <span style={{ fontSize: 24 }}>🌍</span>
-            </div>
-            <div className="system-menu-btn" title="Configurações" onClick={() => setTab("config")}>
-              <span style={{ fontSize: 24 }}>⚙️</span>
-            </div>
-            <div className="system-menu-btn" title="Salvar Nuvem" onClick={async () => {
-              if (cloudBlobReady) {
-                const ok = await pushCloudSaveNow(buildFullBlob());
-                if (ok) pushChat("☁️ Salvo!", "info");
-              }
-            }}>
-               <span style={{ fontSize: 24 }}>{pendingCloudSave ? "🛡️" : "☁️"}</span>
-            </div>
-          </div>
-
+          {/* Right Vertical System Menu - Removed / Merged into Dock */}
+          
           {/* Nav Inferior - Flutuante Dock */}
           <div className="floating-nav-dock">
             {([
@@ -9813,7 +9794,17 @@ function IdlePage() {
                 </div>
               );
             })}
+            <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.1)", margin: "0 4px" }} />
+            <div className="nav-dock-item" onClick={() => setWorldMapOpen(true)} title="Mapa Mundi">
+              <span style={{ fontSize: 20 }}>🌍</span>
+              <span className="nav-dock-label" style={{ color: "#c8b8d0" }}>Mapa</span>
+            </div>
+            <div className="nav-dock-item" onClick={() => setRankOpen(true)} title="Ranking">
+              <span style={{ fontSize: 20 }}>🏆</span>
+              <span className="nav-dock-label" style={{ color: "#c8b8d0" }}>Rank</span>
+            </div>
           </div>
+
 
           {/* Floating Chat Panel (Bottom Left) */}
           <div className="chat-floating-panel">
@@ -10224,8 +10215,35 @@ function IdlePage() {
 
 
         {/* ============ COLUNA DIREITA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, minHeight: 0, overflowY: "auto" }}>
-          <Panel title="MAPA ATUAL" accent="#3d2b52">
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, minHeight: 0, overflowY: "auto", position: "fixed", bottom: 90, right: 20, width: 280, zIndex: 1000 }}>
+          <Panel title="SUA EQUIPE" accent="#3d2b52">
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {team.map((p, i) => (
+                <div key={p.uid} style={{ 
+                  display: "flex", alignItems: "center", gap: 8, 
+                  background: i === 0 ? "rgba(245,207,107,0.15)" : "rgba(255,255,255,0.05)",
+                  padding: "6px 10px", borderRadius: 10,
+                  border: i === 0 ? "1px solid #f5cf6b" : "1px solid rgba(255,255,255,0.1)"
+                }}>
+                  <div style={{ width: 32, height: 32, background: "rgba(0,0,0,0.3)", borderRadius: 6, display: "grid", placeItems: "center" }}>
+                    <img src={GIF[p.species]} alt="" style={{ width: "90%", imageRendering: "pixelated" }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 10, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {p.species.toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: 8, color: "#c8b8d0" }}>Lv.{p.level}</div>
+                  </div>
+                  {i === 0 && <span style={{ fontSize: 10 }}>⚔️</span>}
+                </div>
+              ))}
+              {Array.from({ length: 6 - team.length }).map((_, i) => (
+                <div key={`empty-${i}`} style={{ height: 44, border: "1.5px dashed rgba(255,255,255,0.1)", borderRadius: 10, display: "grid", placeItems: "center", color: "rgba(255,255,255,0.2)", fontSize: 18 }}>+</div>
+              ))}
+            </div>
+          </Panel>
+          <Panel title="EXPLORAR" accent="#3d2b52">
+
             {(() => {
               const leaderLv = team[0]?.level ?? 1;
               const goTo = (label: string, x: number, y: number, onArrive?: () => void) => {
@@ -10843,6 +10861,15 @@ function IdlePage() {
           </button>
 
           {/* Guia do Prof. Carvalho removido a pedido do usuário */}
+          {/* Guia do Prof. Carvalho removido a pedido do usuário */}
+          {false && (
+            <ProfessorOakGuide 
+              topic="welcome"
+              onClose={() => {}} 
+            />
+          )}
+
+
 
         </div>
 
