@@ -6984,12 +6984,12 @@ function IdlePage() {
       <div className="modern-top-bar" style={{ pointerEvents: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, display: 'flex', justifyContent: 'space-between', padding: '10px 20px' }}>
         <div className="trainer-card-compact" style={{ pointerEvents: 'auto' }}>
           <div className="trainer-avatar-glow">
-            <img src={identity?.avatar_url || trainerAvatarAsset.url} alt="Avatar" />
+            <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" />
           </div>
           <div className="trainer-info-minimal">
             <div className="trainer-name-row">
               <span className="trainer-name-text">{identity?.name || "Treinador"}</span>
-              <span className="trainer-lv-badge">Lv.{idle.trainerLevel}</span>
+              <span className="trainer-lv-badge">Lv.{idle.trainerLevel || 1}</span>
             </div>
             <div className="stats-pill-group">
               <div className="stat-pill-hp">
@@ -6997,64 +6997,71 @@ function IdlePage() {
                 <span className="stat-pill-label">HP 100%</span>
               </div>
               <div className="stat-pill-xp">
-                <div className="stat-pill-fill" style={{ width: `${(idle.trainerXp / (trainerXpToNext(idle.trainerLevel) || 1)) * 100}%`, background: "var(--xp-gradient)" }} />
-                <span className="stat-pill-label">XP {Math.floor((idle.trainerXp / (trainerXpToNext(idle.trainerLevel) || 1)) * 100)}%</span>
+                <div className="stat-pill-fill" style={{ width: `${Math.min(100, ((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%`, background: "var(--xp-gradient)" }} />
+                <span className="stat-pill-label">XP {Math.floor(((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="currency-pill-container" style={{ pointerEvents: 'auto', display: 'flex', gap: '10px' }}>
+        <div className="currency-pill-container" style={{ pointerEvents: 'auto', display: 'flex', gap: '10px', alignItems: 'center' }}>
           <div className="currency-pill">
-            <img src={navWallet} alt="Gold" style={{ width: '20px' }} />
+            <span style={{ fontSize: '14px' }}>🪙</span>
             <span>{idle.bank.gold.toLocaleString()}</span>
           </div>
           <div className="currency-pill">
-            <img src={iconCrystalBlue.url} alt="Crystal" style={{ width: '20px' }} />
+            <span style={{ fontSize: '14px' }}>💎</span>
             <span>{idle.bank.crystals.toLocaleString()}</span>
+          </div>
+          <div className="currency-pill" title="Fragmento Vermelho">
+            <span style={{ fontSize: '14px' }}>🔻</span>
+            <span>{Math.floor(idle.items?.red_crystal_shard ?? 0)}</span>
           </div>
         </div>
       </div>
 
       {/* Menu Lateral Direito */}
       <div className="right-system-menu" style={{ position: 'fixed', right: '15px', top: '50%', transform: 'translateY(-50%)', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <button className="menu-icon-btn" onClick={() => setBackpackOpen(true)}>
-          <img src={navMochila} alt="Bag" style={{ width: '32px' }} />
+        <button className="menu-icon-btn" onClick={() => setTab("mochila")} title="Mochila">
+          <span style={{ fontSize: '24px' }}>🎒</span>
         </button>
-        <button className="menu-icon-btn" onClick={() => setPokemonTabOpen(true)}>
-          <img src={navPokemon} alt="PKM" style={{ width: '32px' }} />
+        <button className="menu-icon-btn" onClick={() => setTab("pokemon")} title="Equipe">
+          <span style={{ fontSize: '24px' }}>⚔️</span>
         </button>
-        <button className="menu-icon-btn" onClick={() => setWorldMapOpen(true)}>
-          <img src={iconWorldGlobe.url} alt="Map" style={{ width: '32px' }} />
+        <button className="menu-icon-btn" onClick={() => setWorldMapOpen(true)} title="Mapa Mundi">
+          <span style={{ fontSize: '24px' }}>🗺️</span>
         </button>
-        <button className="menu-icon-btn" onClick={() => setCashShopOpen(true)}>
-          <img src={navLoja} alt="Shop" style={{ width: '32px' }} />
+        <button className="menu-icon-btn" onClick={() => setTab("loja")} title="Loja VIP">
+          <span style={{ fontSize: '24px' }}>💎</span>
         </button>
       </div>
 
       {/* Dock Inferior */}
       <div className="modern-bottom-dock" style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
         <div className="dock-inner" style={{ display: 'flex', gap: '15px', padding: '8px 20px' }}>
-          <button className="dock-item active" onClick={() => setActiveTab("battle")}>
-            <img src={navBatalha} alt="Battle" style={{ width: '34px' }} />
+          <button className={`dock-item ${tab === 'batalha' ? 'active' : ''}`} onClick={() => setTab("batalha")}>
+            <span style={{ fontSize: '24px' }}>🔥</span>
             <span>BATALHA</span>
           </button>
-          <button className="dock-item" onClick={() => setCollectionOpen(true)}>
-            <img src={navColecao} alt="Pokedex" style={{ width: '34px' }} />
+          <button className={`dock-item ${tab === 'colecao' ? 'active' : ''}`} onClick={() => setTab("colecao")}>
+            <span style={{ fontSize: '24px' }}>📔</span>
             <span>COLEÇÃO</span>
           </button>
-          <button className="dock-item" onClick={() => setMarketOpen(true)}>
-            <img src={navMarket} alt="Market" style={{ width: '34px' }} />
+          <button className={`dock-item ${tab === 'market' ? 'active' : ''}`} onClick={() => setTab("market")}>
+            <span style={{ fontSize: '24px' }}>⚖️</span>
             <span>MERCADO</span>
           </button>
-          <button className="dock-item" onClick={() => setUpgradeOpen(true)}>
-            <img src={navMelhorias} alt="Upgrades" style={{ width: '34px' }} />
+          <button className={`dock-item ${tab === 'melhorias' ? 'active' : ''}`} onClick={() => setTab("melhorias")}>
+            <span style={{ fontSize: '24px' }}>⚡</span>
             <span>UPGRADES</span>
           </button>
         </div>
       </div>
 
-      <div className="game-viewport-container" style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+      <div className="game-viewport-container" style={{ position: 'absolute', inset: 0, zIndex: 0 }}></div>
+
+
+
 
       {/* 🛡️ AVISO — leitura da nuvem falhou: progresso local protegido e retry automático */}
       {cloudSaveBlocked && (
@@ -8024,95 +8031,28 @@ function IdlePage() {
             }
             if (buffs.length === 0) return null;
             return (
-              <div style={{ position: "absolute", top: 8, right: 8, zIndex: 55, display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ position: "absolute", top: 12, right: 12, zIndex: 1001, display: "flex", flexDirection: "column", gap: 6 }}>
                 <style>{`
                   @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
                   @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 `}</style>
                 {buffs.map(b => (
-                  <div key={b.key} title={b.label} style={{ position: "relative", width: 48, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "5px 4px 4px", background: b.bg, border: `1.5px solid ${b.ring}`, borderRadius: 10, boxShadow: `0 0 14px ${b.glow}, inset 0 0 8px ${b.ringSoft}` }}>
-                    <div style={{ position: "absolute", inset: -3, borderRadius: 12, pointerEvents: "none", background: `conic-gradient(from 0deg, transparent 0deg, ${b.ringSoft} 90deg, transparent 180deg, ${b.ringSoft} 270deg, transparent 360deg)`, opacity: 0.45, animation: "rmBuffSpin 6s linear infinite", WebkitMask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)", mask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)" }} />
-                    <div style={{ width: 34, height: 34, display: "grid", placeItems: "center", animation: "rmBuffPulse 1.8s ease-in-out infinite", filter: `drop-shadow(0 0 6px ${b.glow})` }}>
-                      <img src={b.img} alt={b.label} width={34} height={34} style={{ objectFit: "contain", display: "block" }} draggable={false} />
+                  <div key={b.key} title={b.label} style={{ 
+                    position: "relative", width: 52, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, 
+                    padding: "6px 5px", background: b.bg, border: `2px solid ${b.ring}`, borderRadius: 12, 
+                    boxShadow: `0 4px 12px rgba(0,0,0,0.6), 0 0 16px ${b.glow}, inset 0 0 10px ${b.ringSoft}` 
+                  }}>
+                    <div style={{ position: "absolute", inset: -3, borderRadius: 14, pointerEvents: "none", background: `conic-gradient(from 0deg, transparent 0deg, ${b.ringSoft} 90deg, transparent 180deg, ${b.ringSoft} 270deg, transparent 360deg)`, opacity: 0.5, animation: "rmBuffSpin 6s linear infinite", WebkitMask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)", mask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)" }} />
+                    <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", animation: "rmBuffPulse 1.8s ease-in-out infinite", filter: `drop-shadow(0 0 8px ${b.glow})` }}>
+                      <img src={b.img} alt={b.label} width={36} height={36} style={{ objectFit: "contain", display: "block" }} draggable={false} />
                     </div>
-                    {b.subLabel && <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: 0.5, lineHeight: 1, color: b.textColor, textShadow: `0 0 4px ${b.glow}` }}>{b.subLabel}</span>}
+                    {b.subLabel && <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5, lineHeight: 1, color: b.textColor, textShadow: `0 0 4px ${b.glow}` }}>{b.subLabel}</span>}
+                    <span style={{ fontSize: 10, fontWeight: 800, lineHeight: 1, color: b.textColor, whiteSpace: "nowrap", textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>{fmtT(b.timeMs)}</span>
                   </div>
                 ))}
               </div>
             );
           })()}
-
-              if (buffs.length === 0) return null;
-              return (
-                <>
-                  <style>{`
-                    @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
-                    @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                  `}</style>
-                  {buffs.map(b => (
-                    <div
-                      key={b.key}
-                      title={b.label}
-                      style={{
-                        marginTop: 6,
-                        position: "relative",
-                        width: 48,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 2,
-                        padding: "5px 4px 4px",
-                        background: b.bg,
-                        border: `1.5px solid ${b.ring}`,
-                        borderRadius: 10,
-                        boxShadow: `0 0 14px ${b.glow}, inset 0 0 8px ${b.ringSoft}`,
-                      }}
-                    >
-                      {/* Halo giratório */}
-                      <div style={{
-                        position: "absolute", inset: -3, borderRadius: 12,
-                        pointerEvents: "none",
-                        background: `conic-gradient(from 0deg, transparent 0deg, ${b.ringSoft} 90deg, transparent 180deg, ${b.ringSoft} 270deg, transparent 360deg)`,
-                        opacity: 0.45,
-                        animation: "rmBuffSpin 6s linear infinite",
-                        WebkitMask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)",
-                        mask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)",
-                      }} />
-                      <div style={{
-                        width: 34, height: 34,
-                        display: "grid", placeItems: "center",
-                        animation: "rmBuffPulse 1.8s ease-in-out infinite",
-                        filter: `drop-shadow(0 0 6px ${b.glow})`,
-                      }}>
-                        <img
-                          src={b.img}
-                          alt={b.label}
-                          width={34}
-                          height={34}
-                          style={{ objectFit: "contain", display: "block" }}
-                          draggable={false}
-                        />
-                      </div>
-                      {b.subLabel && (
-                        <span style={{
-                          fontSize: 8, fontWeight: 800, letterSpacing: 0.5, lineHeight: 1,
-                          color: b.textColor,
-                          textShadow: `0 0 4px ${b.glow}`,
-                        }}>{b.subLabel}</span>
-                      )}
-                      <span style={{
-                        fontSize: 9, fontWeight: 700, lineHeight: 1,
-                        color: b.textColor,
-                        whiteSpace: "nowrap",
-                        textShadow: "0 1px 2px rgba(0,0,0,0.75)",
-                      }}>
-                        {fmtT(b.timeMs)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
 
           </div>
 
@@ -9269,8 +9209,6 @@ function IdlePage() {
                   pointerEvents: "none",
                   filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.7))",
                 }}>
-      <>
-      </>
                   <img src={captureAnim.ballImg} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated" }} />
                 </div>
               );
@@ -9330,7 +9268,8 @@ function IdlePage() {
                         imageRendering: "pixelated",
                         pointerEvents: "none",
                       }} />
-                    )}
+                    )
+                  )}
 
 
 
@@ -10157,98 +10096,8 @@ function IdlePage() {
           )}
         </div>
 
-
-        {/* ============ HUD SUPERIOR (RESOURCE BAR) ============ */}
-        <div className="modern-top-bar">
-          <div className="resource-pill">
-            <span className="label">🪙 OURO</span>
-            <span className="value">{fmtK(bank.gold)}</span>
-          </div>
-          <div className="resource-pill">
-            <span className="label">💎 CRISTAIS</span>
-            <span className="value">{fmtK(bank.crystals)}</span>
-          </div>
-          <div className="resource-pill" title="Fragmento Vermelho — dropado por pokémons derrotados">
-            <img src={redShardImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
-            <span className="value">{Math.floor(idle.items?.red_crystal_shard ?? 0)} / 50K</span>
-          </div>
-          <div className="resource-pill">
-            <span className="label">MAPA</span>
-            <span className="value">{IDLE_MAPS[idle.currentMap]?.name || "Desconhecido"}</span>
-          </div>
-        </div>
-
-        {/* ============ CARD DO TREINADOR (SUPERIOR ESQUERDO) ============ */}
-        <div className="trainer-card-compact">
-          <div className="trainer-avatar-box">
-            <img 
-              src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`}
-              alt="Avatar"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          </div>
-          <div className="trainer-bars-container">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 11, fontWeight: 900, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>
-                {identity?.email?.split("@")[0].toUpperCase() || "TREINADOR"}
-              </span>
-              <span style={{ fontSize: 10, color: "#f5cf6b", fontWeight: 800 }}>LV.{idle.trainerLevel || 1}</span>
-            </div>
-            <div className="xp-bar-container">
-              <div 
-                className="xp-bar-fill" 
-                style={{ width: `${Math.min(100, (idle.trainerExp / (idle.trainerLevel * 100)) * 100)}%` }} 
-              />
-            </div>
-            <div style={{ fontSize: 8, color: "rgba(255,255,255,0.6)", textAlign: "right", marginTop: -2 }}>
-              EXP: {Math.floor(idle.trainerExp)} / {(idle.trainerLevel || 1) * 100}
-            </div>
-          </div>
-        </div>
-
-        {/* ============ MENU LATERAL DIREITO (VERTICAL) ============ */}
-        <div className="right-system-menu">
-          <button className="sys-icon" title="Ranking Global" onClick={() => pushChat("🏆 Ranking em breve!", "info")}>🏆</button>
-          <button className="sys-icon" title="Ovos Especiais" onClick={() => openBlackEggHud()}>🥚</button>
-          <button className="sys-icon" title="Mundo" onClick={() => setWorldMapOpen(true)}>🗺️</button>
-          <button className="sys-icon" title="Promo Codes" onClick={() => setTab("config")}>🎟️</button>
-          <button className="sys-icon" title="Configurações" onClick={() => setTab("config")}>⚙️</button>
-        </div>
-
-        {/* ============ DOCK INFERIOR (CENTRALIZADO) ============ */}
-        <div className="modern-bottom-dock">
-          <div className={`dock-item ${tab === "explore" ? "active" : ""}`} onClick={() => setTab("explore")}>
-            <span>🏠</span>
-            <span className="dock-label">Início</span>
-          </div>
-          <div className={`dock-item ${tab === "pokemon" ? "active" : ""}`} onClick={() => setTab("pokemon")}>
-            <span>⚔️</span>
-            <span className="dock-label">Pokémon</span>
-          </div>
-          <div className={`dock-item ${tab === "bag" ? "active" : ""}`} onClick={() => setTab("bag")}>
-            <span>🎒</span>
-            <span className="dock-label">Mochila</span>
-          </div>
-          <div className={`dock-item ${tab === "quests" ? "active" : ""}`} onClick={() => setTab("quests")}>
-            <span>📜</span>
-            <span className="dock-label">Missões</span>
-          </div>
-          <div className={`dock-item ${tab === "collection" ? "active" : ""}`} onClick={() => setTab("collection")}>
-            <span>📔</span>
-            <span className="dock-label">Coleção</span>
-          </div>
-          <div className={`dock-item ${tab === "market" ? "active" : ""}`} onClick={() => setTab("market")}>
-            <span>⚖️</span>
-            <span className="dock-label">Mercado</span>
-          </div>
-          <div className={`dock-item ${tab === "shop" ? "active" : ""}`} onClick={() => setTab("shop")}>
-            <span>💎</span>
-            <span className="dock-label">Loja</span>
-          </div>
-        </div>
-
-        {/* ============ PAINÉIS LATERAIS ESQUERDOS (EXPLORE & TEAM) ============ */}
-        <div className="modern-explore-panel">
+        {/* ============ MENU LATERAL ESQUERDO (EXPLORE & TEAM) ============ */}
+        <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
           <Panel title="EXPLORAR" accent="#3d2b52">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div ref={coletaRef} style={{
@@ -10262,9 +10111,10 @@ function IdlePage() {
                   <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 10 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 10 }}>
-                  <span style={{ color: "#f4c430", fontWeight: 800, fontSize: 12 }}>● {fmtK(idle.pending.gold)}</span>
-                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 12 }}>💎 {Math.floor(idle.pending.crystals)}</span>
+                  <span style={{ color: "#f4c430", fontWeight: 800, fontSize: 12 }}>● {fmtK(idle.bank.gold)}</span>
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 12 }}>💎 {Math.floor(idle.bank.crystals)}</span>
                 </div>
+
                 <button
                   onClick={collect}
                   style={{
@@ -10292,9 +10142,9 @@ function IdlePage() {
               )}
             </div>
           </Panel>
-        </div>
 
-        <div className="modern-team-panel">
+          <div style={{ height: 12 }} />
+
           <Panel title="EQUIPE" accent="#3d2b52">
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {team.map((p, i) => (
@@ -10318,10 +10168,8 @@ function IdlePage() {
           </Panel>
         </div>
 
-
-
       <style>{`
-        /* ===== Layout responsivo ===== */
+
         @media (max-width: 1400px) {
           .idle-grid { grid-template-columns: 210px 1fr 210px !important; gap: 6px !important; padding: 6px !important; }
         }
@@ -16168,8 +16016,6 @@ function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
       topic={hasPokemon ? "autohunt" : "welcome"}
       onClose={() => setClosed(true)}
     />
-      </div>
-    </div>
   );
 }
 
