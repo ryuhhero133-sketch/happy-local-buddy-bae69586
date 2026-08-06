@@ -7195,6 +7195,31 @@ function IdlePage() {
 
       </div>
 
+      <style>{`
+        .side-btn {
+          transition: transform 0.2s, background 0.2s;
+        }
+        .side-btn:hover {
+          transform: scale(1.1);
+          background: rgba(245, 207, 107, 0.2) !important;
+          border-color: #f5cf6b !important;
+        }
+        .side-btn:active {
+          transform: scale(0.95);
+        }
+        .bottom-dock-container button {
+          transition: transform 0.2s, opacity 0.2s;
+        }
+        .bottom-dock-container button:hover {
+          transform: translateY(-5px);
+          opacity: 0.8;
+        }
+        .bottom-dock-container button:active {
+          transform: translateY(0) scale(0.9);
+        }
+      `}</style>
+
+
 
 
       
