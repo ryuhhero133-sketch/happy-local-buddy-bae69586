@@ -11936,8 +11936,8 @@ function IdlePage() {
         onRedeemCode={() => redeemCrystalCode()}
       />
     )}
-
     <BlackMiticEggHud
+
 
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
@@ -12326,6 +12326,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
