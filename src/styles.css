@@ -458,8 +458,8 @@ html, body, #root {
 
 
 .trainer-avatar-box {
-  width: 64px;
-  height: 64px;
+  width: 44px;
+  height: 44px;
   background: rgba(0,0,0,0.3);
   border: 2px solid #f5cf6b;
   border-radius: 12px;
