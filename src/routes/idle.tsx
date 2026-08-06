@@ -11938,9 +11938,8 @@ function IdlePage() {
       />
     )}
 
+    <BlackMiticEggHud
 
-
-      <BlackMiticEggHud
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12328,6 +12327,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
