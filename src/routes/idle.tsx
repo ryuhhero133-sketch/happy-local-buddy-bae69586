@@ -14628,10 +14628,11 @@ function TabOverlay({
                 onClick={() => openFragConfirm([...bulkSel])}
                 style={{
                   padding: "6px 14px", fontSize: 12, fontWeight: 900, borderRadius: 8,
-                  border: "1px solid #3b0f7a", cursor: "pointer",
-                  background: "linear-gradient(180deg,#c084fc,#6b21a8)",
+                  border: "1px solid #ff9ea1", cursor: "pointer",
+                  background: "linear-gradient(180deg,#ff5252,#c0392b)",
                   color: "#fff",
-                  boxShadow: "0 0 12px rgba(192,132,252,0.7)",
+                  boxShadow: "0 0 10px rgba(255,82,82,0.4)",
+
                 }}
               >⚒️ FRAGMENTAR {bulkSel.size}</button>
             )}
