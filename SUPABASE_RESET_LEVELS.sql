@@ -22,4 +22,8 @@ SET
 -- INSERT INTO public.audit_events (kind, detail)
 -- VALUES ('season_reset', '{"description": "Níveis de todos os jogadores e pokémons resetados para 1"}');
 
--- HINT: Após rodar este SQL, os jogadores verão o nível 1 ao logar ou atualizar a página.
+-- 4. Desconectar todos os jogadores ativos (limpa as sessões no Auth do Supabase)
+-- Isso forçará todos a logarem novamente e verem os novos dados.
+DELETE FROM auth.sessions;
+
+-- HINT: Após rodar este SQL, todos os jogadores serão desconectados e verão o nível 1 ao logar novamente.
