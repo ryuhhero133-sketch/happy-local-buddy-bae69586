@@ -158,11 +158,16 @@ html, body, #root {
 }
 
 .gb-font {
+  font-family: "Inter", system-ui, sans-serif;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+}
+
+.pixel-font {
   font-family: "VT323", "Press Start 2P", ui-monospace, "Courier New", monospace;
   letter-spacing: 0.5px;
-  line-height: 1.25;
-  text-rendering: geometricPrecision;
 }
+
 
 .pixelated {
   image-rendering: pixelated;
