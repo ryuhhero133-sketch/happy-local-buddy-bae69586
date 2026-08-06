@@ -6279,8 +6279,8 @@ function IdlePage() {
       .from("market_listings") as any)
       .update(
         { buyer_id: identity.id, sold_at: new Date().toISOString() },
-        { count: "exact" },
-      />
+        { count: "exact" }
+      )
       .eq("id", listing.id)
       .is("sold_at", null);
     if (error) { console.error("[market] buy error", error, listing); pushChat(`Falha ao comprar: ${error.message}`, "info"); return false; }
