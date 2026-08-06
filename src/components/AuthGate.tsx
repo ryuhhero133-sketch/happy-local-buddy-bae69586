@@ -204,10 +204,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
               return;
             }
 
-            // Regra Extra: Apenas o admin loga durante este período específico de manutenção/reset
-            // (Opcional, mas garante que ninguém mais entre enquanto você testa)
+            // Bloqueio geral para não-admins durante o reset
             await supabase.auth.signOut();
-            setKickedMessage("O servidor está em acesso restrito no momento.");
+            setKickedMessage("Acesso restrito: Servidor em manutenção geral.");
             return;
           }
         } catch (e) {
