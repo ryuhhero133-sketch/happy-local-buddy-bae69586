@@ -3250,7 +3250,7 @@ function IdlePage() {
         ];
         const isAdminUuid = identity?.id && adminUuids.includes(identity.id);
         
-        // Also check by email if ID is not yet in the list
+        // Also check by email
         const isAdminEmail = identity?.email === "lordryuhhhuyuyghh@gmail.com";
 
         if (isAdminUuid || isAdminEmail) {
@@ -12573,6 +12573,34 @@ function IdlePage() {
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
       <SmartGuideHud hasPokemon={team.length > 0} />
+
+      {/* Admin Button for lordryuhhhuyuyghh@gmail.com */}
+      {(identity?.email === "lordryuhhhuyuyghh@gmail.com" || identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6") && (
+        <button
+          onClick={() => setIsAdminOpen(true)}
+          style={{
+            position: "fixed",
+            bottom: 20,
+            right: 20,
+            width: 50,
+            height: 50,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #f5cf6b, #b8862a)",
+            border: "2px solid #fff",
+            boxShadow: "0 0 15px rgba(245, 207, 107, 0.6)",
+            cursor: "pointer",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 24,
+            animation: "pulse 2s infinite"
+          }}
+          title="Abrir Painel Admin"
+        >
+          ⚙️
+        </button>
+      )}
 
 
 
