@@ -9437,7 +9437,8 @@ function IdlePage() {
             })}
           </div>
 
-          <div className="modern-top-bar">
+          {/* ============ HUD MODERNA ============ */}
+          <div className="modern-top-bar" style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '20px', zIndex: 1100 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{
                 color: "#f5cf6b", fontWeight: 900, fontSize: 16,
@@ -9452,8 +9453,6 @@ function IdlePage() {
             </div>
 
             <div style={{ display: "flex", gap: 12 }}>
-
-
               <div className="resource-pill" title="Ouro">
                 <span style={{ fontSize: 18 }}>🪙</span>
                 <span>{fmtK(idle.bank.gold)}</span>
@@ -9462,39 +9461,25 @@ function IdlePage() {
                 <img src={crystalGreenImg} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
                 <span>{Math.floor(idle.bank.crystals).toLocaleString()}</span>
               </div>
-              {(idle.items?.safira_verde ?? 0) > 0 && (
-                <div className="resource-pill" title="Safira Verde">
-                  <img src={assetUrlFromJson(safiraVerdeAsset)} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
-                  <span>{idle.items!.safira_verde}</span>
-                </div>
-              )}
-              {(idle.items?.fragmento_vermelho ?? 0) > 0 && (
-                <div className="resource-pill" title="Fragmentos Vermelhos" style={{ color: "#ff8b8b", borderColor: "rgba(255,139,139,0.3)" }}>
-                  <span style={{ fontSize: 16 }}>🔻</span>
-                  <span>{idle.items!.fragmento_vermelho}</span>
-                </div>
-              )}
             </div>
 
-            {/* Direita: Pokébolas compactas */}
             <div style={{ display: "flex", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
-                <img src={ballPokeImg} alt="Poké" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.pokeball ? 1 : 0.4 }} />
+                <img src={ballPokeImg} alt="Poké" width={20} height={20} style={{ imageRendering: "pixelated" }} />
                 <span style={{ fontSize: 11, fontWeight: 800, color: "#ff8080" }}>{idle.items.pokeball ?? 0}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
-                <img src={ballGreatImg} alt="Great" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.greatball ? 1 : 0.4 }} />
+                <img src={ballGreatImg} alt="Great" width={20} height={20} style={{ imageRendering: "pixelated" }} />
                 <span style={{ fontSize: 11, fontWeight: 800, color: "#7ec4ff" }}>{idle.items.greatball ?? 0}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
-                <img src={ballUltraImg} alt="Ultra" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.ultraball ? 1 : 0.4 }} />
+                <img src={ballUltraImg} alt="Ultra" width={20} height={20} style={{ imageRendering: "pixelated" }} />
                 <span style={{ fontSize: 11, fontWeight: 800, color: "#ffd66b" }}>{idle.items.ultraball ?? 0}</span>
               </div>
             </div>
           </div>
 
-          {/* Player Panel (Top Left) */}
-          <div className="trainer-card-compact">
+          <div className="trainer-card-compact" style={{ position: 'fixed', top: '20px', left: '20px', zIndex: 1100 }}>
             <div className="trainer-avatar-box">
               <div style={{
                 width: "100%", height: "100%",
@@ -9516,37 +9501,16 @@ function IdlePage() {
             <div className="trainer-bars-container">
               <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", display: "flex", justifyContent: "space-between" }}>
                 <span>{identity?.name?.toUpperCase() ?? "TREINADOR"}</span>
-                {isVip() && <span style={{ color: "#f5cf6b" }}>✦ VIP</span>}
               </div>
-              
-              {/* HP Bar */}
-              {team[0] && (() => {
-                const max = calcIdleMaxHp(team[0]);
-                const hpPct = Math.max(0, (leaderHp / max) * 100);
-                return (
-                  <div className="hud-bar-bg" title={`HP: ${Math.floor(leaderHp)}/${max}`}>
-                    <div className="hud-bar-fill" style={{ width: `${hpPct}%`, background: "linear-gradient(90deg, #ff4d4d, #b30000)" }} />
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, color: "#fff", textShadow: "1px 1px 0 #000" }}>HP</div>
-                  </div>
-                );
-              })()}
-
-              {/* XP Bar */}
-              {(() => {
-                const xpNeeded = 100 + (idle.trainerLevel ?? 1) * 25;
-                const xpPct = Math.min(100, ((idle.trainerXp ?? 0) / xpNeeded) * 100);
-                return (
-                  <div className="hud-bar-bg" title={`XP: ${idle.trainerXp}/${xpNeeded}`}>
-                    <div className="hud-bar-fill" style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #4dff4d, #00b300)" }} />
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, color: "#fff", textShadow: "1px 1px 0 #000" }}>EXP</div>
-                  </div>
-                );
-              })()}
+              <div className="hud-bar-bg" title="HP">
+                <div className="hud-bar-fill" style={{ width: `${Math.max(0, (leaderHp / 100) * 100)}%`, background: "linear-gradient(90deg, #ff4d4d, #b30000)" }} />
+              </div>
+              <div className="hud-bar-bg" title="EXP">
+                <div className="hud-bar-fill" style={{ width: `${Math.min(100, ((idle.trainerXp ?? 0) / (100 + (idle.trainerLevel ?? 1) * 25)) * 100)}%`, background: "linear-gradient(90deg, #4dff4d, #00b300)" }} />
+              </div>
             </div>
           </div>
 
-          {/* Mini-Map Circular (Top Right) */}
-          <div className="mini-map-circular">
              {/* Simulação de radar/mapa simplificado */}
              <div style={{
                position: "absolute", inset: 0,
@@ -11936,6 +11900,7 @@ function IdlePage() {
 
 
 
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12323,6 +12288,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
