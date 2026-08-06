@@ -98,7 +98,13 @@ import skinGokuAsset from "@/assets/skins/goku.webp.asset.json";
 import virizionAsset from "@/assets/legends/virizion.gif.asset.json";
 import raikouAsset from "@/assets/legends/raikou.gif.asset.json";
 
-export type CollectionEntry = PetInstance & {
+export type CollectionEntry = Partial<PetInstance> & {
+  uid: string;
+  species: Species;
+  level: number;
+  rarity: Rarity;
+  xp: number;
+  traits: string[];
   collectedAt: number;
   capturedAt?: number;
   count: number;
