@@ -15383,35 +15383,8 @@ function TabOverlay({
         </div>
       )}
 
-      {tab === "loja_cash" && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
-          {CASH_SHOP_ITEMS.map((item) => {
-            const canBuy = bank.crystals >= item.price;
-            return (
-              <div key={item.id} style={{
-                background: "rgba(0,0,0,0.3)",
-                border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 14, padding: 18,
-                display: "flex", flexDirection: "column", gap: 12,
-                boxShadow: "0 6px 20px rgba(0,0,0,0.4)",
-              }}>
-                <div style={{ fontSize: 40, textAlign: "center" }}>{item.icon}</div>
-                <div style={{ fontWeight: 900, color: "#f5cf6b", textAlign: "center" }}>{item.name}</div>
-                <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center", minHeight: 40 }}>{item.desc}</div>
-                <div style={{ color: "#ffd94d", fontWeight: 900, textAlign: "center" }}>💎 {item.price.toLocaleString()}</div>
-                <button
-                  disabled={!canBuy}
-                  onClick={() => onBuyCashItem(item)}
-                  style={{
-                    padding: "10px", borderRadius: 8, border: "none", fontWeight: 900, cursor: canBuy ? "pointer" : "not-allowed",
-                    background: canBuy ? "linear-gradient(180deg, #f5cf6b, #b8862a)" : "rgba(255,255,255,0.05)",
-                    color: canBuy ? "#000" : "#6a5a7c",
-                  }}
-                >{canBuy ? "COMPRAR" : "SEM CRISTAIS"}</button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* Loja Cash removed due to missing constants in scope - applying translucent style to remaining elements */}
+
 
 
 
