@@ -637,6 +637,11 @@ html, body, #root {
   box-shadow: 0 8px 32px rgba(0,0,0,0.7), inset 0 0 20px rgba(0,0,0,0.8);
 }
 
+.xp-bar-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
   box-shadow: 0 0 8px rgba(74,222,128,0.7), inset 0 1px 0 rgba(255,255,255,0.5);
   transition: width 0.6s cubic-bezier(.2,.9,.3,1.1);
 }
