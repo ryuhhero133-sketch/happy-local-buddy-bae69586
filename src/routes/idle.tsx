@@ -1256,10 +1256,11 @@ function loadIdle(): IdleState {
       let parsed;
       try {
         parsed = JSON.parse(raw);
-      } catch {
+        if (!parsed || typeof parsed !== 'object') return freshIdle();
+      } catch (e) {
+        console.error("Erro crítico ao parsear IDLE_KEY:", e);
         return freshIdle();
       }
-      if (!parsed || typeof parsed !== 'object') return freshIdle();
       const s: IdleState = { ...freshIdle(), ...parsed };
       // Presente de boas-vindas (evento): 1x Caixa Premium
       const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
