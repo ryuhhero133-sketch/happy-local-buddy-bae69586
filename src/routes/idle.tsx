@@ -7887,67 +7887,83 @@ function IdlePage() {
 
 
           {/* Os antigos botões de zoom/config/ranking foram removidos e integrados na nova HUD flutuante */}
+          {(() => {
+            const orbUntil = idle.buffs.orbUntil ?? 0;
+            const teamUntil = idle.buffs.teamOrbUntil ?? 0;
+            const rareUntil = idle.buffs.honeyRareUntil ?? 0;
+            const normalUntil = idle.buffs.honeyUntil ?? 0;
+            const now = Date.now();
+            const buffs: Array<{
+              key: string; img: string; label: string; timeMs: number;
+              ring: string; ringSoft: string; glow: string; textColor: string; bg: string;
+              subLabel?: string;
+            }> = [];
+            const fmtT = (ms: number) => {
+              const mins = Math.floor(ms / 60000);
+              const secs = Math.floor((ms % 60000) / 1000);
+              return mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+            };
+            if (orbUntil > now) {
+              const pct = Math.round((idle.buffs.orbMult ?? 0) * 100);
+              buffs.push({
+                key: "orb-xp", img: buffOrbXpUrl,
+                label: `Orb ativo: +${pct}% EXP · ${fmtT(orbUntil - now)}`,
+                timeMs: orbUntil - now,
+                ring: "#b48bff", ringSoft: "rgba(180,140,255,0.55)",
+                glow: "rgba(180,120,255,0.85)",
+                textColor: "#e6d5ff",
+                bg: "linear-gradient(180deg, rgba(38,20,70,0.95), rgba(18,8,40,0.9))",
+                subLabel: `+${pct}%`,
+              });
+            }
+            if (teamUntil > now) {
+              buffs.push({
+                key: "orb-team", img: buffTeamOrbUrl,
+                label: `Orb de Time ativo: todo o time ganha EXP · ${fmtT(teamUntil - now)}`,
+                timeMs: teamUntil - now,
+                ring: "#ff8ad6", ringSoft: "rgba(255,138,214,0.55)",
+                glow: "rgba(255,138,214,0.9)",
+                textColor: "#ffd5ee",
+                bg: "linear-gradient(180deg, rgba(70,20,55,0.95), rgba(40,8,30,0.9))",
+                subLabel: "TIME",
+              });
+            }
+            if (rareUntil > now || normalUntil > now) {
+              const isRare = rareUntil > now;
+              const until = isRare ? rareUntil : normalUntil;
+              const pct = isRare ? 20 : 10;
+              buffs.push({
+                key: "honey", img: buffIncenseHoneyUrl,
+                label: `Incenso ${isRare ? "Raro" : "de Mel"} ativo: +${pct}% drop/xp/def/velocidade · ${fmtT(until - now)}`,
+                timeMs: until - now,
+                ring: isRare ? "#ffd94d" : "#ffb84d",
+                ringSoft: `rgba(255,${isRare ? 217 : 184},77,0.55)`,
+                glow: `rgba(255,${isRare ? 217 : 184},77,0.9)`,
+                textColor: "#fff2c4",
+                bg: "linear-gradient(180deg, rgba(60,32,6,0.95), rgba(35,18,4,0.9))",
+                subLabel: `+${pct}%`,
+              });
+            }
+            if (buffs.length === 0) return null;
+            return (
+              <div style={{ position: "absolute", top: 8, right: 8, zIndex: 55, display: "flex", flexDirection: "column", gap: 4 }}>
+                <style>{`
+                  @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
+                  @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                `}</style>
+                {buffs.map(b => (
+                  <div key={b.key} title={b.label} style={{ position: "relative", width: 48, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "5px 4px 4px", background: b.bg, border: `1.5px solid ${b.ring}`, borderRadius: 10, boxShadow: `0 0 14px ${b.glow}, inset 0 0 8px ${b.ringSoft}` }}>
+                    <div style={{ position: "absolute", inset: -3, borderRadius: 12, pointerEvents: "none", background: `conic-gradient(from 0deg, transparent 0deg, ${b.ringSoft} 90deg, transparent 180deg, ${b.ringSoft} 270deg, transparent 360deg)`, opacity: 0.45, animation: "rmBuffSpin 6s linear infinite", WebkitMask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)", mask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)" }} />
+                    <div style={{ width: 34, height: 34, display: "grid", placeItems: "center", animation: "rmBuffPulse 1.8s ease-in-out infinite", filter: `drop-shadow(0 0 6px ${b.glow})` }}>
+                      <img src={b.img} alt={b.label} width={34} height={34} style={{ objectFit: "contain", display: "block" }} draggable={false} />
+                    </div>
+                    {b.subLabel && <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: 0.5, lineHeight: 1, color: b.textColor, textShadow: `0 0 4px ${b.glow}` }}>{b.subLabel}</span>}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
-            {(() => {
-              const orbUntil = idle.buffs.orbUntil ?? 0;
-              const teamUntil = idle.buffs.teamOrbUntil ?? 0;
-              const rareUntil = idle.buffs.honeyRareUntil ?? 0;
-              const normalUntil = idle.buffs.honeyUntil ?? 0;
-              const now = Date.now();
-              const buffs: Array<{
-                key: string; img: string; label: string; timeMs: number;
-                ring: string; ringSoft: string; glow: string; textColor: string; bg: string;
-                subLabel?: string;
-              }> = [];
-              const fmtT = (ms: number) => {
-                const mins = Math.floor(ms / 60000);
-                const secs = Math.floor((ms % 60000) / 1000);
-                return mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
-              };
-              // Orb de XP
-              if (orbUntil > now) {
-                const pct = Math.round((idle.buffs.orbMult ?? 0) * 100);
-                buffs.push({
-                  key: "orb-xp", img: buffOrbXpUrl,
-                  label: `Orb ativo: +${pct}% EXP · ${fmtT(orbUntil - now)}`,
-                  timeMs: orbUntil - now,
-                  ring: "#b48bff", ringSoft: "rgba(180,140,255,0.55)",
-                  glow: "rgba(180,120,255,0.85)",
-                  textColor: "#e6d5ff",
-                  bg: "linear-gradient(180deg, rgba(38,20,70,0.95), rgba(18,8,40,0.9))",
-                  subLabel: `+${pct}%`,
-                });
-              }
-              // Orb de Time (comporta-se como o Incenso — mostra badge no HUD)
-              if (teamUntil > now) {
-                buffs.push({
-                  key: "orb-team", img: buffTeamOrbUrl,
-                  label: `Orb de Time ativo: todo o time ganha EXP · ${fmtT(teamUntil - now)}`,
-                  timeMs: teamUntil - now,
-                  ring: "#ff8ad6", ringSoft: "rgba(255,138,214,0.55)",
-                  glow: "rgba(255,138,214,0.9)",
-                  textColor: "#ffd5ee",
-                  bg: "linear-gradient(180deg, rgba(70,20,55,0.95), rgba(40,8,30,0.9))",
-                  subLabel: "TIME",
-                });
-              }
-              // Incenso de mel
-              if (rareUntil > now || normalUntil > now) {
-                const isRare = rareUntil > now;
-                const until = isRare ? rareUntil : normalUntil;
-                const pct = isRare ? 20 : 10;
-                buffs.push({
-                  key: "honey", img: buffIncenseHoneyUrl,
-                  label: `Incenso ${isRare ? "Raro" : "de Mel"} ativo: +${pct}% drop/xp/def/velocidade · ${fmtT(until - now)}`,
-                  timeMs: until - now,
-                  ring: isRare ? "#ffd94d" : "#ffb84d",
-                  ringSoft: `rgba(255,${isRare ? 217 : 184},77,0.55)`,
-                  glow: `rgba(255,${isRare ? 217 : 184},77,0.9)`,
-                  textColor: "#fff2c4",
-                  bg: "linear-gradient(180deg, rgba(60,32,6,0.95), rgba(35,18,4,0.9))",
-                  subLabel: `+${pct}%`,
-                });
-              }
               if (buffs.length === 0) return null;
               return (
                 <>
