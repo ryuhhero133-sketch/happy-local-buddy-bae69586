@@ -9192,10 +9192,9 @@ function IdlePage() {
                   pointerEvents: "none",
                   filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.7))",
                 }}>
-      <>
-      </>
                   <img src={captureAnim.ballImg} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated" }} />
                 </div>
+
               );
             })()}
 
