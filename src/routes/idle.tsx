@@ -7970,6 +7970,7 @@ function IdlePage() {
 
 
 
+
           {/* Clima estilo pixel-RPG */}
           {weather !== "clear" && (
             <div style={{
@@ -9462,8 +9463,9 @@ function IdlePage() {
                   <span style={{ fontSize: 16 }}>🔻</span>
                   <span>{idle.items!.fragmento_vermelho}</span>
                 </div>
-              )}
-            </div>
+                  )}
+                </div>
+
 
             {/* Direita: Pokébolas compactas */}
             <div style={{ display: "flex", gap: 8 }}>
@@ -11995,9 +11997,10 @@ function IdlePage() {
         }}
         codeInput={codeInput}
         setCodeInput={setCodeInput}
-        codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
-      )}
+      />
+    )}
+
 
 
 
