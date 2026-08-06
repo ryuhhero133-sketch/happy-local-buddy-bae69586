@@ -9592,11 +9592,11 @@ function IdlePage() {
                    </div>
                  ))}
                   <div ref={chatEndRef} />
-                </div>
-              )}
+                 </div>
+               )}
             </div>
           </div>
-        </div>
+
 
 
 
@@ -9989,8 +9989,8 @@ function IdlePage() {
               onUpgradeBook={upgradeBook}
             />
           )}
-        </div>
         <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+
 
 
 
@@ -12314,6 +12314,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
