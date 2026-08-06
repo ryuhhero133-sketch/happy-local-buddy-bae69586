@@ -10750,8 +10750,9 @@ function IdlePage() {
               const timerTxt = active
                 ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
                 : "Um novo evento está sendo preparado.";
-  return (
-    <div style={{
+              return (
+                <>
+                  <div style={{
                     fontSize: 11, fontWeight: 900, color: "#ffd6ec",
                     letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
                   }}>✦ ODISSÉIA ODDISH</div>
