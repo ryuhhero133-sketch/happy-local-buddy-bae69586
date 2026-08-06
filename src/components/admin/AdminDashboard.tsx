@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { loadIdentity } from "@/components/AuthGate";
 import {
   getConfig,
   saveConfig,
@@ -60,6 +61,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [config, setConfig] = useState<AdminConfig>(() => getConfig());
   const [query, setQuery] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const identity = useMemo(() => loadIdentity(), []);
 
   useEffect(() => {
     saveConfig(config);
@@ -147,6 +149,9 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     </>
   );
 
+  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+  if (!isAdminUuid) return null;
+
   return (
     <div className="fixed inset-0 z-[9999] flex bg-slate-950/95 backdrop-blur-xl text-slate-100 font-sans animate-in fade-in duration-200">
       {/* Particles */}
@@ -217,6 +222,8 @@ function TabBody({
       return <PlayersTab />;
     case "gifts":
       return <GiftsTab />;
+    case "reports":
+      return <ReportsTab />;
     case "pokemon":
       return <PokemonTab />;
     case "spawn":
@@ -233,8 +240,6 @@ function TabBody({
       return <InvisibleTab config={config} setConfig={setConfig} />;
     case "teleport":
       return <TeleportTab />;
-    case "reports":
-      return <ReportsTab />;
     case "logs":
       return <LogsTab />;
     case "config":
@@ -856,9 +861,8 @@ function GiftsTab() {
       <Card title="Como funciona">
         <ul className="text-xs text-slate-400 space-y-2 list-disc pl-4">
           <li>O presente é gravado em <code className="text-amber-200">admin_gifts</code> no Supabase.</li>
-          <li>Quando o jogador entra no jogo, o cliente reclama os gifts pendentes pelo username/user_id e aplica no save local.</li>
-          <li>Itens e pokébolas enviadas viram <strong>bound</strong> (não vendáveis).</li>
-          <li>Requer a tabela <code className="text-amber-200">admin_gifts</code> criada — veja SUPABASE_SETUP.md.</li>
+          <li>O jogador recebe no próximo login. Itens/pokébolas viram <strong>bound</strong>.</li>
+          <li className="text-fuchsia-400 font-bold italic">Shift + A para abrir/fechar este painel.</li>
         </ul>
       </Card>
     </div>
