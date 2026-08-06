@@ -15001,10 +15001,12 @@ function TabOverlay({
 
           <h3 style={{ color: "#6bd4ff", fontSize: 15, margin: "6px 0 10px" }}>Poções — pagas em ouro</h3>
           <div style={{
-            background: "linear-gradient(160deg, #0f1f2e 0%, #16324a 100%)",
-            border: "1px solid #6bd4ff55", borderRadius: 12, padding: 14, marginBottom: 20,
+            background: "rgba(0,0,0,0.3)",
+            border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12, padding: 14, marginBottom: 20,
             display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
           }}>
+
             <div style={{ fontSize: 40 }}>🧪</div>
             <div style={{ flex: 1, minWidth: 160 }}>
               <div style={{ fontWeight: 800, color: "#eadfe8" }}>Poção</div>
