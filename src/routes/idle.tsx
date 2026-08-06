@@ -11934,6 +11934,7 @@ function IdlePage() {
 
 
 
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12321,6 +12322,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
