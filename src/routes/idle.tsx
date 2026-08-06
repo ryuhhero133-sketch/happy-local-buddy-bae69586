@@ -7055,83 +7055,116 @@ function IdlePage() {
         </div>
       </div>
 
-      {/* HUD Superior Moderna */}
-      <div className="modern-top-bar" style={{ pointerEvents: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, display: 'flex', justifyContent: 'space-between', padding: '10px 20px' }}>
-
-        <div className="trainer-card-compact" style={{ pointerEvents: 'auto' }}>
-          <div className="trainer-avatar-glow">
-            <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" />
-          </div>
-          <div className="trainer-info-minimal">
-            <div className="trainer-name-row">
-              <span className="trainer-name-text">{identity?.name || "Treinador"}</span>
-              <span className="trainer-lv-badge">Lv.{idle.trainerLevel || 1}</span>
+      {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
+      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none' }}>
+        
+        {/* Barra Superior Moderna (Arquitetura da Imagem) */}
+        <div className="modern-top-bar" style={{ 
+          position: 'absolute', top: 0, left: 0, right: 0, height: '55px',
+          background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)',
+          pointerEvents: 'auto'
+        }}>
+          {/* Lado Esquerdo: Localização e Info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>{map.name}</span>
+              <span style={{ color: '#aaa', fontSize: '10px' }}>Dificuldade: Normal | {Math.floor(charX)}, {Math.floor(charY)}</span>
             </div>
-            <div className="stats-pill-group">
-              <div className="stat-pill-hp">
-                <div className="stat-pill-fill" style={{ width: "100%", background: "var(--hp-gradient)" }} />
-                <span className="stat-pill-label">HP 100%</span>
-              </div>
-              <div className="stat-pill-xp">
-                <div className="stat-pill-fill" style={{ width: `${Math.min(100, ((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%`, background: "var(--xp-gradient)" }} />
-                <span className="stat-pill-label">XP {Math.floor(((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%</span>
-              </div>
+            <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+               <span style={{ fontSize: '14px' }}>🕒</span>
+               <span style={{ color: '#fff', fontSize: '12px' }}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          </div>
+
+          {/* Centro: Recursos */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div className="resource-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px 12px', borderRadius: '15px' }}>
+              <span style={{ fontSize: '14px' }}>🪙</span>
+              <span style={{ color: '#ffd700', fontSize: '13px', fontWeight: 700 }}>{idle.bank.gold.toLocaleString()}</span>
+            </div>
+            <div className="resource-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px 12px', borderRadius: '15px' }}>
+              <span style={{ fontSize: '14px' }}>💎</span>
+              <span style={{ color: '#00d2ff', fontSize: '13px', fontWeight: 700 }}>{idle.bank.crystals.toLocaleString()}</span>
+            </div>
+            <div className="resource-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px 12px', borderRadius: '15px' }}>
+              <span style={{ fontSize: '14px' }}>🔻</span>
+              <span style={{ color: '#ff4b4b', fontSize: '13px', fontWeight: 700 }}>{Math.floor(idle.items?.red_crystal_shard ?? 0)}</span>
+            </div>
+          </div>
+
+          {/* Lado Direito: Config */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+             <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>⚙️</button>
+          </div>
+        </div>
+
+        {/* Painel do Jogador (Card Compacto) */}
+        <div className="player-panel-compact" style={{
+          position: 'absolute', top: '70px', left: '20px',
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)',
+          padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex', gap: '12px', minWidth: '220px', pointerEvents: 'auto'
+        }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', border: '2px solid #f5cf6b' }}>
+            <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" style={{ width: '100%', height: '100%' }} />
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: '#fff', fontSize: '13px', fontWeight: 800 }}>{identity?.name || "Treinador"}</span>
+              <span style={{ background: '#f5cf6b', color: '#000', fontSize: '9px', fontWeight: 900, padding: '1px 4px', borderRadius: '4px' }}>Lv.{idle.trainerLevel || 1}</span>
+            </div>
+            <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: '100%', background: 'var(--hp-gradient)' }} />
+            </div>
+            <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${Math.min(100, ((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
             </div>
           </div>
         </div>
 
-        <div className="currency-pill-container" style={{ pointerEvents: 'auto', display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <div className="currency-pill">
-            <span style={{ fontSize: '14px' }}>🪙</span>
-            <span>{idle.bank.gold.toLocaleString()}</span>
-          </div>
-          <div className="currency-pill">
-            <span style={{ fontSize: '14px' }}>💎</span>
-            <span>{idle.bank.crystals.toLocaleString()}</span>
-          </div>
-          <div className="currency-pill" title="Fragmento Vermelho">
-            <span style={{ fontSize: '14px' }}>🔻</span>
-            <span>{Math.floor(idle.items?.red_crystal_shard ?? 0)}</span>
-          </div>
+        {/* Menu Lateral Direito (Barra de Ícones) */}
+        <div className="side-icon-bar" style={{
+          position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
+          display: 'flex', flexDirection: 'column', gap: '12px', pointerEvents: 'auto'
+        }}>
+          <button className="side-btn" onClick={() => setTab("ranking")} title="Ranking" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🏆</button>
+          <button className="side-btn" onClick={() => setWorldMapOpen(true)} title="Mapa" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🗺️</button>
+          <button className="side-btn" onClick={() => setTab("loja")} title="Loja VIP" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>💎</button>
+          <button className="side-btn" onClick={() => setTab("melhorias")} title="Config" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>⚙️</button>
         </div>
-      </div>
 
-      {/* Menu Lateral Direito */}
-      <div className="right-system-menu" style={{ position: 'fixed', right: '15px', top: '50%', transform: 'translateY(-50%)', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <button className="menu-icon-btn" onClick={() => setTab("mochila")} title="Mochila">
-          <span style={{ fontSize: '24px' }}>🎒</span>
-        </button>
-        <button className="menu-icon-btn" onClick={() => setTab("pokemon")} title="Equipe">
-          <span style={{ fontSize: '24px' }}>⚔️</span>
-        </button>
-        <button className="menu-icon-btn" onClick={() => setWorldMapOpen(true)} title="Mapa Mundi">
-          <span style={{ fontSize: '24px' }}>🗺️</span>
-        </button>
-        <button className="menu-icon-btn" onClick={() => setTab("loja")} title="Loja VIP">
-          <span style={{ fontSize: '24px' }}>💎</span>
-        </button>
-      </div>
-
-      {/* Dock Inferior */}
-      <div className="modern-bottom-dock" style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
-        <div className="dock-inner" style={{ display: 'flex', gap: '15px', padding: '8px 20px' }}>
-          <button className={`dock-item ${tab === 'batalha' ? 'active' : ''}`} onClick={() => setTab("batalha")}>
-            <span style={{ fontSize: '24px' }}>🔥</span>
-            <span>BATALHA</span>
+        {/* Dock Inferior Moderna */}
+        <div className="bottom-dock-container" style={{
+          position: 'absolute', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)',
+          padding: '8px 25px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+        }}>
+          <button onClick={() => setTab("batalha")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#f5cf6b' : '#fff' }}>
+            <span style={{ fontSize: '24px' }}>⚔️</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>BATALHA</span>
           </button>
-          <button className={`dock-item ${tab === 'colecao' ? 'active' : ''}`} onClick={() => setTab("colecao")}>
+          <button onClick={() => setTab("pokemon")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#f5cf6b' : '#fff' }}>
+            <span style={{ fontSize: '24px' }}>🛡️</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>EQUIPE</span>
+          </button>
+          <button onClick={() => setTab("mochila")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#f5cf6b' : '#fff' }}>
+            <span style={{ fontSize: '24px' }}>🎒</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>MOCHILA</span>
+          </button>
+          <button onClick={() => setTab("colecao")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#f5cf6b' : '#fff' }}>
             <span style={{ fontSize: '24px' }}>📔</span>
-            <span>COLEÇÃO</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>COLEÇÃO</span>
           </button>
-          <button className={`dock-item ${tab === 'market' ? 'active' : ''}`} onClick={() => setTab("market")}>
+          <button onClick={() => setTab("market")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#f5cf6b' : '#fff' }}>
             <span style={{ fontSize: '24px' }}>⚖️</span>
-            <span>MERCADO</span>
-          </button>
-          <button className={`dock-item ${tab === 'melhorias' ? 'active' : ''}`} onClick={() => setTab("melhorias")}>
-            <span style={{ fontSize: '24px' }}>⚡</span>
-            <span>UPGRADES</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
           </button>
         </div>
+
       </div>
 
       
