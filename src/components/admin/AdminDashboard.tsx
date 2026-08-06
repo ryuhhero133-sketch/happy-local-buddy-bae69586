@@ -364,6 +364,7 @@ function OnlinePlayersTab() {
   const [inspectingUser, setInspectingUser] = useState<string | null>(null);
   const [inventory, setInventory] = useState<any>(null);
   const [ipLogs, setIpLogs] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const refresh = async () => {
     setLoading(true);
@@ -375,24 +376,33 @@ function OnlinePlayersTab() {
           username,
           last_login,
           account_status,
-          ranked_leaderboard (
+          lock_until,
+          ranked_leaderboard:ranked_scores (
             trainer_level,
-            score
+            total_kills
           )
         `)
-        .order("last_login", { ascending: false })
-        .limit(100);
+        .order("last_login", { ascending: false });
       
       if (error) throw error;
       setPlayers(data || []);
     } catch (e) {
       console.error("Load players failed", e);
+      toast.error("Falha ao carregar lista de jogadores");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => { refresh(); }, []);
+
+  const filteredPlayers = useMemo(() => {
+    if (!searchQuery) return players;
+    return players.filter(p => 
+      (p.username || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.id.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [players, searchQuery]);
 
   const inspectPlayer = async (id: string) => {
     setInspectingUser(id);
@@ -419,13 +429,18 @@ function OnlinePlayersTab() {
     try {
       const { error } = await (supabase.from("profiles") as any).update({ account_status: status }).eq("id", id);
       if (error) throw error;
-      await (supabase.from("audit_events" as any) as any).insert([{
-        actor_id: (await supabase.auth.getUser()).data.user?.id,
-        target_user_id: id,
-        kind: "account_status_change",
-        detail: { status }
-      }]);
       toast.success(`Status atualizado para ${status}`);
+      refresh();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const unlockUser = async (id: string) => {
+    try {
+      const { error } = await (supabase.from("profiles") as any).update({ lock_until: null }).eq("id", id);
+      if (error) throw error;
+      toast.success("Acesso liberado para este jogador");
       refresh();
     } catch (e: any) {
       toast.error(e.message);
@@ -434,45 +449,80 @@ function OnlinePlayersTab() {
 
   return (
     <div className="space-y-6">
-      <Card title="Gestão de Contas & IPs" action={
-        <button onClick={refresh} className="text-[10px] bg-slate-800 px-2 py-1 rounded">ATUALIZAR</button>
-      }>
-        <div className="rounded-lg border border-slate-800 bg-slate-950/60 overflow-hidden">
+      <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            placeholder="Buscar por nome ou ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-fuchsia-500"
+          />
+        </div>
+        <button onClick={refresh} className="bg-slate-800 hover:bg-slate-700 text-xs px-4 py-2 rounded-lg transition">
+          ATUALIZAR LISTA ({players.length})
+        </button>
+      </div>
+
+      <Card title="Gestão Global de Jogadores">
+        <div className="rounded-lg border border-slate-800 bg-slate-950/60 overflow-hidden overflow-x-auto">
           <table className="w-full text-[10px]">
             <thead className="bg-slate-900/80 text-slate-500">
               <tr>
                 <th className="text-left px-3 py-2">Jogador</th>
                 <th className="text-left px-3 py-2">Status</th>
                 <th className="text-left px-3 py-2">Nível</th>
+                <th className="text-left px-3 py-2">Visto em</th>
                 <th className="text-right px-3 py-2">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
-              {players.map((p) => (
-                <tr key={p.id} className={`hover:bg-white/5 ${inspectingUser === p.id ? "bg-fuchsia-500/5" : ""}`}>
-                  <td className="px-3 py-2">
-                    <div className="text-amber-100 font-bold">{p.username || "Sem nome"}</div>
-                    <div className="text-[8px] text-slate-600 truncate max-w-[120px]">{p.id}</div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
-                      p.account_status === 'banned' ? 'bg-rose-500/20 text-rose-400' :
-                      p.account_status === 'analysis' ? 'bg-amber-500/20 text-amber-400' :
-                      'bg-emerald-500/20 text-emerald-400'
-                    }`}>
-                      {(p.account_status || 'active').toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-fuchsia-300">
-                    Lv {p.ranked_leaderboard?.[0]?.trainer_level || 1}
-                  </td>
-                  <td className="px-3 py-2 text-right space-x-1">
-                    <button onClick={() => inspectPlayer(p.id)} className="px-2 py-1 rounded bg-slate-800 text-slate-300">INSPECIONAR</button>
-                    <button onClick={() => updateStatus(p.id, 'analysis')} className="px-2 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">ANALISAR</button>
-                    <button onClick={() => updateStatus(p.id, 'banned')} className="px-2 py-1 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30">BANIR</button>
-                  </td>
+              {filteredPlayers.map((p) => {
+                const isLocked = p.lock_until && new Date(p.lock_until) > new Date();
+                return (
+                  <tr key={p.id} className={`hover:bg-white/5 ${inspectingUser === p.id ? "bg-fuchsia-500/5" : ""}`}>
+                    <td className="px-3 py-2">
+                      <div className="text-amber-100 font-bold">{p.username || "Sem nome"}</div>
+                      <div className="text-[8px] text-slate-600 truncate max-w-[120px]">{p.id}</div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col gap-1">
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold text-center ${
+                          p.account_status === 'banned' ? 'bg-rose-500/20 text-rose-400' :
+                          p.account_status === 'analysis' ? 'bg-amber-500/20 text-amber-400' :
+                          'bg-emerald-500/20 text-emerald-400'
+                        }`}>
+                          {(p.account_status || 'active').toUpperCase()}
+                        </span>
+                        {isLocked && (
+                          <span className="bg-fuchsia-500/20 text-fuchsia-300 text-[7px] px-1 rounded text-center">MANUTENÇÃO</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-fuchsia-300">
+                      Lv {p.ranked_leaderboard?.[0]?.trainer_level || 1}
+                    </td>
+                    <td className="px-3 py-2 text-slate-500 italic">
+                      {p.last_login ? new Date(p.last_login).toLocaleString() : "Nunca"}
+                    </td>
+                    <td className="px-3 py-2 text-right space-x-1">
+                      <div className="flex flex-wrap justify-end gap-1">
+                        <button onClick={() => inspectPlayer(p.id)} className="px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">VER</button>
+                        {isLocked && (
+                          <button onClick={() => unlockUser(p.id)} className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20">LIBERAR</button>
+                        )}
+                        <button onClick={() => updateStatus(p.id, 'analysis')} className="px-2 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20">ANALISAR</button>
+                        <button onClick={() => updateStatus(p.id, 'banned')} className="px-2 py-1 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20">BANIR</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filteredPlayers.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-3 py-10 text-center text-slate-500 italic">Nenhum jogador encontrado.</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -497,6 +547,9 @@ function OnlinePlayersTab() {
                     </div>
                   ))}
                 </div>
+                {inventory.balls.length === 0 && inventory.items.length === 0 && (
+                  <div className="text-xs text-slate-500 italic">Mochila vazia.</div>
+                )}
               </div>
             )}
           </Card>
@@ -516,6 +569,7 @@ function OnlinePlayersTab() {
     </div>
   );
 }
+
 
 function PokemonTab() {
   // Read species dynamically from save / try to import registry
