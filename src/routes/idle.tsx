@@ -9439,6 +9439,7 @@ function IdlePage() {
 
           <div className="modern-top-bar" style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '20px', zIndex: 1100 }}>
 
+
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{
                 color: "#f5cf6b", fontWeight: 900, fontSize: 16,
@@ -11902,6 +11903,7 @@ function IdlePage() {
 
 
 
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12289,6 +12291,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
