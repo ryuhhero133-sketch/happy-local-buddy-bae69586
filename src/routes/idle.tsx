@@ -15238,10 +15238,11 @@ function TabOverlay({
               const owned = items[t.orbId] ?? 0;
               return (
                 <div key={`${t.orbId}-${t.rarity}`} style={{
-                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
-                  border: `1px solid ${t.color}55`, borderRadius: 12, padding: 14,
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12, padding: 14,
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
-                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${t.color}22`,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
+
                 }}>
                   <img src={t.img} alt="" width={64} height={64}
                     style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 10px ${t.color}aa)` }} />
