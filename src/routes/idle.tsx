@@ -1555,8 +1555,9 @@ function IdlePage() {
 
   useEffect(() => {
     const leader = team[0];
-    const lv = leader?.level ?? 0;
-    const uid = leader?.uid;
+    if (!leader) return;
+    const lv = leader.level ?? 0;
+    const uid = leader.uid;
     const changed = uid !== leaderUidRef.current || Math.abs(lv - leaderLvKeyRef.current) >= 3;
     if (changed) {
       leaderLvKeyRef.current = lv;
@@ -1569,10 +1570,9 @@ function IdlePage() {
         if (kept.length < 3) return spawnEnemies();
         return kept;
       });
-      // Importante: setAttackTargetId(null) removido daqui para evitar loop infinito
-      // caso o componente re-renderize e cause novo processamento do team.
     }
-  }, [team.length, team[0]?.uid, team[0]?.level]);
+  }, [team.length, team[0]?.uid, team[0]?.level, spawnEnemies]);
+
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -1908,10 +1908,12 @@ function IdlePage() {
     savedAt: Date.now(),
   }), [restingBench]);
   useEffect(() => {
-    if (!cloudBlobReady) return;
-    scheduleCloudSync(buildFullBlob());
+    if (!cloudBlobReady || cloudSaveBlocked) return;
+    const blob = buildFullBlob();
+    scheduleCloudSync(blob);
     setCloudQueueTick((t) => t + 1);
-  }, [idle.currentMap, idle.bank.gold, idle.bank.crystals, team.length, team[0]?.level, restingBench.length, buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
+  }, [idle.currentMap, idle.bank.gold, idle.bank.crystals, team.length, team[0]?.level, restingBench.length, cloudBlobReady, cloudSaveBlocked]);
+
 
   useEffect(() => {
     const id = setInterval(() => setCloudQueueTick((t) => t + 1), 5000);
