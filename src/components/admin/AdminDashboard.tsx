@@ -147,6 +147,9 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     </>
   );
 
+  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+  if (!isAdminUuid) return null;
+
   return (
     <div className="fixed inset-0 z-[9999] flex bg-slate-950/95 backdrop-blur-xl text-slate-100 font-sans animate-in fade-in duration-200">
       {/* Particles */}

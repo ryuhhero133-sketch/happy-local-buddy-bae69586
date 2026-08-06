@@ -3244,10 +3244,17 @@ function IdlePage() {
       if (k === "c") { e.preventDefault(); collect(); return; }
       // Admin shortcut: Shift + A (Only for the admin UUID)
       if (e.shiftKey && k === "a") {
-        const isAdmin = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-        if (isAdmin) {
+        const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+        if (isAdminUuid) {
           e.preventDefault();
           setIsAdminOpen((v) => !v);
+          // Auto-enable admin flag if not set
+          if (typeof window !== "undefined") {
+            const flag = "rubym.isAdmin";
+            if (localStorage.getItem(flag) !== "true") {
+              localStorage.setItem(flag, "true");
+            }
+          }
           return;
         }
       }
