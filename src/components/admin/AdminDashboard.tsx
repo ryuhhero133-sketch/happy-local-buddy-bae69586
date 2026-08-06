@@ -361,24 +361,27 @@ function DashboardTab() {
 function OnlinePlayersTab() {
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [inspectingUser, setInspectingUser] = useState<string | null>(null);
+  const [inventory, setInventory] = useState<any>(null);
+  const [ipLogs, setIpLogs] = useState<any[]>([]);
 
   const refresh = async () => {
     setLoading(true);
     try {
-      // Usamos a tabela profiles + ranked_leaderboard para ver quem é quem
       const { data, error } = await supabase
         .from("profiles")
         .select(`
           id,
           username,
           last_login,
+          account_status,
           ranked_leaderboard (
             trainer_level,
             score
           )
         `)
         .order("last_login", { ascending: false })
-        .limit(50);
+        .limit(100);
       
       if (error) throw error;
       setPlayers(data || []);
@@ -391,20 +394,38 @@ function OnlinePlayersTab() {
 
   useEffect(() => { refresh(); }, []);
 
-  const banPlayer = async (id: string, username: string) => {
-    if (!confirm(`Deseja realmente BANIR o jogador ${username}?`)) return;
+  const inspectPlayer = async (id: string) => {
+    setInspectingUser(id);
+    setInventory(null);
+    setIpLogs([]);
     try {
-      // O banimento real depende de uma coluna 'banned' ou similar. 
-      // Como estamos expandindo, vamos assumir que existe ou que usamos a audit para marcar.
-      // Por ora, vamos registrar na audit e tentar dar update no profile se a coluna existir.
-      const { error } = await (supabase.from("audit_events" as any) as any).insert([{
-        user_id: id,
-        username,
-        kind: "ban_action",
-        detail: { action: "ban", actor: "admin" }
-      }]);
+      const [invRes, ballsRes, ipRes] = await Promise.all([
+        supabase.from("inventory").select("*").eq("user_id", id),
+        supabase.from("pokeballs").select("*").eq("user_id", id),
+        supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10)
+      ]);
+      setInventory({
+        items: invRes.data || [],
+        balls: ballsRes.data || []
+      });
+      setIpLogs(ipRes.data || []);
+    } catch (e) {
+      console.error("Inspect failed", e);
+    }
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    if (!confirm(`Alterar status para ${status.toUpperCase()}?`)) return;
+    try {
+      const { error } = await supabase.from("profiles").update({ account_status: status }).eq("id", id);
       if (error) throw error;
-      toast.success(`${username} marcado para banimento.`);
+      await supabase.from("audit_events" as any).insert([{
+        actor_id: (await supabase.auth.getUser()).data.user?.id,
+        target_user_id: id,
+        kind: "account_status_change",
+        detail: { status }
+      }]);
+      toast.success(`Status atualizado para ${status}`);
       refresh();
     } catch (e: any) {
       toast.error(e.message);
@@ -412,46 +433,87 @@ function OnlinePlayersTab() {
   };
 
   return (
-    <Card title="Jogadores Recentes / Online" action={
-      <button onClick={refresh} className="text-[10px] bg-slate-800 px-2 py-1 rounded">ATUALIZAR</button>
-    }>
-      <div className="rounded-lg border border-slate-800 bg-slate-950/60 overflow-hidden">
-        <table className="w-full text-[10px]">
-          <thead className="bg-slate-900/80 text-slate-500">
-            <tr>
-              <th className="text-left px-3 py-2">Jogador</th>
-              <th className="text-left px-3 py-2">Nível</th>
-              <th className="text-left px-3 py-2">Visto em</th>
-              <th className="text-right px-3 py-2">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/50">
-            {players.map((p) => (
-              <tr key={p.id} className="hover:bg-white/5">
-                <td className="px-3 py-2">
-                  <div className="text-amber-100 font-bold">{p.username || "Sem nome"}</div>
-                  <div className="text-[8px] text-slate-600 truncate max-w-[100px]">{p.id}</div>
-                </td>
-                <td className="px-3 py-2 text-fuchsia-300">
-                  Lv {p.ranked_leaderboard?.[0]?.trainer_level || 1}
-                </td>
-                <td className="px-3 py-2 text-slate-500">
-                  {p.last_login ? new Date(p.last_login).toLocaleString() : "—"}
-                </td>
-                <td className="px-3 py-2 text-right space-x-2">
-                  <button 
-                    onClick={() => banPlayer(p.id, p.username)}
-                    className="px-2 py-1 rounded bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20"
-                  >BANIR</button>
-                </td>
+    <div className="space-y-6">
+      <Card title="Gestão de Contas & IPs" action={
+        <button onClick={refresh} className="text-[10px] bg-slate-800 px-2 py-1 rounded">ATUALIZAR</button>
+      }>
+        <div className="rounded-lg border border-slate-800 bg-slate-950/60 overflow-hidden">
+          <table className="w-full text-[10px]">
+            <thead className="bg-slate-900/80 text-slate-500">
+              <tr>
+                <th className="text-left px-3 py-2">Jogador</th>
+                <th className="text-left px-3 py-2">Status</th>
+                <th className="text-left px-3 py-2">Nível</th>
+                <th className="text-right px-3 py-2">Ações</th>
               </tr>
-            ))}
-            {loading && <tr><td colSpan={4} className="px-3 py-10 text-center">Carregando...</td></tr>}
-            {!loading && players.length === 0 && <tr><td colSpan={4} className="px-3 py-10 text-center">Nenhum jogador encontrado.</td></tr>}
-          </tbody>
-        </table>
-      </div>
-    </Card>
+            </thead>
+            <tbody className="divide-y divide-slate-800/50">
+              {players.map((p) => (
+                <tr key={p.id} className={`hover:bg-white/5 ${inspectingUser === p.id ? "bg-fuchsia-500/5" : ""}`}>
+                  <td className="px-3 py-2">
+                    <div className="text-amber-100 font-bold">{p.username || "Sem nome"}</div>
+                    <div className="text-[8px] text-slate-600 truncate max-w-[120px]">{p.id}</div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                      p.account_status === 'banned' ? 'bg-rose-500/20 text-rose-400' :
+                      p.account_status === 'analysis' ? 'bg-amber-500/20 text-amber-400' :
+                      'bg-emerald-500/20 text-emerald-400'
+                    }`}>
+                      {(p.account_status || 'active').toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-fuchsia-300">
+                    Lv {p.ranked_leaderboard?.[0]?.trainer_level || 1}
+                  </td>
+                  <td className="px-3 py-2 text-right space-x-1">
+                    <button onClick={() => inspectPlayer(p.id)} className="px-2 py-1 rounded bg-slate-800 text-slate-300">INSPECIONAR</button>
+                    <button onClick={() => updateStatus(p.id, 'analysis')} className="px-2 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">ANALISAR</button>
+                    <button onClick={() => updateStatus(p.id, 'banned')} className="px-2 py-1 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30">BANIR</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {inspectingUser && (
+        <div className="grid md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2">
+          <Card title="Inventário Detalhado">
+            {!inventory ? <div className="text-xs text-slate-500">Carregando...</div> : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {inventory.balls.map((b: any) => (
+                    <div key={b.ball_type} className="bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between text-[10px]">
+                      <span className="text-slate-400">{b.ball_type}</span>
+                      <span className="text-amber-200 font-bold">x{b.qty}</span>
+                    </div>
+                  ))}
+                  {inventory.items.map((i: any) => (
+                    <div key={i.item_id} className="bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between text-[10px]">
+                      <span className="text-slate-400">{i.item_id}</span>
+                      <span className="text-emerald-400 font-bold">x{i.qty}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Card>
+          <Card title="Histórico de Conexões (IPs)">
+            <div className="space-y-2">
+              {ipLogs.map((log, i) => (
+                <div key={i} className="text-[10px] bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between">
+                  <span className="text-amber-100 font-mono">{log.ip_address}</span>
+                  <span className="text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
+                </div>
+              ))}
+              {ipLogs.length === 0 && <div className="text-xs text-slate-500">Nenhum log de IP encontrado.</div>}
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
   );
 }
 
