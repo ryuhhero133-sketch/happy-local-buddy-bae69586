@@ -1572,7 +1572,7 @@ function IdlePage() {
       // Importante: setAttackTargetId(null) removido daqui para evitar loop infinito
       // caso o componente re-renderize e cause novo processamento do team.
     }
-  }, [team]);
+  }, [team.length, team[0]?.uid, team[0]?.level]);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
