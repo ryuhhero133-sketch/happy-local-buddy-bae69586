@@ -244,6 +244,6 @@
 
 /* Game Viewport */
 .game-viewport-container {
-  display: none;
+  display: block;
 }
 
