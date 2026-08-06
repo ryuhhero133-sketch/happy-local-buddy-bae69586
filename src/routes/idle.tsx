@@ -9612,6 +9612,7 @@ function IdlePage() {
 
 
 
+
           {/* Overlay de DESCANSO — congela o jogo, cura no final */}
           {restingUntil !== null && restingStart !== null && (() => {
             const totalDur = Math.max(1, restingUntil - restingStart);
@@ -9993,6 +9994,7 @@ function IdlePage() {
           )}
         </div>
         <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+
 
 
 
@@ -11932,6 +11934,7 @@ function IdlePage() {
 
 
 
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12319,6 +12322,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
