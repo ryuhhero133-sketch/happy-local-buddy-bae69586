@@ -10750,9 +10750,8 @@ function IdlePage() {
               const timerTxt = active
                 ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
                 : "Um novo evento está sendo preparado.";
-              return (
-                <>
-                  <div style={{
+  return (
+    <div style={{
                     fontSize: 11, fontWeight: 900, color: "#ffd6ec",
                     letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
                   }}>✦ ODISSÉIA ODDISH</div>
@@ -11114,7 +11113,7 @@ function IdlePage() {
 
 
       {identity && (
-        <>
+
 
 
         <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -11136,6 +11135,7 @@ function IdlePage() {
           </div>
         </div>
       )}
+
 
 
 
@@ -13085,8 +13085,6 @@ function IdlePage() {
       {isAdminOpen && createPortal(
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
         document.body
-      )}
-      </>
       )}
 
 
