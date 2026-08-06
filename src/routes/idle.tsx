@@ -6980,8 +6980,149 @@ function IdlePage() {
       overflow: "hidden",
       position: "relative"
     }}>
+      <div
+        ref={viewportRef}
+        onClick={(e) => {
+          const t = e.target as HTMLElement;
+          if (t.closest && t.closest("button, a, input, select, textarea")) return;
+          const rect = viewportRef.current?.getBoundingClientRect();
+          if (!rect) return;
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          const wx = renderCamX + sx / zoom;
+          const wy = renderCamY + sy / zoom;
+          walkTargetRef.current = { x: wx, y: wy, label: "destino", resumeAuto: autoRef.current };
+          setWalkingTo("destino");
+          setAuto(false);
+        }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          overflow: 'hidden',
+          background: viewportBg,
+          cursor: 'crosshair',
+          zIndex: 0,
+        }}
+      >
+        <div style={{
+          position: "absolute",
+          left: 0, top: 0,
+          width: WORLD_W, height: WORLD_H,
+          transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
+          transformOrigin: "0 0",
+          transition: "none",
+          backgroundColor: viewportBg,
+          overflow: "hidden",
+          contain: "layout paint style",
+          willChange: "transform",
+          backfaceVisibility: "hidden",
+        }}>
+          <img
+            src={map.bg}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "fill",
+              pointerEvents: "none",
+              userSelect: "none",
+              imageRendering: "auto",
+              transform: "translateZ(0)",
+              backfaceVisibility: "hidden",
+              zIndex: 0,
+            }}
+          />
+          {obstacles.map((o) => (
+            <img key={`obs-${o.id}`} src={o.src} alt="" style={{
+              position: "absolute",
+              left: o.x - o.w / 2,
+              top: o.y - o.h + 8,
+              width: o.w, height: o.h,
+              opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
+              imageRendering: "pixelated",
+              pointerEvents: "none",
+              transition: "opacity 120ms linear",
+              zIndex: Math.round(o.y),
+              filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
+            }} />
+          ))}
+          {BUILDINGS.filter(b => b.mapId === idle.currentMap).map((b) => (
+            <div key={b.key} style={{
+              position: "absolute",
+              left: b.x - b.w / 2,
+              top: b.y - b.h + 10,
+              width: b.w, height: b.h,
+              zIndex: Math.round(b.y),
+              pointerEvents: "none",
+            }}>
+              <img src={b.src} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated" }} />
+            </div>
+          ))}
+          <div style={{
+            position: "absolute",
+            left: trainerPos.x - 32,
+            top: trainerPos.y - 64,
+            width: 64, height: 64,
+            zIndex: Math.round(trainerPos.y) + 1,
+            transition: "none",
+            imageRendering: "pixelated",
+          }}>
+             <img 
+               src={isFishingRef.current ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png` : (walkTargetRef.current ? trainerWalkUrl : trainerIdleUrl)} 
+               alt="" 
+               style={{ 
+                 width: "100%", 
+                 height: "100%", 
+                 transform: walkDirRef.current === "left" ? "scaleX(-1)" : "none",
+                 filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.4))"
+               }} 
+             />
+          </div>
+          {team.length > 0 && (
+            <div style={{
+              position: "absolute",
+              left: followerX - 24,
+              top: followerY - 48,
+              width: 48, height: 48,
+              zIndex: Math.round(followerY),
+              transition: "none",
+              imageRendering: "pixelated",
+            }}>
+              <img 
+                src={GIF[team[0].species] ?? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png`} 
+                alt="" 
+                style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  transform: followerDirRef.current === "left" ? "scaleX(-1)" : "none",
+                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+                }} 
+              />
+            </div>
+          )}
+          {mobsRef.current.map((m: any) => (
+            <div key={m.id} style={{
+              position: "absolute",
+              left: m.x - 24,
+              top: m.y - 48,
+              width: 48, height: 48,
+              zIndex: Math.round(m.y),
+              pointerEvents: "none",
+            }}>
+               <img src={GIF[m.species] ?? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png`} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated", transform: m.dir === "left" ? "scaleX(-1)" : "none" }} />
+            </div>
+          ))}
+
+        </div>
+      </div>
+
       {/* HUD Superior Moderna */}
       <div className="modern-top-bar" style={{ pointerEvents: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, display: 'flex', justifyContent: 'space-between', padding: '10px 20px' }}>
+
         <div className="trainer-card-compact" style={{ pointerEvents: 'auto' }}>
           <div className="trainer-avatar-glow">
             <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" />
@@ -7058,7 +7199,7 @@ function IdlePage() {
         </div>
       </div>
 
-      <div className="game-viewport-container" style={{ position: 'absolute', inset: 0, zIndex: 0 }}></div>
+      
 
 
 
@@ -7944,335 +8085,124 @@ function IdlePage() {
 
 
 
-        {/* ============ CENTRO — ARENA (viewport com câmera) ============ */}
-        <div
-          ref={viewportRef}
-          onClick={(e) => {
-            const t = e.target as HTMLElement;
-            if (t.closest && t.closest("button, a, input, select, textarea")) return;
-            const rect = viewportRef.current?.getBoundingClientRect();
-            if (!rect) return;
-            const sx = e.clientX - rect.left;
-            const sy = e.clientY - rect.top;
-            const wx = renderCamX + sx / zoom;
-            const wy = renderCamY + sy / zoom;
-            walkTargetRef.current = { x: wx, y: wy, label: "destino", resumeAuto: autoRef.current };
-            setWalkingTo("destino");
-            setAuto(false);
-          }}
-          style={{
-            position: "absolute",
-            inset: 0,
+        {/* ============ COLUNA DIREITA ============ */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+          <div style={{
+            background: "rgba(36,20,44,0.92)",
+            border: "1px solid rgba(201,184,255,0.25)",
+            borderRadius: 10,
+            padding: "8px 10px",
+            flex: 1,
             overflow: "hidden",
-            background: viewportBg,
-            cursor: "crosshair",
-            zIndex: 1,
-          }}
-        >
-
-
-          {/* Os antigos botões de zoom/config/ranking foram removidos e integrados na nova HUD flutuante */}
-          {(() => {
-            const orbUntil = idle.buffs.orbUntil ?? 0;
-            const teamUntil = idle.buffs.teamOrbUntil ?? 0;
-            const rareUntil = idle.buffs.honeyRareUntil ?? 0;
-            const normalUntil = idle.buffs.honeyUntil ?? 0;
-            const now = Date.now();
-            const buffs: Array<{
-              key: string; img: string; label: string; timeMs: number;
-              ring: string; ringSoft: string; glow: string; textColor: string; bg: string;
-              subLabel?: string;
-            }> = [];
-            const fmtT = (ms: number) => {
-              const mins = Math.floor(ms / 60000);
-              const secs = Math.floor((ms % 60000) / 1000);
-              return mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
-            };
-            if (orbUntil > now) {
-              const pct = Math.round((idle.buffs.orbMult ?? 0) * 100);
-              buffs.push({
-                key: "orb-xp", img: buffOrbXpUrl,
-                label: `Orb ativo: +${pct}% EXP · ${fmtT(orbUntil - now)}`,
-                timeMs: orbUntil - now,
-                ring: "#b48bff", ringSoft: "rgba(180,140,255,0.55)",
-                glow: "rgba(180,120,255,0.85)",
-                textColor: "#e6d5ff",
-                bg: "linear-gradient(180deg, rgba(38,20,70,0.95), rgba(18,8,40,0.9))",
-                subLabel: `+${pct}%`,
-              });
-            }
-            if (teamUntil > now) {
-              buffs.push({
-                key: "orb-team", img: buffTeamOrbUrl,
-                label: `Orb de Time ativo: todo o time ganha EXP · ${fmtT(teamUntil - now)}`,
-                timeMs: teamUntil - now,
-                ring: "#ff8ad6", ringSoft: "rgba(255,138,214,0.55)",
-                glow: "rgba(255,138,214,0.9)",
-                textColor: "#ffd5ee",
-                bg: "linear-gradient(180deg, rgba(70,20,55,0.95), rgba(40,8,30,0.9))",
-                subLabel: "TIME",
-              });
-            }
-            if (rareUntil > now || normalUntil > now) {
-              const isRare = rareUntil > now;
-              const until = isRare ? rareUntil : normalUntil;
-              const pct = isRare ? 20 : 10;
-              buffs.push({
-                key: "honey", img: buffIncenseHoneyUrl,
-                label: `Incenso ${isRare ? "Raro" : "de Mel"} ativo: +${pct}% drop/xp/def/velocidade · ${fmtT(until - now)}`,
-                timeMs: until - now,
-                ring: isRare ? "#ffd94d" : "#ffb84d",
-                ringSoft: `rgba(255,${isRare ? 217 : 184},77,0.55)`,
-                glow: `rgba(255,${isRare ? 217 : 184},77,0.9)`,
-                textColor: "#fff2c4",
-                bg: "linear-gradient(180deg, rgba(60,32,6,0.95), rgba(35,18,4,0.9))",
-                subLabel: `+${pct}%`,
-              });
-            }
-            if (buffs.length === 0) return null;
-            return (
-              <div style={{ position: "absolute", top: 12, right: 12, zIndex: 1001, display: "flex", flexDirection: "column", gap: 6 }}>
-                <style>{`
-                  @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
-                  @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                `}</style>
-                {buffs.map(b => (
-                  <div key={b.key} title={b.label} style={{ 
-                    position: "relative", width: 52, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, 
-                    padding: "6px 5px", background: b.bg, border: `2px solid ${b.ring}`, borderRadius: 12, 
-                    boxShadow: `0 4px 12px rgba(0,0,0,0.6), 0 0 16px ${b.glow}, inset 0 0 10px ${b.ringSoft}` 
-                  }}>
-                    <div style={{ position: "absolute", inset: -3, borderRadius: 14, pointerEvents: "none", background: `conic-gradient(from 0deg, transparent 0deg, ${b.ringSoft} 90deg, transparent 180deg, ${b.ringSoft} 270deg, transparent 360deg)`, opacity: 0.5, animation: "rmBuffSpin 6s linear infinite", WebkitMask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)", mask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)" }} />
-                    <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", animation: "rmBuffPulse 1.8s ease-in-out infinite", filter: `drop-shadow(0 0 8px ${b.glow})` }}>
-                      <img src={b.img} alt={b.label} width={36} height={36} style={{ objectFit: "contain", display: "block" }} draggable={false} />
-                    </div>
-                    {b.subLabel && <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5, lineHeight: 1, color: b.textColor, textShadow: `0 0 4px ${b.glow}` }}>{b.subLabel}</span>}
-                    <span style={{ fontSize: 10, fontWeight: 800, lineHeight: 1, color: b.textColor, whiteSpace: "nowrap", textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>{fmtT(b.timeMs)}</span>
+            display: "flex",
+            flexDirection: "column",
+            gap: 10
+          }}>
+             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EXPLORAR</div>
+             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
+                {enemies.slice(0, 8).map(m => (
+                  <div key={m.id} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: "5px 8px", border: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 8 }}>
+                     <img src={GIF[m.sp] ?? ""} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
+                     <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: "#fff" }}>{m.sp.toUpperCase()}</div>
+                        <div style={{ width: "100%", height: 3, background: "#000", borderRadius: 2, marginTop: 2 }}>
+                           <div style={{ width: `${(m.hp / m.maxHp) * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff4b4b, #ff8b8b)", borderRadius: 2 }} />
+                        </div>
+                     </div>
+                     <span style={{ fontSize: 9, color: "#ffb84d", fontWeight: 900 }}>Lv.{m.level}</span>
                   </div>
                 ))}
-              </div>
-            );
-          })()}
-
+             </div>
           </div>
 
-
-
-
-          {/* Clima estilo pixel-RPG */}
-          {weather !== "clear" && (
-            <div style={{
-              position: "absolute", inset: 0, zIndex: 40,
-              pointerEvents: "none", overflow: "hidden",
-              imageRendering: "pixelated",
-            }}>
-              {weather === "rain" && (
-                <>
-                  <div className="wx-rain-tint" />
-                  <div className="wx-mist" />
-                  {rainDrops.map((d, i) => (
-                    <span key={i} className="wx-drop" style={{
-                      left: `${d.left}%`,
-                      width: d.w,
-                      height: d.len,
-                      opacity: d.op,
-                      animationDelay: `-${d.delay}s`,
-                      animationDuration: `${d.dur}s`,
-                    }} />
-                  ))}
-                  <div className="wx-flash" />
-                </>
-              )}
-              {weather === "snow" && (
-                <>
-                  <div className="wx-snow-tint" />
-                  {snowFlakes.map((s, i) => (
-                    <span key={i} className="wx-flake" style={{
-                      left: `${s.left}%`,
-                      width: s.size,
-                      height: s.size,
-                      opacity: s.op,
-                      animationDelay: `-${s.delay}s`,
-                      animationDuration: `${s.dur}s`,
-                      ["--drift" as string]: `${s.drift}px`,
-                    } as React.CSSProperties} />
-                  ))}
-                </>
-              )}
-              <div style={{
-                position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)",
-                background: "rgba(11,5,16,0.75)",
-                border: `1px solid ${weather === "rain" ? "rgba(140,201,255,0.5)" : "rgba(230,243,255,0.55)"}`,
-                color: weather === "rain" ? "#bcdcff" : "#f2faff",
-                padding: "4px 12px", borderRadius: 4, fontSize: 11, fontWeight: 700,
-                letterSpacing: 0.5, imageRendering: "pixelated",
-                fontFamily: "'Press Start 2P', 'Trebuchet MS', monospace",
-                textShadow: "1px 1px 0 #000",
-              }}>
-                {weather === "rain" ? "CHUVA" : "NEVE"}
-              </div>
-            </div>
-          )}
-
-
-            {/* Contador de jogadores online removido a pedido do usuário */}
-
-
-
-
-          {/* MUNDO — camada em px que se move sob a câmera */}
           <div style={{
-            position: "absolute",
-            left: 0, top: 0,
-            width: WORLD_W, height: WORLD_H,
-            transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
-            transformOrigin: "0 0",
-            transition: "none",
-            backgroundColor: viewportBg,
-            overflow: "hidden",
-            contain: "layout paint style",
-            willChange: "transform",
-            backfaceVisibility: "hidden",
+            background: "rgba(36,20,44,0.92)",
+            border: "1px solid rgba(201,184,255,0.25)",
+            borderRadius: 10,
+            padding: "8px 10px",
+            height: "180px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8
           }}>
+             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EQUIPE</div>
+             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+                {team.map((p, i) => (
+                   <div key={p.uid} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: 4, border: `1px solid ${i === 0 ? "#ffd66b" : "rgba(255,255,255,0.05)"}`, position: "relative", textAlign: "center" }}>
+                      <img src={GIF[p.species] ?? ""} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated" }} />
+                      <div style={{ fontSize: 8, fontWeight: 800, color: "#fff", marginTop: 2 }}>Lv.{p.level}</div>
+                   </div>
+                ))}
+             </div>
+          </div>
+        </div>
 
-            {/* Fundo do mapa em <img> e com renderização suave: evita artefatos verdes/quadrados no zoom baixo. */}
-            <img
-              src={map.bg}
-              alt=""
-              aria-hidden="true"
-              draggable={false}
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "fill",
-                pointerEvents: "none",
-                userSelect: "none",
-                imageRendering: "auto",
-                transform: "translateZ(0)",
-                backfaceVisibility: "hidden",
-                zIndex: 0,
-              }}
-            />
+      </div>
 
-            {/* Obstáculos (árvores, pedras) — z-index pela BASE (y) para o treinador passar por trás */}
-            {obstacles.map((o) => (
-              <img key={`obs-${o.id}`} src={o.src} alt="" style={{
-                position: "absolute",
-                left: o.x - o.w / 2,
-                top: o.y - o.h + 8, // âncora na base
-                width: o.w, height: o.h,
-                opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
-                imageRendering: "pixelated",
-                pointerEvents: "none",
-                transition: "opacity 120ms linear",
-                zIndex: Math.round(o.y),
-                filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
-              }} />
-            ))}
+      {rankOpen && createPortal(
+        <div
+          onClick={() => setRankOpen(false)}
+          style={{
+            position: "fixed", inset: 0,
+            background: "radial-gradient(ellipse at center, rgba(30,15,50,0.85), rgba(0,0,0,0.92))",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 2147483647, padding: 16,
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            fontFamily: "inherit",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(680px, 96vw)", maxHeight: "90vh", display: "flex", flexDirection: "column",
+              background:
+                "radial-gradient(ellipse at top, rgba(255,60,80,0.18), transparent 60%), linear-gradient(180deg, #140a24 0%, #1c1030 45%, #2a1642 100%)",
+              border: "2px solid transparent",
+              borderRadius: 18,
+              backgroundClip: "padding-box",
+              boxShadow:
+                "0 25px 80px rgba(0,0,0,0.9), 0 0 60px rgba(255,214,80,0.28), 0 0 40px rgba(255,60,80,0.25), inset 0 1px 0 rgba(255,255,255,0.08)",
+              color: "#ffe9a8",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            <div style={{
+              position: "absolute", inset: 0, borderRadius: 18, pointerEvents: "none",
+              background: "linear-gradient(135deg, #ffd94d 0%, #ff2a4d 50%, #ffd94d 100%)",
+              padding: 2, WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+              WebkitMaskComposite: "xor", maskComposite: "exclude",
+            }} />
 
-            {/* Clique nos casulos (Ninho de Marimbondo) — abre painel de Colmeia p/ posicionar Beedrills */}
-            {idle.currentMap === "terra" && obstacles.filter((o) => o.src === hornetCocoonUrl).map((o) => {
-              const cocoonKey = `terra:${Math.round(o.x)}:${Math.round(o.y)}`;
-              const beedrillCount = (idle.collection ?? []).filter((c) => c.species === "beedrill").length;
-              const canUse = beedrillCount > 0;
-              return (
-                <button
-                  key={`cocoon-btn-${o.id}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!canUse) {
-                      pushChat("🐝 Você precisa ter pelo menos 1 Beedrill na coleção para usar a colmeia!", "info");
-                      return;
-                    }
-                    setHoneyShop({ cocoonKey, x: o.x, y: o.y - o.h });
-                  }}
-                  title={canUse ? "Colmeia — posicionar Beedrills p/ produzir Incenso" : "Requer Beedrill na coleção"}
-                  style={{
-                    position: "absolute",
-                    left: o.x - o.w / 2,
-                    top: o.y - o.h + 8,
-                    width: o.w, height: o.h,
-                    background: "transparent",
-                    border: canUse ? "2px dashed rgba(255,214,80,0.85)" : "2px dashed rgba(255,255,255,0.25)",
-                    borderRadius: 12,
-                    cursor: canUse ? "pointer" : "not-allowed",
-                    zIndex: Math.round(o.y) + 1,
-                    padding: 0,
-                    boxShadow: canUse ? "0 0 12px rgba(255,214,80,0.55)" : "none",
-                    animation: canUse ? "lvglow 1.6s ease-in-out infinite" : "none",
-                  }}
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "18px 20px",
+              background: "linear-gradient(180deg, rgba(255,214,80,0.22) 0%, rgba(255,60,80,0.12) 60%, rgba(0,0,0,0.15) 100%)",
+              borderBottom: "1px solid rgba(255,214,80,0.35)",
+              position: "relative",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <img
+                  src={assetUrlFromJson(rankMedalsRubyAsset)}
+                  alt=""
+                  width={56}
+                  height={56}
+                  style={{ filter: "drop-shadow(0 0 10px rgba(255,60,80,0.6)) drop-shadow(0 0 6px rgba(255,214,80,0.5))" }}
                 />
-              );
-            })}
-
-            {/* Modal do Ranking Global */}
-            {rankOpen && createPortal(
-              <div
-                onClick={() => setRankOpen(false)}
-                style={{
-                  position: "fixed", inset: 0,
-                  background: "radial-gradient(ellipse at center, rgba(30,15,50,0.85), rgba(0,0,0,0.92))",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  zIndex: 2147483647, padding: 16,
-                  backdropFilter: "blur(6px)",
-                  WebkitBackdropFilter: "blur(6px)",
-                  fontFamily: "inherit",
-                }}
-              >
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    width: "min(680px, 96vw)", maxHeight: "90vh", display: "flex", flexDirection: "column",
-                    background:
-                      "radial-gradient(ellipse at top, rgba(255,60,80,0.18), transparent 60%), linear-gradient(180deg, #140a24 0%, #1c1030 45%, #2a1642 100%)",
-                    border: "2px solid transparent",
-                    borderRadius: 18,
-                    backgroundClip: "padding-box",
-                    boxShadow:
-                      "0 25px 80px rgba(0,0,0,0.9), 0 0 60px rgba(255,214,80,0.28), 0 0 40px rgba(255,60,80,0.25), inset 0 1px 0 rgba(255,255,255,0.08)",
-                    color: "#ffe9a8",
-                    overflow: "hidden",
-                    position: "relative",
-                  }}
-                >
-                  {/* Borda dupla ouro/ruby */}
+                <div>
                   <div style={{
-                    position: "absolute", inset: 0, borderRadius: 18, pointerEvents: "none",
-                    background: "linear-gradient(135deg, #ffd94d 0%, #ff2a4d 50%, #ffd94d 100%)",
-                    padding: 2, WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
-                    WebkitMaskComposite: "xor", maskComposite: "exclude",
-                  }} />
+                    fontWeight: 900, fontSize: 20, letterSpacing: 1.2,
+                    background: "linear-gradient(90deg,#ffd94d,#ffb347,#ff5577,#ffd94d)",
+                    backgroundSize: "200% 100%",
+                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                    animation: "shimmerRank 4s linear infinite",
+                  }}>RANKING GLOBAL</div>
+                  <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
+                    🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
+                  </div>
+                </div>
 
-                  {/* Header */}
-                  <div style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    padding: "18px 20px",
-                    background: "linear-gradient(180deg, rgba(255,214,80,0.22) 0%, rgba(255,60,80,0.12) 60%, rgba(0,0,0,0.15) 100%)",
-                    borderBottom: "1px solid rgba(255,214,80,0.35)",
-                    position: "relative",
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                      <img
-                        src={assetUrlFromJson(rankMedalsRubyAsset)}
-                        alt=""
-                        width={56}
-                        height={56}
-                        style={{ filter: "drop-shadow(0 0 10px rgba(255,60,80,0.6)) drop-shadow(0 0 6px rgba(255,214,80,0.5))" }}
-                      />
-                      <div>
-                        <div style={{
-                          fontWeight: 900, fontSize: 20, letterSpacing: 1.2,
-                          background: "linear-gradient(90deg,#ffd94d,#ffb347,#ff5577,#ffd94d)",
-                          backgroundSize: "200% 100%",
-                          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                          animation: "shimmerRank 4s linear infinite",
-                        }}>RANKING GLOBAL</div>
-                        <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
-                          🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
-                        </div>
-                      </div>
                     </div>
                     <div
                       title="O ranking global é congelado e atualiza a cada 2 horas"
@@ -9507,12 +9437,9 @@ function IdlePage() {
             })}
           </div>
 
-          {/* ============ UI FIXA (não rola com o mapa) ============ */}
-          {/* ============ UI MODERNA (Fixa) ============ */}
-          
-          {/* Top Bar horizontal compacta */}
-          <div className="modern-top-bar">
-            {/* Esquerda: Nome do Mapa */}
+          <div className="modern-top-bar" style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '20px', zIndex: 1100 }}>
+
+
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{
                 color: "#f5cf6b", fontWeight: 900, fontSize: 16,
@@ -9526,7 +9453,6 @@ function IdlePage() {
               </div>
             </div>
 
-            {/* Centro: Recursos */}
             <div style={{ display: "flex", gap: 12 }}>
               <div className="resource-pill" title="Ouro">
                 <span style={{ fontSize: 18 }}>🪙</span>
@@ -9536,39 +9462,25 @@ function IdlePage() {
                 <img src={crystalGreenImg} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
                 <span>{Math.floor(idle.bank.crystals).toLocaleString()}</span>
               </div>
-              {(idle.items?.safira_verde ?? 0) > 0 && (
-                <div className="resource-pill" title="Safira Verde">
-                  <img src={assetUrlFromJson(safiraVerdeAsset)} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
-                  <span>{idle.items!.safira_verde}</span>
-                </div>
-              )}
-              {(idle.items?.fragmento_vermelho ?? 0) > 0 && (
-                <div className="resource-pill" title="Fragmentos Vermelhos" style={{ color: "#ff8b8b", borderColor: "rgba(255,139,139,0.3)" }}>
-                  <span style={{ fontSize: 16 }}>🔻</span>
-                  <span>{idle.items!.fragmento_vermelho}</span>
-                </div>
-              )}
             </div>
 
-            {/* Direita: Pokébolas compactas */}
             <div style={{ display: "flex", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
-                <img src={ballPokeImg} alt="Poké" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.pokeball ? 1 : 0.4 }} />
+                <img src={ballPokeImg} alt="Poké" width={20} height={20} style={{ imageRendering: "pixelated" }} />
                 <span style={{ fontSize: 11, fontWeight: 800, color: "#ff8080" }}>{idle.items.pokeball ?? 0}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
-                <img src={ballGreatImg} alt="Great" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.greatball ? 1 : 0.4 }} />
+                <img src={ballGreatImg} alt="Great" width={20} height={20} style={{ imageRendering: "pixelated" }} />
                 <span style={{ fontSize: 11, fontWeight: 800, color: "#7ec4ff" }}>{idle.items.greatball ?? 0}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
-                <img src={ballUltraImg} alt="Ultra" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.ultraball ? 1 : 0.4 }} />
+                <img src={ballUltraImg} alt="Ultra" width={20} height={20} style={{ imageRendering: "pixelated" }} />
                 <span style={{ fontSize: 11, fontWeight: 800, color: "#ffd66b" }}>{idle.items.ultraball ?? 0}</span>
               </div>
             </div>
           </div>
 
-          {/* Player Panel (Top Left) */}
-          <div className="trainer-card-compact">
+          <div className="trainer-card-compact" style={{ position: 'fixed', top: '20px', left: '20px', zIndex: 1100 }}>
             <div className="trainer-avatar-box">
               <div style={{
                 width: "100%", height: "100%",
@@ -9590,44 +9502,24 @@ function IdlePage() {
             <div className="trainer-bars-container">
               <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", display: "flex", justifyContent: "space-between" }}>
                 <span>{identity?.name?.toUpperCase() ?? "TREINADOR"}</span>
-                {isVip() && <span style={{ color: "#f5cf6b" }}>✦ VIP</span>}
               </div>
-              
-              {/* HP Bar */}
-              {team[0] && (() => {
-                const max = calcIdleMaxHp(team[0]);
-                const hpPct = Math.max(0, (leaderHp / max) * 100);
-                return (
-                  <div className="hud-bar-bg" title={`HP: ${Math.floor(leaderHp)}/${max}`}>
-                    <div className="hud-bar-fill" style={{ width: `${hpPct}%`, background: "linear-gradient(90deg, #ff4d4d, #b30000)" }} />
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, color: "#fff", textShadow: "1px 1px 0 #000" }}>HP</div>
-                  </div>
-                );
-              })()}
-
-              {/* XP Bar */}
-              {(() => {
-                const xpNeeded = 100 + (idle.trainerLevel ?? 1) * 25;
-                const xpPct = Math.min(100, ((idle.trainerXp ?? 0) / xpNeeded) * 100);
-                return (
-                  <div className="hud-bar-bg" title={`XP: ${idle.trainerXp}/${xpNeeded}`}>
-                    <div className="hud-bar-fill" style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #4dff4d, #00b300)" }} />
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, color: "#fff", textShadow: "1px 1px 0 #000" }}>EXP</div>
-                  </div>
-                );
-              })()}
+              <div className="hud-bar-bg" title="HP">
+                <div className="hud-bar-fill" style={{ width: `${Math.max(0, (leaderHp / 100) * 100)}%`, background: "linear-gradient(90deg, #ff4d4d, #b30000)" }} />
+              </div>
+              <div className="hud-bar-bg" title="EXP">
+                <div className="hud-bar-fill" style={{ width: `${Math.min(100, ((idle.trainerXp ?? 0) / (100 + (idle.trainerLevel ?? 1) * 25)) * 100)}%`, background: "linear-gradient(90deg, #4dff4d, #00b300)" }} />
+              </div>
             </div>
           </div>
 
-          {/* Mini-Map Circular (Top Right) */}
           <div className="mini-map-circular">
-             {/* Simulação de radar/mapa simplificado */}
              <div style={{
                position: "absolute", inset: 0,
                backgroundImage: `url(${map.bg})`,
                backgroundSize: "cover", backgroundPosition: "center",
                opacity: 0.6, filter: "grayscale(0.5) contrast(1.2)"
              }} />
+
              <div style={{
                position: "absolute", left: "50%", top: "50%",
                width: 8, height: 8, borderRadius: "50%",
@@ -9652,10 +9544,8 @@ function IdlePage() {
              }} />
           </div>
 
-          {/* Right Vertical System Menu - Removed / Merged into Dock */}
-          
-          {/* Nav Inferior - Flutuante Dock */}
           <div className="floating-nav-dock">
+
             {([
               { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
               { id: "wiki",     label: "Wiki",     img: navInicio,    color: "#c084fc" },
@@ -9688,9 +9578,8 @@ function IdlePage() {
             </div>
           </div>
 
-
-          {/* Floating Chat Panel (Bottom Left) */}
           <div className="chat-floating-panel">
+
              <div style={{ background: "rgba(0,0,0,0.4)", padding: "4px 10px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>GLOBAL CHAT</span>
                <button onClick={() => setChatOpen(!chatOpen)} style={{ background: "transparent", border: "none", color: "#9ab", cursor: "pointer", fontSize: 12 }}>{chatOpen ? "▼" : "▲"}</button>
@@ -9702,10 +9591,22 @@ function IdlePage() {
                      {c.text}
                    </div>
                  ))}
-                 <div ref={chatEndRef} />
-               </div>
-             )}
+                  <div ref={chatEndRef} />
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -10089,17 +9990,38 @@ function IdlePage() {
               }}
               trainerLevel={idle.trainerLevel ?? 1}
               onUpgradeBook={upgradeBook}
-
-
             />
-
           )}
         </div>
-
-        {/* ============ MENU LATERAL ESQUERDO (EXPLORE & TEAM) ============ */}
         <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
           <Panel title="EXPLORAR" accent="#3d2b52">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+
+
+
+
+
+
+
+
+
+
+
+
               <div ref={coletaRef} style={{
                 background: "rgba(0,0,0,0.5)",
                 border: "1px solid rgba(245,207,107,0.3)",
@@ -11992,10 +11914,27 @@ function IdlePage() {
         onRedeemCode={() => redeemCrystalCode()}
       />
     )}
+    <BlackMiticEggHud
 
 
 
-      <BlackMiticEggHud
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12380,10 +12319,50 @@ function IdlePage() {
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
         document.body
       )}
-
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -15154,9 +15133,11 @@ function TabOverlay({
           </div>
         );
       })()}
+      <SmartGuideHud hasPokemon={team.length > 0} />
     </div>
   );
 }
+
 
 function BuffCell({ img, label, value, color }: { img: string; label: string; value: string; color: string }) {
   return (
@@ -16009,13 +15990,8 @@ function GovernanteDialog(props: {
 
 
 function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
-  const [closed, setClosed] = useState(false);
-  if (closed) return null;
-  return (
-    <ProfessorOakGuide
-      topic={hasPokemon ? "autohunt" : "welcome"}
-      onClose={() => setClosed(true)}
-    />
-  );
+  return null;
 }
+
+
 
