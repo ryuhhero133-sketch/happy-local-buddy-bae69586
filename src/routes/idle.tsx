@@ -6978,7 +6978,50 @@ function IdlePage() {
       color: "#f3e5c5",
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
+      position: "relative"
     }}>
+      {/* HUD Superior Moderna */}
+      <div className="modern-top-bar" style={{ pointerEvents: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }}>
+        <div className="trainer-card-compact" style={{ pointerEvents: 'auto' }}>
+          <div className="trainer-avatar-glow">
+            <img src={identity?.avatar_url || trainerAvatarAsset.url} alt="Avatar" />
+          </div>
+          <div className="trainer-info-minimal">
+            <div className="trainer-name-row">
+              <span className="trainer-name-text">{identity?.name || "Treinador"}</span>
+              <span className="trainer-lv-badge">Lv.{idle.trainerLevel}</span>
+            </div>
+            <div className="stats-pill-group">
+              <div className="stat-pill-hp">
+                <div className="stat-pill-fill" style={{ width: "100%", background: "var(--hp-gradient)" }} />
+                <span className="stat-pill-label">HP 100%</span>
+              </div>
+              <div className="stat-pill-xp">
+                <div className="stat-pill-fill" style={{ width: `${(idle.trainerXp / (trainerXpToNext(idle.trainerLevel) || 1)) * 100}%`, background: "var(--xp-gradient)" }} />
+                <span className="stat-pill-label">XP {Math.floor((idle.trainerXp / (trainerXpToNext(idle.trainerLevel) || 1)) * 100)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="right-system-menu" style={{ position: 'fixed', right: '15px', top: '50%', transform: 'translateY(-50%)', zIndex: 1000 }}>
+        <button className="menu-icon-btn" onClick={() => setBackpackOpen(true)} title="Mochila">
+          <img src={navMochila} alt="Bag" />
+        </button>
+      </div>
+
+      <div className="modern-bottom-dock" style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
+        <div className="dock-inner">
+          <button className="dock-item active" onClick={() => setActiveTab("battle")}>
+            <img src={navBatalha} alt="Battle" />
+            <span>BATALHA</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="game-viewport-container" style={{ position: "relative", width: "100%", height: "100%", zIndex: 1 }}>
+
       {/* 🛡️ AVISO — leitura da nuvem falhou: progresso local protegido e retry automático */}
       {cloudSaveBlocked && (
         <div style={{
@@ -16091,5 +16134,8 @@ function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
       topic={hasPokemon ? "autohunt" : "welcome"}
       onClose={() => setClosed(true)}
     />
+      </div>
+    </div>
   );
 }
+
