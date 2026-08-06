@@ -4676,15 +4676,16 @@ function IdlePage() {
       });
       const known = new Set(nextCol.map((e) => e.uid));
       const missing: CollectionEntry[] = [];
-      for (const p of [...team, ...restingBench]) {
+      for (const p of active) {
         if (known.has(p.uid)) continue;
-        if (consumedUidsRef.current.has(p.uid)) continue; // consumido intencionalmente
+        if (consumedUidsRef.current.has(p.uid)) continue;
         missing.push({ uid: p.uid, species: p.species, level: p.level, xp: p.xp ?? 0, rarity: p.rarity, capturedAt: Date.now() });
       }
       if (!changed && missing.length === 0) return s;
       return { ...s, collection: [...nextCol, ...missing] };
     });
-  }, [team, restingBench]);
+    // Fix: Targeted properties to avoid deep-equal re-renders
+  }, [team.length, restingBench.length]);
 
   useEffect(() => {
     const iv = setInterval(() => {
