@@ -353,12 +353,12 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const isAdmin = session?.user?.email === "lordryuhhhuyuyghh@gmail.com";
   // O modo de manutenção no banco de dados continua bloqueando jogadores normais,
   // mas o admin sempre passa independentemente do valor de 'maintenance'.
-  if (maintenance && !isAdmin) {
+  if (maintenance && session && !isAdmin) {
     return (
       <PanelShell title="MANUTENÇÃO">
         <div className="space-y-4 text-center">
           <p className="text-[10px] leading-relaxed" style={{ color: "#fca5a5" }}>
-            O sistema de acesso foi ajustado no AuthGate.tsx para garantir que a conta administrativa (lordryuhhhuyuyghh@gmail.com) sempre ignore a trava de manutenção, permitindo que você entre e teste o jogo enquanto ele permanece bloqueado para os demais jogadores. n consigo por a minha conta pra logar .. por q so aparece tela de manutencao.
+            O sistema está em manutenção para jogadores. Como você não é um administrador, o acesso está restrito.
           </p>
           <div className="pt-2">
             <PrimaryButton type="button" onClick={() => window.location.reload()}>
