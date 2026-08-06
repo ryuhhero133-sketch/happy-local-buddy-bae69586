@@ -10211,711 +10211,166 @@ function IdlePage() {
         </div>
 
 
-        {/* ============ COLUNA DIREITA ============ */}
-        <div className="modern-team-panel">
-          <Panel title="SUA EQUIPE" accent="#3d2b52">
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {team.map((p, i) => (
-                <div key={p.uid} style={{ 
-                  display: "flex", alignItems: "center", gap: 8, 
-                  background: i === 0 ? "rgba(245,207,107,0.15)" : "rgba(255,255,255,0.05)",
-                  padding: "6px 10px", borderRadius: 10,
-                  border: i === 0 ? "1px solid #f5cf6b" : "1px solid rgba(255,255,255,0.1)"
-                }}>
-                  <div style={{ width: 32, height: 32, background: "rgba(0,0,0,0.3)", borderRadius: 6, display: "grid", placeItems: "center" }}>
-                    <img src={GIF[p.species]} alt="" style={{ width: "90%", imageRendering: "pixelated" }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {p.species.toUpperCase()}
-                    </div>
-                    <div style={{ fontSize: 8, color: "#c8b8d0" }}>Lv.{p.level}</div>
-                  </div>
-                  {i === 0 && <span style={{ fontSize: 10 }}>⚔️</span>}
-                </div>
-              ))}
-              {Array.from({ length: 6 - team.length }).map((_, i) => (
-                <div key={`empty-${i}`} style={{ height: 44, border: "1.5px dashed rgba(255,255,255,0.1)", borderRadius: 10, display: "grid", placeItems: "center", color: "rgba(255,255,255,0.2)", fontSize: 18 }}>+</div>
-              ))}
-            </div>
-          </Panel>
+        {/* ============ HUD SUPERIOR (RESOURCE BAR) ============ */}
+        <div className="modern-top-bar">
+          <div className="resource-pill">
+            <span className="label">🪙 OURO</span>
+            <span className="value">{fmtK(bank.gold)}</span>
+          </div>
+          <div className="resource-pill">
+            <span className="label">💎 CRISTAIS</span>
+            <span className="value">{fmtK(bank.crystals)}</span>
+          </div>
+          <div className="resource-pill" title="Fragmento Vermelho — dropado por pokémons derrotados">
+            <img src={redShardImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
+            <span className="value">{Math.floor(idle.items?.red_crystal_shard ?? 0)} / 50K</span>
+          </div>
+          <div className="resource-pill">
+            <span className="label">MAPA</span>
+            <span className="value">{IDLE_MAPS[idle.currentMap]?.name || "Desconhecido"}</span>
+          </div>
         </div>
 
-        {/* ============ EXPLORE PANEL (Floating Left) ============ */}
+        {/* ============ CARD DO TREINADOR (SUPERIOR ESQUERDO) ============ */}
+        <div className="trainer-card-compact">
+          <div className="trainer-avatar-box">
+            <img 
+              src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`}
+              alt="Avatar"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
+          <div className="trainer-bars-container">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 11, fontWeight: 900, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>
+                {identity?.email?.split("@")[0].toUpperCase() || "TREINADOR"}
+              </span>
+              <span style={{ fontSize: 10, color: "#f5cf6b", fontWeight: 800 }}>LV.{idle.trainerLevel || 1}</span>
+            </div>
+            <div className="xp-bar-container">
+              <div 
+                className="xp-bar-fill" 
+                style={{ width: `${Math.min(100, (idle.trainerExp / (idle.trainerLevel * 100)) * 100)}%` }} 
+              />
+            </div>
+            <div style={{ fontSize: 8, color: "rgba(255,255,255,0.6)", textAlign: "right", marginTop: -2 }}>
+              EXP: {Math.floor(idle.trainerExp)} / {(idle.trainerLevel || 1) * 100}
+            </div>
+          </div>
+        </div>
+
+        {/* ============ MENU LATERAL DIREITO (VERTICAL) ============ */}
+        <div className="right-system-menu">
+          <button className="sys-icon" title="Ranking Global" onClick={() => pushChat("🏆 Ranking em breve!", "info")}>🏆</button>
+          <button className="sys-icon" title="Ovos Especiais" onClick={() => openBlackEggHud()}>🥚</button>
+          <button className="sys-icon" title="Mundo" onClick={() => setWorldMapOpen(true)}>🗺️</button>
+          <button className="sys-icon" title="Promo Codes" onClick={() => setTab("config")}>🎟️</button>
+          <button className="sys-icon" title="Configurações" onClick={() => setTab("config")}>⚙️</button>
+        </div>
+
+        {/* ============ DOCK INFERIOR (CENTRALIZADO) ============ */}
+        <div className="modern-bottom-dock">
+          <div className={`dock-item ${tab === "explore" ? "active" : ""}`} onClick={() => setTab("explore")}>
+            <span>🏠</span>
+            <span className="dock-label">Início</span>
+          </div>
+          <div className={`dock-item ${tab === "pokemon" ? "active" : ""}`} onClick={() => setTab("pokemon")}>
+            <span>⚔️</span>
+            <span className="dock-label">Pokémon</span>
+          </div>
+          <div className={`dock-item ${tab === "bag" ? "active" : ""}`} onClick={() => setTab("bag")}>
+            <span>🎒</span>
+            <span className="dock-label">Mochila</span>
+          </div>
+          <div className={`dock-item ${tab === "quests" ? "active" : ""}`} onClick={() => setTab("quests")}>
+            <span>📜</span>
+            <span className="dock-label">Missões</span>
+          </div>
+          <div className={`dock-item ${tab === "collection" ? "active" : ""}`} onClick={() => setTab("collection")}>
+            <span>📔</span>
+            <span className="dock-label">Coleção</span>
+          </div>
+          <div className={`dock-item ${tab === "market" ? "active" : ""}`} onClick={() => setTab("market")}>
+            <span>⚖️</span>
+            <span className="dock-label">Mercado</span>
+          </div>
+          <div className={`dock-item ${tab === "shop" ? "active" : ""}`} onClick={() => setTab("shop")}>
+            <span>💎</span>
+            <span className="dock-label">Loja</span>
+          </div>
+        </div>
+
+        {/* ============ PAINÉIS LATERAIS ESQUERDOS (EXPLORE & TEAM) ============ */}
         <div className="modern-explore-panel">
           <Panel title="EXPLORAR" accent="#3d2b52">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {/* COLETA integrada ao painel lateral esquerdo */}
               <div ref={coletaRef} style={{
-                background: "rgba(0,0,0,0.3)",
+                background: "rgba(0,0,0,0.5)",
                 border: "1px solid rgba(245,207,107,0.3)",
                 borderRadius: 12, padding: 12,
+                backdropFilter: "blur(8px)"
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 11, letterSpacing: 1 }}>COLETA</span>
                   <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 10 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, fontSize: 11, fontWeight: 700 }}>
-                  <span title="Ouro" style={{ color: "#f4c430" }}>🪙 {fmtK(idle.pending.gold)}</span>
-                  <span title="Cristais">💎 {Math.floor(idle.pending.crystals)}</span>
-                  <span style={{ color: "#ff5c5c" }}>🔻 {idle.pending.redShards ?? 0}</span>
+                <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 10 }}>
+                  <span style={{ color: "#f4c430", fontWeight: 800, fontSize: 12 }}>● {fmtK(idle.pending.gold)}</span>
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 12 }}>💎 {Math.floor(idle.pending.crystals)}</span>
                 </div>
                 <button
-                  onClick={collectAll}
+                  onClick={collect}
                   style={{
-                    width: "100%", height: 32,
-                    background: "linear-gradient(180deg, #7ef27a 0%, #299e31 100%)",
-                    border: "none", borderRadius: 8,
-                    color: "#062a13", fontWeight: 900, fontSize: 11,
-                    cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                    boxShadow: "0 2px 8px rgba(126,242,122,0.4)",
+                    width: "100%", background: "linear-gradient(135deg, #7ef27a, #5ec26a)",
+                    color: "#0b0510", border: "1px solid #f5cf6b", borderRadius: 8,
+                    padding: "6px", fontWeight: 900, fontSize: 12, cursor: "pointer"
                   }}
                 >
-                  <img src={collectIconImg} alt="" width={20} height={20} style={{ imageRendering: "pixelated" }} />
                   COLETAR
                 </button>
               </div>
 
-
-
-
-            {(() => {
-              const leaderLv = team[0]?.level ?? 1;
-              const goTo = (label: string, x: number, y: number, onArrive?: () => void) => {
-                walkTargetRef.current = { x, y, label, onArrive, resumeAuto: autoRef.current };
-                setWalkingTo(label);
-                setAuto(false);
-                pushChat(`Indo para ${label}…`, "info");
-              };
-              const currentGates = gatesByMap[idle.currentMap] ?? [];
-              const travelToGate = (g: GateDef) => {
-                const targetMap = IDLE_MAPS[g.target];
-                const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
-                if (!unlocked) {
-                  pushChat(`🔒 ${targetMap.name} exige Treinador Lv ${targetMap.minLevel} para entrar.`, "info");
-                  return;
-                }
-                if (targetMap.cycle) {
-                  const w = caveWindow();
-                  if (!w.open) {
-                    pushChat(`⛰ ${targetMap.name} fechada. Abre em ${fmtMS(w.msUntilChange)}.`, "info");
-                    return;
-                  }
-                }
-                if (targetMap.entryCrystals && idle.currentMap !== g.target) {
-                  const cost = targetMap.entryCrystals;
-                  if (idle.bank.crystals < cost) {
-                    pushChat(`💎 ${targetMap.name} exige ${cost} cristais para entrar (você tem ${idle.bank.crystals}).`, "info");
-                    return;
-                  }
-                  setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - cost } }));
-                  pushChat(`💎 Pagou ${cost} cristais para entrar em ${targetMap.name}.`, "cap");
-                }
-                const shardToll = redShardTravelCost(targetMap.minLevel);
-                if (shardToll > 0 && idle.currentMap !== g.target) {
-                  const have = idle.items?.fragmento_vermelho ?? 0;
-                  if (have < shardToll) {
-                    pushChat(`🔻 ${targetMap.name} exige ${shardToll} Fragmentos Vermelhos para viajar (você tem ${have}).`, "info");
-                    return;
-                  }
-                  setIdle((s) => ({ ...s, items: { ...s.items, fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - shardToll } }));
-                  pushChat(`🔻 Pagou ${shardToll} Fragmentos Vermelhos para entrar em ${targetMap.name}.`, "cap");
-                }
-                playClick();
-                goTo(targetMap.name, g.x, g.y, () => {
-                  setIdle((s) => ({ ...s, currentMap: g.target }));
-                  setTrainerPos({ x: g.arriveX, y: g.arriveY });
-                  // Remove inimigos que excedem o teto do novo mapa
-                  const cap = IDLE_MAPS[g.target].maxLevel;
-                  if (cap != null) setEnemies((prev) => prev.filter((e) => (e.level ?? 1) <= cap));
-                  pushChat(`Chegou em ${targetMap.name}!`, "cap");
-                });
-              };
-
-              const renderMap = (interactive: boolean, big: boolean) => (
-                <div style={{
-                  width: big ? "100%" : "min(100%, calc(180px * " + (WORLD_W / WORLD_H) + "))",
-                  aspectRatio: `${WORLD_W} / ${WORLD_H}`, borderRadius: 6, overflow: "hidden",
-                  background: `url(${map.bg}) center/cover`, position: "relative",
-                  border: "1px solid rgba(245,207,107,0.4)",
-                  margin: "0 auto",
-                }}>
-                  {/* Overlay de recolorização (mapas endgame recolorizados) */}
-                  {map.overlay && (
-                    <div style={{
-                      position: "absolute", inset: 0,
-                      background: map.overlay,
-                      mixBlendMode: "color",
-                      pointerEvents: "none",
-                    }} />
-                  )}
-                  {visibleBuildings.map((b) => (
-                    <button
-                      key={b.key}
-                      title={`Ir ao ${b.label}`}
-                      onClick={interactive ? () => { goTo(b.label, b.x, b.y - 40); if (big) setBigMapOpen(false); } : undefined}
-                      className={interactive ? "map-pulse-dot" : undefined}
-                      style={{
-                        position: "absolute",
-                        left: `${(b.x / WORLD_W) * 100}%`,
-                        top: `${(b.y / WORLD_H) * 100}%`,
-                        transform: "translate(-50%,-50%)",
-                        fontSize: big ? 22 : 12, lineHeight: 1,
-                        background: "transparent", border: "none", padding: 0,
-                        cursor: interactive ? "pointer" : "default",
-                        filter: interactive ? `drop-shadow(0 0 ${big ? 8 : 4}px ${b.color})` : "none",
-                      }}
-                    >{b.emoji}</button>
-                  ))}
-                  {/* Portais para outros mapas */}
-                  {currentGates.map((g) => {
-                    const targetMap = IDLE_MAPS[g.target];
-                    const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
-                    const label = unlocked ? targetMap.name : `${targetMap.name} (Lv ${targetMap.minLevel})`;
-                    return (
-                      <button
-                        key={g.key}
-                        onClick={interactive ? () => { setPendingGate({ target: g.target, gate: g, fromBig: big }); } : undefined}
-                        title={label}
-                        className={interactive && unlocked ? "map-pulse-dot" : undefined}
-                        style={{
-                          position: "absolute",
-                          left: `${(g.x / WORLD_W) * 100}%`,
-                          top: `${(g.y / WORLD_H) * 100}%`,
-                          transform: "translate(-50%,-50%)",
-                          width: big ? 26 : 12, height: big ? 26 : 12, borderRadius: "50%",
-                          background: unlocked ? g.color : "#5a5a5a",
-                          border: `2px solid ${unlocked ? "#eafff0" : "#8a8a8a"}`,
-                          cursor: interactive && unlocked ? "pointer" : "not-allowed",
-                          padding: 0,
-                          boxShadow: unlocked ? `0 0 ${big ? 12 : 6}px ${g.color}` : "none",
-                        }}
-                      />
-                    );
-                  })}
-                  {/* Inimigos */}
-                  {enemies.filter((e) => e.hp > 0).map((e) => (
-                    <div key={e.id} style={{
-                      position: "absolute",
-                      left: `${(e.x / WORLD_W) * 100}%`,
-                      top: `${(e.y / WORLD_H) * 100}%`,
-                      width: big ? 9 : 5, height: big ? 9 : 5, borderRadius: "50%",
-                      background: e.elite ? "#f5cf6b" : "#e34a4a",
-                      transform: "translate(-50%,-50%)",
-                      boxShadow: "0 0 3px #000",
-                    }} />
-                  ))}
-                  {/* Baús */}
-                  {chests.filter((c) => !c.opened).map((c) => (
-                    <div key={c.id} style={{
-                      position: "absolute",
-                      left: `${(c.x / WORLD_W) * 100}%`,
-                      top: `${(c.y / WORLD_H) * 100}%`,
-                      width: big ? 9 : 5, height: big ? 9 : 5, borderRadius: 1,
-                      background: "#f4c430",
-                      transform: "translate(-50%,-50%)",
-                    }} />
-                  ))}
-                  {/* Outros jogadores no mesmo mapa */}
-                  {visibleMapPlayers.map((rp) => (
-                    <div key={`mm-${rp.id}`} title={rp.name} style={{
-                      position: "absolute",
-                      left: `${(rp.x / WORLD_W) * 100}%`,
-                      top: `${(rp.y / WORLD_H) * 100}%`,
-                      width: big ? 12 : 7, height: big ? 12 : 7, borderRadius: "50%",
-                      background: "#c084fc",
-                      border: "2px solid #fff",
-                      transform: "translate(-50%,-50%)",
-                      boxShadow: "0 0 6px #c084fc",
-                    }} />
-                  ))}
-                  {/* Treinador */}
-                  <div style={{
-                    position: "absolute",
-                    left: `${(trainerPos.x / WORLD_W) * 100}%`,
-                    top: `${(trainerPos.y / WORLD_H) * 100}%`,
-                    width: big ? 16 : 9, height: big ? 16 : 9, borderRadius: "50%",
-                    background: "#6bd4ff",
-                    border: "2px solid #fff",
-                    transform: "translate(-50%,-50%)",
-                    boxShadow: "0 0 8px #6bd4ff",
-                  }} />
-
-                </div>
-              );
-
-              const MapGlobeButton = () => (
-                <div style={{ display: "flex", justifyContent: "center" }}>
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); playClick(); setWorldMapOpen(true); }}
-                    className="world-globe-btn"
-                    title="Abrir Mapa Mundi"
-                    style={{
-                      background: "linear-gradient(135deg, #1a1230 0%, #3a2560 55%, #1a1230 100%)",
-                      border: "1px solid #f5cf6b",
-                      color: "#f5cf6b",
-                      borderRadius: 10, padding: "6px 14px 6px 8px",
-                      fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
-                      cursor: "pointer",
-                      boxShadow: "0 0 14px rgba(245,207,107,0.4), inset 0 1px 0 rgba(255,240,180,0.25)",
-                      display: "inline-flex", alignItems: "center", gap: 6,
-                      textShadow: "0 1px 0 rgba(0,0,0,0.5)",
-                      position: "relative",
-                      zIndex: 10,
-                    }}
-                  >
-                    <img
-                      src={assetUrlFromJson(iconWorldGlobe)}
-                      alt=""
-                      width={28}
-                      height={28}
-                      className="world-globe-spin"
-                      style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
-                    />
-                    MAPA MUNDI
-                  </button>
-                </div>
-              );
-
-              return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ position: "relative" }}>
-                    {renderMap(true, false)}
-                    <button
-                      onClick={() => { playClick(); setBigMapOpen(true); }}
-                      title="Abrir mapa grande"
-                      style={{
-                        position: "absolute", top: 4, right: 4,
-                        background: "rgba(11,5,16,0.8)", border: "1px solid #f5cf6b",
-                        color: "#f5cf6b", borderRadius: 4, padding: "2px 6px",
-                        fontSize: 11, fontWeight: 800, cursor: "pointer",
-                      }}
-                    >⛶</button>
+              {/* Eventos compactos aqui */}
+              {isGeliusActive() && (
+                <div 
+                  onClick={() => pushChat("🐧 Gelius ativo!", "info")}
+                  style={{ background: "rgba(11,46,74,0.6)", border: "1px solid #7fd8ff", borderRadius: 10, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  <span style={{ fontSize: 14 }}>🐧</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 9, fontWeight: 900, color: "#7fd8ff" }}>EVENTO GELIUS</div>
+                    <div style={{ fontSize: 8, color: "#fff" }}>ONDA ATIVA</div>
                   </div>
-                  <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
-                    <div style={{ fontSize: 11, color: "#c8b8d0", textAlign: "center", flex: 1 }}>
-                      {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
-                      {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
-                    </div>
-                  </div>
-
-                  <MapGlobeButton />
-
-
-
-
                 </div>
-              );
-            })()}
+              )}
             </div>
           </Panel>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          {/* COLETA — logo abaixo do mapa, destaque */}
-          <div ref={coletaRef} style={{
-            background: "linear-gradient(135deg, #2a1a3e, #3d2b52)",
-            border: "2px solid #f5cf6b",
-            borderRadius: 10, padding: 10,
-            boxShadow: "0 4px 14px rgba(245,207,107,0.25)",
-            flexShrink: 0,
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>COLETA</span>
-              <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 11 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-around", alignItems: "center", marginBottom: 8, fontSize: 13, fontWeight: 700 }}>
-              <span title="Ouro" style={{ color: "#f4c430" }}>● {fmtK(idle.pending.gold)}</span>
-              <span title="Cristais">💎 {Math.floor(idle.pending.crystals)}</span>
-              <span
-                title="Fragmento de Cristal Vermelho — dropado por qualquer pokémon derrotado (1 a 5 por raridade)"
-                style={{ color: "#ff5c5c", display: "inline-flex", alignItems: "center", gap: 4, textShadow: "0 0 8px #ff2d2d88" }}
-              >
-                <img
-                  src={redShardImg}
-                  alt="Fragmento Vermelho"
-                  width={18}
-                  height={18}
-                  loading="lazy"
-                  style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 5px #ff2d2daa)" }}
-                />
-                {Math.floor(idle.pending.redshards ?? 0)}
-              </span>
-            </div>
-            <button
-              onClick={collect}
-              style={{
-                width: "100%",
-                background: "linear-gradient(135deg, #7ef27a, #5ec26a)",
-                color: "#0b0510",
-                border: "2px solid #f5cf6b",
-                borderRadius: 8,
-                padding: "8px 12px",
-                fontWeight: 900,
-                fontSize: 14,
-                letterSpacing: 1.2,
-                cursor: "pointer",
-                boxShadow: "0 3px 10px rgba(126,242,122,0.5)",
-                textShadow: "0 1px 0 rgba(255,255,255,0.3)",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              }}
-            >
-              <img src={collectIconImg} alt="" width={26} height={26} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }} />
-              COLETAR
-            </button>
-          </div>
         </div>
-      </Panel>
-    </div>
 
-
-      <FarmingReportFloating 
-        gold={sessionGold} 
-        crystals={sessionCrystals} 
-        redShards={sessionRedShards}
-        kills={sessionKills}
-        activeTime={activeTime}
-        trainerLevel={idle.trainerLevel ?? 1}
-      />
-
-      {/* 🔻 Fragmentos vermelhos voando do pokémon derrotado até a COLETA */}
-          {redShardFx.length > 0 && (
-            <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9000 }} aria-hidden="true">
-              {redShardFx.map((s) => (
-                <img
-                  key={s.id}
-                  src={redShardImg}
-                  alt=""
-                  width={26}
-                  height={26}
-                  style={{
-                    position: "fixed",
-                    left: s.x - 13,
-                    top: s.y - 13,
-                    width: 26,
-                    height: 26,
-                    imageRendering: "pixelated",
-                    filter: "drop-shadow(0 0 8px #ff2d2d)",
-                    animation: "redShardFly 1.1s cubic-bezier(0.35,0.05,0.4,1) forwards",
-                    animationDelay: `${s.delay}ms`,
-                    ["--rsx" as any]: `${s.dx}px`,
-                    ["--rsy" as any]: `${s.dy}px`,
-                  }}
-                />
+        <div className="modern-team-panel">
+          <Panel title="EQUIPE" accent="#3d2b52">
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {team.map((p, i) => (
+                <div key={p.uid} style={{ 
+                  display: "flex", alignItems: "center", gap: 6, 
+                  background: i === 0 ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.03)",
+                  padding: "4px 8px", borderRadius: 8,
+                  border: i === 0 ? "1px solid rgba(245,207,107,0.3)" : "1px solid rgba(255,255,255,0.05)"
+                }}>
+                  <img src={GIF[p.species]} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 9, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.species.toUpperCase()}</div>
+                    <div style={{ fontSize: 8, color: "rgba(255,255,255,0.5)" }}>LV.{p.level}</div>
+                  </div>
+                  <div style={{ width: 40, height: 4, background: "rgba(0,0,0,0.5)", borderRadius: 2, overflow: "hidden" }}>
+                    <div style={{ width: "100%", height: "100%", background: "#5ec26a" }} />
+                  </div>
+                </div>
               ))}
             </div>
-          )}
-
-
-
-
-
-
-          {/* PACOTES ESPECIAIS — Cash Shop (bloqueado / em breve) */}
-          <div
-            style={{
-              position: "relative",
-              background: "linear-gradient(160deg, #1a1030 0%, #2a1650 55%, #3d1e6a 100%)",
-              border: "2px solid #f5cf6b",
-              borderRadius: 12,
-              padding: 12,
-              boxShadow: "0 4px 18px rgba(245,207,107,0.25), inset 0 0 30px rgba(167,139,250,0.15)",
-              overflow: "hidden",
-            }}
-          >
-            <div style={{
-              position: "absolute", inset: 0, pointerEvents: "none",
-              background: "radial-gradient(circle at 70% 20%, rgba(255,215,120,0.25), transparent 55%), radial-gradient(circle at 20% 80%, rgba(167,139,250,0.22), transparent 60%)",
-            }} />
-            <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              marginBottom: 8, position: "relative",
-            }}>
-              <span style={{
-                color: "#ffe08a", fontWeight: 900, fontSize: 12, letterSpacing: 1.2,
-                textShadow: "0 1px 0 rgba(0,0,0,0.6)",
-              }}>✦ PACOTES ESPECIAIS</span>
-              <span style={{
-                fontSize: 9, fontWeight: 900, letterSpacing: 1,
-                background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
-                color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
-                boxShadow: "0 0 8px rgba(245,207,107,0.5)",
-              }}>EM BREVE</span>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
-              <div style={{
-                width: 62, height: 62, flexShrink: 0,
-                background: "radial-gradient(circle, rgba(245,207,107,0.35) 0%, transparent 65%)",
-                display: "grid", placeItems: "center",
-                filter: "drop-shadow(0 0 10px rgba(245,207,107,0.6))",
-              }}>
-                <img
-                  src={assetUrlFromJson(iconCashPackage)}
-                  alt=""
-                  width={58}
-                  height={58}
-                  className="cash-pack-float"
-                  style={{ objectFit: "contain" }}
-                />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", letterSpacing: 0.5, lineHeight: 1.2 }}>
-                  Lojinha Cash
-                </div>
-                <div style={{ fontSize: 10, color: "#d0b8f0", marginTop: 3, lineHeight: 1.35 }}>
-                  Pacotes premium com cristais, ovos míticos, VIP e cosméticos.
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setCashShopOpen(true)}
-              className="lojinha-btn-glow"
-              style={{
-                marginTop: 10, width: "100%",
-                background: "linear-gradient(135deg, #14ff7a 0%, #6cff9d 50%, #0ea85a 100%)",
-                border: "1.5px solid #b8ffcf",
-                color: "#062a13", fontWeight: 900, fontSize: 11, letterSpacing: 1.5,
-                borderRadius: 8, padding: "9px", cursor: "pointer",
-                textShadow: "0 1px 0 rgba(255,255,255,0.45)",
-                boxShadow: "0 0 14px rgba(46,255,140,0.75), 0 0 28px rgba(46,255,140,0.45), inset 0 1px 0 rgba(255,255,255,0.4)",
-                position: "relative",
-                overflow: "hidden",
-              }}
-              title="Abrir Lojinha Cash"
-            >
-              <span style={{ position: "relative", zIndex: 2 }}>✦ ABRIR LOJINHA ✦</span>
-              <span className="lojinha-star lojinha-star-1" aria-hidden>✦</span>
-              <span className="lojinha-star lojinha-star-2" aria-hidden>✧</span>
-              <span className="lojinha-star lojinha-star-3" aria-hidden>✦</span>
-              <span className="lojinha-star lojinha-star-4" aria-hidden>✧</span>
-              <span className="lojinha-star lojinha-star-5" aria-hidden>★</span>
-            </button>
-          </div>
-
-          {/* BANNER — Evento Odisséia Oddish (clique para entrar quando aberto) */}
-          <div
-            onClick={() => {
-              const st = oddishEventStatus();
-              if (st.phase !== "open") {
-                const msg = st.phase === "closed" ? `Portal fechado. Abre em ${fmtOddishMs(st.msUntilChange)}.`
-                  : st.phase === "finished" ? "Evento encerrado."
-                  : "Evento em breve.";
-                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: msg, tone: "warn" } })); } catch {}
-                return;
-              }
-              const target = oddishMapForCycle();
-              setIdle((s) => {
-                if (s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3") return s;
-                oddishReturnMapRef.current = s.currentMap;
-                return { ...s, currentMap: target };
-              });
-              try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 ODISSÉIA ODDISH", body: "Você entrou no portal!", tone: "success" } })); } catch {}
-            }}
-            style={{
-              position: "relative",
-              marginTop: 2,
-              background: "rgba(0,0,0,0.4)",
-              border: "1px solid #ff8ac6",
-
-              borderRadius: 12,
-              padding: "10px 12px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              overflow: "hidden",
-              cursor: "pointer",
-              boxShadow: "0 4px 18px rgba(255,138,198,0.28), inset 0 0 24px rgba(255,138,198,0.12)",
-            }}
-            title="Clique para entrar no evento (quando aberto)"
-          >
-            <div style={{
-              position: "absolute", inset: 0, pointerEvents: "none",
-              background: "radial-gradient(circle at 85% 30%, rgba(255,180,220,0.28), transparent 55%), radial-gradient(circle at 10% 80%, rgba(140,90,220,0.25), transparent 60%)",
-            }} />
-            <div style={{
-              width: 58, height: 58, flexShrink: 0, borderRadius: "50%",
-              overflow: "hidden",
-              border: "2px solid #ffd6ec",
-              boxShadow: "0 0 12px rgba(255,138,198,0.6), inset 0 0 8px rgba(0,0,0,0.4)",
-              background: "#1a0a26",
-              position: "relative",
-            }}>
-              <img
-                src={assetUrlFromJson(eventBannerImg)}
-                alt="Evento"
-                width={58}
-                height={58}
-                className="cash-pack-float"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-            </div>
-            <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-            {(() => {
-              const st = oddishEventStatus();
-              const active = st.phase === "open" || st.phase === "closed";
-              const isOpen = st.phase === "open";
-              const label = st.phase === "finished" ? "ENCERRADO"
-                : st.phase === "disabled" ? "EM BREVE"
-                : isOpen ? "ABERTO" : "FECHADO";
-              const chipBg = isOpen
-                ? "linear-gradient(135deg,#8affb0,#3ec96f)"
-                : st.phase === "closed"
-                  ? "linear-gradient(135deg,#ff8ac6,#b464e6)"
-                  : "linear-gradient(135deg,#ff8ac6,#b464e6)";
-              const timerTxt = active
-                ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
-                : "Um novo evento está sendo preparado.";
-              return (
-                <>
-                  <div style={{
-                    fontSize: 11, fontWeight: 900, color: "#ffd6ec",
-                    letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
-                  }}>✦ ODISSÉIA ODDISH</div>
-                  <div
-                    className={isOpen ? "cash-pack-float" : undefined}
-                    style={{ fontSize: 12, fontWeight: 900, color: isOpen ? "#8affb0" : "#fff", marginTop: 2, lineHeight: 1.2 }}
-                  >
-                    {isOpen ? "PORTAL ABERTO" : active ? "Aguardando janela" : "Em breve"}
-                  </div>
-                  <div style={{ fontSize: 9.5, color: "#e6c8f0", marginTop: 3, lineHeight: 1.3, fontFamily: "monospace" }}>
-                    {timerTxt}
-                  </div>
-                  <span style={{
-                    position: "absolute", top: 6, right: 8,
-                    fontSize: 9, fontWeight: 900, letterSpacing: 1,
-                    background: chipBg,
-                    color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
-                    boxShadow: isOpen ? "0 0 12px rgba(138,255,176,0.85)" : "0 0 8px rgba(255,138,198,0.6)",
-                    animation: isOpen ? "pulse 1s infinite" : undefined,
-                  }}>{label}</span>
-                </>
-              );
-            })()}
-            </div>
-          </div>
-
-          {/* BANNER — Evento Grass Oddish (custa 20 Stone Verdejante) */}
-          <div
-            onClick={(ev) => {
-              ev.stopPropagation();
-              if (!ODDISH_EVENT.enabled) {
-                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
-                          return;
-              }
-              const cur = idle;
-              const inEvent = cur.currentMap === "grass_oddish";
-              if (inEvent) {
-                setIdle((s) => {
-                  const back = s.grassOddishReturnMap ?? "arena";
-                  try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Você saiu do evento.", tone: "info" } })); } catch {}
-                  pushChat("🌿 Você saiu do evento Grass Oddish.", "info");
-                  return { ...s, currentMap: back, grassOddishReturnMap: undefined };
-                });
-                return;
-              }
-              const need = 20;
-              const have = cur.items?.stone_grass ?? 0;
-              if (have < need) {
-                setOddishNoStone({ have, need });
-                pushChat(`🌿 Grass Oddish: precisa de ${need} Stone Verdejante (você tem ${have}).`, "info");
-                return;
-              }
-              setOddishConfirm({ have, need });
-            }}
-            style={{
-              position: "relative",
-              marginTop: 6,
-              background: "linear-gradient(135deg,#0f2010 0%,#1a3d1c 55%,#2b5f2e 100%)",
-              border: "2px solid #8dfa8d",
-              borderRadius: 12,
-              padding: "10px 12px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              overflow: "hidden",
-              cursor: "pointer",
-              boxShadow: "0 4px 18px rgba(141,250,141,0.25), inset 0 0 24px rgba(141,250,141,0.10)",
-            }}
-            title="Evento Grass Oddish"
-          >
-            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 85% 30%, rgba(180,255,180,0.22), transparent 55%), radial-gradient(circle at 10% 80%, rgba(80,200,120,0.22), transparent 60%)" }} />
-            <div style={{ width: 58, height: 58, flexShrink: 0, borderRadius: "50%", overflow: "hidden", border: "2px solid #d6ffd6", boxShadow: "0 0 14px rgba(141,250,141,0.75), inset 0 0 8px rgba(0,0,0,0.4)", background: "radial-gradient(circle at 50% 40%, #1a3d1c 0%, #0a1a0a 80%)", display: "grid", placeItems: "center", position: "relative" }}>
-              <img src={oddishUrl} alt="Oddish" width={54} height={54} className="cash-pack-float" style={{ width: "94%", height: "94%", objectFit: "contain", imageRendering: "pixelated" as any, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} />
-              <span style={{ position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none", boxShadow: "inset 0 0 12px rgba(141,250,141,0.55)", animation: "pulse 1.6s ease-in-out infinite" }} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "#d6ffd6", letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}>✦ GRASS ODDISH</div>
-              <div className="cash-pack-float" style={{ fontSize: 12, fontWeight: 900, color: "#8affb0", marginTop: 2, lineHeight: 1.2 }}>
-                {!ODDISH_EVENT.enabled ? "EVENTO ENCERRADO" : (idle.currentMap === "grass_oddish" ? "SAIR DO EVENTO" : "ENTRAR (20 🌿)")}
-              </div>
-              <div style={{ fontSize: 9.5, color: "#c8e8c8", marginTop: 3, lineHeight: 1.3, fontFamily: "monospace" }}>
-                Oddish capturados: <b style={{ color: "#fff" }}>{idle.grassOddishCaptured ?? 0}</b>
-              </div>
-              <div style={{ fontSize: 8.5, color: "#a8d0a8", marginTop: 2, lineHeight: 1.25 }}>
-                {!ODDISH_EVENT.enabled ? "Mapa bloqueado. Ranking preservado." : "Só Oddish (Raro/Épico/Mítico). Taxa de captura padrão."}
-              </div>
-              <span style={{ position: "absolute", top: 6, right: 8, fontSize: 9, fontWeight: 900, letterSpacing: 1, background: !ODDISH_EVENT.enabled ? "linear-gradient(135deg,#888,#444)" : (idle.currentMap === "grass_oddish" ? "linear-gradient(135deg,#8affb0,#3ec96f)" : "linear-gradient(135deg,#d6ffd6,#8dfa8d)"), color: "#0a2010", padding: "2px 7px", borderRadius: 10, boxShadow: "0 0 10px rgba(141,250,141,0.7)" }}>
-                {!ODDISH_EVENT.enabled ? "ENCERRADO" : (idle.currentMap === "grass_oddish" ? "DENTRO" : "ABERTO")}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); playClick(); setOddishRankOpen(true); }}
-            style={{
-              marginTop: 6,
-              width: "100%",
-              background: "linear-gradient(135deg,#1a3d1c 0%,#2b5f2e 60%,#3ec96f 100%)",
-              border: "1px solid #8dfa8d",
-              borderRadius: 10,
-              padding: "7px 10px",
-              color: "#eaffea",
-              fontWeight: 900,
-              fontSize: 11,
-              letterSpacing: 1,
-              cursor: "pointer",
-              textShadow: "0 1px 0 rgba(0,0,0,0.5)",
-              boxShadow: "0 2px 10px rgba(141,250,141,0.25)",
-            }}
-            title="Ranking global do evento Grass Oddish"
-          >
-            🏆 RANKING DO EVENTO
-          </button>
-
-          {/* Guia do Prof. Carvalho removido a pedido do usuário */}
-          {/* Guia do Prof. Carvalho removido a pedido do usuário */}
-          {false && (
-            <ProfessorOakGuide 
-              topic="welcome"
-              onClose={() => {}} 
-            />
-          )}
-
-
-
+          </Panel>
         </div>
 
-        {/* Barra lateral removida por transição para floating UI */}
-      </div>
 
 
       <style>{`
