@@ -132,6 +132,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [bootstrapping, setBootstrapping] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
+  const [kickedMessage, setKickedMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
