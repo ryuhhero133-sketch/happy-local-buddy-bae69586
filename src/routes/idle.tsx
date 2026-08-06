@@ -9437,8 +9437,8 @@ function IdlePage() {
             })}
           </div>
 
-          {/* ============ HUD MODERNA ============ */}
           <div className="modern-top-bar" style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '20px', zIndex: 1100 }}>
+
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{
                 color: "#f5cf6b", fontWeight: 900, fontSize: 16,
@@ -9511,8 +9511,8 @@ function IdlePage() {
             </div>
           </div>
 
-             {/* Simulação de radar/mapa simplificado */}
-             <div style={{
+          <div className="mini-map-circular">
+
                position: "absolute", inset: 0,
                backgroundImage: `url(${map.bg})`,
                backgroundSize: "cover", backgroundPosition: "center",
@@ -11901,6 +11901,7 @@ function IdlePage() {
 
 
 
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12288,6 +12289,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
