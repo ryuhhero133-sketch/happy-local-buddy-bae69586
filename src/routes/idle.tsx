@@ -2478,6 +2478,7 @@ function IdlePage() {
   const [oddishRankOpen, setOddishRankOpen] = useState<boolean>(false);
   const [oddishRankRows, setOddishRankRows] = useState<OddishRankRow[]>([]);
   const [oddishRankLoading, setOddishRankLoading] = useState<boolean>(false);
+  const [showRank, setShowRank] = useState(false);
   const enterGrassOddish = () => {
     if (!ODDISH_EVENT.enabled) {
       try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
