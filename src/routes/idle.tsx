@@ -9257,6 +9257,7 @@ function IdlePage() {
 
 
 
+
                 </div>
               );
             })}
@@ -12032,6 +12033,7 @@ function IdlePage() {
       {cashShopOpen && (
         <CashShopModal
 
+
           open={cashShopOpen}
           onClose={() => setCashShopOpen(false)}
           identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
@@ -12065,8 +12067,8 @@ function IdlePage() {
         setCodeInput={setCodeInput}
         codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
-      />
-    )}
+      )}
+
 
 
 
