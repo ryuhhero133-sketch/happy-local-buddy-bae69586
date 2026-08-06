@@ -222,6 +222,8 @@ function TabBody({
       return <PlayersTab />;
     case "gifts":
       return <GiftsTab />;
+    case "reports":
+      return <ReportsTab />;
     case "pokemon":
       return <PokemonTab />;
     case "spawn":
@@ -238,8 +240,6 @@ function TabBody({
       return <InvisibleTab config={config} setConfig={setConfig} />;
     case "teleport":
       return <TeleportTab />;
-    case "reports":
-      return <ReportsTab />;
     case "logs":
       return <LogsTab />;
     case "config":
@@ -861,9 +861,8 @@ function GiftsTab() {
       <Card title="Como funciona">
         <ul className="text-xs text-slate-400 space-y-2 list-disc pl-4">
           <li>O presente é gravado em <code className="text-amber-200">admin_gifts</code> no Supabase.</li>
-          <li>Quando o jogador entra no jogo, o cliente reclama os gifts pendentes pelo username/user_id e aplica no save local.</li>
-          <li>Itens e pokébolas enviadas viram <strong>bound</strong> (não vendáveis).</li>
-          <li>Requer a tabela <code className="text-amber-200">admin_gifts</code> criada — veja SUPABASE_SETUP.md.</li>
+          <li>O jogador recebe no próximo login. Itens/pokébolas viram <strong>bound</strong>.</li>
+          <li className="text-fuchsia-400 font-bold italic">Shift + A para abrir/fechar este painel.</li>
         </ul>
       </Card>
     </div>
