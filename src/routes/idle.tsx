@@ -10305,7 +10305,6 @@ function IdlePage() {
                   <img src={collectIconImg} alt="" width={20} height={20} style={{ imageRendering: "pixelated" }} />
                   COLETAR
                 </button>
-              </div>
 
 
 
@@ -10538,7 +10537,6 @@ function IdlePage() {
                 </div>
               );
             })()}
-            </div>
           </Panel>
 
 
