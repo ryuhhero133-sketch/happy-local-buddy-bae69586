@@ -7065,7 +7065,8 @@ function IdlePage() {
           background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)',
-          pointerEvents: 'auto'
+          pointerEvents: 'auto',
+          zIndex: 1001
         }}>
           {/* Lado Esquerdo: Localização e Info */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
