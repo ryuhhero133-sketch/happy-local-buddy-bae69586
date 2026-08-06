@@ -9578,9 +9578,8 @@ function IdlePage() {
             </div>
           </div>
 
-
-          {/* Floating Chat Panel (Bottom Left) */}
           <div className="chat-floating-panel">
+
              <div style={{ background: "rgba(0,0,0,0.4)", padding: "4px 10px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>GLOBAL CHAT</span>
                <button onClick={() => setChatOpen(!chatOpen)} style={{ background: "transparent", border: "none", color: "#9ab", cursor: "pointer", fontSize: 12 }}>{chatOpen ? "▼" : "▲"}</button>
@@ -9983,6 +9982,7 @@ function IdlePage() {
           )}
         </div>
         <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+
 
 
 
@@ -11906,6 +11906,7 @@ function IdlePage() {
 
 
 
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12293,6 +12294,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
