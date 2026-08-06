@@ -10215,7 +10215,7 @@ function IdlePage() {
 
 
         {/* ============ COLUNA DIREITA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, minHeight: 0, overflowY: "auto", position: "fixed", bottom: 90, right: 20, width: 280, zIndex: 1000 }}>
+        <div className="modern-team-panel">
           <Panel title="SUA EQUIPE" accent="#3d2b52">
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {team.map((p, i) => (
@@ -10242,7 +10242,12 @@ function IdlePage() {
               ))}
             </div>
           </Panel>
+        </div>
+
+        {/* ============ EXPLORE PANEL (Floating Left) ============ */}
+        <div className="modern-explore-panel">
           <Panel title="EXPLORAR" accent="#3d2b52">
+
 
             {(() => {
               const leaderLv = team[0]?.level ?? 1;

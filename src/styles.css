@@ -487,7 +487,30 @@ html, body, #root {
   transition: width 0.3s ease-out;
 }
 
+.modern-team-panel {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 260px;
+  z-index: 1000;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+.modern-explore-panel {
+  position: fixed;
+  top: 140px;
+  left: 20px;
+  width: 260px;
+  z-index: 1000;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
 .floating-nav-dock {
+
   position: fixed;
   bottom: 24px;
   left: 50%;
