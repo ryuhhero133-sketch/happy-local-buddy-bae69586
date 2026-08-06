@@ -6984,12 +6984,12 @@ function IdlePage() {
       <div className="modern-top-bar" style={{ pointerEvents: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, display: 'flex', justifyContent: 'space-between', padding: '10px 20px' }}>
         <div className="trainer-card-compact" style={{ pointerEvents: 'auto' }}>
           <div className="trainer-avatar-glow">
-            <img src={identity?.avatar_url || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" />
+            <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" />
           </div>
           <div className="trainer-info-minimal">
             <div className="trainer-name-row">
               <span className="trainer-name-text">{identity?.name || "Treinador"}</span>
-              <span className="trainer-lv-badge">Lv.{idle.trainerLevel}</span>
+              <span className="trainer-lv-badge">Lv.{idle.trainerLevel || 1}</span>
             </div>
             <div className="stats-pill-group">
               <div className="stat-pill-hp">
@@ -6997,8 +6997,8 @@ function IdlePage() {
                 <span className="stat-pill-label">HP 100%</span>
               </div>
               <div className="stat-pill-xp">
-                <div className="stat-pill-fill" style={{ width: `${Math.min(100, (idle.trainerExp / (idle.trainerLevel * 100)) * 100)}%`, background: "var(--xp-gradient)" }} />
-                <span className="stat-pill-label">XP {Math.floor((idle.trainerExp / (idle.trainerLevel * 100)) * 100)}%</span>
+                <div className="stat-pill-fill" style={{ width: `${Math.min(100, (idle.trainerXp / ((idle.trainerLevel || 1) * 100)) * 100)}%`, background: "var(--xp-gradient)" }} />
+                <span className="stat-pill-label">XP {Math.floor((idle.trainerXp / ((idle.trainerLevel || 1) * 100)) * 100)}%</span>
               </div>
             </div>
           </div>
@@ -7059,6 +7059,7 @@ function IdlePage() {
       </div>
 
       <div className="game-viewport-container" style={{ position: 'absolute', inset: 0, zIndex: 0 }}></div>
+
 
 
       {/* 🛡️ AVISO — leitura da nuvem falhou: progresso local protegido e retry automático */}
