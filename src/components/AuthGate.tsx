@@ -357,10 +357,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
   // mas o admin sempre passa independentemente do valor de 'maintenance'.
   if (maintenance && session && !isAdmin) {
     return (
-      <PanelShell title="MANUTENÇÃO">
+      <PanelShell title="SISTEMA EM MANUTENÇÃO">
         <div className="space-y-4 text-center">
           <p className="text-[10px] leading-relaxed" style={{ color: "#fca5a5" }}>
-            O sistema está em manutenção para jogadores. Como você não é um administrador, o acesso está restrito.
+            SISTEMA EM MANUTENÇÃO. Estamos realizando melhorias no servidor — tente novamente mais tarde.
           </p>
           <div className="pt-2">
             <PrimaryButton type="button" onClick={() => window.location.reload()}>
