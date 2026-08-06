@@ -9438,10 +9438,15 @@ function IdlePage() {
           </div>
 
           <div className="modern-top-bar">
-              <div style={{ fontSize: 10, color: "#c8b8d0", opacity: 0.8 }}>
-                {map.diff} · {fmtHMS(activeTime)}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{
+                color: "#f5cf6b", fontWeight: 900, fontSize: 16,
+                letterSpacing: 1.5, fontFamily: "'Cinzel', serif",
+                textShadow: "0 2px 4px rgba(0,0,0,0.5)"
+              }}>
+                {map.name.toUpperCase()}
               </div>
-            </div>
+
 
             {/* Centro: Recursos */}
             <div style={{ display: "flex", gap: 12 }}>
