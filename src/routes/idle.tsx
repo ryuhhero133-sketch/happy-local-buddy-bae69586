@@ -105,9 +105,9 @@ export type CollectionEntry = Partial<PetInstance> & {
   rarity: Rarity;
   xp: number;
   traits: string[];
-  collectedAt: number;
+  collectedAt?: number;
   capturedAt?: number;
-  count: number;
+  count?: number;
   shiny?: boolean;
   event?: string;
 };
