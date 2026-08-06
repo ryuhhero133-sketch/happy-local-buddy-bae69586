@@ -193,7 +193,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
             return;
           }
 
-          // Se não for o admin, aplica as travas de manutenção
+          // Se não for o admin, aplica as travas de manutenção EXPLICITAS
           if (!isAdmin) {
             if (profile?.lock_until && new Date(profile.lock_until) > new Date()) {
               const diff = new Date(profile.lock_until).getTime() - Date.now();
@@ -203,9 +203,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
               setKickedMessage(`Servidor em manutenção. Tente novamente em ${hours} horas.`);
               return;
             }
-
-            // Removido o bloqueio geral forçado para não-admins durante o desenvolvimento
-            // a menos que haja um lock_until explícito no perfil.
           }
         } catch (e) {
           warn("Erro ao verificar status da conta", e);
