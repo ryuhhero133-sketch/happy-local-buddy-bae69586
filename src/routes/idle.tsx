@@ -8032,9 +8032,10 @@ function IdlePage() {
                       </span>
                     </div>
                   ))}
-                </>
+                </div>
               );
             })()}
+
           </div>
 
 
