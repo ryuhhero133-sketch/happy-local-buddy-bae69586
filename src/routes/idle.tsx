@@ -10027,9 +10027,8 @@ function IdlePage() {
             />
           )}
         </div>
-
-        {/* ============ MENU LATERAL ESQUERDO (EXPLORE & TEAM) ============ */}
         <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+
 
           <Panel title="EXPLORAR" accent="#3d2b52">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -12327,6 +12326,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
