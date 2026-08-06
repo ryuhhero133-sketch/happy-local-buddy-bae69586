@@ -175,21 +175,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
       log("authStateChange", event, sess?.user?.id);
       
-      // Bloqueio de Manutenção e Restrição de Admin
       if (sess?.user?.id) {
         const isAdmin = sess.user.email === "lordryuhhhuyuyghh@gmail.com";
         
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { data: profile, error: profileError } = await (supabase as any)
             .from("profiles")
             .select("account_status")
             .eq("id", sess.user.id)
             .maybeSingle();
-
-          if (profileError) {
-            console.warn("Erro ao buscar perfil:", profileError);
-          }
 
           if (profile?.account_status === "banned") {
             await supabase.auth.signOut();

@@ -1550,27 +1550,27 @@ function IdlePage() {
   const mapEnterAtRef = useRef<number>(Date.now());
 
   useEffect(() => { attackTargetIdRef.current = attackTargetId; }, [attackTargetId]);
-  // Ao trocar de líder (ou seu nível mudar muito), inimigos fora da faixa
-  // de nível são despawnados e novos são gerados para o novo líder.
   const leaderLvKeyRef = useRef<number>(team[0]?.level ?? 0);
   const leaderUidRef = useRef<string | undefined>(team[0]?.uid);
+
   useEffect(() => {
-    const lv = team[0]?.level ?? 0;
-    const uid = team[0]?.uid;
+    const leader = team[0];
+    const lv = leader?.level ?? 0;
+    const uid = leader?.uid;
     const changed = uid !== leaderUidRef.current || Math.abs(lv - leaderLvKeyRef.current) >= 3;
     if (changed) {
       leaderLvKeyRef.current = lv;
       leaderUidRef.current = uid;
-      // Remove inimigos fora da faixa; se o mapa ficar vazio de válidos, respawna.
       setEnemies((prev) => {
         const kept = prev.filter((e) => {
           const el = e.level ?? lv;
           return el <= lv + 10 && el >= lv - 5;
         });
-        setAttackTargetId(null);
-        blacklistRef.current.clear();
-        return kept.length >= 3 ? kept : spawnEnemies();
+        if (kept.length < 3) return spawnEnemies();
+        return kept;
       });
+      // Importante: setAttackTargetId(null) removido daqui para evitar loop infinito
+      // caso o componente re-renderize e cause novo processamento do team.
     }
   }, [team]);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
