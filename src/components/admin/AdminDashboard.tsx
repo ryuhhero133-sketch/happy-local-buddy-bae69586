@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { loadIdentity } from "@/components/AuthGate";
 import {
@@ -396,12 +397,12 @@ function OnlinePlayersTab() {
       // O banimento real depende de uma coluna 'banned' ou similar. 
       // Como estamos expandindo, vamos assumir que existe ou que usamos a audit para marcar.
       // Por ora, vamos registrar na audit e tentar dar update no profile se a coluna existir.
-      const { error } = await supabase.from("audit_events" as any).insert({
+      const { error } = await supabase.from("audit_events" as any).insert([{
         user_id: id,
         username,
         kind: "ban_action",
         detail: { action: "ban", actor: "admin" }
-      });
+      }]);
       if (error) throw error;
       toast.success(`${username} marcado para banimento.`);
       refresh();
