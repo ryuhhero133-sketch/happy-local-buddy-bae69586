@@ -173,13 +173,25 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
       log("authStateChange", event, sess?.user?.id);
-      setSession(sess);
+      
+      // Se a sessão sumiu (ex: deletada via SQL), forçamos o estado local para deslogado
+      if (!sess && session) {
+        log("Sessão invalidada pelo servidor — forçando logout");
+        setSession(null);
+        setIdentity(null);
+        setNeedsChar(false);
+        wipeLocalGameData();
+        localStorage.removeItem(CURRENT_UID_KEY);
+        localStorage.removeItem(IDENTITY_KEY);
+      } else {
+        setSession(sess);
+      }
+
       if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
       if (event === "SIGNED_IN" && sess?.user?.id) {
         try {
           const prev = localStorage.getItem(CURRENT_UID_KEY);
           if (prev && prev !== sess.user.id) {
-            // Conta diferente — limpa o save local da conta anterior
             wipeLocalGameData();
           }
           localStorage.setItem(CURRENT_UID_KEY, sess.user.id);
@@ -190,12 +202,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setNeedsChar(false);
         try {
           localStorage.removeItem(IDENTITY_KEY);
-          // Logout real: limpa dados locais para evitar vazamento entre contas.
           wipeLocalGameData();
           localStorage.removeItem(CURRENT_UID_KEY);
-        } catch {
-          /* ignore */
-        }
+        } catch { /* ignore */ }
       }
     });
 
