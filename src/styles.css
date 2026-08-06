@@ -1415,6 +1415,24 @@ html, body, #root {
 }
 .poke-glow-red { animation: poke-glow-red 2.4s ease-in-out infinite; }
 
+.modern-team-panel {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  width: 200px;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+.modern-explore-panel {
+  position: fixed;
+  top: 70px;
+  left: 20px;
+  width: 220px;
+  z-index: 100;
+  pointer-events: auto;
+}
+
 /* Sweeping sheen across buttons */
 .poke-sheen { position: relative; overflow: hidden; }
 .poke-sheen::after {
