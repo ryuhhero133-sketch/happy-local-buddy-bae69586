@@ -7967,7 +7967,7 @@ function IdlePage() {
 
               if (buffs.length === 0) return null;
               return (
-                <>
+                <div style={{ position: "absolute", top: 8, right: 8, zIndex: 55, display: "flex", flexDirection: "column", gap: 4 }}>
                   <style>{`
                     @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
                     @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -8036,6 +8036,7 @@ function IdlePage() {
                 </div>
               );
             })()}
+
 
           </div>
 
