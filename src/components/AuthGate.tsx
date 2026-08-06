@@ -133,6 +133,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [kickedMessage, setKickedMessage] = useState<string | null>(null);
+  const [maintenance, setMaintenance] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -174,6 +175,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
       log("authStateChange", event, sess?.user?.id);
+
+      // Verifica status de manutenção no banco
+      try {
+        const { data: config } = await (supabase as any)
+          .from("server_config")
+          .select("value")
+          .eq("key", "maintenance_mode")
+          .maybeSingle();
+        setMaintenance(config?.value === "true" || config?.value === true);
+      } catch (e) {
+        warn("Erro ao verificar manutenção", e);
+      }
       
       if (sess?.user?.id) {
         try {
@@ -335,6 +348,36 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
+
+  // Trava de manutenção: apenas o admin pode entrar
+  const isAdmin = session?.user?.email === "lordryuhhhuyuyghh@gmail.com";
+  if (maintenance && !isAdmin) {
+    return (
+      <PanelShell title="MANUTENÇÃO">
+        <div className="space-y-4 text-center">
+          <p className="text-xs leading-relaxed" style={{ color: "#fca5a5" }}>
+            O servidor está em manutenção para melhorias.
+            <br />
+            Voltaremos em breve!
+          </p>
+          <div className="pt-2">
+            <PrimaryButton type="button" onClick={() => window.location.reload()}>
+              RECARREGAR
+            </PrimaryButton>
+          </div>
+          {session && (
+            <button
+              onClick={() => supabase.auth.signOut()}
+              className="text-[10px] tracking-[2px] underline opacity-70 hover:opacity-100"
+              style={{ color: "#fecaca" }}
+            >
+              SAIR DA CONTA
+            </button>
+          )}
+        </div>
+      </PanelShell>
+    );
+  }
 
   // Guest mode: skip Supabase entirely
   if (isGuest && identity) return <>{children}</>;
