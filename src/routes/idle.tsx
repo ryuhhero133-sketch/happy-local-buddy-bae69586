@@ -9839,25 +9839,24 @@ function IdlePage() {
             const ss = Math.floor((remaining % 60000) / 1000).toString().padStart(2, "0");
             const accent = restingKind === "azul" ? "#4a9eff" : "#5ec26a";
             const label = restingKind === "azul" ? "Descansando na Casa Azul" : "Descansando no Lar";
-  return (
-    <div style={{
-                  position: "absolute", top: 10, right: 10, zIndex: 12,
-                  background: "rgba(11,5,16,0.92)", border: `2px solid ${accent}`,
-                  borderRadius: 10, padding: "10px 14px", minWidth: 200,
-                  boxShadow: `0 0 24px ${accent}66`,
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <span style={{ fontSize: 22, animation: "chest-pop 900ms ease-in-out infinite" }}>💤</span>
-                    <div>
-                      <div style={{ fontWeight: 800, color: "#fff", fontSize: 13 }}>{label}</div>
-                      <div style={{ fontSize: 11, color: "#c8ffd6" }}>Restam <b>{mm}:{ss}</b></div>
-                    </div>
-                  </div>
-                  <div style={{ height: 6, background: "#1a0f26", borderRadius: 3, overflow: "hidden" }}>
-                    <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, ${accent}, #a7f3a0)`, transition: "width 200ms" }} />
+            return (
+              <div style={{
+                position: "absolute", top: 10, right: 10, zIndex: 12,
+                background: "rgba(11,5,16,0.92)", border: `2px solid ${accent}`,
+                borderRadius: 10, padding: "10px 14px", minWidth: 200,
+                boxShadow: `0 0 24px ${accent}66`,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 22, animation: "chest-pop 900ms ease-in-out infinite" }}>💤</span>
+                  <div>
+                    <div style={{ fontWeight: 800, color: "#fff", fontSize: 13 }}>{label}</div>
+                    <div style={{ fontSize: 11, color: "#c8ffd6" }}>Restam <b>{mm}:{ss}</b></div>
                   </div>
                 </div>
-              </>
+                <div style={{ height: 6, background: "#1a0f26", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, ${accent}, #a7f3a0)`, transition: "width 200ms" }} />
+                </div>
+              </div>
             );
           })()}
           {/* tick invisível pra forçar rerender enquanto descansa */}
