@@ -7164,7 +7164,12 @@ function IdlePage() {
             <span style={{ fontSize: '24px' }}>⚖️</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
           </button>
+          <button onClick={() => setTab("loja")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#f5cf6b' : '#fff' }}>
+            <span style={{ fontSize: '24px' }}>🏪</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
+          </button>
         </div>
+
 
         <div className="chat-floating-panel" style={{
           position: 'absolute', bottom: '100px', left: '20px',
