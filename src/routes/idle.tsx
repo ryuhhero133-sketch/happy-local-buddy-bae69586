@@ -10111,9 +10111,10 @@ function IdlePage() {
                   <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 10 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 10 }}>
-                  <span style={{ color: "#f4c430", fontWeight: 800, fontSize: 12 }}>● {fmtK(bank.gold)}</span>
-                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 12 }}>💎 {Math.floor(bank.crystals)}</span>
+                  <span style={{ color: "#f4c430", fontWeight: 800, fontSize: 12 }}>● {fmtK(idle.bank.gold)}</span>
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 12 }}>💎 {Math.floor(idle.bank.crystals)}</span>
                 </div>
+
                 <button
                   onClick={collect}
                   style={{
