@@ -417,9 +417,9 @@ function OnlinePlayersTab() {
   const updateStatus = async (id: string, status: string) => {
     if (!confirm(`Alterar status para ${status.toUpperCase()}?`)) return;
     try {
-      const { error } = await supabase.from("profiles").update({ account_status: status }).eq("id", id);
+      const { error } = await (supabase.from("profiles") as any).update({ account_status: status }).eq("id", id);
       if (error) throw error;
-      await supabase.from("audit_events" as any).insert([{
+      await (supabase.from("audit_events" as any) as any).insert([{
         actor_id: (await supabase.auth.getUser()).data.user?.id,
         target_user_id: id,
         kind: "account_status_change",
