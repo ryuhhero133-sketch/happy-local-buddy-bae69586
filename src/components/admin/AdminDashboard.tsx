@@ -397,7 +397,7 @@ function OnlinePlayersTab() {
       // O banimento real depende de uma coluna 'banned' ou similar. 
       // Como estamos expandindo, vamos assumir que existe ou que usamos a audit para marcar.
       // Por ora, vamos registrar na audit e tentar dar update no profile se a coluna existir.
-      const { error } = await supabase.from("audit_events" as any).insert([{
+      const { error } = await (supabase.from("audit_events" as any) as any).insert([{
         user_id: id,
         username,
         kind: "ban_action",
