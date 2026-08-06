@@ -10247,6 +10247,39 @@ function IdlePage() {
         {/* ============ EXPLORE PANEL (Floating Left) ============ */}
         <div className="modern-explore-panel">
           <Panel title="EXPLORAR" accent="#3d2b52">
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {/* COLETA integrada ao painel lateral esquerdo */}
+              <div ref={coletaRef} style={{
+                background: "rgba(0,0,0,0.3)",
+                border: "1px solid rgba(245,207,107,0.3)",
+                borderRadius: 12, padding: 12,
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 11, letterSpacing: 1 }}>COLETA</span>
+                  <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 10 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, fontSize: 11, fontWeight: 700 }}>
+                  <span title="Ouro" style={{ color: "#f4c430" }}>🪙 {fmtK(idle.pending.gold)}</span>
+                  <span title="Cristais">💎 {Math.floor(idle.pending.crystals)}</span>
+                  <span style={{ color: "#ff5c5c" }}>🔻 {idle.pending.redShards ?? 0}</span>
+                </div>
+                <button
+                  onClick={collectAll}
+                  style={{
+                    width: "100%", height: 32,
+                    background: "linear-gradient(180deg, #7ef27a 0%, #299e31 100%)",
+                    border: "none", borderRadius: 8,
+                    color: "#062a13", fontWeight: 900, fontSize: 11,
+                    cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    boxShadow: "0 2px 8px rgba(126,242,122,0.4)",
+                  }}
+                >
+                  <img src={collectIconImg} alt="" width={20} height={20} style={{ imageRendering: "pixelated" }} />
+                  COLETAR
+                </button>
+              </div>
+
+
 
 
             {(() => {
@@ -10699,8 +10732,9 @@ function IdlePage() {
             style={{
               position: "relative",
               marginTop: 2,
-              background: "linear-gradient(135deg, #1b0f2e 0%, #2a1548 55%, #4a1c6e 100%)",
-              border: "2px solid #ff8ac6",
+              background: "rgba(0,0,0,0.4)",
+              border: "1px solid #ff8ac6",
+
               borderRadius: 12,
               padding: "10px 12px",
               display: "flex",
