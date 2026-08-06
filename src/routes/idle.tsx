@@ -7138,7 +7138,7 @@ function IdlePage() {
               <div style={{ height: '100%', width: '100%', background: 'var(--hp-gradient)' }} />
             </div>
             <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(100, (((idle?.trainerXp || 0) || 0) / (Math.max(1, (idle?.trainerLevel || 1) || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
+              <div style={{ height: '100%', width: `${Math.min(100, (Number(idle?.trainerXp || 0) / Math.max(1, Number(idle?.trainerLevel || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
             </div>
           </div>
         </div>
