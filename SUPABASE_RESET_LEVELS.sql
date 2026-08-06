@@ -6,10 +6,11 @@
 -- =============================================================================
 
 -- 1. Resetar o nível de todos os treinadores para 1 e XP para 0
+-- A coluna correta na tabela trainer_state é 'trainer_level'
 UPDATE public.trainer_state
 SET 
-    level = 1,
-    experience = 0;
+    trainer_level = 1,
+    trainer_xp = 0;
 
 -- 2. Resetar o nível de todos os pokémons na coleção para 1 e XP para 0
 UPDATE public.pokemon_collection
