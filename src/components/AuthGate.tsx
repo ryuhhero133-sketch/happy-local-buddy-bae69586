@@ -354,7 +354,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
   }
 
-  if (!session) return <AuthScreen kickedMessage={kicked ? "Sua conta foi conectada em outro dispositivo. Você foi desconectado." : null} />;
+  if (!session) return <AuthScreen kickedMessage={kickedMessage} />;
 
   if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
 
