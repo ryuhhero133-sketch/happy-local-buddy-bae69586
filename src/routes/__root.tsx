@@ -39,27 +39,8 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground whitespace-pre-wrap">
-          The project is no longer loading.
-
-Do NOT implement any new feature.
-
-First, restore the project to a working state.
-
-Tasks:
-
-- Fix all compilation errors.
-- Fix all runtime errors.
-- Fix all React rendering errors.
-- Restore the Preview until the application loads normally.
-- Do not redesign anything.
-- Do not modify gameplay.
-- Do not modify UI.
-- Do not add features.
-
-Only recover the project.
-
-When the Preview loads successfully again, stop and report which files were fixed.
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          This page didn't load
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
