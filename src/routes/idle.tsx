@@ -6972,7 +6972,7 @@ function IdlePage() {
   );
 
   return (
-    <div key="root-container" style={{
+    <div style={{
       height: "100vh",
       background: "#0b0510",
       color: "#f3e5c5",
@@ -11114,6 +11114,7 @@ function IdlePage() {
 
 
       {identity && (
+        <>
         <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
           <span>{identity.name}</span>
           <span style={{ fontFamily: "monospace", color: "#7fd8ff", fontSize: 9 }}>
@@ -11132,6 +11133,7 @@ function IdlePage() {
             >{idle.hideIp ? "👁 MOSTRAR IP" : "🔒 OCULTAR IP"}</button>
           </div>
         </div>
+        </>
       )}
 
 
@@ -11296,10 +11298,9 @@ function IdlePage() {
                 </div>
               );
             })()}
-
           </div>
         );
-      })()}
+      })}
 
       <style>{`
         .modern-team-panel, .modern-explore-panel { pointer-events: auto !important; }
