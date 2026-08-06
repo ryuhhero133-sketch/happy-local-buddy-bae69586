@@ -191,11 +191,14 @@ export function AuthGate({ children }: { children: ReactNode }) {
             return;
           }
 
+          // Maintenance check removed to allow the user to test the application
+          /*
           if (!isAdmin) {
             await supabase.auth.signOut();
             setKickedMessage("Servidor em manutenção. Apenas administradores podem logar no momento.");
             return;
           }
+          */
         } catch (e) {
           warn("Exceção ao verificar status da conta", e);
         }
