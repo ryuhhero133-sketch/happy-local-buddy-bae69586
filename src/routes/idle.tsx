@@ -6978,84 +6978,7 @@ function IdlePage() {
       color: "#f3e5c5",
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
-      position: "relative"
     }}>
-      {/* HUD Superior Moderna */}
-      <div className="modern-top-bar">
-        <div className="trainer-card-compact">
-          <div className="trainer-avatar-glow">
-            <img src={identity?.avatar_url || trainerAvatarAsset.url} alt="Avatar" />
-          </div>
-          <div className="trainer-info-minimal">
-            <div className="trainer-name-row">
-              <span className="trainer-name-text">{identity?.name || "Treinador"}</span>
-              <span className="trainer-lv-badge">Lv.{idle.trainerLevel}</span>
-            </div>
-            <div className="stats-pill-group">
-              <div className="stat-pill-hp">
-                <div className="stat-pill-fill" style={{ width: "100%", background: "var(--hp-gradient)" }} />
-                <span className="stat-pill-label">HP 100%</span>
-              </div>
-              <div className="stat-pill-xp">
-                <div className="stat-pill-fill" style={{ width: `${(idle.trainerXp / trainerXpToNext(idle.trainerLevel)) * 100}%`, background: "var(--xp-gradient)" }} />
-                <span className="stat-pill-label">XP {Math.floor((idle.trainerXp / (trainerXpToNext(idle.trainerLevel) || 1)) * 100)}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="currency-pill-container">
-          <div className="currency-pill">
-            <img src={navWallet} alt="Gold" />
-            <span>{idle.bank.gold.toLocaleString()}</span>
-          </div>
-          <div className="currency-pill">
-            <img src={iconCrystalBlue.url} alt="Crystal" />
-            <span>{idle.bank.crystals.toLocaleString()}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Menu Lateral Direito */}
-      <div className="right-system-menu">
-        <button className="menu-icon-btn" onClick={() => setBackpackOpen(true)} title="Mochila">
-          <img src={navMochila} alt="Bag" />
-        </button>
-        <button className="menu-icon-btn" onClick={() => setPokemonTabOpen(true)} title="Pokemons">
-          <img src={navPokemon} alt="PKM" />
-        </button>
-        <button className="menu-icon-btn" onClick={() => setWorldMapOpen(true)} title="Mapa Mundi">
-          <img src={iconWorldGlobe.url} alt="Map" />
-        </button>
-        <button className="menu-icon-btn" onClick={() => setCashShopOpen(true)} title="Loja VIP">
-          <img src={navLoja} alt="Shop" />
-        </button>
-      </div>
-
-      {/* Dock Inferior Moderna */}
-      <div className="modern-bottom-dock">
-        <div className="dock-inner">
-          <button className="dock-item active" onClick={() => setActiveTab("battle")}>
-            <img src={navBatalha} alt="Battle" />
-            <span>BATALHA</span>
-          </button>
-          <button className="dock-item" onClick={() => setCollectionOpen(true)}>
-            <img src={navColecao} alt="Pokedex" />
-            <span>COLEÇÃO</span>
-          </button>
-          <button className="dock-item" onClick={() => setMarketOpen(true)}>
-            <img src={navMarket} alt="Market" />
-            <span>MERCADO</span>
-          </button>
-          <button className="dock-item" onClick={() => setUpgradeOpen(true)}>
-            <img src={navMelhorias} alt="Upgrades" />
-            <span>UPGRADES</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="game-viewport-container" style={{ position: "relative", width: "100%", height: "100%", zIndex: 1 }}>
-
       {/* 🛡️ AVISO — leitura da nuvem falhou: progresso local protegido e retry automático */}
       {cloudSaveBlocked && (
         <div style={{
@@ -15819,12 +15742,11 @@ function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: n
             </div>
           </div>
         )}
-        </div>
       </div>
+      {/* Portals moved to top-level for maximum reliability */}
     </div>
   );
 }
-
 function StatBar({ label, value, max, pct, color }: { label: string; value: number; max: number; pct: number; color: string }) {
   return (
     <div>
