@@ -9385,7 +9385,6 @@ function IdlePage() {
                         imageRendering: "pixelated",
                         pointerEvents: "none",
                       }} />
-      />
                   )}
 
                 </div>
