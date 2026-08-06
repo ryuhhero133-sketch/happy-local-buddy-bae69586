@@ -10751,7 +10751,7 @@ function IdlePage() {
                 ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
                 : "Um novo evento está sendo preparado.";
               return (
-                <>
+                <div style={{ position: "relative" }}>
                   <div style={{
                     fontSize: 11, fontWeight: 900, color: "#ffd6ec",
                     letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
@@ -10773,7 +10773,7 @@ function IdlePage() {
                     boxShadow: isOpen ? "0 0 12px rgba(138,255,176,0.85)" : "0 0 8px rgba(255,138,198,0.6)",
                     animation: isOpen ? "pulse 1s infinite" : undefined,
                   }}>{label}</span>
-                </>
+                </div>
               );
             })()}
             </div>
@@ -11114,6 +11114,8 @@ function IdlePage() {
 
 
       {identity && (
+        <div key="player-identity-panel">
+
 
 
 
