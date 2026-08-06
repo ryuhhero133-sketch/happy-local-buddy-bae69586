@@ -11337,14 +11337,11 @@ function IdlePage() {
                     </div>
                   </div>
                 </div>
-          )}
-            </div>
+              );
+            })()}
           </Panel>
         </div>
 
-          </div>
-        );
-      })()}
 
       {/* ═══ 🏰 GINÁSIO MEDIEVAL — endgame: 3 andares + portal do Vale ═══ */}
       {gymOpen && (() => {
