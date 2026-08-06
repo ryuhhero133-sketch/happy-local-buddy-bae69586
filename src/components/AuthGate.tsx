@@ -193,16 +193,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
             return;
           }
 
-          // Se não for o admin, aplica as travas de manutenção EXPLICITAS
+          // Apenas o admin pode logar durante a manutenção
           if (!isAdmin) {
-            if (profile?.lock_until && new Date(profile.lock_until) > new Date()) {
-              const diff = new Date(profile.lock_until).getTime() - Date.now();
-              const hours = Math.ceil(diff / (1000 * 60 * 60));
-              warn(`Conta bloqueada por mais ${hours} horas`);
-              await supabase.auth.signOut();
-              setKickedMessage(`Servidor em manutenção. Tente novamente em ${hours} horas.`);
-              return;
-            }
+            await supabase.auth.signOut();
+            setKickedMessage("Servidor em manutenção. Apenas administradores podem logar no momento.");
+            return;
           }
         } catch (e) {
           warn("Erro ao verificar status da conta", e);
