@@ -10843,6 +10843,12 @@ function IdlePage() {
           </button>
 
           {/* Guia do Prof. Carvalho removido a pedido do usuário */}
+          <ProfessorOakGuide 
+            visible={false} 
+            identity={identity}
+            onComplete={() => {}} 
+          />
+
 
         </div>
 
