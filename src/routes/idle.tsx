@@ -1571,7 +1571,7 @@ function IdlePage() {
         return kept;
       });
     }
-  }, [team.length, team[0]?.uid, team[0]?.level, spawnEnemies]);
+  }, [team.length, team[0]?.uid, team[0]?.level, spawnEnemies, idle.currentMap]);
 
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [isAdminOpen, setIsAdminOpen] = useState(false);
