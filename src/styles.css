@@ -10,16 +10,19 @@
 /* HUD Superior */
 .modern-top-bar {
   position: fixed;
-  top: 10px;
+  top: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  height: 55px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-  z-index: 1000;
-  pointer-events: none;
+  z-index: 1001;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: auto;
 }
 
 .trainer-card-compact {
