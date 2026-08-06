@@ -11337,11 +11337,13 @@ function IdlePage() {
                     </div>
                   </div>
                 </div>
+                </div>
               );
             })()}
           </div>
         );
       })()}
+
 
 
 
