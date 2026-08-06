@@ -6972,7 +6972,6 @@ function IdlePage() {
   );
 
   return (
-    <>
     <div style={{
       height: "100vh",
       background: "#0b0510",
@@ -13088,7 +13087,7 @@ function IdlePage() {
         document.body
       )}
 
-    </>
+    </div>
   );
 }
 
