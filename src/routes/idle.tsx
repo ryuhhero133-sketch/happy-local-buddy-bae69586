@@ -7108,7 +7108,8 @@ function IdlePage() {
           position: 'absolute', top: '70px', left: '20px',
           background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)',
           padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', gap: '12px', minWidth: '220px', pointerEvents: 'auto'
+          display: 'flex', gap: '12px', minWidth: '220px', pointerEvents: 'auto',
+          zIndex: 1002
         }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', border: '2px solid #f5cf6b' }}>
             <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" style={{ width: '100%', height: '100%' }} />
