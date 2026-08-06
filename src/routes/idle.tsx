@@ -11113,12 +11113,7 @@ function IdlePage() {
       `}</style>
 
 
-      {identity && (() => (
-        <div key="player-identity-wrapper">
-
-
-
-
+      {identity && (
         <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
           <span>{identity.name}</span>
           <span style={{ fontFamily: "monospace", color: "#7fd8ff", fontSize: 9 }}>
@@ -11137,8 +11132,7 @@ function IdlePage() {
             >{idle.hideIp ? "👁 MOSTRAR IP" : "🔒 OCULTAR IP"}</button>
           </div>
         </div>
-        </div>
-      ))()}
+      )}
 
 
 
