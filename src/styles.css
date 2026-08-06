@@ -533,21 +533,25 @@ html, body, #root {
 
 .modern-floating-window {
   position: absolute;
-  inset: 12px;
-  background: linear-gradient(160deg, rgba(28, 15, 46, 0.95) 0%, rgba(11, 5, 16, 0.98) 100%);
-  border: 2px solid rgba(245, 207, 107, 0.3);
-  border-radius: 24px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(900px, 95vw);
+  height: min(700px, 85vh);
+  background: rgba(11, 5, 16, 0.95);
+  border: 1.5px solid rgba(245, 207, 107, 0.4);
+  border-radius: 20px;
   z-index: 2000;
-  padding: 20px;
+  padding: 24px;
   overflow-y: auto;
   backdrop-filter: blur(16px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(245, 207, 107, 0.05);
-  animation: windowOpen 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+  animation: windowOpen 0.25s ease-out;
 }
 
 @keyframes windowOpen {
-  0% { transform: scale(0.95); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% { transform: translate(-50%, -48%) scale(0.96); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
 .modern-window-header {
