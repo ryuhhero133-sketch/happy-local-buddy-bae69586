@@ -10305,11 +10305,9 @@ function IdlePage() {
                   <img src={collectIconImg} alt="" width={20} height={20} style={{ imageRendering: "pixelated" }} />
                   COLETAR
                 </button>
+              </div>
 
-
-
-
-            {(() => {
+              {(() => {
               const leaderLv = team[0]?.level ?? 1;
               const goTo = (label: string, x: number, y: number, onArrive?: () => void) => {
                 walkTargetRef.current = { x, y, label, onArrive, resumeAuto: autoRef.current };
@@ -10537,6 +10535,7 @@ function IdlePage() {
                 </div>
               );
             })()}
+            </div>
           </Panel>
 
 
