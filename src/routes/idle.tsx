@@ -10167,7 +10167,8 @@ function IdlePage() {
           </Panel>
         </div>
 
-        /* ===== Layout responsivo ===== */
+      <style>{`
+
         @media (max-width: 1400px) {
           .idle-grid { grid-template-columns: 210px 1fr 210px !important; gap: 6px !important; padding: 6px !important; }
         }
