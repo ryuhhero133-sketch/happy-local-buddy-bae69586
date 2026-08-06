@@ -9513,12 +9513,13 @@ function IdlePage() {
           </div>
 
           <div className="mini-map-circular">
-
+             <div style={{
                position: "absolute", inset: 0,
                backgroundImage: `url(${map.bg})`,
                backgroundSize: "cover", backgroundPosition: "center",
                opacity: 0.6, filter: "grayscale(0.5) contrast(1.2)"
              }} />
+
              <div style={{
                position: "absolute", left: "50%", top: "50%",
                width: 8, height: 8, borderRadius: "50%",
@@ -9982,8 +9983,8 @@ function IdlePage() {
               onUpgradeBook={upgradeBook}
             />
           )}
-        </div>
         <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+
 
 
           <Panel title="EXPLORAR" accent="#3d2b52">
@@ -12291,6 +12292,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
