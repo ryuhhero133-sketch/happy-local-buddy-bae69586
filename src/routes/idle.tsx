@@ -16087,7 +16087,7 @@ function MarketScreen({
                 const bal = cur === "gold" ? bank.gold : cur === "crystal" ? bank.crystals : (items.safira_verde ?? 0);
                 const canBuy = bal >= l.price;
                 return (
-                  <div key={l.id} style={{ background: "#1a0f26", border: "1px solid #ff9d3d66", borderRadius: 10, padding: 12 }}>
+                  <div key={l.id} style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 10, padding: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       {STONE_CHEST[l.item_id] ? (
                         <div style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(255,157,61,0.22), transparent 70%)", borderRadius: 10, filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.7))" }}>
