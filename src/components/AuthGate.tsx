@@ -175,8 +175,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
       log("authStateChange", event, sess?.user?.id);
       
-      // Bloqueio de 20 horas / Status de Análise
+      // Bloqueio de Manutenção e Restrição de Admin
       if (sess?.user?.id) {
+        const isAdmin = sess.user.email === "lordryuhhhuyuyghh@gmail.com";
+        
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { data: profile } = await (supabase as any)
@@ -185,18 +187,26 @@ export function AuthGate({ children }: { children: ReactNode }) {
             .eq("id", sess.user.id)
             .maybeSingle();
 
-          if (profile?.lock_until && new Date(profile.lock_until) > new Date()) {
-            const diff = new Date(profile.lock_until).getTime() - Date.now();
-            const hours = Math.ceil(diff / (1000 * 60 * 60));
-            warn(`Conta bloqueada por mais ${hours} horas`);
-            await supabase.auth.signOut();
-            setKickedMessage(`Servidor em manutenção. Tente novamente em ${hours} horas.`);
-            return;
-          }
+          // Se não for o admin, aplica as travas
+          if (!isAdmin) {
+            if (profile?.lock_until && new Date(profile.lock_until) > new Date()) {
+              const diff = new Date(profile.lock_until).getTime() - Date.now();
+              const hours = Math.ceil(diff / (1000 * 60 * 60));
+              warn(`Conta bloqueada por mais ${hours} horas`);
+              await supabase.auth.signOut();
+              setKickedMessage(`Servidor em manutenção. Tente novamente em ${hours} horas.`);
+              return;
+            }
 
-          if (profile?.account_status === "banned") {
+            if (profile?.account_status === "banned") {
+              await supabase.auth.signOut();
+              setKickedMessage("Esta conta foi banida permanentemente.");
+              return;
+            }
+
+            // Bloqueio geral para não-admins durante o reset
             await supabase.auth.signOut();
-            setKickedMessage("Esta conta foi banida permanentemente.");
+            setKickedMessage("Acesso restrito: Servidor em manutenção geral.");
             return;
           }
         } catch (e) {
