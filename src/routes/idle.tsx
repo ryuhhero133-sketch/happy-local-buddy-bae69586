@@ -10096,11 +10096,77 @@ function IdlePage() {
           )}
         </div>
 
+        {/* ============ MENU LATERAL ESQUERDO (EXPLORE & TEAM) ============ */}
+        <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+          <Panel title="EXPLORAR" accent="#3d2b52">
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div ref={coletaRef} style={{
+                background: "rgba(0,0,0,0.5)",
+                border: "1px solid rgba(245,207,107,0.3)",
+                borderRadius: 12, padding: 12,
+                backdropFilter: "blur(8px)"
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 11, letterSpacing: 1 }}>COLETA</span>
+                  <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 10 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 10 }}>
+                  <span style={{ color: "#f4c430", fontWeight: 800, fontSize: 12 }}>● {fmtK(bank.gold)}</span>
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 12 }}>💎 {Math.floor(bank.crystals)}</span>
+                </div>
+                <button
+                  onClick={collect}
+                  style={{
+                    width: "100%", background: "linear-gradient(135deg, #7ef27a, #5ec26a)",
+                    color: "#0b0510", border: "1px solid #f5cf6b", borderRadius: 8,
+                    padding: "6px", fontWeight: 900, fontSize: 12, cursor: "pointer"
+                  }}
+                >
+                  COLETAR
+                </button>
+              </div>
 
+              {/* Eventos compactos aqui */}
+              {isGeliusActive() && (
+                <div 
+                  onClick={() => pushChat("🐧 Gelius ativo!", "info")}
+                  style={{ background: "rgba(11,46,74,0.6)", border: "1px solid #7fd8ff", borderRadius: 10, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  <span style={{ fontSize: 14 }}>🐧</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 9, fontWeight: 900, color: "#7fd8ff" }}>EVENTO GELIUS</div>
+                    <div style={{ fontSize: 8, color: "#fff" }}>ONDA ATIVA</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Panel>
 
+          <div style={{ height: 12 }} />
 
+          <Panel title="EQUIPE" accent="#3d2b52">
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {team.map((p, i) => (
+                <div key={p.uid} style={{ 
+                  display: "flex", alignItems: "center", gap: 6, 
+                  background: i === 0 ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.03)",
+                  padding: "4px 8px", borderRadius: 8,
+                  border: i === 0 ? "1px solid rgba(245,207,107,0.3)" : "1px solid rgba(255,255,255,0.05)"
+                }}>
+                  <img src={GIF[p.species]} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 9, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.species.toUpperCase()}</div>
+                    <div style={{ fontSize: 8, color: "rgba(255,255,255,0.5)" }}>LV.{p.level}</div>
+                  </div>
+                  <div style={{ width: 40, height: 4, background: "rgba(0,0,0,0.5)", borderRadius: 2, overflow: "hidden" }}>
+                    <div style={{ width: "100%", height: "100%", background: "#5ec26a" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </div>
 
-      <style>{`
         /* ===== Layout responsivo ===== */
         @media (max-width: 1400px) {
           .idle-grid { grid-template-columns: 210px 1fr 210px !important; gap: 6px !important; padding: 6px !important; }
