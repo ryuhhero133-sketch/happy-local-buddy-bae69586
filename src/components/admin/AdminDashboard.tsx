@@ -985,10 +985,7 @@ function GiftsTab() {
           .or(`id.eq.${targetQuery.trim()},username.eq.${targetQuery.trim()}`)
           .maybeSingle();
         
-        // Se for email, precisamos buscar na tabela auth.users via RPC ou admitir que admin_gifts usa username como chave primária de entrega
-        // No sistema atual, claimMyGifts usa username ou user_id. 
-        // Vamos tentar resolver o username para o log ficar bonito.
-        if (p?.username) finalUsername = p.username;
+        if (p && (p as any).username) finalUsername = (p as any).username;
       }
 
       const { sendGift } = await import("@/lib/adminGifts");
