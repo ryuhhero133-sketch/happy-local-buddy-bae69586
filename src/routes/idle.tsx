@@ -1316,7 +1316,7 @@ function freshIdle(): IdleState {
   };
 }
 function saveIdle(s: IdleState) {
-  try { localStorage.setItem(IDLE_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+  try { localStorage.setItem(IDLE_KEY, obfuscate(s)); } catch { /* ignore */ }
 }
 
 // XP-para-o-próximo-nível do TREINADOR (curva um pouco mais dura que a do pokémon)
