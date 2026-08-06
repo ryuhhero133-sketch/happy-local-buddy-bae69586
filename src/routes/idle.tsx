@@ -7050,72 +7050,7 @@ function IdlePage() {
               filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
             }} />
           ))}
-          {BUILDINGS.filter(b => b.mapId === idle.currentMap).map((b) => (
-            <div key={b.key} style={{
-              position: "absolute",
-              left: b.x - b.w / 2,
-              top: b.y - b.h + 10,
-              width: b.w, height: b.h,
-              zIndex: Math.round(b.y),
-              pointerEvents: "none",
-            }}>
-              <img src={b.src} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated" }} />
-            </div>
-          ))}
-          <div style={{
-            position: "absolute",
-            left: trainerPos.x - 32,
-            top: trainerPos.y - 64,
-            width: 64, height: 64,
-            zIndex: Math.round(trainerPos.y) + 1,
-            transition: "none",
-            imageRendering: "pixelated",
-          }}>
-             <img 
-               src={isFishingRef.current ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png` : (walkTargetRef.current ? trainerWalkUrl : trainerIdleUrl)} 
-               alt="" 
-               style={{ 
-                 width: "100%", 
-                 height: "100%", 
-                 transform: walkDirRef.current === "left" ? "scaleX(-1)" : "none",
-                 filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.4))"
-               }} 
-             />
-          </div>
-          {team.length > 0 && (
-            <div style={{
-              position: "absolute",
-              left: followerX - 24,
-              top: followerY - 48,
-              width: 48, height: 48,
-              zIndex: Math.round(followerY),
-              transition: "none",
-              imageRendering: "pixelated",
-            }}>
-              <img 
-                src={GIF[team[0].species] ?? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png`} 
-                alt="" 
-                style={{ 
-                  width: "100%", 
-                  height: "100%", 
-                  transform: followerDirRef.current === "left" ? "scaleX(-1)" : "none",
-                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
-                }} 
-              />
-            </div>
-          )}
-          {mobsRef.current.map((m: any) => (
-            <div key={m.id} style={{
-              position: "absolute",
-              left: m.x - 24,
-              top: m.y - 48,
-              width: 48, height: 48,
-              zIndex: Math.round(m.y),
-              pointerEvents: "none",
-            }}>
-               <img src={GIF[m.species] ?? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png`} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated", transform: m.dir === "left" ? "scaleX(-1)" : "none" }} />
-            </div>
-          ))}
+
 
         </div>
       </div>
@@ -8398,6 +8333,16 @@ function IdlePage() {
               document.body
             )}
 
+        <div className="legacy-world-layer" style={{
+          position: "absolute",
+          left: 0, top: 0,
+          width: WORLD_W, height: WORLD_H,
+          transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
+          transformOrigin: "0 0",
+          zIndex: 1,
+          pointerEvents: "none",
+        }}>
+
             {/* Painel de Colmeia — posicionar Beedrills p/ produzir Incenso de Mel */}
             {honeyShop && (() => {
               const cocoonKey = honeyShop.cocoonKey;
@@ -9436,6 +9381,7 @@ function IdlePage() {
               );
             })}
           </div>
+          <div className="hud-overlay-layer" style={{ position: "fixed", inset: 0, zIndex: 1100, pointerEvents: "none" }}>
 
           <div className="modern-top-bar" style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '20px', zIndex: 1100 }}>
 
@@ -9596,7 +9542,6 @@ function IdlePage() {
               )}
             </div>
           </div>
-        </div>
 
 
 
@@ -9992,7 +9937,6 @@ function IdlePage() {
               onUpgradeBook={upgradeBook}
             />
           )}
-        </div>
         <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
 
 
