@@ -8398,6 +8398,7 @@ function IdlePage() {
               document.body
             )}
 
+        <div className="legacy-world-layer">
             {/* Painel de Colmeia — posicionar Beedrills p/ produzir Incenso de Mel */}
             {honeyShop && (() => {
               const cocoonKey = honeyShop.cocoonKey;
