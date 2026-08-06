@@ -659,15 +659,18 @@ function PrimaryButton({
   children,
   disabled,
   type = "submit",
+  onClick,
 }: {
   children: ReactNode;
   disabled?: boolean;
   type?: "submit" | "button";
+  onClick?: () => void;
 }) {
   return (
     <button
       type={type}
       disabled={disabled}
+      onClick={onClick}
       className="w-full py-2 rounded font-bold tracking-wider transition active:scale-95 disabled:opacity-50"
       style={{
         background: "linear-gradient(180deg, #dc2626, #7f1d1d)",
