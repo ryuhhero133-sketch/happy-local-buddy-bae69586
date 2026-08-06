@@ -1253,7 +1253,12 @@ function loadIdle(): IdleState {
   try {
     const raw = localStorage.getItem(IDLE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        return freshIdle();
+      }
       if (!parsed || typeof parsed !== 'object') return freshIdle();
       const s: IdleState = { ...freshIdle(), ...parsed };
       // Presente de boas-vindas (evento): 1x Caixa Premium
@@ -1441,7 +1446,7 @@ function fmtMS(ms: number) {
 type SaveShape = { party?: PetInstance[] };
 function loadTeam(): PetInstance[] {
   const save = loadLatestValid<SaveShape>();
-  if (save?.party && save.party.length > 0) {
+  if (save && typeof save === 'object' && Array.isArray(save.party) && save.party.length > 0) {
     const leader = save.party[0];
     // upgrade forçado: se ainda for o antigo default (charizard lv15), troca por charmander lv1
     if (leader.species === "charizard" && leader.level === 15 && (leader.xp ?? 0) === 0) {
@@ -1504,8 +1509,8 @@ function IdlePage() {
   // HP atual do meu pokémon (o líder toma dano dos inimigos)
   const [leaderHp, setLeaderHp] = useState<number>(() => {
     const initTeam = loadTeam();
-    const l = initTeam[0];
-    return l ? Math.max(l.hp ?? 0, calcIdleMaxHp(l)) : 0;
+    const l = Array.isArray(initTeam) ? initTeam[0] : null;
+    return l ? Math.max(Number(l.hp) || 0, calcIdleMaxHp(l)) : 0;
   });
   const [leveledAt, setLeveledAt] = useState<number>(0);
   const [levelToast, setLevelToast] = useState<{ level: number; gains: string[]; bonus: string; ts: number } | null>(null);
@@ -7133,7 +7138,7 @@ function IdlePage() {
               <div style={{ height: '100%', width: '100%', background: 'var(--hp-gradient)' }} />
             </div>
             <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(100, ((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
+              <div style={{ height: '100%', width: `${Math.min(100, (((idle?.trainerXp || 0) || 0) / (Math.max(1, (idle?.trainerLevel || 1) || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
             </div>
           </div>
         </div>
