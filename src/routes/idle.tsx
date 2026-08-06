@@ -7757,8 +7757,9 @@ function IdlePage() {
                       )}
                     </>
                   );
-                })()}
-              </div>
+            })()}
+          </div>
+
               {/* Filtros do chat */}
               <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
                 {([
@@ -9252,7 +9253,8 @@ function IdlePage() {
                         imageRendering: "pixelated",
                         pointerEvents: "none",
                       }} />
-                    )
+                    )}
+
 
 
                 </div>
@@ -12064,6 +12066,8 @@ function IdlePage() {
         codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
       />
+    )}
+
 
 
       <BlackMiticEggHud
