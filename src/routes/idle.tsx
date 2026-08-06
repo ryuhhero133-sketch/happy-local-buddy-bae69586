@@ -6978,7 +6978,84 @@ function IdlePage() {
       color: "#f3e5c5",
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
+      position: "relative"
     }}>
+      {/* HUD Superior Moderna */}
+      <div className="modern-top-bar" style={{ pointerEvents: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, display: 'flex', justifyContent: 'space-between', padding: '10px 20px' }}>
+        <div className="trainer-card-compact" style={{ pointerEvents: 'auto' }}>
+          <div className="trainer-avatar-glow">
+            <img src={identity?.avatar_url || trainerAvatarAsset.url} alt="Avatar" />
+          </div>
+          <div className="trainer-info-minimal">
+            <div className="trainer-name-row">
+              <span className="trainer-name-text">{identity?.name || "Treinador"}</span>
+              <span className="trainer-lv-badge">Lv.{idle.trainerLevel}</span>
+            </div>
+            <div className="stats-pill-group">
+              <div className="stat-pill-hp">
+                <div className="stat-pill-fill" style={{ width: "100%", background: "var(--hp-gradient)" }} />
+                <span className="stat-pill-label">HP 100%</span>
+              </div>
+              <div className="stat-pill-xp">
+                <div className="stat-pill-fill" style={{ width: `${(idle.trainerXp / (trainerXpToNext(idle.trainerLevel) || 1)) * 100}%`, background: "var(--xp-gradient)" }} />
+                <span className="stat-pill-label">XP {Math.floor((idle.trainerXp / (trainerXpToNext(idle.trainerLevel) || 1)) * 100)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="currency-pill-container" style={{ pointerEvents: 'auto', display: 'flex', gap: '10px' }}>
+          <div className="currency-pill">
+            <img src={navWallet} alt="Gold" style={{ width: '20px' }} />
+            <span>{idle.bank.gold.toLocaleString()}</span>
+          </div>
+          <div className="currency-pill">
+            <img src={iconCrystalBlue.url} alt="Crystal" style={{ width: '20px' }} />
+            <span>{idle.bank.crystals.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Menu Lateral Direito */}
+      <div className="right-system-menu" style={{ position: 'fixed', right: '15px', top: '50%', transform: 'translateY(-50%)', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <button className="menu-icon-btn" onClick={() => setBackpackOpen(true)}>
+          <img src={navMochila} alt="Bag" style={{ width: '32px' }} />
+        </button>
+        <button className="menu-icon-btn" onClick={() => setPokemonTabOpen(true)}>
+          <img src={navPokemon} alt="PKM" style={{ width: '32px' }} />
+        </button>
+        <button className="menu-icon-btn" onClick={() => setWorldMapOpen(true)}>
+          <img src={iconWorldGlobe.url} alt="Map" style={{ width: '32px' }} />
+        </button>
+        <button className="menu-icon-btn" onClick={() => setCashShopOpen(true)}>
+          <img src={navLoja} alt="Shop" style={{ width: '32px' }} />
+        </button>
+      </div>
+
+      {/* Dock Inferior */}
+      <div className="modern-bottom-dock" style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
+        <div className="dock-inner" style={{ display: 'flex', gap: '15px', padding: '8px 20px' }}>
+          <button className="dock-item active" onClick={() => setActiveTab("battle")}>
+            <img src={navBatalha} alt="Battle" style={{ width: '34px' }} />
+            <span>BATALHA</span>
+          </button>
+          <button className="dock-item" onClick={() => setCollectionOpen(true)}>
+            <img src={navColecao} alt="Pokedex" style={{ width: '34px' }} />
+            <span>COLEÇÃO</span>
+          </button>
+          <button className="dock-item" onClick={() => setMarketOpen(true)}>
+            <img src={navMarket} alt="Market" style={{ width: '34px' }} />
+            <span>MERCADO</span>
+          </button>
+          <button className="dock-item" onClick={() => setUpgradeOpen(true)}>
+            <img src={navMelhorias} alt="Upgrades" style={{ width: '34px' }} />
+            <span>UPGRADES</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="game-viewport-container" style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+
       {/* 🛡️ AVISO — leitura da nuvem falhou: progresso local protegido e retry automático */}
       {cloudSaveBlocked && (
         <div style={{
@@ -16091,5 +16168,8 @@ function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
       topic={hasPokemon ? "autohunt" : "welcome"}
       onClose={() => setClosed(true)}
     />
+      </div>
+    </div>
   );
 }
+
