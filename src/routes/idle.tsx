@@ -8398,7 +8398,6 @@ function IdlePage() {
               document.body
             )}
 
-      <div className="legacy-world-wrap">
         <div className="legacy-world-layer">
             {/* Painel de Colmeia — posicionar Beedrills p/ produzir Incenso de Mel */}
             {honeyShop && (() => {
@@ -9598,7 +9597,6 @@ function IdlePage() {
               )}
             </div>
           </div>
-        </div>
 
 
 
