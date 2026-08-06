@@ -3242,10 +3242,18 @@ function IdlePage() {
       if (k === "r") { e.preventDefault(); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); collect(); return; }
-      // Admin shortcut: Shift + A (Only for the admin UUID)
+      // Admin shortcut: Shift + A (Only for authorized admin UUIDs)
       if (e.shiftKey && k === "a") {
-        const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-        if (isAdminUuid) {
+        const adminUuids = [
+          "61b4d001-c8c3-424d-862d-0b798782f9d6", // Principal
+          "6f76f76c-3838-4e8c-8c8c-8c8c8c8c8c8c", // lordryuhhhuyuyghh@gmail.com (PlaceHolder - will update if actual ID known)
+        ];
+        const isAdminUuid = identity?.id && adminUuids.includes(identity.id);
+        
+        // Also check by email if ID is not yet in the list
+        const isAdminEmail = identity?.email === "lordryuhhhuyuyghh@gmail.com";
+
+        if (isAdminUuid || isAdminEmail) {
           e.preventDefault();
           setIsAdminOpen((v) => !v);
           // Auto-enable admin flag if not set
