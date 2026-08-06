@@ -10277,9 +10277,10 @@ function IdlePage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {/* COLETA integrada ao painel lateral esquerdo */}
               <div ref={coletaRef} style={{
-                background: "rgba(0,0,0,0.3)",
-                border: "1px solid rgba(245,207,107,0.3)",
+                background: "rgba(0,0,0,0.45)",
+                border: "1px solid rgba(245,207,107,0.4)",
                 borderRadius: 12, padding: 12,
+                boxShadow: "inset 0 0 15px rgba(0,0,0,0.3)",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 11, letterSpacing: 1 }}>COLETA</span>
