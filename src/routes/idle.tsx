@@ -12215,6 +12215,7 @@ function IdlePage() {
 
 
       {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
+
       {pendingGate && createPortal(
         <div onClick={() => setPendingGate(null)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: "#1a0f26", border: "3px solid #f5cf6b", borderRadius: 16, padding: 24, maxWidth: 420, width: "100%", cursor: "default", boxShadow: "0 0 50px rgba(0,0,0,0.8)" }}>
