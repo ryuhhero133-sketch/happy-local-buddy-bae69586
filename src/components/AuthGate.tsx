@@ -176,8 +176,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
       log("authStateChange", event, sess?.user?.id);
       
       if (sess?.user?.id) {
-        const isAdmin = sess.user.email === "lordryuhhhuyuyghh@gmail.com";
-        
         try {
           const { data: profile, error: profileError } = await (supabase as any)
             .from("profiles")
@@ -190,15 +188,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
             setKickedMessage("Esta conta foi banida permanentemente.");
             return;
           }
-
-          // Maintenance check removed to allow the user to test the application
-          /*
-          if (!isAdmin) {
-            await supabase.auth.signOut();
-            setKickedMessage("Servidor em manutenção. Apenas administradores podem logar no momento.");
-            return;
-          }
-          */
         } catch (e) {
           warn("Exceção ao verificar status da conta", e);
         }
