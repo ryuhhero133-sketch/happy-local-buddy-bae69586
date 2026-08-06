@@ -10586,9 +10586,6 @@ function IdlePage() {
       </Panel>
     </div>
 
-        </div>
-      </Panel>
-    </div>
 
       <FarmingReportFloating 
         gold={sessionGold} 
