@@ -11308,6 +11308,7 @@ function IdlePage() {
 
 
 
+
       {/* ═══ 🏰 GINÁSIO MEDIEVAL — endgame: 3 andares + portal do Vale ═══ */}
       {gymOpen && (() => {
         const shards = idle.items?.fragmento_vermelho ?? 0;
