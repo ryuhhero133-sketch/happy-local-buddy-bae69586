@@ -7876,14 +7876,12 @@ function IdlePage() {
             setAuto(false);
           }}
           style={{
-            position: "relative",
-            borderRadius: 12,
+            position: "absolute",
+            inset: 0,
             overflow: "hidden",
             background: viewportBg,
-            minHeight: 520,
-            height: "calc(100vh - 110px)",
-            boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)",
             cursor: "crosshair",
+            zIndex: 1,
           }}
         >
 
