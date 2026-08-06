@@ -9451,8 +9451,8 @@ function IdlePage() {
               </div>
             </div>
 
-            {/* Centro: Recursos */}
             <div style={{ display: "flex", gap: 12 }}>
+
 
               <div className="resource-pill" title="Ouro">
                 <span style={{ fontSize: 18 }}>🪙</span>
@@ -11935,6 +11935,7 @@ function IdlePage() {
 
 
 
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12322,6 +12323,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
