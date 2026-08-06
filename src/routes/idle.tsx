@@ -11954,11 +11954,8 @@ function IdlePage() {
 
 
 
-      {/* ============ LOJINHA CASH ============ */}
       {cashShopOpen && (
         <CashShopModal
-
-
           open={cashShopOpen}
           onClose={() => setCashShopOpen(false)}
           identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
@@ -11971,27 +11968,28 @@ function IdlePage() {
             safiras: idle.items?.safira_verde ?? 0,
           }}
           onSpendSafiras={(n) => {
-          const cur = idle.items?.safira_verde ?? 0;
-          if (cur < n) return false;
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
-          }));
-          return true;
-        }}
+            const cur = idle.items?.safira_verde ?? 0;
+            if (cur < n) return false;
+            setIdle((s) => ({
+              ...s,
+              items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
+            }));
+            return true;
+          }}
+          onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
+          onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
+          onGrantItem={(id, qty) => {
+            setIdle((s) => ({
+              ...s,
+              items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
+            }));
+          }}
+          codeInput={codeInput}
+          setCodeInput={setCodeInput}
+          onRedeemCode={() => redeemCrystalCode()}
+        />
+      )}
 
-        onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
-        onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
-        onGrantItem={(id, qty) => {
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
-          }));
-        }}
-        codeInput={codeInput}
-        setCodeInput={setCodeInput}
-        onRedeemCode={() => redeemCrystalCode()}
-      />
 
 
 
