@@ -7145,7 +7145,8 @@ function IdlePage() {
           position: 'absolute', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
           background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)',
           padding: '8px 25px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+          display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+          zIndex: 1004
         }}>
           <button onClick={() => setTab("batalha")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#f5cf6b' : '#fff' }}>
             <span style={{ fontSize: '24px' }}>⚔️</span>
