@@ -2229,7 +2229,15 @@ function IdlePage() {
     if (typeof window === "undefined") return { music: true, sfx: true, musicVol: 0.20, sfxVol: 0.45 };
     try {
       const raw = localStorage.getItem("rubym.idle.audio");
-      if (raw) return { music: true, sfx: true, musicVol: 0.20, sfxVol: 0.45, ...JSON.parse(raw) };
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') {
+            return { music: true, sfx: true, musicVol: 0.2, sfxVol: 0.45, ...parsed };
+          }
+        } catch (e) { console.error("Erro ao carregar audioSettings", e); }
+      }
+      return { music: true, sfx: true, musicVol: 0.2, sfxVol: 0.45 };
     } catch { /* ignore */ }
     return { music: true, sfx: true, musicVol: 0.20, sfxVol: 0.45 };
   });
@@ -12724,7 +12732,8 @@ function TabOverlay({
     try {
       const raw = typeof window !== "undefined" ? localStorage.getItem(LOCK_KEY) : null;
       if (!raw) return new Set<string>();
-      return new Set(JSON.parse(raw) as string[]);
+      const parsed = JSON.parse(raw);
+      return new Set(Array.isArray(parsed) ? parsed : []);
     } catch { return new Set<string>(); }
   });
   const toggleLock = (uid: string) => {
