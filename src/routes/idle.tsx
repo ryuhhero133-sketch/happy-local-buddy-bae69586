@@ -1909,11 +1909,9 @@ function IdlePage() {
   }), [restingBench]);
   useEffect(() => {
     if (!cloudBlobReady) return;
-    // Mesmo com a nuvem bloqueada, scheduleCloudSync grava uma fila local durável.
-    // Assim o jogador pode continuar jogando sem perder o progresso da sessão.
     scheduleCloudSync(buildFullBlob());
     setCloudQueueTick((t) => t + 1);
-  }, [idle, team, restingBench, buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
+  }, [idle.currentMap, idle.bank.gold, idle.bank.crystals, team.length, team[0]?.level, restingBench.length, buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
 
   useEffect(() => {
     const id = setInterval(() => setCloudQueueTick((t) => t + 1), 5000);
