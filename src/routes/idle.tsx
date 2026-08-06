@@ -14750,8 +14750,9 @@ function TabOverlay({
                         position: "absolute", top: 22, right: 4,
                         width: 24, height: 24, borderRadius: "50%",
                         border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer",
-                        background: locked ? "linear-gradient(180deg,#facc15,#b8862a)" : "rgba(0,0,0,0.5)",
-                        color: locked ? "#4a3010" : "#fff",
+                        background: locked ? "linear-gradient(180deg,#f5cf6b,#b8862a)" : "rgba(0,0,0,0.3)",
+                        color: locked ? "#000" : "#b8a8c8",
+
 
                         fontSize: 12, fontWeight: 900, padding: 0, zIndex: 2,
                       }}
