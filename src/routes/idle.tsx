@@ -2363,8 +2363,11 @@ function IdlePage() {
   }, []);
 
 
-  type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture" };
+  type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture"; tone?: "info" | "cap" | "hit" };
   const [chat, setChat] = useState<ChatMsg[]>([]);
+  const [chatOpen, setChatOpen] = useState(true);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+
   const chatIdRef = useRef(1);
   const pushChat = (text: string, kind: ChatMsg["kind"] = "info") => {
     setChat((prev) => {
@@ -9622,74 +9625,216 @@ function IdlePage() {
           </div>
 
           {/* ============ UI FIXA (não rola com o mapa) ============ */}
-          {/* Header do mapa — barra clássica dourada com nichos de recurso */}
-          <div style={{
-            position: "absolute", top: 8, left: 8,
-            display: "inline-flex", alignItems: "stretch", gap: 0,
-            background: "linear-gradient(180deg, #2a1a0f 0%, #140a05 100%)",
-            padding: "3px",
-            borderRadius: 14,
-            border: "1px solid #f5cf6b",
-            boxShadow: "0 6px 18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(245,207,107,0.4), 0 0 22px rgba(245,207,107,0.15)",
-            zIndex: 10,
-            fontSize: 12,
-            maxWidth: "calc(100% - 16px)",
-          }}>
-            {/* Nome do mapa */}
-            <div style={{
-              display: "flex", flexDirection: "column", justifyContent: "center",
-              padding: "5px 12px",
-              background: "linear-gradient(180deg, rgba(245,207,107,0.10), rgba(0,0,0,0.35))",
-              borderRadius: "11px 4px 4px 11px",
-              borderRight: "1px solid rgba(245,207,107,0.25)",
-              minWidth: 0,
-            }}>
+          {/* ============ UI MODERNA (Fixa) ============ */}
+          
+          {/* Top Bar horizontal compacta */}
+          <div className="modern-top-bar">
+            {/* Esquerda: Nome do Mapa */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{
-                fontWeight: 900, fontSize: 13, color: "#ffe89a", lineHeight: 1.05,
-                whiteSpace: "nowrap", letterSpacing: 0.4,
-                textShadow: "0 1px 0 #000, 0 0 8px rgba(245,207,107,0.35)",
-                fontFamily: "'Cinzel', 'Georgia', serif",
+                color: "#f5cf6b", fontWeight: 900, fontSize: 16,
+                letterSpacing: 1.5, fontFamily: "'Cinzel', serif",
+                textShadow: "0 2px 4px rgba(0,0,0,0.5)"
               }}>
-                ✦ {map.name}
+                {map.name.toUpperCase()}
               </div>
-              <div style={{ fontSize: 9.5, color: "#c8b8d0", lineHeight: 1.1, whiteSpace: "nowrap", marginTop: 2 }}>
-                {map.diff} · Lv {team[0]?.level ?? 1} · <span style={{ color: "#f5cf6b", fontWeight: 700 }}>{fmtHMS(activeTime)}</span>
+              <div style={{ fontSize: 10, color: "#c8b8d0", opacity: 0.8 }}>
+                {map.diff} · {fmtHMS(activeTime)}
               </div>
             </div>
 
-            <ResourceNiche
-              tint="#ffd66b"
-              icon={<span style={{ fontSize: 15, filter: "drop-shadow(0 0 4px #ffd66baa)" }}>🪙</span>}
-              value={fmtK(idle.bank.gold)}
-              title="Ouro"
-            />
-            <ResourceNiche
-              tint="#8fd0ff"
-              icon={<img src={crystalGreenImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px #8fd0ffaa)" }} />}
-              value={String(Math.floor(idle.bank.crystals))}
-              title="Cristais"
-            />
-            {(idle.items?.safira_verde ?? 0) > 0 && (
-              <ResourceNiche
-                tint="#6ee7a8"
-                icon={<img src={assetUrlFromJson(safiraVerdeAsset)} alt="" width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 5px #6ee7a8cc)" }} />}
-                value={String(idle.items!.safira_verde ?? 0)}
-                title="Safira Verde"
-              />
-            )}
+            {/* Centro: Recursos */}
+            <div style={{ display: "flex", gap: 12 }}>
+              <div className="resource-pill" title="Ouro">
+                <span style={{ fontSize: 18 }}>🪙</span>
+                <span>{fmtK(idle.bank.gold)}</span>
+              </div>
+              <div className="resource-pill" title="Cristais">
+                <img src={crystalGreenImg} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+                <span>{Math.floor(idle.bank.crystals).toLocaleString()}</span>
+              </div>
+              {(idle.items?.safira_verde ?? 0) > 0 && (
+                <div className="resource-pill" title="Safira Verde">
+                  <img src={assetUrlFromJson(safiraVerdeAsset)} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+                  <span>{idle.items!.safira_verde}</span>
+                </div>
+              )}
+              {(idle.items?.fragmento_vermelho ?? 0) > 0 && (
+                <div className="resource-pill" title="Fragmentos Vermelhos" style={{ color: "#ff8b8b", borderColor: "rgba(255,139,139,0.3)" }}>
+                  <span style={{ fontSize: 16 }}>🔻</span>
+                  <span>{idle.items!.fragmento_vermelho}</span>
+                </div>
+              )}
+            </div>
 
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 4,
-              padding: "8px 14px 10px",
-              background: "linear-gradient(180deg, rgba(255,110,110,0.10), rgba(0,0,0,0.35))",
-              borderRadius: "4px 11px 11px 4px",
-              borderLeft: "1px solid rgba(245,207,107,0.25)",
-            }}>
-              <BallSlot img={ballPokeImg}  count={idle.items.pokeball ?? 0}  tint="#ff8080" />
-              <BallSlot img={ballGreatImg} count={idle.items.greatball ?? 0} tint="#7ec4ff" />
-              <BallSlot img={ballUltraImg} count={idle.items.ultraball ?? 0} tint="#ffd66b" />
+            {/* Direita: Pokébolas compactas */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
+                <img src={ballPokeImg} alt="Poké" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.pokeball ? 1 : 0.4 }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#ff8080" }}>{idle.items.pokeball ?? 0}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
+                <img src={ballGreatImg} alt="Great" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.greatball ? 1 : 0.4 }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#7ec4ff" }}>{idle.items.greatball ?? 0}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
+                <img src={ballUltraImg} alt="Ultra" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.ultraball ? 1 : 0.4 }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#ffd66b" }}>{idle.items.ultraball ?? 0}</span>
+              </div>
             </div>
           </div>
+
+          {/* Player Panel (Top Left) */}
+          <div className="trainer-card-compact">
+            <div className="trainer-avatar-box">
+              <div style={{
+                width: "100%", height: "100%",
+                backgroundImage: `url(${skinUrl ?? trainerSheet})`,
+                backgroundSize: "400% 400%",
+                backgroundPosition: `0% 0%`,
+                imageRendering: "pixelated",
+                transform: "scale(1.5) translateY(4px)"
+              }} />
+              <div style={{
+                position: "absolute", bottom: 0, right: 0,
+                background: "#f5cf6b", color: "#000",
+                fontSize: 10, fontWeight: 900, padding: "1px 4px",
+                borderRadius: "4px 0 0 0"
+              }}>
+                Lv.{idle.trainerLevel}
+              </div>
+            </div>
+            <div className="trainer-bars-container">
+              <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", display: "flex", justifyContent: "space-between" }}>
+                <span>{identity?.name?.toUpperCase() ?? "TREINADOR"}</span>
+                {isVip() && <span style={{ color: "#f5cf6b" }}>✦ VIP</span>}
+              </div>
+              
+              {/* HP Bar */}
+              {team[0] && (() => {
+                const max = calcIdleMaxHp(team[0]);
+                const hpPct = Math.max(0, (leaderHp / max) * 100);
+                return (
+                  <div className="hud-bar-bg" title={`HP: ${Math.floor(leaderHp)}/${max}`}>
+                    <div className="hud-bar-fill" style={{ width: `${hpPct}%`, background: "linear-gradient(90deg, #ff4d4d, #b30000)" }} />
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, color: "#fff", textShadow: "1px 1px 0 #000" }}>HP</div>
+                  </div>
+                );
+              })()}
+
+              {/* XP Bar */}
+              {(() => {
+                const xpNeeded = 100 + (idle.trainerLevel ?? 1) * 25;
+                const xpPct = Math.min(100, ((idle.trainerXp ?? 0) / xpNeeded) * 100);
+                return (
+                  <div className="hud-bar-bg" title={`XP: ${idle.trainerXp}/${xpNeeded}`}>
+                    <div className="hud-bar-fill" style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #4dff4d, #00b300)" }} />
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, color: "#fff", textShadow: "1px 1px 0 #000" }}>EXP</div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Mini-Map Circular (Top Right) */}
+          <div className="mini-map-circular">
+             {/* Simulação de radar/mapa simplificado */}
+             <div style={{
+               position: "absolute", inset: 0,
+               backgroundImage: `url(${map.bg})`,
+               backgroundSize: "cover", backgroundPosition: "center",
+               opacity: 0.6, filter: "grayscale(0.5) contrast(1.2)"
+             }} />
+             <div style={{
+               position: "absolute", left: "50%", top: "50%",
+               width: 8, height: 8, borderRadius: "50%",
+               background: "#fff", border: "1px solid #000",
+               transform: "translate(-50%, -50%)",
+               boxShadow: "0 0 10px #fff"
+             }} />
+             {enemies.map(e => (
+               <div key={e.id} style={{
+                 position: "absolute",
+                 left: `${50 + (e.x - trainerPos.x) / 10}%`,
+                 top: `${50 + (e.y - trainerPos.y) / 10}%`,
+                 width: 4, height: 4, borderRadius: "50%",
+                 background: "#ff4d4d", transform: "translate(-50%, -50%)"
+               }} />
+             ))}
+             {/* Overlay de radar scan */}
+             <div style={{
+               position: "absolute", inset: -50,
+               background: "conic-gradient(from 0deg, transparent 0deg, rgba(245,207,107,0.2) 60deg, transparent 65deg)",
+               animation: "rmBuffSpin 4s linear infinite"
+             }} />
+          </div>
+
+          {/* Right Vertical System Menu */}
+          <div className="right-system-menu">
+            <div className="system-menu-btn" title="Ranking Global" onClick={() => setRankOpen(true)}>
+              <img src={assetUrlFromJson(rankMedalsRubyAsset)} alt="" width={28} height={28} />
+            </div>
+            <div className="system-menu-btn" title="Mapa Mundi" onClick={() => setWorldMapOpen(true)}>
+              <span style={{ fontSize: 24 }}>🌍</span>
+            </div>
+            <div className="system-menu-btn" title="Configurações" onClick={() => setTab("config")}>
+              <span style={{ fontSize: 24 }}>⚙️</span>
+            </div>
+            <div className="system-menu-btn" title="Salvar Nuvem" onClick={async () => {
+              if (cloudBlobReady) {
+                const ok = await pushCloudSaveNow(buildFullBlob());
+                if (ok) pushChat("☁️ Salvo!", "info");
+              }
+            }}>
+               <span style={{ fontSize: 24 }}>{pendingCloudSave ? "🛡️" : "☁️"}</span>
+            </div>
+          </div>
+
+          {/* Nav Inferior - Flutuante Dock */}
+          <div className="floating-nav-dock">
+            {([
+              { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
+              { id: "wiki",     label: "Wiki",     img: navInicio,    color: "#c084fc" },
+              { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
+              { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b" },
+              { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
+              { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
+              { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
+            ] as const).map((t) => {
+              const active = tab === t.id;
+              return (
+                <div 
+                  key={t.id} 
+                  className={`nav-dock-item ${active ? 'active' : ''}`}
+                  onClick={() => { playClick(); setTab(t.id as typeof tab); }}
+                >
+                  <img src={t.img} alt="" className="nav-dock-icon" />
+                  <span className="nav-dock-label" style={{ color: active ? t.color : "#c8b8d0" }}>{t.label}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Floating Chat Panel (Bottom Left) */}
+          <div className="chat-floating-panel">
+             <div style={{ background: "rgba(0,0,0,0.4)", padding: "4px 10px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+               <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>GLOBAL CHAT</span>
+               <button onClick={() => setChatOpen(!chatOpen)} style={{ background: "transparent", border: "none", color: "#9ab", cursor: "pointer", fontSize: 12 }}>{chatOpen ? "▼" : "▲"}</button>
+             </div>
+             {chatOpen && (
+               <div style={{ flex: 1, overflowY: "auto", padding: "6px 10px", display: "flex", flexDirection: "column", gap: 4 }}>
+                 {chat.slice(-20).map((c, idx) => (
+                   <div key={idx} style={{ fontSize: 10.5, lineHeight: 1.3, color: c.kind === "cap" ? "#f5cf6b" : c.kind === "info" ? "#6bd4ff" : "#eadfe8" }}>
+                     {c.text}
+                   </div>
+                 ))}
+                 <div ref={chatEndRef} />
+               </div>
+             )}
+          </div>
+
+
+
 
 
 
@@ -10701,128 +10846,9 @@ function IdlePage() {
 
         </div>
 
-        {/* ============ NAV INFERIOR ============ */}
-        <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "center", gap: 4, background: "linear-gradient(180deg,#0b0510 0%,#160a20 100%)", padding: "8px 0", borderTop: "1px solid rgba(245,207,107,0.15)" }}>
-          {([
-            { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
-            { id: "wiki",     label: "Wiki",     img: navInicio,    color: "#c084fc" },
-            { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
-            { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b" },
-            
-            { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a" },
-            { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
-            { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
-            { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
-            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
-            // Carteira bloqueada temporariamente
-            // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
-          ] as const).map((t) => {
-
-            const active = tab === t.id;
-            const showActive = active;
-            const color = t.color;
-            const isDisabled = (t as { disabled?: boolean }).disabled === true;
-            return (
-              <button
-                key={t.id}
-                onClick={() => {
-                  if (isDisabled) {
-                    playClick();
-                    pushChat("🛒 Marketplace desativado temporariamente.", "info");
-                    return;
-                  }
-                  playClick();
-                  setTab(t.id as typeof tab);
-                }}
-                title={isDisabled ? `${t.label} (em breve)` : t.label}
-                style={{
-                  flex: 1, maxWidth: 130,
-                  background: showActive ? `linear-gradient(180deg, ${color}33 0%, ${color}11 100%)` : "transparent",
-                  color: isDisabled ? "#6a5a70" : (showActive ? color : "#c8b8d0"),
-                  border: showActive ? `1px solid ${color}88` : "1px solid transparent",
-                  padding: "8px 6px", cursor: isDisabled ? "not-allowed" : "pointer",
-                  borderRadius: 10, display: "flex", flexDirection: "column",
-                  alignItems: "center", gap: 4, fontSize: 11, position: "relative",
-                  transition: "background 150ms, color 150ms, border-color 150ms",
-                  boxShadow: showActive ? `0 0 14px ${color}66, inset 0 1px 0 ${color}44` : "none",
-                  opacity: isDisabled ? 0.55 : 1,
-                }}
-              >
-                <img
-                  src={t.img}
-                  alt=""
-                  width={34}
-                  height={34}
-                  style={{
-                    width: 34, height: 34, imageRendering: "pixelated",
-                    filter: isDisabled
-                      ? "grayscale(1) brightness(0.7) drop-shadow(0 2px 2px rgba(0,0,0,0.6))"
-                      : (showActive
-                        ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 2px 2px rgba(0,0,0,0.5))`
-                        : "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) saturate(0.85) brightness(0.9)"),
-                    transform: active ? "translateY(-2px) scale(1.08)" : "none",
-                    transition: "transform 150ms, filter 150ms",
-                  }}
-                />
-                <span style={{ fontWeight: showActive ? 700 : 500, letterSpacing: 0.3 }}>
-                  {t.label}
-                </span>
-                {isDisabled && (
-                  <span style={{
-                    position: "absolute", top: 2, right: 4,
-                    fontSize: 8, fontWeight: 700, letterSpacing: 0.5,
-                    color: "#ffd66b", background: "rgba(0,0,0,0.55)",
-                    padding: "1px 4px", borderRadius: 4, border: "1px solid #ffd66b55",
-                  }}>EM BREVE</span>
-                )}
-              </button>
-            );
-          })}
-          {/* ===== BOTÃO SALVAR NA NUVEM ===== */}
-          <button
-            onClick={async () => {
-              playClick();
-              if (!cloudBlobReady) {
-                pushChat("⏳ Aguarde carregar o save da nuvem. O progresso atual já fica protegido neste aparelho.", "info");
-                return;
-              }
-              try {
-                const ok = await pushCloudSaveNow(buildFullBlob());
-                try { await serverSync.pushNow(); } catch { /* sync normalizado é best-effort */ }
-                setCloudQueueTick((t) => t + 1);
-                if (ok) {
-                  pushChat("☁️ Progresso salvo na nuvem!", "info");
-                } else {
-                  void attemptPendingCloudSave().finally(() => setCloudQueueTick((t) => t + 1));
-                  const diag = getCloudSaveDiagnostics();
-                  const causa = diag
-                    ? ({ sessao: "sessão expirada", permissao: "permissão/RLS no banco", banco: "banco recusou (trigger/limite)", rede: "rede instável", config: "configuração do Supabase", local: "armazenamento do navegador cheio", desconhecido: "causa desconhecida" } as const)[diag.category]
-                    : "rede/banco instável";
-                  pushChat(`🛡️ Ainda não confirmou na nuvem (${causa}). O progresso ficou protegido localmente e será reenviado automático. [${getCloudSaveLastError() ?? "sem detalhe"}]`, "info");
-                }
-              } catch (e) {
-                setCloudQueueTick((t) => t + 1);
-                pushChat("🛡️ Falha temporária na nuvem. O progresso ficou protegido localmente e será reenviado automático.", "info");
-              }
-            }}
-            title={pendingCloudSave ? "Há progresso aguardando confirmação na nuvem" : "Salvar progresso na nuvem"}
-            style={{
-              flex: 1, maxWidth: 130,
-              background: pendingCloudSave ? "linear-gradient(180deg, #fbbf2433 0%, #f59e0b11 100%)" : "linear-gradient(180deg, #22d3ee33 0%, #22d3ee11 100%)",
-              color: pendingCloudSave ? "#fbbf24" : "#22d3ee",
-              border: pendingCloudSave ? "1px solid #fbbf2488" : "1px solid #22d3ee88",
-              padding: "8px 6px", cursor: "pointer",
-              borderRadius: 10, display: "flex", flexDirection: "column",
-              alignItems: "center", gap: 4, fontSize: 11, position: "relative",
-              boxShadow: pendingCloudSave ? "0 0 14px #fbbf2455, inset 0 1px 0 #fbbf2444" : "0 0 14px #22d3ee55, inset 0 1px 0 #22d3ee44",
-              fontWeight: 700, letterSpacing: 0.3,
-            }}
-          >
-            <span style={{ fontSize: 28, lineHeight: 1, filter: pendingCloudSave ? "drop-shadow(0 0 8px #fbbf24)" : "drop-shadow(0 0 8px #22d3ee)" }}>{pendingCloudSave ? "🛡️" : "☁️"}</span>
-            <span>{pendingCloudSave ? "Protegido" : "Salvar"}</span>
-          </button>
-        </div>
+        {/* Barra lateral removida por transição para floating UI */}
       </div>
+
 
       <style>{`
         /* ===== Layout responsivo ===== */
@@ -11511,12 +11537,12 @@ function IdlePage() {
                       </div>
                       <button
                         onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); }}
-                        style={{ background: "transparent", border: "1px solid #3a2a4a", color: "#eadfe8", cursor: "pointer", fontSize: 11, padding: "4px 10px", borderRadius: 6 }}
+                        style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(245,207,107,0.2)", color: "#b8a8c8", cursor: "pointer", fontSize: 11, padding: "4px 10px", borderRadius: 6 }}
                       >← VOLTAR</button>
                     </div>
 
                     {/* Barra de chances */}
-                    <div style={{ background: "#0f0820", border: "1px solid #3a2a4a", borderRadius: 10, padding: 10, marginBottom: 10 }}>
+                    <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 10, padding: 10, marginBottom: 10 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", marginBottom: 4 }}>
                         <span>Chance de SUCESSO</span>
                         <b style={{ color: success >= 0.75 ? "#8ae28a" : success >= 0.5 ? "#ffd94d" : "#ff9a6b" }}>{Math.round(success * 100)}%</b>
@@ -11568,8 +11594,9 @@ function IdlePage() {
                                 });
                               }}
                               style={{
-                                background: sel ? `linear-gradient(160deg, ${pick.color}55, ${pick.color}22)` : "#1a0f26",
-                                border: sel ? `2px solid ${pick.color}` : "2px solid #3a2a4a",
+                                background: sel ? `rgba(245, 207, 107, 0.1)` : "rgba(0,0,0,0.3)",
+                                border: sel ? `2px solid ${pick.color}` : "1px solid rgba(245, 207, 107, 0.1)",
+
                                 borderRadius: 10, padding: 4, cursor: disabled ? "not-allowed" : "pointer",
                                 display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                                 opacity: disabled ? 0.4 : 1, position: "relative",
@@ -11638,8 +11665,9 @@ function IdlePage() {
                                   });
                                 }}
                                 style={{
-                                  background: sel ? `linear-gradient(160deg, ${tierColor}55, ${tierColor}22)` : "#1a0f26",
-                                  border: sel ? `2px solid ${tierColor}` : "1px solid #3a2a4a",
+                                  background: sel ? "rgba(245, 207, 107, 0.1)" : "rgba(0,0,0,0.3)",
+                                  border: sel ? `2px solid ${tierColor}` : "1px solid rgba(245, 207, 107, 0.1)",
+
                                   borderRadius: 8, padding: 3, cursor: disabled ? "not-allowed" : "pointer",
                                   opacity: disabled ? 0.4 : 1,
                                 }}
@@ -11658,7 +11686,8 @@ function IdlePage() {
                     <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                       <button
                         onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); }}
-                        style={{ flex: 1, padding: "10px", background: "#3a2a4a", color: "#eadfe8", border: "none", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
+                        style={{ flex: 1, padding: "10px", background: "rgba(0,0,0,0.3)", color: "#eadfe8", border: "1px solid rgba(245,207,107,0.2)", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
+
                       >CANCELAR</button>
                       <button
                         disabled={!canConfirm}
@@ -11674,9 +11703,11 @@ function IdlePage() {
                         }}
                         style={{
                           flex: 2, padding: "10px", fontWeight: 900,
-                          background: canConfirm ? pick.color : "#3a2a4a",
-                          color: canConfirm ? "#0b0510" : "#6a5a7c",
-                          border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
+                          background: canConfirm ? "linear-gradient(180deg, #f5cf6b, #b8862a)" : "rgba(0,0,0,0.5)",
+                          color: canConfirm ? "#000" : "#6a5a7c",
+                          border: canConfirm ? "1px solid #fff4d0" : "1px solid rgba(255,255,255,0.05)",
+                          borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
+
                         }}
                       >⚗️ INCUBAR</button>
                     </div>
@@ -13555,27 +13586,30 @@ function TabOverlay({
     setFragConfirm(null);
   };
   return (
-    <div style={{
-      position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
-      border: "1px solid rgba(245,207,107,0.3)", borderRadius: 12,
-      zIndex: 20, padding: 16, overflowY: "auto",
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h2 style={{ margin: 0, fontSize: 20, color: "#f5cf6b" }}>{title}</h2>
-        <button onClick={onClose} style={{ ...smallBtn, background: "#c92a2a", color: "#fff", border: "none", padding: "6px 14px" }}>
-          ← Voltar
+    <div className="modern-floating-window">
+
+      <div className="modern-window-header">
+        <h2 style={{ 
+          margin: 0, fontSize: 22, color: "#f5cf6b", 
+          fontFamily: "'Cinzel', serif", letterSpacing: 2,
+          textShadow: "0 2px 4px rgba(0,0,0,0.5)"
+        }}>{title}</h2>
+        <button onClick={onClose} className="modern-close-btn">
+          FECHAR ✕
         </button>
       </div>
+
 
       {tab === "pokemon" && leader && (
         <div style={{
           position: "relative",
           padding: "14px 12px 18px",
           borderRadius: 18,
-          border: "3px solid #6b3fa0",
-          background: `linear-gradient(180deg, rgba(20,10,35,0.82) 0%, rgba(30,15,50,0.9) 45%, rgba(20,10,35,0.95) 100%), url(${pokemonTabBg}) center/cover no-repeat`,
-          boxShadow: "0 10px 30px rgba(0,0,0,0.55), inset 0 0 40px rgba(192,132,252,0.15), 0 0 22px rgba(192,132,252,0.25)",
+          border: "2.5px solid rgba(245, 207, 107, 0.4)",
+          background: `linear-gradient(180deg, rgba(20,10,35,0.7) 0%, rgba(10,5,20,0.85) 100%)`,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 40px rgba(192,132,252,0.05)",
           overflow: "hidden",
+
         }}>
           {/* decorative sparkles overlay */}
           <div style={{
@@ -13608,12 +13642,13 @@ function TabOverlay({
               <div style={{
                 marginTop: 18,
                 padding: "14px 16px",
-                background: "linear-gradient(135deg, #2a1638 0%, #1a0f26 50%, #251638 100%)",
-                border: "3px solid #f5cf6b",
+                background: "linear-gradient(135deg, rgba(30, 15, 50, 0.4) 0%, rgba(10, 5, 20, 0.6) 100%)",
+                border: "2.5px solid rgba(245, 207, 107, 0.3)",
                 borderRadius: 16,
-                boxShadow: "0 6px 22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(245,207,107,0.4), 0 0 24px rgba(245,207,107,0.12)",
+                boxShadow: "0 6px 22px rgba(0,0,0,0.4), inset 0 1px 0 rgba(245,207,107,0.1)",
                 position: "relative", overflow: "hidden",
               }}>
+
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 20%, rgba(245,207,107,0.15), transparent 60%)", pointerEvents: "none" }} />
                 {/* Header do time */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, position: "relative" }}>
@@ -13685,11 +13720,12 @@ function TabOverlay({
                       <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <div style={{
                           width: 26, height: 26, borderRadius: 7,
-                          background: `radial-gradient(circle at 30% 25%, ${col}66, ${col}22 70%, rgba(0,0,0,0.4))`,
-                          border: `1px solid ${col}aa`,
+                          background: "rgba(0,0,0,0.3)",
+                          border: "1px solid rgba(245, 207, 107, 0.2)",
                           display: "flex", alignItems: "center", justifyContent: "center",
                           flexShrink: 0,
-                          boxShadow: `0 0 6px ${col}55, inset 0 1px 0 rgba(255,255,255,0.15)`,
+                          boxShadow: "0 0 6px rgba(0,0,0,0.3)",
+
                         }}><StatIcon kind={kind} col={col} /></div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "#c8b8d0", marginBottom: 2 }}>
@@ -13699,8 +13735,9 @@ function TabOverlay({
                           <div style={{ height: 4, background: "rgba(0,0,0,0.55)", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(0,0,0,0.7)" }}>
                             <div style={{
                               width: `${(val / maxStat) * 100}%`, height: "100%",
-                              background: `linear-gradient(90deg, ${col}, ${col}dd)`,
-                              boxShadow: `0 0 4px ${col}88`,
+                              background: `linear-gradient(90deg, ${col}, ${col}aa)`,
+                              boxShadow: `0 0 4px ${col}44`,
+
                             }} />
                           </div>
                         </div>
@@ -13710,13 +13747,14 @@ function TabOverlay({
                       <div key={p.uid} style={{
                         display: "flex", alignItems: "stretch", gap: 12, padding: 12,
                         background: isLeader
-                          ? `linear-gradient(135deg, ${rc}2a 0%, #1a0f26 45%, #251638 100%)`
-                          : "linear-gradient(135deg, rgba(28,16,45,0.92), rgba(38,22,60,0.9))",
-                        border: `2.5px solid ${isLeader ? rc : rc + "66"}`,
+                          ? "rgba(0,0,0,0.4)"
+                          : "rgba(0,0,0,0.3)",
+                        border: `1.5px solid ${isLeader ? "#f5cf6b" : "rgba(245, 207, 107, 0.2)"}`,
                         borderRadius: 14,
                         boxShadow: isLeader
-                          ? `0 6px 18px rgba(0,0,0,0.55), inset 0 1px 0 ${rc}66, 0 0 22px ${rc}44`
-                          : `0 3px 10px rgba(0,0,0,0.5), inset 0 1px 0 ${rc}33`,
+                          ? "0 6px 18px rgba(0,0,0,0.5), inset 0 0 16px rgba(245,207,107,0.05)"
+                          : "0 3px 10px rgba(0,0,0,0.5)",
+
                         position: "relative", overflow: "hidden",
                       }}>
                         {/* sparkle overlay */}
@@ -13726,27 +13764,30 @@ function TabOverlay({
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0, position: "relative" }}>
                           <div style={{
                             width: 82, height: 82, borderRadius: 14,
-                            background: `radial-gradient(circle at 30% 25%, ${rc}55, ${rc}15 60%, rgba(0,0,0,0.45))`,
-                            border: `2px solid ${rc}`,
-                            boxShadow: `inset 0 0 14px ${rc}44, 0 3px 10px rgba(0,0,0,0.55), 0 0 12px ${rc}55`,
+                            background: "rgba(0,0,0,0.4)",
+                            border: "1.5px solid rgba(245, 207, 107, 0.2)",
+                            boxShadow: `inset 0 0 14px ${rc}22, 0 3px 10px rgba(0,0,0,0.5)`,
                             display: "flex", alignItems: "center", justifyContent: "center",
                             position: "relative", overflow: "hidden",
                           }}>
+
                             {src && <img src={src} alt="" width={70} height={70} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))" }} />}
                             {/* Slot number top-left */}
                             <div style={{
                               position: "absolute", top: 2, left: 4,
                               fontSize: 10, fontWeight: 900,
-                              color: isLeader ? rc : "#8a7a9c",
+                              color: isLeader ? "#f5cf6b" : "#b8a8c8",
                               textShadow: "0 1px 2px #000",
                             }}>{isLeader ? "★" : `#${i + 1}`}</div>
+
                             {/* Level bottom-right badge */}
                             <div style={{
                               position: "absolute", bottom: -4, right: -4,
                               minWidth: 28, height: 22, padding: "0 6px",
-                              background: "linear-gradient(180deg, #ffd66b, #b8862a)",
-                              color: "#0b0510", border: "2px solid #0b0510",
+                              background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                              color: "#000", border: "1.5px solid #fff4d0",
                               borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center",
+
                               fontSize: 10, fontWeight: 900, letterSpacing: 0.5,
                               boxShadow: "0 2px 4px rgba(0,0,0,0.6)",
                             }}>Lv{p.level}</div>
@@ -13754,9 +13795,10 @@ function TabOverlay({
                           {isLeader && (
                             <div style={{
                               padding: "2px 8px", borderRadius: 999,
-                              background: `linear-gradient(180deg, ${rc}, ${rc}bb)`,
-                              color: "#0b0510", fontSize: 8, fontWeight: 900, letterSpacing: 1.5,
-                              boxShadow: `0 2px 6px ${rc}88`, border: "1px solid #fff4d0",
+                              background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                              color: "#000", fontSize: 8, fontWeight: 900, letterSpacing: 1.5,
+                              boxShadow: "0 2px 6px rgba(184,134,42,0.4)", border: "1px solid #fff4d0",
+
                             }}>LÍDER</div>
                           )}
                         </div>
@@ -13768,20 +13810,24 @@ function TabOverlay({
                               {p.species.replace(/_/g, " ")}
                             </div>
                             <div style={{
-                              background: `linear-gradient(180deg, ${rc}, ${rc}aa)`, color: "#0b0510",
+                              background: rc, color: "#fff",
                               fontSize: 8, fontWeight: 900, letterSpacing: 1,
                               padding: "2px 7px", borderRadius: 4,
-                              boxShadow: `0 0 8px ${rc}88`, border: "1px solid rgba(0,0,0,0.4)",
+                              boxShadow: `0 0 8px ${rc}44`, border: "1px solid rgba(255,255,255,0.1)",
+
+
                             }}>{rarityInfo.label}</div>
                             <button
                               onClick={() => setStatsCardPet(p)}
                               title="Ver ficha completa"
                               style={{
                                 marginLeft: "auto", background: "linear-gradient(180deg,#f5cf6b,#b8862a)",
-                                color: "#1a0f26", border: "1px solid #0b0510", borderRadius: 6,
+                                color: "#000", border: "1px solid #fff4d0", borderRadius: 6,
                                 padding: "2px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 1, cursor: "pointer",
+                                boxShadow: "0 4px 8px rgba(184,134,42,0.4)",
                               }}
                             >⚡ {computePower(p)} • CARD</button>
+
                           </div>
 
 
@@ -13823,18 +13869,20 @@ function TabOverlay({
                               title="Subir"
                               style={{
                                 width: 26, height: 22, fontSize: 12, fontWeight: 900,
-                                background: i === 0 ? "#2a1638" : "linear-gradient(180deg, #3a2450, #241634)",
+                                background: i === 0 ? "rgba(0,0,0,0.5)" : "linear-gradient(180deg, #3a2450, #241634)",
                                 color: i === 0 ? "#4a3560" : "#eadfe8",
-                                border: `1px solid ${i === 0 ? "#3a2450" : "#5a3d78"}`,
+                                border: `1px solid ${i === 0 ? "rgba(255,255,255,0.05)" : "#5a3d78"}`,
+
                                 borderRadius: 5, cursor: i === 0 ? "not-allowed" : "pointer",
                               }}>▲</button>
                             <button onClick={() => move(i, i + 1)} disabled={i === team.length - 1}
                               title="Descer"
                               style={{
                                 width: 26, height: 22, fontSize: 12, fontWeight: 900,
-                                background: i === team.length - 1 ? "#2a1638" : "linear-gradient(180deg, #3a2450, #241634)",
+                                background: i === team.length - 1 ? "rgba(0,0,0,0.5)" : "linear-gradient(180deg, #3a2450, #241634)",
                                 color: i === team.length - 1 ? "#4a3560" : "#eadfe8",
-                                border: `1px solid ${i === team.length - 1 ? "#3a2450" : "#5a3d78"}`,
+                                border: `1px solid ${i === team.length - 1 ? "rgba(255,255,255,0.05)" : "#5a3d78"}`,
+
                                 borderRadius: 5, cursor: i === team.length - 1 ? "not-allowed" : "pointer",
                               }}>▼</button>
                           </div>
@@ -13843,8 +13891,9 @@ function TabOverlay({
                               title="Tornar Líder"
                               style={{
                                 padding: "3px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 0.5,
-                                background: "linear-gradient(180deg, #ffd66b, #b8862a)",
-                                color: "#0b0510", border: "1px solid #fff4d0",
+                                background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                                color: "#000", border: "1px solid #fff4d0",
+
                                 borderRadius: 5, cursor: "pointer",
                                 boxShadow: "0 2px 4px rgba(184,134,42,0.55)",
                               }}>★ LÍDER</button>
@@ -13873,9 +13922,10 @@ function TabOverlay({
                     <div key={`empty-${k}`} style={{
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                       padding: 14, minHeight: 60,
-                      background: "rgba(20,10,35,0.4)",
-                      border: "2px dashed #4a3560", borderRadius: 12,
-                      color: "#6a5a7c", fontSize: 11, fontWeight: 800, letterSpacing: 1,
+                      background: "rgba(0,0,0,0.3)",
+                      border: "1px dashed rgba(245, 207, 107, 0.2)", borderRadius: 12,
+                      color: "#b8a8c8", fontSize: 11, fontWeight: 800, letterSpacing: 1,
+
                     }}>
                       <span style={{ fontSize: 16, opacity: 0.5 }}>＋</span>
                       SLOT VAZIO — Adicione pela Coleção
@@ -13907,9 +13957,10 @@ function TabOverlay({
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {tasks.map((t) => (
                 <div key={t.id} style={{
-                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  background: "rgba(0,0,0,0.3)",
                   border: `1px solid ${t.done ? "#5ec26a55" : "rgba(245,207,107,0.2)"}`,
                   borderRadius: 8, padding: 12,
+
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6 }}>
                     <span style={{ color: "#eadfe8", fontWeight: 700, fontSize: 13 }}>{t.title}</span>
@@ -14059,27 +14110,27 @@ function TabOverlay({
         const SLOTS_MIN = 24;
         const emptyCount = Math.max(0, SLOTS_MIN - filtered.length);
 
-        // Paleta obsidiana + violeta arcano — dark fantasy
+        // Paleta moderna e translúcida
         const P = {
-          bg1: "#1a0d2a", bg2: "#120820", bg3: "#0a0416",
-          ink: "#f0e2ff", inkSoft: "#b39dd8",
-          gold: "#a855f7", goldLight: "#d4a2ff", goldDark: "#5b21b6",
-          rose: "#c026d3", roseSoft: "#e94dea",
-          panel: "#1e1030",
+          bg1: "rgba(20, 10, 35, 0.4)", bg2: "rgba(10, 5, 20, 0.6)", bg3: "rgba(5, 2, 10, 0.8)",
+          ink: "#f0e2ff", inkSoft: "#b8a8c8",
+          gold: "#f5cf6b", goldLight: "#fff8e4", goldDark: "#b8862a",
+          rose: "#ff5252", roseSoft: "#ff9ea1",
+          panel: "rgba(30, 15, 50, 0.4)",
         };
 
         return (
+
           <div style={{
             background: `
-              radial-gradient(circle at 50% 30%, rgba(168,85,247,0.28), transparent 55%),
-              url(${bagBgGlowUrl}) center/cover no-repeat,
-              linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)
+              radial-gradient(circle at 50% 30%, rgba(168,85,247,0.15), transparent 55%),
+              linear-gradient(160deg, rgba(20, 10, 35, 0.4) 0%, rgba(10, 5, 20, 0.6) 100%)
             `,
-            border: `3px solid ${P.gold}`, borderRadius: 16, padding: 14,
-            boxShadow: `inset 0 0 0 2px ${P.goldLight}55, inset 0 0 80px rgba(168,85,247,0.22), 0 8px 32px rgba(0,0,0,0.75)`,
+            borderRadius: 16, padding: 14,
             fontFamily: '"Pixelify Sans", ui-monospace, monospace',
             position: "relative",
           }}>
+
             <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
               background: "radial-gradient(ellipse at 50% 0%, rgba(212,162,255,0.18), transparent 60%)" }} />
 
@@ -14087,24 +14138,27 @@ function TabOverlay({
             <div style={{
               display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
               padding: "12px 16px",
-              background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
-              border: `2px solid ${P.goldDark}`, borderRadius: 12,
-              boxShadow: `inset 0 0 0 1px ${P.goldLight}, 0 3px 0 rgba(0,0,0,0.15)`,
+              background: "rgba(0, 0, 0, 0.4)",
+              border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12,
+              boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.4)",
+
             }}>
               <div style={{
                 width: 60, height: 60, borderRadius: 12, flexShrink: 0,
-                background: `radial-gradient(circle at 35% 30%, #fff4d0, ${P.goldLight} 55%, ${P.goldDark})`,
+                background: "rgba(0,0,0,0.3)",
                 display: "grid", placeItems: "center",
-                border: `2px solid ${P.goldDark}`,
-                boxShadow: `inset 0 2px 4px rgba(255,255,255,0.6), 0 3px 8px rgba(0,0,0,0.35)`,
+                border: "1.5px solid rgba(245, 207, 107, 0.2)",
+                boxShadow: "0 3px 8px rgba(0,0,0,0.35)",
+
               }}>
                 <img src={bagIconImg} alt="" width={40} height={40} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.4))" }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  color: P.goldDark, fontSize: 22, fontWeight: 900, letterSpacing: 3, lineHeight: 1,
-                  textShadow: `0 1px 0 ${P.panel}, 0 2px 3px rgba(0,0,0,0.15)`,
+                  color: "#f5cf6b", fontSize: 22, fontWeight: 900, letterSpacing: 3, lineHeight: 1,
+                  textShadow: `0 2px 4px rgba(0,0,0,0.5)`,
                 }}>✦ MOCHILA ✦</div>
+
                 <div style={{ color: P.inkSoft, fontSize: 10.5, marginTop: 6, fontStyle: "italic" }}>
                   "Um bom aventureiro carrega o mundo nas costas."
                 </div>
@@ -14118,10 +14172,11 @@ function TabOverlay({
                 }}>{totalTypes} tipos · {totalCount} itens</div>
                 <div style={{
                   background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`, color: P.ink,
-                  border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
+                  border: "1px solid rgba(245, 207, 107, 0.3)", borderRadius: 8, padding: "3px 10px",
                   fontSize: 11, fontWeight: 900,
                   boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
                 }}>💰 {bank.gold.toLocaleString()}</div>
+
               </div>
             </div>
 
@@ -14129,9 +14184,10 @@ function TabOverlay({
             <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12 }}>
               {/* SIDEBAR CATEGORIAS */}
               <div style={{
-                background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
-                border: `2px solid ${P.goldDark}`, borderRadius: 12,
-                boxShadow: `inset 0 0 0 1px ${P.goldLight}70`,
+                background: "rgba(0, 0, 0, 0.3)",
+                border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
+                boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.2)",
+
                 padding: 8, display: "flex", flexDirection: "column", gap: 6,
               }}>
                 <div style={{
@@ -14197,11 +14253,12 @@ function TabOverlay({
 
               {/* GRADE DE ITENS */}
               <div style={{
-                background: `linear-gradient(180deg, ${P.panel}dd, ${P.bg1}dd)`,
-                border: `2px solid ${P.goldDark}`, borderRadius: 12,
-                boxShadow: `inset 0 0 0 1px ${P.goldLight}70, inset 0 0 22px rgba(184,134,42,0.12)`,
+                background: "rgba(0, 0, 0, 0.2)",
+                border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
+                boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
                 padding: 12, minHeight: 360,
               }}>
+
                 {filtered.length === 0 ? (
                   <div style={{
                     color: P.inkSoft, fontSize: 13, padding: 60, textAlign: "center", fontStyle: "italic",
@@ -14285,10 +14342,11 @@ function TabOverlay({
                               }}
                               style={{
                                 flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
-                                background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
-                                color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                                background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                                color: "#000", border: "1px solid #fff4d0",
                                 borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
-                                boxShadow: `0 2px 0 ${P.goldDark}`,
+                                boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+
                               }}
                             >{isEgg ? "CHOCAR" : "USAR"}</button>
                             {sellPrice > 0 && !id.startsWith("stone_") && (
@@ -14297,10 +14355,11 @@ function TabOverlay({
                                 title={`Vender 1 por ${sellPrice} ouro`}
                                 style={{
                                   flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
-                                  background: `linear-gradient(180deg, ${P.roseSoft}, ${P.rose})`,
-                                  color: "#fff8e4", border: `1.5px solid #7a1e12`,
+                                  background: "linear-gradient(180deg, #ff7e7e, #ff5252)",
+                                  color: "#fff", border: "1px solid rgba(255,255,255,0.2)",
                                   borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
-                                  boxShadow: `0 2px 0 #7a1e12`,
+                                  boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+
                                 }}
                               >💰{sellPrice}</button>
                             )}
@@ -14398,22 +14457,24 @@ function TabOverlay({
                 }}>
                   <div onClick={(e) => e.stopPropagation()} style={{
                     width: "min(420px, 96vw)", position: "relative",
-                    background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
-                    border: `2px solid ${P.goldDark}`, borderRadius: 14,
-                    boxShadow: `inset 0 0 0 1px ${P.goldLight}88, 0 0 40px ${color}55, 0 12px 40px rgba(0,0,0,0.6)`,
-                    padding: 18, color: P.ink,
+                    background: "linear-gradient(160deg, rgba(28, 15, 46, 0.95) 0%, rgba(11, 5, 16, 0.98) 100%)",
+                    border: "2px solid rgba(245, 207, 107, 0.3)", borderRadius: 18,
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(245, 207, 107, 0.05)",
+                    padding: 18, color: "#fff",
                   }}>
+
                     <button onClick={() => setItemDetail(null)} style={{
                       position: "absolute", top: 8, right: 10, background: "transparent",
-                      border: "none", color: P.inkSoft, fontSize: 20, cursor: "pointer", fontWeight: 900,
+                      border: "none", color: "#b8a8c8", fontSize: 20, cursor: "pointer", fontWeight: 900,
                     }}>×</button>
                     <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                       <div style={{
                         width: 84, height: 84, borderRadius: 12, flexShrink: 0,
-                        background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
+                        background: "rgba(0,0,0,0.3)",
                         display: "grid", placeItems: "center",
-                        border: `2px inset ${P.goldDark}aa`,
-                        boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 14px ${color}66`,
+                        border: "1.5px solid rgba(245, 207, 107, 0.2)",
+                        boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 14px ${color}33`,
+
                       }}>
                         {img ? (
                           <img src={img} alt="" width={68} height={68} style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 6px ${color}aa)` }} />
@@ -14423,40 +14484,45 @@ function TabOverlay({
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.2 }}>{name}</div>
-                        <div style={{ fontSize: 11, color: P.inkSoft, marginTop: 4, fontWeight: 700 }}>Quantidade: <span style={{ color: P.gold }}>x{count}</span></div>
+                        <div style={{ fontSize: 11, color: "#b8a8c8", marginTop: 4, fontWeight: 700 }}>Quantidade: <span style={{ color: "#f5cf6b" }}>x{count}</span></div>
                         {sellPrice > 0 && (
-                          <div style={{ fontSize: 11, color: P.inkSoft, marginTop: 2, fontWeight: 700 }}>Preço de venda: <span style={{ color: "#ffd66b" }}>{sellPrice} 🪙</span></div>
+                          <div style={{ fontSize: 11, color: "#b8a8c8", marginTop: 2, fontWeight: 700 }}>Preço de venda: <span style={{ color: "#ffd66b" }}>{sellPrice} 🪙</span></div>
                         )}
+
                       </div>
                     </div>
                     <div style={{
                       marginTop: 14, padding: 12, borderRadius: 10,
-                      background: `${P.bg2}80`, border: `1px dashed ${P.goldDark}88`,
-                      fontSize: 12.5, lineHeight: 1.5, color: P.ink,
+                      background: "rgba(0,0,0,0.3)", border: "1px dashed rgba(245, 207, 107, 0.2)",
+                      fontSize: 12.5, lineHeight: 1.5, color: "#fff",
+
                     }}>{desc}</div>
                     <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                       {!isEgg && count > 0 && (
                         <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
                           flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
-                          background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
-                          color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                          background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                          color: "#000", border: "1px solid #fff4d0",
                           borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
-                          boxShadow: `0 2px 0 ${P.goldDark}`,
+                          boxShadow: "0 4px 12px rgba(184,134,42,0.4)",
+
                         }}>USAR</button>
                       )}
                       {isEgg && count > 0 && (
                         <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
                           flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
-                          background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
-                          color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                          background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                          color: "#000", border: "1px solid #fff4d0",
                           borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
-                          boxShadow: `0 2px 0 ${P.goldDark}`,
+                          boxShadow: "0 4px 12px rgba(184,134,42,0.4)",
+
                         }}>CHOCAR</button>
                       )}
                       <button onClick={() => setItemDetail(null)} style={{
                         flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
-                        background: "transparent", color: P.inkSoft,
-                        border: `1.5px solid ${P.goldDark}`, borderRadius: 8, cursor: "pointer",
+                        background: "rgba(0,0,0,0.3)", color: "#b8a8c8",
+                        border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 8, cursor: "pointer",
+
                       }}>FECHAR</button>
                     </div>
                   </div>
@@ -14470,48 +14536,52 @@ function TabOverlay({
 
       {tab === "colecao" && (
         <div style={{
-          background: "linear-gradient(180deg, #f5e6c8 0%, #e8d4a8 100%)",
-          border: "3px solid #b8862a",
+          background: "rgba(0,0,0,0.3)",
           borderRadius: 14, padding: 18,
-          boxShadow: "inset 0 0 24px rgba(184,134,42,0.25), 0 4px 18px rgba(0,0,0,0.4)",
+          boxShadow: "inset 0 0 24px rgba(0,0,0,0.2), 0 4px 18px rgba(0,0,0,0.5)",
+
+
         }}>
           {/* HUD topo da coleção */}
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
             marginBottom: 14, paddingBottom: 12,
-            borderBottom: "2px solid rgba(184,134,42,0.5)",
+            borderBottom: "1px solid rgba(245, 207, 107, 0.2)",
           }}>
             <div>
-              <div style={{ color: "#6b4a10", fontSize: 20, fontWeight: 900, letterSpacing: 3, fontFamily: "Georgia, serif" }}>
+              <div style={{ color: "#f5cf6b", fontSize: 20, fontWeight: 900, letterSpacing: 3, fontFamily: "'Cinzel', serif" }}>
                 ✦ COLEÇÃO ✦
               </div>
-              <div style={{ color: "#8b6a30", fontSize: 12, marginTop: 2, fontStyle: "italic" }}>
+
+              <div style={{ color: "#b8a8c8", fontSize: 12, marginTop: 2, fontStyle: "italic" }}>
                 Registro particular do treinador
               </div>
+
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "#b8862a", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.5)" }}>
+              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "rgba(0,0,0,0.4)", color: "#fff", border: "1px solid rgba(245, 207, 107, 0.2)", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
                 {collection.length} / {MAX_COLLECTION} NA COLEÇÃO
               </div>
-              <div style={{ background: "#8b6a30", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
+              <div style={{ background: "rgba(0,0,0,0.4)", color: "#fff", border: "1px solid rgba(245, 207, 107, 0.2)", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
                 {caughtSpecies.length} ESPÉCIES
               </div>
-              <div style={{ background: "linear-gradient(180deg,#7c3aed,#4f26a4)", color: "#fff9e8", fontWeight: 900, padding: "6px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(124,58,237,0.5)", display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ background: "linear-gradient(180deg,#f5cf6b,#b8862a)", color: "#000", fontWeight: 900, padding: "6px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
                 <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={20} height={20} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(233,213,255,0.9))" }} />
                 {items?.cristal_fragmentado ?? 0} CRISTAL PRISMA
               </div>
             </div>
           </div>
+
           {/* Filtros */}
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12, padding: "8px 10px", background: "rgba(107,74,16,0.12)", borderRadius: 10, border: "1px dashed rgba(107,74,16,0.35)" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12, padding: "8px 10px", background: "rgba(0,0,0,0.3)", borderRadius: 10, border: "1px solid rgba(245,207,107,0.1)" }}>
             <input
               value={colFilterName}
               onChange={(e) => setColFilterName(e.target.value)}
               placeholder="🔍 Buscar por nome..."
-              style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}
+              style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid rgba(245,207,107,0.3)", background: "rgba(0,0,0,0.5)", color: "#fff" }}
             />
             <select value={colFilterRarity} onChange={(e) => setColFilterRarity(e.target.value as "all" | Rarity)}
-              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid rgba(245,207,107,0.3)", background: "rgba(0,0,0,0.5)", color: "#fff" }}>
               <option value="all">Todas raridades</option>
               <option value="common">Comum</option>
               <option value="uncommon">Incomum</option>
@@ -14521,8 +14591,9 @@ function TabOverlay({
               <option value="mythic">Mítico</option>
               <option value="mythic_shiny">Mítico Brilhante</option>
             </select>
+
             <select value={colSort} onChange={(e) => setColSort(e.target.value as typeof colSort)}
-              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid rgba(245,207,107,0.3)", background: "rgba(0,0,0,0.5)", color: "#fff" }}>
               <option value="recent">Mais recentes</option>
               <option value="level_desc">Nível ↓</option>
               <option value="level_asc">Nível ↑</option>
@@ -14533,20 +14604,22 @@ function TabOverlay({
               onClick={() => setColOnlyLocked((v) => !v)}
               style={{
                 padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
-                border: "1px solid #b8862a", cursor: "pointer",
-                background: colOnlyLocked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
-                color: colOnlyLocked ? "#4a3010" : "#8b6a30",
+                border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer",
+                background: colOnlyLocked ? "linear-gradient(180deg,#facc15,#b8862a)" : "rgba(0,0,0,0.5)",
+                color: colOnlyLocked ? "#4a3010" : "#fff",
               }}
               title="Mostrar somente Pokémon travados"
             >🔒 {colOnlyLocked ? "SÓ TRAVADOS" : "TRAVADOS"}</button>
+
             <button
               onClick={() => { setBulkMode((v) => !v); setBulkSel(new Set()); }}
               style={{
                 padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
-                border: "1px solid #6b21a8", cursor: "pointer",
-                background: bulkMode ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#f3e8ff",
-                color: bulkMode ? "#fff" : "#5b21b6",
-                boxShadow: bulkMode ? "0 0 10px rgba(167,139,250,0.6)" : "none",
+                border: bulkMode ? "1px solid #fff4d0" : "1px solid rgba(245, 207, 107, 0.2)", cursor: "pointer",
+                background: bulkMode ? "linear-gradient(180deg,#f5cf6b,#b8862a)" : "rgba(0,0,0,0.3)",
+                color: bulkMode ? "#000" : "#b8a8c8",
+                boxShadow: bulkMode ? "0 0 10px rgba(184,134,42,0.4)" : "none",
+
               }}
               title="Selecionar vários para fragmentar de uma vez"
             >☑ {bulkMode ? "SELECIONANDO" : "SELECIONAR"}</button>
@@ -14568,7 +14641,8 @@ function TabOverlay({
           </div>
 
           {collection.length === 0 ? (
-            <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
+            <div style={{ color: "#b8a8c8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
+
               Nenhum Pokémon capturado ainda. Continue a jornada — a taxa de captura é baixa (5%).
             </div>
           ) : (() => {
@@ -14590,7 +14664,7 @@ function TabOverlay({
               return a.species.localeCompare(b.species);
             });
             if (filtered.length === 0) {
-              return <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
+              return <div style={{ color: "#b8a8c8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
             return (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
@@ -14623,13 +14697,12 @@ function TabOverlay({
                        toggleBulk(entry.uid);
                      }}
                      style={{
-                       background: isBMP
-                         ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
-                         : locked
-                         ? "linear-gradient(180deg, #fff4c8, #f7dc9a)"
-                         : isSelected
-                           ? "linear-gradient(180deg, #ede9fe, #c4b5fd)"
-                           : "linear-gradient(180deg, #fff8e5, #f5e6c8)",
+                        background: isBMP
+                          ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
+                          : isSelected
+                            ? "linear-gradient(180deg, #ede9fe, #c4b5fd)"
+                            : "rgba(0,0,0,0.4)",
+
                        border: `2.5px solid ${isBMP ? bmpAccent : (isSelected ? "#7c3aed" : locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a"))}`,
                        borderRadius: 12, padding: 10, textAlign: "center",
                        position: "relative",
@@ -14652,12 +14725,13 @@ function TabOverlay({
                          background: `radial-gradient(circle at 50% 20%, ${bmpAccent}55, transparent 60%), radial-gradient(circle at 80% 90%, ${bmpAccent}33, transparent 55%)`,
                        }} />
                      )}
-                    <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1, zIndex: 2 }}>
+                    <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1, zIndex: 2, opacity: 0.8 }}>
                       #{String(i + 1).padStart(3, "0")}
                     </div>
                     {inTeam && (
-                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#3d7a4a", zIndex: 2 }}>★ TIME</div>
+                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#5ec26a", zIndex: 2 }}>★ TIME</div>
                     )}
+
                     {/* Checkbox de bulk select */}
                     {bulkMode && canBulkPick && (
                       <div style={{
@@ -14678,9 +14752,10 @@ function TabOverlay({
                       style={{
                         position: "absolute", top: 22, right: 4,
                         width: 24, height: 24, borderRadius: "50%",
-                        border: "1px solid #b8862a", cursor: "pointer",
-                        background: locked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
-                        color: locked ? "#4a3010" : "#8b6a30",
+                        border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer",
+                        background: locked ? "linear-gradient(180deg,#facc15,#b8862a)" : "rgba(0,0,0,0.5)",
+                        color: locked ? "#4a3010" : "#fff",
+
                         fontSize: 12, fontWeight: 900, padding: 0, zIndex: 2,
                       }}
                     >{locked ? "🔒" : "🔓"}</button>
@@ -14692,7 +14767,7 @@ function TabOverlay({
                        title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
                      >
                        {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
-                       <div style={{ fontSize: 11, marginTop: 2, color: isBMP ? "#f7ecff" : "#4a3010", fontWeight: 800, textAlign: "center", textShadow: isBMP ? "0 1px 3px #000" : undefined }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
+                       <div style={{ fontSize: 11, marginTop: 2, color: "#fff", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                      </button>
 
                      {/* Raridade / Badge BMP */}
@@ -14708,7 +14783,7 @@ function TabOverlay({
                      </div>
 
                      {/* Nível */}
-                     <div style={{ fontSize: 11, color: isBMP ? "#f5cf6b" : "#6b4a10", fontWeight: 900, position: "relative", zIndex: 1, textShadow: isBMP ? "0 1px 2px #000" : undefined }}>
+                     <div style={{ fontSize: 11, color: "#f5cf6b", fontWeight: 900, position: "relative", zIndex: 1, textShadow: "0 1px 2px #000" }}>
                        Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
                      </div>
 
@@ -14745,10 +14820,11 @@ function TabOverlay({
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                         padding: "4px 10px", height: 36,
                         background: fragDisabled
-                          ? "linear-gradient(180deg,#d9c8a8,#b8a680)"
+                          ? "rgba(0,0,0,0.4)"
                           : "linear-gradient(180deg,#c4b5fd 0%,#8b5cf6 45%,#5b21b6 100%)",
                         color: "#fff", fontWeight: 900, fontSize: 12, letterSpacing: 0.5,
-                        border: fragDisabled ? "1px solid #96835a" : "1px solid #3b0f7a",
+                        border: fragDisabled ? "1px solid rgba(255,255,255,0.05)" : "1px solid #3b0f7a",
+
                         borderRadius: 9,
                         boxShadow: fragDisabled
                           ? "inset 0 -2px 0 rgba(0,0,0,0.15)"
