@@ -11992,7 +11992,7 @@ function IdlePage() {
         setCodeInput={setCodeInput}
         onRedeemCode={() => redeemCrystalCode()}
       />
-    )}
+
 
 
 
