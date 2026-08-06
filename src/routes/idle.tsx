@@ -9444,6 +9444,7 @@ function IdlePage() {
 
 
 
+
           
           {/* Top Bar horizontal compacta */}
           <div className="modern-top-bar">
@@ -11936,6 +11937,7 @@ function IdlePage() {
         onRedeemCode={() => redeemCrystalCode()}
       />
     )}
+
     <BlackMiticEggHud
 
 
@@ -12326,6 +12328,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
