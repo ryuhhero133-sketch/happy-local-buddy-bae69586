@@ -418,6 +418,31 @@ html, body, #root {
   border-radius: 99px;
   z-index: 1000;
   box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  pointer-events: auto;
+}
+
+.resource-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.resource-pill .label {
+  font-size: 9px;
+  font-weight: 800;
+  color: rgba(245, 207, 107, 0.8);
+  letter-spacing: 0.5px;
+}
+
+.resource-pill .value {
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .trainer-card-compact {
@@ -435,6 +460,39 @@ html, body, #root {
   z-index: 1000;
   box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   min-width: 240px;
+  pointer-events: auto;
+}
+
+.trainer-avatar-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 2px solid rgba(245, 207, 107, 0.5);
+  overflow: hidden;
+  background: #1a0f26;
+  box-shadow: 0 0 10px rgba(245, 207, 107, 0.2);
+}
+
+.trainer-bars-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.xp-bar-container {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f5cf6b, #b8862a);
+  box-shadow: 0 0 8px rgba(245, 207, 107, 0.5);
+  transition: width 0.3s ease;
 }
 
 .right-system-menu {
@@ -452,9 +510,31 @@ html, body, #root {
   border: 1px solid rgba(245, 207, 107, 0.2);
   z-index: 1000;
   box-shadow: 0 4px 25px rgba(0,0,0,0.6);
+  pointer-events: auto;
 }
 
-.floating-nav-dock {
+.sys-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(245, 207, 107, 0.2);
+  border-radius: 12px;
+  font-size: 20px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sys-icon:hover {
+  background: rgba(245, 207, 107, 0.2);
+  transform: scale(1.1);
+  border-color: rgba(245, 207, 107, 0.8);
+}
+
+.modern-bottom-dock {
   position: fixed;
   bottom: 20px;
   left: 50%;
@@ -469,6 +549,109 @@ html, body, #root {
   border: 1px solid rgba(245, 207, 107, 0.3);
   z-index: 1000;
   box-shadow: 0 -4px 30px rgba(0,0,0,0.7);
+  pointer-events: auto;
+}
+
+.dock-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 70px;
+}
+
+.dock-item span:first-child {
+  font-size: 22px;
+}
+
+.dock-label {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.dock-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-4px);
+}
+
+.dock-item.active {
+  background: rgba(245, 207, 107, 0.15);
+  border: 1px solid rgba(245, 207, 107, 0.4);
+}
+
+.dock-item.active .dock-label {
+  color: #f5cf6b;
+}
+
+.modern-explore-panel {
+  position: fixed;
+  left: 20px;
+  top: 85px;
+  width: 220px;
+  z-index: 900;
+  pointer-events: auto;
+}
+
+.modern-team-panel {
+  position: fixed;
+  left: 20px;
+  top: 260px;
+  width: 220px;
+  z-index: 900;
+  pointer-events: auto;
+}
+
+.modern-floating-window {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 1000px;
+  max-height: 85vh;
+  background: rgba(11, 5, 16, 0.95);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(245, 207, 107, 0.4);
+  border-radius: 24px;
+  z-index: 2000;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.modern-window-header {
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(245, 207, 107, 0.2);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.modern-close-btn {
+  background: rgba(255, 60, 80, 0.1);
+  border: 1px solid rgba(255, 60, 80, 0.3);
+  color: #ff3c50;
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modern-close-btn:hover {
+  background: rgba(255, 60, 80, 0.25);
+  transform: scale(1.05);
 }
 
 .dock-item {
