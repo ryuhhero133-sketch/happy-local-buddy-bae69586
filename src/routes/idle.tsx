@@ -11114,7 +11114,7 @@ function IdlePage() {
 
 
       {identity && (
-        <>
+        <div key="player-identity-wrapper">
 
 
 
@@ -11137,7 +11137,7 @@ function IdlePage() {
             >{idle.hideIp ? "👁 MOSTRAR IP" : "🔒 OCULTAR IP"}</button>
           </div>
         </div>
-        </>
+        </div>
       )}
 
 
