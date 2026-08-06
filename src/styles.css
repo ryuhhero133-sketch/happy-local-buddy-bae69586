@@ -487,7 +487,30 @@ html, body, #root {
   transition: width 0.3s ease-out;
 }
 
+.modern-team-panel {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 260px;
+  z-index: 1000;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+.modern-explore-panel {
+  position: fixed;
+  top: 140px;
+  left: 20px;
+  width: 260px;
+  z-index: 1000;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
 .floating-nav-dock {
+
   position: fixed;
   bottom: 24px;
   left: 50%;
@@ -504,15 +527,6 @@ html, body, #root {
   gap: 20px;
 }
 
-  border: 2px solid rgba(245, 207, 107, 0.4);
-  border-radius: 24px;
-  padding: 8px 16px;
-  display: flex;
-  gap: 12px;
-  z-index: 1000;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
-}
 
 .modern-floating-window {
   position: absolute;
@@ -1400,6 +1414,186 @@ html, body, #root {
   50% { box-shadow: 0 0 16px rgba(239,68,68,0.95), 0 0 32px rgba(239,68,68,0.5); }
 }
 .poke-glow-red { animation: poke-glow-red 2.4s ease-in-out infinite; }
+
+.modern-team-panel {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  width: 260px; /* Increased for better layout */
+  z-index: 100;
+  pointer-events: auto;
+}
+
+.modern-explore-panel {
+  position: fixed;
+  top: 70px;
+  left: 20px;
+  width: 260px; /* Consistent with right panel */
+  z-index: 100;
+  pointer-events: auto;
+}
+
+/* --- Improved Team Panel Styling --- */
+.team-modern-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.team-modern-card {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.team-modern-card.leader {
+  background: linear-gradient(135deg, rgba(61, 43, 82, 0.4) 0%, rgba(20, 10, 32, 0.6) 100%);
+  border: 1px solid rgba(245, 207, 107, 0.3);
+  box-shadow: 0 0 15px rgba(245, 207, 107, 0.1);
+}
+
+.team-modern-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(-4px);
+}
+
+.team-modern-card .card-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+}
+
+.pokemon-avatar-wrapper {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+.pokemon-avatar-bg {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pokemon-gif {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.leader-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  background: #f5cf6b;
+  color: #1a0f26;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 900;
+  box-shadow: 0 0 8px rgba(245, 207, 107, 0.6);
+  border: 1px solid #fff;
+}
+
+.pokemon-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.poke-name {
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  font-size: 11px;
+  color: #fff;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.poke-level {
+  font-size: 10px;
+  color: #f5cf6b;
+  font-weight: 800;
+}
+
+.stats-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bar-label {
+  font-size: 8px;
+  font-weight: 900;
+  color: #8a7a9c;
+  width: 14px;
+}
+
+.bar-bg {
+  flex: 1;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease-out;
+}
+
+.bar-fill.hp { background: linear-gradient(90deg, #ff5f5f, #ff8b8b); }
+.bar-fill.xp { background: linear-gradient(90deg, #6bd4ff, #a0e6ff); }
+
+.team-modern-card.empty {
+  opacity: 0.4;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  background: transparent;
+}
+
+.empty-slot {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 18px;
+  font-weight: 300;
+}
+
 
 /* Sweeping sheen across buttons */
 .poke-sheen { position: relative; overflow: hidden; }
