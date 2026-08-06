@@ -7050,72 +7050,7 @@ function IdlePage() {
               filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
             }} />
           ))}
-          {BUILDINGS.filter(b => b.mapId === idle.currentMap).map((b) => (
-            <div key={b.key} style={{
-              position: "absolute",
-              left: b.x - b.w / 2,
-              top: b.y - b.h + 10,
-              width: b.w, height: b.h,
-              zIndex: Math.round(b.y),
-              pointerEvents: "none",
-            }}>
-              <img src={b.src} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated" }} />
-            </div>
-          ))}
-          <div style={{
-            position: "absolute",
-            left: trainerPos.x - 32,
-            top: trainerPos.y - 64,
-            width: 64, height: 64,
-            zIndex: Math.round(trainerPos.y) + 1,
-            transition: "none",
-            imageRendering: "pixelated",
-          }}>
-             <img 
-               src={isFishingRef.current ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png` : (walkTargetRef.current ? trainerWalkUrl : trainerIdleUrl)} 
-               alt="" 
-               style={{ 
-                 width: "100%", 
-                 height: "100%", 
-                 transform: walkDirRef.current === "left" ? "scaleX(-1)" : "none",
-                 filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.4))"
-               }} 
-             />
-          </div>
-          {team.length > 0 && (
-            <div style={{
-              position: "absolute",
-              left: followerX - 24,
-              top: followerY - 48,
-              width: 48, height: 48,
-              zIndex: Math.round(followerY),
-              transition: "none",
-              imageRendering: "pixelated",
-            }}>
-              <img 
-                src={GIF[team[0].species] ?? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png`} 
-                alt="" 
-                style={{ 
-                  width: "100%", 
-                  height: "100%", 
-                  transform: followerDirRef.current === "left" ? "scaleX(-1)" : "none",
-                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
-                }} 
-              />
-            </div>
-          )}
-          {mobsRef.current.map((m: any) => (
-            <div key={m.id} style={{
-              position: "absolute",
-              left: m.x - 24,
-              top: m.y - 48,
-              width: 48, height: 48,
-              zIndex: Math.round(m.y),
-              pointerEvents: "none",
-            }}>
-               <img src={GIF[m.species] ?? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png`} alt="" style={{ width: "100%", height: "100%", imageRendering: "pixelated", transform: m.dir === "left" ? "scaleX(-1)" : "none" }} />
-            </div>
-          ))}
+
 
         </div>
       </div>
