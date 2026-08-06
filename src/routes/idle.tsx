@@ -10582,6 +10582,9 @@ function IdlePage() {
               COLETAR
             </button>
           </div>
+        </div>
+      </Panel>
+    </div>
 
       <FarmingReportFloating 
         gold={sessionGold} 
