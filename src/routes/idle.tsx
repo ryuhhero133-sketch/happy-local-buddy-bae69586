@@ -1513,6 +1513,7 @@ export const Route = createFileRoute("/idle")({
 function IdlePage() {
   const identity = loadIdentity();
   const navigate = useNavigate();
+  const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
   // Pokémon fora do time enquanto descansam na Casa Azul (voltam ao time cheios)
   const [restingBench, setRestingBench] = useState<PetInstance[]>([]);
@@ -1573,7 +1574,6 @@ function IdlePage() {
     }
   }, [team.length, team[0]?.uid, team[0]?.level, spawnEnemies, idle.currentMap]);
 
-  const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
