@@ -7215,6 +7215,66 @@ function IdlePage() {
 
         </div>
 
+        {tab !== "batalha" && (
+          <TabOverlay
+            tab={tab}
+            onClose={() => setTab("batalha")}
+            leader={team[0]}
+            team={team}
+            onReorderTeam={setTeam}
+            leaderHp={leaderHp}
+            items={idle.items}
+            caughtSpecies={idle.caughtSpecies}
+            seenSpecies={idle.seenSpecies}
+            totals={idle.totals}
+            collection={idle.collection}
+            craftPoints={idle.craftPoints}
+            onFragmentCollection={onFragmentCollection}
+            gifMap={gifMap}
+            onPickTeam={onPickTeam}
+            onUseItem={onUseItem}
+            bank={idle.bank}
+            buffs={idle.buffs}
+            onBuyBall={onBuyBall}
+            onBuyUltraBundle={onBuyUltraBundle}
+            onBuyTeleportScroll={onBuyTeleportScroll}
+            onBuyBook={onBuyBook}
+            onBuyPotion={onBuyPotion}
+            onBuyEgg={onBuyEgg}
+            shopEggs={SHOP_EGGS}
+            onBuyChestAmulet={onBuyChestAmulet}
+            chestAmuletOwned={idle.chestAmuletOwned}
+            autoHeal={idle.autoHeal}
+            setAutoHeal={(next) => setIdle(s => ({ ...s, autoHeal: next }))}
+            audioSettings={audioSettings}
+            setAudioSettings={setAudioSettings}
+            tasks={idle.tasks}
+            onClaimTask={onClaimTask}
+            onOpenColecaoDetail={onOpenColecaoDetail}
+            onExchange={onExchange}
+            onSellItem={onSellItem}
+            marketSellPrices={marketSellPrices}
+            identity={identity}
+            onListMarket={onListMarket}
+            onBuyMarket={onBuyMarket}
+            onCancelMarket={onCancelMarket}
+            onClaimMarketPayout={onClaimMarketPayout}
+            isVip={isVip}
+            skinId={idle.skinId}
+            setSkinId={(id) => setIdle(s => ({ ...s, skinId: id }))}
+            unlockedSkins={idle.unlockedSkins}
+            skinTickets={idle.skinTickets}
+            onUnlockSkin={onUnlockSkin}
+            trainerLevel={idle.trainerLevel}
+            onUpgradeBook={onUpgradeBook}
+            orbTrades={ORB_TRADES}
+            onTradeOrb={tradeForOrb}
+            pokemonMarketNode={pokemonMarketNode}
+            benchUids={benchUids}
+          />
+        )}
+
+
 
         <div className="chat-floating-panel" style={{
           position: 'absolute', bottom: '100px', left: '20px',
