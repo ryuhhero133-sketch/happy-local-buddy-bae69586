@@ -10598,9 +10598,11 @@ function IdlePage() {
                 >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
-      })(), document.body)}
+      })()}
+
 
 
       {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
@@ -10628,7 +10630,8 @@ function IdlePage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {worldTraderOpen && createPortal((() => {
@@ -10930,7 +10933,12 @@ function IdlePage() {
                     </div>
                   </div>
                 );
-              })(), document.body)}
+              })()}
+              </div>
+            </div>
+          );
+        })(), document.body)}
+
 
 
 
@@ -11469,7 +11477,8 @@ function IdlePage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ===== Modal: detalhes do Pokémon (energia + tempo) ===== */}
@@ -11545,7 +11554,8 @@ function IdlePage() {
             </div>
           </div>
         );
-      })(), document.body)}
+      })()}
+
 
       {/* ===== Modal: Casa Azul — escolher Pokémon para descansar ===== */}
       {azulPickerOpen && createPortal((() => {
@@ -11894,7 +11904,8 @@ function IdlePage() {
         setCodeInput={setCodeInput}
         codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
-      />
+      />,
+      document.body
     )}
     <BlackMiticEggHud
 
