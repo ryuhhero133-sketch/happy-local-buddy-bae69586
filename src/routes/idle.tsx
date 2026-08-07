@@ -10939,12 +10939,11 @@ function IdlePage() {
                     </div>
                   </div>
                 );
-              })()}
+              })(),
+              document.body
+            )
+          : null}
 
-            </div>
-          </div>,
-          document.body
-        )()}
 
 
 
