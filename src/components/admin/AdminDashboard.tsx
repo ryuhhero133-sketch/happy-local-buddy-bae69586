@@ -37,6 +37,7 @@ type TabId =
 
 const TABS: { id: TabId; label: string; icon: string; group: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: "◆", group: "Visão" },
+  { id: "players", label: "Gerenciar Contas", icon: "👥", group: "Visão" },
   { id: "online_players", label: "Jogadores Online", icon: "◉", group: "Visão" },
   { id: "gifts", label: "Enviar Presente", icon: "✉", group: "Visão" },
   { id: "pokemon", label: "Pokémon Manager", icon: "♦", group: "Conteúdo" },
@@ -87,7 +88,14 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     return Array.from(m.entries());
   }, [filteredTabs]);
 
-  const pickTab = (id: TabId) => { setTab(id); setNavOpen(false); };
+  const pickTab = (id: TabId) => { 
+    setTab(id); 
+    setNavOpen(false); 
+    if (id !== "online_players" && id !== "players") {
+      // Clear inspecting state when leaving players tab if desired, 
+      // but let's keep it for now as the user wants to "manage".
+    }
+  };
 
   const sidebar = (
     <>
@@ -235,6 +243,7 @@ function TabBody({
     case "dashboard":
       return <DashboardTab />;
     case "online_players":
+    case "players":
       return (
         <OnlinePlayersTab 
           setTab={setTab} 
