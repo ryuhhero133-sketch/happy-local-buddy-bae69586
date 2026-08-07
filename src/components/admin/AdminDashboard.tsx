@@ -201,6 +201,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
         <div className="px-3 md:px-6 py-4 md:py-6">
           <TabBody 
             tab={tab} 
+            setTab={setTab}
             config={config} 
             setConfig={setConfig} 
             targetQuery={targetQuery}
@@ -217,10 +218,9 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
 // ---------------- Tab body router ----------------
 function TabBody({
   tab,
+  setTab,
   config,
   setConfig,
-  tab,
-  setTab,
   targetQuery,
   setTargetQuery,
 }: {
