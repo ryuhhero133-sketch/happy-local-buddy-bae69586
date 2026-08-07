@@ -15154,7 +15154,8 @@ function TabOverlay({
           </div>
         );
       })()}
-      <SmartGuideHud hasPokemon={team.length > 0} />
+        <SmartGuideHud hasPokemon={team.length > 0} />
+      </div>
     </div>
   );
 }
