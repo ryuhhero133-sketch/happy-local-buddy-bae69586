@@ -10630,7 +10630,8 @@ function IdlePage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {worldTraderOpen && createPortal((() => {
@@ -11476,7 +11477,8 @@ function IdlePage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ===== Modal: detalhes do Pokémon (energia + tempo) ===== */}
@@ -11902,7 +11904,8 @@ function IdlePage() {
         setCodeInput={setCodeInput}
         codeMsg={codeMsg}
         onRedeemCode={() => redeemCrystalCode()}
-      />
+      />,
+      document.body
     )}
     <BlackMiticEggHud
 
