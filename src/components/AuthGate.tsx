@@ -192,7 +192,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         try {
           const { data: profile, error: profileError } = await (supabase as any)
             .from("profiles")
-            .select("account_status")
+            .select("id")
             .eq("id", sess.user.id)
             .maybeSingle();
 
