@@ -367,8 +367,6 @@ function OnlinePlayersTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [editLevel, setEditLevel] = useState<number | null>(null);
   const [editXp, setEditXp] = useState<number | null>(null);
-  const [editPokeLevel, setEditPokeLevel] = useState<{id: string, level: number} | null>(null);
-
 
   const refresh = async () => {
     setLoading(true);
@@ -409,6 +407,10 @@ function OnlinePlayersTab() {
   }, [players, searchQuery]);
 
   const inspectPlayer = async (id: string) => {
+    if (inspectingUser === id) {
+      setInspectingUser(null);
+      return;
+    }
     setInspectingUser(id);
     setInventory(null);
     setIpLogs([]);
@@ -468,8 +470,6 @@ function OnlinePlayersTab() {
       toast.error(e.message);
     }
   };
-
-
 
   const updateStatus = async (id: string, status: string) => {
     if (!confirm(`Alterar status para ${status.toUpperCase()}?`)) return;
