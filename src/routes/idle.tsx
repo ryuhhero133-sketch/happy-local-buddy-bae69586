@@ -1593,11 +1593,13 @@ function IdlePage() {
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
-    const byUid = new Map<string, CollectionEntry>();
-    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry);
-    for (const pet of [...team, ...restingBench]) {
-      const current = byUid.get(pet.uid);
-      byUid.set(pet.uid, {
+    const col: CollectionEntry[] = idle.collection ?? [];
+    const active = [...team, ...restingBench];
+    const map = new Map<string, CollectionEntry>();
+    for (const e of col) map.set(e.uid, e);
+    for (const pet of active) {
+      const current = map.get(pet.uid);
+      map.set(pet.uid, {
         uid: pet.uid,
         species: pet.species,
         level: Math.max(current?.level ?? 1, pet.level ?? 1),
@@ -1608,7 +1610,7 @@ function IdlePage() {
         event: current?.event ?? pet.event,
       });
     }
-    return Array.from(byUid.values());
+    return Array.from(map.values());
   }, [idle.collection, restingBench, team]);
   // UIDs intencionalmente consumidos (fragmentar/trocador) — impede reconciliação
   // de re-adicioná-los à coleção quando ainda estão em team/bench mid-cleanup.
