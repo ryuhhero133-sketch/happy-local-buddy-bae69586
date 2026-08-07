@@ -7223,56 +7223,57 @@ function IdlePage() {
             team={team}
             onReorderTeam={setTeam}
             leaderHp={leaderHp}
-            items={idle.items}
-            caughtSpecies={idle.caughtSpecies}
-            seenSpecies={idle.seenSpecies}
-            totals={idle.totals}
-            collection={idle.collection}
-            craftPoints={idle.craftPoints}
-            onFragmentCollection={onFragmentCollection}
-            gifMap={gifMap}
+            items={idle.items || {}}
+            caughtSpecies={idle.caughtSpecies || []}
+            seenSpecies={idle.seenSpecies || []}
+            totals={idle.totals || { gold: 0, captured: 0 }}
+            collection={idle.collection || []}
+            craftPoints={idle.craftPoints || 0}
+            onFragmentCollection={fragmentCollection}
+            gifMap={GIF}
             onPickTeam={onPickTeam}
-            onUseItem={onUseItem}
-            bank={idle.bank}
-            buffs={idle.buffs}
-            onBuyBall={onBuyBall}
-            onBuyUltraBundle={onBuyUltraBundle}
-            onBuyTeleportScroll={onBuyTeleportScroll}
-            onBuyBook={onBuyBook}
-            onBuyPotion={onBuyPotion}
-            onBuyEgg={onBuyEgg}
+            onUseItem={useItem}
+            bank={idle.bank || { gold: 0, crystals: 0 }}
+            buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
+            onBuyBall={buyBall}
+            onBuyUltraBundle={buyUltraBundle}
+            onBuyTeleportScroll={buyTeleportScroll}
+            onBuyBook={buyBook}
+            onBuyPotion={buyPotion}
+            onBuyEgg={buyEgg}
             shopEggs={SHOP_EGGS}
-            onBuyChestAmulet={onBuyChestAmulet}
-            chestAmuletOwned={idle.chestAmuletOwned}
-            autoHeal={idle.autoHeal}
+            onBuyChestAmulet={buyChestAmulet}
+            chestAmuletOwned={idle.items?.chest_amulet || 0}
+            autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
             setAutoHeal={(next) => setIdle(s => ({ ...s, autoHeal: next }))}
             audioSettings={audioSettings}
             setAudioSettings={setAudioSettings}
-            tasks={idle.tasks}
-            onClaimTask={onClaimTask}
-            onOpenColecaoDetail={onOpenColecaoDetail}
-            onExchange={onExchange}
-            onSellItem={onSellItem}
-            marketSellPrices={marketSellPrices}
+            tasks={idle.tasks || []}
+            onClaimTask={claimTask}
+            onOpenColecaoDetail={(uid) => setOpenColecaoUid(uid)}
+            onExchange={exchange}
+            onSellItem={sellItem}
+            marketSellPrices={MARKET_SELL_PRICE}
             identity={identity}
-            onListMarket={onListMarket}
-            onBuyMarket={onBuyMarket}
-            onCancelMarket={onCancelMarket}
-            onClaimMarketPayout={onClaimMarketPayout}
-            isVip={isVip}
-            skinId={idle.skinId}
+            onListMarket={listMarket}
+            onBuyMarket={buyMarket}
+            onCancelMarket={cancelMarket}
+            onClaimMarketPayout={claimMarketPayout}
+            isVip={isVip()}
+            skinId={idle.skinId || "default"}
             setSkinId={(id) => setIdle(s => ({ ...s, skinId: id }))}
-            unlockedSkins={idle.unlockedSkins}
-            skinTickets={idle.skinTickets}
-            onUnlockSkin={onUnlockSkin}
-            trainerLevel={idle.trainerLevel}
-            onUpgradeBook={onUpgradeBook}
+            unlockedSkins={idle.unlockedSkins || []}
+            skinTickets={idle.items?.skin_ticket || 0}
+            onUnlockSkin={unlockSkin}
+            trainerLevel={idle.trainerLevel || 1}
+            onUpgradeBook={upgradeBook}
             orbTrades={ORB_TRADES}
             onTradeOrb={tradeForOrb}
-            pokemonMarketNode={pokemonMarketNode}
-            benchUids={benchUids}
+            pokemonMarketNode={undefined}
+            benchUids={restingBenchUids}
           />
         )}
+
 
 
 
