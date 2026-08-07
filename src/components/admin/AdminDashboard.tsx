@@ -859,6 +859,44 @@ function OnlinePlayersTab({
               )}
             </Card>
 
+            <Card title="Banco Medieval (Vault)">
+              {!inventory?.trainer ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="text-[9px] uppercase tracking-wider text-slate-500">Itens no Banco</div>
+                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800 text-[10px] text-slate-300 max-h-[100px] overflow-y-auto">
+                      {inventory.trainer.vault ? (
+                        <div className="space-y-1">
+                          {Object.entries(inventory.trainer.vault as Record<string, number>).map(([id, qty]) => (
+                            <div key={id} className="flex justify-between border-b border-slate-800/50 pb-1">
+                              <span className="text-slate-400">{id}</span>
+                              <span className="text-amber-200 font-bold">x{qty}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : "Vazio"}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="text-[9px] uppercase tracking-wider text-slate-500">Pokémons no Banco</div>
+                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800 text-[10px] text-slate-300 max-h-[100px] overflow-y-auto">
+                      {inventory.trainer.pokeVault ? (
+                        <div className="space-y-1">
+                          {(inventory.trainer.pokeVault as any[]).map((p: any, i: number) => (
+                            <div key={i} className="flex justify-between border-b border-slate-800/50 pb-1">
+                              <span className="text-slate-400">{p.species}</span>
+                              <span className="text-amber-200 font-bold">Lv.{p.level}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : "Vazio"}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+
             <Card title="Histórico de Presentes">
               {!inventory?.gifts ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
                 <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
@@ -880,6 +918,7 @@ function OnlinePlayersTab({
                 </div>
               )}
             </Card>
+
 
             <Card title="Conexões (IPs)">
               <div className="space-y-2 max-h-[100px] overflow-y-auto pr-1 custom-scrollbar">
