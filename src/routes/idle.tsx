@@ -11081,7 +11081,7 @@ function IdlePage() {
         }}
       >🔑 Código</button>
 
-      {codeOpen && (
+      {codeOpen && createPortal(
         <div
           onClick={() => setCodeOpen(false)}
           style={{
@@ -11141,11 +11141,12 @@ function IdlePage() {
               }}>{codeMsg.text}</div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ===== Painel de Troca Black Mitic Plus (RESGTT55) ===== */}
-      {bmpSwapOpen && (() => {
+      {bmpSwapOpen && createPortal((() => {
         const isBMP = (e: { event?: string | null }) =>
           typeof e.event === "string" && e.event.startsWith("black_mitic");
         const bmpEntries = [
@@ -11354,7 +11355,7 @@ function IdlePage() {
             </div>
           </div>
         );
-      })()}
+      })(), document.body)}
 
 
 
@@ -11363,7 +11364,7 @@ function IdlePage() {
 
 
       {/* ===== Popup do ovo chocando ===== */}
-      {eggOpenResult && (() => {
+      {eggOpenResult && createPortal((() => {
         const rarityColorMap: Record<string, string> = {
           common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
           epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
@@ -11422,12 +11423,12 @@ function IdlePage() {
             </div>
           </div>
         );
-      })()}
+      })(), document.body)}
 
       {/* ===== Modal de escolha do inicial ===== */}
 
 
-      {!starterChosen && (
+      {!starterChosen && createPortal(
         <div style={{
           position: "fixed", inset: 0, zIndex: 1000,
           background: "rgba(11,5,16,0.92)",
@@ -11549,12 +11550,13 @@ function IdlePage() {
               )}
 
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
       {/* ===== Modal: Casa Azul — escolher Pokémon para descansar ===== */}
-      {azulPickerOpen && (() => {
+      {azulPickerOpen && createPortal((() => {
         void energyTick;
         const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
         const party = save.party ?? team;
@@ -11720,17 +11722,19 @@ function IdlePage() {
                 <div style={{ marginTop: 14, textAlign: "center", color: "#3d7a4a", fontWeight: 900 }}>★ Este está no seu time</div>
               )}
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
-      {statsCardPet && (
+      {statsCardPet && createPortal(
         <PokemonStatsCard
           pet={statsCardPet}
           team={team}
           gifSrc={GIF[statsCardPet.species]}
           onClose={() => setStatsCardPet(null)}
-        />
+        />,
+        document.body
       )}
 
 
@@ -11863,7 +11867,7 @@ function IdlePage() {
 
 
       {/* ============ LOJINHA CASH ============ */}
-      {cashShopOpen && (
+      {cashShopOpen && createPortal(
         <CashShopModal
 
           open={cashShopOpen}
