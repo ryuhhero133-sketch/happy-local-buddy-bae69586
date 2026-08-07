@@ -10488,8 +10488,10 @@ function IdlePage() {
               )}
             </div>
           </div>
-          </div>, document.body
+          </div>,
+          document.body
         );
+
 
       })()}
 
