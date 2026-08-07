@@ -12913,6 +12913,13 @@ function TabOverlay({
         WebkitOverflowScrolling: "touch"
       }}>
 
+      <div className="modern-window-scroll-content" style={{ 
+        flex: 1, 
+        overflowY: "auto", 
+        padding: 10,
+        WebkitOverflowScrolling: "touch"
+      }}>
+
 
       {tab === "pokemon" && leader && (
         <div style={{
