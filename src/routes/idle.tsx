@@ -10489,8 +10489,8 @@ function IdlePage() {
             </div>
           </div>,
           document.body
-        )
-      )}
+        );
+      })()}
 
 
       {/* ═══ 🏰 GINÁSIO MEDIEVAL — endgame: 3 andares + portal do Vale ═══ */}
