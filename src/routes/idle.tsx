@@ -12888,7 +12888,8 @@ function TabOverlay({
     <div className="modern-floating-window" style={{ 
       background: "rgba(11, 5, 20, 0.96)", 
       backdropFilter: "blur(14px)",
-      overflowY: "auto"
+      overflowY: "auto",
+      maxHeight: "85vh"
     }}>
 
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10 }}>
