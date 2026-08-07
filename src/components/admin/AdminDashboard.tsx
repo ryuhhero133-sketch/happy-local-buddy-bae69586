@@ -479,7 +479,7 @@ function OnlinePlayersTab({
         items: invRes.data || [],
         balls: ballsRes.data || [],
         pokemon: pokeRes.data || [],
-        trainer: trainerRes.data || { gold: 0, crystal: 0 },
+        trainer: { ...(trainerRes.data || { gold: 0, crystal: 0 }), ...(rankedRes.data || { trainer_level: 1, total_kills: 0 }) },
         gifts: giftsRes.data || []
       });
       
