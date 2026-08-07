@@ -462,13 +462,14 @@ function OnlinePlayersTab({
     setEditLevel(null);
     setEditXp(null);
     try {
-      const [invRes, ballsRes, ipRes, pokeRes, trainerRes, giftsRes] = await Promise.all([
+      const [invRes, ballsRes, ipRes, pokeRes, trainerRes, giftsRes, rankedRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
         supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
         supabase.from("profiles").select("gold, crystal").eq("id", id).maybeSingle(),
-        supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20)
+        supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("ranked_scores").select("trainer_level").eq("user_id", id).maybeSingle()
       ]);
       setInventory({
         items: invRes.data || [],
