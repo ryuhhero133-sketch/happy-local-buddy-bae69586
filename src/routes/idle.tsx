@@ -10940,8 +10940,8 @@ function IdlePage() {
                 );
               })(),
               document.body
-            )
-          : null}
+            )}
+
 
 
 
