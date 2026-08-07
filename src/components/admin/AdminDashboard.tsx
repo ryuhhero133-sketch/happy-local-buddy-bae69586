@@ -371,23 +371,28 @@ function OnlinePlayersTab() {
   const refresh = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Tenta buscar perfis com tratamento robusto
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select(`
-          id,
-          username,
-          last_login,
-          account_status,
-          lock_until,
-          ranked_leaderboard:ranked_scores (
-            trainer_level,
-            total_kills
-          )
-        `)
+        .select("id, username, last_login, account_status, lock_until")
         .order("last_login", { ascending: false });
       
-      if (error) throw error;
-      setPlayers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Busca dados de ranking separadamente
+      const { data: ranked, error: rankedError } = await supabase
+        .from("ranked_scores")
+        .select("user_id, trainer_level, total_kills");
+
+      const enrichedPlayers = (profiles || []).map((p: any) => {
+        const score = (ranked || []).find((r: any) => r.user_id === p.id);
+        return {
+          ...p,
+          ranked_leaderboard: score ? [score] : []
+        };
+      });
+
+      setPlayers(enrichedPlayers);
     } catch (e: any) {
       console.error("Load players failed", e);
       // Only show toast if it's not a common development/network error that might be noisy
