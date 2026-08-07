@@ -12880,7 +12880,7 @@ function TabOverlay({
     setFragConfirm(null);
   };
   return (
-    <div className="modern-floating-window">
+    <div className="modern-floating-window" style={{ background: "rgba(11, 5, 20, 0.95)", backdropFilter: "blur(12px)" }}>
 
       <div className="modern-window-header">
         <h2 style={{ 
