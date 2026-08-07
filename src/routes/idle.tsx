@@ -10637,11 +10637,9 @@ function IdlePage() {
       {worldTraderOpen && createPortal(
         (() => {
           const collection = idle.collection ?? [];
-
-
-        const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
-        const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
-        return (
+          const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
+          const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
+          return (
           <div
             onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
             style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
