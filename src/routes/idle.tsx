@@ -3561,7 +3561,7 @@ function IdlePage() {
 
   // ---- Movimento do treinador: caça o inimigo mais próximo ----
   const stuckRef = useRef<{ id: number; count: number }>({ id: 0, count: 0 });
-  const blacklistRef = useRef<Record<number, number>>({}); // id -> expiresAt
+  const blacklistRef = useRef(new Map<number, number>()); // id -> expiresAt
   const wanderRef = useRef<{ x: number; y: number; until: number } | null>(null);
   const overCapMsgRef = useRef<number>(0);
 
