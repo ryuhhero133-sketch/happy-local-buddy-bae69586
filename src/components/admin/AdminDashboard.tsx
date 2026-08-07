@@ -388,9 +388,12 @@ function OnlinePlayersTab() {
       
       if (error) throw error;
       setPlayers(data || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error("Load players failed", e);
-      toast.error("Falha ao carregar lista de jogadores");
+      // Only show toast if it's not a common development/network error that might be noisy
+      if (!e.message?.includes("failed to fetch")) {
+        toast.error(`Falha ao carregar lista de jogadores: ${e.message || 'Erro desconhecido'}`);
+      }
     } finally {
       setLoading(false);
     }
