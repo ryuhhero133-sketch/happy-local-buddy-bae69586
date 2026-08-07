@@ -472,14 +472,14 @@ function OnlinePlayersTab({
         supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
         supabase.from("profiles").select("gold, crystal").eq("id", id).maybeSingle(),
         supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("ranked_scores").select("trainer_level").eq("user_id", id).maybeSingle()
+        supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", id).maybeSingle()
       ]);
       
       setInventory({
         items: invRes.data || [],
         balls: ballsRes.data || [],
         pokemon: pokeRes.data || [],
-        trainer: trainerRes.data || { gold: 0, crystal: 0 },
+        trainer: { ...(trainerRes.data || { gold: 0, crystal: 0 }), ...(rankedRes.data || { trainer_level: 1, total_kills: 0 }) },
         gifts: giftsRes.data || []
       });
       
@@ -674,6 +674,17 @@ function OnlinePlayersTab({
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] text-slate-500 uppercase">Status Global</label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800">
+                      <div className="text-[8px] text-slate-500 uppercase">Kills Totais</div>
+                      <div className="text-xs font-bold text-amber-100">{(inventory?.trainer as any)?.total_kills || 0}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <label className="text-[10px] text-slate-500 uppercase">Experiência (XP)</label>
                   <input
                     type="number"
@@ -698,23 +709,65 @@ function OnlinePlayersTab({
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                 {inventory.pokemon.map((p: any) => (
-                  <div key={p.id} className="bg-slate-900/50 p-2 rounded border border-slate-800 space-y-2">
+                  <div key={p.id} className="bg-slate-900/50 p-2 rounded border border-slate-800 space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-amber-100 uppercase">{p.species.replace(/_/g, " ")}</span>
-                      <span className="text-[9px] text-slate-500">{p.rarity}</span>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-amber-100 uppercase">{p.species.replace(/_/g, " ")}</span>
+                        <span className="text-[7px] text-slate-500 font-mono truncate max-w-[100px]">{p.uid || p.id}</span>
+                      </div>
+                      <span className={`px-1 rounded text-[8px] font-bold ${
+                        p.rarity === 'mythic_shiny' ? 'bg-fuchsia-500/20 text-fuchsia-400' :
+                        p.rarity === 'legendary' ? 'bg-amber-500/20 text-amber-400' :
+                        'bg-slate-700/50 text-slate-400'
+                      }`}>
+                        {(p.rarity || 'common').toUpperCase()}
+                      </span>
                     </div>
-                    <div className="flex gap-2 items-center">
-                      <span className="text-[9px] text-slate-400">Lv</span>
-                      <input
-                        type="number"
-                        defaultValue={p.level}
-                        onBlur={(e) => {
-                          const val = Number(e.target.value);
-                          if (val !== p.level) savePokemonLevel(p.id, val);
-                        }}
-                        className="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[10px] text-amber-100"
-                      />
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[8px] text-slate-500 uppercase">Nível</span>
+                        <input
+                          type="number"
+                          defaultValue={p.level}
+                          onBlur={(e) => {
+                            const val = Number(e.target.value);
+                            if (val !== p.level) savePokemonLevel(p.id, val);
+                          }}
+                          className="w-full bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-[10px] text-amber-100 outline-none focus:border-fuchsia-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[8px] text-slate-500 uppercase">Ações</span>
+                        <button 
+                          onClick={async () => {
+                            if (!confirm("Deletar este Pokémon permanentemente?")) return;
+                            try {
+                              const { error } = await supabase.from("pokemon_collection").delete().eq("id", p.id);
+                              if (error) throw error;
+                              toast.success("Pokémon removido!");
+                              inspectPlayer(inspectingUser!);
+                            } catch (e: any) { toast.error(e.message); }
+                          }}
+                          className="w-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[9px] py-1 rounded hover:bg-rose-500/20"
+                        >
+                          DELETAR
+                        </button>
+                      </div>
                     </div>
+
+                    {p.traits && p.traits.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-[8px] text-slate-500 uppercase">Traits</span>
+                        <div className="flex flex-wrap gap-1">
+                          {p.traits.map((t: string, i: number) => (
+                            <span key={i} className="text-[7px] bg-slate-800 text-slate-300 px-1 rounded border border-slate-700">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {inventory.pokemon.length === 0 && (
@@ -747,9 +800,25 @@ function OnlinePlayersTab({
                       </div>
                     ))}
                     {inventory.items.map((i: any) => (
-                      <div key={i.item_id} className="bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between text-[9px]">
+                      <div key={i.item_id} className="bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between items-center text-[9px]">
                         <span className="text-slate-400">{i.item_id}</span>
-                        <span className="text-emerald-400 font-bold">x{i.qty}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-emerald-400 font-bold">x{i.qty}</span>
+                          <button 
+                            onClick={async () => {
+                              if (!confirm(`Remover todos os ${i.item_id}?`)) return;
+                              try {
+                                const { error } = await supabase.from("inventory").delete().eq("user_id", inspectingUser).eq("item_id", i.item_id);
+                                if (error) throw error;
+                                toast.success("Item removido!");
+                                inspectPlayer(inspectingUser!);
+                              } catch (e: any) { toast.error(e.message); }
+                            }}
+                            className="text-rose-500 hover:text-rose-400 font-bold text-xs leading-none"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
