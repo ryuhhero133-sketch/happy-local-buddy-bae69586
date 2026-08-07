@@ -7215,7 +7215,7 @@ function IdlePage() {
 
         </div>
 
-        {tab !== "batalha" && (
+        {(tab !== "batalha" && tab !== "inicio") && (
           <TabOverlay
             tab={tab}
             onClose={() => setTab("batalha")}
