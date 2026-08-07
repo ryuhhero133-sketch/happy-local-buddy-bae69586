@@ -411,15 +411,13 @@ function OnlinePlayersTab({
   const refresh = async () => {
     setLoading(true);
     try {
-      // Tenta buscar perfis com tratamento robusto
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, last_login")
+        .select("id, username, last_login, account_status, lock_until")
         .order("last_login", { ascending: false });
       
       if (profilesError) throw profilesError;
 
-      // Busca dados de ranking separadamente
       const { data: ranked, error: rankedError } = await supabase
         .from("ranked_scores")
         .select("user_id, trainer_level, total_kills");
@@ -435,7 +433,6 @@ function OnlinePlayersTab({
       setPlayers(enrichedPlayers);
     } catch (e: any) {
       console.error("Load players failed", e);
-      // Only show toast if it's not a common development/network error that might be noisy
       if (!e.message?.includes("failed to fetch")) {
         toast.error(`Falha ao carregar lista de jogadores: ${e.message || 'Erro desconhecido'}`);
       }
