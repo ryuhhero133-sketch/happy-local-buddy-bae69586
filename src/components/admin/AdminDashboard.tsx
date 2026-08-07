@@ -467,7 +467,7 @@ function OnlinePlayersTab({
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
         supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
-        supabase.from("trainer_state").select("*").eq("user_id", id).maybeSingle(),
+        supabase.from("profiles").select("gold, crystal").eq("id", id).maybeSingle(),
         supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20)
       ]);
       setInventory({
