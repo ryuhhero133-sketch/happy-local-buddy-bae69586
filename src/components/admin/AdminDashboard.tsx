@@ -579,46 +579,117 @@ function OnlinePlayersTab() {
       </Card>
 
       {inspectingUser && (
-        <div className="grid md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2">
-          <Card title="Inventário Detalhado">
-            {!inventory ? <div className="text-xs text-slate-500">Carregando...</div> : (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  {inventory.balls.map((b: any) => (
-                    <div key={b.ball_type} className="bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between text-[10px]">
-                      <span className="text-slate-400">{b.ball_type}</span>
-                      <span className="text-amber-200 font-bold">x{b.qty}</span>
-                    </div>
-                  ))}
-                  {inventory.items.map((i: any) => (
-                    <div key={i.item_id} className="bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between text-[10px]">
-                      <span className="text-slate-400">{i.item_id}</span>
-                      <span className="text-emerald-400 font-bold">x{i.qty}</span>
-                    </div>
-                  ))}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in slide-in-from-bottom-2">
+          <Card title="Modificar Treinador">
+            {!inventory?.trainer ? (
+              <div className="text-xs text-slate-500 italic">Nenhum dado de treinador disponível.</div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] text-slate-500 uppercase">Nível do Treinador</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={editLevel || 0}
+                      onChange={(e) => setEditLevel(Number(e.target.value))}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-amber-100"
+                    />
+                  </div>
                 </div>
-                {inventory.balls.length === 0 && inventory.items.length === 0 && (
-                  <div className="text-xs text-slate-500 italic">Mochila vazia.</div>
+                <div className="space-y-2">
+                  <label className="text-[10px] text-slate-500 uppercase">Experiência (XP)</label>
+                  <input
+                    type="number"
+                    value={editXp || 0}
+                    onChange={(e) => setEditXp(Number(e.target.value))}
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-amber-100"
+                  />
+                </div>
+                <button
+                  onClick={saveTrainerStats}
+                  className="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold py-2 rounded shadow-lg shadow-fuchsia-900/20 transition"
+                >
+                  SALVAR ALTERAÇÕES
+                </button>
+              </div>
+            )}
+          </Card>
+
+          <Card title="Pokémons do Jogador">
+            {!inventory?.pokemon ? (
+              <div className="text-xs text-slate-500 italic">Carregando...</div>
+            ) : (
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                {inventory.pokemon.map((p: any) => (
+                  <div key={p.id} className="bg-slate-900/50 p-2 rounded border border-slate-800 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-amber-100 uppercase">{p.species.replace(/_/g, " ")}</span>
+                      <span className="text-[9px] text-slate-500">{p.rarity}</span>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-[9px] text-slate-400">Lv</span>
+                      <input
+                        type="number"
+                        defaultValue={p.level}
+                        onBlur={(e) => {
+                          const val = Number(e.target.value);
+                          if (val !== p.level) savePokemonLevel(p.id, val);
+                        }}
+                        className="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[10px] text-amber-100"
+                      />
+                    </div>
+                  </div>
+                ))}
+                {inventory.pokemon.length === 0 && (
+                  <div className="text-xs text-slate-500 italic text-center py-4">Nenhum Pokémon.</div>
                 )}
               </div>
             )}
           </Card>
-          <Card title="Histórico de Conexões (IPs)">
-            <div className="space-y-2">
-              {ipLogs.map((log, i) => (
-                <div key={i} className="text-[10px] bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between">
-                  <span className="text-amber-100 font-mono">{log.ip_address}</span>
-                  <span className="text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
+
+          <div className="space-y-4">
+            <Card title="Inventário">
+              {!inventory ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
+                    {inventory.balls.map((b: any) => (
+                      <div key={b.ball_type} className="bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between text-[9px]">
+                        <span className="text-slate-400">{b.ball_type}</span>
+                        <span className="text-amber-200 font-bold">x{b.qty}</span>
+                      </div>
+                    ))}
+                    {inventory.items.map((i: any) => (
+                      <div key={i.item_id} className="bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between text-[9px]">
+                        <span className="text-slate-400">{i.item_id}</span>
+                        <span className="text-emerald-400 font-bold">x{i.qty}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {inventory.balls.length === 0 && inventory.items.length === 0 && (
+                    <div className="text-xs text-slate-500 italic">Mochila vazia.</div>
+                  )}
                 </div>
-              ))}
-              {ipLogs.length === 0 && <div className="text-xs text-slate-500">Nenhum log de IP encontrado.</div>}
-            </div>
-          </Card>
+              )}
+            </Card>
+
+            <Card title="Conexões (IPs)">
+              <div className="space-y-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
+                {ipLogs.map((log, i) => (
+                  <div key={i} className="text-[9px] bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between">
+                    <span className="text-amber-100 font-mono">{log.ip_address}</span>
+                    <span className="text-[8px] text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
+                  </div>
+                ))}
+                {ipLogs.length === 0 && <div className="text-xs text-slate-500 italic">Nenhum IP.</div>}
+              </div>
+            </Card>
+          </div>
         </div>
       )}
     </div>
   );
 }
+
 
 
 function PokemonTab() {
