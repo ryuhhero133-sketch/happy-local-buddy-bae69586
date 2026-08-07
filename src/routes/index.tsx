@@ -23,9 +23,9 @@ function Index() {
   useEffect(() => {
     const releaseMaintenance = async () => {
       try {
-        // Correcting the call to the server function
+        // Forçamos a desativação da manutenção em cada acesso à raiz para garantir que todos entrem
         await setMaintenanceMode({ data: { enabled: false } });
-        console.log("Modo de manutenção desativado.");
+        console.log("Modo de manutenção desativado com sucesso.");
       } catch (err) {
         console.error("Erro ao liberar manutenção:", err);
       } finally {
@@ -38,9 +38,33 @@ function Index() {
   }, [navigate]);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: '#fff', fontFamily: 'monospace' }}>
-      {loading ? "LIBERANDO ACESSO PARA OS JOGADORES..." : "REDIRECIONANDO..."}
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column',
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      background: 'radial-gradient(circle at center, #1a0306 0%, #000 100%)', 
+      color: '#fff', 
+      fontFamily: 'monospace',
+      textAlign: 'center',
+      padding: '20px'
+    }}>
+      <div style={{ 
+        padding: '30px', 
+        border: '2px solid #7f1d1d', 
+        borderRadius: '12px', 
+        background: 'rgba(0,0,0,0.8)',
+        boxShadow: '0 0 30px rgba(127, 29, 29, 0.4)'
+      }}>
+        <h1 style={{ color: '#fecaca', marginBottom: '20px', letterSpacing: '4px' }}>IDLE MON</h1>
+        <p style={{ fontSize: '14px', color: '#fca5a5', marginBottom: '10px' }}>
+          {loading ? "LIBERANDO ACESSO PARA OS JOGADORES..." : "ACESSO LIBERADO!"}
+        </p>
+        <p style={{ fontSize: '10px', opacity: 0.7 }}>Redirecionando para o mapa...</p>
+      </div>
     </div>
   );
 }
+
 

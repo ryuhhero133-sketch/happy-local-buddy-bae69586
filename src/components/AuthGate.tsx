@@ -179,9 +179,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
       // Verifica status de manutenção e banimento no banco
       if (sess?.user?.id) {
         try {
-          const { data: profile, error: profileError } = await (supabase as any)
+          // Simplificando verificação de status para evitar falhas no login
+          const { data: profile } = await (supabase as any)
             .from("profiles")
-            .select("id, account_status, lock_until")
+            .select("id, account_status")
             .eq("id", sess.user.id)
             .maybeSingle();
 
@@ -191,19 +192,19 @@ export function AuthGate({ children }: { children: ReactNode }) {
             
             if (!isAdmin) {
               if (profile.account_status === "banned") {
-                setKickedMessage("SUA CONTA FOI BANIDA PERMANENTEMENTE POR VIOLAÇÃO DOS TERMOS.");
+                setKickedMessage("CONTA BANIDA.");
                 await supabase.auth.signOut();
                 return;
               }
               if (profile.account_status === "analysis") {
-                setKickedMessage("SUA CONTA ESTÁ EM ANÁLISE PELA STAFF E O ACESSO FOI TEMPORARIAMENTE RESTRITO.");
+                setKickedMessage("CONTA EM ANÁLISE.");
                 await supabase.auth.signOut();
                 return;
               }
             }
           }
         } catch (e) {
-          warn("Exceção ao verificar status da conta", e);
+          warn("Erro verificação status", e);
         }
       }
 
