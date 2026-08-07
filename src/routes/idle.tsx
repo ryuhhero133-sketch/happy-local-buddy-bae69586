@@ -12912,12 +12912,6 @@ function TabOverlay({
         padding: 10,
         WebkitOverflowScrolling: "touch"
       }}>
-
-      <div className="modern-window-scroll-content" style={{ 
-        flex: 1, 
-        overflowY: "auto", 
-        padding: 10,
-        WebkitOverflowScrolling: "touch"
       }}>
 
 
