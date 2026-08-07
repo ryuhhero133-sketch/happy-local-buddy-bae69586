@@ -674,6 +674,17 @@ function OnlinePlayersTab({
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] text-slate-500 uppercase">Status Global</label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800">
+                      <div className="text-[8px] text-slate-500 uppercase">Kills Totais</div>
+                      <div className="text-xs font-bold text-amber-100">{(inventory?.trainer as any)?.total_kills || 0}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <label className="text-[10px] text-slate-500 uppercase">Experiência (XP)</label>
                   <input
                     type="number"
