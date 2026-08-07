@@ -15126,9 +15126,10 @@ function TabOverlay({
         );
       })()}
       <SmartGuideHud hasPokemon={team.length > 0} />
-    </>
+    </div>
   );
 }
+
 
 
 
