@@ -7683,7 +7683,7 @@ function IdlePage() {
             textShadow: "0 0 8px rgba(200,240,255,0.9)",
             boxShadow: "0 0 18px rgba(120,200,255,0.7)",
             pointerEvents: "none",
-          }}>❄ RANKED CRAFT CONGELADO — PONTOS BLOQUEADOS ❄</div>
+          }}>BLOK RANKED DO JOGO</div>
         </>
       )}
 
