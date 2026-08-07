@@ -10526,8 +10526,9 @@ function IdlePage() {
           pushChat(`🏰 Você adentrou o ${f.label} (−${f.entryShards.toLocaleString("pt-BR")} 🔻). Prepare-se.`, "cap");
           setGymOpen(false);
         };
-        return (
-          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.88)", display: "grid", placeItems: "center", padding: 16 }}>
+        return createPortal(
+          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.88)", display: "grid", placeItems: "center", padding: 16 }}>
+
             <div onClick={(e) => e.stopPropagation()} style={{ width: "min(680px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #2a1010 0%, #0d0505 60%, #150a20 100%)", border: "3px solid #ff5c5c", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(255,92,92,0.35)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                 <img src={houseGymImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
