@@ -11553,7 +11553,7 @@ function IdlePage() {
           </div>,
           document.body
         );
-      })(), document.body)}
+      })()}
 
       {/* ===== Modal: Casa Azul — escolher Pokémon para descansar ===== */}
       {azulPickerOpen && createPortal((() => {
@@ -11725,7 +11725,7 @@ function IdlePage() {
           </div>,
           document.body
         );
-      })(), document.body)}
+      })()}
 
       {statsCardPet && createPortal(
         <PokemonStatsCard
