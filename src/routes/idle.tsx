@@ -10630,8 +10630,7 @@ function IdlePage() {
               ))}
             </div>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
 
       {worldTraderOpen && createPortal(
@@ -10934,9 +10933,7 @@ function IdlePage() {
                     </div>
                   </div>
                 );
-              })(),
-              document.body
-            )}
+              })()}
 
 
 
@@ -11355,7 +11352,7 @@ function IdlePage() {
             </div>
           </div>
         );
-      })(), document.body)}
+      })()}
 
 
 
@@ -11548,12 +11545,9 @@ function IdlePage() {
                   style={{ marginTop: 14, width: "100%", background: "#4a9eff", color: "#0b0510", border: "none", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer" }}
                 >🏡 Levar à Casa Azul (5💎 · 5 min)</button>
               )}
-
             </div>
-          </div>,
-          document.body
-        );
-      })()}
+          </div>
+        ))}
 
       {/* ===== Modal: Casa Azul — escolher Pokémon para descansar ===== */}
       {azulPickerOpen && createPortal((() => {
@@ -11722,10 +11716,8 @@ function IdlePage() {
                 <div style={{ marginTop: 14, textAlign: "center", color: "#3d7a4a", fontWeight: 900 }}>★ Este está no seu time</div>
               )}
             </div>
-          </div>,
-          document.body
-        );
-      })()}
+          </div>
+        ))}
 
       {statsCardPet && createPortal(
         <PokemonStatsCard
@@ -12304,7 +12296,7 @@ function IdlePage() {
             </div>
           </div>
         );
-      })(), document.body)}
+      })()}
 
 
       {isAdminOpen && createPortal(
