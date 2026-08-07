@@ -3184,9 +3184,9 @@ function IdlePage() {
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   // Contador de pokébolas arremessadas em cada Mewtwo do evento (por id de spawn).
-  const mewtwoBallsRef = useRef<Map<number, number>>(new Map<number, number>());
+  const mewtwoBallsRef = useRef<Record<number, number>>({});
   // Contador de Ultra Balls arremessadas em bosses raros (Dragonite Shiny / Zapdos / Raichu Mítico).
-  const bossBallsRef = useRef<Map<number, number>>(new Map<number, number>());
+  const bossBallsRef = useRef<Record<number, number>>({});
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
   const RAICHU_MYTHIC_MIN_BALLS = 2000;
