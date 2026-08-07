@@ -21,10 +21,10 @@ function Index() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Ao acessar a raiz, liberamos o acesso e redirecionamos
     const releaseMaintenance = async () => {
       try {
-        await setMaintenanceMode({ enabled: false });
+        // Correcting the call to the server function
+        await setMaintenanceMode({ data: { enabled: false } });
         console.log("Modo de manutenção desativado.");
       } catch (err) {
         console.error("Erro ao liberar manutenção:", err);
@@ -38,8 +38,8 @@ function Index() {
   }, [navigate]);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyItems: 'center', background: '#000', color: '#fff' }}>
-      {loading ? "Liberando acesso para os jogadores..." : "Redirecionando..."}
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: '#fff', fontFamily: 'monospace' }}>
+      {loading ? "LIBERANDO ACESSO PARA OS JOGADORES..." : "REDIRECIONANDO..."}
     </div>
   );
 }
