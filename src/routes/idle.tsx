@@ -10599,10 +10599,10 @@ function IdlePage() {
                 >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
               </div>
             </div>
-          </div>
           </div>,
           document.body
         );
+
 
       })()}
 
