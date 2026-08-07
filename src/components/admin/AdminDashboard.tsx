@@ -429,8 +429,8 @@ function OnlinePlayersTab() {
         trainer: trainerRes.data
       });
       if (trainerRes.data) {
-        setEditLevel(trainerRes.data.trainer_level);
-        setEditXp(trainerRes.data.trainer_xp);
+        setEditLevel((trainerRes.data as any).trainer_level);
+        setEditXp((trainerRes.data as any).trainer_xp);
       }
       setIpLogs(ipRes.data || []);
     } catch (e) {
@@ -441,7 +441,7 @@ function OnlinePlayersTab() {
   const saveTrainerStats = async () => {
     if (!inspectingUser || editLevel === null || editXp === null) return;
     try {
-      const { error } = await supabase.rpc('admin_update_trainer_stats', {
+      const { error } = await (supabase.rpc as any)('admin_update_trainer_stats', {
         target_user_id: inspectingUser,
         new_level: editLevel,
         new_xp: editXp
@@ -457,7 +457,7 @@ function OnlinePlayersTab() {
 
   const savePokemonLevel = async (id: string, level: number) => {
     try {
-      const { error } = await supabase.rpc('admin_update_pokemon_level', {
+      const { error } = await (supabase.rpc as any)('admin_update_pokemon_level', {
         target_pokemon_id: id,
         new_level: level
       });
@@ -468,6 +468,7 @@ function OnlinePlayersTab() {
       toast.error(e.message);
     }
   };
+
 
 
   const updateStatus = async (id: string, status: string) => {
