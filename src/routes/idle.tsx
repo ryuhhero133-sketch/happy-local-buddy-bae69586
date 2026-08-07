@@ -10600,7 +10600,10 @@ function IdlePage() {
               </div>
             </div>
           </div>
+          </div>,
+          document.body
         );
+
       })()}
 
 
