@@ -465,26 +465,35 @@ function OnlinePlayersTab({
     setEditXp(null);
     
     try {
-      const [invRes, ballsRes, ipRes, pokeRes, trainerRes, giftsRes, rankedRes] = await Promise.all([
+      const [invRes, ballsRes, ipRes, pokeRes, trainerRes, giftsRes, rankedRes, stateRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
         supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
-        supabase.from("profiles").select("gold, crystal").eq("id", id).maybeSingle(),
+        supabase.from("profiles").select("gold, crystal, vault, pokeVault" as any).eq("id", id).maybeSingle(),
         supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", id).maybeSingle()
+        supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", id).maybeSingle(),
+        supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle()
       ]);
+      
+      const trainerData: any = {
+        ...(trainerRes.data || { gold: 0, crystal: 0 }),
+        ...(rankedRes.data || { trainer_level: 1, total_kills: 0 }),
+        ...(stateRes.data || {})
+      };
       
       setInventory({
         items: invRes.data || [],
         balls: ballsRes.data || [],
         pokemon: pokeRes.data || [],
-        trainer: { ...(trainerRes.data || { gold: 0, crystal: 0 }), ...(rankedRes.data || { trainer_level: 1, total_kills: 0 }) },
+        trainer: trainerData,
         gifts: giftsRes.data || []
       });
       
-      setEditLevel((rankedRes.data as any)?.trainer_level || 1);
-      setEditXp(0);
+      setEditLevel(trainerData.trainer_level || 1);
+      setEditXp(trainerData.trainer_xp || 0);
+
+
       setIpLogs(ipRes.data || []);
       
       setTimeout(() => {
@@ -508,6 +517,16 @@ function OnlinePlayersTab({
         new_xp: editXp
       });
       if (error) throw error;
+      
+      // Também atualizar trainer_state se existir (redundância de segurança para refletir no jogo live)
+      await (supabase.from("trainer_state" as any) as any).update({
+        trainer_level: editLevel,
+        trainer_xp: editXp,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", inspectingUser);
+
+
+
       toast.success("Status do treinador atualizados!");
       refresh();
       inspectPlayer(inspectingUser);
@@ -515,6 +534,7 @@ function OnlinePlayersTab({
       toast.error(e.message);
     }
   };
+
 
   const savePokemonLevel = async (id: string, level: number) => {
     try {
@@ -839,6 +859,44 @@ function OnlinePlayersTab({
               )}
             </Card>
 
+            <Card title="Banco Medieval (Vault)">
+              {!inventory?.trainer ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="text-[9px] uppercase tracking-wider text-slate-500">Itens no Banco</div>
+                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800 text-[10px] text-slate-300 max-h-[100px] overflow-y-auto">
+                      {inventory.trainer.vault ? (
+                        <div className="space-y-1">
+                          {Object.entries(inventory.trainer.vault as Record<string, number>).map(([id, qty]) => (
+                            <div key={id} className="flex justify-between border-b border-slate-800/50 pb-1">
+                              <span className="text-slate-400">{id}</span>
+                              <span className="text-amber-200 font-bold">x{qty}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : "Vazio"}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="text-[9px] uppercase tracking-wider text-slate-500">Pokémons no Banco</div>
+                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800 text-[10px] text-slate-300 max-h-[100px] overflow-y-auto">
+                      {inventory.trainer.pokeVault ? (
+                        <div className="space-y-1">
+                          {(inventory.trainer.pokeVault as any[]).map((p: any, i: number) => (
+                            <div key={i} className="flex justify-between border-b border-slate-800/50 pb-1">
+                              <span className="text-slate-400">{p.species}</span>
+                              <span className="text-amber-200 font-bold">Lv.{p.level}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : "Vazio"}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+
             <Card title="Histórico de Presentes">
               {!inventory?.gifts ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
                 <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
@@ -860,6 +918,7 @@ function OnlinePlayersTab({
                 </div>
               )}
             </Card>
+
 
             <Card title="Conexões (IPs)">
               <div className="space-y-2 max-h-[100px] overflow-y-auto pr-1 custom-scrollbar">
