@@ -176,7 +176,37 @@ export function AuthGate({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
       log("authStateChange", event, sess?.user?.id);
 
-      // Verifica status de manutenção no banco
+      // Verifica status de manutenção e banimento no banco
+      if (sess?.user?.id) {
+        try {
+          const { data: profile, error: profileError } = await (supabase as any)
+            .from("profiles")
+            .select("id, account_status, lock_until")
+            .eq("id", sess.user.id)
+            .maybeSingle();
+
+          if (profile) {
+            const isAdmin = sess.user.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
+                            sess.user.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+            
+            if (!isAdmin) {
+              if (profile.account_status === "banned") {
+                setKickedMessage("SUA CONTA FOI BANIDA PERMANENTEMENTE POR VIOLAÇÃO DOS TERMOS.");
+                await supabase.auth.signOut();
+                return;
+              }
+              if (profile.account_status === "analysis") {
+                setKickedMessage("SUA CONTA ESTÁ EM ANÁLISE PELA STAFF E O ACESSO FOI TEMPORARIAMENTE RESTRITO.");
+                await supabase.auth.signOut();
+                return;
+              }
+            }
+          }
+        } catch (e) {
+          warn("Exceção ao verificar status da conta", e);
+        }
+      }
+
       try {
         const { data: config } = await (supabase as any)
           .from("server_config")
@@ -187,20 +217,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       } catch (e) {
         warn("Erro ao verificar manutenção", e);
       }
-      
-      if (sess?.user?.id) {
-        try {
-          const { data: profile, error: profileError } = await (supabase as any)
-            .from("profiles")
-            .select("id")
-            .eq("id", sess.user.id)
-            .maybeSingle();
 
-          /* account_status check removed due to missing column */
-        } catch (e) {
-          warn("Exceção ao verificar status da conta", e);
-        }
-      }
 
       // Se a sessão sumiu (ex: deletada via SQL), forçamos o estado local para deslogado
       if (!sess && session) {

@@ -10414,10 +10414,10 @@ function IdlePage() {
             <button onClick={() => move(id, n, toVault)} style={{ background: "#2a1a2e", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "4px 7px", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>{toVault ? "▶ TUDO" : "◀ TUDO"}</button>
           </div>
         );
-        return (
-          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
-      {/* Portals moved to top-level for reliability */}
+        return createPortal(
+          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: "min(760px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #241a12 0%, #0e0906 100%)", border: "3px solid #f5cf6b", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(245,207,107,0.35)" }}>
+
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <img src={houseBankImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
                 <div style={{ flex: 1 }}>
@@ -10487,9 +10487,11 @@ function IdlePage() {
                 </div>
               )}
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
+
 
       {/* ═══ 🏰 GINÁSIO MEDIEVAL — endgame: 3 andares + portal do Vale ═══ */}
       {gymOpen && (() => {
@@ -10522,8 +10524,9 @@ function IdlePage() {
           pushChat(`🏰 Você adentrou o ${f.label} (−${f.entryShards.toLocaleString("pt-BR")} 🔻). Prepare-se.`, "cap");
           setGymOpen(false);
         };
-        return (
-          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.88)", display: "grid", placeItems: "center", padding: 16 }}>
+        return createPortal(
+          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.88)", display: "grid", placeItems: "center", padding: 16 }}>
+
             <div onClick={(e) => e.stopPropagation()} style={{ width: "min(680px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #2a1010 0%, #0d0505 60%, #150a20 100%)", border: "3px solid #ff5c5c", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(255,92,92,0.35)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                 <img src={houseGymImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
@@ -10594,14 +10597,17 @@ function IdlePage() {
                 >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
+
+
       })()}
 
 
       {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
-      {netLogOpen && (
-        <div onClick={() => setNetLogOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+      {netLogOpen && createPortal(
+        <div onClick={() => setNetLogOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ width: "min(720px, 100%)", maxHeight: "85vh", overflowY: "auto", background: "linear-gradient(160deg, #0d1824 0%, #05080d 100%)", border: "3px solid #6bd4ff", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(107,212,255,0.3)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <div style={{ flex: 1 }}>
@@ -10627,21 +10633,20 @@ function IdlePage() {
         </div>
       )}
 
-      {/* ═══ Modal do NPC Trocador (aberto ao clicar no NPC no mapa) ═══ */}
-      {worldTraderOpen && (() => {
-        const collection = idle.collection ?? [];
-        const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
-        const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
-        return (
-          <div
-            onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
-          >
+      {worldTraderOpen && createPortal((() => {
+          const collection = idle.collection ?? [];
+          const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
+          const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
+          return (
             <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "min(640px, 100%)", maxHeight: "90vh", overflowY: "auto",
-                background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+              onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: "min(640px, 100%)", maxHeight: "90vh", overflowY: "auto",
+                  background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
                 border: "2px solid #ffd94d", borderRadius: 16, padding: 18,
                 boxShadow: "0 12px 36px rgba(0,0,0,0.75), 0 0 32px rgba(255,217,77,0.35)",
               }}
@@ -10927,12 +10932,16 @@ function IdlePage() {
                     </div>
                   </div>
                 );
-              })()}
+              })(), document.body)}
 
-            </div>
-          </div>
-        );
-      })()}
+
+
+
+
+
+
+
+
 
       {/* Incubadora — animação de sucesso/falha */}
       {orbAnim && (
@@ -11068,7 +11077,7 @@ function IdlePage() {
         }}
       >🔑 Código</button>
 
-      {codeOpen && (
+      {codeOpen && createPortal(
         <div
           onClick={() => setCodeOpen(false)}
           style={{
@@ -11128,11 +11137,12 @@ function IdlePage() {
               }}>{codeMsg.text}</div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ===== Painel de Troca Black Mitic Plus (RESGTT55) ===== */}
-      {bmpSwapOpen && (() => {
+      {bmpSwapOpen && createPortal((() => {
         const isBMP = (e: { event?: string | null }) =>
           typeof e.event === "string" && e.event.startsWith("black_mitic");
         const bmpEntries = [
@@ -11341,7 +11351,7 @@ function IdlePage() {
             </div>
           </div>
         );
-      })()}
+      })(), document.body)}
 
 
 
@@ -11350,7 +11360,7 @@ function IdlePage() {
 
 
       {/* ===== Popup do ovo chocando ===== */}
-      {eggOpenResult && (() => {
+      {eggOpenResult && createPortal((() => {
         const rarityColorMap: Record<string, string> = {
           common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
           epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
@@ -11409,12 +11419,12 @@ function IdlePage() {
             </div>
           </div>
         );
-      })()}
+      })(), document.body)}
 
       {/* ===== Modal de escolha do inicial ===== */}
 
 
-      {!starterChosen && (
+      {!starterChosen && createPortal(
         <div style={{
           position: "fixed", inset: 0, zIndex: 1000,
           background: "rgba(11,5,16,0.92)",
@@ -11534,14 +11544,13 @@ function IdlePage() {
                   style={{ marginTop: 14, width: "100%", background: "#4a9eff", color: "#0b0510", border: "none", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer" }}
                 >🏡 Levar à Casa Azul (5💎 · 5 min)</button>
               )}
-
             </div>
           </div>
         );
-      })()}
+      })(), document.body)}
 
       {/* ===== Modal: Casa Azul — escolher Pokémon para descansar ===== */}
-      {azulPickerOpen && (() => {
+      {azulPickerOpen && createPortal((() => {
         void energyTick;
         const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
         const party = save.party ?? team;
@@ -11709,15 +11718,16 @@ function IdlePage() {
             </div>
           </div>
         );
-      })()}
+      })(), document.body)}
 
-      {statsCardPet && (
+      {statsCardPet && createPortal(
         <PokemonStatsCard
           pet={statsCardPet}
           team={team}
           gifSrc={GIF[statsCardPet.species]}
           onClose={() => setStatsCardPet(null)}
-        />
+        />,
+        document.body
       )}
 
 
@@ -11850,7 +11860,7 @@ function IdlePage() {
 
 
       {/* ============ LOJINHA CASH ============ */}
-      {cashShopOpen && (
+      {cashShopOpen && createPortal(
         <CashShopModal
 
           open={cashShopOpen}
@@ -12288,6 +12298,7 @@ function IdlePage() {
           </div>
         );
       })(), document.body)}
+
 
       {isAdminOpen && createPortal(
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />,

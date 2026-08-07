@@ -534,6 +534,22 @@ function OnlinePlayersTab({
     }
   };
 
+  const deletePlayer = async (id: string) => {
+    if (!confirm("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL. Deletar permanentemente todos os dados deste jogador?")) return;
+    try {
+      // In a real scenario, this would delete from profiles which cascades, 
+      // but since profiles is linked to auth.users, we might need a dedicated RPC if RLS is strict
+      const { error } = await supabase.from("profiles").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Conta deletada com sucesso.");
+      setInspectingUser(null);
+      refresh();
+    } catch (e: any) {
+      toast.error(`Erro ao deletar: ${e.message}`);
+    }
+  };
+
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-4 mb-4">
@@ -766,9 +782,23 @@ function OnlinePlayersTab({
                 {ipLogs.length === 0 && <div className="text-xs text-slate-500 italic">Nenhum IP.</div>}
               </div>
             </Card>
+
+            <Card title="Zona de Perigo">
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg space-y-3">
+                <p className="text-[9px] text-rose-300">Ações administrativas críticas para a conta do usuário.</p>
+                <button
+                  onClick={() => deletePlayer(inspectingUser)}
+                  className="w-full bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold py-2 rounded shadow-lg shadow-rose-900/20 transition"
+                >
+                  DELETAR CONTA PERMANENTEMENTE
+                </button>
+              </div>
+            </Card>
           </div>
         </div>
       )}
+
+
     </div>
   );
 }
