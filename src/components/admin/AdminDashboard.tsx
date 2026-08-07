@@ -501,6 +501,9 @@ function OnlinePlayersTab() {
                     </td>
                     <td className="px-3 py-2 text-fuchsia-300">
                       Lv {p.ranked_leaderboard?.[0]?.trainer_level || 1}
+                      {p.ranked_leaderboard?.[0]?.trainer_level >= 10000 && (
+                        <span className="ml-1 text-[8px] bg-rose-500 text-white px-1 rounded animate-pulse">SUSPECT</span>
+                      )}
                     </td>
                     <td className="px-3 py-2 text-slate-500 italic">
                       {p.last_login ? new Date(p.last_login).toLocaleString() : "Nunca"}
