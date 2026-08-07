@@ -10603,7 +10603,7 @@ function IdlePage() {
         );
 
 
-      })()}
+      })(), document.body)}
 
 
       {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
@@ -11611,7 +11611,8 @@ function IdlePage() {
             </div>
           </div>
         );
-      })()}
+        );
+      })(), document.body)}
 
       {/* ===== Modal: Detalhes da Coleção ===== */}
       {colecaoDetailUid && (() => {
