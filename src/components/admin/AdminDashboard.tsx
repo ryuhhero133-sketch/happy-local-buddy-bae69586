@@ -367,8 +367,6 @@ function OnlinePlayersTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [editLevel, setEditLevel] = useState<number | null>(null);
   const [editXp, setEditXp] = useState<number | null>(null);
-  const [editPokeLevel, setEditPokeLevel] = useState<{id: string, level: number} | null>(null);
-
 
   const refresh = async () => {
     setLoading(true);
@@ -409,6 +407,10 @@ function OnlinePlayersTab() {
   }, [players, searchQuery]);
 
   const inspectPlayer = async (id: string) => {
+    if (inspectingUser === id) {
+      setInspectingUser(null);
+      return;
+    }
     setInspectingUser(id);
     setInventory(null);
     setIpLogs([]);
@@ -469,8 +471,6 @@ function OnlinePlayersTab() {
     }
   };
 
-
-
   const updateStatus = async (id: string, status: string) => {
     if (!confirm(`Alterar status para ${status.toUpperCase()}?`)) return;
     try {
@@ -506,8 +506,8 @@ function OnlinePlayersTab() {
             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-fuchsia-500"
           />
         </div>
-        <button onClick={refresh} className="bg-slate-800 hover:bg-slate-700 text-xs px-4 py-2 rounded-lg transition">
-          ATUALIZAR LISTA ({players.length})
+        <button onClick={refresh} className="bg-slate-800 hover:bg-slate-700 text-xs px-4 py-2 rounded-lg transition whitespace-nowrap">
+          LISTAR TODOS ({players.length})
         </button>
       </div>
 
