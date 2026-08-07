@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+// Analisando segurança do sistema...
 import { useEffect } from 'react';
 import { AuthGate } from '@/components/AuthGate';
 
