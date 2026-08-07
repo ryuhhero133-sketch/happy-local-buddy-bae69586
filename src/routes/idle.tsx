@@ -12888,10 +12888,14 @@ function TabOverlay({
     <div className="modern-floating-window" style={{ 
       background: "rgba(11, 5, 20, 0.96)", 
       backdropFilter: "blur(14px)",
-      overflowY: "auto"
+      maxHeight: "92vh",
+      display: "flex",
+      flexDirection: "column",
+      pointerEvents: "auto",
+      overflow: "hidden"
     }}>
 
-      <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10 }}>
+      <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
         <h2 style={{ 
           margin: 0, fontSize: 22, color: "#f5cf6b", 
           fontFamily: "'Cinzel', serif", letterSpacing: 2,
@@ -12901,6 +12905,13 @@ function TabOverlay({
           FECHAR ✕
         </button>
       </div>
+
+      <div className="modern-window-scroll-content" style={{ 
+        flex: 1, 
+        overflowY: "auto", 
+        padding: 10,
+        WebkitOverflowScrolling: "touch"
+      }}>
 
 
       {tab === "pokemon" && leader && (
@@ -13560,6 +13571,7 @@ function TabOverlay({
                 border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
                 boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
                 padding: 12, minHeight: 360,
+                maxHeight: 600, overflowY: "auto"
               }}>
 
                 {filtered.length === 0 ? (
@@ -13971,7 +13983,8 @@ function TabOverlay({
               return <div style={{ color: "#b8a8c8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
             return (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
+              <div style={{ maxHeight: 600, overflowY: "auto", paddingRight: 4 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
               {filtered.map((entry, i) => {
                 const sp = entry.species;
                 const isCurrent = leader?.species === sp && leader?.uid === entry.uid;
@@ -14167,6 +14180,7 @@ function TabOverlay({
                   </div>
                 );
               })}
+              </div>
             </div>
             );
           })()}
@@ -14238,7 +14252,7 @@ function TabOverlay({
 
 
       {tab === "loja" && (
-        <div>
+        <div style={{ maxHeight: 650, overflowY: "auto", paddingRight: 6 }}>
           <div style={{
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -15135,7 +15149,8 @@ function TabOverlay({
           </div>
         );
       })()}
-      <SmartGuideHud hasPokemon={team.length > 0} />
+        <SmartGuideHud hasPokemon={team.length > 0} />
+      </div>
     </div>
   );
 }
