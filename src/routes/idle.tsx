@@ -14252,7 +14252,7 @@ function TabOverlay({
 
 
       {tab === "loja" && (
-        <div>
+        <div style={{ maxHeight: 650, overflowY: "auto", paddingRight: 6 }}>
           <div style={{
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
