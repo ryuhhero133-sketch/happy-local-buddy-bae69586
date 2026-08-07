@@ -7012,7 +7012,6 @@ function IdlePage() {
   );
 
   return (
-    <div>
     <div style={{
       height: "100vh",
       background: "#0b0510",
@@ -10643,11 +10642,11 @@ function IdlePage() {
               onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
             >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  width: "min(640px, 100%)", maxHeight: "90vh", overflowY: "auto",
-                  background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "min(640px, 100%)", maxHeight: "90vh", overflowY: "auto",
+                background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
                 border: "2px solid #ffd94d", borderRadius: 16, padding: 18,
                 boxShadow: "0 12px 36px rgba(0,0,0,0.75), 0 0 32px rgba(255,217,77,0.35)",
               }}
@@ -10930,10 +10929,10 @@ function IdlePage() {
 
                         }}
                       >⚗️ INCUBAR</button>
-            </div>
-          </div>
-        );
-      })(), document.body)}
+                    </div>
+                  </div>
+                );
+              })(), document.body)}
 
 
 
