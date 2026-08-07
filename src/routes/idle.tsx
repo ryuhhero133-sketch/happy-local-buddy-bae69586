@@ -3091,22 +3091,23 @@ function IdlePage() {
           .gte("updated_at", since);
         if (!data) return;
         setRemotePlayers((prev) => {
-          const byId = new Map<string, RemotePlayer>(prev.map((p) => [p.id, p]));
+          const byId: Record<string, RemotePlayer> = {};
+          prev.forEach(p => byId[p.id] = p);
           for (const row of data as any[]) {
             if (!row?.id || row.id === meId) continue;
-            byId.set(row.id, {
+            byId[row.id] = {
               id: String(row.id),
               userId: String(row.id).split(":")[0] || String(row.id),
               name: String(row.name || "Treinador"),
               x: Number(row.x) || WORLD_W / 2,
               y: Number(row.y) || WORLD_H / 2,
               dir: (["down", "left", "right", "up"].includes(row.dir) ? row.dir : "down") as Dir,
-              step: byId.get(row.id)?.step ?? 0,
+              step: byId[row.id]?.step ?? 0,
               leaderSp: row.leader_species || undefined,
               ts: new Date(row.updated_at || Date.now()).getTime(),
-            });
+            };
           }
-          return Array.from(byId.values()).filter((p: RemotePlayer) => p.id !== meId && Date.now() - p.ts < 20_000);
+          return Object.values(byId).filter((p) => p.id !== meId && Date.now() - p.ts < 20_000);
         });
       } catch { /* ignore */ }
     };
