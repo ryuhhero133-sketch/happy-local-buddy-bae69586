@@ -7185,32 +7185,34 @@ function IdlePage() {
           background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)',
           padding: '8px 25px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.1)',
           display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-          zIndex: 1004
+          zIndex: 2000
         }}>
-          <button onClick={() => { console.log('Dock: Batalha'); setTab("batalha"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
+
+          <button onClick={() => { console.log('Dock: Batalha'); setTab("batalha"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 2001 }}>
             <span style={{ fontSize: '24px' }}>⚔️</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>BATALHA</span>
           </button>
-          <button onClick={() => { console.log('Dock: Equipe'); setTab("pokemon"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
+          <button onClick={() => { console.log('Dock: Equipe'); setTab("pokemon"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 2001 }}>
             <span style={{ fontSize: '24px' }}>🛡️</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>EQUIPE</span>
           </button>
-          <button onClick={() => { console.log('Dock: Mochila'); setTab("mochila"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
+          <button onClick={() => { console.log('Dock: Mochila'); setTab("mochila"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 2001 }}>
             <span style={{ fontSize: '24px' }}>🎒</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>MOCHILA</span>
           </button>
-          <button onClick={() => { console.log('Dock: Colecao'); setTab("colecao"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
+          <button onClick={() => { console.log('Dock: Colecao'); setTab("colecao"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 2001 }}>
             <span style={{ fontSize: '24px' }}>📔</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>COLEÇÃO</span>
           </button>
-          <button onClick={() => { console.log('Dock: Mercado'); setTab("market"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
+          <button onClick={() => { console.log('Dock: Mercado'); setTab("market"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 2001 }}>
             <span style={{ fontSize: '24px' }}>⚖️</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
           </button>
-          <button onClick={() => { console.log('Dock: Loja'); setTab("loja"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
+          <button onClick={() => { console.log('Dock: Loja'); setTab("loja"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 2001 }}>
             <span style={{ fontSize: '24px' }}>🏪</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
           </button>
+
         </div>
 
 
@@ -7257,6 +7259,7 @@ function IdlePage() {
         }
         .bottom-dock-container button {
           transition: transform 0.2s, opacity 0.2s;
+          pointer-events: auto !important;
         }
         .bottom-dock-container button:hover {
           transform: translateY(-5px);
@@ -7265,6 +7268,10 @@ function IdlePage() {
         .bottom-dock-container button:active {
           transform: translateY(0) scale(0.9);
         }
+        .bottom-dock-container {
+          pointer-events: auto !important;
+        }
+
       `}</style>
 
 
