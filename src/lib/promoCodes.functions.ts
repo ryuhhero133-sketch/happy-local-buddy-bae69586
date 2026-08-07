@@ -26,7 +26,7 @@ export const validatePromoCode = createServerFn({ method: "POST" })
     if (existing) return { success: false, message: "Este código já foi resgatado." };
 
     // Registra o resgate antes de entregar os itens (evita race condition)
-    await supabaseAdmin.from("code_redemptions").insert({
+    await (supabaseAdmin as any).from("code_redemptions").insert({
       code,
       user_id: userId,
       redeemed_at: new Date().toISOString()

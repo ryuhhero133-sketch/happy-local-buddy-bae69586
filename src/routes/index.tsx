@@ -1,4 +1,4 @@
-// Analisando segurança do sistema...
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { AuthGate } from '@/components/AuthGate';
 
