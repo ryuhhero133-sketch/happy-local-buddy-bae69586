@@ -374,24 +374,18 @@ function OnlinePlayersTab() {
       // Tenta buscar perfis com tratamento robusto
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select(`
-          id,
-          username,
-          last_login,
-          account_status,
-          lock_until
-        `)
+        .select("id, username, last_login, account_status, lock_until")
         .order("last_login", { ascending: false });
       
       if (profilesError) throw profilesError;
 
-      // Busca dados de ranking separadamente para evitar falha se a tabela estiver vazia ou com problema de join
+      // Busca dados de ranking separadamente
       const { data: ranked, error: rankedError } = await supabase
         .from("ranked_scores")
         .select("user_id, trainer_level, total_kills");
 
-      const enrichedPlayers = (profiles || []).map(p => {
-        const score = (ranked || []).find(r => r.user_id === p.id);
+      const enrichedPlayers = (profiles || []).map((p: any) => {
+        const score = (ranked || []).find((r: any) => r.user_id === p.id);
         return {
           ...p,
           ranked_leaderboard: score ? [score] : []
