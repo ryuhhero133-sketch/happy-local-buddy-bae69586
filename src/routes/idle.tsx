@@ -12889,7 +12889,9 @@ function TabOverlay({
       background: "rgba(11, 5, 20, 0.96)", 
       backdropFilter: "blur(14px)",
       overflowY: "auto",
-      maxHeight: "85vh"
+      maxHeight: "90vh",
+      display: "flex",
+      flexDirection: "column"
     }}>
 
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10 }}>
