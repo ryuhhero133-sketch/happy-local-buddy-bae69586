@@ -7308,6 +7308,11 @@ function IdlePage() {
       </div>
 
       <style>{`
+        .modern-floating-window {
+          background: rgba(11, 5, 20, 0.98) !important;
+          backdrop-filter: blur(16px) !important;
+          box-shadow: 0 0 60px rgba(0,0,0,0.85), inset 0 0 40px rgba(167, 139, 250, 0.05) !important;
+        }
         .side-btn {
           transition: transform 0.2s, background 0.2s;
         }
@@ -12880,7 +12885,7 @@ function TabOverlay({
     setFragConfirm(null);
   };
   return (
-    <div className="modern-floating-window">
+    <div className="modern-floating-window" style={{ background: "rgba(11, 5, 20, 0.95)", backdropFilter: "blur(12px)" }}>
 
       <div className="modern-window-header">
         <h2 style={{ 
