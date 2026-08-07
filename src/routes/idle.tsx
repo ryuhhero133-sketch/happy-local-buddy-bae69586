@@ -4675,7 +4675,8 @@ function IdlePage() {
     setIdle((s) => {
       const col = s.collection ?? [];
       const active = [...team, ...restingBench];
-      const byUid = new Map(active.map((p) => [p.uid, p]));
+      const byUid = new Map<string, PetInstance>();
+      for (const p of active) byUid.set(p.uid, p);
       let changed = false;
       const nextCol = col.map((e) => {
         const live = byUid.get(e.uid);
