@@ -1,30 +1,27 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 async function run() {
-  console.log("--- Jogadores Ativos nas últimas 24h ---");
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data: profiles } = await supabaseAdmin
-    .from("profiles")
-    .select("username, id, last_login, account_status")
-    .gt("last_login", yesterday)
-    .order("last_login", { ascending: false });
-  console.log(JSON.stringify(profiles || [], null, 2));
-
-  console.log("\n--- Maiores Níveis no Ranking ---");
+  console.log("--- Jogadores com nível > 1 no ranking ---");
   const { data: ranked } = await supabaseAdmin
     .from("ranked_scores")
     .select("username, trainer_level, total_kills")
-    .order("trainer_level", { ascending: false })
-    .limit(20);
+    .gt("trainer_level", 1)
+    .order("trainer_level", { ascending: false });
   console.log(JSON.stringify(ranked || [], null, 2));
 
-  console.log("\n--- Últimos 50 Eventos de Auditoria ---");
-  const { data: audits } = await supabaseAdmin
+  console.log("\n--- Contagem de auditoria ---");
+  const { count } = await supabaseAdmin
     .from("audit_events" as any)
-    .select("*")
+    .select("*", { count: 'exact', head: true });
+  console.log("Total eventos:", count);
+
+  console.log("\n--- Histórico de códigos resgatados ---");
+  const { data: redemptions } = await supabaseAdmin
+    .from("code_redemptions" as any)
+    .select("code, username, user_id, created_at")
     .order("created_at", { ascending: false })
-    .limit(50);
-  console.log(JSON.stringify(audits || [], null, 2));
+    .limit(20);
+  console.log(JSON.stringify(redemptions || [], null, 2));
 }
 
 run();
