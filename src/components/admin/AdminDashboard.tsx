@@ -523,7 +523,8 @@ function OnlinePlayersTab({
         trainer_level: editLevel,
         trainer_xp: editXp,
         updated_at: new Date().toISOString()
-      }).eq("user_id", inspectingUser);
+      } as any).eq("user_id", inspectingUser);
+
 
       toast.success("Status do treinador atualizados!");
       refresh();
