@@ -534,6 +534,22 @@ function OnlinePlayersTab({
     }
   };
 
+  const deletePlayer = async (id: string) => {
+    if (!confirm("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL. Deletar permanentemente todos os dados deste jogador?")) return;
+    try {
+      // In a real scenario, this would delete from profiles which cascades, 
+      // but since profiles is linked to auth.users, we might need a dedicated RPC if RLS is strict
+      const { error } = await supabase.from("profiles").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Conta deletada com sucesso.");
+      setInspectingUser(null);
+      refresh();
+    } catch (e: any) {
+      toast.error(`Erro ao deletar: ${e.message}`);
+    }
+  };
+
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-4 mb-4">
