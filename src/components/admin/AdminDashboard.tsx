@@ -789,9 +789,25 @@ function OnlinePlayersTab({
                       </div>
                     ))}
                     {inventory.items.map((i: any) => (
-                      <div key={i.item_id} className="bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between text-[9px]">
+                      <div key={i.item_id} className="bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between items-center text-[9px]">
                         <span className="text-slate-400">{i.item_id}</span>
-                        <span className="text-emerald-400 font-bold">x{i.qty}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-emerald-400 font-bold">x{i.qty}</span>
+                          <button 
+                            onClick={async () => {
+                              if (!confirm(`Remover todos os ${i.item_id}?`)) return;
+                              try {
+                                const { error } = await supabase.from("inventory").delete().eq("user_id", inspectingUser).eq("item_id", i.item_id);
+                                if (error) throw error;
+                                toast.success("Item removido!");
+                                inspectPlayer(inspectingUser!);
+                              } catch (e: any) { toast.error(e.message); }
+                            }}
+                            className="text-rose-500 hover:text-rose-400 font-bold text-xs leading-none"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
