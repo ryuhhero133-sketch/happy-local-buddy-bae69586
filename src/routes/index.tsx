@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { setMaintenanceMode } from '@/lib/maintenance.functions';
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -17,10 +18,29 @@ export const Route = createFileRoute('/')({
 
 function Index() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    navigate({ to: '/idle', replace: true });
+    const releaseMaintenance = async () => {
+      try {
+        // Correcting the call to the server function
+        await setMaintenanceMode({ data: { enabled: false } });
+        console.log("Modo de manutenção desativado.");
+      } catch (err) {
+        console.error("Erro ao liberar manutenção:", err);
+      } finally {
+        setLoading(false);
+        navigate({ to: '/idle', replace: true });
+      }
+    };
+
+    releaseMaintenance();
   }, [navigate]);
 
-  return null;
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: '#fff', fontFamily: 'monospace' }}>
+      {loading ? "LIBERANDO ACESSO PARA OS JOGADORES..." : "REDIRECIONANDO..."}
+    </div>
+  );
 }
+
