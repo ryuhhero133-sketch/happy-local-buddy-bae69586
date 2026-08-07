@@ -11608,7 +11608,6 @@ function IdlePage() {
             </div>
           </div>
         );
-        );
       })(), document.body)}
 
       {/* ===== Modal: Detalhes da Coleção ===== */}
