@@ -456,11 +456,14 @@ function OnlinePlayersTab({
       setInspectingUser(null);
       return;
     }
+    
     setInspectingUser(id);
+    setLoading(true); 
     setInventory(null);
     setIpLogs([]);
     setEditLevel(null);
     setEditXp(null);
+    
     try {
       const [invRes, ballsRes, ipRes, pokeRes, trainerRes, giftsRes, rankedRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
@@ -471,20 +474,28 @@ function OnlinePlayersTab({
         supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("ranked_scores").select("trainer_level").eq("user_id", id).maybeSingle()
       ]);
+      
       setInventory({
         items: invRes.data || [],
         balls: ballsRes.data || [],
         pokemon: pokeRes.data || [],
-        trainer: trainerRes.data,
+        trainer: trainerRes.data || { gold: 0, crystal: 0 },
         gifts: giftsRes.data || []
       });
-      if (trainerRes.data || rankedRes.data) {
-        setEditLevel((rankedRes.data as any)?.trainer_level || 1);
-        setEditXp(0);
-      }
+      
+      setEditLevel(rankedRes.data?.trainer_level || 1);
+      setEditXp(0);
       setIpLogs(ipRes.data || []);
+      
+      setTimeout(() => {
+        document.getElementById('player-inspection-panel')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      
     } catch (e) {
       console.error("Inspect failed", e);
+      toast.error("Erro ao carregar detalhes do jogador.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -643,10 +654,12 @@ function OnlinePlayersTab({
       </Card>
 
       {inspectingUser && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in slide-in-from-bottom-2">
+        <div id="player-inspection-panel" className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in slide-in-from-bottom-2 scroll-mt-20">
           <Card title="Modificar Treinador">
-            {!inventory?.trainer ? (
+            {!inventory?.trainer && !loading ? (
               <div className="text-xs text-slate-500 italic">Nenhum dado de treinador disponível.</div>
+            ) : loading || !inventory?.trainer ? (
+              <div className="text-xs text-slate-500 italic animate-pulse">Carregando dados...</div>
             ) : (
               <div className="space-y-4">
                 <div className="space-y-2">
