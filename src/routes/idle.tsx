@@ -7142,30 +7142,7 @@ function IdlePage() {
           </div>
         </div>
 
-        {/* Painel do Jogador (Card Compacto) */}
-        <div className="player-panel-compact" style={{
-          position: 'fixed', top: '70px', left: '20px',
-          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)',
-          padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', gap: '12px', minWidth: '220px', pointerEvents: 'auto',
-          zIndex: 1002
-        }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', border: '2px solid #f5cf6b' }}>
-            <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" style={{ width: '100%', height: '100%' }} />
-          </div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#fff', fontSize: '13px', fontWeight: 800 }}>{identity?.name || "Treinador"}</span>
-              <span style={{ background: '#f5cf6b', color: '#000', fontSize: '9px', fontWeight: 900, padding: '1px 4px', borderRadius: '4px' }}>Lv.{idle.trainerLevel || 1}</span>
-            </div>
-            <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }} title="HP (Status)">
-              <div style={{ height: '100%', width: '100%', background: 'var(--hp-gradient)' }} />
-            </div>
-            <div style={{ height: '6px', width: '100%', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', overflow: 'hidden' }} title={`EXP: ${Number(idle?.trainerXp || 0).toLocaleString()} / ${((idle?.trainerLevel || 1) * 100).toLocaleString()}`}>
-              <div style={{ height: '100%', width: `${Math.min(100, (Number(idle?.trainerXp || 0) / Math.max(1, (Number(idle?.trainerLevel || 1) || 1) * 100)) * 100)}%`, background: 'var(--xp-gradient)' }} />
-            </div>
-          </div>
-        </div>
+        {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
 
         {/* Menu Lateral Direito (Barra de Ícones) */}
         <div className="side-icon-bar" style={{
@@ -16034,40 +16011,48 @@ function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
     <div style={{
       position: 'fixed',
       bottom: '120px',
-      right: '80px',
-      width: '240px',
+      left: '20px',
+      width: '260px',
       background: 'rgba(0,0,0,0.85)',
-      backdropFilter: 'blur(8px)',
-      border: '1px solid #f5cf6b',
-      borderRadius: '12px',
-      padding: '12px',
+      backdropFilter: 'blur(10px)',
+      border: '1.5px solid #f5cf6b',
+      borderRadius: '16px',
+      padding: '14px',
       color: '#fff',
       zIndex: 10000,
       pointerEvents: 'auto',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 15px rgba(245,207,107,0.2)',
       animation: 'fadeIn 0.3s ease-out'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', borderBottom: '1px solid rgba(245,207,107,0.3)', paddingBottom: '4px' }}>
-        <span style={{ fontSize: '20px' }}>🧙</span>
-        <span style={{ fontSize: '12px', fontWeight: 900, color: '#f5cf6b', letterSpacing: '1px' }}>GUIA INTELIGENTE</span>
-        <button onClick={() => setVisible(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>✕</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', borderBottom: '1px solid rgba(245,207,107,0.3)', paddingBottom: '6px' }}>
+        <div style={{ width: '32px', height: '32px', background: 'rgba(245,207,107,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🧙</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '12px', fontWeight: 900, color: '#f5cf6b', letterSpacing: '1px' }}>PROF. CARVALHO</div>
+          <div style={{ fontSize: '8px', color: '#8a7a9c', fontWeight: 700 }}>GUIA INTELIGENTE</div>
+        </div>
+        <button onClick={() => setVisible(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', opacity: 0.6, fontSize: '14px' }}>✕</button>
       </div>
-      <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#e0e0e0', fontStyle: 'italic', minHeight: '40px' }}>
+      <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#f3e5c5', minHeight: '50px', display: 'flex', alignItems: 'center' }}>
         "{messages[step]}"
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', alignItems: 'center' }}>
-        <span style={{ fontSize: '9px', color: '#8a7a9c' }}>{step + 1} / {messages.length}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {messages.map((_, i) => (
+            <div key={i} style={{ width: '4px', height: '4px', borderRadius: '50%', background: i === step ? '#f5cf6b' : 'rgba(255,255,255,0.2)' }} />
+          ))}
+        </div>
         <button 
           onClick={() => setStep((s) => (s + 1) % messages.length)}
           style={{ 
-            background: '#f5cf6b', 
+            background: 'linear-gradient(180deg, #f5cf6b, #b8862a)', 
             border: 'none', 
-            borderRadius: '4px', 
-            padding: '3px 10px', 
-            fontSize: '10px', 
-            fontWeight: 800, 
+            borderRadius: '6px', 
+            padding: '5px 14px', 
+            fontSize: '11px', 
+            fontWeight: 900, 
             cursor: 'pointer',
-            color: '#000'
+            color: '#000',
+            boxShadow: '0 2px 8px rgba(184,134,42,0.4)'
           }}
         >
           {step === messages.length - 1 ? "REINICIAR" : "PRÓXIMO"}
