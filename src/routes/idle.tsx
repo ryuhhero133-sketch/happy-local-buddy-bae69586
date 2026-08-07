@@ -7257,6 +7257,7 @@ function IdlePage() {
         }
         .bottom-dock-container button {
           transition: transform 0.2s, opacity 0.2s;
+          pointer-events: auto !important;
         }
         .bottom-dock-container button:hover {
           transform: translateY(-5px);
@@ -7265,6 +7266,10 @@ function IdlePage() {
         .bottom-dock-container button:active {
           transform: translateY(0) scale(0.9);
         }
+        .bottom-dock-container {
+          pointer-events: auto !important;
+        }
+
       `}</style>
 
 
