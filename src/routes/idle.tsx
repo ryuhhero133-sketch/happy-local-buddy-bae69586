@@ -10633,16 +10633,15 @@ function IdlePage() {
         </div>
       )}
 
-      {worldTraderOpen && createPortal(
-        (() => {
+      {worldTraderOpen && createPortal((() => {
           const collection = idle.collection ?? [];
           const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
           const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
           return (
-          <div
-            onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
-          >
+            <div
+              onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
+            >
             <div
               onClick={(e) => e.stopPropagation()}
               style={{
@@ -10931,9 +10930,8 @@ function IdlePage() {
                         }}
                       >⚗️ INCUBAR</button>
                     </div>
-                  </div>
-                );
-              })()}
+                </div>
+              ), document.body)}
 
 
 
@@ -11351,8 +11349,7 @@ function IdlePage() {
               )}
             </div>
           </div>
-        );
-      })()}
+        ), document.body)}
 
 
 
@@ -11547,7 +11544,7 @@ function IdlePage() {
               )}
             </div>
           </div>
-        ))}
+        ), document.body)}
 
       {/* ===== Modal: Casa Azul — escolher Pokémon para descansar ===== */}
       {azulPickerOpen && createPortal((() => {
@@ -11717,7 +11714,7 @@ function IdlePage() {
               )}
             </div>
           </div>
-        ))}
+        ), document.body)}
 
       {statsCardPet && createPortal(
         <PokemonStatsCard
@@ -12295,8 +12292,7 @@ function IdlePage() {
               </div>
             </div>
           </div>
-        );
-      })()}
+        ), document.body)}
 
 
       {isAdminOpen && createPortal(
