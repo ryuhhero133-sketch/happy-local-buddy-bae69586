@@ -594,8 +594,8 @@ function OnlinePlayersTab({
                 const isLocked = p.lock_until && new Date(p.lock_until) > new Date();
                 return (
                   <tr key={p.id} className={`hover:bg-white/5 ${inspectingUser === p.id ? "bg-fuchsia-500/5" : ""}`}>
-                    <td className="px-3 py-2">
-                      <div className="text-amber-100 font-bold">{p.username || "Sem nome"}</div>
+                    <td className="px-3 py-2 cursor-pointer group" onClick={() => inspectPlayer(p.id)}>
+                      <div className="text-amber-100 font-bold group-hover:text-fuchsia-400 transition-colors">{p.username || "Sem nome"}</div>
                       <div className="text-[8px] text-slate-600 truncate max-w-[120px]">{p.id}</div>
                     </td>
                     <td className="px-3 py-2">
