@@ -10948,6 +10948,7 @@ function IdlePage() {
 
 
 
+
       {/* Incubadora — animação de sucesso/falha */}
       {orbAnim && (
         <div
