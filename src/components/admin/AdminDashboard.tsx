@@ -365,6 +365,10 @@ function OnlinePlayersTab() {
   const [inventory, setInventory] = useState<any>(null);
   const [ipLogs, setIpLogs] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [editLevel, setEditLevel] = useState<number | null>(null);
+  const [editXp, setEditXp] = useState<number | null>(null);
+  const [editPokeLevel, setEditPokeLevel] = useState<{id: string, level: number} | null>(null);
+
 
   const refresh = async () => {
     setLoading(true);
@@ -408,21 +412,63 @@ function OnlinePlayersTab() {
     setInspectingUser(id);
     setInventory(null);
     setIpLogs([]);
+    setEditLevel(null);
+    setEditXp(null);
     try {
-      const [invRes, ballsRes, ipRes] = await Promise.all([
+      const [invRes, ballsRes, ipRes, pokeRes, trainerRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
         supabase.from("pokeballs").select("*").eq("user_id", id),
-        supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10)
+        supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
+        supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
+        supabase.from("trainer_state").select("*").eq("user_id", id).maybeSingle()
       ]);
       setInventory({
         items: invRes.data || [],
-        balls: ballsRes.data || []
+        balls: ballsRes.data || [],
+        pokemon: pokeRes.data || [],
+        trainer: trainerRes.data
       });
+      if (trainerRes.data) {
+        setEditLevel(trainerRes.data.trainer_level);
+        setEditXp(trainerRes.data.trainer_xp);
+      }
       setIpLogs(ipRes.data || []);
     } catch (e) {
       console.error("Inspect failed", e);
     }
   };
+
+  const saveTrainerStats = async () => {
+    if (!inspectingUser || editLevel === null || editXp === null) return;
+    try {
+      const { error } = await supabase.rpc('admin_update_trainer_stats', {
+        target_user_id: inspectingUser,
+        new_level: editLevel,
+        new_xp: editXp
+      });
+      if (error) throw error;
+      toast.success("Status do treinador atualizados!");
+      refresh();
+      inspectPlayer(inspectingUser);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const savePokemonLevel = async (id: string, level: number) => {
+    try {
+      const { error } = await supabase.rpc('admin_update_pokemon_level', {
+        target_pokemon_id: id,
+        new_level: level
+      });
+      if (error) throw error;
+      toast.success("Nível do Pokémon atualizado!");
+      if (inspectingUser) inspectPlayer(inspectingUser);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
 
   const updateStatus = async (id: string, status: string) => {
     if (!confirm(`Alterar status para ${status.toUpperCase()}?`)) return;
