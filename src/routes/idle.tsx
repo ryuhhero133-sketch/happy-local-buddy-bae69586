@@ -12888,10 +12888,11 @@ function TabOverlay({
     <div className="modern-floating-window" style={{ 
       background: "rgba(11, 5, 20, 0.96)", 
       backdropFilter: "blur(14px)",
-      overflowY: "auto",
-      maxHeight: "90vh",
+      maxHeight: "92vh",
       display: "flex",
-      flexDirection: "column"
+      flexDirection: "column",
+      pointerEvents: "auto",
+      overflow: "hidden"
     }}>
 
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
@@ -12904,6 +12905,13 @@ function TabOverlay({
           FECHAR ✕
         </button>
       </div>
+
+      <div className="modern-window-scroll-content" style={{ 
+        flex: 1, 
+        overflowY: "auto", 
+        padding: 10,
+        WebkitOverflowScrolling: "touch"
+      }}>
 
 
       {tab === "pokemon" && leader && (
