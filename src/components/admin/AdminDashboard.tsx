@@ -472,7 +472,7 @@ function OnlinePlayersTab({
         supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
         supabase.from("profiles").select("gold, crystal").eq("id", id).maybeSingle(),
         supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("ranked_scores").select("trainer_level").eq("user_id", id).maybeSingle()
+        supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", id).maybeSingle()
       ]);
       
       setInventory({
