@@ -63,6 +63,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [config, setConfig] = useState<AdminConfig>(() => getConfig());
   const [query, setQuery] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const [targetQuery, setTargetQuery] = useState(""); // Shared state for Gifts tab
   const identity = useMemo(() => loadIdentity(), []);
 
   useEffect(() => {
@@ -198,7 +199,14 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
           </div>
         </header>
         <div className="px-3 md:px-6 py-4 md:py-6">
-          <TabBody tab={tab} config={config} setConfig={setConfig} />
+          <TabBody 
+            tab={tab} 
+            setTab={setTab}
+            config={config} 
+            setConfig={setConfig} 
+            targetQuery={targetQuery}
+            setTargetQuery={setTargetQuery}
+          />
         </div>
       </main>
     </div>
@@ -210,20 +218,36 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
 // ---------------- Tab body router ----------------
 function TabBody({
   tab,
+  setTab,
   config,
   setConfig,
+  targetQuery,
+  setTargetQuery,
 }: {
   tab: TabId;
+  setTab: (t: TabId) => void;
   config: AdminConfig;
   setConfig: (c: AdminConfig) => void;
+  targetQuery: string;
+  setTargetQuery: (s: string) => void;
 }) {
   switch (tab) {
     case "dashboard":
       return <DashboardTab />;
     case "online_players":
-      return <OnlinePlayersTab />;
+      return (
+        <OnlinePlayersTab 
+          setTab={setTab} 
+          setTargetQuery={setTargetQuery} 
+        />
+      );
     case "gifts":
-      return <GiftsTab />;
+      return (
+        <GiftsTab 
+          targetQuery={targetQuery} 
+          setTargetQuery={setTargetQuery} 
+        />
+      );
     case "reports":
       return <ReportsTab />;
     case "pokemon":
@@ -358,7 +382,13 @@ function DashboardTab() {
   );
 }
 
-function OnlinePlayersTab() {
+function OnlinePlayersTab({ 
+  setTab, 
+  setTargetQuery 
+}: { 
+  setTab: (t: TabId) => void; 
+  setTargetQuery: (s: string) => void; 
+}) {
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [inspectingUser, setInspectingUser] = useState<string | null>(null);
@@ -425,18 +455,20 @@ function OnlinePlayersTab() {
     setEditLevel(null);
     setEditXp(null);
     try {
-      const [invRes, ballsRes, ipRes, pokeRes, trainerRes] = await Promise.all([
+      const [invRes, ballsRes, ipRes, pokeRes, trainerRes, giftsRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
         supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
-        supabase.from("trainer_state").select("*").eq("user_id", id).maybeSingle()
+        supabase.from("trainer_state").select("*").eq("user_id", id).maybeSingle(),
+        supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20)
       ]);
       setInventory({
         items: invRes.data || [],
         balls: ballsRes.data || [],
         pokemon: pokeRes.data || [],
-        trainer: trainerRes.data
+        trainer: trainerRes.data,
+        gifts: giftsRes.data || []
       });
       if (trainerRes.data) {
         setEditLevel((trainerRes.data as any).trainer_level);
@@ -656,9 +688,20 @@ function OnlinePlayersTab() {
           </Card>
 
           <div className="space-y-4">
-            <Card title="Inventário">
+            <Card title="Inventário & Moedas">
               {!inventory ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
-                <div className="space-y-3">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800">
+                      <div className="text-[8px] text-slate-500 uppercase">Ouro</div>
+                      <div className="text-xs font-bold text-amber-100">{Number(inventory.trainer?.gold || 0).toLocaleString()}</div>
+                    </div>
+                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800">
+                      <div className="text-[8px] text-slate-500 uppercase">Cristal</div>
+                      <div className="text-xs font-bold text-cyan-400">{Number(inventory.trainer?.crystal || 0).toLocaleString()}</div>
+                    </div>
+                  </div>
+                  
                   <div className="grid grid-cols-2 gap-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
                     {inventory.balls.map((b: any) => (
                       <div key={b.ball_type} className="bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between text-[9px]">
@@ -676,12 +719,44 @@ function OnlinePlayersTab() {
                   {inventory.balls.length === 0 && inventory.items.length === 0 && (
                     <div className="text-xs text-slate-500 italic">Mochila vazia.</div>
                   )}
+                  
+                  <button 
+                    onClick={() => {
+                      setTab("gifts");
+                      setTargetQuery(players.find(p => p.id === inspectingUser)?.username || inspectingUser || "");
+                    }}
+                    className="w-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-[10px] py-1.5 rounded hover:bg-emerald-600/30 transition"
+                  >
+                    + ADICIONAR ITENS / MOEDAS
+                  </button>
+                </div>
+              )}
+            </Card>
+
+            <Card title="Histórico de Presentes">
+              {!inventory?.gifts ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
+                <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
+                  {inventory.gifts.map((g: any) => (
+                    <div key={g.id} className="text-[8px] bg-slate-900/50 p-1.5 rounded border border-slate-800">
+                      <div className="flex justify-between font-bold text-amber-100">
+                        <span>{g.kind.toUpperCase()}{g.item_id ? ` (${g.item_id})` : ""}</span>
+                        <span>x{g.qty}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-500 mt-1">
+                        <span>{new Date(g.created_at).toLocaleDateString()}</span>
+                        <span className={g.claimed_at ? "text-emerald-500" : "text-amber-500"}>
+                          {g.claimed_at ? "RECEBIDO" : "PENDENTE"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {inventory.gifts.length === 0 && <div className="text-xs text-slate-500 italic text-center">Nenhum presente enviado.</div>}
                 </div>
               )}
             </Card>
 
             <Card title="Conexões (IPs)">
-              <div className="space-y-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
+              <div className="space-y-2 max-h-[100px] overflow-y-auto pr-1 custom-scrollbar">
                 {ipLogs.map((log, i) => (
                   <div key={i} className="text-[9px] bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between">
                     <span className="text-amber-100 font-mono">{log.ip_address}</span>
@@ -1082,8 +1157,13 @@ function PlaceholderTab({ tabLabel }: { tabLabel: string }) {
   );
 }
 
-function GiftsTab() {
-  const [targetQuery, setTargetQuery] = useState("");
+function GiftsTab({ 
+  targetQuery, 
+  setTargetQuery 
+}: { 
+  targetQuery: string; 
+  setTargetQuery: (s: string) => void; 
+}) {
   const [kind, setKind] = useState<"gold" | "crystal" | "ruby" | "item" | "ball">("gold");
   const [itemId, setItemId] = useState("");
   const [qty, setQty] = useState(100);
