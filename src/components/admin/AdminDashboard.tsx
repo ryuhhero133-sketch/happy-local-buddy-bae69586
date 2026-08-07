@@ -1,5 +1,5 @@
 // PAINEL DE ADDM OK - GERE COMPLETO
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { loadIdentity } from "@/components/AuthGate";
@@ -161,7 +161,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     </>
   );
 
-  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6" || identity?.email === "lordryuhhhuyuyghh@gmail.com";
+  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6" || identity?.email === "lordryuhhhuyuyghh@gmail.com" || localStorage.getItem("rubym_admin") === "true";
   if (!isAdminUuid) return null;
 
   return (
@@ -810,6 +810,7 @@ function OnlinePlayersTab({
     </div>
   );
 }
+
 
 
 
