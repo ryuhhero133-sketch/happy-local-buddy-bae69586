@@ -411,15 +411,13 @@ function OnlinePlayersTab({
   const refresh = async () => {
     setLoading(true);
     try {
-      // Tenta buscar perfis com tratamento robusto
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, last_login")
+        .select("id, username, last_login, account_status, lock_until")
         .order("last_login", { ascending: false });
       
       if (profilesError) throw profilesError;
 
-      // Busca dados de ranking separadamente
       const { data: ranked, error: rankedError } = await supabase
         .from("ranked_scores")
         .select("user_id, trainer_level, total_kills");
@@ -435,7 +433,6 @@ function OnlinePlayersTab({
       setPlayers(enrichedPlayers);
     } catch (e: any) {
       console.error("Load players failed", e);
-      // Only show toast if it's not a common development/network error that might be noisy
       if (!e.message?.includes("failed to fetch")) {
         toast.error(`Falha ao carregar lista de jogadores: ${e.message || 'Erro desconhecido'}`);
       }
@@ -465,13 +462,14 @@ function OnlinePlayersTab({
     setEditLevel(null);
     setEditXp(null);
     try {
-      const [invRes, ballsRes, ipRes, pokeRes, trainerRes, giftsRes] = await Promise.all([
+      const [invRes, ballsRes, ipRes, pokeRes, trainerRes, giftsRes, rankedRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
         supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
-        supabase.from("trainer_state").select("*").eq("user_id", id).maybeSingle(),
-        supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20)
+        supabase.from("profiles").select("gold, crystal").eq("id", id).maybeSingle(),
+        supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("ranked_scores").select("trainer_level").eq("user_id", id).maybeSingle()
       ]);
       setInventory({
         items: invRes.data || [],
@@ -480,9 +478,9 @@ function OnlinePlayersTab({
         trainer: trainerRes.data,
         gifts: giftsRes.data || []
       });
-      if (trainerRes.data) {
-        setEditLevel((trainerRes.data as any).trainer_level);
-        setEditXp((trainerRes.data as any).trainer_xp);
+      if (trainerRes.data || rankedRes.data) {
+        setEditLevel((rankedRes.data as any)?.trainer_level || 1);
+        setEditXp(0);
       }
       setIpLogs(ipRes.data || []);
     } catch (e) {
