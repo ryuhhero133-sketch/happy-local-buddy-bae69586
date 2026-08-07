@@ -10638,8 +10638,10 @@ function IdlePage() {
 
 
       {/* ═══ Modal do NPC Trocador (aberto ao clicar no NPC no mapa) ═══ */}
-      {worldTraderOpen && (() => {
-        const collection = idle.collection ?? [];
+      {worldTraderOpen && createPortal(
+        (() => {
+          const collection = idle.collection ?? [];
+
         const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
         const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
         return (
