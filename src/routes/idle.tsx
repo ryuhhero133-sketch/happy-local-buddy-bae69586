@@ -1,8 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles, ShieldCheck } from "lucide-react";
+import { FlaskConical, Sparkles, ShieldCheck, X, Search, Settings, Map as MapIcon, Info, User, ShoppingBag, CreditCard, LayoutGrid, Heart, Star, Gift, Clock, Backpack, Store, Wallet, BookOpen, ChevronRight, ChevronDown, Plus, HelpCircle, Mail, Sword, Zap, Shield, TrendingUp, ArrowRight } from "lucide-react";
 import { obfuscate, deobfuscate } from "@/lib/utils";
+
+
+
+
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -1590,11 +1594,13 @@ function IdlePage() {
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
-    const byUid = new Map<string, CollectionEntry>();
-    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry);
-    for (const pet of [...team, ...restingBench]) {
-      const current = byUid.get(pet.uid);
-      byUid.set(pet.uid, {
+    const col: CollectionEntry[] = idle.collection ?? [];
+    const active = [...team, ...restingBench];
+    const data: Record<string, CollectionEntry> = {};
+    for (const e of col) data[e.uid] = e;
+    for (const pet of active) {
+      const current = data[pet.uid];
+      data[pet.uid] = {
         uid: pet.uid,
         species: pet.species,
         level: Math.max(current?.level ?? 1, pet.level ?? 1),
@@ -1603,9 +1609,9 @@ function IdlePage() {
         capturedAt: current?.capturedAt ?? Date.now(),
         traits: current?.traits ?? pet.traits ?? [],
         event: current?.event ?? pet.event,
-      });
+      };
     }
-    return [...byUid.values()];
+    return Object.values(data);
   }, [idle.collection, restingBench, team]);
   // UIDs intencionalmente consumidos (fragmentar/trocador) — impede reconciliação
   // de re-adicioná-los à coleção quando ainda estão em team/bench mid-cleanup.
@@ -3086,22 +3092,23 @@ function IdlePage() {
           .gte("updated_at", since);
         if (!data) return;
         setRemotePlayers((prev) => {
-          const byId = new Map(prev.map((p) => [p.id, p]));
+          const byId: Record<string, RemotePlayer> = {};
+          prev.forEach(p => byId[p.id] = p);
           for (const row of data as any[]) {
             if (!row?.id || row.id === meId) continue;
-            byId.set(row.id, {
+            byId[row.id] = {
               id: String(row.id),
               userId: String(row.id).split(":")[0] || String(row.id),
               name: String(row.name || "Treinador"),
               x: Number(row.x) || WORLD_W / 2,
               y: Number(row.y) || WORLD_H / 2,
               dir: (["down", "left", "right", "up"].includes(row.dir) ? row.dir : "down") as Dir,
-              step: byId.get(row.id)?.step ?? 0,
+              step: byId[row.id]?.step ?? 0,
               leaderSp: row.leader_species || undefined,
               ts: new Date(row.updated_at || Date.now()).getTime(),
-            });
+            };
           }
-          return Array.from(byId.values()).filter((p) => p.id !== meId && Date.now() - p.ts < 20_000);
+          return Object.values(byId).filter((p) => p.id !== meId && Date.now() - p.ts < 20_000);
         });
       } catch { /* ignore */ }
     };
@@ -3178,9 +3185,9 @@ function IdlePage() {
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   // Contador de pokébolas arremessadas em cada Mewtwo do evento (por id de spawn).
-  const mewtwoBallsRef = useRef<Map<number, number>>(new Map());
+  const mewtwoBallsRef = useRef(new Map<number, number>());
   // Contador de Ultra Balls arremessadas em bosses raros (Dragonite Shiny / Zapdos / Raichu Mítico).
-  const bossBallsRef = useRef<Map<number, number>>(new Map());
+  const bossBallsRef = useRef(new Map<number, number>());
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
   const RAICHU_MYTHIC_MIN_BALLS = 2000;
@@ -3554,7 +3561,7 @@ function IdlePage() {
 
   // ---- Movimento do treinador: caça o inimigo mais próximo ----
   const stuckRef = useRef<{ id: number; count: number }>({ id: 0, count: 0 });
-  const blacklistRef = useRef<Map<number, number>>(new Map()); // id -> expiresAt
+  const blacklistRef = useRef(new Map<number, number>()); // id -> expiresAt
   const wanderRef = useRef<{ x: number; y: number; until: number } | null>(null);
   const overCapMsgRef = useRef<number>(0);
 
@@ -4668,7 +4675,8 @@ function IdlePage() {
     setIdle((s) => {
       const col = s.collection ?? [];
       const active = [...team, ...restingBench];
-      const byUid = new Map(active.map((p) => [p.uid, p]));
+      const byUid = new Map<string, PetInstance>();
+      for (const p of active) byUid.set(p.uid, p);
       let changed = false;
       const nextCol = col.map((e) => {
         const live = byUid.get(e.uid);
@@ -7179,27 +7187,27 @@ function IdlePage() {
           display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
           zIndex: 1004
         }}>
-          <button onClick={() => setTab("batalha")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#f5cf6b' : '#fff' }}>
+          <button onClick={() => { console.log('Dock: Batalha'); setTab("batalha"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
             <span style={{ fontSize: '24px' }}>⚔️</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>BATALHA</span>
           </button>
-          <button onClick={() => setTab("pokemon")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#f5cf6b' : '#fff' }}>
+          <button onClick={() => { console.log('Dock: Equipe'); setTab("pokemon"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
             <span style={{ fontSize: '24px' }}>🛡️</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>EQUIPE</span>
           </button>
-          <button onClick={() => setTab("mochila")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#f5cf6b' : '#fff' }}>
+          <button onClick={() => { console.log('Dock: Mochila'); setTab("mochila"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
             <span style={{ fontSize: '24px' }}>🎒</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>MOCHILA</span>
           </button>
-          <button onClick={() => setTab("colecao")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#f5cf6b' : '#fff' }}>
+          <button onClick={() => { console.log('Dock: Colecao'); setTab("colecao"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
             <span style={{ fontSize: '24px' }}>📔</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>COLEÇÃO</span>
           </button>
-          <button onClick={() => setTab("market")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#f5cf6b' : '#fff' }}>
+          <button onClick={() => { console.log('Dock: Mercado'); setTab("market"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
             <span style={{ fontSize: '24px' }}>⚖️</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
           </button>
-          <button onClick={() => setTab("loja")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#f5cf6b' : '#fff' }}>
+          <button onClick={() => { console.log('Dock: Loja'); setTab("loja"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#f5cf6b' : '#fff', pointerEvents: 'auto', zIndex: 1005 }}>
             <span style={{ fontSize: '24px' }}>🏪</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
           </button>
