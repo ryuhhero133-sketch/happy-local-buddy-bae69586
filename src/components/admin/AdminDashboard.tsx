@@ -811,16 +811,6 @@ function OnlinePlayersTab({
   );
 }
 
-function PlaceholderTab({ tabLabel }: { tabLabel: string }) {
-  return (
-    <Card title={tabLabel}>
-      <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-4">
-        <div className="text-4xl">🚧</div>
-        <p className="text-xs">A aba "{tabLabel}" está em desenvolvimento ou aguardando integração.</p>
-      </div>
-    </Card>
-  );
-}
 
 
 
