@@ -7228,10 +7228,10 @@ function IdlePage() {
             seenSpecies={idle.seenSpecies || []}
             totals={idle.totals || { gold: 0, captured: 0 }}
             collection={idle.collection || []}
-            craftPoints={idle.craftPoints || 0}
+            craftPoints={idle.items?.cristal_fragmentado || 0}
             onFragmentCollection={fragmentCollection}
             gifMap={GIF}
-            onPickTeam={onPickTeam}
+            onPickTeam={onPickTeamFromColecao}
             onUseItem={useItem}
             bank={idle.bank || { gold: 0, crystals: 0 }}
             buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
@@ -7250,29 +7250,30 @@ function IdlePage() {
             setAudioSettings={setAudioSettings}
             tasks={idle.tasks || []}
             onClaimTask={claimTask}
-            onOpenColecaoDetail={(uid) => setOpenColecaoUid(uid)}
+            onOpenColecaoDetail={(uid) => setPetDetailUid(uid)}
             onExchange={exchange}
             onSellItem={sellItem}
             marketSellPrices={MARKET_SELL_PRICE}
             identity={identity}
-            onListMarket={listMarket}
-            onBuyMarket={buyMarket}
-            onCancelMarket={cancelMarket}
-            onClaimMarketPayout={claimMarketPayout}
+            onListMarket={async () => false}
+            onBuyMarket={async () => false}
+            onCancelMarket={async () => false}
+            onClaimMarketPayout={async () => false}
             isVip={isVip()}
-            skinId={idle.skinId || "default"}
-            setSkinId={(id) => setIdle(s => ({ ...s, skinId: id }))}
+            skinId={skinId}
+            setSkinId={setSkinId}
             unlockedSkins={idle.unlockedSkins || []}
             skinTickets={idle.items?.skin_ticket || 0}
-            onUnlockSkin={unlockSkin}
+            onUnlockSkin={(id) => {}}
             trainerLevel={idle.trainerLevel || 1}
             onUpgradeBook={upgradeBook}
             orbTrades={ORB_TRADES}
             onTradeOrb={tradeForOrb}
             pokemonMarketNode={undefined}
-            benchUids={restingBenchUids}
+            benchUids={new Set()}
           />
         )}
+
 
 
 
