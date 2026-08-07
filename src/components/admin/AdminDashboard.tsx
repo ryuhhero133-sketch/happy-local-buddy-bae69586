@@ -516,6 +516,14 @@ function OnlinePlayersTab({
         new_xp: editXp
       });
       if (error) throw error;
+      
+      // Também atualizar trainer_state se existir (redundância de segurança para refletir no jogo live)
+      await (supabase.from("trainer_state" as any)).update({
+        trainer_level: editLevel,
+        trainer_xp: editXp,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", inspectingUser);
+
       toast.success("Status do treinador atualizados!");
       refresh();
       inspectPlayer(inspectingUser);
@@ -523,6 +531,7 @@ function OnlinePlayersTab({
       toast.error(e.message);
     }
   };
+
 
   const savePokemonLevel = async (id: string, level: number) => {
     try {
