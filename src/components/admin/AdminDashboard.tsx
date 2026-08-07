@@ -478,9 +478,9 @@ function OnlinePlayersTab({
         trainer: trainerRes.data,
         gifts: giftsRes.data || []
       });
-      if (trainerRes.data) {
-        setEditLevel(rankedRes.data?.trainer_level || 1);
-        setEditXp(0); // XP usually in trainer_state or profile if extended
+      if (trainerRes.data || rankedRes.data) {
+        setEditLevel((rankedRes.data as any)?.trainer_level || 1);
+        setEditXp(0);
       }
       setIpLogs(ipRes.data || []);
     } catch (e) {
