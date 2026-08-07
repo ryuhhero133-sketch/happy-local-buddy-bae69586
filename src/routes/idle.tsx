@@ -1608,7 +1608,7 @@ function IdlePage() {
         event: current?.event ?? pet.event,
       });
     }
-    return [...byUid.values()];
+    return Array.from(byUid.values());
   }, [idle.collection, restingBench, team]);
   // UIDs intencionalmente consumidos (fragmentar/trocador) — impede reconciliação
   // de re-adicioná-los à coleção quando ainda estão em team/bench mid-cleanup.
