@@ -7215,6 +7215,68 @@ function IdlePage() {
 
         </div>
 
+        {(tab !== "batalha" && tab !== "inicio") && (
+          <TabOverlay
+            tab={tab}
+            onClose={() => setTab("batalha")}
+            leader={team[0]}
+            team={team}
+            onReorderTeam={setTeam}
+            leaderHp={leaderHp}
+            items={idle.items || {}}
+            caughtSpecies={idle.caughtSpecies || []}
+            seenSpecies={idle.seenSpecies || []}
+            totals={idle.totals || { gold: 0, captured: 0 }}
+            collection={idle.collection || []}
+            craftPoints={idle.items?.cristal_fragmentado || 0}
+            onFragmentCollection={fragmentCollection}
+            gifMap={GIF}
+            onPickTeam={onPickTeamFromColecao}
+            onUseItem={useItem}
+            bank={idle.bank || { gold: 0, crystals: 0 }}
+            buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
+            onBuyBall={buyBall}
+            onBuyUltraBundle={buyUltraBundle}
+            onBuyTeleportScroll={buyTeleportScroll}
+            onBuyBook={buyBook}
+            onBuyPotion={buyPotion}
+            onBuyEgg={buyEgg}
+            shopEggs={SHOP_EGGS}
+            onBuyChestAmulet={buyChestAmulet}
+            chestAmuletOwned={idle.items?.chest_amulet || 0}
+            autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
+            setAutoHeal={(next) => setIdle(s => ({ ...s, autoHeal: next }))}
+            audioSettings={audioSettings}
+            setAudioSettings={setAudioSettings}
+            tasks={idle.tasks || []}
+            onClaimTask={claimTask}
+            onOpenColecaoDetail={(uid) => setPetDetailUid(uid)}
+            onExchange={exchange}
+            onSellItem={sellItem}
+            marketSellPrices={MARKET_SELL_PRICE}
+            identity={identity}
+            onListMarket={async () => false}
+            onBuyMarket={async () => false}
+            onCancelMarket={async () => false}
+            onClaimMarketPayout={async () => false}
+            isVip={isVip()}
+            skinId={skinId}
+            setSkinId={setSkinId}
+            unlockedSkins={idle.unlockedSkins || []}
+            skinTickets={idle.items?.skin_ticket || 0}
+            onUnlockSkin={(id) => {}}
+            trainerLevel={idle.trainerLevel || 1}
+            onUpgradeBook={upgradeBook}
+            orbTrades={ORB_TRADES}
+            onTradeOrb={tradeForOrb}
+            pokemonMarketNode={undefined}
+            benchUids={new Set()}
+          />
+        )}
+
+
+
+
 
         <div className="chat-floating-panel" style={{
           position: 'absolute', bottom: '100px', left: '20px',
@@ -15068,6 +15130,8 @@ function TabOverlay({
     </div>
   );
 }
+
+
 
 
 function BuffCell({ img, label, value, color }: { img: string; label: string; value: string; color: string }) {
