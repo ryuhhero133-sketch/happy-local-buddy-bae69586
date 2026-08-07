@@ -1,19 +1,21 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useAuth } from '@/components/AuthGate';
 import { useEffect } from 'react';
-import { AuthGate } from '@/components/AuthGate';
 
 export const Route = createFileRoute('/')({
-  component: () => (
-    <AuthGate>
-      <IdleRedirect />
-    </AuthGate>
-  ),
+  component: Index,
 });
 
-function IdleRedirect() {
+function Index() {
+  const { session } = useAuth();
   const navigate = useNavigate();
+
   useEffect(() => {
-    void navigate({ to: '/idle', replace: true });
-  }, [navigate]);
+    // Redireciona para /idle se houver sessão
+    if (session) {
+      navigate({ to: '/idle' });
+    }
+  }, [session, navigate]);
+
   return null;
 }

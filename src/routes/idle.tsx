@@ -10598,12 +10598,9 @@ function IdlePage() {
                 >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
               </div>
             </div>
-          </div>,
-          document.body
+          </div>
         );
-
-
-      })()}
+      })(), document.body)}
 
 
       {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
@@ -11611,10 +11608,10 @@ function IdlePage() {
             </div>
           </div>
         );
-      })()}
+      })(), document.body)}
 
       {/* ===== Modal: Detalhes da Coleção ===== */}
-      {colecaoDetailUid && (() => {
+      {colecaoDetailUid && createPortal((() => {
         const entry = collectionForDisplay.find((p) => p.uid === colecaoDetailUid);
         if (!entry) return null;
         const livePet = team.find((p) => p.uid === entry.uid) ?? restingBench.find((p) => p.uid === entry.uid);
