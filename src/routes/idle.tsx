@@ -12912,7 +12912,6 @@ function TabOverlay({
         padding: 10,
         WebkitOverflowScrolling: "touch"
       }}>
-      }}>
 
 
       {tab === "pokemon" && leader && (
