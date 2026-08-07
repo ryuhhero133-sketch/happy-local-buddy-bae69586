@@ -10414,10 +10414,10 @@ function IdlePage() {
             <button onClick={() => move(id, n, toVault)} style={{ background: "#2a1a2e", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "4px 7px", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>{toVault ? "▶ TUDO" : "◀ TUDO"}</button>
           </div>
         );
-        return (
-          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
-      {/* Portals moved to top-level for reliability */}
+        return createPortal(
+          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: "min(760px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #241a12 0%, #0e0906 100%)", border: "3px solid #f5cf6b", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(245,207,107,0.35)" }}>
+
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <img src={houseBankImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
                 <div style={{ flex: 1 }}>
