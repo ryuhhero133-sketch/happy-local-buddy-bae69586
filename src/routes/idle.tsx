@@ -11611,7 +11611,7 @@ function IdlePage() {
       })(), document.body)}
 
       {/* ===== Modal: Detalhes da Coleção ===== */}
-      {colecaoDetailUid && (() => {
+      {colecaoDetailUid && createPortal((() => {
         const entry = collectionForDisplay.find((p) => p.uid === colecaoDetailUid);
         if (!entry) return null;
         const livePet = team.find((p) => p.uid === entry.uid) ?? restingBench.find((p) => p.uid === entry.uid);

@@ -11,7 +11,7 @@ function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redireciona para /idle se houver sessão, ou deixa o AuthGate lidar se não houver
+    // Redireciona para /idle se houver sessão
     if (session) {
       navigate({ to: '/idle' });
     }
