@@ -219,10 +219,13 @@ function TabBody({
   tab,
   config,
   setConfig,
+  tab,
+  setTab,
   targetQuery,
   setTargetQuery,
 }: {
   tab: TabId;
+  setTab: (t: TabId) => void;
   config: AdminConfig;
   setConfig: (c: AdminConfig) => void;
   targetQuery: string;
