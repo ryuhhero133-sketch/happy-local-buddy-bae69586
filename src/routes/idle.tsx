@@ -10943,8 +10943,10 @@ function IdlePage() {
 
             </div>
           </div>
-        );
-      })()}
+          </div>,
+          document.body
+        )()}
+
 
       {/* Incubadora — animação de sucesso/falha */}
       {orbAnim && (
