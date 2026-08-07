@@ -192,15 +192,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
         try {
           const { data: profile, error: profileError } = await (supabase as any)
             .from("profiles")
-            .select("account_status")
+            .select("id")
             .eq("id", sess.user.id)
             .maybeSingle();
 
-          if (profile?.account_status === "banned") {
-            await supabase.auth.signOut();
-            setKickedMessage("Esta conta foi banida permanentemente.");
-            return;
-          }
+          /* account_status check removed due to missing column */
         } catch (e) {
           warn("Exceção ao verificar status da conta", e);
         }

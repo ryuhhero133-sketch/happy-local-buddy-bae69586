@@ -374,7 +374,7 @@ function OnlinePlayersTab() {
       // Tenta buscar perfis com tratamento robusto
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, last_login, account_status, lock_until")
+        .select("id, username, last_login")
         .order("last_login", { ascending: false });
       
       if (profilesError) throw profilesError;
