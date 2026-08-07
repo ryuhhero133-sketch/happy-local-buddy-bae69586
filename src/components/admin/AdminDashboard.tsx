@@ -483,7 +483,7 @@ function OnlinePlayersTab({
         gifts: giftsRes.data || []
       });
       
-      setEditLevel(rankedRes.data?.trainer_level || 1);
+      setEditLevel((rankedRes.data as any)?.trainer_level || 1);
       setEditXp(0);
       setIpLogs(ipRes.data || []);
       
