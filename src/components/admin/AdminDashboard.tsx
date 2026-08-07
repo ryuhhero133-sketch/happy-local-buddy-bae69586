@@ -1,3 +1,4 @@
+// PAINEL DE ADDM OK - GERE COMPLETO
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,7 +104,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
         <div className="grid h-8 w-8 place-items-center rounded-md bg-gradient-to-br from-fuchsia-500 to-amber-500 text-slate-950 font-black">★</div>
         <div className="flex-1 min-w-0">
           <div className="text-[10px] uppercase tracking-[0.18em] text-fuchsia-400/80">Ruby M</div>
-          <div className="text-sm font-bold text-slate-100 leading-none mt-0.5">Admin Console</div>
+          <div className="text-sm font-bold text-slate-100 leading-none mt-0.5">Painel de ADDM OK</div>
         </div>
         <button onClick={() => setNavOpen(false)} className="md:hidden text-slate-400 hover:text-slate-100 text-xl leading-none">×</button>
       </div>
@@ -585,7 +586,7 @@ function OnlinePlayersTab({
                 <th className="text-left px-3 py-2">Status</th>
                 <th className="text-left px-3 py-2">Nível</th>
                 <th className="text-left px-3 py-2">Visto em</th>
-                <th className="text-right px-3 py-2">Ações</th>
+                <th className="text-right px-3 py-2">Gerenciar</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
