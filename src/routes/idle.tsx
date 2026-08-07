@@ -3089,7 +3089,7 @@ function IdlePage() {
           .gte("updated_at", since);
         if (!data) return;
         setRemotePlayers((prev) => {
-          const byId = new Map(prev.map((p) => [p.id, p]));
+          const byId = new Map<string, RemotePlayer>(prev.map((p) => [p.id, p]));
           for (const row of data as any[]) {
             if (!row?.id || row.id === meId) continue;
             byId.set(row.id, {
@@ -3104,7 +3104,7 @@ function IdlePage() {
               ts: new Date(row.updated_at || Date.now()).getTime(),
             });
           }
-          return Array.from(byId.values()).filter((p) => p.id !== meId && Date.now() - p.ts < 20_000);
+          return Array.from(byId.values()).filter((p: RemotePlayer) => p.id !== meId && Date.now() - p.ts < 20_000);
         });
       } catch { /* ignore */ }
     };
