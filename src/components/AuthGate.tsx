@@ -244,10 +244,25 @@ export function AuthGate({ children }: { children: ReactNode }) {
         const off = config && (config.value === "false" || config.value === false);
         if (cfgErr) warn("Erro config manutenção", cfgErr);
         setMaintenance(!off);
+
+        // HARD LOCK: se está em manutenção e a conta não é admin, derruba na hora.
+        if (!off && sess?.user?.id) {
+          const adminNow =
+            sess.user.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
+            sess.user.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+          if (!adminNow) {
+            setKickedMessage("JOGO EM MANUTENÇÃO — ABERTURA DA SEASON 00:00");
+            setSession(null);
+            await supabase.auth.signOut();
+            setChecking(false);
+            return;
+          }
+        }
       } catch (e) {
         warn("Erro ao verificar manutenção", e);
         setMaintenance(true);
       }
+
 
 
 
