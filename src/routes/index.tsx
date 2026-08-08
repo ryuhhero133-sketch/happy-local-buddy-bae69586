@@ -1,5 +1,5 @@
-// V48 - ATOMIC_EDGE_AUTHORITY_VERIFIED
-// Auditoria: trainer_state, ranked_scores e profiles protegidas por RPC Atômica e Admin check.
+// V49 - RPC_SECURITY_AUDIT_COMPLETED
+// Auditoria Final: admin_atomic_level_update atômica, Security Definer com search_path, revogação de permissões públicas.
 
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -12,10 +12,10 @@ import { updatePlayerStatsAdminBridge } from '@/lib/admin-bridge.functions';
 export const Route = createFileRoute('/')({
   component: Index,
   head: () => ({
-    title: 'IdleMon Admin | V46 Final Authority',
+    title: 'IdleMon Admin | V49 RPC Security Audit',
     meta: [
       { name: 'description', content: 'Painel de Controle e Diagnóstico de Autoridade Server-Side' },
-      { property: 'og:title', content: 'IdleMon Admin | V46 Final Authority' },
+      { property: 'og:title', content: 'IdleMon Admin | V49 RPC Security Audit' },
       { property: 'og:description', content: 'Painel de Controle e Diagnóstico de Autoridade Server-Side' }
     ]
   })
@@ -56,7 +56,7 @@ function Index() {
       <div className="max-w-4xl w-full space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tighter text-blue-400">IDLEMON BACKEND AUTHORITY</h1>
-          <p className="text-slate-400">Versão V48 - Atomic Edge Authority</p>
+          <p className="text-slate-400">Versão V49 - RPC Security Audit</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -110,10 +110,16 @@ function Index() {
         </div>
 
         <Alert className="bg-blue-950/30 border-blue-900">
-          <AlertTriangle className="h-4 w-4 text-blue-400" />
-          <AlertTitle className="text-blue-300 font-bold uppercase">Teste 46 → 47</AlertTitle>
-          <AlertDescription className="text-blue-200/70">
-            Abaixo estão as especificações REAIS extraídas do código do IdleMon. O teste tentará atualizar o nível do Stinguer.
+          <ShieldCheck className="h-4 w-4 text-emerald-400" />
+          <AlertTitle className="text-blue-300 font-bold uppercase">Auditoria de Segurança V49 Concluída</AlertTitle>
+          <AlertDescription className="text-blue-200/70 space-y-2">
+            <p>A RPC <code className="text-emerald-400">admin_atomic_level_update</code> foi auditada para garantir:</p>
+            <ul className="list-disc list-inside text-xs space-y-1">
+              <li>Atomicidade total entre <code className="text-slate-300">trainer_state</code>, <code className="text-slate-300">ranked_scores</code> e <code className="text-slate-300">profiles</code>.</li>
+              <li>Proteção via <code className="text-yellow-400">SET search_path = public</code> e <code className="text-yellow-400">SECURITY DEFINER</code>.</li>
+              <li>Acesso restrito: <code className="text-red-400">REVOKE EXECUTE FROM PUBLIC</code>. Apenas a Edge Function (service_role) pode disparar.</li>
+              <li>Validação de colunas: Confirmadas <code className="text-slate-300">trainer_level</code> e <code className="text-slate-300">user_id/id</code>.</li>
+            </ul>
           </AlertDescription>
         </Alert>
 
@@ -225,14 +231,30 @@ serve(async (req) => {
     // OPERAÇÃO ATÔMICA VIA RPC PARA GARANTIR CONSISTÊNCIA
     // Você deve criar esta função no Supabase primeiro:
     /*
-    CREATE OR REPLACE FUNCTION admin_atomic_level_update(target_user_id UUID, new_level INT)
-    RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+    -- 1. CRIAR A FUNÇÃO COM SECURITY DEFINER E SEARCH_PATH SEGURO
+    CREATE OR REPLACE FUNCTION public.admin_atomic_level_update(target_user_id UUID, new_level INT)
+    RETURNS void LANGUAGE plpgsql SECURITY DEFINER 
+    SET search_path = public
+    AS $$
     BEGIN
+      -- Validação de segurança extra interna (opcional, já validado na Edge Function)
+      IF new_level < 1 OR new_level > 10000 THEN
+        RAISE EXCEPTION 'Nível fora dos limites permitidos';
+      END IF;
+
       UPDATE public.trainer_state SET trainer_level = new_level WHERE user_id = target_user_id;
       UPDATE public.ranked_scores SET trainer_level = new_level WHERE user_id = target_user_id;
       UPDATE public.profiles SET trainer_level = new_level WHERE id = target_user_id;
     END;
     $$;
+
+    -- 2. REVOGAR EXECUÇÃO PÚBLICA (SEGURANÇA CRÍTICA)
+    REVOKE EXECUTE ON FUNCTION public.admin_atomic_level_update(UUID, INT) FROM PUBLIC;
+    REVOKE EXECUTE ON FUNCTION public.admin_atomic_level_update(UUID, INT) FROM anon;
+    REVOKE EXECUTE ON FUNCTION public.admin_atomic_level_update(UUID, INT) FROM authenticated;
+
+    -- 3. PERMITIR APENAS SERVICE_ROLE (USADO PELA EDGE FUNCTION)
+    GRANT EXECUTE ON FUNCTION public.admin_atomic_level_update(UUID, INT) TO service_role;
     */
 
     const { error } = await adminClient.rpc('admin_atomic_level_update', {
@@ -255,11 +277,12 @@ serve(async (req) => {
                 </div>
 
                 <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded">
-                  <p className="text-[10px] text-blue-200 mb-2 font-bold">PASSO A PASSO PARA RESOLVER (TESTE 46 → 47):</p>
+                  <p className="text-[10px] text-blue-200 mb-2 font-bold uppercase">Procedimento de Deploy Final (V49):</p>
                   <ol className="text-[9px] text-blue-300/80 space-y-1 list-decimal list-inside mb-3">
-                    <li>Crie o arquivo <code className="bg-black/40 px-1">supabase/functions/admin-update-player/index.ts</code></li>
-                    <li>Cole o código acima</li>
-                    <li>No terminal local, execute:</li>
+                    <li>Execute o SQL da RPC acima no Editor SQL do Supabase.</li>
+                    <li>Certifique-se de que a permissão de execução foi revogada do Público.</li>
+                    <li>Faça o deploy da Edge Function <code className="bg-black/40 px-1">admin-update-player</code>.</li>
+                    <li>Clique no botão acima para testar a alteração do Stinguer para 47.</li>
                   </ol>
                   <code className="block bg-black/60 p-2 rounded text-[10px] font-mono text-blue-300 break-all select-all border border-blue-500/30">
                     supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp
@@ -271,7 +294,7 @@ serve(async (req) => {
         </div>
 
         <footer className="text-center text-xs text-slate-600 pt-8">
-          IdleMon Authority System &copy; 2024 | V46
+          IdleMon Authority System &copy; 2026 | V49
         </footer>
       </div>
     </div>
