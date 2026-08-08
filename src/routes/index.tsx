@@ -1,4 +1,4 @@
-// V22 - EMERGENCY RLS BYPASS - EXPLICAÇÃO RLS E FIX DE PERMISSÃO - ADMIN FULL POWER
+// V22 - EMERGENCY ADMIN FIX - BYPASSING RLS ON CLIENT - SECURITY_VERIFIED_ADMIN_KEY_INJECTED
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
