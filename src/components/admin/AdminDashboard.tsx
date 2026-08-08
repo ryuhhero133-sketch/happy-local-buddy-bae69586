@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V11 - SAVE_SYNC_PRIORITY_FIX
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V12 - FULL_DATA_SYNC_AND_IDENTITY_FIX
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -449,12 +449,21 @@ function OnlinePlayersTab({
 
       // Se profiles funcionou, ainda assim vamos enriquecer com trainer_state que é a fonte de verdade mais quente
       const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
-        const { data: ts } = await (supabase.from("trainer_state" as any) as any).select("trainer_level, gold, crystal, ruby, kill_count").eq("user_id", p.id).maybeSingle();
+        const { data: ts } = await (supabase.from("trainer_state") as any).select("trainer_level, gold, crystal, ruby, kill_count").eq("user_id", p.id).maybeSingle();
         const { data: rs } = await supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle();
+        const { data: gs } = await (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle();
+        
+        let cloudLevel = (gs?.data as any)?.idle?.trainerLevel;
         
         return {
           ...p,
-          trainer_level: (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1,
+          trainer_level: cloudLevel || (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1,
+          gold: (ts as any)?.gold ?? p.gold ?? 0,
+          crystal: (ts as any)?.crystal ?? p.crystal ?? 0,
+          ruby: (ts as any)?.ruby ?? p.ruby ?? 0,
+          kill_count: (ts as any)?.kill_count ?? (rs as any)?.total_kills ?? p.kill_count ?? 0
+        };
+      }));
           gold: (ts as any)?.gold ?? p.gold ?? 0,
           crystal: (ts as any)?.crystal ?? p.crystal ?? 0,
           ruby: (ts as any)?.ruby ?? p.ruby ?? 0,
