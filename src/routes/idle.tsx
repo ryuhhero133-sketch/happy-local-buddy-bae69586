@@ -1,4 +1,4 @@
-// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V21 - RANKED_SYNC_AUTHORITY - MENU_BLUE_FONT
+// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V22 - SEASON_MAINTENANCE_LOGOUT
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -1598,6 +1598,36 @@ function IdlePage() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [anciaoOpen, setAnciaoOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+
+  // Manutenção Season: Desloga jogadores não-admins
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      const email = identity?.email?.trim().toLowerCase();
+      const isAdmin = email === "lordryuhhhuyuyghh@gmail.com" || 
+                      identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+      
+      if (isAdmin) return;
+
+      try {
+        const { data: config } = await (supabase as any)
+          .from("server_config")
+          .select("value")
+          .eq("key", "maintenance_mode")
+          .maybeSingle();
+        
+        // Ativamos por padrão se falhar ou se for explicitamente 'true'
+        if (config?.value === "true" || config?.value === true || !config) {
+          signOutRubyM();
+          navigate({ to: "/" });
+        }
+      } catch (e) {
+        console.warn("Erro ao checar manutenção", e);
+      }
+    };
+    checkMaintenance();
+    const iv = setInterval(checkMaintenance, 60000);
+    return () => clearInterval(iv);
+  }, [identity, navigate]);
 
   const handleSeasonResetRitual = async () => {
     // O diálogo do Ancião já é a confirmação — executa o ritual direto.
