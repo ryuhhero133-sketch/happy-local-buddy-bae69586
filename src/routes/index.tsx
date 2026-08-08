@@ -1,4 +1,5 @@
 // V42 - DEFINITIVE_MIGRATION_GUIDELINES
+// COMO EU REALIZO ESSE DEPLoy?
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
