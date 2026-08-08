@@ -13029,9 +13029,9 @@ function TabOverlay({
 
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
         <h2 style={{ 
-          margin: 0, fontSize: 22, color: "#f5cf6b", 
+          margin: 0, fontSize: 22, color: "#7fd8ff", 
           fontFamily: "'Cinzel', serif", letterSpacing: 2,
-          textShadow: "0 2px 4px rgba(0,0,0,0.5)"
+          textShadow: "0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(127, 216, 255, 0.4)"
         }}>{title}</h2>
         <button onClick={onClose} className="modern-close-btn">
           FECHAR ✕
