@@ -416,7 +416,25 @@ function OnlinePlayersTab({
         .select("id, username, last_login, account_status, lock_until")
         .order("last_login", { ascending: false });
       
-      if (profilesError) throw profilesError;
+      // Se profiles falhar por colunas faltantes, tenta uma query básica sem as colunas de segurança
+      if (profilesError) {
+        console.warn("Retrying profile fetch without status columns...", profilesError);
+        const { data: basicProfiles, error: basicError } = await supabase
+          .from("profiles")
+          .select("id, username, last_login")
+          .order("last_login", { ascending: false });
+        
+        if (basicError) throw basicError;
+        
+        // Mapeia para o formato esperado com defaults
+        setPlayers((basicProfiles || []).map(p => ({
+          ...p,
+          account_status: 'active',
+          lock_until: null,
+          ranked_leaderboard: []
+        })));
+        return;
+      }
 
       const { data: ranked, error: rankedError } = await supabase
         .from("ranked_scores")
