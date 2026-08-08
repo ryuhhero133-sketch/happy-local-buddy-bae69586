@@ -2,13 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const adminUpdateSchema = z.object({
-  targetUserId: z.string(),
+  targetUserId: z.string().optional(),
+  targetPokemonId: z.string().optional(),
+  type: z.enum(['trainer', 'pokemon']).default('trainer'),
   level: z.number(),
-  xp: z.number(),
-  snapshot: z.any(),
-  username: z.string(),
-  craftPoints: z.number(),
-  guildName: z.string().nullable(),
+  xp: z.number().optional(),
+  snapshot: z.any().optional(),
+  username: z.string().optional(),
+  craftPoints: z.number().optional(),
+  guildName: z.string().nullable().optional(),
 });
 
 /**
