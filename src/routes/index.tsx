@@ -1,4 +1,4 @@
-// V34 - ABSOLUTE AUTHORITY - BYPASS RLS SERVER-SIDE - ERRO DE CONFIGURAÇÃO CORRIGIDO NO CLIENT.SERVER.TS
+// V35 - ABSOLUTE SERVER AUTHORITY - RLS BYPASS VERIFIED - ENV STANDARDIZED
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';

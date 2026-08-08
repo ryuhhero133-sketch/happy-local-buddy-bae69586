@@ -14,13 +14,13 @@ const adminUpdateSchema = z.object({
 export const updatePlayerStatsAdmin = createServerFn({ method: "POST" })
   .inputValidator((data) => adminUpdateSchema.parse(data))
   .handler(async ({ data }) => {
-    // V33: A função de servidor DEVE ter acesso às variáveis de ambiente
-    // O import dinâmico garante que o código do admin client não vaze para o bundle do cliente.
+    // V35: Ponto central de salvamento. O import dinâmico do client.server garante bypass de RLS.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     
-    // Verificamos se o client foi inicializado corretamente (evita erro silencioso se a env faltar)
+    // O erro de configuração será lançado pelo client.server se as chaves faltarem.
+    // Aqui apenas confirmamos que o objeto existe.
     if (!supabaseAdmin) {
-      throw new Error("Falha ao inicializar o cliente administrativo Supabase.");
+      throw new Error("Erro Crítico: supabaseAdmin não pôde ser carregado no servidor.");
     }
 
     const lockUntil = new Date(Date.now() + 20000).toISOString();
