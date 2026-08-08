@@ -2970,7 +2970,16 @@ function IdlePage() {
       // Carta Lendária (Incubadora) + Carta do Governante
       CARTAGOVLEND1: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
       CARTAGOVLEND2: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
+      // ❄️ RESETPERSON: Ritual de Reset via Código (Fallback de Segurança)
+      RESETPERSON: { label: "Reset de Temporada: Nível 1 + Fragmentação da Coleção" },
     };
+
+    if (raw === "RESETPERSON") {
+      void handleSeasonReset();
+      setCodeMsg({ kind: "ok", text: "Ritual iniciado! Confirme no diálogo acima." });
+      setCodeOpen(false);
+      return;
+    }
 
     const reward = CODE_TABLE[raw];
     if (reward) {
