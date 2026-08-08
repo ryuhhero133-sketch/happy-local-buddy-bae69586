@@ -564,6 +564,14 @@ function OnlinePlayersTab({
 
       if (rankedError) console.warn("Failed to update ranked_scores directly:", rankedError);
 
+      // 2.1. Atualizar profiles (usado para login e redundância)
+      const { error: profileUpdateError } = await (supabase.from("profiles") as any).update({
+        trainer_level: editLevel,
+        updated_at: new Date().toISOString()
+      }).eq("id", inspectingUser);
+
+      if (profileUpdateError) console.warn("Failed to update profiles trainer_level:", profileUpdateError);
+
       // 3. Atualizar record em ranked_leaderboard se existir
       try {
         await (supabase.from("ranked_leaderboard" as any) as any).update({
