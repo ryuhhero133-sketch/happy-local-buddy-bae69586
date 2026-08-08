@@ -15854,6 +15854,133 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
   );
 }
 
+// ============ Ancião Glacial NPC (Season Reset) ============
+function AnciaoGlacialDialog(props: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isUsed?: boolean;
+}) {
+  const { open, onClose, onConfirm, isUsed = false } = props;
+  const [step, setStep] = useState(0);
+  useEffect(() => { if (open) setStep(0); }, [open]);
+
+  if (!open) return null;
+
+  const lines = isUsed
+    ? ["Você já iniciou sua nova jornada. Este ritual não pode ser realizado novamente."]
+    : [
+        "Uma nova jornada está prestes a começar.",
+        "Este ritual fará você retornar ao nível 1.",
+        "Seus Pokémon também retornarão ao nível 1.",
+        "Seus Pokémon não serão deletados.",
+        "Seus itens e recursos serão preservados.",
+        "Seus Pokémon serão levados para o Santuário Glacial.",
+        "Deseja iniciar uma nova jornada?"
+      ];
+
+  const isLast = step >= lines.length - 1;
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 20000,
+        background: "radial-gradient(ellipse at center, rgba(10,30,60,0.85), rgba(0,0,0,0.95))",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        padding: "0 0 40px 0", backdropFilter: "blur(4px)",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(720px, 94vw)",
+          background: "linear-gradient(180deg, rgba(20,40,70,0.98), rgba(5,15,30,0.98))",
+          border: "3px solid transparent",
+          borderImage: "linear-gradient(135deg, #7dd3fc, #ffffff, #7dd3fc) 1",
+          borderRadius: 14,
+          boxShadow: "0 0 40px rgba(125,211,252,0.55), inset 0 0 20px rgba(255,255,255,0.15)",
+          padding: 16, display: "flex", gap: 16, color: "#e0f2fe",
+          position: "relative", animation: "govFadeIn 0.35s ease-out",
+        }}
+      >
+        <div style={{
+          flex: "0 0 160px", height: 200,
+          background: "linear-gradient(180deg, #1e3a8a, #0f172a)",
+          border: "2px solid #7dd3fc", borderRadius: 10,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          overflow: "hidden", boxShadow: "0 0 15px rgba(125,211,252,0.4)"
+        }}>
+          <img
+            src={npcAnciaoGlacialUrl}
+            alt="Ancião Glacial"
+            style={{ width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated" }}
+          />
+        </div>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{
+            fontSize: 20, fontWeight: 900, letterSpacing: 2,
+            color: "#7dd3fc", textShadow: "0 0 10px rgba(125,211,252,0.6)",
+          }}>
+            ❄️ ANCIÃO GLACIAL
+            <span style={{ marginLeft: 8, fontSize: 10, color: "#ffffff", letterSpacing: 3, opacity: 0.8 }}>SÁBIO DO GELO</span>
+          </div>
+          <div style={{
+            background: "rgba(0,0,0,0.35)", border: "1px solid rgba(125,211,252,0.35)",
+            borderRadius: 8, padding: 14, minHeight: 90, fontSize: 14, lineHeight: 1.5,
+            fontStyle: "italic", color: "#f0f9ff",
+          }}>
+            "{lines[step]}"
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end", marginTop: "auto" }}>
+            {!isLast ? (
+              <button
+                onClick={() => setStep((s) => s + 1)}
+                style={{
+                  padding: "8px 16px", background: "linear-gradient(180deg, #0ea5e9, #1e40af)",
+                  border: "1px solid #7dd3fc", borderRadius: 8, color: "#fff",
+                  fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                }}
+              >PRÓXIMO ▸</button>
+            ) : isUsed ? (
+              <button
+                onClick={onClose}
+                style={{
+                  padding: "10px 18px", background: "linear-gradient(180deg, #0ea5e9, #1e40af)",
+                  border: "1px solid #7dd3fc", borderRadius: 8, color: "#fff",
+                  fontWeight: 700, cursor: "pointer", fontSize: 12,
+                }}
+              >ENTENDIDO</button>
+            ) : (
+              <>
+                <button
+                  onClick={onClose}
+                  style={{
+                    padding: "10px 18px", background: "rgba(40,20,60,0.8)",
+                    border: "1px solid #5a3a7a", borderRadius: 8, color: "#94a3b8",
+                    fontWeight: 600, cursor: "pointer", fontSize: 11,
+                  }}
+                >NÃO, CANCELAR</button>
+                <button
+                  onClick={() => { onConfirm(); onClose(); }}
+                  style={{
+                    padding: "10px 22px",
+                    background: "linear-gradient(180deg, #7dd3fc, #1e40af)",
+                    border: "1px solid #ffffff", borderRadius: 8, color: "#fff",
+                    fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                    boxShadow: "0 0 14px rgba(125,211,252,0.7)",
+                  }}
+                >✓ SIM, INICIAR</button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 
 // ============ Governante NPC — cutscene de diálogo premium ============
 function GovernanteDialog(props: {
