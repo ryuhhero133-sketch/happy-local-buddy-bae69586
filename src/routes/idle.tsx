@@ -13322,6 +13322,40 @@ function TabOverlay({
                     </div>
                   ))}
                 </div>
+                {/* Botão do Ancião Glacial abaixo da Equipe */}
+                <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
+                  <button
+                    onClick={handleAnciaoInteraction}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      background: "linear-gradient(180deg, #1e40af, #0f172a)",
+                      border: "2px solid #7dd3fc",
+                      borderRadius: 12,
+                      color: "#7dd3fc",
+                      fontSize: 14,
+                      fontWeight: 900,
+                      letterSpacing: 2,
+                      cursor: "pointer",
+                      boxShadow: "0 0 15px rgba(125,211,252,0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.boxShadow = "0 0 25px rgba(125,211,252,0.6)";
+                      e.currentTarget.style.borderColor = "#fff";
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.boxShadow = "0 0 15px rgba(125,211,252,0.3)";
+                      e.currentTarget.style.borderColor = "#7dd3fc";
+                    }}
+                  >
+                    ❄️ FALAR COM O ANCIÃO GLACIAL
+                  </button>
+                </div>
               </div>
             );
           })()}
