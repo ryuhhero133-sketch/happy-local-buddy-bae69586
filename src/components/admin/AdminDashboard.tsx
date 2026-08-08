@@ -606,30 +606,42 @@ function OnlinePlayersTab({
       // V22 - A conta admin logada no browser (authenticated) não tem permissão para dar UPSERT 
       // na linha de OUTRO jogador na tabela trainer_state devido à RLS (Row Level Security).
       // A RLS diz: "usuário X só pode editar a linha onde user_id = X".
-      // Para resolver isso sem criar funções complexas no Postgres, usamos a supabaseAdmin 
-      // que ignora RLS e permite que você, como mestre, edite qualquer um.
+      // Para resolver isso sem criar funções complexas no Postgres, usamos a Service Role Key.
       
-      const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+      // No navegador, não podemos carregar supabaseAdmin diretamente pois ele usa process.env
+      // Mas sabemos que a URL é a mesma.
+      const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL;
+      const ADMIN_KEY = (import.meta as any).env.VITE_ADMIN_SB_KEY;
+
+      if (!ADMIN_KEY) {
+        throw new Error("Erro de Segurança: VITE_ADMIN_SB_KEY não configurada no cliente.");
+      }
+
+      // IMPORTANTE: Criamos um cliente admin temporário APENAS para esta operação
+      const { createClient } = await import('@supabase/supabase-js');
+      const tempAdmin = createClient(SUPABASE_URL, ADMIN_KEY, {
+        auth: { persistSession: false }
+      });
 
       const results = await Promise.all([
-        (supabaseAdmin.from("game_saves") as any).upsert({
+        (tempAdmin.from("game_saves") as any).upsert({
           user_id: inspectingUser,
           data: snapshot,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" }),
-        (supabaseAdmin.from("trainer_state") as any).upsert({
+        (tempAdmin.from("trainer_state") as any).upsert({
           user_id: inspectingUser,
           trainer_level: editLevel,
           trainer_xp: editXp,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" }),
-        (supabaseAdmin.from("ranked_scores") as any).upsert({
+        (tempAdmin.from("ranked_scores") as any).upsert({
           user_id: inspectingUser,
           username,
           trainer_level: editLevel,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" }),
-        (supabaseAdmin.from("profiles") as any).update({
+        (tempAdmin.from("profiles") as any).update({
           trainer_level: editLevel,
           updated_at: new Date().toISOString(),
           lock_until: lockUntil,
