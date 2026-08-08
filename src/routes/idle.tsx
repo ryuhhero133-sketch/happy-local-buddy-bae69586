@@ -14189,9 +14189,12 @@ function TabOverlay({
           background: "rgba(0,0,0,0.3)",
           borderRadius: 14, padding: 18,
           boxShadow: "inset 0 0 24px rgba(0,0,0,0.2), 0 4px 18px rgba(0,0,0,0.5)",
-
-
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          minHeight: 0
         }}>
+
           {/* HUD topo da coleção */}
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
