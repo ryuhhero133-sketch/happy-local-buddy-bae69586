@@ -1,4 +1,6 @@
-// RESOLVIDO: SQL e Instruções de Deploy na interface de diagnóstico.
+// V44 - SUPABASE_BRIDGE_AUTHORITY_SYNC_CHECK
+// O Painel Admin agora delega autoridade para a Edge Function no projeto: kgrspvqhpgiuxvkcxgcp
+
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -158,15 +160,38 @@ function Index() {
                 <div className="p-3 bg-black/40 rounded border border-red-900/50">
                   <strong className="text-red-400 block mb-1">SQL DE RESOLUÇÃO (Execute no Editor SQL do Supabase):</strong>
                   <pre className="whitespace-pre-wrap font-mono text-[9px] text-yellow-500/80">
-{`-- 1. Habilitar a extensão para chamadas HTTP se necessário
--- (Geralmente habilitado por padrão em novos projetos)
+{`// 1. Crie o arquivo localmente em: supabase/functions/admin-update-player/index.ts
+// 2. Cole o código TypeScript da Edge Function (enviado no chat)
+// 3. Execute o deploy:
+supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp
 
--- 2. Código para criar a Edge Function (Copie e cole no seu terminal local)
--- mkdir -p supabase/functions/admin-update-player
--- Edite o arquivo supabase/functions/admin-update-player/index.ts com o código TypeScript fornecido.
+// CÓDIGO DA EDGE FUNCTION (admin-update-player):
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
--- O comando abaixo é o que você precisa rodar no seu PC:
-supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp`}
+serve(async (req) => {
+  const { targetUserId, level, xp, snapshot } = await req.json()
+  
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
+
+  // Atualiza trainer_state (Nível e XP)
+  const { data, error } = await supabase
+    .from('trainer_state')
+    .update({ level, xp, last_updated_at: new Date().toISOString() })
+    .eq('user_id', targetUserId)
+    .select()
+
+  // Atualiza ranked_scores para manter sincronia
+  await supabase
+    .from('ranked_scores')
+    .update({ level })
+    .eq('user_id', targetUserId)
+
+  return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } })
+})`}
                   </pre>
                 </div>
                 
