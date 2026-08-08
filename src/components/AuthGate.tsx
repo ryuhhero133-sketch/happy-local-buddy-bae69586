@@ -1002,6 +1002,10 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
           <button
             type="button"
             onClick={() => {
+              if (maintenance && !isAdmin) {
+                alert("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
+                return;
+              }
               try {
                 const name = (prompt("Nome do treinador (aparece no chat):", "Convidado") || "").trim().slice(0, 16);
                 if (name.length < 2) return;
