@@ -1598,6 +1598,15 @@ function IdlePage() {
   const [anciaoOpen, setAnciaoOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
+  const handleAnciaoInteraction = () => {
+    // Somente permite interagir se estiver no Santuário Glacial
+    if (idle.currentMap !== "santuario_glacial") {
+      pushChat("Vá até o Santuário Glacial para falar com o Ancião.", "info");
+      return;
+    }
+    setAnciaoOpen(true);
+  };
+
   // ============= Server sync (Supabase anti-cheat) =============
   const idleRef = useRef(idle);
   useEffect(() => { idleRef.current = idle; }, [idle]);
