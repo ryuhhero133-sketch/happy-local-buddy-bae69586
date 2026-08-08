@@ -13824,14 +13824,14 @@ function TabOverlay({
             </div>
 
             {/* GRID LAYOUT — sidebar categorias + grade */}
-            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12 }}>
+            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12, flex: 1, minHeight: 0 }}>
               {/* SIDEBAR CATEGORIAS */}
               <div style={{
                 background: "rgba(0, 0, 0, 0.3)",
                 border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
                 boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.2)",
-
                 padding: 8, display: "flex", flexDirection: "column", gap: 6,
+                overflowY: "auto"
               }}>
                 <div style={{
                   textAlign: "center", fontSize: 10, fontWeight: 900, letterSpacing: 2,
