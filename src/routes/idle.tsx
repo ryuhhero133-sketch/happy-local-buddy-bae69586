@@ -85,6 +85,8 @@ import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 
+import npcAnciaoGlacialAsset from "@/assets/npc-anciao-glacial.png.asset.json";
+
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
@@ -470,6 +472,7 @@ const worldMapContinent2Url = assetUrlFromJson(worldMapContinent2Asset);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const gameDb = supabase as any;
 
+const npcAnciaoGlacialUrl = assetUrlFromJson(npcAnciaoGlacialAsset);
 const potionIconUrl = assetUrlFromJson(potionIconAsset);
 const bgmUrl = assetUrlFromJson(bgmAsset);
 const sfxLevelUpUrl = assetUrlFromJson(sfxLevelUpAsset);
@@ -480,25 +483,21 @@ const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 type IdleMapId =
   | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "pantano_fogo" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   | "gelius1" | "gelius2"
-  // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
+  // Cadeia endgame
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
   | "vulcao_ativo" | "nucleo_primordial"
-  // Cadeia Abissal — 5 mapas 1000-3000, recolores do Pântano em Chamas
+  // Cadeia Abissal
   | "abismo_gelo" | "abismo_veneno" | "abismo_raio" | "abismo_sombra" | "abismo_dragao"
-  // Cadeia estendida — Lv 3000 até 6000, continuação natural do Abismo do Dragão
+  // Cadeia estendida
   | "cadeia_ab" | "cadeia_ab1" | "cadeia_f1"
-  // Evento Mítico Shiny — abre 5min a cada 1h
   | "evento_myth"
-  // Evento Oddish Odyssey — 24h aberto, 3 mapas conectados por portal
   | "oddish_o1" | "oddish_o2" | "oddish_o3"
-  // Evento Grass Oddish — mapa exclusivo, entrada custa 20 Stone Verdejante
   | "grass_oddish"
-  // Evento Vale dos Fragmentos Vermelhos — abre 1h a cada 5h, entrada pelo Ginásio Medieval
   | "vale_fragmentos"
-  // 🏰 Ginásio Medieval — 3 andares endgame (Carmesim → Gelo/Sombra → Arcano)
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
-  // Continente do Governante — acesso via Carta do Governante
-  | "absol_start" | "governante_hall";
+  | "absol_start" | "governante_hall"
+  // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
+  | "santuario_glacial" | "caminho_glacial";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -560,6 +559,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   gym_arcano:      { name: "🏰 Ginásio — Santuário Arcano", diff: "BLACK MYTHIC", bg: assetUrlFromJson(mapGymArcanoAsset), rate: 38.0, minLevel: 1, maxLevel: 9999, element: "Arcano",        stars: 10, overlay: "rgba(120,60,200,0.10)" },
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
+  santuario_glacial: { name: "Santuário Glacial", diff: "SEGURO", bg: mapSnowUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 10, overlay: "rgba(200,230,255,0.3)" },
+  caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -1594,6 +1595,7 @@ function IdlePage() {
   }, [team.length, team[0]?.uid, team[0]?.level, spawnEnemies, idle.currentMap]);
 
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [anciaoOpen, setAnciaoOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
   // ============= Server sync (Supabase anti-cheat) =============
@@ -2696,6 +2698,12 @@ function IdlePage() {
                 ],
                 governante_hall: [
                   { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
+                ],
+                santuario_glacial: [
+                  { key: "sg-to-caminho", target: "caminho_glacial", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7dd3fc" },
+                ],
+                caminho_glacial: [
+                  { key: "cg-to-santuario", target: "santuario_glacial", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#c0e8ff" },
                 ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
@@ -8171,23 +8179,27 @@ function IdlePage() {
 
             </Panel>
             
-            {/* HUD de Aviso Temporário (Bichinho Animado) */}
-            <div style={{ 
-              marginTop: 10,
-              background: "linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05))",
-              border: "2px solid #a855f7",
-              borderRadius: 12,
-              padding: "10px 14px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              boxShadow: "0 4px 15px rgba(168, 85, 247, 0.25)",
-              animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
-            }}>
+            {/* HUD de Aviso Temporário (Ancião Glacial) */}
+            <div 
+              onClick={() => setAnciaoOpen(true)}
+              style={{ 
+                marginTop: 10,
+                background: "linear-gradient(135deg, rgba(125, 211, 252, 0.2), rgba(125, 211, 252, 0.05))",
+                border: "2px solid #7dd3fc",
+                borderRadius: 12,
+                padding: "10px 14px",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                boxShadow: "0 4px 15px rgba(125, 211, 252, 0.25)",
+                animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                cursor: "pointer"
+              }}
+            >
               <div style={{ width: 44, height: 44, position: "relative" }}>
                 <img 
-                  src={assetUrlFromJson(rioluAsset)} 
-                  alt="Riolu" 
+                  src={npcAnciaoGlacialUrl} 
+                  alt="Ancião Glacial" 
                   style={{ 
                     width: "100%", 
                     height: "100%", 
@@ -8198,13 +8210,13 @@ function IdlePage() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ 
-                  color: "#d8b4fe", 
+                  color: "#7dd3fc", 
                   fontSize: 12, 
                   fontWeight: 900, 
                   letterSpacing: 1, 
-                  textShadow: "0 0 8px rgba(168, 85, 247, 0.8)" 
+                  textShadow: "0 0 8px rgba(125, 211, 252, 0.8)" 
                 }}>
-                  📢 AVISO TEMPORADA
+                  ❄️ NOVA JORNADA
                 </div>
                 <div style={{ 
                   color: "#fff", 
@@ -8213,7 +8225,7 @@ function IdlePage() {
                   marginTop: 2,
                   lineHeight: 1.3
                 }}>
-                  VEM AI A 3° SEASON O SHOW ESTA PRA COMEÇAR. 🎪🌟
+                  A 3ª SEASON CHEGOU! INICIE O RITUAL NO SANTUÁRIO. 🏔️✨
                 </div>
               </div>
             </div>
@@ -8932,6 +8944,47 @@ function IdlePage() {
 
 
 
+
+            {/* ❄️ NPC Ancião Glacial — visível apenas no Santuário Glacial */}
+            {idle.currentMap === "santuario_glacial" && (() => {
+              const npcX = WORLD_W / 2, npcY = WORLD_H / 2 - 40;
+              return (
+                <div
+                  onClick={() => { playClick(); setAnciaoOpen(true); }}
+                  title="Ancião Glacial — Ritual de Reset de Temporada"
+                  style={{
+                    position: "absolute",
+                    left: npcX - 60, top: npcY - 90,
+                    width: 120, height: 160,
+                    cursor: "pointer",
+                    zIndex: Math.round(npcY),
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    filter: "drop-shadow(0 6px 12px rgba(125,211,252,0.6))",
+                  }}
+                >
+                  <div style={{
+                    position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)",
+                    background: "linear-gradient(180deg,#1e3a8a,#0f172a)",
+                    border: "1px solid #7dd3fc", color: "#7dd3fc",
+                    borderRadius: 999, padding: "3px 12px",
+                    fontSize: 11, fontWeight: 900, whiteSpace: "nowrap",
+                    boxShadow: "0 0 12px rgba(125,211,252,0.5)",
+                    animation: "pulse 1.6s ease-in-out infinite",
+                  }}>❄️ ANCIÃO GLACIAL</div>
+                  <img
+                    src={npcAnciaoGlacialUrl}
+                    alt="Ancião Glacial"
+                    width={120} height={160}
+                    style={{ width: 120, height: 160, imageRendering: "pixelated", objectFit: "contain" }}
+                  />
+                  <div style={{
+                    position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
+                    width: 100, height: 14, borderRadius: "50%",
+                    background: "radial-gradient(ellipse, rgba(125,211,252,0.6), transparent 70%)",
+                  }} />
+                </div>
+              );
+            })()}
 
             {/* Inimigos espalhados pelo mapa */}
             {enemies.map((e) => {
@@ -15788,6 +15841,20 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
     return h > 24 ? `${Math.floor(h / 24)}d` : (h > 0 ? `${h}h ${m}m` : `${m}m`);
   };
+  const handleSeasonReset = async () => {
+    try {
+      const { executeSeasonReset } = await import("@/lib/season-reset.functions");
+      const res = await executeSeasonReset();
+      if (res.success) {
+        toast.success(res.message);
+        // Recarregar a página para aplicar o reset completo no estado local
+        window.location.reload();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao realizar reset de temporada.");
+    }
+  };
+
   const Chip = ({ label, value, color, sub }: { label: string; value: string; color: string; sub?: string }) => (
     <div style={{
       background: `linear-gradient(180deg, ${color}22, ${color}08)`,
@@ -15844,6 +15911,133 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
         </div>
       </div>
     </div>
+  );
+}
+
+// ============ Ancião Glacial NPC (Season Reset) ============
+function AnciaoGlacialDialog(props: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isUsed?: boolean;
+}) {
+  const { open, onClose, onConfirm, isUsed = false } = props;
+  const [step, setStep] = useState(0);
+  useEffect(() => { if (open) setStep(0); }, [open]);
+
+  if (!open) return null;
+
+  const lines = isUsed
+    ? ["Você já iniciou sua nova jornada. Este ritual não pode ser realizado novamente."]
+    : [
+        "Uma nova jornada está prestes a começar.",
+        "Este ritual fará você retornar ao nível 1.",
+        "Seus Pokémon também retornarão ao nível 1.",
+        "Seus Pokémon não serão deletados.",
+        "Seus itens e recursos serão preservados.",
+        "Seus Pokémon serão levados para o Santuário Glacial.",
+        "Deseja iniciar uma nova jornada?"
+      ];
+
+  const isLast = step >= lines.length - 1;
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 20000,
+        background: "radial-gradient(ellipse at center, rgba(10,30,60,0.85), rgba(0,0,0,0.95))",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        padding: "0 0 40px 0", backdropFilter: "blur(4px)",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(720px, 94vw)",
+          background: "linear-gradient(180deg, rgba(20,40,70,0.98), rgba(5,15,30,0.98))",
+          border: "3px solid transparent",
+          borderImage: "linear-gradient(135deg, #7dd3fc, #ffffff, #7dd3fc) 1",
+          borderRadius: 14,
+          boxShadow: "0 0 40px rgba(125,211,252,0.55), inset 0 0 20px rgba(255,255,255,0.15)",
+          padding: 16, display: "flex", gap: 16, color: "#e0f2fe",
+          position: "relative", animation: "govFadeIn 0.35s ease-out",
+        }}
+      >
+        <div style={{
+          flex: "0 0 160px", height: 200,
+          background: "linear-gradient(180deg, #1e3a8a, #0f172a)",
+          border: "2px solid #7dd3fc", borderRadius: 10,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          overflow: "hidden", boxShadow: "0 0 15px rgba(125,211,252,0.4)"
+        }}>
+          <img
+            src={npcAnciaoGlacialUrl}
+            alt="Ancião Glacial"
+            style={{ width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated" }}
+          />
+        </div>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{
+            fontSize: 20, fontWeight: 900, letterSpacing: 2,
+            color: "#7dd3fc", textShadow: "0 0 10px rgba(125,211,252,0.6)",
+          }}>
+            ❄️ ANCIÃO GLACIAL
+            <span style={{ marginLeft: 8, fontSize: 10, color: "#ffffff", letterSpacing: 3, opacity: 0.8 }}>SÁBIO DO GELO</span>
+          </div>
+          <div style={{
+            background: "rgba(0,0,0,0.35)", border: "1px solid rgba(125,211,252,0.35)",
+            borderRadius: 8, padding: 14, minHeight: 90, fontSize: 14, lineHeight: 1.5,
+            fontStyle: "italic", color: "#f0f9ff",
+          }}>
+            "{lines[step]}"
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end", marginTop: "auto" }}>
+            {!isLast ? (
+              <button
+                onClick={() => setStep((s) => s + 1)}
+                style={{
+                  padding: "8px 16px", background: "linear-gradient(180deg, #0ea5e9, #1e40af)",
+                  border: "1px solid #7dd3fc", borderRadius: 8, color: "#fff",
+                  fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                }}
+              >PRÓXIMO ▸</button>
+            ) : isUsed ? (
+              <button
+                onClick={onClose}
+                style={{
+                  padding: "10px 18px", background: "linear-gradient(180deg, #0ea5e9, #1e40af)",
+                  border: "1px solid #7dd3fc", borderRadius: 8, color: "#fff",
+                  fontWeight: 700, cursor: "pointer", fontSize: 12,
+                }}
+              >ENTENDIDO</button>
+            ) : (
+              <>
+                <button
+                  onClick={onClose}
+                  style={{
+                    padding: "10px 18px", background: "rgba(40,20,60,0.8)",
+                    border: "1px solid #5a3a7a", borderRadius: 8, color: "#94a3b8",
+                    fontWeight: 600, cursor: "pointer", fontSize: 11,
+                  }}
+                >NÃO, CANCELAR</button>
+                <button
+                  onClick={() => { onConfirm(); onClose(); }}
+                  style={{
+                    padding: "10px 22px",
+                    background: "linear-gradient(180deg, #7dd3fc, #1e40af)",
+                    border: "1px solid #ffffff", borderRadius: 8, color: "#fff",
+                    fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                    boxShadow: "0 0 14px rgba(125,211,252,0.7)",
+                  }}
+                >✓ SIM, INICIAR</button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 
