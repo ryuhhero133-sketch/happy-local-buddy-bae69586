@@ -3,7 +3,6 @@
 // Use this for admin operations in server functions and server routes only.
 // For user-authenticated queries (with RLS), use the auth middleware instead.
 import { createClient } from '@supabase/supabase-js';
-import { getEvent } from 'h3';
 import type { Database } from './types';
 
 function isNewSupabaseApiKey(value: string): boolean {
@@ -32,30 +31,19 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 /**
  * Pega as variáveis de ambiente de forma segura no runtime do Worker.
- * No Cloudflare Worker com TanStack Start (Nitro), as chaves estão em event.context.cloudflare.env.
+ * No Cloudflare Worker com TanStack Start (Nitro), tentamos acessar via global ou process.
  */
 function getRuntimeEnv(): Record<string, string | undefined> {
   const env: Record<string, any> = {};
 
-  // 1. Tentar contexto do H3 (Nitro/Edge Runtime)
-  try {
-    const event = getEvent();
-    const cfEnv = (event?.context as any)?.cloudflare?.env;
-    if (cfEnv) {
-      Object.assign(env, cfEnv);
-    }
-  } catch (e) {
-    // getEvent pode falhar se chamado fora de um ciclo de request
-  }
-
-  // 2. Tentar process.env (Node/Bun/Preview)
+  // 1. Tentar process.env (Node/Bun/Preview e Nitro Polyfill)
   try {
     if (typeof process !== 'undefined' && process.env) {
       Object.assign(env, process.env);
     }
   } catch (e) {}
 
-  // 3. Fallback para globalThis (último recurso)
+  // 2. Tentar globalThis (Cloudflare Workers bindings são injetados aqui se não houver context)
   const g = globalThis as any;
   if (g.ADMIN_SB_KEY) env.ADMIN_SB_KEY = g.ADMIN_SB_KEY;
   if (g.SUPABASE_URL) env.SUPABASE_URL = g.SUPABASE_URL;
@@ -91,8 +79,7 @@ function createSupabaseAdminClient() {
   });
 }
 
-// SECURITY: O cliente é instanciado dentro do Proxy para garantir que getRuntimeEnv() 
-// seja chamado no momento do acesso (dentro de uma Server Function), onde o contexto do request está disponível.
+// SECURITY: O cliente é instanciado via Proxy para garantir o carregamento sob demanda
 export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {
   get(_, prop, receiver) {
     const client = createSupabaseAdminClient();
