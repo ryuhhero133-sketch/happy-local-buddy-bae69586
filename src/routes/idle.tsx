@@ -15857,7 +15857,7 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
 
   const handleAnciaoInteraction = () => {
     // Somente permite interagir se estiver no Santuário Glacial
-    if (idle.currentMap !== "santuario_glacial") {
+    if (idleRef.current.currentMap !== "santuario_glacial") {
       pushChat("Vá até o Santuário Glacial para falar com o Ancião.", "info");
       return;
     }
