@@ -1598,25 +1598,31 @@ function IdlePage() {
   const [anciaoOpen, setAnciaoOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
+  const handleSeasonResetRitual = async () => {
+    try {
+      const { executeSeasonReset } = await import("@/lib/season-reset.functions");
+      const res = await executeSeasonReset();
+      if (res?.success) {
+        toast.success(res.message || "Nova Jornada iniciada!");
+        window.location.reload();
+      } else {
+        toast.error(res?.message || "Não foi possível realizar o ritual.");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao realizar reset de temporada.");
+    }
+  };
+
   const handleAnciaoInteraction = () => {
-    // Se o jogador já estiver no Santuário, abre o diálogo diretamente
+    // Fecha qualquer menu aberto para o jogador ver o Santuário
+    setTab("batalha");
     if (idle.currentMap === "santuario_glacial") {
       setAnciaoOpen(true);
       return;
     }
-
-    // Caso contrário, teletransporta para o Santuário Glacial
-    setIdle((prev) => ({
-      ...prev,
-      currentMap: "santuario_glacial"
-    }));
-    
-    // Pequeno delay para garantir que o mapa carregue antes de abrir o diálogo
-    setTimeout(() => {
-      setAnciaoOpen(true);
-    }, 300);
-    
-    pushChat("Viajando para o Santuário Glacial...", "info");
+    setIdle((prev) => ({ ...prev, currentMap: "santuario_glacial" }));
+    pushChat("❄️ Viajando para o Santuário Glacial...", "info");
+    setTimeout(() => setAnciaoOpen(true), 350);
   };
 
   // ============= Server sync (Supabase anti-cheat) =============
@@ -11188,6 +11194,13 @@ function IdlePage() {
           </div>
         </div>
       )}
+
+      {/* ❄️ Diálogo do Ancião Glacial — Ritual da Nova Jornada */}
+      <AnciaoGlacialDialog
+        open={anciaoOpen}
+        onClose={() => setAnciaoOpen(false)}
+        onConfirm={handleSeasonResetRitual}
+      />
 
 
       {/* Botão flutuante: resgatar código */}
