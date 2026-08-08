@@ -22,10 +22,10 @@ export const executeSeasonReset = createServerFn({ method: "POST" })
       throw new Error("O Ritual de Reset já foi realizado por este treinador.");
     }
 
-    // Operação Atômica via RPC
+    // Operação Atômica via RPC que zera níveis e converte coleção em Fragmentos Vermelhos
     const { data: rpcData, error: rpcError } = await supabase.rpc("perform_season_reset", {
       p_user_id: userId
-    });
+    }) as { data: any, error: any };
 
     if (rpcError) {
       console.error("RPC Error:", rpcError);
