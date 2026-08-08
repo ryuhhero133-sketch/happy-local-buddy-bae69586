@@ -427,8 +427,10 @@ function OnlinePlayersTab({
         if (basicError) throw basicError;
         
         // Mapeia para o formato esperado com defaults
-        setPlayers((basicProfiles || []).map(p => ({
-          ...p,
+        setPlayers((basicProfiles || []).map((p: any) => ({
+          id: p.id,
+          username: p.username,
+          last_login: p.last_login,
           account_status: 'active',
           lock_until: null,
           ranked_leaderboard: []
