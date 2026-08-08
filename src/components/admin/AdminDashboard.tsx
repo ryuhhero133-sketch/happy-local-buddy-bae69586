@@ -683,18 +683,6 @@ function OnlinePlayersTab({
           level: level
         }
       });
-      }).eq("id", id);
-
-      
-      if (directError) throw directError;
-
-      // Opcional: tentar RPC
-      try {
-        await (supabase.rpc as any)('admin_update_pokemon_level', {
-          target_pokemon_id: id,
-          new_level: level
-        });
-      } catch (e) {}
 
       toast.success("Nível do Pokémon atualizado!");
       if (inspectingUser) inspectPlayer(inspectingUser);
