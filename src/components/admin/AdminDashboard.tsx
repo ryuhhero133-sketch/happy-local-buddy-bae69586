@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V16 - REALTIME_CLOUD_PERSISTENCE_FINAL_FIX - SECURITY_VERIFIED_V16
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V17 - REALTIME_CLOUD_PERSISTENCE_EMERGENCY_FIX - SECURITY_VERIFIED_V17
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -627,6 +627,15 @@ function OnlinePlayersTab({
           lock_until: lockUntil
         }).eq("id", inspectingUser)
       ]);
+
+      // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA)
+      // Removemos rubym.idle.v1 e rubym.save.v2 antigos se existirem,
+      // para que o próximo login Puxe obrigatoriamente da nuvem (V17+)
+      if (inspectingUser === identity?.id) {
+        localStorage.removeItem("rubym.idle.v1");
+        localStorage.removeItem("rubym.save.v2");
+        localStorage.removeItem("rubym.cloud.preloaded.v1");
+      }
 
       // 3. Atualização local para o Admin (se estiver editando a si mesmo)
       if (inspectingUser === identity?.id) {

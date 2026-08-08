@@ -1,4 +1,4 @@
-// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V16 - REALTIME_CLOUD_PERSISTENCE_FINAL_FIX
+// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V17 - REALTIME_CLOUD_PERSISTENCE_EMERGENCY_FIX
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -1277,6 +1277,15 @@ function loadIdle(): IdleState {
         }
       } catch (e) {
         console.error("Erro crítico ao carregar IDLE_KEY:", e);
+        return freshIdle();
+      }
+
+      // V17 HOTFIX: Se o estado local for de uma versão admin (+20000), 
+      // mas o treinador_level visual for 1, algo corrompeu. Resetamos para forçar cloud sync.
+      if (parsed.version >= 10000 && (parsed.level === 1 || parsed.trainerLevel === 1)) {
+        console.warn("[V17] Local state mismatch (Lv1 vs High Version). Wiping for clean cloud sync.");
+        localStorage.removeItem(IDLE_KEY);
+        localStorage.removeItem("rubym.save.v2");
         return freshIdle();
       }
       
