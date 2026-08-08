@@ -1,4 +1,4 @@
-// V36 - RUNTIME_DIAGNOSTIC_ACTIVE
+// V37 - EDGE_RUNTIME_RESILIENCE_VALIDATION_ACTIVE
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
