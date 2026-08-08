@@ -1,4 +1,4 @@
-// V32 - ABSOLUTE AUTHORITY - ta do mesmo jeito, achjo que n conseguimos.
+// V33 - Erro ao salvar: Configuração incompleta: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY / ADMIN_SB_KEY. Certifique-se de conectar o Supabase e configurar a ADMIN_SB_KEY.   VAI FICAR PEDINDO ISSO DIRETO .. N CONSEGUIMOS MUDARNADA
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
