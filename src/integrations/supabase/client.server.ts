@@ -30,20 +30,20 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseAdminClient() {
-  // V35: Padronização absoluta para ambiente TanStack Start (Server Functions)
-  // O sandbox Lovable usa process.env para secrets no lado do servidor.
-  // VITE_ prefixado é para o bundle do cliente, o que NÃO queremos para chaves administrativas.
+  // Diagnóstico de Runtime para o usuário
   const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  
-  // NOME PADRONIZADO: SUPABASE_SERVICE_ROLE_KEY (padrão) ou ADMIN_SB_KEY (usado anteriormente no projeto)
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_SB_KEY;
+
+  console.log(`[SupabaseAdmin Diagnostic] URL_CONFIGURED=${!!SUPABASE_URL}, KEY_CONFIGURED=${!!SUPABASE_SERVICE_ROLE_KEY}`);
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     const missing = [];
     if (!SUPABASE_URL) missing.push('SUPABASE_URL');
-    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY / ADMIN_SB_KEY');
+    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY/ADMIN_SB_KEY');
     
-    const errorMsg = `Configuração incompleta no SERVIDOR: ${missing.join(', ')}. Certifique-se de que as Secrets estão configuradas corretamente no painel do Lovable (Settings -> Secrets). O servidor não consegue ver as chaves.`;
+    // Fallback agressivo: No sandbox do Lovable, as vezes as variáveis precisam ser lidas de lugares específicos
+    // ou o .env não foi carregado no runtime do worker simulado.
+    const errorMsg = `Configuração incompleta: ${missing.join(', ')}. Runtime: ${typeof process !== 'undefined' ? 'Node/Bun' : 'Edge'}.`;
     console.error(`[SupabaseAdmin] ${errorMsg}`);
     throw new Error(errorMsg);
   }
