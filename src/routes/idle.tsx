@@ -16225,6 +16225,139 @@ function GovernanteDialog(props: {
 }
 
 
+// ============ Ancião Glacial — NPC de Reset de Temporada ============
+function AnciaoGlacialDialog({
+  open,
+  onClose,
+  onConfirm
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const [step, setStep] = useState(0);
+  const [isResetting, setIsResetting] = useState(false);
+
+  useEffect(() => { if (open) setStep(0); }, [open]);
+  if (!open) return null;
+
+  const lines = [
+    "Saudações, jovem viajante. Sinto o cansaço em sua alma, mas também a chama de uma nova ambição.",
+    "Eu sou o Ancião Glacial. Guardião deste santuário e das memórias daqueles que buscam o recomeço.",
+    "O ritual da 'Nova Jornada' é severo: seu nível de treinador e de seus Pokémon retornarão ao Nível 1.",
+    "Contudo, nada se perde no gelo eterno. Seus itens, recursos e sua preciosa coleção permanecerão intactos.",
+    "Este é um caminho sem volta para esta temporada. Você está pronto para renascer nas neves do Caminho Glacial?"
+  ];
+
+  const handleConfirm = async () => {
+    setIsResetting(true);
+    try {
+      await onConfirm();
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const isLast = step >= lines.length - 1;
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 20000,
+        background: "radial-gradient(ellipse at center, rgba(10,30,60,0.85), rgba(0,0,0,0.95))",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        padding: "0 0 40px 0", backdropFilter: "blur(6px)",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(720px, 94vw)",
+          background: "linear-gradient(180deg, rgba(20,40,70,0.98), rgba(5,15,30,0.98))",
+          border: "3px solid transparent",
+          borderImage: "linear-gradient(135deg, #7dd3fc, #1e40af, #7dd3fc) 1",
+          borderRadius: 14,
+          boxShadow: "0 0 50px rgba(125,211,252,0.4), inset 0 0 20px rgba(125,211,252,0.1)",
+          padding: 20, display: "flex", gap: 20, color: "#e0f2fe",
+        }}
+      >
+        <div style={{ flexShrink: 0, position: "relative" }}>
+           <img 
+             src="/npc-anciao-glacial.png" 
+             alt="Ancião Glacial" 
+             style={{ 
+               width: 120, height: 120, imageRendering: "pixelated",
+               filter: "drop-shadow(0 0 10px rgba(125,211,252,0.6))"
+             }} 
+           />
+           <div style={{
+             position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)",
+             background: "rgba(30,58,138,0.9)", border: "1px solid #7dd3fc", borderRadius: 4,
+             padding: "2px 8px", fontSize: 10, fontWeight: 900, color: "#fff", whiteSpace: "nowrap"
+           }}>ANCIÃO GLACIAL</div>
+        </div>
+
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{
+            fontSize: 14, fontWeight: 800, color: "#7dd3fc", letterSpacing: 1.5,
+            borderBottom: "1px solid rgba(125,211,252,0.2)", paddingBottom: 6
+          }}>RITUAL DA NOVA JORNADA</div>
+
+          <div style={{
+            fontSize: 16, lineHeight: 1.6, minHeight: 80, color: "#fff",
+            textShadow: "1px 1px 2px rgba(0,0,0,0.5)"
+          }}>
+            {lines[step]}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", marginTop: 10 }}>
+            <div style={{ flex: 1 }} />
+            {!isLast ? (
+              <button
+                onClick={() => setStep(s => s + 1)}
+                style={{
+                  padding: "10px 20px", background: "linear-gradient(180deg, #7dd3fc, #1e40af)",
+                  border: "1px solid #fff", borderRadius: 8, color: "#fff",
+                  fontWeight: 800, cursor: "pointer", fontSize: 13, letterSpacing: 1,
+                  boxShadow: "0 0 15px rgba(125,211,252,0.5)"
+                }}
+              >OUVIR MAIS ▸</button>
+            ) : (
+              <div style={{ display: "flex", gap: 12 }}>
+                <button
+                  onClick={onClose}
+                  style={{
+                    padding: "10px 20px", background: "rgba(30,58,138,0.4)",
+                    border: "1px solid #7dd3fc66", borderRadius: 8, color: "#7dd3fc",
+                    fontWeight: 700, cursor: "pointer", fontSize: 13
+                  }}
+                  disabled={isResetting}
+                >RECUAR</button>
+                <button
+                  onClick={handleConfirm}
+                  style={{
+                    padding: "12px 24px",
+                    background: "linear-gradient(180deg, #7dd3fc, #1e40af)",
+                    border: "1px solid #fff", borderRadius: 8, color: "#fff",
+                    fontWeight: 900, cursor: "pointer", fontSize: 14, letterSpacing: 1,
+                    boxShadow: "0 0 20px rgba(125,211,252,0.8)",
+                  }}
+                  disabled={isResetting}
+                >
+                  {isResetting ? "CONGELANDO..." : "✓ ACEITO O RITUAL"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+
 
 
 
