@@ -15,7 +15,7 @@ export const executeSeasonReset = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (trainerErr || !trainer) {
-      throw new Error("Estado do treinador não encontrado.");
+      throw new Error("Estado do treinador não encontrado");
     }
     
     if (trainer.season_reset_used) {
