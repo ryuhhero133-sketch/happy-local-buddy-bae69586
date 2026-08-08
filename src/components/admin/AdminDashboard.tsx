@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V7 - FORCED_CLOUD_SAVE_SYNC
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V8 - FORCE_LOGOUT_AND_VERSION_GUARD
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -603,6 +603,18 @@ function OnlinePlayersTab({
         }
       } catch (e) {
         console.warn("Failed to sync game_saves blob:", e);
+      }
+
+      // 3.2. Incrementar lock_until para deslogar o jogador (força reconexão e reidratação)
+      try {
+        const kickTime = new Date(Date.now() + 5000).toISOString(); // 5 segundos de trava
+        await (supabase.from("profiles") as any).update({ 
+          lock_until: kickTime,
+          updated_at: new Date().toISOString()
+        }).eq("id", inspectingUser);
+        console.log("Player session locked for refresh.");
+      } catch (e) {
+        console.warn("Failed to set lock_until:", e);
       }
 
       // 4. Se o usuário for o próprio admin, atualiza o estado local para ver a mudança sem refresh
