@@ -8179,23 +8179,27 @@ function IdlePage() {
 
             </Panel>
             
-            {/* HUD de Aviso Temporário (Bichinho Animado) */}
-            <div style={{ 
-              marginTop: 10,
-              background: "linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05))",
-              border: "2px solid #a855f7",
-              borderRadius: 12,
-              padding: "10px 14px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              boxShadow: "0 4px 15px rgba(168, 85, 247, 0.25)",
-              animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
-            }}>
+            {/* HUD de Aviso Temporário (Ancião Glacial) */}
+            <div 
+              onClick={() => setAnciaoOpen(true)}
+              style={{ 
+                marginTop: 10,
+                background: "linear-gradient(135deg, rgba(125, 211, 252, 0.2), rgba(125, 211, 252, 0.05))",
+                border: "2px solid #7dd3fc",
+                borderRadius: 12,
+                padding: "10px 14px",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                boxShadow: "0 4px 15px rgba(125, 211, 252, 0.25)",
+                animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                cursor: "pointer"
+              }}
+            >
               <div style={{ width: 44, height: 44, position: "relative" }}>
                 <img 
-                  src={assetUrlFromJson(rioluAsset)} 
-                  alt="Riolu" 
+                  src={npcAnciaoGlacialUrl} 
+                  alt="Ancião Glacial" 
                   style={{ 
                     width: "100%", 
                     height: "100%", 
@@ -8206,13 +8210,13 @@ function IdlePage() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ 
-                  color: "#d8b4fe", 
+                  color: "#7dd3fc", 
                   fontSize: 12, 
                   fontWeight: 900, 
                   letterSpacing: 1, 
-                  textShadow: "0 0 8px rgba(168, 85, 247, 0.8)" 
+                  textShadow: "0 0 8px rgba(125, 211, 252, 0.8)" 
                 }}>
-                  📢 AVISO TEMPORADA
+                  ❄️ NOVA JORNADA
                 </div>
                 <div style={{ 
                   color: "#fff", 
@@ -8221,7 +8225,7 @@ function IdlePage() {
                   marginTop: 2,
                   lineHeight: 1.3
                 }}>
-                  VEM AI A 3° SEASON O SHOW ESTA PRA COMEÇAR. 🎪🌟
+                  A 3ª SEASON CHEGOU! INICIE O RITUAL NO SANTUÁRIO. 🏔️✨
                 </div>
               </div>
             </div>
