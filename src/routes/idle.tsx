@@ -16396,6 +16396,7 @@ function AnciaoGlacialDialog({
               >OUVIR MAIS ▸</button>
             ) : (
               <div style={{ display: "flex", gap: 12 }}>
+                {!forced && (
                 <button
                   onClick={onClose}
                   style={{
@@ -16405,6 +16406,8 @@ function AnciaoGlacialDialog({
                   }}
                   disabled={isResetting}
                 >RECUAR</button>
+                )}
+
                 <button
                   onClick={handleConfirm}
                   style={{
