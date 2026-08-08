@@ -447,8 +447,8 @@ function OnlinePlayersTab({
         setPlayers(enriched);
         return;
       }
-      // V34: Prioridade absoluta para as tabelas de estado (trainer_state e ranked_scores)
-      // Buscamos os dados de todos os perfis para garantir que o nível real apareça
+      // V35: Sincronização Absoluta com o Banco.
+      // Prioridade: trainer_state > ranked_scores > game_saves (snapshot) > profile
       const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
         const [gsRes, tsRes, rsRes] = await Promise.all([
           (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle(),
@@ -464,7 +464,7 @@ function OnlinePlayersTab({
         const cloudLevel = idleState?.level || idleState?.trainerLevel;
         const cloudXp = idleState?.xp || idleState?.trainerXp;
         
-        // V34: Resolução de nível ultra-confiável
+        // V35: A lógica de nível real deve ser infalível.
         const finalLevel = ts?.trainer_level || rs?.trainer_level || cloudLevel || p.trainer_level || 1;
 
         return {
@@ -487,7 +487,7 @@ function OnlinePlayersTab({
     }
   };
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => { refresh(); }, [searchQuery]);
 
   const filteredPlayers = useMemo(() => {
     if (!searchQuery) return players;
