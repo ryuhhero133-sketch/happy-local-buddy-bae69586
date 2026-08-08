@@ -14,6 +14,7 @@ import { Route as HexchampionsRouteImport } from './routes/hexchampions'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as IdleFixRouteImport } from './routes/idle.fix'
 import { Route as ApiPublicPurgeUserRouteImport } from './routes/api/public/purge-user'
+import { Route as ApiPublicDebugEnvRouteImport } from './routes/api/public/debug-env'
 
 const IdleRoute = IdleRouteImport.update({
   id: '/idle',
@@ -40,12 +41,18 @@ const ApiPublicPurgeUserRoute = ApiPublicPurgeUserRouteImport.update({
   path: '/api/public/purge-user',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDebugEnvRoute = ApiPublicDebugEnvRouteImport.update({
+  id: '/api/public/debug-env',
+  path: '/api/public/debug-env',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/hexchampions': typeof HexchampionsRoute
   '/idle': typeof IdleRouteWithChildren
   '/idle/fix': typeof IdleFixRoute
+  '/api/public/debug-env': typeof ApiPublicDebugEnvRoute
   '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/hexchampions': typeof HexchampionsRoute
   '/idle': typeof IdleRouteWithChildren
   '/idle/fix': typeof IdleFixRoute
+  '/api/public/debug-env': typeof ApiPublicDebugEnvRoute
   '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
 }
 export interface FileRoutesById {
@@ -61,6 +69,7 @@ export interface FileRoutesById {
   '/hexchampions': typeof HexchampionsRoute
   '/idle': typeof IdleRouteWithChildren
   '/idle/fix': typeof IdleFixRoute
+  '/api/public/debug-env': typeof ApiPublicDebugEnvRoute
   '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
 }
 export interface FileRouteTypes {
@@ -70,15 +79,23 @@ export interface FileRouteTypes {
     | '/hexchampions'
     | '/idle'
     | '/idle/fix'
+    | '/api/public/debug-env'
     | '/api/public/purge-user'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/hexchampions' | '/idle' | '/idle/fix' | '/api/public/purge-user'
+  to:
+    | '/'
+    | '/hexchampions'
+    | '/idle'
+    | '/idle/fix'
+    | '/api/public/debug-env'
+    | '/api/public/purge-user'
   id:
     | '__root__'
     | '/'
     | '/hexchampions'
     | '/idle'
     | '/idle/fix'
+    | '/api/public/debug-env'
     | '/api/public/purge-user'
   fileRoutesById: FileRoutesById
 }
@@ -86,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HexchampionsRoute: typeof HexchampionsRoute
   IdleRoute: typeof IdleRouteWithChildren
+  ApiPublicDebugEnvRoute: typeof ApiPublicDebugEnvRoute
   ApiPublicPurgeUserRoute: typeof ApiPublicPurgeUserRoute
 }
 
@@ -126,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPurgeUserRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/debug-env': {
+      id: '/api/public/debug-env'
+      path: '/api/public/debug-env'
+      fullPath: '/api/public/debug-env'
+      preLoaderRoute: typeof ApiPublicDebugEnvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -143,8 +168,19 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HexchampionsRoute: HexchampionsRoute,
   IdleRoute: IdleRouteWithChildren,
+  ApiPublicDebugEnvRoute: ApiPublicDebugEnvRoute,
   ApiPublicPurgeUserRoute: ApiPublicPurgeUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
