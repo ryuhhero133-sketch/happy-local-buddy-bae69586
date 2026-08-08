@@ -2943,6 +2943,21 @@ function IdlePage() {
       void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
     }
   };
+  const handleSeasonReset = async () => {
+    try {
+      if (!window.confirm("ATENÇÃO: Este ritual irá resetar seu nível e de seus Pokémon para 1. Toda sua COLEÇÃO será convertida em Fragmentos Vermelhos. Itens, Cofre e Ouro serão mantidos. Deseja continuar?")) {
+        return;
+      }
+      const { executeSeasonReset } = await import("@/lib/season-reset.functions");
+      const res = await executeSeasonReset();
+      if (res.success) {
+        toast.success(res.message);
+        setTimeout(() => window.location.reload(), 1500);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao realizar reset de temporada.");
+    }
+  };
   const redeemCrystalCode = () => {
     const raw = normalizeCode(codeInput);
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
@@ -2970,7 +2985,16 @@ function IdlePage() {
       // Carta Lendária (Incubadora) + Carta do Governante
       CARTAGOVLEND1: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
       CARTAGOVLEND2: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
+      // ❄️ RESETPERSON: Ritual de Reset via Código (Fallback de Segurança)
+      RESETPERSON: { label: "Reset de Temporada: Nível 1 + Fragmentação da Coleção" },
     };
+
+    if (raw === "RESETPERSON") {
+      void handleSeasonReset();
+      setCodeMsg({ kind: "ok", text: "Ritual iniciado! Confirme no diálogo acima." });
+      setCodeOpen(false);
+      return;
+    }
 
     const reward = CODE_TABLE[raw];
     if (reward) {
@@ -11235,14 +11259,19 @@ function IdlePage() {
               boxShadow: "0 8px 30px rgba(0,0,0,0.6)",
             }}
           >
+            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8, whiteSpace: "pre-line" }}>
+              Digite um código secreto para receber recompensas.
+              {"\n"}DICA: use <b>RESETPERSON</b> se o Ancião Glacial falhar.
+            </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <div style={{ fontWeight: 800, color: "#f5cf6b" }}>🔑 Resgatar código</div>
               <button onClick={() => setCodeOpen(false)} style={{
                 background: "transparent", border: "none", color: "#f3e5c5", cursor: "pointer", fontSize: 16,
               }}>✕</button>
             </div>
-            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8, whiteSpace: "pre-line" }}>
               Digite um código secreto para receber recompensas.
+              {"\n"}DICA: use <b>RESETPERSON</b> se o Ancião Glacial falhar.
             </div>
             <div style={{ display: "flex", gap: 6 }}>
               <input
@@ -15942,23 +15971,7 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
     return h > 24 ? `${Math.floor(h / 24)}d` : (h > 0 ? `${h}h ${m}m` : `${m}m`);
   };
-  const handleSeasonReset = async () => {
-    try {
-      if (!window.confirm("ATENÇÃO: Este ritual irá resetar seu nível e de seus Pokémon para 1. Toda sua COLEÇÃO será convertida em Fragmentos Vermelhos. Itens, Cofre e Ouro serão mantidos. Deseja continuar?")) {
-        return;
-      }
-
-      const { executeSeasonReset } = await import("@/lib/season-reset.functions");
-      const res = await executeSeasonReset();
-      if (res.success) {
-        toast.success(res.message);
-        // Recarregar a página para aplicar o reset completo no estado local e limpar cache
-        setTimeout(() => window.location.reload(), 1500);
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao realizar reset de temporada.");
-    }
-  };
+  // handleSeasonReset foi movido para o escopo pai para ser acessível pelo sistema de códigos e NPC.
 
   // handleAnciaoInteraction removido daqui para ser movido para o escopo correto
 
