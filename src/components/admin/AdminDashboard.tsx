@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
