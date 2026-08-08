@@ -2861,6 +2861,7 @@ function IdlePage() {
       if (cashShopOpen) { setCashShopOpen(false); return; }
       if (blackEggHudOpen) { setBlackEggHudOpen(false); return; }
       if (governanteOpen) { setGovernanteOpen(false); return; }
+      if (anciaoOpen) { setAnciaoOpen(false); return; }
       if (bmpSwapOpen) { setBmpSwapOpen(false); return; }
       if (showAutoSettings) { setShowAutoSettings(false); return; }
       if (oddishNoStone) { setOddishNoStone(null); return; }
@@ -2871,7 +2872,7 @@ function IdlePage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
+  }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, anciaoOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
 
 
 
