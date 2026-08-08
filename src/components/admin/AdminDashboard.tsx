@@ -408,6 +408,7 @@ function OnlinePlayersTab({
   const [searchQuery, setSearchQuery] = useState("");
   const [editLevel, setEditLevel] = useState<number | null>(null);
   const [editXp, setEditXp] = useState<number | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
