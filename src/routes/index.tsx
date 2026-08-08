@@ -1,4 +1,4 @@
-// V31 - TOTAL AUTHORITY FIX - SERVIDOR CONFIGURADO - BYPASS DE RLS DEFINITIVO
+// V32 - ABSOLUTE AUTHORITY - ta do mesmo jeito, achjo que n conseguimos.
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
