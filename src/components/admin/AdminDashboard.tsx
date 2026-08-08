@@ -1825,3 +1825,59 @@ function ReportsTab() {
     </div>
   );
 }
+
+function ServerDiagnostics() {
+  const getDiagnostics = useServerFn(getAdminDiagnostics);
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const runDiagnostics = async () => {
+    setLoading(true);
+    try {
+      const result = await getDiagnostics();
+      setData(result);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    runDiagnostics();
+  }, []);
+
+  if (loading) return <div className="text-xs text-slate-500">Carregando diagnóstico...</div>;
+  if (!data) return <div className="text-xs text-red-400">Falha ao carregar diagnóstico.</div>;
+
+  return (
+    <div className="space-y-2 text-[10px] font-monospace">
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">RUNTIME:</span>
+        <span className={data.RUNTIME.includes("Edge") ? "text-emerald-400" : "text-amber-400"}>{data.RUNTIME}</span>
+      </div>
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">ADMIN_SB_KEY:</span>
+        <span className={data.ADMIN_SB_KEY === "CONFIGURED" ? "text-emerald-400" : "text-red-400"}>{data.ADMIN_SB_KEY}</span>
+      </div>
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">SUPABASE_URL:</span>
+        <span className={data.SUPABASE_URL === "CONFIGURED" ? "text-emerald-400" : "text-red-400"}>{data.SUPABASE_URL}</span>
+      </div>
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">HAS_PROCESS_ENV:</span>
+        <span className={data.HAS_PROCESS_ENV ? "text-emerald-400" : "text-slate-500"}>{data.HAS_PROCESS_ENV ? "YES" : "NO"}</span>
+      </div>
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">HAS_GLOBAL_KEY:</span>
+        <span className={data.HAS_GLOBAL_KEY ? "text-emerald-400" : "text-slate-500"}>{data.HAS_GLOBAL_KEY ? "YES" : "NO"}</span>
+      </div>
+      <button 
+        onClick={runDiagnostics}
+        className="mt-2 w-full rounded border border-slate-700 bg-slate-800 py-1 text-[9px] hover:bg-slate-700"
+      >
+        ATUALIZAR DIAGNÓSTICO
+      </button>
+    </div>
+  );
+}
