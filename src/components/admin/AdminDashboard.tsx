@@ -399,6 +399,7 @@ function OnlinePlayersTab({
   setTab: (t: TabId) => void; 
   setTargetQuery: (s: string) => void; 
 }) {
+  const identity = useMemo(() => loadIdentity(), []);
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [inspectingUser, setInspectingUser] = useState<string | null>(null);
