@@ -15,7 +15,7 @@ export const Route = createFileRoute('/')({
     title: 'IdleMon Admin | V49 RPC Security Audit',
     meta: [
       { name: 'description', content: 'Painel de Controle e Diagnóstico de Autoridade Server-Side' },
-      { property: 'og:title', content: 'IdleMon Admin | V46 Final Authority' },
+      { property: 'og:title', content: 'IdleMon Admin | V49 RPC Security Audit' },
       { property: 'og:description', content: 'Painel de Controle e Diagnóstico de Autoridade Server-Side' }
     ]
   })
