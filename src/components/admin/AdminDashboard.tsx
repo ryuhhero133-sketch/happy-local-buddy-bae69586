@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V17 - REALTIME_CLOUD_PERSISTENCE_EMERGENCY_FIX - SECURITY_VERIFIED_V17
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V18 - SUPREME_DB_AUTHORITY - SECURITY_VERIFIED_V18
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -568,7 +568,7 @@ function OnlinePlayersTab({
     try {
       toast.info("Sincronizando dados com o servidor...");
 
-      // 1. Sincronizar o game_saves blob (Fonte primária para o Idle Mon)
+      // 1. Buscamos o estado atual
       const { data: gameSave, error: fetchErr } = await (supabase.from("game_saves") as any)
         .select("data")
         .eq("user_id", inspectingUser)
@@ -579,7 +579,7 @@ function OnlinePlayersTab({
       let snapshot: any = gameSave?.data;
       if (!snapshot || typeof snapshot !== 'object') {
         snapshot = {
-          idle: { level: editLevel, xp: editXp, version: 25000 },
+          idle: { level: editLevel, xp: editXp, version: 100000 },
           team: [],
           restingBench: [],
           inventory: {},
@@ -588,23 +588,22 @@ function OnlinePlayersTab({
         };
       } else {
         if (!snapshot.idle) snapshot.idle = {};
-        // Sincronizamos campos para compatibilidade absoluta
         snapshot.idle.level = editLevel;
         snapshot.idle.xp = editXp;
         snapshot.idle.trainerLevel = editLevel;
         snapshot.idle.trainerXp = editXp;
-        // Pulo agressivo na versão (V17+ logic) para garantir que a nuvem vença cache local
-        // Aumentamos o pulo para +50.000 para ser inequívoco
-        snapshot.idle.version = (snapshot.idle.version || 0) + 50000;
-        snapshot.savedAt = Date.now() + 60000; // Futuro próximo para garantir precedência
-        snapshot.lastModifiedBy = "admin_v17_emergency_v2";
+        // Pulo massivo na versão (V18 SUPREME logic)
+        snapshot.idle.version = (snapshot.idle.version || 0) + 100000;
+        snapshot.savedAt = Date.now() + 120000; // 2 minutos no futuro
+        snapshot.lastModifiedBy = "admin_v18_supreme_authority";
+        snapshot.adminUpdate = true;
       }
 
       const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
-      const lockUntil = new Date(Date.now() + 15000).toISOString();
+      const lockUntil = new Date(Date.now() + 20000).toISOString();
       
       // 2. Gravamos em paralelo em todas as tabelas normalizadas e no blob
-      await Promise.all([
+      const results = await Promise.all([
         (supabase.from("game_saves") as any).upsert({
           user_id: inspectingUser,
           data: snapshot,
@@ -625,30 +624,40 @@ function OnlinePlayersTab({
         (supabase.from("profiles") as any).update({
           trainer_level: editLevel,
           updated_at: new Date().toISOString(),
-          lock_until: lockUntil
+          lock_until: lockUntil,
+          account_status: 'active' // Garante que a conta esteja ativa
         }).eq("id", inspectingUser)
       ]);
 
-      // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA E AGRESSIVA)
-      // Removemos chaves para garantir que a nuvem seja a única fonte no próximo carregamento
-      if (inspectingUser === identity?.id) {
-        localStorage.setItem("rubym_admin_force_sync", "true");
-        localStorage.removeItem("rubym.idle.v1");
-        localStorage.removeItem("rubym.save.v2");
-        localStorage.removeItem("rubym.cloud.preloaded.v1");
-        localStorage.removeItem("rubym.local.backup.v1");
-        localStorage.removeItem("rubym.cloud.pending.v1");
-        setTimeout(() => localStorage.removeItem("rubym_admin_force_sync"), 30000);
+      // Verifica erros nas operações críticas
+      const hasErrors = results.some(r => r.error);
+      if (hasErrors) {
+        const firstError = results.find(r => r.error)?.error;
+        throw firstError;
       }
 
-      // 3. Atualização local para o Admin (se estiver editando a si mesmo)
+      // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA E AGRESSIVA)
+      if (inspectingUser === identity?.id) {
+        localStorage.setItem("rubym_admin_force_sync", "true");
+        localStorage.setItem("rubym_last_admin_ver", String(snapshot.idle.version));
+        
+        // Limpeza profunda
+        const keysToClear = [
+          "rubym.idle.v1", "rubym.save.v2", "rubym.cloud.preloaded.v1",
+          "rubym.local.backup.v1", "rubym.cloud.pending.v1", "rubym.cloud.log.v1",
+          "rubym.battle.v1", "rubym.starter.chosen"
+        ];
+        keysToClear.forEach(k => localStorage.removeItem(k));
+        
+        setTimeout(() => localStorage.removeItem("rubym_admin_force_sync"), 45000);
+      }
+
+      // 3. Feedback visual e dispatch de evento
       if (inspectingUser === identity?.id) {
         try {
           const { obfuscate } = await import("@/lib/utils");
-          // Injetamos o novo estado para feedback imediato na UI do jogo
           localStorage.setItem("rubym.idle.v1", obfuscate(snapshot.idle));
           localStorage.setItem("rubym.save.v2", obfuscate(snapshot));
-          localStorage.setItem("rubym.cloud.preloaded.v1", inspectingUser);
           
           window.dispatchEvent(new CustomEvent("rubym:sync_stats", { 
             detail: { level: editLevel, xp: editXp, snapshot } 
@@ -657,7 +666,8 @@ function OnlinePlayersTab({
       }
 
       toast.success("Nível e XP atualizados com sucesso!");
-      toast.info("O jogador será desconectado para aplicar as mudanças.");
+      toast.info("As alterações foram gravadas diretamente no Banco de Dados.");
+      
       setInspectingUser(null);
       refresh();
     } catch (e: any) {

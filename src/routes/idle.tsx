@@ -1,4 +1,4 @@
-// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V17 - REALTIME_CLOUD_PERSISTENCE_EMERGENCY_FIX
+// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V18 - SUPREME_DB_AUTHORITY
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -1875,16 +1875,21 @@ function IdlePage() {
             : 0;
         const localAt = local?.savedAt ?? 0;
 
-        // O snapshot local só vence quando é comprovadamente MAIS NOVO
-        // (evita rollback quando a última gravação não chegou ao banco).
-        // V17 EMERGENCY: Ignoramos backup local se a nuvem trouxer versão administrativa (>= 10000)
-        const cloudIsAdmin = result.status === "ok" && (result.data as any)?.idle?.version >= 10000;
-        if (!cloudIsAdmin && local && localAt > cloudAt && !localStorage.getItem("rubym_admin_force_sync")) {
+        // O snapshot local só vence quando é comprovadamente MAIS NOVO.
+        // V18 SUPREME: A nuvem tem autoridade absoluta se for um update administrativo.
+        const cloudIsAdmin = result.status === "ok" && ((result.data as any)?.adminUpdate || (result.data as any)?.idle?.version >= 10000);
+        const forceSync = localStorage.getItem("rubym_admin_force_sync") === "true";
+        
+        if (!cloudIsAdmin && !forceSync && local && localAt > cloudAt) {
           applyBlob(local.snapshot);
           cloudBlobHydratedRef.current = true;
-          toast.success("💾 Progresso mais recente recuperado do backup local.", { duration: 6000 });
+          toast.success("💾 Progresso restaurado do backup local.", { duration: 4000 });
           void attemptPendingCloudSave();
           return;
+        }
+
+        if (forceSync) {
+           console.log("[V18] Force Sync Active: Ignoring local storage.");
         }
 
         if (result.status === "empty") {
