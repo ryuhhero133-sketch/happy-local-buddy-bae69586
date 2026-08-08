@@ -612,24 +612,24 @@ function OnlinePlayersTab({
       const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
 
       const results = await Promise.all([
-        supabaseAdmin.from("game_saves").upsert({
+        (supabaseAdmin.from("game_saves") as any).upsert({
           user_id: inspectingUser,
           data: snapshot,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" }),
-        supabaseAdmin.from("trainer_state").upsert({
+        (supabaseAdmin.from("trainer_state") as any).upsert({
           user_id: inspectingUser,
           trainer_level: editLevel,
           trainer_xp: editXp,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" }),
-        supabaseAdmin.from("ranked_scores").upsert({
+        (supabaseAdmin.from("ranked_scores") as any).upsert({
           user_id: inspectingUser,
           username,
           trainer_level: editLevel,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" }),
-        supabaseAdmin.from("profiles").update({
+        (supabaseAdmin.from("profiles") as any).update({
           trainer_level: editLevel,
           updated_at: new Date().toISOString(),
           lock_until: lockUntil,
@@ -643,9 +643,9 @@ function OnlinePlayersTab({
       ]);
 
       // Verifica erros nas operações críticas
-      const hasErrors = results.some(r => r.error);
+      const hasErrors = results.some((r: any) => r.error);
       if (hasErrors) {
-        const firstError = results.find(r => r.error)?.error;
+        const firstError = results.find((r: any) => r.error)?.error;
         throw firstError;
       }
 
