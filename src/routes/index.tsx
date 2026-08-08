@@ -1,4 +1,4 @@
-// V23 - SERVER SIDE AUTHORITY - BYPASS DE RLS VIA SERVER FUNCTIONS - SEGURANÇA MÁXIMA PARA ADMINS
+// V24 - TOTAL AUTHORITY FIX - REMOVENDO LÓGICA DE CLIENTE DO SERVIDOR - BYPASS DE RLS DEFINITIVO
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';

@@ -603,12 +603,14 @@ function OnlinePlayersTab({
       const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
       const lockUntil = new Date(Date.now() + 20000).toISOString();
       
-      // V23 - Refatorado para usar Server Functions (TanStack Start)
-      // O erro persistia porque o código tentava importar lógica de servidor no cliente.
-      // Agora, a operação de bypass de RLS ocorre inteiramente no servidor.
+      // V24 - Refatorado para usar Server Functions (TanStack Start)
+      // O erro de "configuração incompleta" ocorria porque variáveis de ambiente de servidor
+      // não são acessíveis diretamente no código do componente (cliente).
+      // Agora, delegamos toda a autoridade de bypass de RLS para a Server Function.
       
       const { updatePlayerStatsAdmin } = await import('@/lib/admin-actions.functions');
 
+      // Executa o bypass de RLS com privilégios de Service Role no servidor
       await updatePlayerStatsAdmin({
         data: {
           targetUserId: inspectingUser,
@@ -619,13 +621,6 @@ function OnlinePlayersTab({
           craftPoints: inventory?.trainer?.craft_points || 0,
           guildName: inventory?.trainer?.guild_name || null
         }
-      });
-
-      // Sincroniza ranking (via RPC que é pública para autenticados)
-      await (supabase.rpc as any)("record_ranked_score", {
-        _level: editLevel,
-        _craft_points: inventory?.trainer?.craft_points || 0,
-        _guild_name: inventory?.trainer?.guild_name || null
       });
 
       // Operação concluída com sucesso via Server Function
