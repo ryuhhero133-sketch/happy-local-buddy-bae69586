@@ -9,7 +9,7 @@ export const Route = createFileRoute('/api/public/debug-env')({
         const url = process.env['SUPABASE_URL'] || process.env['VITE_SUPABASE_URL'];
         
         return new Response(JSON.stringify({
-          runtime: typeof EdgeRuntime !== 'undefined' ? 'Edge' : 'Node/Bun',
+          runtime: typeof (globalThis as any).EdgeRuntime !== 'undefined' ? 'Edge' : 'Node/Bun',
           ADMIN_SB_KEY: adminKey ? 'CONFIGURED' : 'NOT_CONFIGURED',
           SUPABASE_SERVICE_ROLE_KEY: serviceKey ? 'CONFIGURED' : 'NOT_CONFIGURED',
           SUPABASE_URL: url ? 'CONFIGURED' : 'NOT_CONFIGURED',
