@@ -1098,6 +1098,74 @@ function OnlinePlayersTab({
 
 
 
+function CollectionTab({ inventory, savePokemonLevel }: { inventory: any; savePokemonLevel: (id: string, lv: number) => void }) {
+  if (!inventory) return <div className="p-10 text-center text-slate-500 italic">Carregando coleção...</div>;
+
+  return (
+    <Card title="Coleção & Time do jogador">
+      <div className="space-y-6">
+        {/* Team Section */}
+        <div>
+          <h3 className="text-[10px] uppercase tracking-widest text-fuchsia-400/80 mb-2">Equipe Atual (Nuvem)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {(inventory.trainer.party || []).map((p: any, i: number) => (
+              <PokemonAdminCard key={i} p={p} onSaveLevel={savePokemonLevel} isTeam />
+            ))}
+            {(!inventory.trainer.party || inventory.trainer.party.length === 0) && (
+              <div className="col-span-full py-4 text-center text-slate-500 border border-dashed border-slate-800 rounded-lg">
+                Nenhum pokémon na equipe ativa.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Collection Section */}
+        <div>
+          <h3 className="text-[10px] uppercase tracking-widest text-amber-400/80 mb-2">Coleção Geral (Database)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {inventory.pokemon.map((p: any) => (
+              <PokemonAdminCard key={p.id} p={p} onSaveLevel={savePokemonLevel} />
+            ))}
+            {inventory.pokemon.length === 0 && (
+              <div className="col-span-full py-4 text-center text-slate-500">Coleção vazia.</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function PokemonAdminCard({ p, onSaveLevel, isTeam }: { p: any; onSaveLevel: (id: string, lv: number) => void; isTeam?: boolean }) {
+  const [lv, setLv] = useState(p.level);
+  return (
+    <div className={`rounded-lg border p-3 ${isTeam ? 'border-fuchsia-500/30 bg-fuchsia-500/5' : 'border-slate-800 bg-slate-950/40'}`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-bold text-amber-100">{p.species}</span>
+        <span className={`text-[9px] px-1 rounded ${p.rarity === 'mythic' ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'bg-slate-800 text-slate-400'}`}>
+          {p.rarity?.toUpperCase() || 'NORMAL'}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] text-slate-500">LV:</span>
+        <input 
+          type="number" 
+          value={lv} 
+          onChange={(e) => setLv(Number(e.target.value))}
+          className="w-16 rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-xs text-amber-100"
+        />
+        <button 
+          onClick={() => onSaveLevel(p.id || `${p.species}-${p.rarity}`, lv)}
+          className="rounded bg-fuchsia-600 px-2 py-0.5 text-[10px] text-white hover:bg-fuchsia-500"
+        >
+          OK
+        </button>
+      </div>
+      {isTeam && <div className="mt-1 text-[8px] text-fuchsia-400/60 font-mono italic">Sync Nuvem</div>}
+    </div>
+  );
+}
+
 function PokemonTab() {
   // Read species dynamically from save / try to import registry
   return (
