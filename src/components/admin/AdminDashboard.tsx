@@ -464,12 +464,6 @@ function OnlinePlayersTab({
           kill_count: (ts as any)?.kill_count ?? (rs as any)?.total_kills ?? p.kill_count ?? 0
         };
       }));
-          gold: (ts as any)?.gold ?? p.gold ?? 0,
-          crystal: (ts as any)?.crystal ?? p.crystal ?? 0,
-          ruby: (ts as any)?.ruby ?? p.ruby ?? 0,
-          kill_count: (ts as any)?.kill_count ?? (rs as any)?.total_kills ?? p.kill_count ?? 0
-        };
-      }));
 
       setPlayers(enrichedPlayers);
     } catch (e: any) {
