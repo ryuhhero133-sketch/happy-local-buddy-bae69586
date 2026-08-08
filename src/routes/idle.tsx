@@ -15851,6 +15851,10 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     }
   };
 
+  const handleBmpSwap = async () => {
+    // Implementar lógica de troca BMP se necessário futuramente
+  };
+
   const Chip = ({ label, value, color, sub }: { label: string; value: string; color: string; sub?: string }) => (
     <div style={{
       background: `linear-gradient(180deg, ${color}22, ${color}08)`,
