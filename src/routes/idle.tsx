@@ -15926,18 +15926,8 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
   );
 }
 
-// ============ Ancião Glacial NPC (Season Reset) ============
-function AnciaoGlacialDialog(props: {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  isUsed?: boolean;
-}) {
-  const { open, onClose, onConfirm, isUsed = false } = props;
-  const [step, setStep] = useState(0);
-  useEffect(() => { if (open) setStep(0); }, [open]);
-
-  if (!open) return null;
+// Componente AnciaoGlacialDialog foi movido para o final do arquivo para evitar duplicidade.
+function OldAnciaoGlacialDialog(props: any) { return null; }
 
   const lines = isUsed
     ? ["Você já iniciou sua nova jornada. Este ritual não pode ser realizado novamente."]
