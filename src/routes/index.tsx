@@ -1,5 +1,5 @@
-// V48 - ATOMIC_EDGE_AUTHORITY_VERIFIED
-// Auditoria: trainer_state, ranked_scores e profiles protegidas por RPC Atômica e Admin check.
+// V49 - RPC_SECURITY_AUDIT_COMPLETED
+// Auditoria Final: admin_atomic_level_update atômica, Security Definer com search_path, revogação de permissões públicas.
 
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
