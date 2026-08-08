@@ -608,10 +608,11 @@ function OnlinePlayersTab({
       // não são acessíveis diretamente no código do componente (cliente).
       // Agora, delegamos toda a autoridade de bypass de RLS para a Server Function.
       
-      const { updatePlayerStatsAdmin } = await import('@/lib/admin-actions.functions');
+      // V42 - Migrado para Bridge da Edge Function
+      const { updatePlayerStatsAdminBridge } = await import('@/lib/admin-bridge.functions');
 
-      // Executa o bypass de RLS com privilégios de Service Role no servidor
-      await updatePlayerStatsAdmin({
+      // Executa a operação via autoridade da Edge Function (Supabase-Native)
+      await updatePlayerStatsAdminBridge({
         data: {
           targetUserId: inspectingUser,
           level: editLevel,
