@@ -484,7 +484,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       <PanelShell title="SISTEMA EM MANUTENÇÃO">
         <div className="space-y-4 text-center">
           <div className="p-3 rounded border border-red-900/50 bg-red-950/30">
-            <p className="text-[12px] font-bold tracking-[1px] mb-2" style={{ color: "#fca5a5", textShadow: "0 0 8px rgba(239,68,68,0.5)" }}>
+            <p className="text-[12px] font-bold tracking-[1px] mb-2" style={{ color: "#c9b8ff", textShadow: "0 0 8px rgba(168,85,247,0.5)" }}>
               ⚠️ JOGO EM MANUTENÇÃO
             </p>
             <p className="text-[10px] leading-relaxed" style={{ color: "#fecaca" }}>
