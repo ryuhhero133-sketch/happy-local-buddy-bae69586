@@ -13184,8 +13184,10 @@ function TabOverlay({
       transform: "translate(-50%, -50%)",
       borderRadius: "24px",
       border: "3px solid rgba(201, 184, 255, 0.3)",
-      boxShadow: "0 0 60px rgba(0,0,0,0.8), 0 0 20px rgba(201, 184, 255, 0.2)"
+      boxShadow: "0 0 60px rgba(0,0,0,0.8), 0 0 20px rgba(201, 184, 255, 0.2)",
+      zIndex: 2000
     }}>
+
 
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
         <h2 style={{ 
