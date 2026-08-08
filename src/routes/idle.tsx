@@ -14313,7 +14313,7 @@ function TabOverlay({
               return <div style={{ color: "#b8a8c8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
             return (
-              <div style={{ maxHeight: 600, overflowY: "auto", paddingRight: 4 }}>
+              <div style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
               {filtered.map((entry, i) => {
                 const sp = entry.species;
