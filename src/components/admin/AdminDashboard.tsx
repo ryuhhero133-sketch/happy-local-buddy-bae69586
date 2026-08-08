@@ -584,9 +584,10 @@ function OnlinePlayersTab({
   const savePokemonLevel = async (id: string, level: number) => {
     try {
       // Primeiro tenta atualizar diretamente a tabela
-      const { error: directError } = await supabase.from("pokemon_collection").update({
+      const { error: directError } = await (supabase.from("pokemon_collection") as any).update({
         level: level
       }).eq("id", id);
+
       
       if (directError) throw directError;
 
