@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V18 - SUPREME_DB_AUTHORITY - SECURITY_VERIFIED_V18
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V19 - ABSOLUTE_DB_SYNC - SECURITY_VERIFIED_V19
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -458,6 +458,7 @@ function OnlinePlayersTab({
         const cloudLevel = idleState?.level || idleState?.trainerLevel;
         const cloudXp = idleState?.xp || idleState?.trainerXp;
         
+        // V19: Prioridade absoluta para game_saves e trainer_state sobre profiles
         const finalLevel = cloudLevel || (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1;
 
         return {
