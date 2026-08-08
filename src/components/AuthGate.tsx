@@ -244,10 +244,25 @@ export function AuthGate({ children }: { children: ReactNode }) {
         const off = config && (config.value === "false" || config.value === false);
         if (cfgErr) warn("Erro config manutenção", cfgErr);
         setMaintenance(!off);
+
+        // HARD LOCK: se está em manutenção e a conta não é admin, derruba na hora.
+        if (!off && sess?.user?.id) {
+          const adminNow =
+            sess.user.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
+            sess.user.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+          if (!adminNow) {
+            setKickedMessage("JOGO EM MANUTENÇÃO — ABERTURA DA SEASON 00:00");
+            setSession(null);
+            await supabase.auth.signOut();
+            setChecking(false);
+            return;
+          }
+        }
       } catch (e) {
         warn("Erro ao verificar manutenção", e);
         setMaintenance(true);
       }
+
 
 
 
@@ -430,7 +445,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     session?.user?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
   // O modo de manutenção no banco de dados continua bloqueando jogadores normais,
   // mas o admin sempre passa independentemente do valor de 'maintenance'.
-  if (maintenance && !isAdmin) {
+  if (maintenance && !isAdmin && (session || isGuest)) {
+
     return (
       <PanelShell title="SISTEMA EM MANUTENÇÃO">
         <div className="space-y-4 text-center">
@@ -846,8 +862,11 @@ function AuthScreen({
     if (!email.trim() && mode !== "reset") return setError("Informe seu e-mail.");
     setBusy(true);
     try {
+      const ADMIN_EMAIL = "lordryuhhhuyuyghh@gmail.com";
+      const typedIsAdmin = email.trim().toLowerCase() === ADMIN_EMAIL;
       if (mode === "login") {
-        if (maintenance && !isAdmin) {
+        // Em manutenção somente o admin pode sequer tentar autenticar.
+        if (maintenance && !isAdmin && !typedIsAdmin) {
           throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
         }
         log("signIn", email);
@@ -858,10 +877,16 @@ function AuthScreen({
         );
         if (error) throw error;
         log("signIn ok", data.user?.id);
+        // Rede de segurança: se por algum motivo não for admin, derruba imediatamente.
+        if (maintenance && !typedIsAdmin) {
+          await supabase.auth.signOut();
+          throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
+        }
       } else if (mode === "signup") {
         if (maintenance && !isAdmin) {
           throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
         }
+
         if (password.length < 6) throw new Error("Senha precisa ter ao menos 6 caracteres.");
         const betaOk = betaKey.trim().length > 0 && isBetaKeyValid(betaKey);
         log("signUp", email);
