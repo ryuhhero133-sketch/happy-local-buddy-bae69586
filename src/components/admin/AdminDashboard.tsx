@@ -646,27 +646,8 @@ function OnlinePlayersTab({
       setLoading(false);
     }
   };
-            if (idle) {
-              idle.trainerLevel = editLevel;
-              idle.trainerXp = editXp;
-              idle.version = (idle.version || 0) + 100;
-              localStorage.setItem("rubym.idle.v1", obfuscate(idle));
-            }
-          } catch (e) {}
-        }
-      }
 
-      toast.success("Nível atualizado com sucesso! O jogador será desconectado para sincronizar.");
-      refresh();
-      inspectPlayer(inspectingUser);
-      
-      if (inspectingUser === identity?.id) {
-        setTimeout(() => window.location.reload(), 1000);
-      }
-    } catch (e: any) {
-      toast.error(`Falha ao salvar: ${e.message}`);
-    }
-  };
+
 
 
 
