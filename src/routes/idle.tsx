@@ -10322,6 +10322,21 @@ function IdlePage() {
 
 
       <style>{`
+        .modern-floating-window {
+          max-width: 95vw !important;
+          width: 1200px !important;
+          height: 90vh !important;
+          margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+          .modern-floating-window {
+            width: 98vw !important;
+            height: 95vh !important;
+            border-radius: 12px !important;
+          }
+        }
+
 
         @media (max-width: 1400px) {
           .idle-grid { grid-template-columns: 210px 1fr 210px !important; gap: 6px !important; padding: 6px !important; }
