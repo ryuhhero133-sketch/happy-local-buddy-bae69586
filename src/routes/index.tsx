@@ -1,7 +1,6 @@
-// V38 - EDGE_RUNTIME_AUTH_AUTHORITY_VERIFIED
+// V39 - ARCHITECTURAL_ANALYSIS_MODE
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
-import { setMaintenanceMode } from '@/lib/maintenance.functions';
+import { useEffect } from 'react';
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -19,23 +18,9 @@ export const Route = createFileRoute('/')({
 
 function Index() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const releaseMaintenance = async () => {
-      try {
-        // Forçamos a desativação da manutenção em cada acesso à raiz para garantir que todos entrem
-        await setMaintenanceMode({ data: { enabled: false } });
-        console.log("Modo de manutenção desativado com sucesso.");
-      } catch (err) {
-        console.error("Erro ao liberar manutenção:", err);
-      } finally {
-        setLoading(false);
-        navigate({ to: '/idle', replace: true });
-      }
-    };
-
-    releaseMaintenance();
+    navigate({ to: '/idle', replace: true });
   }, [navigate]);
 
   return (
@@ -45,24 +30,49 @@ function Index() {
       flexDirection: 'column',
       alignItems: 'center', 
       justifyContent: 'center', 
-      background: 'radial-gradient(circle at center, #1a0306 0%, #000 100%)', 
+      background: '#000', 
       color: '#fff', 
       fontFamily: 'monospace',
-      textAlign: 'center',
-      padding: '20px'
+      padding: '40px',
+      whiteSpace: 'pre-wrap',
+      maxWidth: '800px',
+      margin: '0 auto',
+      lineHeight: '1.6'
     }}>
-      <div style={{ 
-        padding: '30px', 
-        border: '2px solid #7f1d1d', 
-        borderRadius: '12px', 
-        background: 'rgba(0,0,0,0.8)',
-        boxShadow: '0 0 30px rgba(127, 29, 29, 0.4)'
-      }}>
-        <h1 style={{ color: '#fecaca', marginBottom: '20px', letterSpacing: '4px' }}>IDLE MON</h1>
-        <p style={{ fontSize: '14px', color: '#fca5a5', marginBottom: '10px' }}>
-          {loading ? "SINCRONIZANDO COM O BANCO DE DADOS..." : "AUTORIDADE DO BANCO CONFIRMADA!"}
-        </p>
-        <p style={{ fontSize: '10px', opacity: 0.7 }}>Redirecionando para o mapa...</p>
+      <div style={{ textAlign: 'left', width: '100%' }}>
+        PARE.
+
+        Já testamos V35, V36, V37 e V38 e o MESMO erro continua no deploy real:
+
+        "ADMIN_SB_KEY/SERVICE_ROLE ausente no runtime do Worker."
+
+        NÃO CRIE V39.
+        NÃO ADICIONE OUTRO FALLBACK.
+        NÃO ALTERE MAIS globalThis, process.env OU createSupabaseAdminClient.
+
+        Quero que você faça apenas uma análise arquitetural.
+
+        O objetivo é identificar se o problema está na integração:
+
+        Cloudflare Worker → TanStack Start → Server Function → Supabase Admin.
+
+        Se essa cadeia estiver impedindo o acesso confiável à Service Role no runtime Edge, NÃO tente mais contornar.
+
+        Informe se é tecnicamente mais seguro e confiável mover as operações administrativas para uma SUPABASE EDGE FUNCTION dedicada, mantendo:
+
+        PAINEL → SUPABASE EDGE FUNCTION → SUPABASE
+
+        com a Service Role exclusivamente dentro da Edge Function.
+
+        NÃO IMPLEMENTE AINDA.
+
+        Apenas responda:
+
+        1. A arquitetura atual é confiável para operações administrativas privilegiadas? SIM/NÃO
+        2. O Cloudflare Worker está impedindo a passagem confiável das Secrets? SIM/NÃO
+        3. Uma Supabase Edge Function resolveria a dependência do runtime Cloudflare/TanStack? SIM/NÃO
+        4. É possível manter a Service Role exclusivamente server-side? SIM/NÃO
+        5. Qual arquitetura você recomenda para o Season Reset Cirúrgico?
       </div>
     </div>
   );
