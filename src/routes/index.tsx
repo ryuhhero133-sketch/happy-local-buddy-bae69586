@@ -1,7 +1,6 @@
 // V46 - EDGE_FUNCTION_FINAL_AUTHORITY_VERIFIED
 // Auditoria de Tabelas: trainer_state, ranked_scores e profiles confirmadas.
 
-
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -13,10 +12,10 @@ import { updatePlayerStatsAdminBridge } from '@/lib/admin-bridge.functions';
 export const Route = createFileRoute('/')({
   component: Index,
   head: () => ({
-    title: 'IdleMon Admin | V45 Deploy Console',
+    title: 'IdleMon Admin | V46 Final Authority',
     meta: [
       { name: 'description', content: 'Painel de Controle e Diagnóstico de Autoridade Server-Side' },
-      { property: 'og:title', content: 'IdleMon Admin | V45 Deploy Console' },
+      { property: 'og:title', content: 'IdleMon Admin | V46 Final Authority' },
       { property: 'og:description', content: 'Painel de Controle e Diagnóstico de Autoridade Server-Side' }
     ]
   })
@@ -36,11 +35,7 @@ function Index() {
         data: {
           targetUserId: '5bc35452-d64b-4895-83b1-c804dc3e30bb',
           level: 47,
-          xp: 1000,
-          username: 'Stinguer',
-          craftPoints: 0,
-          guildName: null,
-          snapshot: {}
+          type: 'trainer'
         }
       });
 
@@ -61,7 +56,7 @@ function Index() {
       <div className="max-w-4xl w-full space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tighter text-blue-400">IDLEMON BACKEND AUTHORITY</h1>
-          <p className="text-slate-400">Versão V45 - Edge Function Production Ready</p>
+          <p className="text-slate-400">Versão V46 - Edge Function Final Audit</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -116,9 +111,9 @@ function Index() {
 
         <Alert className="bg-blue-950/30 border-blue-900">
           <AlertTriangle className="h-4 w-4 text-blue-400" />
-          <AlertTitle className="text-blue-300 font-bold uppercase">Teste de Autoridade</AlertTitle>
+          <AlertTitle className="text-blue-300 font-bold uppercase">Teste 46 → 47</AlertTitle>
           <AlertDescription className="text-blue-200/70">
-            O teste abaixo tentará atualizar o usuário <strong>Stinguer</strong> do nível 46 para o 47 via Edge Function REAL.
+            Abaixo estão as especificações REAIS extraídas do código do IdleMon. O teste tentará atualizar o nível do Stinguer.
           </AlertDescription>
         </Alert>
 
@@ -157,18 +152,34 @@ function Index() {
                 </div>
               </div>
 
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded space-y-2">
-                <p className="text-[10px] uppercase tracking-widest text-red-400/60 font-black">Tabelas e Colunas Alvo:</p>
-                <ul className="text-[10px] text-red-200/60 space-y-1 list-disc list-inside">
-                  <li><strong>public.trainer_state</strong>: trainer_level, trainer_xp</li>
-                  <li><strong>public.ranked_scores</strong>: trainer_level</li>
-                  <li><strong>public.profiles</strong>: trainer_level, account_status</li>
-                </ul>
-              </div>
+              <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg space-y-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Relatório Técnico de Autoridade</span>
+                  <div className="grid grid-cols-2 gap-2 text-[10px]">
+                    <div className="bg-black/30 p-2 rounded">
+                      <span className="text-blue-400 block font-bold">TABELAS REAIS</span>
+                      <code className="text-slate-300">trainer_state, ranked_scores, profiles</code>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded">
+                      <span className="text-blue-400 block font-bold">COLUNA DE NÍVEL</span>
+                      <code className="text-slate-300">trainer_level</code>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded">
+                      <span className="text-blue-400 block font-bold">IDENTIFICADOR</span>
+                      <code className="text-slate-300">user_id / id (uuid)</code>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded">
+                      <span className="text-blue-400 block font-bold">SINCRONIZAÇÃO</span>
+                      <code className="text-slate-300">Total (3 Tabelas)</code>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="p-3 bg-black/40 rounded border border-slate-800">
-                <strong className="text-emerald-400 block mb-1 text-[11px]">CÓDIGO DA EDGE FUNCTION REAL (index.ts):</strong>
-                <pre className="whitespace-pre-wrap font-mono text-[9px] text-emerald-500/80 p-2 bg-black/20 rounded max-h-[250px] overflow-y-auto">
+                <div className="p-3 bg-black/40 rounded border border-emerald-900/30">
+                  <strong className="text-emerald-400 block mb-2 text-[11px] flex items-center gap-2">
+                    <ShieldCheck className="w-3 h-3" /> CÓDIGO REAL DA EDGE FUNCTION (index.ts)
+                  </strong>
+                  <pre className="whitespace-pre-wrap font-mono text-[9px] text-emerald-500/80 p-2 bg-black/20 rounded max-h-[300px] overflow-y-auto border border-emerald-900/20">
 {`import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
@@ -179,37 +190,58 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  
   try {
-    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-    const { targetUserId, type, level, xp } = await req.json()
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!, 
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+    
+    const { targetUserId, level, type } = await req.json()
+    if (type !== 'trainer' || !targetUserId) throw new Error("Invalid request")
 
-    if (type === 'trainer') {
-      // Sincronização Server-Side Total
-      await supabase.from('trainer_state').upsert({ user_id: targetUserId, trainer_level: level, trainer_xp: xp ?? 0 })
-      await supabase.from('ranked_scores').upsert({ user_id: targetUserId, trainer_level: level })
-      await supabase.from('profiles').update({ trainer_level: level, account_status: 'active' }).eq('id', targetUserId)
-    }
+    console.log(\`[AdminUpdate] User \${targetUserId} -> Level \${level}\`)
 
-    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    // ATUALIZAÇÃO SINCRONIZADA EM 3 PONTOS DE AUTORIDADE
+    const results = await Promise.all([
+      supabase.from('trainer_state').update({ trainer_level: level }).eq('user_id', targetUserId),
+      supabase.from('ranked_scores').update({ trainer_level: level }).eq('user_id', targetUserId),
+      supabase.from('profiles').update({ trainer_level: level }).eq('id', targetUserId)
+    ])
+
+    const error = results.find(r => r.error)?.error
+    if (error) throw error
+
+    return new Response(JSON.stringify({ success: true, updatedLevel: level }), { 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    })
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 400, headers: corsHeaders })
+    return new Response(JSON.stringify({ error: e.message }), { 
+      status: 400, headers: corsHeaders 
+    })
   }
 })`}
-                </pre>
-              </div>
+                  </pre>
+                </div>
 
-              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded">
-                <p className="text-[10px] text-blue-200 mb-2">CORREÇÃO: Execute no terminal local:</p>
-                <code className="block bg-black/60 p-2 rounded text-[10px] font-mono text-blue-300 break-all select-all">
-                  supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp
-                </code>
+                <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded">
+                  <p className="text-[10px] text-blue-200 mb-2 font-bold">PASSO A PASSO PARA RESOLVER (TESTE 46 → 47):</p>
+                  <ol className="text-[9px] text-blue-300/80 space-y-1 list-decimal list-inside mb-3">
+                    <li>Crie o arquivo <code className="bg-black/40 px-1">supabase/functions/admin-update-player/index.ts</code></li>
+                    <li>Cole o código acima</li>
+                    <li>No terminal local, execute:</li>
+                  </ol>
+                  <code className="block bg-black/60 p-2 rounded text-[10px] font-mono text-blue-300 break-all select-all border border-blue-500/30">
+                    supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp
+                  </code>
+                </div>
               </div>
             </div>
           )}
         </div>
 
         <footer className="text-center text-xs text-slate-600 pt-8">
-          IdleMon Authority System &copy; 2024 | V45
+          IdleMon Authority System &copy; 2024 | V46
         </footer>
       </div>
     </div>
