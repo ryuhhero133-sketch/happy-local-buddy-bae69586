@@ -470,16 +470,17 @@ function OnlinePlayersTab({
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
         supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
-        supabase.from("profiles").select("gold, crystal, vault, pokeVault" as any).eq("id", id).maybeSingle(),
+        supabase.from("profiles").select("gold, crystal, ruby, vault, pokeVault").eq("id", id).maybeSingle(),
         supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", id).maybeSingle(),
         supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle()
       ]);
       
       const trainerData: any = {
-        ...(trainerRes.data || { gold: 0, crystal: 0 }),
-        ...(rankedRes.data || { trainer_level: 1, total_kills: 0 }),
-        ...(stateRes.data || {})
+        gold: 0, crystal: 0, ruby: 0, trainer_level: 1, total_kills: 0, trainer_xp: 0,
+        ...(profilesRes.data || {}),
+        ...(stateRes.data || {}),
+        ...(rankedRes.data || {}),
       };
       
       setInventory({
@@ -522,6 +523,12 @@ function OnlinePlayersTab({
       await (supabase.from("trainer_state" as any) as any).update({
         trainer_level: editLevel,
         trainer_xp: editXp,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", inspectingUser);
+
+      // Também atualizar ranked_scores explicitamente se a RPC falhar ou for lenta
+      await supabase.from("ranked_scores").update({
+        trainer_level: editLevel,
         updated_at: new Date().toISOString()
       }).eq("user_id", inspectingUser);
 
