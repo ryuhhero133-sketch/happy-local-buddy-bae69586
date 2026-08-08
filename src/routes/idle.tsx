@@ -13900,9 +13900,9 @@ function TabOverlay({
                 background: "rgba(0, 0, 0, 0.2)",
                 border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
                 boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
-                padding: 12, minHeight: 360,
-                maxHeight: 600, overflowY: "auto"
+                padding: 12, flex: 1, minHeight: 0, overflowY: "auto"
               }}>
+
 
                 {filtered.length === 0 ? (
                   <div style={{
