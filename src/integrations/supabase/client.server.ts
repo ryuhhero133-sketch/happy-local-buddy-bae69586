@@ -30,19 +30,24 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseAdminClient() {
-  // V36: Diagnóstico de Runtime. SUPABASE_URL é lida do .env, ADMIN_SB_KEY do Secrets.
-  // No Bun (runtime do TanStack Start), as variáveis do .env e Secrets são mescladas no process.env.
+  // V37: Resiliência Máxima. O deploy em workers.dev pode injetar variáveis de forma diferente.
+  // Tentamos ler de todas as fontes possíveis no Worker runtime.
   const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_SB_KEY;
-
-  console.log(`[SupabaseAdmin] Runtime Check: URL=${!!SUPABASE_URL}, KEY=${!!SUPABASE_SERVICE_ROLE_KEY}`);
+  
+  // No Cloudflare Workers, segredos são injetados diretamente no escopo global ou via env binding.
+  // Tentamos process.env, depois globalThis.
+  const ADMIN_SB_KEY = process.env.ADMIN_SB_KEY || (globalThis as any).ADMIN_SB_KEY;
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || (globalThis as any).SUPABASE_SERVICE_ROLE_KEY || ADMIN_SB_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     const missing = [];
     if (!SUPABASE_URL) missing.push('SUPABASE_URL');
-    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('ADMIN_SB_KEY/SUPABASE_SERVICE_ROLE_KEY');
+    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('ADMIN_SB_KEY/SERVICE_ROLE');
     
-    throw new Error(`Erro de Configuração no Servidor: ${missing.join(', ')} ausente. Verifique se as Secrets no Lovable estão configuradas.`);
+    // Log detalhado (sem o valor da chave) para diagnóstico no servidor
+    console.error(`[SupabaseAdmin] ERRO DE CONFIGURAÇÃO: URL=${!!SUPABASE_URL}, KEY=${!!SUPABASE_SERVICE_ROLE_KEY}`);
+    
+    throw new Error(`Erro de Configuração no Servidor: ${missing.join(', ')} ausente no runtime do Worker. Verifique as Secrets no painel Lovable.`);
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
