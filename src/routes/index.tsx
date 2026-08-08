@@ -1,4 +1,4 @@
-// V40 - PRODUCTION_SECRET_AUDIT_MODE
+// V41 - SUPABASE_EDGE_FUNCTION_MIGRATION_PLAN
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
@@ -40,46 +40,97 @@ function Index() {
       lineHeight: '1.6'
     }}>
       <div style={{ textAlign: 'left', width: '100%' }}>
-        AGORA TEMOS A PROVA DO DIAGNÓSTICO REAL:
+        CONFIRMADO. NÃO VAMOS MAIS TENTAR CORRIGIR A INJEÇÃO DA ADMIN_SB_KEY NO CLOUDFLARE WORKER.
 
-        RUNTIME: Cloudflare Worker (Edge)
-        ADMIN_SB_KEY: NOT_CONFIGURED
-        SUPABASE_URL: CONFIGURED
-        HAS_PROCESS_ENV: YES
-        HAS_GLOBAL_KEY: NO
+        MIGRE AS OPERAÇÕES ADMINISTRATIVAS PRIVILEGIADAS PARA UMA SUPABASE EDGE FUNCTION.
 
-        NÃO ALTERE MAIS O CÓDIGO.
+        ARQUITETURA DEFINITIVA:
 
-        O PROBLEMA ESTÁ NA INJEÇÃO/BINDING DA ADMIN_SB_KEY NO WORKER PUBLICADO.
+        PAINEL ADMIN
+        ↓
+        SUPABASE EDGE FUNCTION
+        ↓
+        SUPABASE DATABASE
 
-        Quero somente verificar a configuração de deploy:
+        REQUISITOS:
 
-        1. A Secret ADMIN_SB_KEY realmente existe no ambiente de PRODUÇÃO?
-        2. Ela está vinculada ao Cloudflare Worker publicado?
-        3. O nome do binding é EXATAMENTE:
-        ADMIN_SB_KEY
-        4. Não está configurada apenas no Preview/Development?
-        5. O último deploy foi feito depois da criação/alteração da Secret?
-        6. O Worker publicado está usando o mesmo ambiente onde a Secret foi configurada?
+        1. Criar uma Edge Function server-side dedicada às operações administrativas.
 
-        NÃO MOSTRE O VALOR DA SECRET.
+        2. A Service Role deve existir SOMENTE dentro do ambiente seguro da Edge Function.
 
-        NÃO ALTERE O CÓDIGO.
+        3. O Cloudflare Worker não deve mais precisar receber ADMIN_SB_KEY para essas operações.
 
-        NÃO CRIE V39.
+        4. O frontend nunca pode receber ou conhecer a Service Role.
 
-        NÃO MUDE createSupabaseAdminClient().
+        5. Não colocar secrets em:
+        - bundle
+        - localStorage
+        - sessionStorage
+        - HTML
+        - JSON público
+        - logs
+        - resposta da API
 
-        NÃO USE globalThis/process.env COMO NOVO FALLBACK.
+        6. Manter RLS ativo.
 
-        Primeiro corrija/verifique SOMENTE a configuração da Secret no ambiente de produção e faça um novo deploy.
+        7. Não alterar a estrutura das tabelas existentes sem necessidade.
 
-        Depois o diagnóstico precisa mostrar:
+        8. Migrar primeiro SOMENTE:
+        updatePlayerStatsAdmin
 
-        ADMIN_SB_KEY: CONFIGURED
-        SUPABASE_URL: CONFIGURED
+        9. O painel deve chamar a Edge Function.
 
-        Somente depois disso teste o botão SALVAR.
+        10. A Edge Function deve validar o administrador antes de executar.
+
+        11. A Edge Function deve aceitar somente operações/campos explicitamente autorizados.
+
+        12. O cliente não pode determinar livremente quais campos protegidos serão modificados.
+
+        13. Registrar auditoria da operação:
+        - admin
+        - jogador
+        - operação
+        - data/hora
+        - resultado
+
+        14. NÃO IMPLEMENTAR O SEASON RESET AINDA.
+
+        PRIMEIRO TESTE:
+
+        Selecionar uma conta de TESTE.
+
+        Alterar:
+
+        Nível 46 → 47
+
+        Fluxo obrigatório:
+
+        Painel
+        → Edge Function
+        → Supabase
+        → Banco
+
+        Depois:
+
+        → recarregar painel
+        → confirmar 47
+        → confirmar que o jogo reconhece 47
+
+        NÃO CONSIDERE CONCLUÍDO APENAS POR COMPILAR OU PUBLICAR.
+
+        SÓ CONSIDERE CONCLUÍDO SE A ALTERAÇÃO REAL FOR PERSISTIDA NO BANCO.
+
+        AO FINAL INFORME:
+
+        EDGE FUNCTION: OK/NÃO
+        AUTENTICAÇÃO ADMIN: OK/NÃO
+        ALTERAÇÃO 46→47: OK/NÃO
+        BANCO ATUALIZADO: OK/NÃO
+        SERVICE ROLE NO FRONTEND: SIM/NÃO
+        RLS DESATIVADO: SIM/NÃO
+
+        SE FALHAR, NÃO CRIE OUTRO FALLBACK.
+        INFORME O ERRO EXATO.
       </div>
     </div>
   );
