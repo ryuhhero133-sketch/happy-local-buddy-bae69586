@@ -9941,6 +9941,7 @@ function IdlePage() {
             <TabOverlay
               tab={tab}
               onClose={() => setTab("batalha")}
+              onAnciaoInteraction={handleAnciaoInteraction}
               leader={team[0]}
               team={team}
               onReorderTeam={(nt) => { setTeam(nt); if (nt[0]) setLeaderHp(calcIdleMaxHp(nt[0])); }}
