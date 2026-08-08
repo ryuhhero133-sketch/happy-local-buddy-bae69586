@@ -180,27 +180,42 @@ export function AuthGate({ children }: { children: ReactNode }) {
       if (sess?.user?.id) {
         try {
           // Simplificando verificação de status para evitar falhas no login
-          const { data: profile } = await (supabase as any)
+          const { data: profile, error: profileErr } = await (supabase as any)
             .from("profiles")
-            .select("id, account_status")
+            .select("id, username") // Seleciona apenas campos básicos para evitar erro de coluna inexistente
             .eq("id", sess.user.id)
             .maybeSingle();
 
-          if (profile) {
-            const isAdmin = sess.user.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
-                            sess.user.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-            
-            if (!isAdmin) {
-              if (profile.account_status === "banned") {
-                setKickedMessage("CONTA BANIDA.");
-                await supabase.auth.signOut();
-                return;
-              }
-              if (profile.account_status === "analysis") {
-                setKickedMessage("CONTA EM ANÁLISE.");
-                await supabase.auth.signOut();
-                return;
-              }
+          if (profileErr) {
+             warn("Erro ao buscar perfil básico", profileErr);
+          }
+
+          // Busca status separadamente ou assume 'active' se falhar
+          let accountStatus = 'active';
+          try {
+            const { data: statusData } = await (supabase as any)
+              .from("profiles")
+              .select("account_status")
+              .eq("id", sess.user.id)
+              .maybeSingle();
+            if (statusData?.account_status) accountStatus = statusData.account_status;
+          } catch (e) {
+            warn("Coluna account_status pode não existir", e);
+          }
+
+          const isAdmin = sess.user.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
+                          sess.user.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+          
+          if (!isAdmin) {
+            if (accountStatus === "banned") {
+              setKickedMessage("CONTA BANIDA.");
+              await supabase.auth.signOut();
+              return;
+            }
+            if (accountStatus === "analysis") {
+              setKickedMessage("CONTA EM ANÁLISE.");
+              await supabase.auth.signOut();
+              return;
             }
           }
         } catch (e) {
