@@ -569,7 +569,7 @@ type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; 
 const ENDGAME_CHAIN: Array<{ from: IdleMapId; to: IdleMapId; req: number; color: string }> = [
   { from: "terra",             to: "vale_rochas",       req: 40,  color: "#c9a76a" },
   { from: "vale_rochas",       to: "vale_planta",       req: 110, color: "#4ade80" },
-  { from: "vale_planta",       to: "vale_gelo",         req: 180, color: "#7dd3fc" },
+  { from: "vale_planta",       to: "vale_gelo",         req: 180, color: "#c9b8ff" },
   { from: "vale_gelo",         to: "vale_veneno",       req: 250, color: "#c084fc" },
   { from: "vale_veneno",       to: "vale_fogo",         req: 320, color: "#fb923c" },
   { from: "vale_fogo",         to: "vulcao_ativo",      req: 390, color: "#ef4444" },
@@ -2718,7 +2718,7 @@ function IdlePage() {
                   { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
                 ],
                 santuario_glacial: [
-                  { key: "sg-to-caminho", target: "caminho_glacial", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7dd3fc" },
+                  { key: "sg-to-caminho", target: "caminho_glacial", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#c9b8ff" },
                 ],
                 caminho_glacial: [
                   { key: "cg-to-santuario", target: "santuario_glacial", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#c0e8ff" },
@@ -2774,7 +2774,7 @@ function IdlePage() {
                 ],
                 // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
                 gelius1: [
-                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7fd8ff" },
+                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c9b8ff" },
                 ],
                 gelius2: [
                   { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
@@ -8291,14 +8291,14 @@ function IdlePage() {
               onClick={() => setAnciaoOpen(true)}
               style={{ 
                 marginTop: 10,
-                background: "linear-gradient(135deg, rgba(125, 211, 252, 0.2), rgba(125, 211, 252, 0.05))",
-                border: "2px solid #7dd3fc",
+                background: "linear-gradient(135deg, rgba(201, 184, 255, 0.2), rgba(201, 184, 255, 0.05))",
+                border: "2px solid #c9b8ff",
                 borderRadius: 12,
                 padding: "10px 14px",
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                boxShadow: "0 4px 15px rgba(125, 211, 252, 0.25)",
+                boxShadow: "0 4px 15px rgba(201, 184, 255, 0.25)",
                 animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
                 cursor: "pointer"
               }}
@@ -8317,11 +8317,11 @@ function IdlePage() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ 
-                  color: "#7dd3fc", 
+                  color: "#c9b8ff", 
                   fontSize: 12, 
                   fontWeight: 900, 
                   letterSpacing: 1, 
-                  textShadow: "0 0 8px rgba(125, 211, 252, 0.8)" 
+                  textShadow: "0 0 8px rgba(201, 184, 255, 0.8)" 
                 }}>
                   ❄️ NOVA JORNADA
                 </div>
@@ -9072,7 +9072,7 @@ function IdlePage() {
                   <div style={{
                     position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)",
                     background: "linear-gradient(180deg,#1e3a8a,#0f172a)",
-                    border: "1px solid #7dd3fc", color: "#7dd3fc",
+                    border: "1px solid #c9b8ff", color: "#c9b8ff",
                     borderRadius: 999, padding: "3px 12px",
                     fontSize: 11, fontWeight: 900, whiteSpace: "nowrap",
                     boxShadow: "0 0 12px rgba(125,211,252,0.5)",
@@ -10210,7 +10210,7 @@ function IdlePage() {
                 >
                   <span style={{ fontSize: 14 }}>🐧</span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 9, fontWeight: 900, color: "#7fd8ff" }}>EVENTO GELIUS</div>
+                    <div style={{ fontSize: 9, fontWeight: 900, color: "#c9b8ff" }}>EVENTO GELIUS</div>
                     <div style={{ fontSize: 8, color: "#fff" }}>ONDA ATIVA</div>
                   </div>
                 </div>
@@ -10515,7 +10515,7 @@ function IdlePage() {
       {identity && (
         <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
           <span>{identity.name}</span>
-          <span style={{ fontFamily: "monospace", color: "#7fd8ff", fontSize: 9 }}>
+          <span style={{ fontFamily: "monospace", color: "#c9b8ff", fontSize: 9 }}>
             🌐 IP: {idle.hideIp ? "•••.•••.•••.•••" : (myIp ?? "detectando...")}
           </span>
           <div style={{ display: "flex", gap: 4 }}>
@@ -10817,7 +10817,7 @@ function IdlePage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ color: "#bfe9ff", fontWeight: 900, fontSize: 16, letterSpacing: 1.4 }}>📜 LOG DE REDE</div>
-                <div style={{ color: "#7f95a8", fontSize: 10.5 }}>Seu IP atual: <b style={{ color: "#7fd8ff", fontFamily: "monospace" }}>{myIp ?? "—"}</b> · sessão de farm: {fmtHMS(activeTime)}</div>
+                <div style={{ color: "#7f95a8", fontSize: 10.5 }}>Seu IP atual: <b style={{ color: "#c9b8ff", fontFamily: "monospace" }}>{myIp ?? "—"}</b> · sessão de farm: {fmtHMS(activeTime)}</div>
               </div>
               <button onClick={() => void loadNetLogs()} style={{ background: "#10222f", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>🔄 ATUALIZAR</button>
               <button onClick={() => setNetLogOpen(false)} style={{ background: "#10222f", border: "1px solid #3b5a6b", color: "#9ab", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
@@ -10827,7 +10827,7 @@ function IdlePage() {
               {!netLogLoading && netLogs.length === 0 && <div style={{ color: "#7f95a8", fontSize: 11 }}>Nenhum registro de acesso encontrado.</div>}
               {netLogs.map((r) => (
                 <div key={r.id} style={{ display: "flex", gap: 10, alignItems: "center", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(107,212,255,0.18)", borderRadius: 8, padding: "6px 9px", fontSize: 10.5 }}>
-                  <span style={{ color: "#7fd8ff", fontFamily: "monospace", fontWeight: 900, minWidth: 118 }}>{r.ip}</span>
+                  <span style={{ color: "#c9b8ff", fontFamily: "monospace", fontWeight: 900, minWidth: 118 }}>{r.ip}</span>
                   <span style={{ color: "#ffe89a", fontWeight: 800, minWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.username ?? r.user_id.slice(0, 8)}</span>
                   <span style={{ color: "#8fa4b4", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.user_agent ?? "—"}</span>
                   <span style={{ color: "#7f95a8" }}>{new Date(r.created_at).toLocaleString("pt-BR")}</span>
@@ -12585,10 +12585,10 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
       borderRadius: 10, overflow: "hidden",
     }}>
       <div style={{
-        background: accent, color: "#7fd8ff",
+        background: accent, color: "#c9b8ff",
         padding: "6px 10px", fontWeight: 700, fontSize: 12,
         letterSpacing: 1,
-        textShadow: "0 0 8px rgba(127, 216, 255, 0.4)",
+        textShadow: "0 0 8px rgba(201, 184, 255, 0.4)",
       }}>{title}</div>
       <div style={{ padding: 10 }}>{children}</div>
     </div>
@@ -13112,9 +13112,9 @@ function TabOverlay({
 
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
         <h2 style={{ 
-          margin: 0, fontSize: 22, color: "#7fd8ff", 
+          margin: 0, fontSize: 22, color: "#c9b8ff", 
           fontFamily: "'Cinzel', serif", letterSpacing: 2,
-          textShadow: "0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(127, 216, 255, 0.4)"
+          textShadow: "0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(201, 184, 255, 0.4)"
         }}>{title}</h2>
         <button onClick={onClose} className="modern-close-btn">
           FECHAR ✕
@@ -16316,7 +16316,7 @@ function AnciaoGlacialDialog({
           width: "min(720px, 94vw)",
           background: "linear-gradient(180deg, rgba(20,40,70,0.98), rgba(5,15,30,0.98))",
           border: "3px solid transparent",
-          borderImage: "linear-gradient(135deg, #7dd3fc, #1e40af, #7dd3fc) 1",
+          borderImage: "linear-gradient(135deg, #c9b8ff, #1e40af, #c9b8ff) 1",
           borderRadius: 14,
           boxShadow: "0 0 50px rgba(125,211,252,0.4), inset 0 0 20px rgba(125,211,252,0.1)",
           padding: 20, display: "flex", gap: 20, color: "#e0f2fe",
@@ -16333,14 +16333,14 @@ function AnciaoGlacialDialog({
            />
            <div style={{
              position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)",
-             background: "rgba(30,58,138,0.9)", border: "1px solid #7dd3fc", borderRadius: 4,
+             background: "rgba(30,58,138,0.9)", border: "1px solid #c9b8ff", borderRadius: 4,
              padding: "2px 8px", fontSize: 10, fontWeight: 900, color: "#fff", whiteSpace: "nowrap"
            }}>ANCIÃO GLACIAL</div>
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{
-            fontSize: 14, fontWeight: 800, color: "#7dd3fc", letterSpacing: 1.5,
+            fontSize: 14, fontWeight: 800, color: "#c9b8ff", letterSpacing: 1.5,
             borderBottom: "1px solid rgba(125,211,252,0.2)", paddingBottom: 6
           }}>RITUAL DA NOVA JORNADA</div>
 
@@ -16357,7 +16357,7 @@ function AnciaoGlacialDialog({
               <button
                 onClick={() => setStep(s => s + 1)}
                 style={{
-                  padding: "10px 20px", background: "linear-gradient(180deg, #7dd3fc, #1e40af)",
+                  padding: "10px 20px", background: "linear-gradient(180deg, #c9b8ff, #1e40af)",
                   border: "1px solid #fff", borderRadius: 8, color: "#fff",
                   fontWeight: 800, cursor: "pointer", fontSize: 13, letterSpacing: 1,
                   boxShadow: "0 0 15px rgba(125,211,252,0.5)"
@@ -16369,7 +16369,7 @@ function AnciaoGlacialDialog({
                   onClick={onClose}
                   style={{
                     padding: "10px 20px", background: "rgba(30,58,138,0.4)",
-                    border: "1px solid #7dd3fc66", borderRadius: 8, color: "#7dd3fc",
+                    border: "1px solid #c9b8ff66", borderRadius: 8, color: "#c9b8ff",
                     fontWeight: 700, cursor: "pointer", fontSize: 13
                   }}
                   disabled={isResetting}
@@ -16378,7 +16378,7 @@ function AnciaoGlacialDialog({
                   onClick={handleConfirm}
                   style={{
                     padding: "12px 24px",
-                    background: "linear-gradient(180deg, #7dd3fc, #1e40af)",
+                    background: "linear-gradient(180deg, #c9b8ff, #1e40af)",
                     border: "1px solid #fff", borderRadius: 8, color: "#fff",
                     fontWeight: 900, cursor: "pointer", fontSize: 14, letterSpacing: 1,
                     boxShadow: "0 0 20px rgba(125,211,252,0.8)",
