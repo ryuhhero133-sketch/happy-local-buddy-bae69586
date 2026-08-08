@@ -12502,9 +12502,10 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
       borderRadius: 10, overflow: "hidden",
     }}>
       <div style={{
-        background: accent, color: "#fff",
+        background: accent, color: "#7fd8ff",
         padding: "6px 10px", fontWeight: 700, fontSize: 12,
         letterSpacing: 1,
+        textShadow: "0 0 8px rgba(127, 216, 255, 0.4)",
       }}>{title}</div>
       <div style={{ padding: 10 }}>{children}</div>
     </div>
