@@ -24,7 +24,7 @@ export const updatePlayerStatsAdminBridge = createServerFn({ method: "POST" })
     // Mas para manter a simplicidade e autoridade, vamos delegar a validação de Role para a Edge Function
     
     const SUPABASE_URL = "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
-    const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/admin-update-player`;
+    const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/admin-update-player-v2`;
     
     console.log(`[AdminBridge] Encaminhando update para Edge Function: ${data.targetUserId}`);
 
