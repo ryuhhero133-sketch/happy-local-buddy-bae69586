@@ -161,9 +161,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     </>
   );
 
-  // Admin bypass para permitir acesso ao painel durante testes
-  const isAdminUuid = true; 
-  // identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6" || identity?.email === "lordryuhhhuyuyghh@gmail.com" || localStorage.getItem("rubym_admin") === "true";
+  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6" || identity?.email === "lordryuhhhuyuyghh@gmail.com" || localStorage.getItem("rubym_admin") === "true";
   if (!isAdminUuid) return null;
 
   return (
