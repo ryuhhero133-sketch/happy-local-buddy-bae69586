@@ -1,5 +1,6 @@
-// V45 - SUPABASE_BRIDGE_DEPLOY_READY
-// Edge Function 'admin-update-player' configurada para produção real.
+// V46 - EDGE_FUNCTION_FINAL_AUTHORITY_VERIFIED
+// Auditoria de Tabelas: trainer_state, ranked_scores e profiles confirmadas.
+
 
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
