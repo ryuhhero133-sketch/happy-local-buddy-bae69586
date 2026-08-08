@@ -559,7 +559,7 @@ function OnlinePlayersTab({
 
       // 3. Atualizar record em ranked_leaderboard se existir
       try {
-        await supabase.from("ranked_leaderboard" as any).update({
+        await (supabase.from("ranked_leaderboard" as any) as any).update({
           trainer_level: editLevel,
           score: editLevel * 100,
           updated_at: new Date().toISOString()
