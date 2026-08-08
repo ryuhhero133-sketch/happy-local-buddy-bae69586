@@ -1,5 +1,5 @@
-// V47 - SECURE_EDGE_AUTHORITY_VERIFIED
-// Auditoria: trainer_state, ranked_scores e profiles protegidas por Auth e Admin check.
+// V48 - ATOMIC_EDGE_AUTHORITY_VERIFIED
+// Auditoria: trainer_state, ranked_scores e profiles protegidas por RPC Atômica e Admin check.
 
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
