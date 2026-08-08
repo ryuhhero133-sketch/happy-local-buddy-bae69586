@@ -225,14 +225,30 @@ serve(async (req) => {
     // OPERAÇÃO ATÔMICA VIA RPC PARA GARANTIR CONSISTÊNCIA
     // Você deve criar esta função no Supabase primeiro:
     /*
-    CREATE OR REPLACE FUNCTION admin_atomic_level_update(target_user_id UUID, new_level INT)
-    RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+    -- 1. CRIAR A FUNÇÃO COM SECURITY DEFINER E SEARCH_PATH SEGURO
+    CREATE OR REPLACE FUNCTION public.admin_atomic_level_update(target_user_id UUID, new_level INT)
+    RETURNS void LANGUAGE plpgsql SECURITY DEFINER 
+    SET search_path = public
+    AS $$
     BEGIN
+      -- Validação de segurança extra interna (opcional, já validado na Edge Function)
+      IF new_level < 1 OR new_level > 10000 THEN
+        RAISE EXCEPTION 'Nível fora dos limites permitidos';
+      END IF;
+
       UPDATE public.trainer_state SET trainer_level = new_level WHERE user_id = target_user_id;
       UPDATE public.ranked_scores SET trainer_level = new_level WHERE user_id = target_user_id;
       UPDATE public.profiles SET trainer_level = new_level WHERE id = target_user_id;
     END;
     $$;
+
+    -- 2. REVOGAR EXECUÇÃO PÚBLICA (SEGURANÇA CRÍTICA)
+    REVOKE EXECUTE ON FUNCTION public.admin_atomic_level_update(UUID, INT) FROM PUBLIC;
+    REVOKE EXECUTE ON FUNCTION public.admin_atomic_level_update(UUID, INT) FROM anon;
+    REVOKE EXECUTE ON FUNCTION public.admin_atomic_level_update(UUID, INT) FROM authenticated;
+
+    -- 3. PERMITIR APENAS SERVICE_ROLE (USADO PELA EDGE FUNCTION)
+    GRANT EXECUTE ON FUNCTION public.admin_atomic_level_update(UUID, INT) TO service_role;
     */
 
     const { error } = await adminClient.rpc('admin_atomic_level_update', {
