@@ -556,6 +556,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   gym_arcano:      { name: "🏰 Ginásio — Santuário Arcano", diff: "BLACK MYTHIC", bg: assetUrlFromJson(mapGymArcanoAsset), rate: 38.0, minLevel: 1, maxLevel: 9999, element: "Arcano",        stars: 10, overlay: "rgba(120,60,200,0.10)" },
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
+  santuario_glacial: { name: "Santuário Glacial", diff: "SEGURO", bg: mapSnowUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 10, overlay: "rgba(200,230,255,0.3)" },
+  caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
