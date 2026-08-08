@@ -15944,12 +15944,16 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
   };
   const handleSeasonReset = async () => {
     try {
+      if (!window.confirm("ATENÇÃO: Este ritual irá resetar seu nível e de seus Pokémon para 1. Toda sua COLEÇÃO será convertida em Fragmentos Vermelhos. Itens, Cofre e Ouro serão mantidos. Deseja continuar?")) {
+        return;
+      }
+
       const { executeSeasonReset } = await import("@/lib/season-reset.functions");
       const res = await executeSeasonReset();
       if (res.success) {
         toast.success(res.message);
-        // Recarregar a página para aplicar o reset completo no estado local
-        window.location.reload();
+        // Recarregar a página para aplicar o reset completo no estado local e limpar cache
+        setTimeout(() => window.location.reload(), 1500);
       }
     } catch (err: any) {
       toast.error(err.message || "Erro ao realizar reset de temporada.");
