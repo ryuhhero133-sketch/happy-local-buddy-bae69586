@@ -675,9 +675,14 @@ function OnlinePlayersTab({
 
   const savePokemonLevel = async (id: string, level: number) => {
     try {
-      // Primeiro tenta atualizar diretamente a tabela
-      const { error: directError } = await (supabase.from("pokemon_collection") as any).update({
-        level: level
+      const { updatePlayerStatsAdminBridge } = await import('@/lib/admin-bridge.functions');
+      await updatePlayerStatsAdminBridge({
+        data: {
+          targetPokemonId: id,
+          type: 'pokemon',
+          level: level
+        }
+      });
       }).eq("id", id);
 
       
