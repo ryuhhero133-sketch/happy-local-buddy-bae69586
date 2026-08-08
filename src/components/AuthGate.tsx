@@ -489,7 +489,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
             </p>
             <p className="text-[10px] leading-relaxed" style={{ color: "#fecaca" }}>
               PREPARANDO NOVA TEMPORADA.<br/>
-              HORÁRIO DE ABERTURA DA SEASON: 00:00
+              ABERTURA DA SEASON ÀS 07:00<br/>
+              FALTAM: <span className="font-bold" style={{ color: "#fff", textShadow: "0 0 6px rgba(255,255,255,0.5)" }}>{countdown}</span>
             </p>
           </div>
           <div className="pt-2">
