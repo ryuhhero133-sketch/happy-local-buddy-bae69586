@@ -59,7 +59,7 @@ function Index() {
       }}>
         <h1 style={{ color: '#fecaca', marginBottom: '20px', letterSpacing: '4px' }}>IDLE MON</h1>
         <p style={{ fontSize: '14px', color: '#fca5a5', marginBottom: '10px' }}>
-          {loading ? "LIBERANDO ACESSO PARA OS JOGADORES..." : "ACESSO LIBERADO!"}
+          {loading ? "LIBERAR O GAME PARA TODOS ENTRAR" : "ACESSO LIBERADO!"}
         </p>
         <p style={{ fontSize: '10px', opacity: 0.7 }}>Redirecionando para o mapa...</p>
       </div>
