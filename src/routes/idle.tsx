@@ -8078,12 +8078,14 @@ function IdlePage() {
 
       <div className="idle-grid" style={{
         display: "grid",
-        gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
-        gridTemplateRows: "1fr auto",
-        gap: 8, padding: 8,
+        gridTemplateColumns: "1fr",
+        gridTemplateRows: "1fr",
+        position: "relative",
         height: "100vh",
+        width: "100vw",
         overflow: "hidden",
       }}>
+
 
 
 
