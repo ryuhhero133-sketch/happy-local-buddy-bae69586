@@ -154,9 +154,25 @@ function Index() {
                 <AlertTriangle className="w-4 h-4" /> FALHA NO BACKEND
               </p>
               <p className="text-red-300/80 text-xs mt-1 font-mono break-all">{errorMessage}</p>
-              <div className="mt-3 text-[10px] text-red-200/60 leading-relaxed">
-                <strong>DIAGNÓSTICO:</strong> A Edge Function 'admin-update-player' não foi encontrada no seu projeto Supabase. Certifique-se de realizar o deploy da função no painel do Supabase.  ME MANDE O SQL RESOLVENDFO<br/>
-                <strong>CORREÇÃO:</strong> Execute no terminal: <code>supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp</code>
+              <div className="mt-3 text-[10px] text-red-200/60 leading-relaxed space-y-3">
+                <div className="p-3 bg-black/40 rounded border border-red-900/50">
+                  <strong className="text-red-400 block mb-1">SQL DE RESOLUÇÃO (Execute no Editor SQL do Supabase):</strong>
+                  <pre className="whitespace-pre-wrap font-mono text-[9px] text-yellow-500/80">
+{`-- 1. Habilitar a extensão para chamadas HTTP se necessário
+-- (Geralmente habilitado por padrão em novos projetos)
+
+-- 2. Código para criar a Edge Function (Copie e cole no seu terminal local)
+-- mkdir -p supabase/functions/admin-update-player
+-- Edite o arquivo supabase/functions/admin-update-player/index.ts com o código TypeScript fornecido.
+
+-- O comando abaixo é o que você precisa rodar no seu PC:
+supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp`}
+                  </pre>
+                </div>
+                
+                <div className="p-3 bg-blue-900/20 rounded border border-blue-800/30 text-blue-300">
+                  <strong>IMPORTANTE:</strong> Como este projeto usa TanStack Start em Edge Workers, eu não posso criar a Edge Function diretamente no Supabase por você. Você precisa rodar o comando <code>deploy</code> acima no seu terminal local.
+                </div>
               </div>
             </div>
           )}
