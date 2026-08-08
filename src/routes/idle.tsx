@@ -1,4 +1,4 @@
-// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V21 - RANKED_SYNC_AUTHORITY
+// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V21 - RANKED_SYNC_AUTHORITY - MENU_BLUE_FONT
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -12502,9 +12502,10 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
       borderRadius: 10, overflow: "hidden",
     }}>
       <div style={{
-        background: accent, color: "#fff",
+        background: accent, color: "#7fd8ff",
         padding: "6px 10px", fontWeight: 700, fontSize: 12,
         letterSpacing: 1,
+        textShadow: "0 0 8px rgba(127, 216, 255, 0.4)",
       }}>{title}</div>
       <div style={{ padding: 10 }}>{children}</div>
     </div>
@@ -13028,9 +13029,9 @@ function TabOverlay({
 
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
         <h2 style={{ 
-          margin: 0, fontSize: 22, color: "#f5cf6b", 
+          margin: 0, fontSize: 22, color: "#7fd8ff", 
           fontFamily: "'Cinzel', serif", letterSpacing: 2,
-          textShadow: "0 2px 4px rgba(0,0,0,0.5)"
+          textShadow: "0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(127, 216, 255, 0.4)"
         }}>{title}</h2>
         <button onClick={onClose} className="modern-close-btn">
           FECHAR ✕
