@@ -675,21 +675,14 @@ function OnlinePlayersTab({
 
   const savePokemonLevel = async (id: string, level: number) => {
     try {
-      // Primeiro tenta atualizar diretamente a tabela
-      const { error: directError } = await (supabase.from("pokemon_collection") as any).update({
-        level: level
-      }).eq("id", id);
-
-      
-      if (directError) throw directError;
-
-      // Opcional: tentar RPC
-      try {
-        await (supabase.rpc as any)('admin_update_pokemon_level', {
-          target_pokemon_id: id,
-          new_level: level
-        });
-      } catch (e) {}
+      const { updatePlayerStatsAdminBridge } = await import('@/lib/admin-bridge.functions');
+      await updatePlayerStatsAdminBridge({
+        data: {
+          targetPokemonId: id,
+          type: 'pokemon',
+          level: level
+        }
+      });
 
       toast.success("Nível do Pokémon atualizado!");
       if (inspectingUser) inspectPlayer(inspectingUser);

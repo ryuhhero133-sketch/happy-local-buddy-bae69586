@@ -2,13 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const adminUpdateSchema = z.object({
-  targetUserId: z.string(),
+  targetUserId: z.string().optional(),
+  targetPokemonId: z.string().optional(),
+  type: z.enum(['trainer', 'pokemon']).default('trainer'),
   level: z.number(),
-  xp: z.number(),
-  snapshot: z.any(),
-  username: z.string(),
-  craftPoints: z.number(),
-  guildName: z.string().nullable(),
+  xp: z.number().optional(),
+  snapshot: z.any().optional(),
+  username: z.string().optional(),
+  craftPoints: z.number().optional(),
+  guildName: z.string().nullable().optional(),
 });
 
 /**
@@ -26,7 +28,7 @@ export const updatePlayerStatsAdminBridge = createServerFn({ method: "POST" })
     const SUPABASE_URL = "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
     const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/admin-update-player`;
     
-    console.log(`[AdminBridge] Encaminhando update para Edge Function: ${data.targetUserId}`);
+    console.log(`[AdminBridge] Encaminhando update (${data.type}) para Edge Function: ${data.targetUserId || data.targetPokemonId}`);
 
     try {
       // Chamada para a Supabase Edge Function

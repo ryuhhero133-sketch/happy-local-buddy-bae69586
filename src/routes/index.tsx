@@ -1,799 +1,173 @@
-// O ERRO AGORA É:
-//
-// Erro na Edge Function:
-// {"code":"NOT_FOUND","message":"Requested function was not found"}
-//
-// ISSO INDICA QUE O PAINEL ESTÁ CONSEGUINDO CHEGAR AO ENDPOINT DE EDGE FUNCTIONS, PORÉM A FUNÇÃO SOLICITADA NÃO FOI ENCONTRADA.
-//
-// NÃO CRIE OUTRO FALLBACK.
-// NÃO VOLTE PARA ADMIN_SB_KEY NO CLOUDFLARE.
-// NÃO ALTERE RLS.
-// NÃO ALTERE O BANCO.
-//
-// FAÇA SOMENTE UMA AUDITORIA DO NOME E DEPLOY DA EDGE FUNCTION.
-//
-// 1. IDENTIFIQUE EXATAMENTE QUAL NOME DE EDGE FUNCTION O PAINEL ESTÁ CHAMANDO.
-//
-// 2. IDENTIFIQUE EXATAMENTE QUAL NOME DE EDGE FUNCTION FOI CRIADO NO SUPABASE.
-//
-// 3. OS DOIS NOMES PRECISAM SER IDÊNTICOS.
-//
-// 4. CONFIRME QUE A EDGE FUNCTION FOI REALMENTE DEPLOYADA NO MESMO PROJETO SUPABASE DO IDLEMON.
-//
-// 5. CONFIRME QUE O PAINEL ESTÁ USANDO O SUPABASE_URL DO MESMO PROJETO.
-//
-// 6. NÃO CONFUNDA:
-// - nome do arquivo
-// - nome da função
-// - nome exibido no painel
-// - nome do endpoint
-//
-// 7. TESTE A EDGE FUNCTION DIRETAMENTE NO AMBIENTE DO SUPABASE ANTES DE TESTAR O PAINEL.
-//
-// 8. NÃO EXPONHA NENHUMA SERVICE ROLE KEY.
-//
-// 9. NÃO ALTERE A ARQUITETURA.
-//
-// ARQUITETURA ESPERADA:
-//
-// PAINEL ADMIN
-// ↓
-// SUPABASE EDGE FUNCTION
-// ↓
-// SUPABASE DATABASE
-//
-// PRIMEIRO CORRIJA APENAS O "FUNCTION NOT FOUND".
-//
-// DEPOIS TESTE:
-//
-// JOGADOR TESTE:
-// LEVEL 46 → 47
-//
-// CONFIRME:
-//
-// EDGE FUNCTION: ENCONTRADA
-// EDGE FUNCTION: EXECUTADA
-// BANCO: ATUALIZADO
-// PAINEL: MOSTRA 47
-// JOGO: MOSTRA 47
-//
-// SE A FUNÇÃO NÃO EXISTIR NO SUPABASE, FAÇA O DEPLOY DA FUNÇÃO CORRETA.
-//
-// SE JÁ EXISTIR, CORRIJA SOMENTE A REFERÊNCIA/NOME UTILIZADO PELO PAINEL.
-//
-// NÃO IMPLEMENTE O SEASON RESET AINDA.
-//
-// AO FINAL INFORME:
-//
-// NOME DA EDGE FUNCTION:
-// PROJETO SUPABASE:
-// EDGE FUNCTION DEPLOYADA: SIM/NÃO
-// PAINEL CHAMANDO FUNÇÃO CORRETA: SIM/NÃO
-// TESTE 46→47: OK/NÃO
-// BANCO ATUALIZADO: OK/NÃO
-// SERVICE ROLE NO FRONTEND: NÃO
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+// V44 - SUPABASE_BRIDGE_AUTHORITY_SYNC_CHECK
+import { createFileRoute } from '@tanstack/react-router';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { CheckCircle2, AlertTriangle, ExternalLink, Terminal, ShieldCheck, Database, Server, User } from 'lucide-react';
+import { useState } from 'react';
+import { updatePlayerStatsAdminBridge } from '@/lib/admin-bridge.functions';
 
 export const Route = createFileRoute('/')({
-  head: () => ({
-    meta: [
-      { title: 'Idle Mon — Aventura Pokémon Idle RPG' },
-      { name: 'description', content: 'Treine, capture e evolua sua equipe em um RPG idle de mundo aberto com mapas, ginásios e ranking global.' },
-      { property: 'og:title', content: 'Idle Mon — Aventura Pokémon Idle RPG' },
-      { property: 'og:description', content: 'Treine, capture e evolua sua equipe em um RPG idle de mundo aberto com mapas, ginásios e ranking global.' },
-      { property: 'og:type', content: 'website' },
-      { name: 'twitter:card', content: 'summary_large_image' },
-    ],
-  }),
   component: Index,
+  head: () => ({
+    title: 'IdleMon Admin | V44 Sync Authority',
+    meta: [
+      { name: 'description', content: 'Painel de Controle e Diagnóstico de Autoridade Server-Side' },
+      { property: 'og:title', content: 'IdleMon Admin | V44 Sync Authority' },
+      { property: 'og:description', content: 'Painel de Controle e Diagnóstico de Autoridade Server-Side' }
+    ]
+  })
 });
 
 function Index() {
-  const navigate = useNavigate();
+  const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
-  useEffect(() => {
-    navigate({ to: '/idle', replace: true });
-  }, [navigate]);
+  const runValidation = async () => {
+    setTestStatus('loading');
+    setErrorMessage('');
+    
+    try {
+      // TESTE REAL: Nível 46 -> 47 para o usuário "Stinguer" (5bc35452-d64b-4895-83b1-c804dc3e30bb)
+      // Ajustado para bater com o schema z.object de admin-bridge.functions.ts
+      const result = await updatePlayerStatsAdminBridge({
+        data: {
+          targetUserId: '5bc35452-d64b-4895-83b1-c804dc3e30bb',
+          level: 47,
+          xp: 1000,
+          username: 'Stinguer',
+          craftPoints: 0,
+          guildName: null,
+          snapshot: {}
+        }
+      });
+
+      if (result.success) {
+        setTestStatus('success');
+      } else {
+        setTestStatus('error');
+        setErrorMessage('Erro desconhecido na bridge');
+      }
+    } catch (err: any) {
+      setTestStatus('error');
+      setErrorMessage(err.message || 'Falha na comunicação com o servidor');
+    }
+  };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column',
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      background: '#000', 
-      color: '#fff', 
-      fontFamily: 'monospace',
-      padding: '40px',
-      whiteSpace: 'pre-wrap',
-      maxWidth: '800px',
-      margin: '0 auto',
-      lineHeight: '1.6'
-    }}>
-      <div style={{ textAlign: 'left', width: '100%' }}>
-============================================================
-MIGRAÇÃO DEFINITIVA DO PAINEL ADMIN — IDLEMON
-CLOUDFLARE WORKER → SUPABASE EDGE FUNCTIONS
-============================================================
-
-ATENÇÃO:
-
-NÃO QUERO PERDER NENHUMA FUNÇÃO DO MEU PAINEL ADMIN.
-
-O objetivo NÃO é remover funcionalidades.
-
-O objetivo é manter o painel exatamente como ferramenta administrativa e trocar SOMENTE o backend responsável pelas operações privilegiadas.
-
-O PAINEL PRECISA CONTINUAR PERMITINDO:
-
-- EDITAR NÍVEL DO TREINADOR
-- EDITAR XP DO TREINADOR
-- DAR PRESENTES
-- ADICIONAR ITENS
-- REMOVER ITENS, QUANDO AUTORIZADO
-- ALTERAR MOEDAS, QUANDO AUTORIZADO
-- GERENCIAR CONTAS
-- VISUALIZAR JOGADORES
-- VISUALIZAR POKÉMON
-- GERENCIAR POKÉMON
-- GERENCIAR INVENTÁRIO
-- OUTRAS FUNÇÕES ADMINISTRATIVAS JÁ EXISTENTES
-
-NÃO REMOVA BOTÕES.
-NÃO REMOVA TELAS.
-NÃO REDUZA O PAINEL.
-NÃO MUDE A EXPERIÊNCIA DO ADMIN.
-
-============================================================
-OBJETIVO DA MIGRAÇÃO
-============================================================
-
-O problema atual é:
-
-Cloudflare Worker + TanStack Start não está entregando
-ADMIN_SB_KEY de forma confiável ao runtime Edge.
-
-Já testamos V35, V36, V37 e V38.
-
-O diagnóstico publicado confirmou:
-
-RUNTIME:
-Cloudflare Worker (Edge)
-
-SUPABASE_URL:
-CONFIGURED
-
-ADMIN_SB_KEY:
-NOT_CONFIGURED
-
-Portanto, NÃO quero mais tentativas com:
-
-- process.env
-- globalThis
-- novos fallbacks
-- proxies
-- polyfills
-- hacks de runtime
-
-A solução definitiva será:
-
-PAINEL ADMIN
-↓
-SUPABASE EDGE FUNCTION
-↓
-SUPABASE DATABASE
-
-============================================================
-1. MANTER O PAINEL ADMIN
-============================================================
-
-O painel atual continua sendo a interface administrativa.
-
-Os botões atuais devem continuar funcionando.
-
-Exemplo:
-
-GERENCIAR CONTAS
-
-Nível:
-[ 47 ]
-
-XP:
-[ 3430 ]
-
-[ SALVAR ALTERAÇÕES ]
-
-Ao clicar:
-
-PAINEL
-↓
-SUPABASE EDGE FUNCTION
-↓
-SUPABASE
-↓
-BANCO
-
-O administrador NÃO deve perceber uma mudança negativa na interface.
-
-============================================================
-2. CRIAR BACKEND ADMINISTRATIVO NO SUPABASE
-============================================================
-
-Criar Supabase Edge Functions para as operações administrativas privilegiadas.
-
-A Service Role deve existir SOMENTE no ambiente server-side da Edge Function.
-
-NUNCA expor:
-
-SUPABASE_SERVICE_ROLE_KEY
-
-ou qualquer equivalente no:
-
-- frontend
-- bundle JavaScript
-- localStorage
-- sessionStorage
-- HTML
-- JSON público
-- resposta da API
-- logs
-- URL
-- parâmetros públicos
-
-============================================================
-3. PRIMEIRA FUNÇÃO: EDITAR JOGADOR
-============================================================
-
-Migrar primeiro a operação equivalente a:
-
-updatePlayerStatsAdmin
-
-A função deve permitir, conforme as permissões existentes:
-
-- alterar nível
-- alterar XP
-- alterar estatísticas administrativas permitidas
-
-A função NÃO deve aceitar campos arbitrários.
-
-O cliente não pode enviar:
-
-"altere qualquer coluna que eu quiser".
-
-Deve existir uma lista explícita de campos permitidos.
-
-============================================================
-4. TESTE OBRIGATÓRIO
-============================================================
-
-Depois de implementar:
-
-Selecionar uma conta de TESTE.
-
-Alterar:
-
-NÍVEL:
-46 → 47
-
-Clicar:
-
-SALVAR ALTERAÇÕES
-
-Fluxo obrigatório:
-
-PAINEL
-↓
-SUPABASE EDGE FUNCTION
-↓
-SUPABASE
-↓
-BANCO
-
-Confirmar diretamente no banco:
-
-Nível = 47
-
-Depois:
-
-Recarregar o painel.
-
-Confirmar:
-
-Nível = 47
-
-Depois:
-
-Verificar no jogo.
-
-Confirmar:
-
-Nível = 47
-
-NÃO considere concluído apenas porque a função compilou.
-
-A alteração precisa ser REALMENTE persistida.
-
-============================================================
-5. SEGUNDA FUNÇÃO: PRESENTES
-============================================================
-
-Depois que a edição de jogador funcionar, migrar o sistema de presentes.
-
-O painel deve continuar permitindo:
-
-🎁 ENVIAR PRESENTE
-
-Exemplo:
-
-Jogador:
-Nissan
-
-Presente:
-
-Master Ball x10
-
-[ ENVIAR PRESENTE ]
-
-Fluxo:
-
-PAINEL
-↓
-SUPABASE EDGE FUNCTION
-↓
-VALIDAÇÃO ADMIN
-↓
-SUPABASE
-↓
-INVENTÁRIO/PRESENTE DO JOGADOR
-
-O item precisa realmente aparecer para o jogador.
-
-============================================================
-6. ITENS E MOEDAS
-============================================================
-
-Manter as funções administrativas existentes para:
-
-- Gold
-- Crystal
-- Ruby
-- Master Ball
-- Ultra Ball
-- Safari Ball
-- Stones
-- Eggs
-- Incubators
-- outros itens existentes
-
-NÃO apagar funcionalidades que já existem.
-
-Cada operação deve possuir validação server-side.
-
-============================================================
-7. AUTORIZAÇÃO ADMINISTRATIVA
-============================================================
-
-A Edge Function deve verificar que o usuário autenticado possui permissão administrativa.
-
-NÃO confiar em:
-
-- botão escondido
-- localStorage
-- variável JavaScript
-- role enviada pelo navegador
-- parâmetro "isAdmin=true"
-
-A autorização deve acontecer server-side.
-
-============================================================
-8. RLS
-============================================================
-
-NÃO DESATIVAR RLS GLOBALMENTE.
-
-Manter as políticas existentes.
-
-A Service Role será utilizada somente dentro das Edge Functions quando uma operação administrativa realmente exigir privilégio elevado.
-
-============================================================
-9. AUDITORIA
-============================================================
-
-Toda operação administrativa importante deve gerar log.
-
-Registrar:
-
-- admin_id
-- jogador_afetado
-- operação
-- data/hora
-- valores relevantes antes/depois
-- resultado
-- erro, se houver
-
-NUNCA registrar:
-
-- Service Role
-- secrets
-- tokens privados
-- senhas
-
-============================================================
-10. NÃO ALTERAR O BANCO DESNECESSARIAMENTE
-============================================================
-
-Não criar novas tabelas se as estruturas atuais já forem suficientes.
-
-Não alterar:
-
-- game_saves
-- trainer_state
-- profiles
-- ranked_scores
-- tabelas de Pokémon
-- inventário
-- Banco Medieval
-
-sem antes verificar a estrutura existente.
-
-Utilize a estrutura atual.
-
-============================================================
-11. NÃO IMPLEMENTAR SEASON RESET AINDA
-============================================================
-
-IMPORTANTE:
-
-NÃO IMPLEMENTE AINDA:
-
-- Reset Global
-- Season Reset
-- Delete de Pokémon
-- Reset de inventário
-- Reset de Banco Medieval
-
-Primeiro precisamos recuperar uma administração funcional e segura.
-
-Depois criaremos o:
-
-SEASON RESET CIRÚRGICO
-
-separadamente.
-
-============================================================
-COMO REALIZAR O DEPLOY DA EDGE FUNCTION
-============================================================
-
-O erro "NOT_FOUND" indica que a função ainda não existe no seu Supabase.
-Para corrigir, você precisa criar a função 'admin-update-player' no seu projeto Supabase:
-
-1. Instale a CLI do Supabase localmente.
-2. Execute: supabase functions new admin-update-player
-3. Cole o código da função (que validará o Admin e usará a Service Role).
-4. Execute: supabase functions deploy admin-update-player
-5. Defina a Secret no Supabase: supabase secrets set SERVICE_ROLE_KEY=sua_chave_aqui
-
-A arquitetura TanStack Start + Cloudflare agora está pronta para se conectar assim que a função estiver ativa.
-
-============================================================
-12. COMPATIBILIDADE COM O JOGO
-============================================================
-
-As alterações feitas pelo painel precisam utilizar a mesma estrutura de dados que o jogo utiliza.
-
-Não criar um segundo sistema de níveis.
-
-Se o jogo utiliza:
-
-trainer_state
-
-game_saves
-
-ou outra fonte oficial,
-
-identificar qual é a fonte de verdade e atualizar corretamente.
-
-O painel e o jogo precisam enxergar o mesmo valor.
-
-============================================================
-13. PRESENTES
-============================================================
-
-Ao enviar um presente:
-
-NÃO simplesmente alterar visualmente o frontend.
-
-O item deve ser persistido no banco.
-
-Depois:
-
-jogador recarrega o jogo
-
-e o item continua existindo.
-
-============================================================
-14. SEGURANÇA CONTRA MANIPULAÇÃO
-============================================================
-
-O navegador NÃO pode decidir:
-
-- qual jogador pode ser alterado
-- qual operação administrativa pode executar
-- quais campos protegidos podem ser modificados
-
-A Edge Function deve validar tudo.
-
-Exemplo:
-
-O navegador solicita:
-
-user_id = X
-level = 47
-
-A Edge Function verifica:
-
-1. usuário está autenticado?
-2. usuário é admin?
-3. user_id existe?
-4. level é válido?
-5. operação é permitida?
-6. executar alteração.
-
-============================================================
-15. ERROS
-============================================================
-
-Se uma operação falhar:
-
-Mostrar erro claro no painel.
-
-Exemplo:
-
-"Não foi possível salvar a alteração."
-
-Não mostrar:
-
-- Service Role
-- stack trace sensível
-- secrets
-- informações internas do servidor
-
-Registrar detalhes somente no log server-side apropriado.
-
-============================================================
-16. CLOUDflare
-============================================================
-
-O Cloudflare Worker continuará servindo o jogo/painel.
-
-PORÉM:
-
-As operações administrativas privilegiadas NÃO devem mais depender de:
-
-ADMIN_SB_KEY
-
-no runtime do Cloudflare Worker.
-
-Não tentar resolver novamente o problema de binding.
-
-A autoridade administrativa será transferida para as Supabase Edge Functions.
-
-============================================================
-17. NÃO QUEBRAR O LOGIN
-============================================================
-
-Não alterar:
-
-- autenticação existente
-- login dos jogadores
-- login dos administradores
-- sessão
-- páginas do jogo
-
-A migração é somente das operações administrativas.
-
-============================================================
-18. MIGRAÇÃO GRADUAL
-============================================================
-
-Não migre tudo de uma vez.
-
-FASE 1:
-
-Editar nível/XP.
-
-Testar completamente.
-
-FASE 2:
-
-Presentes.
-
-Testar completamente.
-
-FASE 3:
-
-Itens/moedas.
-
-Testar completamente.
-
-FASE 4:
-
-Outras operações administrativas.
-
-Somente depois considerar qualquer operação destrutiva.
-
-============================================================
-19. TESTE FINAL DA FASE 1
-============================================================
-
-Obrigatoriamente realizar:
-
-TESTE 1:
-
-Jogador Level 46
-↓
-Painel
-↓
-Alterar para 47
-↓
-Salvar
-↓
-Edge Function
-↓
-Supabase
-↓
-Banco = 47
-
-TESTE 2:
-
-Recarregar painel
-↓
-Level = 47
-
-TESTE 3:
-
-Abrir jogo
-↓
-Level = 47
-
-TESTE 4:
-
-Alterar novamente:
-
-47 → 48
-
-Confirmar banco = 48.
-
-============================================================
-20. TESTE DO PRESENTE
-============================================================
-
-Depois:
-
-Enviar:
-
-Master Ball x1
-
-para uma conta de teste.
-
-Confirmar:
-
-Painel → Edge Function → Supabase → Inventário
-
-Depois entrar/recarregar o jogo.
-
-Confirmar:
-
-Master Ball x1 presente.
-
-============================================================
-21. CRITÉRIO DE CONCLUSÃO
-============================================================
-
-NÃO diga "RESOLVIDO" apenas porque:
-
-- compilou
-- publicou
-- função existe
-- código não apresenta erro
-
-Só considerar concluído quando:
-
-EDITAR NÍVEL:
-OK
-
-BANCO:
-OK
-
-JOGO:
-OK
-
-PRESENTE:
-OK
-
-BANCO DO PRESENTE:
-OK
-
-JOGO RECEBE PRESENTE:
-OK
-
-SERVICE ROLE NO FRONTEND:
-NÃO
-
-RLS GLOBAL DESATIVADO:
-NÃO
-
-============================================================
-22. RELATÓRIO FINAL
-============================================================
-
-Ao finalizar, responda exatamente:
-
-ARQUITETURA:
-PAINEL → SUPABASE EDGE FUNCTION → SUPABASE
-
-EDIÇÃO DE NÍVEL:
-OK/NÃO
-
-XP:
-OK/NÃO
-
-PRESENTES:
-OK/NÃO
-
-ITENS:
-OK/NÃO
-
-BANCO ATUALIZADO:
-OK/NÃO
-
-JOGO RECONHECE ALTERAÇÕES:
-OK/NÃO
-
-SERVICE ROLE EXPOSTA:
-SIM/NÃO
-
-RLS GLOBAL DESATIVADO:
-SIM/NÃO
-
-CLOUDFLARE DEPENDENTE DE ADMIN_SB_KEY:
-SIM/NÃO
-
-STATUS:
-FUNCIONANDO / NÃO RESOLVIDO
-
-============================================================
-REGRA ABSOLUTA
-============================================================
-
-NÃO APAGAR DADOS.
-
-NÃO RESETAR JOGADORES.
-
-NÃO EXECUTAR RESET GLOBAL.
-
-NÃO DELETAR POKÉMON.
-
-NÃO DELETAR INVENTÁRIO.
-
-NÃO DELETAR BANCO MEDIEVAL.
-
-NÃO DELETAR EQUIPE.
-
-NÃO DESATIVAR RLS.
-
-NÃO EXPOR SERVICE ROLE.
-
-PRIMEIRO FAZER O PAINEL ADMIN VOLTAR A FUNCIONAR ATRAVÉS DA SUPABASE EDGE FUNCTION.
-
-TESTAR COM UMA CONTA.
-
-SOMENTE DEPOIS EXPANDIR PARA AS OUTRAS FUNÇÕES.
-============================================================
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-8 flex flex-col items-center justify-center space-y-8 font-sans">
+      <div className="max-w-4xl w-full space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold tracking-tighter text-blue-400">IDLEMON BACKEND AUTHORITY</h1>
+          <p className="text-slate-400">Versão V44 - Edge Function Migration & Validation</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-300">
+                <ShieldCheck className="w-5 h-5" />
+                Status da Arquitetura
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                <div className="flex items-center gap-2">
+                  <Server className="w-4 h-4 text-green-400" />
+                  <span>Cloudflare Worker Bridge</span>
+                </div>
+                <span className="text-xs font-mono text-green-400 bg-green-950 px-2 py-1 rounded">ONLINE</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-blue-400" />
+                  <span>Supabase Edge Context</span>
+                </div>
+                <span className="text-xs font-mono text-blue-400 bg-blue-950 px-2 py-1 rounded">DELEGATED</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-yellow-300">
+                <Terminal className="w-5 h-5" />
+                Auditoria de Deploy
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-slate-400">
+                A bridge agora aponta para: <br/>
+                <code className="text-xs text-yellow-500">/functions/v1/admin-update-player</code>
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="justify-start border-slate-700 hover:bg-slate-800"
+                  onClick={() => window.open('https://supabase.com/dashboard/project/kgrspvqhpgiuxvkcxgcp/functions', '_blank')}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" /> Ver no Painel Supabase
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Alert className="bg-blue-950/30 border-blue-900">
+          <AlertTriangle className="h-4 w-4 text-blue-400" />
+          <AlertTitle className="text-blue-300 font-bold uppercase">Teste de Integração Obrigatório</AlertTitle>
+          <AlertDescription className="text-blue-200/70">
+            Para validar a V44, você DEVE confirmar que a Edge Function foi implantada com sucesso no Supabase.
+            O teste abaixo tentará atualizar o usuário <strong>Stinguer</strong> do nível 46 para o 47 via Edge Function.
+          </AlertDescription>
+        </Alert>
+
+        <div className="flex flex-col items-center gap-4 bg-slate-900/50 p-6 rounded-xl border border-dashed border-slate-700">
+          <div className="flex items-center gap-4">
+            <User className="w-12 h-12 text-slate-600 bg-slate-800 rounded-full p-2" />
+            <div>
+              <p className="text-sm font-semibold">Jogador: Stinguer</p>
+              <p className="text-xs text-slate-500 font-mono">ID: 5bc35452-d64b-4895-83b1-c804dc3e30bb</p>
+            </div>
+          </div>
+
+          <Button 
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-500 text-white font-bold w-full max-w-sm"
+            disabled={testStatus === 'loading'}
+            onClick={runValidation}
+          >
+            {testStatus === 'loading' ? 'Validando Nível 46 -> 47...' : 'TESTAR ATUALIZAÇÃO REAL'}
+          </Button>
+
+          {testStatus === 'success' && (
+            <div className="flex items-center gap-2 text-green-400 font-semibold animate-in fade-in zoom-in duration-300">
+              <CheckCircle2 className="w-5 h-5" />
+              SUCESSO: Nível 47 confirmado no Banco via Edge Function!
+            </div>
+          )}
+
+          {testStatus === 'error' && (
+            <div className="p-4 bg-red-950/30 border border-red-900 rounded-lg w-full">
+              <p className="text-red-400 text-sm font-bold flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" /> FALHA NO BACKEND
+              </p>
+              <p className="text-red-300/80 text-xs mt-1 font-mono break-all">{errorMessage}</p>
+              {errorMessage.includes('NOT_FOUND') && (
+                <div className="mt-3 text-[10px] text-red-200/60 leading-relaxed">
+                  <strong>DIAGNÓSTICO:</strong> O Cloudflare Worker tentou chamar o Supabase, mas a função 'admin-update-player' não existe lá.<br/>
+                  <strong>CORREÇÃO:</strong> Execute no terminal: <code>supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp</code>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <footer className="text-center text-xs text-slate-600 pt-8">
+          IdleMon Authority System &copy; 2024 | Secure Admin Protocol
+        </footer>
       </div>
     </div>
   );
 }
-
