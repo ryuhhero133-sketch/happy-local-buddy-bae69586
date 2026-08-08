@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V14 - REALTIME_FORCE_SYNC_FIX
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V15 - REALTIME_CLOUD_PERSISTENCE_FIX
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
