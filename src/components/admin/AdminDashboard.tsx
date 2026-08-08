@@ -496,11 +496,19 @@ function OnlinePlayersTab({
         supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle()
       ]);
       
+      const profileData = profilesRes.data as any;
+      const stateData = stateRes.data as any;
+      const rankedData = rankedRes.data as any;
+
       const trainerData: any = {
-        gold: 0, crystal: 0, ruby: 0, trainer_level: 1, total_kills: 0, trainer_xp: 0,
-        ...(profilesRes.data || {}),
-        ...(stateRes.data || {}),
-        ...(rankedRes.data || {}),
+        gold: stateData?.gold ?? profileData?.gold ?? 0,
+        crystal: stateData?.crystal ?? profileData?.crystal ?? 0,
+        ruby: stateData?.ruby ?? profileData?.ruby ?? 0,
+        trainer_level: rankedData?.trainer_level ?? stateData?.trainer_level ?? 1,
+        trainer_xp: stateData?.trainer_xp ?? 0,
+        total_kills: rankedData?.total_kills ?? stateData?.kill_count ?? 0,
+        vault: profileData?.vault ?? null,
+        pokeVault: profileData?.pokeVault ?? null,
       };
       
       setInventory({
