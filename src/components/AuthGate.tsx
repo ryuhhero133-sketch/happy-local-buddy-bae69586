@@ -144,7 +144,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [kickedMessage, setKickedMessage] = useState<string | null>(null);
-  const [maintenance, setMaintenance] = useState(false);
+  const [maintenance, setMaintenance] = useState(true); // Manutenção ativada por padrão para a season
 
   useEffect(() => {
     setMounted(true);
