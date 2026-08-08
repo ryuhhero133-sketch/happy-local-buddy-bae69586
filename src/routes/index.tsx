@@ -1,4 +1,4 @@
-// V35 - ABSOLUTE SERVER AUTHORITY - RLS BYPASS VERIFIED - ENV STANDARDIZED
+// V36 - RUNTIME_DIAGNOSTIC_ACTIVE
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
