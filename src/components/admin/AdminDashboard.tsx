@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V11 - SAVE_SYNC_PRIORITY_FIX
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V12 - FULL_DATA_SYNC_AND_IDENTITY_FIX
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -449,12 +449,15 @@ function OnlinePlayersTab({
 
       // Se profiles funcionou, ainda assim vamos enriquecer com trainer_state que é a fonte de verdade mais quente
       const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
-        const { data: ts } = await (supabase.from("trainer_state" as any) as any).select("trainer_level, gold, crystal, ruby, kill_count").eq("user_id", p.id).maybeSingle();
+        const { data: ts } = await (supabase.from("trainer_state") as any).select("trainer_level, gold, crystal, ruby, kill_count").eq("user_id", p.id).maybeSingle();
         const { data: rs } = await supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle();
+        const { data: gs } = await (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle();
+        
+        let cloudLevel = (gs?.data as any)?.idle?.trainerLevel;
         
         return {
           ...p,
-          trainer_level: (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1,
+          trainer_level: cloudLevel || (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1,
           gold: (ts as any)?.gold ?? p.gold ?? 0,
           crystal: (ts as any)?.crystal ?? p.crystal ?? 0,
           ruby: (ts as any)?.ruby ?? p.ruby ?? 0,
@@ -497,7 +500,7 @@ function OnlinePlayersTab({
     setEditXp(null);
     
     try {
-      const [invRes, ballsRes, ipRes, pokeRes, profilesRes, giftsRes, rankedRes, stateRes] = await Promise.all([
+      const [invRes, ballsRes, ipRes, pokeRes, profilesRes, giftsRes, rankedRes, stateRes, gameSaveRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
@@ -505,23 +508,26 @@ function OnlinePlayersTab({
         supabase.from("profiles").select("gold, crystal, ruby, vault, poke_vault, trainer_level").eq("id", id).maybeSingle(),
         supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", id).maybeSingle(),
-        supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle()
+        supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle(),
+        supabase.from("game_saves").select("data").eq("user_id", id).maybeSingle()
       ]);
       
       const profileData = profilesRes.data as any;
       const stateData = stateRes.data as any;
       const rankedData = rankedRes.data as any;
+      const cloudData = (gameSaveRes.data as any)?.data as any;
 
       const trainerData: any = {
         gold: stateData?.gold ?? profileData?.gold ?? 0,
         crystal: stateData?.crystal ?? profileData?.crystal ?? 0,
         ruby: stateData?.ruby ?? profileData?.ruby ?? 0,
         kill_count: stateData?.kill_count ?? rankedData?.total_kills ?? 0,
-        trainer_level: stateData?.trainer_level ?? rankedData?.trainer_level ?? profileData?.trainer_level ?? 1,
-        trainer_xp: stateData?.trainer_xp ?? 0,
+        trainer_level: cloudData?.idle?.trainerLevel ?? stateData?.trainer_level ?? rankedData?.trainer_level ?? profileData?.trainer_level ?? 1,
+        trainer_xp: cloudData?.idle?.trainerXp ?? stateData?.trainer_xp ?? 0,
         total_kills: rankedData?.total_kills ?? stateData?.kill_count ?? 0,
-        vault: profileData?.vault ?? null,
-        pokeVault: profileData?.poke_vault ?? profileData?.pokeVault ?? null,
+        vault: cloudData?.vault ?? profileData?.vault ?? null,
+        pokeVault: cloudData?.pokeVault ?? profileData?.poke_vault ?? profileData?.pokeVault ?? null,
+        party: cloudData?.party || [],
       };
       
       setInventory({
@@ -856,79 +862,7 @@ function OnlinePlayersTab({
             )}
           </Card>
 
-          <Card title="Pokémons do Jogador">
-            {!inventory?.pokemon ? (
-              <div className="text-xs text-slate-500 italic">Carregando...</div>
-            ) : (
-              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                {inventory.pokemon.map((p: any) => (
-                  <div key={p.id} className="bg-slate-900/50 p-2 rounded border border-slate-800 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-amber-100 uppercase">{p.species.replace(/_/g, " ")}</span>
-                        <span className="text-[7px] text-slate-500 font-mono truncate max-w-[100px]">{p.uid || p.id}</span>
-                      </div>
-                      <span className={`px-1 rounded text-[8px] font-bold ${
-                        p.rarity === 'mythic_shiny' ? 'bg-fuchsia-500/20 text-fuchsia-400' :
-                        p.rarity === 'legendary' ? 'bg-amber-500/20 text-amber-400' :
-                        'bg-slate-700/50 text-slate-400'
-                      }`}>
-                        {(p.rarity || 'common').toUpperCase()}
-                      </span>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[8px] text-slate-500 uppercase">Nível</span>
-                        <input
-                          type="number"
-                          defaultValue={p.level}
-                          onBlur={(e) => {
-                            const val = Number(e.target.value);
-                            if (val !== p.level) savePokemonLevel(p.id, val);
-                          }}
-                          className="w-full bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-[10px] text-amber-100 outline-none focus:border-fuchsia-500"
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[8px] text-slate-500 uppercase">Ações</span>
-                        <button 
-                          onClick={async () => {
-                            if (!confirm("Deletar este Pokémon permanentemente?")) return;
-                            try {
-                              const { error } = await supabase.from("pokemon_collection").delete().eq("id", p.id);
-                              if (error) throw error;
-                              toast.success("Pokémon removido!");
-                              inspectPlayer(inspectingUser!);
-                            } catch (e: any) { toast.error(e.message); }
-                          }}
-                          className="w-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[9px] py-1 rounded hover:bg-rose-500/20"
-                        >
-                          DELETAR
-                        </button>
-                      </div>
-                    </div>
-
-                    {p.traits && p.traits.length > 0 && (
-                      <div className="space-y-1">
-                        <span className="text-[8px] text-slate-500 uppercase">Traits</span>
-                        <div className="flex flex-wrap gap-1">
-                          {p.traits.map((t: string, i: number) => (
-                            <span key={i} className="text-[7px] bg-slate-800 text-slate-300 px-1 rounded border border-slate-700">
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {inventory.pokemon.length === 0 && (
-                  <div className="text-xs text-slate-500 italic text-center py-4">Nenhum Pokémon.</div>
-                )}
-              </div>
-            )}
-          </Card>
+          <CollectionTab inventory={inventory} savePokemonLevel={savePokemonLevel} />
 
           <div className="space-y-4">
             <Card title="Inventário & Moedas">
@@ -1091,6 +1025,74 @@ function OnlinePlayersTab({
 
 
 
+
+function CollectionTab({ inventory, savePokemonLevel }: { inventory: any; savePokemonLevel: (id: string, lv: number) => void }) {
+  if (!inventory) return <div className="p-10 text-center text-slate-500 italic">Carregando coleção...</div>;
+
+  return (
+    <Card title="Coleção & Time do jogador">
+      <div className="space-y-6">
+        {/* Team Section */}
+        <div>
+          <h3 className="text-[10px] uppercase tracking-widest text-fuchsia-400/80 mb-2">Equipe Atual (Nuvem)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {(inventory.trainer.party || []).map((p: any, i: number) => (
+              <PokemonAdminCard key={i} p={p} onSaveLevel={savePokemonLevel} isTeam />
+            ))}
+            {(!inventory.trainer.party || inventory.trainer.party.length === 0) && (
+              <div className="col-span-full py-4 text-center text-slate-500 border border-dashed border-slate-800 rounded-lg">
+                Nenhum pokémon na equipe ativa.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Collection Section */}
+        <div>
+          <h3 className="text-[10px] uppercase tracking-widest text-amber-400/80 mb-2">Coleção Geral (Database)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {inventory.pokemon.map((p: any) => (
+              <PokemonAdminCard key={p.id} p={p} onSaveLevel={savePokemonLevel} />
+            ))}
+            {inventory.pokemon.length === 0 && (
+              <div className="col-span-full py-4 text-center text-slate-500">Coleção vazia.</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function PokemonAdminCard({ p, onSaveLevel, isTeam }: { p: any; onSaveLevel: (id: string, lv: number) => void; isTeam?: boolean }) {
+  const [lv, setLv] = useState(p.level);
+  return (
+    <div className={`rounded-lg border p-3 ${isTeam ? 'border-fuchsia-500/30 bg-fuchsia-500/5' : 'border-slate-800 bg-slate-950/40'}`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-bold text-amber-100">{p.species}</span>
+        <span className={`text-[9px] px-1 rounded ${p.rarity === 'mythic' ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'bg-slate-800 text-slate-400'}`}>
+          {p.rarity?.toUpperCase() || 'NORMAL'}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] text-slate-500">LV:</span>
+        <input 
+          type="number" 
+          value={lv} 
+          onChange={(e) => setLv(Number(e.target.value))}
+          className="w-16 rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-xs text-amber-100"
+        />
+        <button 
+          onClick={() => onSaveLevel(p.id || `${p.species}-${p.rarity}`, lv)}
+          className="rounded bg-fuchsia-600 px-2 py-0.5 text-[10px] text-white hover:bg-fuchsia-500"
+        >
+          OK
+        </button>
+      </div>
+      {isTeam && <div className="mt-1 text-[8px] text-fuchsia-400/60 font-mono italic">Sync Nuvem</div>}
+    </div>
+  );
+}
 
 function PokemonTab() {
   // Read species dynamically from save / try to import registry
