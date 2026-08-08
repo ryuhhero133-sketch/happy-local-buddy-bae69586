@@ -579,7 +579,7 @@ function OnlinePlayersTab({
       let snapshot: any = gameSave?.data;
       if (!snapshot || typeof snapshot !== 'object') {
         snapshot = {
-          idle: { level: editLevel, xp: editXp, version: 10000 },
+          idle: { level: editLevel, xp: editXp, version: 25000 },
           team: [],
           restingBench: [],
           inventory: {},
@@ -593,11 +593,10 @@ function OnlinePlayersTab({
         snapshot.idle.xp = editXp;
         snapshot.idle.trainerLevel = editLevel;
         snapshot.idle.trainerXp = editXp;
-        // Pulo agressivo na versão para garantir que o cliente aceite o novo dado sobre o cache local
-        snapshot.idle.version = (snapshot.idle.version || 0) + 20000;
+        // Pulo agressivo na versão (V17+ logic) para garantir que a nuvem vença cache local
+        snapshot.idle.version = (snapshot.idle.version || 0) + 30000;
         snapshot.savedAt = Date.now();
-        snapshot.lastModifiedBy = "admin_v15";
-
+        snapshot.lastModifiedBy = "admin_v17_emergency";
       }
 
       const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
@@ -629,20 +628,22 @@ function OnlinePlayersTab({
         }).eq("id", inspectingUser)
       ]);
 
-      // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA)
-      // Removemos rubym.idle.v1 e rubym.save.v2 antigos se existirem,
-      // para que o próximo login Puxe obrigatoriamente da nuvem (V17+)
+      // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA E AGRESSIVA)
+      // Removemos chaves para garantir que a nuvem seja a única fonte no próximo carregamento
       if (inspectingUser === identity?.id) {
         localStorage.removeItem("rubym.idle.v1");
         localStorage.removeItem("rubym.save.v2");
         localStorage.removeItem("rubym.cloud.preloaded.v1");
+        localStorage.removeItem("rubym.local.backup.v1");
+        localStorage.removeItem("rubym.cloud.pending.v1");
       }
 
       // 3. Atualização local para o Admin (se estiver editando a si mesmo)
       if (inspectingUser === identity?.id) {
         try {
           const { obfuscate } = await import("@/lib/utils");
-          // Garantimos que o localStorage local seja atualizado IMEDIATAMENTE e forçado
+          // Injetamos o novo estado para feedback imediato na UI do jogo
+          localStorage.setItem("rubym.idle.v1", obfuscate(snapshot.idle));
           localStorage.setItem("rubym.save.v2", obfuscate(snapshot));
           localStorage.setItem("rubym.cloud.preloaded.v1", inspectingUser);
           
@@ -858,10 +859,11 @@ function OnlinePlayersTab({
                   />
                 </div>
                 <button
+                  disabled={loading}
                   onClick={saveTrainerStats}
-                  className="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold py-2 rounded shadow-lg shadow-fuchsia-900/20 transition"
+                  className="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold py-2 rounded shadow-lg shadow-fuchsia-900/20 transition disabled:opacity-50"
                 >
-                  SALVAR ALTERAÇÕES
+                  {loading ? "PROCESSANDO..." : "SALVAR ALTERAÇÕES"}
                 </button>
               </div>
             )}
