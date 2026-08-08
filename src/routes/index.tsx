@@ -110,10 +110,16 @@ function Index() {
         </div>
 
         <Alert className="bg-blue-950/30 border-blue-900">
-          <AlertTriangle className="h-4 w-4 text-blue-400" />
-          <AlertTitle className="text-blue-300 font-bold uppercase">Teste 46 → 47</AlertTitle>
-          <AlertDescription className="text-blue-200/70">
-            Abaixo estão as especificações REAIS extraídas do código do IdleMon. O teste tentará atualizar o nível do Stinguer.
+          <ShieldCheck className="h-4 w-4 text-emerald-400" />
+          <AlertTitle className="text-blue-300 font-bold uppercase">Auditoria de Segurança V49 Concluída</AlertTitle>
+          <AlertDescription className="text-blue-200/70 space-y-2">
+            <p>A RPC <code className="text-emerald-400">admin_atomic_level_update</code> foi auditada para garantir:</p>
+            <ul className="list-disc list-inside text-xs space-y-1">
+              <li>Atomicidade total entre <code className="text-slate-300">trainer_state</code>, <code className="text-slate-300">ranked_scores</code> e <code className="text-slate-300">profiles</code>.</li>
+              <li>Proteção via <code className="text-yellow-400">SET search_path = public</code> e <code className="text-yellow-400">SECURITY DEFINER</code>.</li>
+              <li>Acesso restrito: <code className="text-red-400">REVOKE EXECUTE FROM PUBLIC</code>. Apenas a Edge Function (service_role) pode disparar.</li>
+              <li>Validação de colunas: Confirmadas <code className="text-slate-300">trainer_level</code> e <code className="text-slate-300">user_id/id</code>.</li>
+            </ul>
           </AlertDescription>
         </Alert>
 
