@@ -465,7 +465,7 @@ function OnlinePlayersTab({
     setEditXp(null);
     
     try {
-      const [invRes, ballsRes, ipRes, pokeRes, trainerRes, giftsRes, rankedRes, stateRes] = await Promise.all([
+      const [invRes, ballsRes, ipRes, pokeRes, profilesRes, giftsRes, rankedRes, stateRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
@@ -527,7 +527,7 @@ function OnlinePlayersTab({
       }).eq("user_id", inspectingUser);
 
       // Também atualizar ranked_scores explicitamente se a RPC falhar ou for lenta
-      await supabase.from("ranked_scores").update({
+      await (supabase.from("ranked_scores") as any).update({
         trainer_level: editLevel,
         updated_at: new Date().toISOString()
       }).eq("user_id", inspectingUser);
