@@ -416,7 +416,27 @@ function OnlinePlayersTab({
         .select("id, username, last_login, account_status, lock_until")
         .order("last_login", { ascending: false });
       
-      if (profilesError) throw profilesError;
+      // Se profiles falhar por colunas faltantes, tenta uma query básica sem as colunas de segurança
+      if (profilesError) {
+        console.warn("Retrying profile fetch without status columns...", profilesError);
+        const { data: basicProfiles, error: basicError } = await supabase
+          .from("profiles")
+          .select("id, username, last_login")
+          .order("last_login", { ascending: false });
+        
+        if (basicError) throw basicError;
+        
+        // Mapeia para o formato esperado com defaults
+        setPlayers((basicProfiles || []).map((p: any) => ({
+          id: p.id,
+          username: p.username,
+          last_login: p.last_login,
+          account_status: 'active',
+          lock_until: null,
+          ranked_leaderboard: []
+        })));
+        return;
+      }
 
       const { data: ranked, error: rankedError } = await supabase
         .from("ranked_scores")
@@ -476,11 +496,19 @@ function OnlinePlayersTab({
         supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle()
       ]);
       
+      const profileData = profilesRes.data as any;
+      const stateData = stateRes.data as any;
+      const rankedData = rankedRes.data as any;
+
       const trainerData: any = {
-        gold: 0, crystal: 0, ruby: 0, trainer_level: 1, total_kills: 0, trainer_xp: 0,
-        ...(profilesRes.data || {}),
-        ...(stateRes.data || {}),
-        ...(rankedRes.data || {}),
+        gold: stateData?.gold ?? profileData?.gold ?? 0,
+        crystal: stateData?.crystal ?? profileData?.crystal ?? 0,
+        ruby: stateData?.ruby ?? profileData?.ruby ?? 0,
+        trainer_level: rankedData?.trainer_level ?? stateData?.trainer_level ?? 1,
+        trainer_xp: stateData?.trainer_xp ?? 0,
+        total_kills: rankedData?.total_kills ?? stateData?.kill_count ?? 0,
+        vault: profileData?.vault ?? null,
+        pokeVault: profileData?.pokeVault ?? null,
       };
       
       setInventory({
