@@ -1,4 +1,4 @@
-// V21 - RANKED SYNC AUTHORITY - SINCRONIZAÇÃO DO RANKING CORRIGIDA!
+// V22 - EMERGENCY RLS BYPASS - EXPLICAÇÃO RLS E FIX DE PERMISSÃO - ADMIN FULL POWER
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';

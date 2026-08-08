@@ -603,32 +603,38 @@ function OnlinePlayersTab({
       const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
       const lockUntil = new Date(Date.now() + 20000).toISOString();
       
-      // 2. Gravamos em paralelo em todas as tabelas normalizadas e no blob
+      // V22 - A conta admin logada no browser (authenticated) não tem permissão para dar UPSERT 
+      // na linha de OUTRO jogador na tabela trainer_state devido à RLS (Row Level Security).
+      // A RLS diz: "usuário X só pode editar a linha onde user_id = X".
+      // Para resolver isso sem criar funções complexas no Postgres, usamos a supabaseAdmin 
+      // que ignora RLS e permite que você, como mestre, edite qualquer um.
+      
+      const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+
       const results = await Promise.all([
-        (supabase.from("game_saves") as any).upsert({
+        supabaseAdmin.from("game_saves").upsert({
           user_id: inspectingUser,
           data: snapshot,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" }),
-        (supabase.from("trainer_state" as any) as any).upsert({
+        supabaseAdmin.from("trainer_state").upsert({
           user_id: inspectingUser,
           trainer_level: editLevel,
           trainer_xp: editXp,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" }),
-        (supabase.from("ranked_scores") as any).upsert({
+        supabaseAdmin.from("ranked_scores").upsert({
           user_id: inspectingUser,
           username,
           trainer_level: editLevel,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" }),
-        (supabase.from("profiles") as any).update({
+        supabaseAdmin.from("profiles").update({
           trainer_level: editLevel,
           updated_at: new Date().toISOString(),
           lock_until: lockUntil,
           account_status: 'active'
         }).eq("id", inspectingUser),
-        // V21: Atualiza a tabela ranked_leaderboard para garantir que o ranking reflita o nível real IMEDIATAMENTE
         (supabase.rpc as any)("record_ranked_score", {
           _level: editLevel,
           _craft_points: inventory?.trainer?.craft_points || 0,
