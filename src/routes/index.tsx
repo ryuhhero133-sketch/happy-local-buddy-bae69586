@@ -1,5 +1,7 @@
-// V49 - RPC_SECURITY_AUDIT_COMPLETED
-// Auditoria Final: admin_atomic_level_update atômica, Security Definer com search_path, revogação de permissões públicas.
+// V50 - EDGE_FUNCTION_SETTINGS_VERIFIED
+// Analisando imagem: Configurações da Edge Function admin-update-player verificadas.
+// JWT verify habilitado, endpoint configurado corretamente para o projeto kgrspvqhpgiuxvkcxgcp.
+
 
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
