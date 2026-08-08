@@ -1,4 +1,4 @@
-// ENVIE O SQL
+// RESOLVIDO: SQL e Instruções de Deploy na interface de diagnóstico.
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
