@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V8 - FORCE_LOGOUT_AND_VERSION_GUARD
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V9 - DATA_SOURCE_CONSOLIDATION_FIX
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -436,7 +436,7 @@ function OnlinePlayersTab({
             last_login: p.last_login,
             account_status: 'active',
             lock_until: null,
-            trainer_level: ts?.trainer_level || rs?.trainer_level || 1,
+            trainer_level: (ts as any)?.trainer_level || (rs as any)?.trainer_level || 1,
             ruby: 0,
             gold: 0,
             crystal: 0,
@@ -454,11 +454,11 @@ function OnlinePlayersTab({
         
         return {
           ...p,
-          trainer_level: ts?.trainer_level || rs?.trainer_level || p.trainer_level || 1,
-          gold: ts?.gold ?? p.gold ?? 0,
-          crystal: ts?.crystal ?? p.crystal ?? 0,
-          ruby: ts?.ruby ?? p.ruby ?? 0,
-          kill_count: ts?.kill_count ?? rs?.total_kills ?? p.kill_count ?? 0
+          trainer_level: (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1,
+          gold: (ts as any)?.gold ?? p.gold ?? 0,
+          crystal: (ts as any)?.crystal ?? p.crystal ?? 0,
+          ruby: (ts as any)?.ruby ?? p.ruby ?? 0,
+          kill_count: (ts as any)?.kill_count ?? (rs as any)?.total_kills ?? p.kill_count ?? 0
         };
       }));
 
