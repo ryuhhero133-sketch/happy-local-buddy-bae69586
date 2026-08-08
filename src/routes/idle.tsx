@@ -11241,8 +11241,9 @@ function IdlePage() {
                 background: "transparent", border: "none", color: "#f3e5c5", cursor: "pointer", fontSize: 16,
               }}>✕</button>
             </div>
-            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8, whiteSpace: "pre-line" }}>
               Digite um código secreto para receber recompensas.
+              {"\n"}DICA: use <b>RESETPERSON</b> se o Ancião Glacial falhar.
             </div>
             <div style={{ display: "flex", gap: 6 }}>
               <input
