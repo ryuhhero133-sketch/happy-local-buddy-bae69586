@@ -1,11 +1,11 @@
-import { createServerFn, getEvent } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
+import { getEvent } from "vinxi/http";
 
 export const getAdminDiagnostics = createServerFn({ method: "GET" })
   .handler(async () => {
-    // No Cloudflare Worker, as variáveis de ambiente (bindings) estão no contexto do evento
+    // No Cloudflare Worker, as variáveis de ambiente (bindings) estão no contexto do evento (Vinxi/Nitro)
     const event = getEvent();
     
-    // Tentamos extrair o env do contexto do Cloudflare
     // O TanStack Start/Nitro armazena o contexto do worker em event.context.cloudflare.env
     const cfEnv = (event?.context as any)?.cloudflare?.env || (event?.context as any)?.env || {};
     
