@@ -1600,20 +1600,8 @@ function IdlePage() {
   const [now, setNow] = useState(() => Date.now());
 
   const handleSeasonResetRitual = async () => {
-    try {
-      // O ritual agora é atômico e executado via RPC no servidor
-      const res = await executeSeasonReset();
-      
-      if (res?.success) {
-        toast.success(res.message || "Nova Jornada iniciada! Fragmentos Vermelhos recebidos.");
-        // Pequeno delay para o jogador ver o toast antes de recarregar
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        toast.error(res?.message || "Não foi possível realizar o ritual.");
-      }
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao realizar reset de temporada.");
-    }
+    // O diálogo do Ancião já é a confirmação — executa o ritual direto.
+    await handleSeasonReset(true);
   };
 
   const handleAnciaoInteraction = () => {
