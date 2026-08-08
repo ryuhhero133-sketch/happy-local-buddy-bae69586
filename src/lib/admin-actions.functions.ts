@@ -14,8 +14,9 @@ const adminUpdateSchema = z.object({
 export const updatePlayerStatsAdmin = createServerFn({ method: "POST" })
   .inputValidator((data) => adminUpdateSchema.parse(data))
   .handler(async ({ data }) => {
-    // V24: A função de servidor DEVE ter acesso às variáveis de ambiente
+    // V27: A função de servidor DEVE ter acesso às variáveis de ambiente
     // O erro de "configuração incompleta" acontece se process.env.SUPABASE_SERVICE_ROLE_KEY for undefined.
+    // Estamos usando o proxy supabaseAdmin que busca as chaves no momento da primeira chamada.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const lockUntil = new Date(Date.now() + 20000).toISOString();
 
