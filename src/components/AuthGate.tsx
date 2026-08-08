@@ -85,7 +85,18 @@ async function preloadCloudSave(userId: string) {
     log("preloadCloudSave start", userId);
     const cloud = await fetchCloudSave(userId);
     if (isCloudBlob(cloud)) {
-      if (cloud.idle) localStorage.setItem(IDLE_KEY, obfuscate(cloud.idle));
+      // Prioridade absoluta: Se vier da nuvem, limpa o cache local primeiro
+      localStorage.removeItem(IDLE_KEY);
+      localStorage.removeItem(SAVE_KEY);
+      
+      if (cloud.idle) {
+        // V17: Se o save da nuvem veio Lv1 mas com versão alta, algo está muito errado no banco.
+        // O motor vai aceitar, mas avisamos no log.
+        if ((cloud.idle as any).version >= 10000 && (cloud.idle as any).level === 1) {
+          warn("Cloud save has high version but Level 1. Possible data corruption on server.");
+        }
+        localStorage.setItem(IDLE_KEY, obfuscate(cloud.idle));
+      }
       const party = Array.isArray(cloud.party)
         ? cloud.party
         : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];

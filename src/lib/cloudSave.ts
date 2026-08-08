@@ -145,7 +145,11 @@ function canWrite(data: unknown): boolean {
     return false;
   }
   const at = snapshotSavedAt(data);
-  if (at && lastKnownSavedAt && at < lastKnownSavedAt) {
+  const version = (data as any)?.idle?.version || 0;
+  
+  // V17: Se o snapshot tem uma versão MUITO alta (+10000), ele ignora a trava de savedAt.
+  // Isso permite que edições administrativas (que pulam +20000) sempre sobrescrevam.
+  if (version < 10000 && at && lastKnownSavedAt && at < lastKnownSavedAt) {
     lastCloudSaveError = "snapshot antigo ignorado (proteção de progresso)";
     console.warn("[cloudSave] stale snapshot rejected", { at, lastKnownSavedAt });
     return false;
