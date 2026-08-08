@@ -594,9 +594,10 @@ function OnlinePlayersTab({
         snapshot.idle.trainerLevel = editLevel;
         snapshot.idle.trainerXp = editXp;
         // Pulo agressivo na versão (V17+ logic) para garantir que a nuvem vença cache local
-        snapshot.idle.version = (snapshot.idle.version || 0) + 30000;
-        snapshot.savedAt = Date.now();
-        snapshot.lastModifiedBy = "admin_v17_emergency";
+        // Aumentamos o pulo para +50.000 para ser inequívoco
+        snapshot.idle.version = (snapshot.idle.version || 0) + 50000;
+        snapshot.savedAt = Date.now() + 60000; // Futuro próximo para garantir precedência
+        snapshot.lastModifiedBy = "admin_v17_emergency_v2";
       }
 
       const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
@@ -631,11 +632,13 @@ function OnlinePlayersTab({
       // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA E AGRESSIVA)
       // Removemos chaves para garantir que a nuvem seja a única fonte no próximo carregamento
       if (inspectingUser === identity?.id) {
+        localStorage.setItem("rubym_admin_force_sync", "true");
         localStorage.removeItem("rubym.idle.v1");
         localStorage.removeItem("rubym.save.v2");
         localStorage.removeItem("rubym.cloud.preloaded.v1");
         localStorage.removeItem("rubym.local.backup.v1");
         localStorage.removeItem("rubym.cloud.pending.v1");
+        setTimeout(() => localStorage.removeItem("rubym_admin_force_sync"), 30000);
       }
 
       // 3. Atualização local para o Admin (se estiver editando a si mesmo)
