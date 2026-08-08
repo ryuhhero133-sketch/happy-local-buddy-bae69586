@@ -287,7 +287,7 @@ serve(async (req) => {
         </div>
 
         <footer className="text-center text-xs text-slate-600 pt-8">
-          IdleMon Authority System &copy; 2024 | V46
+          IdleMon Authority System &copy; 2026 | V49
         </footer>
       </div>
     </div>
