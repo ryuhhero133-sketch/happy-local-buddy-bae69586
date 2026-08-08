@@ -1878,7 +1878,7 @@ function IdlePage() {
         // O snapshot local só vence quando é comprovadamente MAIS NOVO
         // (evita rollback quando a última gravação não chegou ao banco).
         // V17 EMERGENCY: Ignoramos backup local se a nuvem trouxer versão administrativa (>= 10000)
-        const cloudIsAdmin = (result.data as any)?.idle?.version >= 10000;
+        const cloudIsAdmin = result.status === "ok" && (result.data as any)?.idle?.version >= 10000;
         if (!cloudIsAdmin && local && localAt > cloudAt) {
           applyBlob(local.snapshot);
           cloudBlobHydratedRef.current = true;
