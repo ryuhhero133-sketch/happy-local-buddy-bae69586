@@ -15851,20 +15851,6 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     }
   };
 
-  const handleSeasonReset = async () => {
-    try {
-      const { executeSeasonReset } = await import("@/lib/season-reset.functions");
-      const res = await executeSeasonReset();
-      if (res.success) {
-        toast.success(res.message);
-        // Recarregar a página para aplicar o reset completo no estado local
-        window.location.reload();
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao realizar reset de temporada.");
-    }
-  };
-
   const Chip = ({ label, value, color, sub }: { label: string; value: string; color: string; sub?: string }) => (
     <div style={{
       background: `linear-gradient(180deg, ${color}22, ${color}08)`,
