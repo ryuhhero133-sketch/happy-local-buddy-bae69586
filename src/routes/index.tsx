@@ -154,12 +154,10 @@ function Index() {
                 <AlertTriangle className="w-4 h-4" /> FALHA NO BACKEND
               </p>
               <p className="text-red-300/80 text-xs mt-1 font-mono break-all">{errorMessage}</p>
-              {errorMessage.includes('NOT_FOUND') && (
-                <div className="mt-3 text-[10px] text-red-200/60 leading-relaxed">
-                  <strong>DIAGNÓSTICO:</strong> O Cloudflare Worker tentou chamar o Supabase, mas a função 'admin-update-player' não existe lá.<br/>
-                  <strong>CORREÇÃO:</strong> Execute no terminal: <code>supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp</code>
-                </div>
-              )}
+              <div className="mt-3 text-[10px] text-red-200/60 leading-relaxed">
+                <strong>DIAGNÓSTICO:</strong> A Edge Function 'admin-update-player' não foi encontrada no seu projeto Supabase. Certifique-se de realizar o deploy da função no painel do Supabase.  ME MANDE O SQL RESOLVENDFO<br/>
+                <strong>CORREÇÃO:</strong> Execute no terminal: <code>supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp</code>
+              </div>
             </div>
           )}
         </div>
