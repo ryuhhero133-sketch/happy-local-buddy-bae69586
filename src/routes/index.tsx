@@ -1,4 +1,4 @@
-// V39 - ARCHITECTURAL_ANALYSIS_MODE
+// V40 - PRODUCTION_SECRET_AUDIT_MODE
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
@@ -40,39 +40,46 @@ function Index() {
       lineHeight: '1.6'
     }}>
       <div style={{ textAlign: 'left', width: '100%' }}>
-        PARE.
+        AGORA TEMOS A PROVA DO DIAGNÓSTICO REAL:
 
-        Já testamos V35, V36, V37 e V38 e o MESMO erro continua no deploy real:
+        RUNTIME: Cloudflare Worker (Edge)
+        ADMIN_SB_KEY: NOT_CONFIGURED
+        SUPABASE_URL: CONFIGURED
+        HAS_PROCESS_ENV: YES
+        HAS_GLOBAL_KEY: NO
 
-        "ADMIN_SB_KEY/SERVICE_ROLE ausente no runtime do Worker."
+        NÃO ALTERE MAIS O CÓDIGO.
+
+        O PROBLEMA ESTÁ NA INJEÇÃO/BINDING DA ADMIN_SB_KEY NO WORKER PUBLICADO.
+
+        Quero somente verificar a configuração de deploy:
+
+        1. A Secret ADMIN_SB_KEY realmente existe no ambiente de PRODUÇÃO?
+        2. Ela está vinculada ao Cloudflare Worker publicado?
+        3. O nome do binding é EXATAMENTE:
+        ADMIN_SB_KEY
+        4. Não está configurada apenas no Preview/Development?
+        5. O último deploy foi feito depois da criação/alteração da Secret?
+        6. O Worker publicado está usando o mesmo ambiente onde a Secret foi configurada?
+
+        NÃO MOSTRE O VALOR DA SECRET.
+
+        NÃO ALTERE O CÓDIGO.
 
         NÃO CRIE V39.
-        NÃO ADICIONE OUTRO FALLBACK.
-        NÃO ALTERE MAIS globalThis, process.env OU createSupabaseAdminClient.
 
-        Quero que você faça apenas uma análise arquitetural.
+        NÃO MUDE createSupabaseAdminClient().
 
-        O objetivo é identificar se o problema está na integração:
+        NÃO USE globalThis/process.env COMO NOVO FALLBACK.
 
-        Cloudflare Worker → TanStack Start → Server Function → Supabase Admin.
+        Primeiro corrija/verifique SOMENTE a configuração da Secret no ambiente de produção e faça um novo deploy.
 
-        Se essa cadeia estiver impedindo o acesso confiável à Service Role no runtime Edge, NÃO tente mais contornar.
+        Depois o diagnóstico precisa mostrar:
 
-        Informe se é tecnicamente mais seguro e confiável mover as operações administrativas para uma SUPABASE EDGE FUNCTION dedicada, mantendo:
+        ADMIN_SB_KEY: CONFIGURED
+        SUPABASE_URL: CONFIGURED
 
-        PAINEL → SUPABASE EDGE FUNCTION → SUPABASE
-
-        com a Service Role exclusivamente dentro da Edge Function.
-
-        NÃO IMPLEMENTE AINDA.
-
-        Apenas responda:
-
-        1. A arquitetura atual é confiável para operações administrativas privilegiadas? SIM/NÃO
-        2. O Cloudflare Worker está impedindo a passagem confiável das Secrets? SIM/NÃO
-        3. Uma Supabase Edge Function resolveria a dependência do runtime Cloudflare/TanStack? SIM/NÃO
-        4. É possível manter a Service Role exclusivamente server-side? SIM/NÃO
-        5. Qual arquitetura você recomenda para o Season Reset Cirúrgico?
+        Somente depois disso teste o botão SALVAR.
       </div>
     </div>
   );
