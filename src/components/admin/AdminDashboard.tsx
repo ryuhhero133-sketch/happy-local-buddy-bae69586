@@ -500,7 +500,7 @@ function OnlinePlayersTab({
     setEditXp(null);
     
     try {
-      const [invRes, ballsRes, ipRes, pokeRes, profilesRes, giftsRes, rankedRes, stateRes] = await Promise.all([
+      const [invRes, ballsRes, ipRes, pokeRes, profilesRes, giftsRes, rankedRes, stateRes, gameSaveRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
@@ -508,23 +508,26 @@ function OnlinePlayersTab({
         supabase.from("profiles").select("gold, crystal, ruby, vault, poke_vault, trainer_level").eq("id", id).maybeSingle(),
         supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", id).maybeSingle(),
-        supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle()
+        supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle(),
+        supabase.from("game_saves").select("data").eq("user_id", id).maybeSingle()
       ]);
       
       const profileData = profilesRes.data as any;
       const stateData = stateRes.data as any;
       const rankedData = rankedRes.data as any;
+      const cloudData = (gameSaveRes.data as any)?.data as any;
 
       const trainerData: any = {
         gold: stateData?.gold ?? profileData?.gold ?? 0,
         crystal: stateData?.crystal ?? profileData?.crystal ?? 0,
         ruby: stateData?.ruby ?? profileData?.ruby ?? 0,
         kill_count: stateData?.kill_count ?? rankedData?.total_kills ?? 0,
-        trainer_level: stateData?.trainer_level ?? rankedData?.trainer_level ?? profileData?.trainer_level ?? 1,
-        trainer_xp: stateData?.trainer_xp ?? 0,
+        trainer_level: cloudData?.idle?.trainerLevel ?? stateData?.trainer_level ?? rankedData?.trainer_level ?? profileData?.trainer_level ?? 1,
+        trainer_xp: cloudData?.idle?.trainerXp ?? stateData?.trainer_xp ?? 0,
         total_kills: rankedData?.total_kills ?? stateData?.kill_count ?? 0,
-        vault: profileData?.vault ?? null,
-        pokeVault: profileData?.poke_vault ?? profileData?.pokeVault ?? null,
+        vault: cloudData?.vault ?? profileData?.vault ?? null,
+        pokeVault: cloudData?.pokeVault ?? profileData?.poke_vault ?? profileData?.pokeVault ?? null,
+        party: cloudData?.party || [],
       };
       
       setInventory({
