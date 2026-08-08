@@ -15855,6 +15855,15 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     }
   };
 
+  const handleAnciaoInteraction = () => {
+    // Somente permite interagir se estiver no Santuário Glacial
+    if (idle.currentMap !== "santuario_glacial") {
+      pushChat("Vá até o Santuário Glacial para falar com o Ancião.", "info");
+      return;
+    }
+    setAnciaoOpen(true);
+  };
+
   const Chip = ({ label, value, color, sub }: { label: string; value: string; color: string; sub?: string }) => (
     <div style={{
       background: `linear-gradient(180deg, ${color}22, ${color}08)`,
