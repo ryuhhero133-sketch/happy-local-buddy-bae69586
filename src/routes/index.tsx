@@ -12,7 +12,7 @@ import { updatePlayerStatsAdminBridge } from '@/lib/admin-bridge.functions';
 export const Route = createFileRoute('/')({
   component: Index,
   head: () => ({
-    title: 'IdleMon Admin | V46 Final Authority',
+    title: 'IdleMon Admin | V49 RPC Security Audit',
     meta: [
       { name: 'description', content: 'Painel de Controle e Diagnóstico de Autoridade Server-Side' },
       { property: 'og:title', content: 'IdleMon Admin | V46 Final Authority' },
