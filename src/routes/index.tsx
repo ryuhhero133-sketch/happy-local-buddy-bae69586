@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, AlertTriangle, ExternalLink, Terminal, ShieldCheck, Database, Server, User } from 'lucide-react';
 import { useState } from 'react';
 import { updatePlayerStatsAdminBridge } from '@/lib/admin-bridge.functions';
-import { useAuth } from '@/hooks/useAuth';
 
 export const Route = createFileRoute('/')({
   component: Index,
@@ -21,7 +20,6 @@ export const Route = createFileRoute('/')({
 });
 
 function Index() {
-  const { user } = useAuth();
   const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -31,17 +29,24 @@ function Index() {
     
     try {
       // TESTE REAL: Nível 46 -> 47 para o usuário "Stinguer" (5bc35452-d64b-4895-83b1-c804dc3e30bb)
+      // Ajustado para bater com o schema z.object de admin-bridge.functions.ts
       const result = await updatePlayerStatsAdminBridge({
-        userId: '5bc35452-d64b-4895-83b1-c804dc3e30bb',
-        level: 47,
-        xp: 1000 // XP arbitrário para o teste
+        data: {
+          targetUserId: '5bc35452-d64b-4895-83b1-c804dc3e30bb',
+          level: 47,
+          xp: 1000,
+          username: 'Stinguer',
+          craftPoints: 0,
+          guildName: null,
+          snapshot: {}
+        }
       });
 
       if (result.success) {
         setTestStatus('success');
       } else {
         setTestStatus('error');
-        setErrorMessage(result.error || 'Erro desconhecido na bridge');
+        setErrorMessage('Erro desconhecido na bridge');
       }
     } catch (err: any) {
       setTestStatus('error');
