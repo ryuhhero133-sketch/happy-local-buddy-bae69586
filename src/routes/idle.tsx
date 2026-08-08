@@ -8940,6 +8940,47 @@ function IdlePage() {
 
 
 
+            {/* ❄️ NPC Ancião Glacial — visível apenas no Santuário Glacial */}
+            {idle.currentMap === "santuario_glacial" && (() => {
+              const npcX = WORLD_W / 2, npcY = WORLD_H / 2 - 40;
+              return (
+                <div
+                  onClick={() => { playClick(); setAnciaoOpen(true); }}
+                  title="Ancião Glacial — Ritual de Reset de Temporada"
+                  style={{
+                    position: "absolute",
+                    left: npcX - 60, top: npcY - 90,
+                    width: 120, height: 160,
+                    cursor: "pointer",
+                    zIndex: Math.round(npcY),
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    filter: "drop-shadow(0 6px 12px rgba(125,211,252,0.6))",
+                  }}
+                >
+                  <div style={{
+                    position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)",
+                    background: "linear-gradient(180deg,#1e3a8a,#0f172a)",
+                    border: "1px solid #7dd3fc", color: "#7dd3fc",
+                    borderRadius: 999, padding: "3px 12px",
+                    fontSize: 11, fontWeight: 900, whiteSpace: "nowrap",
+                    boxShadow: "0 0 12px rgba(125,211,252,0.5)",
+                    animation: "pulse 1.6s ease-in-out infinite",
+                  }}>❄️ ANCIÃO GLACIAL</div>
+                  <img
+                    src={npcAnciaoGlacialUrl}
+                    alt="Ancião Glacial"
+                    width={120} height={160}
+                    style={{ width: 120, height: 160, imageRendering: "pixelated", objectFit: "contain" }}
+                  />
+                  <div style={{
+                    position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
+                    width: 100, height: 14, borderRadius: "50%",
+                    background: "radial-gradient(ellipse, rgba(125,211,252,0.6), transparent 70%)",
+                  }} />
+                </div>
+              );
+            })()}
+
             {/* Inimigos espalhados pelo mapa */}
             {enemies.map((e) => {
               const showSp: Species = (e.disguise && !e.revealed) ? e.disguise : e.sp;
