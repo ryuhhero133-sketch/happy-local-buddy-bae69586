@@ -56,7 +56,7 @@ function Index() {
       <div className="max-w-4xl w-full space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tighter text-blue-400">IDLEMON BACKEND AUTHORITY</h1>
-          <p className="text-slate-400">Versão V48 - Atomic Edge Authority</p>
+          <p className="text-slate-400">Versão V49 - RPC Security Audit</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
