@@ -3,6 +3,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { loadIdentity } from "@/components/AuthGate";
+import { useServerFn } from "@tanstack/react-start";
+import { updatePlayerStatsAdmin } from "@/lib/admin-actions.functions";
+import { getAdminDiagnostics } from "@/lib/diagnostics.functions";
 import {
   getConfig,
   saveConfig,
