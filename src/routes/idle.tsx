@@ -13773,6 +13773,11 @@ function TabOverlay({
             borderRadius: 16, padding: 14,
             fontFamily: '"Pixelify Sans", ui-monospace, monospace',
             position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            minHeight: 0
+
           }}>
 
             <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
