@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V12 - FULL_DATA_SYNC_AND_IDENTITY_FIX
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V13 - REALTIME_CLOUD_SYNC_HOTFIX
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -449,15 +449,19 @@ function OnlinePlayersTab({
 
       // Se profiles funcionou, ainda assim vamos enriquecer com trainer_state que é a fonte de verdade mais quente
       const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
-        const { data: ts } = await (supabase.from("trainer_state") as any).select("trainer_level, gold, crystal, ruby, kill_count").eq("user_id", p.id).maybeSingle();
+        const { data: ts } = await (supabase.from("trainer_state") as any).select("trainer_level, gold, crystal, ruby, kill_count, trainer_xp").eq("user_id", p.id).maybeSingle();
         const { data: rs } = await supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle();
         const { data: gs } = await (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle();
         
-        let cloudLevel = (gs?.data as any)?.idle?.trainerLevel;
+        // No Idle Mon o estado do jogador é salvo dentro do objeto 'idle' no JSON
+        const idleState = (gs?.data as any)?.idle;
+        const cloudLevel = idleState?.level || idleState?.trainerLevel;
+        const cloudXp = idleState?.xp || idleState?.trainerXp;
         
         return {
           ...p,
           trainer_level: cloudLevel || (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1,
+          trainer_xp: cloudXp || (ts as any)?.trainer_xp || 0,
           gold: (ts as any)?.gold ?? p.gold ?? 0,
           crystal: (ts as any)?.crystal ?? p.crystal ?? 0,
           ruby: (ts as any)?.ruby ?? p.ruby ?? 0,
@@ -558,108 +562,92 @@ function OnlinePlayersTab({
 
   const saveTrainerStats = async () => {
     if (!inspectingUser || editLevel === null || editXp === null) return;
+    setLoading(true);
     try {
       toast.info("Sincronizando dados com o servidor...");
 
-      // 1. Primeiro passo: Sincronizar o game_saves blob (é o que o cliente Idle Mon lê primeiro)
-      // Se não atualizarmos isso, o useServerSync vai sobrescrever trainer_state no próximo push.
-      try {
-        const { data: gameSave, error: fetchErr } = await (supabase.from("game_saves") as any)
-          .select("data")
-          .eq("user_id", inspectingUser)
-          .maybeSingle();
-        
-        if (fetchErr) throw fetchErr;
+      // 1. Sincronizar o game_saves blob (Fonte primária para o Idle Mon)
+      const { data: gameSave, error: fetchErr } = await (supabase.from("game_saves") as any)
+        .select("data")
+        .eq("user_id", inspectingUser)
+        .maybeSingle();
+      
+      if (fetchErr) throw fetchErr;
 
-        if (gameSave?.data) {
-          const gameData = gameSave.data as any;
-          const newData = { 
-            ...gameData, 
-            idle: { 
-              ...(gameData.idle || {}), 
-              trainerLevel: editLevel,
-              trainerXp: editXp,
-              savedAt: Date.now(),
-              version: (gameData.idle?.version || 0) + 100 // Pulo maior na versão para garantir prioridade
-            }
-          };
-          
-          const { error: syncErr } = await (supabase.from("game_saves") as any).update({ 
-            data: newData,
-            updated_at: new Date().toISOString()
-          }).eq("user_id", inspectingUser);
-          
-          if (syncErr) throw syncErr;
-          console.log("Cloud save synchronized (Priority Update).");
-        }
-      } catch (e) {
-        console.warn("Falha crítica ao sincronizar game_saves blob:", e);
-        toast.error("Erro ao sincronizar blob de salvamento. As alterações podem ser perdidas.");
+      let snapshot: any = gameSave?.data;
+      if (!snapshot || typeof snapshot !== 'object') {
+        snapshot = {
+          idle: { level: editLevel, xp: editXp, version: 1000 },
+          team: [],
+          restingBench: [],
+          inventory: {},
+          pokeballs: { pokeball: 5 },
+          savedAt: Date.now()
+        };
+      } else {
+        if (!snapshot.idle) snapshot.idle = {};
+        // Sincronizamos campos para compatibilidade
+        snapshot.idle.level = editLevel;
+        snapshot.idle.xp = editXp;
+        snapshot.idle.trainerLevel = editLevel;
+        snapshot.idle.trainerXp = editXp;
+        // Pulo agressivo na versão para evitar rollback pelo cache do cliente
+        snapshot.idle.version = (snapshot.idle.version || 0) + 1000;
+        snapshot.savedAt = Date.now();
       }
 
-      // 2. Atualizar trainer_state (fonte secundária, mas essencial para anti-cheat)
-      const { error: stateError } = await (supabase.from("trainer_state" as any) as any).update({
-        trainer_level: editLevel,
-        trainer_xp: editXp,
-        updated_at: new Date().toISOString()
-      }).eq("user_id", inspectingUser);
+      const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
       
-      if (stateError) throw stateError;
-
-      // 3. Atualizar ranked_scores (usado pelo ranking)
-      await (supabase.from("ranked_scores") as any).update({
-        trainer_level: editLevel,
-        updated_at: new Date().toISOString()
-      }).eq("user_id", inspectingUser);
-
-      // 4. Atualizar profiles (redundância e metadados de login)
-      await (supabase.from("profiles") as any).update({
-        trainer_level: editLevel,
-        updated_at: new Date().toISOString()
-      }).eq("id", inspectingUser);
-
-      // 5. Forçar Logout / Lock (Refresh do Cliente)
-      try {
-        // Aumentamos para 8 segundos para garantir que o Supabase propague os dados
-        const kickTime = new Date(Date.now() + 8000).toISOString(); 
-        await (supabase.from("profiles") as any).update({ 
-          lock_until: kickTime,
+      // 2. Gravamos em paralelo em todas as tabelas normalizadas e no blob
+      await Promise.all([
+        (supabase.from("game_saves") as any).upsert({
+          user_id: inspectingUser,
+          data: snapshot,
           updated_at: new Date().toISOString()
-        }).eq("id", inspectingUser);
-        console.log("Player session locked for forced refresh.");
-      } catch (e) {
-        console.warn("Failed to set lock_until:", e);
-      }
+        }, { onConflict: "user_id" }),
+        (supabase.from("trainer_state" as any) as any).upsert({
+          user_id: inspectingUser,
+          trainer_level: editLevel,
+          trainer_xp: editXp,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" }),
+        (supabase.from("ranked_scores") as any).upsert({
+          user_id: inspectingUser,
+          username,
+          trainer_level: editLevel,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" }),
+        (supabase.from("profiles") as any).update({
+          trainer_level: editLevel,
+          updated_at: new Date().toISOString(),
+          lock_until: new Date(Date.now() + 8000).toISOString() 
+        }).eq("id", inspectingUser)
+      ]);
 
-      // 6. Atualização local para o Admin
+      // 3. Atualização local para o Admin (se estiver editando a si mesmo)
       if (inspectingUser === identity?.id) {
-        window.dispatchEvent(new CustomEvent("rubym:sync_stats", { detail: { level: editLevel, xp: editXp } }));
-        const raw = localStorage.getItem("rubym.idle.v1");
-        if (raw) {
-          try {
-            const { deobfuscate, obfuscate } = await import("@/lib/utils");
-            const idle = deobfuscate(raw);
-            if (idle) {
-              idle.trainerLevel = editLevel;
-              idle.trainerXp = editXp;
-              idle.version = (idle.version || 0) + 100;
-              localStorage.setItem("rubym.idle.v1", obfuscate(idle));
-            }
-          } catch (e) {}
-        }
+        try {
+          const { obfuscate } = await import("@/lib/utils");
+          localStorage.setItem("rubym.save.v2", obfuscate(snapshot));
+          window.dispatchEvent(new CustomEvent("rubym:sync_stats", { 
+            detail: { level: editLevel, xp: editXp } 
+          }));
+        } catch (e) { console.warn("Local sync failed", e); }
       }
 
-      toast.success("Nível atualizado com sucesso! O jogador será desconectado para sincronizar.");
+      toast.success("Nível e XP atualizados com sucesso!");
+      toast.info("O jogador será desconectado para aplicar as mudanças.");
+      setInspectingUser(null);
       refresh();
-      inspectPlayer(inspectingUser);
-      
-      if (inspectingUser === identity?.id) {
-        setTimeout(() => window.location.reload(), 1000);
-      }
     } catch (e: any) {
-      toast.error(`Falha ao salvar: ${e.message}`);
+      console.error("Admin save failed", e);
+      toast.error("Erro ao salvar: " + e.message);
+    } finally {
+      setLoading(false);
     }
   };
+
+
 
 
 
