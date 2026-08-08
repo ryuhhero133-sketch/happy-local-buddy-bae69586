@@ -28,7 +28,7 @@ export const updatePlayerStatsAdminBridge = createServerFn({ method: "POST" })
     const SUPABASE_URL = "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
     const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/admin-update-player`;
     
-    console.log(`[AdminBridge] Encaminhando update para Edge Function: ${data.targetUserId}`);
+    console.log(`[AdminBridge] Encaminhando update (${data.type}) para Edge Function: ${data.targetUserId || data.targetPokemonId}`);
 
     try {
       // Chamada para a Supabase Edge Function
