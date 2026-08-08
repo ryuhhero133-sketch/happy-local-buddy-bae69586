@@ -8089,8 +8089,70 @@ function IdlePage() {
 
 
 
-        {/* ============ COLUNA ESQUERDA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+        {/* ============ TOP BAR (FLOATING) ============ */}
+        <div style={{
+          position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
+          width: "calc(100% - 24px)", maxWidth: 1400, height: 64,
+          background: "linear-gradient(180deg, rgba(20, 10, 30, 0.95) 0%, rgba(10, 5, 15, 0.98) 100%)",
+          border: "1px solid rgba(201, 184, 255, 0.25)",
+          borderRadius: 12, display: "flex", alignItems: "center", padding: "0 16px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 12px rgba(201, 184, 255, 0.1)",
+          zIndex: 1000, pointerEvents: "auto", gap: 20
+        }}>
+          {/* Left Part: Map Info */}
+          <div style={{ display: "flex", flexDirection: "column", minWidth: 160 }}>
+            <div style={{ color: "#c9b8ff", fontWeight: 900, fontSize: 13, letterSpacing: 1.5, textShadow: "0 2px 4px #000" }}>
+              {WORLD_MAPS[worldMap]?.label.toUpperCase() || "VALE VERDEJANTE"}
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, letterSpacing: 0.5, marginTop: 2 }}>
+              COORD: {Math.floor(trainerPos.x)}, {Math.floor(trainerPos.y)}
+            </div>
+          </div>
+
+          {/* Center: Currencies */}
+          <div style={{ flex: 1, display: "flex", justifyContent: "center", gap: 24, alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <img src={assetUrlFromJson(iconCrystalBlue)} alt="" style={{ width: 18, height: 18 }} />
+              <span style={{ color: "#fff", fontWeight: 900, fontSize: 13 }}>{fmtK(idle.bank.gold)}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" style={{ width: 18, height: 18 }} />
+              <span style={{ color: "#ffd94d", fontWeight: 900, fontSize: 13 }}>{Math.floor(idle.bank.crystals)}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 18, height: 18, background: "#ff4b4b", borderRadius: "50%", border: "1.5px solid #fff" }} />
+              <span style={{ color: "#ff8b8b", fontWeight: 900, fontSize: 13 }}>{Math.floor(idle.items?.fragmento_vermelho ?? 0)}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <img src={assetUrlFromJson(iconCashPackage)} alt="" style={{ width: 18, height: 18 }} />
+              <span style={{ color: "#8dfa8d", fontWeight: 900, fontSize: 13 }}>{idle.bank.safiras ?? 0}</span>
+            </div>
+          </div>
+
+          {/* Right Part: Clock & Settings */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ color: "#c9b8ff", fontWeight: 900, fontSize: 14, fontFamily: "monospace" }}>
+              {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+            <button
+              onClick={() => setShowAutoSettings(!showAutoSettings)}
+              style={{
+                background: "rgba(201, 184, 255, 0.1)", border: "1px solid rgba(201, 184, 255, 0.3)",
+                color: "#c9b8ff", width: 32, height: 32, borderRadius: 8, cursor: "pointer",
+                display: "grid", placeItems: "center", fontSize: 18
+              }}
+            >⚙</button>
+          </div>
+        </div>
+
+        {/* ============ PLAYER PROFILE (LEFT FLOATING) ============ */}
+        <div style={{
+          position: "fixed", top: 88, left: 12, width: 260,
+          background: "linear-gradient(135deg, rgba(30, 15, 45, 0.95) 0%, rgba(15, 8, 25, 0.98) 100%)",
+          border: "1px solid rgba(201, 184, 255, 0.3)", borderRadius: 16,
+          padding: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+          zIndex: 900, pointerEvents: "auto"
+        }}>
           {(() => {
             const trainerLv = idle.trainerLevel ?? 1;
             const nextAt = trainerXpToNext(trainerLv);
@@ -8098,358 +8160,101 @@ function IdlePage() {
             const xpPct = Math.max(0, Math.min(100, (curXp / nextAt) * 100));
             const name = (identity?.name || "Treinador").slice(0, 14);
             const vip = isVip();
-            const accent = vip ? "#ffd66b" : "#c9b8ff";
+
             return (
-              <div style={{
-                position: "relative",
-                padding: "7px 9px 7px 7px",
-                background:
-                  "linear-gradient(180deg, rgba(36,20,44,0.96) 0%, rgba(14,8,22,0.98) 100%)",
-                border: `1px solid ${accent}55`,
-                borderRadius: 10,
-                boxShadow:
-                  `0 3px 12px rgba(0,0,0,0.55), inset 0 1px 0 ${accent}33, 0 0 14px ${accent}18`,
-                display: "flex", alignItems: "center", gap: 9,
-                overflow: "hidden",
-              }}>
-                {/* linha superior dourada muito fina */}
-                <span style={{
-                  position: "absolute", top: 0, left: 8, right: 8, height: 1,
-                  background: `linear-gradient(90deg, transparent, ${accent}bb, transparent)`,
-                }} />
-
-                {/* Medalhão circular do avatar */}
-                <div style={{
-                  width: 52, height: 52, flexShrink: 0,
-                  borderRadius: "50%",
-                  background: `conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)`,
-                  padding: 2,
-                  boxShadow: `0 3px 8px rgba(0,0,0,0.65), 0 0 14px ${accent}55, inset 0 0 3px rgba(0,0,0,0.4)`,
-                  position: "relative",
-                }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                   <div style={{
-                    width: "100%", height: "100%", borderRadius: "50%",
-                    background: "radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)",
-                    display: "grid", placeItems: "center", overflow: "hidden",
-                    border: "1.5px solid #0b0510",
-                    boxShadow: "inset 0 0 6px rgba(0,0,0,0.8)",
-                  }}>
-                    <img
-                      src={assetUrlFromJson(trainerAvatarAsset)}
-                      alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  </div>
-                  {/* Selo de nível — pendurado no medalhão */}
-                  <div style={{
-                    position: "absolute", bottom: -4, right: -4,
-                    minWidth: 22, height: 20, padding: "0 5px",
-                    background: "linear-gradient(180deg, #ffe89a, #c48e2a 55%, #6b3d0a)",
-                    color: "#231407", fontWeight: 900, fontSize: 10.5,
-                    borderRadius: "50%", border: "2px solid #0b0510",
-                    display: "grid", placeItems: "center",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.35)",
-                    fontFamily: "'Cinzel', Georgia, serif", lineHeight: 1,
-                    letterSpacing: 0.2,
-                  }}>{trainerLv}</div>
-                </div>
-
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Nome + VIP */}
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 5,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>
-                    {vip && (
-                      <span style={{
-                        fontSize: 8, fontWeight: 900, letterSpacing: 1,
-                        padding: "1px 5px", borderRadius: 3,
-                        background: "linear-gradient(180deg, #ffd66b, #b8862a)",
-                        color: "#231407", border: "1px solid rgba(0,0,0,0.4)",
-                        boxShadow: "0 1px 2px rgba(0,0,0,0.5)", flexShrink: 0,
-                      }}>VIP</span>
-                    )}
-                    <span style={{
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                      fontFamily: "'Cinzel', Georgia, serif",
-                      fontSize: 12.5, fontWeight: 900, letterSpacing: 0.5,
-                      color: "#f7ecf7",
-                      textShadow: "0 1px 0 #000",
-                    }}>{name}</span>
-                  </div>
-
-                  {/* Barra de XP fina */}
-                  <div style={{
-                    marginTop: 4, position: "relative",
-                    height: 5, background: "#0b0510", borderRadius: 3,
-                    border: "1px solid rgba(245,207,107,0.25)",
-                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)",
-                    overflow: "hidden",
+                    width: 56, height: 56, borderRadius: "50%",
+                    background: "conic-gradient(from 45deg, #c9b8ff, #1e40af, #c9b8ff)",
+                    padding: 2, boxShadow: "0 0 15px rgba(201, 184, 255, 0.4)"
                   }}>
                     <div style={{
-                      width: `${xpPct}%`, height: "100%",
-                      background: "linear-gradient(180deg, #ffe89a 0%, #ffd66b 50%, #b8862a 100%)",
-                      boxShadow: "0 0 5px rgba(245,207,107,0.6)",
-                      transition: "width 400ms",
-                    }} />
+                      width: "100%", height: "100%", borderRadius: "50%",
+                      background: "#0b0510", overflow: "hidden", border: "2px solid #0b0510"
+                    }}>
+                      <img src={assetUrlFromJson(trainerAvatarAsset)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
                   </div>
-                  <div style={{
-                    marginTop: 2, fontSize: 8.5, letterSpacing: 0.4,
-                    color: "#a8a0b8", fontFamily: "monospace",
-                    display: "flex", justifyContent: "space-between",
-                  }}>
-                    <span>XP</span>
-                    <span style={{ color: "#e8d089" }}>{curXp} / {nextAt}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ color: "#fff", fontWeight: 900, fontSize: 14, textShadow: "0 2px 4px #000" }}>{name}</span>
+                      {vip && <span style={{ background: "#ffd94d", color: "#000", fontSize: 8, fontWeight: 900, padding: "1px 4px", borderRadius: 4 }}>VIP</span>}
+                    </div>
+                    <div style={{ color: "#c9b8ff", fontWeight: 800, fontSize: 11 }}>Nv. {trainerLv}</div>
                   </div>
+                </div>
 
-                  {/* Pills de status */}
-                  <div style={{ display: "flex", gap: 3, marginTop: 4, flexWrap: "nowrap" }}>
-                    <span style={pillStyle("#ffd66b")}>🪙 {fmtK(idle.totals.gold)}</span>
-                    <span style={pillStyle("#ff97e1")}>★ {idle.totals.captured}</span>
-                    <span style={pillStyle("#8fd0ff")}>⚔ {team.length}/6</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ height: 18, background: "rgba(0,0,0,0.5)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.1)", position: "relative", overflow: "hidden" }}>
+                    <div style={{ width: `${Math.min(100, (leaderHp / calcIdleMaxHp(team[0] || team[0])) * 100)}%`, height: "100%", background: "linear-gradient(90deg, #ff4b4b, #ff8b8b)", transition: "width 0.3s" }} />
+                    <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#fff", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>HP LÍDER</span>
+                  </div>
+                  <div style={{ height: 6, background: "rgba(0,0,0,0.5)", borderRadius: 3, position: "relative", overflow: "hidden" }}>
+                    <div style={{ width: `${xpPct}%`, height: "100%", background: "linear-gradient(90deg, #c9b8ff, #a25bff)", boxShadow: "0 0 8px #a25bff" }} />
                   </div>
                 </div>
               </div>
             );
           })()}
+        </div>
 
+        {/* ============ RIGHT SIDEBAR (FLOATING) ============ */}
+        <div style={{
+          position: "fixed", top: 88, right: 12, width: 80,
+          display: "flex", flexDirection: "column", gap: 12,
+          zIndex: 900, pointerEvents: "auto"
+        }}>
+          {/* Circular Minimap Container */}
+          <div style={{
+            width: 80, height: 80, borderRadius: "50%",
+            background: "rgba(20, 10, 30, 0.9)", border: "2px solid rgba(201, 184, 255, 0.4)",
+            display: "grid", placeItems: "center", overflow: "hidden",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
+          }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "radial-gradient(circle, #2a1545 0%, #0b0510 100%)", border: "1px solid rgba(201, 184, 255, 0.2)" }} />
+          </div>
 
-
-          <Panel title="SUA EQUIPE" accent="#c92a2a">
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+          {/* Vertical Menu */}
+          <div style={{
+            display: "flex", flexDirection: "column", gap: 8,
+            background: "rgba(20, 10, 30, 0.8)", borderRadius: 20,
+            padding: "8px", border: "1px solid rgba(201, 184, 255, 0.2)"
+          }}>
+            {([
+              { id: "world", label: "Mundo", icon: "🌍", color: "#6bd4ff" },
+              { id: "ranking", label: "Ranking", icon: "🏆", color: "#ffd94d" },
+              { id: "events", label: "Evento", icon: "📅", color: "#c9b8ff" },
+              { id: "shop", label: "Loja", icon: "💎", color: "#8dfa8d" },
+              { id: "config", label: "Config", icon: "⚙", color: "#a8a0b8" }
+            ] as const).map(item => (
               <button
-                onClick={() => setTeamCollapsed((v) => !v)}
-                title={teamCollapsed ? "Expandir equipe" : "Minimizar (mostrar só líder)"}
-                style={{
-                  background: "#1a0f26", color: "#f5cf6b",
-                  border: "1px solid #c92a2a55", borderRadius: 4,
-                  padding: "2px 8px", fontSize: 10, fontWeight: 800, cursor: "pointer",
-                  letterSpacing: 1,
+                key={item.id}
+                onClick={() => {
+                  if (item.id === "ranking") setRankOpen(true);
+                  if (item.id === "world") setWorldMapOpen(true);
                 }}
+                style={{
+                  width: 60, height: 60, borderRadius: 16,
+                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", gap: 2, transition: "transform 0.2s"
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+                onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
               >
-                {teamCollapsed ? "▼ EXPANDIR" : "▲ MINIMIZAR"}
+                <span style={{ fontSize: 20 }}>{item.icon}</span>
+                <span style={{ fontSize: 8, fontWeight: 900, color: item.color, letterSpacing: 0.5 }}>{item.label.toUpperCase()}</span>
               </button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
-                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
-              ))}
-              {teamCollapsed && team.length > 1 && (
-                <div style={{ fontSize: 10, color: "#8a7a9c", textAlign: "center", fontStyle: "italic" }}>
-                  +{team.length - 1} no banco (minimizado)
-                </div>
-              )}
-              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
-            </div>
-          </Panel>
-
-
-
-          {/* Chat ocupa todo o espaço restante — sem rolagem externa */}
-          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-            <Panel title="REGISTRO DE BATALHA" accent="#1e3a5f">
-              <div style={{
-                height: 200, minHeight: 160, maxHeight: 240,
-                overflowY: "auto", display: "flex", flexDirection: "column-reverse",
-                gap: 4, fontSize: 11, lineHeight: 1.35,
-                background: "#0e0818", borderRadius: 6, padding: 6,
-                border: "1px solid rgba(107,212,255,0.15)",
-              }}>
-                {(() => {
-                  const classify = (m: typeof chat[number]): "system" | "world" | "captures" => {
-                    if (m.kind === "capture" || m.kind === "cap") return "captures";
-                    if (m.text.startsWith("💬") || m.text.startsWith("🌍")) return "world";
-                    return "system";
-                  };
-                  const filtered = chat.filter((m) => chatFilter === "all" ? true : classify(m) === chatFilter);
-                  return (
-                    <>
-                      {[...filtered].reverse().map((m) => {
-                        const color =
-                          m.kind === "chest" ? "#ffa64a" :
-                          m.kind === "capture" ? "#ff97e1" :
-                          m.kind === "cap" ? "#ffd94d" :
-                          m.kind === "lv" ? "#6bd4ff" :
-                          m.kind === "hit" ? "#ff6b6b" :
-                          m.kind === "dmg" ? "#f5cf6b" : "#c8b8d0";
-                        const prefix =
-                          m.kind === "chest" ? "🎁" :
-                          m.kind === "capture" ? "✦" :
-                          m.kind === "cap" ? "★" :
-                          m.kind === "lv" ? "⬆" :
-                          m.kind === "hit" ? "✖" :
-                          m.kind === "dmg" ? "⚔" : "•";
-                        return (
-                          <div key={m.id} style={{ color, textShadow: "1px 1px 0 #000", fontWeight: m.kind === "chest" ? 800 : 400 }}>
-                            <span style={{ opacity: 0.7, marginRight: 4 }}>{prefix}</span>{m.text}
-                          </div>
-                        );
-                      })}
-                      {filtered.length === 0 && (
-                        <div style={{ color: "#6a5a7c", fontStyle: "italic" }}>Nenhum evento neste filtro...</div>
-                      )}
-                    </>
-                  );
-            })()}
-          </div>
-
-              {/* Filtros do chat */}
-              <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
-                {([
-                  { k: "all", l: "Tudo" },
-                  { k: "system", l: "Sistema" },
-                  { k: "world", l: "Mundo" },
-                  { k: "captures", l: "Capturas" },
-                ] as const).map((t) => {
-                  const active = chatFilter === t.k;
-                  return (
-                    <button
-                      key={t.k}
-                      onClick={() => setChatFilter(t.k)}
-                      style={{
-                        flex: 1,
-                        background: active ? "#1e3a5f" : "#0e0818",
-                        color: active ? "#fff" : "#8fa5c0",
-                        border: `1px solid ${active ? "#6bd4ff" : "rgba(107,212,255,0.2)"}`,
-                        borderRadius: 4, padding: "3px 4px", fontSize: 10, fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >{t.l}</button>
-                  );
-                })}
-              </div>
-              {/* Chat global de jogadores BLOQUEADO temporariamente */}
-              <div
-                style={{
-                  marginTop: 6,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "#1a0d0d",
-                  border: "1px solid rgba(255,107,107,0.35)",
-                  borderRadius: 6,
-                  padding: "7px 9px",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#ffb3b3",
-                }}
-              >
-                🔒 Chat global desativado — apenas avisos do sistema.
-              </div>
-
-            </Panel>
-            
-            {/* HUD de Aviso Temporário (Ancião Glacial) */}
-            <div 
-              onClick={() => setAnciaoOpen(true)}
-              style={{ 
-                marginTop: 10,
-                background: "linear-gradient(135deg, rgba(201, 184, 255, 0.2), rgba(201, 184, 255, 0.05))",
-                border: "2px solid #c9b8ff",
-                borderRadius: 12,
-                padding: "10px 14px",
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                boxShadow: "0 4px 15px rgba(201, 184, 255, 0.25)",
-                animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                cursor: "pointer"
-              }}
-            >
-              <div style={{ width: 44, height: 44, position: "relative" }}>
-                <img 
-                  src={npcAnciaoGlacialUrl} 
-                  alt="Ancião Glacial" 
-                  style={{ 
-                    width: "100%", 
-                    height: "100%", 
-                    imageRendering: "pixelated",
-                    animation: "autoIconPulse 1.5s ease-in-out infinite"
-                  }} 
-                />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ 
-                  color: "#c9b8ff", 
-                  fontSize: 12, 
-                  fontWeight: 900, 
-                  letterSpacing: 1, 
-                  textShadow: "0 0 8px rgba(201, 184, 255, 0.8)" 
-                }}>
-                  ❄️ NOVA JORNADA
-                </div>
-                <div style={{ 
-                  color: "#fff", 
-                  fontSize: 10.5, 
-                  fontWeight: 700,
-                  marginTop: 2,
-                  lineHeight: 1.3
-                }}>
-                  A 3ª SEASON CHEGOU! INICIE O RITUAL NO SANTUÁRIO. 🏔️✨
-                </div>
-              </div>
-            </div>
-
+            ))}
           </div>
         </div>
 
-
-
-
-
-        {/* ============ COLUNA DIREITA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
-          <div style={{
-            background: "rgba(36,20,44,0.92)",
-            border: "1px solid rgba(201,184,255,0.25)",
-            borderRadius: 10,
-            padding: "8px 10px",
-            flex: 1,
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10
-          }}>
-             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EXPLORAR</div>
-             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
-                {enemies.slice(0, 8).map(m => (
-                  <div key={m.id} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: "5px 8px", border: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 8 }}>
-                     <img src={GIF[m.sp] ?? ""} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
-                     <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: "#fff" }}>{m.sp.toUpperCase()}</div>
-                        <div style={{ width: "100%", height: 3, background: "#000", borderRadius: 2, marginTop: 2 }}>
-                           <div style={{ width: `${(m.hp / m.maxHp) * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff4b4b, #ff8b8b)", borderRadius: 2 }} />
-                        </div>
-                     </div>
-                     <span style={{ fontSize: 9, color: "#ffb84d", fontWeight: 900 }}>Lv.{m.level}</span>
-                  </div>
-                ))}
-             </div>
-          </div>
-
-          <div style={{
-            background: "rgba(36,20,44,0.92)",
-            border: "1px solid rgba(201,184,255,0.25)",
-            borderRadius: 10,
-            padding: "8px 10px",
-            height: "180px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8
-          }}>
-             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EQUIPE</div>
-             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
-                {team.map((p, i) => (
-                   <div key={p.uid} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: 4, border: `1px solid ${i === 0 ? "#ffd66b" : "rgba(255,255,255,0.05)"}`, position: "relative", textAlign: "center" }}>
-                      <img src={GIF[p.species] ?? ""} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated" }} />
-                      <div style={{ fontSize: 8, fontWeight: 800, color: "#fff", marginTop: 2 }}>Lv.{p.level}</div>
-                   </div>
-                ))}
-             </div>
-          </div>
+        {/* ============ MAIN GAME AREA (Battle/Explore) ============ */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
+          {/* O resto do jogo (Arena/Canvas) já está sendo renderizado no grid pai */}
         </div>
 
-      </div>
 
       {rankOpen && createPortal(
         <div
