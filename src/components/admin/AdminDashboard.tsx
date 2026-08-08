@@ -632,11 +632,13 @@ function OnlinePlayersTab({
       // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA E AGRESSIVA)
       // Removemos chaves para garantir que a nuvem seja a única fonte no próximo carregamento
       if (inspectingUser === identity?.id) {
+        localStorage.setItem("rubym_admin_force_sync", "true");
         localStorage.removeItem("rubym.idle.v1");
         localStorage.removeItem("rubym.save.v2");
         localStorage.removeItem("rubym.cloud.preloaded.v1");
         localStorage.removeItem("rubym.local.backup.v1");
         localStorage.removeItem("rubym.cloud.pending.v1");
+        setTimeout(() => localStorage.removeItem("rubym_admin_force_sync"), 30000);
       }
 
       // 3. Atualização local para o Admin (se estiver editando a si mesmo)
