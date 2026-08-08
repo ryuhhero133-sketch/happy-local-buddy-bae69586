@@ -374,7 +374,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       <PanelShell title="SISTEMA EM MANUTENÇÃO">
         <div className="space-y-4 text-center">
           <p className="text-[10px] leading-relaxed" style={{ color: "#fca5a5" }}>
-            SISTEMA EM MANUTENÇÃO. Estamos realizando melhorias no servidor — tente novamente mais tarde.
+            JOGO EM MANUTENÇÃO. ESTAMOS LIBERANDO O ACESSO PARA TODOS AGORA MESMO. AGUARDE UM MOMENTO E RECARREGUE A PÁGINA.
           </p>
           <div className="pt-2">
             <PrimaryButton type="button" onClick={() => window.location.reload()}>
