@@ -434,7 +434,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
   }
 
-  if (!session) return <AuthScreen kickedMessage={kickedMessage} />;
+  if (!session) return <AuthScreen kickedMessage={kickedMessage} maintenance={maintenance} isAdmin={isAdmin} />;
 
   if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
 
