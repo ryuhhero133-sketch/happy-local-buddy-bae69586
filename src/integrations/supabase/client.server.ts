@@ -30,22 +30,19 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseAdminClient() {
-  // Diagnóstico de Runtime para o usuário
-  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  // V36: Diagnóstico de Runtime. SUPABASE_URL é lida do .env, ADMIN_SB_KEY do Secrets.
+  // No Bun (runtime do TanStack Start), as variáveis do .env e Secrets são mescladas no process.env.
+  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_SB_KEY;
 
-  console.log(`[SupabaseAdmin Diagnostic] URL_CONFIGURED=${!!SUPABASE_URL}, KEY_CONFIGURED=${!!SUPABASE_SERVICE_ROLE_KEY}`);
+  console.log(`[SupabaseAdmin] Runtime Check: URL=${!!SUPABASE_URL}, KEY=${!!SUPABASE_SERVICE_ROLE_KEY}`);
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     const missing = [];
     if (!SUPABASE_URL) missing.push('SUPABASE_URL');
-    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY/ADMIN_SB_KEY');
+    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('ADMIN_SB_KEY/SUPABASE_SERVICE_ROLE_KEY');
     
-    // Fallback agressivo: No sandbox do Lovable, as vezes as variáveis precisam ser lidas de lugares específicos
-    // ou o .env não foi carregado no runtime do worker simulado.
-    const errorMsg = `Configuração incompleta: ${missing.join(', ')}. Runtime: ${typeof process !== 'undefined' ? 'Node/Bun' : 'Edge'}.`;
-    console.error(`[SupabaseAdmin] ${errorMsg}`);
-    throw new Error(errorMsg);
+    throw new Error(`Erro de Configuração no Servidor: ${missing.join(', ')} ausente. Verifique se as Secrets no Lovable estão configuradas.`);
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
