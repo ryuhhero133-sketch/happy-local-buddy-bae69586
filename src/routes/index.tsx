@@ -277,11 +277,12 @@ serve(async (req) => {
                 </div>
 
                 <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded">
-                  <p className="text-[10px] text-blue-200 mb-2 font-bold">PASSO A PASSO PARA RESOLVER (TESTE 46 → 47):</p>
+                  <p className="text-[10px] text-blue-200 mb-2 font-bold uppercase">Procedimento de Deploy Final (V49):</p>
                   <ol className="text-[9px] text-blue-300/80 space-y-1 list-decimal list-inside mb-3">
-                    <li>Crie o arquivo <code className="bg-black/40 px-1">supabase/functions/admin-update-player/index.ts</code></li>
-                    <li>Cole o código acima</li>
-                    <li>No terminal local, execute:</li>
+                    <li>Execute o SQL da RPC acima no Editor SQL do Supabase.</li>
+                    <li>Certifique-se de que a permissão de execução foi revogada do Público.</li>
+                    <li>Faça o deploy da Edge Function <code className="bg-black/40 px-1">admin-update-player</code>.</li>
+                    <li>Clique no botão acima para testar a alteração do Stinguer para 47.</li>
                   </ol>
                   <code className="block bg-black/60 p-2 rounded text-[10px] font-mono text-blue-300 break-all select-all border border-blue-500/30">
                     supabase functions deploy admin-update-player --project-ref kgrspvqhpgiuxvkcxgcp
