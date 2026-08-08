@@ -594,9 +594,10 @@ function OnlinePlayersTab({
         snapshot.idle.trainerLevel = editLevel;
         snapshot.idle.trainerXp = editXp;
         // Pulo agressivo na versão (V17+ logic) para garantir que a nuvem vença cache local
-        snapshot.idle.version = (snapshot.idle.version || 0) + 30000;
-        snapshot.savedAt = Date.now();
-        snapshot.lastModifiedBy = "admin_v17_emergency";
+        // Aumentamos o pulo para +50.000 para ser inequívoco
+        snapshot.idle.version = (snapshot.idle.version || 0) + 50000;
+        snapshot.savedAt = Date.now() + 60000; // Futuro próximo para garantir precedência
+        snapshot.lastModifiedBy = "admin_v17_emergency_v2";
       }
 
       const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
