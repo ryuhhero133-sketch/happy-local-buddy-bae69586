@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V14 - REALTIME_FORCE_SYNC_FIX
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V15 - REALTIME_CLOUD_PERSISTENCE_FIX
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -587,14 +587,16 @@ function OnlinePlayersTab({
         };
       } else {
         if (!snapshot.idle) snapshot.idle = {};
-        // Sincronizamos campos para compatibilidade
+        // Sincronizamos campos para compatibilidade absoluta
         snapshot.idle.level = editLevel;
         snapshot.idle.xp = editXp;
         snapshot.idle.trainerLevel = editLevel;
         snapshot.idle.trainerXp = editXp;
-        // Pulo agressivo na versão para evitar rollback pelo cache do cliente
-        snapshot.idle.version = (snapshot.idle.version || 0) + 10000;
+        // Pulo agressivo na versão para garantir que o cliente aceite o novo dado sobre o cache local
+        snapshot.idle.version = (snapshot.idle.version || 0) + 20000;
         snapshot.savedAt = Date.now();
+        snapshot.lastModifiedBy = "admin_v15";
+
       }
 
       const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
