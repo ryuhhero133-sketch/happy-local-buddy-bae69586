@@ -1,4 +1,4 @@
-// V27 - TOTAL AUTHORITY FIX - SERVIDOR CONFIGURADO COM ADMIN_SB_KEY - BYPASS DE RLS DEFINITIVO
+// V28 - TOTAL AUTHORITY FIX - SERVIDOR CONFIGURADO COM ADMIN_SB_KEY - BYPASS DE RLS DEFINITIVO
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
