@@ -629,7 +629,7 @@ function OnlinePlayersTab({
           account_status: 'active'
         }).eq("id", inspectingUser),
         // V21: Atualiza a tabela ranked_leaderboard para garantir que o ranking reflita o nível real IMEDIATAMENTE
-        supabase.rpc("record_ranked_score", {
+        (supabase.rpc as any)("record_ranked_score", {
           _level: editLevel,
           _craft_points: inventory?.trainer?.craft_points || 0,
           _guild_name: inventory?.trainer?.guild_name || null
