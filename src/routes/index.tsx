@@ -1,4 +1,4 @@
-// V22 - EMERGENCY ADMIN FIX - BYPASSING RLS ON CLIENT - SECURITY_VERIFIED_ADMIN_KEY_INJECTED
+// V23 - SERVER SIDE AUTHORITY - BYPASS DE RLS VIA SERVER FUNCTIONS - SEGURANÇA MÁXIMA PARA ADMINS
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
