@@ -28,26 +28,26 @@ export const updatePlayerStatsAdmin = createServerFn({ method: "POST" })
 
     try {
       // 1. Atualizações em massa ignorando RLS (via Service Role)
-      // Usamos upsert forçado para garantir que o registro seja criado se não existir
+      // Usamos type-casting (as any) para evitar erros de tipagem quando o schema local não está atualizado
       const ops = [
-        supabaseAdmin.from("game_saves").upsert({
+        (supabaseAdmin.from("game_saves") as any).upsert({
           user_id: data.targetUserId,
           data: data.snapshot,
           updated_at: new Date().toISOString()
         }),
-        supabaseAdmin.from("trainer_state" as any).upsert({
+        (supabaseAdmin.from("trainer_state" as any) as any).upsert({
           user_id: data.targetUserId,
           trainer_level: data.level,
           trainer_xp: data.xp,
           updated_at: new Date().toISOString()
         }),
-        supabaseAdmin.from("ranked_scores").upsert({
+        (supabaseAdmin.from("ranked_scores" as any) as any).upsert({
           user_id: data.targetUserId,
           username: data.username,
           trainer_level: data.level,
           updated_at: new Date().toISOString()
         }),
-        supabaseAdmin.from("profiles").update({
+        (supabaseAdmin.from("profiles" as any) as any).update({
           trainer_level: data.level,
           updated_at: new Date().toISOString(),
           lock_until: lockUntil,
