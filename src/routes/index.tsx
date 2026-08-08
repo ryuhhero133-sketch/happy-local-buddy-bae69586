@@ -1,4 +1,4 @@
-// IDLE MON - ACESSO LIBERADO
+// IDLE MON - ACESSO LIBERADO OK
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
