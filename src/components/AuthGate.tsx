@@ -395,13 +395,19 @@ export function AuthGate({ children }: { children: ReactNode }) {
     session?.user?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
   // O modo de manutenção no banco de dados continua bloqueando jogadores normais,
   // mas o admin sempre passa independentemente do valor de 'maintenance'.
-  if (maintenance && session && !isAdmin) {
+  if (maintenance && !isAdmin) {
     return (
       <PanelShell title="SISTEMA EM MANUTENÇÃO">
         <div className="space-y-4 text-center">
-          <p className="text-[10px] leading-relaxed" style={{ color: "#fca5a5" }}>
-            JOGO EM MANUTENÇÃO. ESTAMOS LIBERANDO O ACESSO PARA TODOS AGORA MESMO. AGUARDE UM MOMENTO E RECARREGUE A PÁGINA.
-          </p>
+          <div className="p-3 rounded border border-red-900/50 bg-red-950/30">
+            <p className="text-[12px] font-bold tracking-[1px] mb-2" style={{ color: "#fca5a5", textShadow: "0 0 8px rgba(239,68,68,0.5)" }}>
+              ⚠️ JOGO EM MANUTENÇÃO
+            </p>
+            <p className="text-[10px] leading-relaxed" style={{ color: "#fecaca" }}>
+              PREPARANDO NOVA TEMPORADA.<br/>
+              HORÁRIO DE ABERTURA DA SEASON: 00:00
+            </p>
+          </div>
           <div className="pt-2">
             <PrimaryButton type="button" onClick={() => window.location.reload()}>
               RECARREGAR
@@ -410,7 +416,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
           {session && (
             <button
               onClick={() => supabase.auth.signOut()}
-              className="text-[10px] tracking-[2px] underline opacity-70 hover:opacity-100"
+              className="text-[10px] tracking-[2px] underline opacity-70 hover:opacity-100 mt-2 block w-full"
               style={{ color: "#fecaca" }}
             >
               SAIR DA CONTA
