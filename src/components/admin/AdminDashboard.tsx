@@ -609,10 +609,10 @@ function OnlinePlayersTab({
       // Agora, delegamos toda a autoridade de bypass de RLS para a Server Function.
       
       // V42 - Migrado para Bridge da Edge Function
-      const { updatePlayerStatsAdmin } = await import('@/lib/admin-edge-client');
+      const { updatePlayerStatsAdmin: adminEdgeUpdate } = await import('@/lib/admin-edge-client');
 
       // V53 - Invocação direta da Edge Function (JWT do admin anexado pelo SDK)
-      await updatePlayerStatsAdmin({
+      await adminEdgeUpdate({
         targetUserId: inspectingUser,
         type: 'trainer',
         level: editLevel,
@@ -674,8 +674,8 @@ function OnlinePlayersTab({
 
   const savePokemonLevel = async (id: string, level: number) => {
     try {
-      const { updatePlayerStatsAdmin } = await import('@/lib/admin-edge-client');
-      await updatePlayerStatsAdmin({
+      const { updatePlayerStatsAdmin: adminEdgeUpdate } = await import('@/lib/admin-edge-client');
+      await adminEdgeUpdate({
         targetPokemonId: id,
         type: 'pokemon',
         level: level
