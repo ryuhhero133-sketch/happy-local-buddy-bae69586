@@ -505,6 +505,7 @@ function OnlinePlayersTab({
         gold: stateData?.gold ?? profileData?.gold ?? 0,
         crystal: stateData?.crystal ?? profileData?.crystal ?? 0,
         ruby: stateData?.ruby ?? profileData?.ruby ?? 0,
+        kill_count: stateData?.kill_count ?? rankedData?.total_kills ?? 0,
         trainer_level: stateData?.trainer_level ?? rankedData?.trainer_level ?? profileData?.trainer_level ?? 1,
         trainer_xp: stateData?.trainer_xp ?? 0,
         total_kills: rankedData?.total_kills ?? stateData?.kill_count ?? 0,
@@ -932,7 +933,9 @@ function OnlinePlayersTab({
                             </div>
                           ))}
                         </div>
-                      ) : "Vazio"}
+                        ) : (
+                          <div className="text-[9px] text-slate-600 italic">Vazio no banco</div>
+                        )}
                     </div>
                   </div>
                   
@@ -948,7 +951,9 @@ function OnlinePlayersTab({
                             </div>
                           ))}
                         </div>
-                      ) : "Vazio"}
+                        ) : (
+                          <div className="text-[9px] text-slate-600 italic">Nenhum Pokémon no banco</div>
+                        )}
                     </div>
                   </div>
                 </div>
