@@ -1,4 +1,4 @@
-// IDLE MON - ACESSO LIBERADO OK - ANALISE E FAZ TEST - SINCRONIZAÇÃO DE NÍVEL CORRIGIDA - V5
+// IDLE MON - ACESSO LIBERADO OK - ANALISE E FAZ TEST - SINCRONIZAÇÃO DE NÍVEL CORRIGIDA - V6 - FIX_REFRESH
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';

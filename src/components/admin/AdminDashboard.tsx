@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V5
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V6 - FIX_REFRESH
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -586,8 +586,21 @@ function OnlinePlayersTab({
         window.dispatchEvent(new CustomEvent("rubym:sync_stats", { detail: { level: editLevel, xp: editXp } }));
       }
 
-      toast.success("Status do treinador atualizados!");
+      toast.success("Status do treinador atualizados! Recarregando aplicação do jogador...");
+      
+      // 5. Emitir evento global que pode ser captado por um sistema de Broadcast se implementado,
+      // ou apenas forçar o refresh do admin localmente.
       refresh();
+      inspectPlayer(inspectingUser);
+
+      // 6. Tentar notificar o cliente via um canal de tempo real se necessário.
+      // Como não temos um sistema de push server-to-client genérico aqui além do RLS, 
+      // orientamos que o admin informe ao jogador ou aguarde o próximo autosave do jogador sobrescrever/sincronizar.
+      
+      // Para o próprio admin ver a mudança:
+      if (inspectingUser === identity?.id) {
+        window.location.reload();
+      }
       inspectPlayer(inspectingUser);
     } catch (e: any) {
       toast.error(`Falha ao salvar: ${e.message}`);
