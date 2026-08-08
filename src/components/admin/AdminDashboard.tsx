@@ -363,6 +363,9 @@ function DashboardTab() {
   const logs = getLogs();
   return (
     <div className="space-y-6">
+      <Card title="Diagnóstico do Servidor">
+        <ServerDiagnostics />
+      </Card>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat label="Gold" value={save?.gold ?? 0} />
         <Stat label="Cristais" value={save?.crystal ?? 0} accent="text-cyan-300" />
@@ -377,18 +380,8 @@ function DashboardTab() {
           <Stat label="Uptime" value="LIVE" accent="text-emerald-300" />
         </div>
       </Card>
-      <Card title="Atividade recente">
-        <ul className="divide-y divide-slate-800 text-xs">
-          {logs.slice(0, 8).map((l, i) => (
-            <li key={i} className="flex items-center justify-between py-2">
-              <span className="text-slate-300">{l.action}</span>
-              <span className="text-slate-500">{new Date(l.ts).toLocaleTimeString()}</span>
-            </li>
-          ))}
-          {logs.length === 0 && <li className="py-4 text-center text-slate-500">Sem atividade registrada.</li>}
-        </ul>
-      </Card>
     </div>
+
   );
 }
 
