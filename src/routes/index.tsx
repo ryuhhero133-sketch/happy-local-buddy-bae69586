@@ -1,6 +1,7 @@
-// V51 - AUTHENTICATION_CHECK_REQUIRED
-// Erro 401 identificado: O usuário não está logado ou a sessão expirou no navegador.
-// A Edge Function exige um JWT válido para verificar privilégios de administrador.
+// V52 - BUNDLE_STABILITY_RECOVERY
+// Erro de Importação: Falha ao carregar admin-bridge.functions no Worker do Cloudflare.
+// Causa: Inconsistência no bundle do Vite após múltiplas alterações de runtime.
+
 
 
 
@@ -112,23 +113,16 @@ function Index() {
           </Card>
         </div>
 
-        <Alert className="bg-amber-950/30 border-amber-900">
-          <AlertTriangle className="h-4 w-4 text-amber-400" />
-          <AlertTitle className="text-amber-300 font-bold uppercase">Atenção: Login Necessário</AlertTitle>
-          <AlertDescription className="text-amber-200/70 space-y-2">
-            <p>O erro <code className="text-red-400">401</code> ocorre porque você não está autenticado no navegador.</p>
-            <p className="text-xs">Para testar a Edge Function, você precisa:</p>
+        <Alert className="bg-rose-950/30 border-rose-900">
+          <AlertTriangle className="h-4 w-4 text-rose-400" />
+          <AlertTitle className="text-rose-300 font-bold uppercase">Erro de Bundle Detectado</AlertTitle>
+          <AlertDescription className="text-rose-200/70 space-y-2">
+            <p>O navegador falhou ao carregar o módulo <code className="text-red-400">admin-bridge.functions.js</code>.</p>
+            <p className="text-xs">Isso geralmente acontece após atualizações no backend que mudam a estrutura de arquivos. Para corrigir:</p>
             <ul className="list-disc list-inside text-xs space-y-1">
-              <li>Estar logado com a conta <code className="text-slate-300">lordryuhhhuyuyghh@gmail.com</code>.</li>
-              <li>O sistema de autoridade exige o envio de um JWT válido via bridge.</li>
+              <li>Pressione <kbd className="bg-slate-800 px-1 rounded">Ctrl + F5</kbd> para limpar o cache do navegador e forçar o recarregamento dos novos arquivos gerados pelo Vite.</li>
+              <li>Se o erro persistir, o deploy atual do Worker pode estar com referências a arquivos de um build anterior.</li>
             </ul>
-            <Button 
-              variant="link" 
-              className="p-0 h-auto text-amber-400 hover:text-amber-300 text-xs"
-              onClick={() => window.location.href = '/auth'}
-            >
-              Ir para tela de Login →
-            </Button>
           </AlertDescription>
         </Alert>
 
