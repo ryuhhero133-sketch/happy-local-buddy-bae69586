@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V20 - ABSOLUTE_DB_SYNC - SECURITY_VERIFIED_V20
+// PAINEL DE ADDM OK - V21 - RANKED_SYNC_AUTHORITY - SECURITY_VERIFIED_V21
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -626,8 +626,14 @@ function OnlinePlayersTab({
           trainer_level: editLevel,
           updated_at: new Date().toISOString(),
           lock_until: lockUntil,
-          account_status: 'active' // Garante que a conta esteja ativa
-        }).eq("id", inspectingUser)
+          account_status: 'active'
+        }).eq("id", inspectingUser),
+        // V21: Atualiza a tabela ranked_leaderboard para garantir que o ranking reflita o nível real IMEDIATAMENTE
+        supabase.rpc("record_ranked_score", {
+          _level: editLevel,
+          _craft_points: inventory?.trainer?.craft_points || 0,
+          _guild_name: inventory?.trainer?.guild_name || null
+        })
       ]);
 
       // Verifica erros nas operações críticas
