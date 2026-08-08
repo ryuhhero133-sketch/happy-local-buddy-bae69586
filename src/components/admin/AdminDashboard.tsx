@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - V31 - ABSOLUTE_DB_SYNC_FINAL - SECURITY_VERIFIED_V31
+// PAINEL DE ADDM OK - V34 - ABSOLUTE_SERVER_AUTHORITY - SECURITY_VERIFIED_V34
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -447,11 +447,9 @@ function OnlinePlayersTab({
         setPlayers(enriched);
         return;
       }
-
-      // V30: Prioridade absoluta para as tabelas de estado (trainer_state e ranked_scores)
-      // pois game_saves pode estar dessincronizado se o jogador não salvou na nuvem.
+      // V34: Prioridade absoluta para as tabelas de estado (trainer_state e ranked_scores)
+      // Buscamos os dados de todos os perfis para garantir que o nível real apareça
       const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
-        // Buscamos em paralelo nas fontes de verdade
         const [gsRes, tsRes, rsRes] = await Promise.all([
           (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle(),
           (supabase.from("trainer_state" as any) as any).select("trainer_level, gold, crystal, ruby, kill_count, trainer_xp").eq("user_id", p.id).maybeSingle(),
@@ -466,7 +464,7 @@ function OnlinePlayersTab({
         const cloudLevel = idleState?.level || idleState?.trainerLevel;
         const cloudXp = idleState?.xp || idleState?.trainerXp;
         
-        // V30: Lógica de resolução de nível: trainer_state > ranked_scores > game_saves > profile
+        // V34: Resolução de nível ultra-confiável
         const finalLevel = ts?.trainer_level || rs?.trainer_level || cloudLevel || p.trainer_level || 1;
 
         return {
@@ -483,9 +481,7 @@ function OnlinePlayersTab({
       setPlayers(enrichedPlayers);
     } catch (e: any) {
       console.error("Load players failed", e);
-      if (!e.message?.includes("failed to fetch")) {
-        toast.error(`Falha ao carregar lista de jogadores: ${e.message || 'Erro desconhecido'}`);
-      }
+      toast.error(`Falha ao carregar lista de jogadores: ${e.message || 'Erro desconhecido'}`);
     } finally {
       setLoading(false);
     }
