@@ -1,4 +1,4 @@
-// V44 - SUPABASE_BRIDGE_AUTHORITY_SYNC_CHECK
+// ENVIE O SQL
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
