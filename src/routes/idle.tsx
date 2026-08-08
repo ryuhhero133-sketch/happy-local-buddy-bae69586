@@ -1,7 +1,7 @@
 // VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V21 - RANKED_SYNC_AUTHORITY - MENU_BLUE_FONT
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { executeSeasonReset } from "@/lib/season-reset.functions";
 import { FlaskConical, Sparkles, ShieldCheck, X, Search, Settings, Map as MapIcon, Info, User, ShoppingBag, CreditCard, LayoutGrid, Heart, Star, Gift, Clock, Backpack, Store, Wallet, BookOpen, ChevronRight, ChevronDown, Plus, HelpCircle, Mail, Sword, Zap, Shield, TrendingUp, ArrowRight } from "lucide-react";
 import { obfuscate, deobfuscate } from "@/lib/utils";
 
@@ -1601,7 +1601,6 @@ function IdlePage() {
   const handleSeasonResetRitual = async () => {
     try {
       // O ritual agora é atômico e executado via RPC no servidor
-      const { executeSeasonReset } = await import("@/lib/season-reset.functions");
       const res = await executeSeasonReset();
       
       if (res?.success) {
@@ -2951,7 +2950,6 @@ function IdlePage() {
       if (!window.confirm("ATENÇÃO: Este ritual irá resetar seu nível e de seus Pokémon para 1. Toda sua COLEÇÃO será convertida em Fragmentos Vermelhos. Itens, Cofre e Ouro serão mantidos. Deseja continuar?")) {
         return;
       }
-      const { executeSeasonReset } = await import("@/lib/season-reset.functions");
       const res = await executeSeasonReset();
       if (res.success) {
         toast.success(res.message);
