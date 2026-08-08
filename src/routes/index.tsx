@@ -59,7 +59,7 @@ function Index() {
       }}>
         <h1 style={{ color: '#fecaca', marginBottom: '20px', letterSpacing: '4px' }}>IDLE MON</h1>
         <p style={{ fontSize: '14px', color: '#fca5a5', marginBottom: '10px' }}>
-          {loading ? "liberou pára todos entrar er tirou a amnutencao ?" : "ACESSO LIBERADO!"}
+          {loading ? "LIBERANDO ACESSO PARA TODOS..." : "ACESSO LIBERADO!"}
         </p>
         <p style={{ fontSize: '10px', opacity: 0.7 }}>Redirecionando para o mapa...</p>
       </div>
