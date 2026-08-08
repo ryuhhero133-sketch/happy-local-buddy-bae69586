@@ -7232,6 +7232,7 @@ function IdlePage() {
           <TabOverlay
             tab={tab}
             onClose={() => setTab("batalha")}
+            onAnciaoInteraction={handleAnciaoInteraction}
             leader={team[0]}
             team={team}
             onReorderTeam={setTeam}
