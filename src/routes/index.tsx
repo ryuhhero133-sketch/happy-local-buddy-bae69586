@@ -1,5 +1,6 @@
-// V42 - DEFINITIVE_MIGRATION_GUIDELINES
-// COMO EU REALIZO ESSE DEPLoy?
+// V43 - EDGE_FUNCTION_DEPLOY_INSTRUCTIONS
+// COMO EU REALIZO ESSE DEPLOY?
+// Siga os passos abaixo para criar a ponte de autoridade no seu Supabase.
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
