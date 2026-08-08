@@ -35,17 +35,14 @@ function createSupabaseAdminClient() {
   let env: Record<string, string | undefined> = {};
   
   try {
-    // Tentamos usar process.env se disponível (Node/Bun)
+    // 1. Tentamos usar process.env se disponível (Node/Bun)
     if (typeof process !== 'undefined' && process.env) {
       env = { ...process.env };
     }
-  } catch (e) {
-    // Ignora se process não existir
-  }
+  } catch (e) {}
 
-  // No Cloudflare Worker, as Secrets estão em globalThis (se injetadas como global) 
-  // ou precisam vir do contexto do request. Como este client é usado dentro de Server Functions,
-  // tentamos ler do escopo global se o process.env falhar.
+  // 2. No Cloudflare Worker, as Secrets podem estar em globalThis (se injetadas como global)
+  // ou precisam vir do contexto do request.
   const SUPABASE_URL = env.SUPABASE_URL || env.VITE_SUPABASE_URL || (globalThis as any).SUPABASE_URL || (globalThis as any).VITE_SUPABASE_URL || "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
   const ADMIN_SB_KEY = env.ADMIN_SB_KEY || (globalThis as any).ADMIN_SB_KEY;
   const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || (globalThis as any).SUPABASE_SERVICE_ROLE_KEY || ADMIN_SB_KEY;
