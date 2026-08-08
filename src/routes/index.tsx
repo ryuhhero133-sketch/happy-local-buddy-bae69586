@@ -11,7 +11,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, AlertTriangle, ExternalLink, Terminal, ShieldCheck, Database, Server, User } from 'lucide-react';
 import { useState } from 'react';
-import { updatePlayerStatsAdminBridge } from '@/lib/admin-bridge.functions';
+import { updatePlayerStatsAdmin } from '@/lib/admin-edge-client';
 
 export const Route = createFileRoute('/')({
   component: Index,
@@ -35,12 +35,10 @@ function Index() {
     
     try {
       // TESTE REAL: Nível 46 -> 47 para o usuário "Stinguer"
-      const result = await updatePlayerStatsAdminBridge({
-        data: {
-          targetUserId: '5bc35452-d64b-4895-83b1-c804dc3e30bb',
-          level: 47,
-          type: 'trainer'
-        }
+      const result = await updatePlayerStatsAdmin({
+        targetUserId: '5bc35452-d64b-4895-83b1-c804dc3e30bb',
+        level: 47,
+        type: 'trainer'
       });
 
       if (result.success) {

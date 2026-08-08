@@ -609,19 +609,18 @@ function OnlinePlayersTab({
       // Agora, delegamos toda a autoridade de bypass de RLS para a Server Function.
       
       // V42 - Migrado para Bridge da Edge Function
-      const { updatePlayerStatsAdminBridge } = await import('@/lib/admin-bridge.functions');
+      const { updatePlayerStatsAdmin: adminEdgeUpdate } = await import('@/lib/admin-edge-client');
 
-      // Executa a operação via autoridade da Edge Function (Supabase-Native)
-      await updatePlayerStatsAdminBridge({
-        data: {
-          targetUserId: inspectingUser,
-          level: editLevel,
-          xp: editXp,
-          snapshot: snapshot,
-          username: username,
-          craftPoints: inventory?.trainer?.craft_points || 0,
-          guildName: inventory?.trainer?.guild_name || null
-        }
+      // V53 - Invocação direta da Edge Function (JWT do admin anexado pelo SDK)
+      await adminEdgeUpdate({
+        targetUserId: inspectingUser,
+        type: 'trainer',
+        level: editLevel,
+        xp: editXp,
+        snapshot: snapshot,
+        username: username,
+        craftPoints: inventory?.trainer?.craft_points || 0,
+        guildName: inventory?.trainer?.guild_name || null
       });
 
       // Operação concluída com sucesso via Server Function
@@ -675,13 +674,11 @@ function OnlinePlayersTab({
 
   const savePokemonLevel = async (id: string, level: number) => {
     try {
-      const { updatePlayerStatsAdminBridge } = await import('@/lib/admin-bridge.functions');
-      await updatePlayerStatsAdminBridge({
-        data: {
-          targetPokemonId: id,
-          type: 'pokemon',
-          level: level
-        }
+      const { updatePlayerStatsAdmin: adminEdgeUpdate } = await import('@/lib/admin-edge-client');
+      await adminEdgeUpdate({
+        targetPokemonId: id,
+        type: 'pokemon',
+        level: level
       });
 
       toast.success("Nível do Pokémon atualizado!");
