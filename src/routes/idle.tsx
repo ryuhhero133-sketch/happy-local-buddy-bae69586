@@ -1599,12 +1599,24 @@ function IdlePage() {
   const [now, setNow] = useState(() => Date.now());
 
   const handleAnciaoInteraction = () => {
-    // Somente permite interagir se estiver no Santuário Glacial
-    if (idle.currentMap !== "santuario_glacial") {
-      pushChat("Vá até o Santuário Glacial para falar com o Ancião.", "info");
+    // Se o jogador já estiver no Santuário, abre o diálogo diretamente
+    if (idle.currentMap === "santuario_glacial") {
+      setAnciaoOpen(true);
       return;
     }
-    setAnciaoOpen(true);
+
+    // Caso contrário, teletransporta para o Santuário Glacial
+    setIdle((prev) => ({
+      ...prev,
+      currentMap: "santuario_glacial"
+    }));
+    
+    // Pequeno delay para garantir que o mapa carregue antes de abrir o diálogo
+    setTimeout(() => {
+      setAnciaoOpen(true);
+    }, 300);
+    
+    pushChat("Viajando para o Santuário Glacial...", "info");
   };
 
   // ============= Server sync (Supabase anti-cheat) =============
