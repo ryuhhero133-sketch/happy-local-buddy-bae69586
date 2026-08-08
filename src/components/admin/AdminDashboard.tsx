@@ -628,12 +628,8 @@ function OnlinePlayersTab({
         _guild_name: inventory?.trainer?.guild_name || null
       });
 
-      // Verifica erros nas operações críticas
-      const hasErrors = results.some((r: any) => r.error);
-      if (hasErrors) {
-        const firstError = results.find((r: any) => r.error)?.error;
-        throw firstError;
-      }
+      // Operação concluída com sucesso via Server Function
+      console.log("[Admin] Update successful via Server Function");
 
       // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA E AGRESSIVA)
       if (inspectingUser === identity?.id) {
