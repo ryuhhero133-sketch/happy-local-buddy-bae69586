@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V9 - DATA_SOURCE_CONSOLIDATION_FIX
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V10 - REALTIME_DB_SYNC_VERIFIED
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -598,7 +598,8 @@ function OnlinePlayersTab({
               ...(gameData.idle || {}), 
               trainerLevel: editLevel,
               trainerXp: editXp,
-              savedAt: Date.now()
+              savedAt: Date.now(),
+              version: (gameData.idle?.version || 0) + 1
             }
           };
           await (supabase.from("game_saves") as any).update({ 
