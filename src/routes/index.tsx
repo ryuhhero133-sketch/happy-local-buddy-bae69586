@@ -1,5 +1,5 @@
-// V46 - EDGE_FUNCTION_FINAL_AUTHORITY_VERIFIED
-// Auditoria de Tabelas: trainer_state, ranked_scores e profiles confirmadas.
+// V47 - SECURE_EDGE_AUTHORITY_VERIFIED
+// Auditoria: trainer_state, ranked_scores e profiles protegidas por Auth e Admin check.
 
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -56,7 +56,7 @@ function Index() {
       <div className="max-w-4xl w-full space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tighter text-blue-400">IDLEMON BACKEND AUTHORITY</h1>
-          <p className="text-slate-400">Versão V46 - Edge Function Final Audit</p>
+          <p className="text-slate-400">Versão V47 - Secure Edge Authority</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
