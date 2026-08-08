@@ -30,22 +30,19 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseAdminClient() {
-  // V35: Padronização absoluta para ambiente TanStack Start (Server Functions)
-  // O sandbox Lovable usa process.env para secrets no lado do servidor.
-  // VITE_ prefixado é para o bundle do cliente, o que NÃO queremos para chaves administrativas.
-  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  
-  // NOME PADRONIZADO: SUPABASE_SERVICE_ROLE_KEY (padrão) ou ADMIN_SB_KEY (usado anteriormente no projeto)
+  // V36: Diagnóstico de Runtime. SUPABASE_URL é lida do .env, ADMIN_SB_KEY do Secrets.
+  // No Bun (runtime do TanStack Start), as variáveis do .env e Secrets são mescladas no process.env.
+  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_SB_KEY;
+
+  console.log(`[SupabaseAdmin] Runtime Check: URL=${!!SUPABASE_URL}, KEY=${!!SUPABASE_SERVICE_ROLE_KEY}`);
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     const missing = [];
     if (!SUPABASE_URL) missing.push('SUPABASE_URL');
-    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY / ADMIN_SB_KEY');
+    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('ADMIN_SB_KEY/SUPABASE_SERVICE_ROLE_KEY');
     
-    const errorMsg = `Configuração incompleta no SERVIDOR: ${missing.join(', ')}. Certifique-se de que as Secrets estão configuradas corretamente no painel do Lovable (Settings -> Secrets). O servidor não consegue ver as chaves.`;
-    console.error(`[SupabaseAdmin] ${errorMsg}`);
-    throw new Error(errorMsg);
+    throw new Error(`Erro de Configuração no Servidor: ${missing.join(', ')} ausente. Verifique se as Secrets no Lovable estão configuradas.`);
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
