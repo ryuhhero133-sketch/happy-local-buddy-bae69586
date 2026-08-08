@@ -399,6 +399,7 @@ function OnlinePlayersTab({
   setTab: (t: TabId) => void; 
   setTargetQuery: (s: string) => void; 
 }) {
+  const identity = useMemo(() => loadIdentity(), []);
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [inspectingUser, setInspectingUser] = useState<string | null>(null);
@@ -414,7 +415,7 @@ function OnlinePlayersTab({
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username, last_login, account_status, lock_until")
-        .order("last_login", { ascending: false });
+        .order("username", { ascending: true });
       
       // Se profiles falhar por colunas faltantes, tenta uma query básica sem as colunas de segurança
       if (profilesError) {
@@ -540,42 +541,42 @@ function OnlinePlayersTab({
   const saveTrainerStats = async () => {
     if (!inspectingUser || editLevel === null || editXp === null) return;
     try {
-      // Tentar atualizar usando as tabelas diretamente para contornar RPC ausente
+      // 1. Atualizar trainer_state (fonte primária do jogo)
       const { error: stateError } = await (supabase.from("trainer_state" as any) as any).update({
         trainer_level: editLevel,
         trainer_xp: editXp,
         updated_at: new Date().toISOString()
       }).eq("user_id", inspectingUser);
       
-      if (stateError) {
-        console.warn("Failed to update trainer_state directly:", stateError);
-      }
+      if (stateError) throw stateError;
 
+      // 2. Atualizar ranked_scores (usado pelo ranking e pela lista de jogadores do painel)
       const { error: rankedError } = await (supabase.from("ranked_scores") as any).update({
         trainer_level: editLevel,
         updated_at: new Date().toISOString()
       }).eq("user_id", inspectingUser);
 
-      if (rankedError) {
-        console.warn("Failed to update ranked_scores directly:", rankedError);
-      }
+      if (rankedError) console.warn("Failed to update ranked_scores directly:", rankedError);
 
-      // Tenta a RPC por último, mas não trava se falhar (pois já atualizamos as tabelas)
+      // 3. Atualizar record em ranked_leaderboard se existir
       try {
-        await (supabase.rpc as any)('admin_update_trainer_stats', {
-          target_user_id: inspectingUser,
-          new_level: editLevel,
-          new_xp: editXp
-        });
-      } catch (rpcErr) {
-        console.warn("RPC admin_update_trainer_stats failed, but direct updates were attempted.", rpcErr);
+        await (supabase.from("ranked_leaderboard" as any) as any).update({
+          trainer_level: editLevel,
+          score: editLevel * 100,
+          updated_at: new Date().toISOString()
+        }).eq("user_id", inspectingUser);
+      } catch (e) {}
+
+      // 4. Se o usuário for o próprio admin, atualiza o estado local para ver a mudança sem refresh
+      if (inspectingUser === identity?.id) {
+        window.dispatchEvent(new CustomEvent("rubym:sync_stats", { detail: { level: editLevel, xp: editXp } }));
       }
 
       toast.success("Status do treinador atualizados!");
       refresh();
       inspectPlayer(inspectingUser);
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(`Falha ao salvar: ${e.message}`);
     }
   };
 
