@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V10 - REALTIME_DB_SYNC_VERIFIED
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V11 - SAVE_SYNC_PRIORITY_FIX
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -553,43 +553,18 @@ function OnlinePlayersTab({
   const saveTrainerStats = async () => {
     if (!inspectingUser || editLevel === null || editXp === null) return;
     try {
-      // 1. Atualizar trainer_state (fonte primária do jogo)
-      const { error: stateError } = await (supabase.from("trainer_state" as any) as any).update({
-        trainer_level: editLevel,
-        trainer_xp: editXp,
-        updated_at: new Date().toISOString()
-      }).eq("user_id", inspectingUser);
-      
-      if (stateError) throw stateError;
+      toast.info("Sincronizando dados com o servidor...");
 
-      // 2. Atualizar ranked_scores (usado pelo ranking e pela lista de jogadores do painel)
-      const { error: rankedError } = await (supabase.from("ranked_scores") as any).update({
-        trainer_level: editLevel,
-        updated_at: new Date().toISOString()
-      }).eq("user_id", inspectingUser);
-
-      if (rankedError) console.warn("Failed to update ranked_scores directly:", rankedError);
-
-      // 2.1. Atualizar profiles (usado para login e redundância)
-      const { error: profileUpdateError } = await (supabase.from("profiles") as any).update({
-        trainer_level: editLevel,
-        updated_at: new Date().toISOString()
-      }).eq("id", inspectingUser);
-
-      if (profileUpdateError) console.warn("Failed to update profiles trainer_level:", profileUpdateError);
-
-      // 3. Atualizar record em ranked_leaderboard se existir
+      // 1. Primeiro passo: Sincronizar o game_saves blob (é o que o cliente Idle Mon lê primeiro)
+      // Se não atualizarmos isso, o useServerSync vai sobrescrever trainer_state no próximo push.
       try {
-        await (supabase.from("ranked_leaderboard" as any) as any).update({
-          trainer_level: editLevel,
-          score: editLevel * 100,
-          updated_at: new Date().toISOString()
-        }).eq("user_id", inspectingUser);
-      } catch (e) {}
+        const { data: gameSave, error: fetchErr } = await (supabase.from("game_saves") as any)
+          .select("data")
+          .eq("user_id", inspectingUser)
+          .maybeSingle();
+        
+        if (fetchErr) throw fetchErr;
 
-      // 3.1. Sincronizar save da nuvem (game_saves) para evitar rollback do cliente
-      try {
-        const { data: gameSave } = await (supabase.from("game_saves") as any).select("data").eq("user_id", inspectingUser).maybeSingle();
         if (gameSave?.data) {
           const gameData = gameSave.data as any;
           const newData = { 
@@ -599,35 +574,60 @@ function OnlinePlayersTab({
               trainerLevel: editLevel,
               trainerXp: editXp,
               savedAt: Date.now(),
-              version: (gameData.idle?.version || 0) + 1
+              version: (gameData.idle?.version || 0) + 100 // Pulo maior na versão para garantir prioridade
             }
           };
-          await (supabase.from("game_saves") as any).update({ 
+          
+          const { error: syncErr } = await (supabase.from("game_saves") as any).update({ 
             data: newData,
             updated_at: new Date().toISOString()
           }).eq("user_id", inspectingUser);
-          console.log("Cloud save synchronized with new trainer stats.");
+          
+          if (syncErr) throw syncErr;
+          console.log("Cloud save synchronized (Priority Update).");
         }
       } catch (e) {
-        console.warn("Failed to sync game_saves blob:", e);
+        console.warn("Falha crítica ao sincronizar game_saves blob:", e);
+        toast.error("Erro ao sincronizar blob de salvamento. As alterações podem ser perdidas.");
       }
 
-      // 3.2. Incrementar lock_until para deslogar o jogador (força reconexão e reidratação)
+      // 2. Atualizar trainer_state (fonte secundária, mas essencial para anti-cheat)
+      const { error: stateError } = await (supabase.from("trainer_state" as any) as any).update({
+        trainer_level: editLevel,
+        trainer_xp: editXp,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", inspectingUser);
+      
+      if (stateError) throw stateError;
+
+      // 3. Atualizar ranked_scores (usado pelo ranking)
+      await (supabase.from("ranked_scores") as any).update({
+        trainer_level: editLevel,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", inspectingUser);
+
+      // 4. Atualizar profiles (redundância e metadados de login)
+      await (supabase.from("profiles") as any).update({
+        trainer_level: editLevel,
+        updated_at: new Date().toISOString()
+      }).eq("id", inspectingUser);
+
+      // 5. Forçar Logout / Lock (Refresh do Cliente)
       try {
-        const kickTime = new Date(Date.now() + 5000).toISOString(); // 5 segundos de trava
+        // Aumentamos para 8 segundos para garantir que o Supabase propague os dados
+        const kickTime = new Date(Date.now() + 8000).toISOString(); 
         await (supabase.from("profiles") as any).update({ 
           lock_until: kickTime,
           updated_at: new Date().toISOString()
         }).eq("id", inspectingUser);
-        console.log("Player session locked for refresh.");
+        console.log("Player session locked for forced refresh.");
       } catch (e) {
         console.warn("Failed to set lock_until:", e);
       }
 
-      // 4. Se o usuário for o próprio admin, atualiza o estado local para ver a mudança sem refresh
+      // 6. Atualização local para o Admin
       if (inspectingUser === identity?.id) {
         window.dispatchEvent(new CustomEvent("rubym:sync_stats", { detail: { level: editLevel, xp: editXp } }));
-        // Forçar persistência imediata no localStorage do admin
         const raw = localStorage.getItem("rubym.idle.v1");
         if (raw) {
           try {
@@ -636,28 +636,20 @@ function OnlinePlayersTab({
             if (idle) {
               idle.trainerLevel = editLevel;
               idle.trainerXp = editXp;
+              idle.version = (idle.version || 0) + 100;
               localStorage.setItem("rubym.idle.v1", obfuscate(idle));
             }
           } catch (e) {}
         }
       }
 
-      toast.success("Status do treinador atualizados! Recarregando aplicação do jogador...");
-      
-      // 5. Emitir evento global que pode ser captado por um sistema de Broadcast se implementado,
-      // ou apenas forçar o refresh do admin localmente.
+      toast.success("Nível atualizado com sucesso! O jogador será desconectado para sincronizar.");
       refresh();
       inspectPlayer(inspectingUser);
-
-      // 6. Tentar notificar o cliente via um canal de tempo real se necessário.
-      // Como não temos um sistema de push server-to-client genérico aqui além do RLS, 
-      // orientamos que o admin informe ao jogador ou aguarde o próximo autosave do jogador sobrescrever/sincronizar.
       
-      // Para o próprio admin ver a mudança:
       if (inspectingUser === identity?.id) {
-        window.location.reload();
+        setTimeout(() => window.location.reload(), 1000);
       }
-      inspectPlayer(inspectingUser);
     } catch (e: any) {
       toast.error(`Falha ao salvar: ${e.message}`);
     }
