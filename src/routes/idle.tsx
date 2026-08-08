@@ -1600,11 +1600,14 @@ function IdlePage() {
 
   const handleSeasonResetRitual = async () => {
     try {
+      // O ritual agora é atômico e executado via RPC no servidor
       const { executeSeasonReset } = await import("@/lib/season-reset.functions");
       const res = await executeSeasonReset();
+      
       if (res?.success) {
-        toast.success(res.message || "Nova Jornada iniciada!");
-        window.location.reload();
+        toast.success(res.message || "Nova Jornada iniciada! Fragmentos Vermelhos recebidos.");
+        // Pequeno delay para o jogador ver o toast antes de recarregar
+        setTimeout(() => window.location.reload(), 1500);
       } else {
         toast.error(res?.message || "Não foi possível realizar o ritual.");
       }
