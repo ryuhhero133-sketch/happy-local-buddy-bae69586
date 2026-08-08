@@ -2,7 +2,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { executeSeasonReset } from "@/lib/season-reset.functions";
+
 import { FlaskConical, Sparkles, ShieldCheck, X, Search, Settings, Map as MapIcon, Info, User, ShoppingBag, CreditCard, LayoutGrid, Heart, Star, Gift, Clock, Backpack, Store, Wallet, BookOpen, ChevronRight, ChevronDown, Plus, HelpCircle, Mail, Sword, Zap, Shield, TrendingUp, ArrowRight } from "lucide-react";
 import { obfuscate, deobfuscate } from "@/lib/utils";
 
