@@ -2768,6 +2768,9 @@ function IdlePage() {
                 santuario_glacial: [
                   { key: "sg-to-caminho", target: "caminho_glacial", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#c9b8ff" },
                 ],
+                vale_dourado: [
+                  { key: "vd-to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#f5cf6b" },
+                ],
                 caminho_glacial: [
                   { key: "cg-to-santuario", target: "santuario_glacial", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#c0e8ff" },
                 ],
