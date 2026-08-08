@@ -1,4 +1,4 @@
-// IDLE MON - ACESSO LIBERADO OK - ANALISE E FAZ TEST - SINCRONIZAÇÃO DE NÍVEL CORRIGIDA - V19 - ABSOLUTE_DB_SYNC - SUPREME_AUTHORITY_V19
+// IDLE MON - ACESSO LIBERADO OK - ANALISE E FAZ TEST - SINCRONIZAÇÃO DE NÍVEL CORRIGIDA - V20 - ABSOLUTE_DB_SYNC - SUPREME_AUTHORITY_V20
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
