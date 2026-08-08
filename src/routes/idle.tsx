@@ -1595,6 +1595,7 @@ function IdlePage() {
   }, [team.length, team[0]?.uid, team[0]?.level, spawnEnemies, idle.currentMap]);
 
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [anciaoOpen, setAnciaoOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
   // ============= Server sync (Supabase anti-cheat) =============
