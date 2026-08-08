@@ -192,32 +192,62 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!, 
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) throw new Error("Não autorizado: Token ausente")
+
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const { data: { user }, error: authError } = await userClient.auth.getUser()
+    if (authError || !user) throw new Error("Não autorizado: Token inválido")
+
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
-    
+
+    const adminEmails = ["lordryuhhhuyuyghh@gmail.com"]
+    const adminUuids = ["61b4d001-c8c3-424d-862d-0b798782f9d6"]
+    const isAdmin = adminEmails.includes(user.email!) || adminUuids.includes(user.id)
+
+    if (!isAdmin) throw new Error("Acesso negado: Somente administradores")
+
     const { targetUserId, level, type } = await req.json()
-    if (type !== 'trainer' || !targetUserId) throw new Error("Invalid request")
+    if (type !== 'trainer' || !targetUserId) throw new Error("Payload inválido")
+    
+    const newLevel = Math.max(1, Math.min(10000, Math.floor(Number(level))))
 
-    console.log(\`[AdminUpdate] User \${targetUserId} -> Level \${level}\`)
+    console.log(\`[AdminUpdate] By \${user.email}: \${targetUserId} -> Level \${newLevel}\`)
 
-    // ATUALIZAÇÃO SINCRONIZADA EM 3 PONTOS DE AUTORIDADE
-    const results = await Promise.all([
-      supabase.from('trainer_state').update({ trainer_level: level }).eq('user_id', targetUserId),
-      supabase.from('ranked_scores').update({ trainer_level: level }).eq('user_id', targetUserId),
-      supabase.from('profiles').update({ trainer_level: level }).eq('id', targetUserId)
-    ])
+    // OPERAÇÃO ATÔMICA VIA RPC PARA GARANTIR CONSISTÊNCIA
+    // Você deve criar esta função no Supabase primeiro:
+    /*
+    CREATE OR REPLACE FUNCTION admin_atomic_level_update(target_user_id UUID, new_level INT)
+    RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+    BEGIN
+      UPDATE public.trainer_state SET trainer_level = new_level WHERE user_id = target_user_id;
+      UPDATE public.ranked_scores SET trainer_level = new_level WHERE user_id = target_user_id;
+      UPDATE public.profiles SET trainer_level = new_level WHERE id = target_user_id;
+    END;
+    $$;
+    */
 
-    const error = results.find(r => r.error)?.error
+    const { error } = await adminClient.rpc('admin_atomic_level_update', {
+      target_user_id: targetUserId,
+      new_level: newLevel
+    })
+
     if (error) throw error
 
-    return new Response(JSON.stringify({ success: true, updatedLevel: level }), { 
+    return new Response(JSON.stringify({ success: true, updatedLevel: newLevel }), { 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     })
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { 
-      status: 400, headers: corsHeaders 
+      status: 401, headers: corsHeaders 
     })
   }
 })`}
