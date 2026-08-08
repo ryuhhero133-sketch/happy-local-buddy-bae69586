@@ -235,15 +235,20 @@ export function AuthGate({ children }: { children: ReactNode }) {
       }
 
       try {
-        const { data: config } = await (supabase as any)
+        const { data: config, error: cfgErr } = await (supabase as any)
           .from("server_config")
           .select("value")
           .eq("key", "maintenance_mode")
           .maybeSingle();
-        setMaintenance(config?.value === "true" || config?.value === true);
+        // FAIL-CLOSED: só libera se o banco disser explicitamente 'false'
+        const off = config && (config.value === "false" || config.value === false);
+        if (cfgErr) warn("Erro config manutenção", cfgErr);
+        setMaintenance(!off);
       } catch (e) {
         warn("Erro ao verificar manutenção", e);
+        setMaintenance(true);
       }
+
 
 
       // Se a sessão sumiu (ex: deletada via SQL), forçamos o estado local para deslogado
