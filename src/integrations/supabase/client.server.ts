@@ -30,21 +30,21 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseAdminClient() {
+  // No sandbox, as variáveis de ambiente podem estar no process.env ou import.meta.env
+  // Mas para Node/Worker runtime (TanStack Start Server Functions), process.env é o correto.
   const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  // V31: Mapeamento definitivo e forçado da chave de administrador.
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_SB_KEY;
+  // V33: PRIORIDADE ABSOLUTA PARA ADMIN_SB_KEY (configurada via Secrets do Painel Admin)
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.ADMIN_SB_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     const missing = [];
     if (!SUPABASE_URL) missing.push('SUPABASE_URL');
     if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY / ADMIN_SB_KEY');
     
-    // Log detalhado para o ambiente Lovable
-    console.error(`[CRITICAL] Falha na configuração administrativa. Chaves ausentes: ${missing.join(', ')}`);
-    console.log(`[DEBUG] SUPABASE_URL: ${!!SUPABASE_URL}, RoleKey: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}, AdminKey: ${!!process.env.ADMIN_SB_KEY}`);
+    console.error(`[SupabaseAdmin] Configuração incompleta. URL: ${!!SUPABASE_URL}, Key: ${!!SUPABASE_SERVICE_ROLE_KEY}`);
     
-    const message = `Configuração incompleta: ${missing.join(', ')}. Certifique-se de conectar o Supabase e configurar a ADMIN_SB_KEY.`;
-    throw new Error(message);
+    // Se falhar, lançamos erro com instrução clara.
+    throw new Error(`Erro de Configuração Supabase: Certifique-se de que a variável ADMIN_SB_KEY (service_role) está definida no painel de segredos (Settings -> Secrets).`);
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
