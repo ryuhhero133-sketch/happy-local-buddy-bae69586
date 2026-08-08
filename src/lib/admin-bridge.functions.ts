@@ -30,32 +30,39 @@ export const updatePlayerStatsAdminBridge = createServerFn({ method: "POST" })
 
     try {
       // Chamada para a Supabase Edge Function
-      // A autorização será validada LÁ usando o Bearer Token do Admin ou uma chave de serviço interna do Supabase
       const response = await fetch(EDGE_FUNCTION_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // O token do admin logado pode ser passado aqui se necessário
+          // Note: Se a função no Supabase for protegida, ela precisará de um Authorization header.
+          // Como estamos em um ambiente server-side (Worker), poderíamos usar a anon key ou o token do usuário.
         },
         body: JSON.stringify(data)
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[AdminBridge] Edge Function falhou:", errorText);
-        throw new Error(`Erro na Edge Function: ${errorText}`);
+        const status = response.status;
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = await response.text();
+        }
+
+        console.error(`[AdminBridge] Edge Function falhou (Status: ${status}):`, errorData);
+
+        if (status === 404) {
+          throw new Error("A Edge Function 'admin-update-player' não foi encontrada no seu projeto Supabase. Certifique-se de realizar o deploy da função no painel do Supabase.");
+        }
+
+        const message = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        throw new Error(`Erro na Edge Function (${status}): ${message}`);
       }
 
       const result = await response.json();
       return { success: true, ...result };
     } catch (err: any) {
       console.error("[AdminBridge] Falha na ponte:", err);
-      
-      // FALLBACK MENSAGEM: Se a Edge Function ainda não existir, informamos o status
-      if (err.message.includes("404")) {
-         throw new Error("Supabase Edge Function 'admin-update-player' não encontrada. Certifique-se de realizar o deploy no Supabase.");
-      }
-      
       throw new Error(err.message || "Erro ao conectar com a autoridade administrativa do Supabase.");
     }
   });

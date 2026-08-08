@@ -1,5 +1,6 @@
-// V42 - DEFINITIVE_MIGRATION_GUIDELINES
-// COMO EU REALIZO ESSE DEPLoy?
+// V43 - EDGE_FUNCTION_DEPLOY_INSTRUCTIONS
+// COMO EU REALIZO ESSE DEPLOY?
+// Siga os passos abaixo para criar a ponte de autoridade no seu Supabase.
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
@@ -389,6 +390,21 @@ Depois criaremos o:
 SEASON RESET CIRÚRGICO
 
 separadamente.
+
+============================================================
+COMO REALIZAR O DEPLOY DA EDGE FUNCTION
+============================================================
+
+O erro "NOT_FOUND" indica que a função ainda não existe no seu Supabase.
+Para corrigir, você precisa criar a função 'admin-update-player' no seu projeto Supabase:
+
+1. Instale a CLI do Supabase localmente.
+2. Execute: supabase functions new admin-update-player
+3. Cole o código da função (que validará o Admin e usará a Service Role).
+4. Execute: supabase functions deploy admin-update-player
+5. Defina a Secret no Supabase: supabase secrets set SERVICE_ROLE_KEY=sua_chave_aqui
+
+A arquitetura TanStack Start + Cloudflare agora está pronta para se conectar assim que a função estiver ativa.
 
 ============================================================
 12. COMPATIBILIDADE COM O JOGO
