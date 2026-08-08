@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - V28 - SERVER_AUTHORITY_SYNC - SECURITY_VERIFIED_V28
+// PAINEL DE ADDM OK - V29 - ABSOLUTE_DB_SYNC - SECURITY_VERIFIED_V29
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
