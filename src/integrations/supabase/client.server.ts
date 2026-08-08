@@ -3,7 +3,7 @@
 // Use this for admin operations in server functions and server routes only.
 // For user-authenticated queries (with RLS), use the auth middleware instead.
 import { createClient } from '@supabase/supabase-js';
-import { getEvent } from 'vinxi/http';
+import { getEvent } from 'h3';
 import type { Database } from './types';
 
 function isNewSupabaseApiKey(value: string): boolean {
@@ -37,7 +37,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 function getRuntimeEnv(): Record<string, string | undefined> {
   const env: Record<string, any> = {};
 
-  // 1. Tentar contexto do Vinxi/H3 (Edge Runtime)
+  // 1. Tentar contexto do H3 (Nitro/Edge Runtime)
   try {
     const event = getEvent();
     const cfEnv = (event?.context as any)?.cloudflare?.env;
@@ -55,7 +55,7 @@ function getRuntimeEnv(): Record<string, string | undefined> {
     }
   } catch (e) {}
 
-  // 3. Fallback para globalThis (último recurso, desencorajado)
+  // 3. Fallback para globalThis (último recurso)
   const g = globalThis as any;
   if (g.ADMIN_SB_KEY) env.ADMIN_SB_KEY = g.ADMIN_SB_KEY;
   if (g.SUPABASE_URL) env.SUPABASE_URL = g.SUPABASE_URL;

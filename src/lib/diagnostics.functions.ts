@@ -1,24 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getEvent } from "vinxi/http";
+import { getEvent } from "h3";
 
 export const getAdminDiagnostics = createServerFn({ method: "GET" })
   .handler(async () => {
     let env: Record<string, any> = {};
     
-    // 1. Tentar process.env
-    try {
-      if (typeof process !== 'undefined' && process.env) {
-        env = { ...env, ...process.env };
-      }
-    } catch (e) {}
-
-    // 2. Tentar Contexto do Vinxi/H3 (Nitro)
+    // 1. Tentar Contexto do H3 (Nitro) - Caminho oficial no TanStack Start
     try {
       const event = getEvent();
       // No Cloudflare Worker, o Nitro injeta os bindings em event.context.cloudflare.env
       const cfEnv = (event?.context as any)?.cloudflare?.env;
       if (cfEnv) {
         env = { ...env, ...cfEnv };
+      }
+    } catch (e) {}
+
+    // 2. Tentar process.env (Node/Bun/Preview)
+    try {
+      if (typeof process !== 'undefined' && process.env) {
+        env = { ...env, ...process.env };
       }
     } catch (e) {}
 
@@ -33,6 +33,6 @@ export const getAdminDiagnostics = createServerFn({ method: "GET" })
       RUNTIME: (globalThis as any).caches ? "Cloudflare Worker (Edge)" : "Node/Bun",
       HAS_PROCESS_ENV: typeof process !== 'undefined',
       HAS_GLOBAL_KEY: !!(globalThis as any).ADMIN_SB_KEY,
-      HAS_VINXI_CONTEXT: !!env.ADMIN_SB_KEY && !process.env?.ADMIN_SB_KEY
+      HAS_NITRO_CONTEXT: !!((getEvent()?.context as any)?.cloudflare?.env?.ADMIN_SB_KEY)
     };
   });
