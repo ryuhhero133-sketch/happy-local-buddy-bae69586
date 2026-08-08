@@ -472,6 +472,7 @@ const worldMapContinent2Url = assetUrlFromJson(worldMapContinent2Asset);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const gameDb = supabase as any;
 
+const npcAnciaoGlacialUrl = assetUrlFromJson(npcAnciaoGlacialAsset);
 const potionIconUrl = assetUrlFromJson(potionIconAsset);
 const bgmUrl = assetUrlFromJson(bgmAsset);
 const sfxLevelUpUrl = assetUrlFromJson(sfxLevelUpAsset);
