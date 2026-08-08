@@ -11195,6 +11195,13 @@ function IdlePage() {
         </div>
       )}
 
+      {/* ❄️ Diálogo do Ancião Glacial — Ritual da Nova Jornada */}
+      <AnciaoGlacialDialog
+        open={anciaoOpen}
+        onClose={() => setAnciaoOpen(false)}
+        onConfirm={handleSeasonResetRitual}
+      />
+
 
       {/* Botão flutuante: resgatar código */}
       <button
