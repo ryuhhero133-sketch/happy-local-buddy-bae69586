@@ -13189,6 +13189,7 @@ function TabOverlay({
     }}>
 
 
+
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
         <h2 style={{ 
           margin: 0, fontSize: 22, color: "#c9b8ff", 
