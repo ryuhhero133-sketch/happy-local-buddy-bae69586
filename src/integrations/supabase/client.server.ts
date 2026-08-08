@@ -31,17 +31,19 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 function createSupabaseAdminClient() {
   const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  // V26: Mapeamento definitivo de ADMIN_SB_KEY para SUPABASE_SERVICE_ROLE_KEY se necessário.
+  // V31: Mapeamento definitivo e forçado da chave de administrador.
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_SB_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-      ...(!SUPABASE_SERVICE_ROLE_KEY ? ['SUPABASE_SERVICE_ROLE_KEY / ADMIN_SB_KEY'] : []),
-    ];
-    // Fallback log for debugging
-    console.error(`[Supabase Admin Config] Status - URL: ${!!SUPABASE_URL}, RoleKey: ${!!SUPABASE_SERVICE_ROLE_KEY}`);
-    const message = `Configuração do Supabase incompleta no servidor: ${missing.join(', ')}. Certifique-se de que ADMIN_SB_KEY está configurada no painel de segredos.`;
+    const missing = [];
+    if (!SUPABASE_URL) missing.push('SUPABASE_URL');
+    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY / ADMIN_SB_KEY');
+    
+    // Log detalhado para o ambiente Lovable
+    console.error(`[CRITICAL] Falha na configuração administrativa. Chaves ausentes: ${missing.join(', ')}`);
+    console.log(`[DEBUG] SUPABASE_URL: ${!!SUPABASE_URL}, RoleKey: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}, AdminKey: ${!!process.env.ADMIN_SB_KEY}`);
+    
+    const message = `Configuração incompleta: ${missing.join(', ')}. Certifique-se de conectar o Supabase e configurar a ADMIN_SB_KEY.`;
     throw new Error(message);
   }
 

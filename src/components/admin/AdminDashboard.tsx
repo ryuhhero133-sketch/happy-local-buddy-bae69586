@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - V28 - SERVER_AUTHORITY_SYNC - SECURITY_VERIFIED_V28
+// PAINEL DE ADDM OK - V31 - ABSOLUTE_DB_SYNC_FINAL - SECURITY_VERIFIED_V31
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -448,27 +448,35 @@ function OnlinePlayersTab({
         return;
       }
 
-      // V20: Prioridade absoluta para game_saves (autoridade máxima) e trainer_state
+      // V30: Prioridade absoluta para as tabelas de estado (trainer_state e ranked_scores)
+      // pois game_saves pode estar dessincronizado se o jogador não salvou na nuvem.
       const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
-        const { data: gs } = await (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle();
-        const { data: ts } = await (supabase.from("trainer_state" as any) as any).select("trainer_level, gold, crystal, ruby, kill_count, trainer_xp").eq("user_id", p.id).maybeSingle();
-        const { data: rs } = await supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle();
+        // Buscamos em paralelo nas fontes de verdade
+        const [gsRes, tsRes, rsRes] = await Promise.all([
+          (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle(),
+          (supabase.from("trainer_state" as any) as any).select("trainer_level, gold, crystal, ruby, kill_count, trainer_xp").eq("user_id", p.id).maybeSingle(),
+          supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle()
+        ]);
+
+        const gs = gsRes.data as any;
+        const ts = tsRes.data as any;
+        const rs = rsRes.data as any;
         
-        const idleState = (gs?.data as any)?.idle;
+        const idleState = gs?.data?.idle;
         const cloudLevel = idleState?.level || idleState?.trainerLevel;
         const cloudXp = idleState?.xp || idleState?.trainerXp;
         
-        // V20: Extração profunda do nível real do treinador
-        const finalLevel = cloudLevel || (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1;
+        // V30: Lógica de resolução de nível: trainer_state > ranked_scores > game_saves > profile
+        const finalLevel = ts?.trainer_level || rs?.trainer_level || cloudLevel || p.trainer_level || 1;
 
         return {
           ...p,
           trainer_level: finalLevel,
-          trainer_xp: cloudXp || (ts as any)?.trainer_xp || 0,
-          gold: (ts as any)?.gold ?? p.gold ?? 0,
-          crystal: (ts as any)?.crystal ?? p.crystal ?? 0,
-          ruby: (ts as any)?.ruby ?? p.ruby ?? 0,
-          kill_count: (ts as any)?.kill_count ?? (rs as any)?.total_kills ?? p.kill_count ?? 0
+          trainer_xp: ts?.trainer_xp || cloudXp || 0,
+          gold: ts?.gold ?? p.gold ?? 0,
+          crystal: ts?.crystal ?? p.crystal ?? 0,
+          ruby: ts?.ruby ?? p.ruby ?? 0,
+          kill_count: ts?.kill_count ?? rs?.total_kills ?? p.kill_count ?? 0
         };
       }));
 
