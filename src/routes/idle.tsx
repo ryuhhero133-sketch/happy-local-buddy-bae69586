@@ -16332,7 +16332,8 @@ function AnciaoGlacialDialog({
 
   return createPortal(
     <div
-      onClick={onClose}
+      onClick={forced ? undefined : onClose}
+
       style={{
         position: "fixed", inset: 0, zIndex: 20000,
         background: "radial-gradient(ellipse at center, rgba(10,30,60,0.85), rgba(0,0,0,0.95))",
