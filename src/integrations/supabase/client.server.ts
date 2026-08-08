@@ -31,15 +31,17 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 function createSupabaseAdminClient() {
   const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  // V24: Usando SUPABASE_SERVICE_ROLE_KEY como padrão, caindo para ADMIN_SB_KEY se necessário.
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_SB_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     const missing = [
       ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-        ...(!SUPABASE_SERVICE_ROLE_KEY ? ['SUPABASE_ADMIN_KEY'] : []),
+      ...(!SUPABASE_SERVICE_ROLE_KEY ? ['SUPABASE_SERVICE_ROLE_KEY / ADMIN_SB_KEY'] : []),
     ];
+    // Adicionando log de depuração para ambiente
+    console.error(`[Supabase Admin] Erro de Configuração. URL: ${!!SUPABASE_URL}, KEY: ${!!SUPABASE_SERVICE_ROLE_KEY}`);
     const message = `Configuração do Supabase incompleta no servidor: ${missing.join(', ')}.`;
-    console.error(`[Supabase] ${message}`);
     throw new Error(message);
   }
 
