@@ -449,15 +449,19 @@ function OnlinePlayersTab({
 
       // Se profiles funcionou, ainda assim vamos enriquecer com trainer_state que é a fonte de verdade mais quente
       const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
-        const { data: ts } = await (supabase.from("trainer_state") as any).select("trainer_level, gold, crystal, ruby, kill_count").eq("user_id", p.id).maybeSingle();
+        const { data: ts } = await (supabase.from("trainer_state") as any).select("trainer_level, gold, crystal, ruby, kill_count, trainer_xp").eq("user_id", p.id).maybeSingle();
         const { data: rs } = await supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle();
         const { data: gs } = await (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle();
         
-        let cloudLevel = (gs?.data as any)?.idle?.trainerLevel;
+        // No Idle Mon o estado do jogador é salvo dentro do objeto 'idle' no JSON
+        const idleState = (gs?.data as any)?.idle;
+        const cloudLevel = idleState?.level || idleState?.trainerLevel;
+        const cloudXp = idleState?.xp || idleState?.trainerXp;
         
         return {
           ...p,
           trainer_level: cloudLevel || (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1,
+          trainer_xp: cloudXp || (ts as any)?.trainer_xp || 0,
           gold: (ts as any)?.gold ?? p.gold ?? 0,
           crystal: (ts as any)?.crystal ?? p.crystal ?? 0,
           ruby: (ts as any)?.ruby ?? p.ruby ?? 0,
