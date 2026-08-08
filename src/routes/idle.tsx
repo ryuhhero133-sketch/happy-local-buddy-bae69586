@@ -2946,22 +2946,82 @@ function IdlePage() {
       void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
     }
   };
-  const handleSeasonReset = async () => {
+  const handleSeasonReset = async (skipConfirm = false) => {
     try {
-      if (!window.confirm("ATENÇÃO: Este ritual irá resetar seu nível e de seus Pokémon para 1. Toda sua COLEÇÃO será convertida em Fragmentos Vermelhos. Itens, Cofre e Ouro serão mantidos. Deseja continuar?")) {
+      if (!skipConfirm && !window.confirm("ATENÇÃO: Este ritual irá resetar seu nível e de seus Pokémon para 1. Toda sua COLEÇÃO será convertida em Fragmentos Vermelhos. Itens, Cofre e Ouro serão mantidos. Deseja continuar?")) {
         return;
       }
-      
-      const res = await executeSeasonReset();
-      if (res?.success) {
-        toast.success(res.message);
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        toast.error(res?.message || "Não foi possível realizar o ritual.");
+
+      const cur = idleRef.current;
+      if (cur.redeemedCodes?.RESETPERSON) {
+        toast.error("O Ritual da Nova Jornada já foi realizado nesta conta.");
+        return;
       }
+
+      // 1) Coleção -> Fragmentos Vermelhos (1 por Pokémon guardado)
+      const colCount = Array.isArray(cur.collection) ? cur.collection.length : 0;
+      const nextItems: Record<string, number> = { ...(cur.items ?? {}) };
+      nextItems.fragmento_vermelho = (nextItems.fragmento_vermelho ?? 0) + colCount;
+
+      // 2) Time e reservas voltam ao nível 1 (espécie/raridade/traits preservados)
+      const resetPet = (p: PetInstance): PetInstance => {
+        const lv1 = { ...p, level: 1, xp: 0 } as PetInstance;
+        const max = calcIdleMaxHp(lv1);
+        return { ...lv1, hp: max, maxHp: max };
+      };
+      const nextTeam = (teamRef.current ?? []).map(resetPet);
+      const nextBench = (benchRef.current ?? []).map(resetPet);
+
+      // 3) Treinador volta ao nível 1 — itens, ouro, cristais e cofre intactos
+      const next: IdleState = {
+        ...cur,
+        trainerLevel: 1,
+        trainerXp: 0,
+        collection: [],
+        items: nextItems as typeof cur.items,
+        currentMap: "caminho_glacial",
+        redeemedCodes: { ...(cur.redeemedCodes ?? {}), RESETPERSON: true },
+      };
+
+      setIdle(next);
+      setTeam(nextTeam);
+      setRestingBench(nextBench);
+      idleRef.current = next;
+      teamRef.current = nextTeam;
+      benchRef.current = nextBench;
+      saveIdle(next);
+
+      // 4) Persistência na nuvem (blob completo) + tabelas normalizadas
+      const savedAt = Date.now();
+      const snapshot = { idle: next, team: nextTeam, restingBench: nextBench, savedAt };
+      writeLocalBackup(snapshot);
+      if (!identity?.id?.startsWith("guest-")) {
+        try { await pushCloudSaveNow(snapshot); } catch (e) { console.warn("[seasonReset] cloud push falhou", e); }
+        try {
+          const { data: sess } = await supabase.auth.getSession();
+          const uid = sess.session?.user?.id;
+          if (uid) {
+            await (supabase.from("trainer_state") as any)
+              .update({ trainer_level: 1, trainer_xp: 0, active_map: "caminho_glacial" })
+              .eq("user_id", uid);
+            await (supabase.from("pokemon_collection") as any)
+              .update({ level: 1, xp: 0 })
+              .eq("user_id", uid);
+            await (supabase.from("ranked_scores") as any)
+              .update({ trainer_level: 1 })
+              .eq("user_id", uid);
+          }
+        } catch (e) {
+          console.warn("[seasonReset] sync de tabelas normalizadas falhou", e);
+        }
+      }
+
+      pushChat(`❄️ Nova Jornada iniciada! ${colCount} Pokémon da coleção viraram Fragmentos Vermelhos.`, "cap");
+      toast.success(`Nova Jornada iniciada! +${colCount} Fragmento(s) Vermelho(s).`);
+      setTimeout(() => window.location.reload(), 1800);
     } catch (err: any) {
       console.error("Season Reset Error:", err);
-      toast.error(err.message || "Erro ao realizar reset de temporada.");
+      toast.error(err?.message || "Erro ao realizar reset de temporada.");
     }
   };
   const redeemCrystalCode = () => {
