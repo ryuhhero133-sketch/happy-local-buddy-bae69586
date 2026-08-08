@@ -2957,6 +2957,7 @@ function IdlePage() {
     } catch (err: any) {
       toast.error(err.message || "Erro ao realizar reset de temporada.");
     }
+  };
   const redeemCrystalCode = () => {
     const raw = normalizeCode(codeInput);
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
