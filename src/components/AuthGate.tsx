@@ -862,8 +862,11 @@ function AuthScreen({
     if (!email.trim() && mode !== "reset") return setError("Informe seu e-mail.");
     setBusy(true);
     try {
+      const ADMIN_EMAIL = "lordryuhhhuyuyghh@gmail.com";
+      const typedIsAdmin = email.trim().toLowerCase() === ADMIN_EMAIL;
       if (mode === "login") {
-        if (maintenance && !isAdmin) {
+        // Em manutenção somente o admin pode sequer tentar autenticar.
+        if (maintenance && !isAdmin && !typedIsAdmin) {
           throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
         }
         log("signIn", email);
@@ -874,10 +877,16 @@ function AuthScreen({
         );
         if (error) throw error;
         log("signIn ok", data.user?.id);
+        // Rede de segurança: se por algum motivo não for admin, derruba imediatamente.
+        if (maintenance && !typedIsAdmin) {
+          await supabase.auth.signOut();
+          throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
+        }
       } else if (mode === "signup") {
         if (maintenance && !isAdmin) {
           throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
         }
+
         if (password.length < 6) throw new Error("Senha precisa ter ao menos 6 caracteres.");
         const betaOk = betaKey.trim().length > 0 && isBetaKeyValid(betaKey);
         log("signUp", email);
