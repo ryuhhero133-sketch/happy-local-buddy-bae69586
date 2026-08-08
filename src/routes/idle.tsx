@@ -8254,6 +8254,8 @@ function IdlePage() {
         <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
           {/* O resto do jogo (Arena/Canvas) já está sendo renderizado no grid pai */}
         </div>
+      </div>
+
 
 
       {rankOpen && createPortal(
