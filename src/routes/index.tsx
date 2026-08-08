@@ -1,6 +1,7 @@
-// V50 - EDGE_FUNCTION_SETTINGS_VERIFIED
-// Analisando imagem: Configurações da Edge Function admin-update-player verificadas.
-// JWT verify habilitado, endpoint configurado corretamente para o projeto kgrspvqhpgiuxvkcxgcp.
+// V51 - AUTHENTICATION_CHECK_REQUIRED
+// Erro 401 identificado: O usuário não está logado ou a sessão expirou no navegador.
+// A Edge Function exige um JWT válido para verificar privilégios de administrador.
+
 
 
 import { createFileRoute } from '@tanstack/react-router';
