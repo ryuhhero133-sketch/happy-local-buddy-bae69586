@@ -13218,8 +13218,12 @@ function TabOverlay({
           background: `linear-gradient(180deg, rgba(20,10,35,0.7) 0%, rgba(10,5,20,0.85) 100%)`,
           boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 40px rgba(192,132,252,0.05)",
           overflow: "hidden",
-
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          minHeight: 0
         }}>
+
           {/* decorative sparkles overlay */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
