@@ -2695,6 +2695,12 @@ function IdlePage() {
                 governante_hall: [
                   { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
                 ],
+                santuario_glacial: [
+                  { key: "sg-to-caminho", target: "caminho_glacial", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7dd3fc" },
+                ],
+                caminho_glacial: [
+                  { key: "cg-to-santuario", target: "santuario_glacial", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#c0e8ff" },
+                ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
