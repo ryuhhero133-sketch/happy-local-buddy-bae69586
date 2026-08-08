@@ -414,7 +414,7 @@ function OnlinePlayersTab({
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, last_login, account_status, lock_until")
+        .select("id, username, last_login, account_status, lock_until, trainer_level")
         .order("username", { ascending: true });
       
       // Se profiles falhar por colunas faltantes, tenta uma query básica sem as colunas de segurança
@@ -491,7 +491,7 @@ function OnlinePlayersTab({
         supabase.from("pokeballs").select("*").eq("user_id", id),
         supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
         supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
-        supabase.from("profiles").select("gold, crystal, ruby, vault, pokeVault").eq("id", id).maybeSingle(),
+        supabase.from("profiles").select("gold, crystal, ruby, vault, poke_vault, trainer_level").eq("id", id).maybeSingle(),
         supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", id).maybeSingle(),
         supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle()
@@ -505,11 +505,12 @@ function OnlinePlayersTab({
         gold: stateData?.gold ?? profileData?.gold ?? 0,
         crystal: stateData?.crystal ?? profileData?.crystal ?? 0,
         ruby: stateData?.ruby ?? profileData?.ruby ?? 0,
-        trainer_level: rankedData?.trainer_level ?? stateData?.trainer_level ?? 1,
+        kill_count: stateData?.kill_count ?? rankedData?.total_kills ?? 0,
+        trainer_level: stateData?.trainer_level ?? rankedData?.trainer_level ?? profileData?.trainer_level ?? 1,
         trainer_xp: stateData?.trainer_xp ?? 0,
         total_kills: rankedData?.total_kills ?? stateData?.kill_count ?? 0,
         vault: profileData?.vault ?? null,
-        pokeVault: profileData?.pokeVault ?? null,
+        pokeVault: profileData?.poke_vault ?? profileData?.pokeVault ?? null,
       };
       
       setInventory({
@@ -700,7 +701,7 @@ function OnlinePlayersTab({
                       </div>
                     </td>
                     <td className="px-3 py-2 text-fuchsia-300">
-                      Lv {p.ranked_leaderboard?.[0]?.trainer_level || 1}
+                      Lv {p.trainer_level || p.ranked_leaderboard?.[0]?.trainer_level || 1}
                       {p.ranked_leaderboard?.[0]?.trainer_level >= 10000 && (
                         <span className="ml-1 text-[8px] bg-rose-500 text-white px-1 rounded animate-pulse">SUSPECT</span>
                       )}
@@ -932,7 +933,9 @@ function OnlinePlayersTab({
                             </div>
                           ))}
                         </div>
-                      ) : "Vazio"}
+                        ) : (
+                          <div className="text-[9px] text-slate-600 italic">Vazio no banco</div>
+                        )}
                     </div>
                   </div>
                   
@@ -948,7 +951,9 @@ function OnlinePlayersTab({
                             </div>
                           ))}
                         </div>
-                      ) : "Vazio"}
+                        ) : (
+                          <div className="text-[9px] text-slate-600 italic">Nenhum Pokémon no banco</div>
+                        )}
                     </div>
                   </div>
                 </div>
