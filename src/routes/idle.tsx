@@ -13155,11 +13155,21 @@ function TabOverlay({
     <div className="modern-floating-window" style={{ 
       background: "rgba(11, 5, 20, 0.96)", 
       backdropFilter: "blur(14px)",
-      maxHeight: "92vh",
+      width: "95vw",
+      maxWidth: "1200px",
+      height: "90vh",
+      maxHeight: "90vh",
       display: "flex",
       flexDirection: "column",
       pointerEvents: "auto",
-      overflow: "hidden"
+      overflow: "hidden",
+      position: "fixed",
+      left: "50%",
+      top: "50%",
+      transform: "translate(-50%, -50%)",
+      borderRadius: "24px",
+      border: "3px solid rgba(201, 184, 255, 0.3)",
+      boxShadow: "0 0 60px rgba(0,0,0,0.8), 0 0 20px rgba(201, 184, 255, 0.2)"
     }}>
 
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
