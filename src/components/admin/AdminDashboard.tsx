@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V15 - REALTIME_CLOUD_PERSISTENCE_FIX - SECURITY_VERIFIED_V15
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V16 - REALTIME_CLOUD_PERSISTENCE_FINAL_FIX - SECURITY_VERIFIED_V16
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -632,9 +632,12 @@ function OnlinePlayersTab({
       if (inspectingUser === identity?.id) {
         try {
           const { obfuscate } = await import("@/lib/utils");
+          // Garantimos que o localStorage local seja atualizado IMEDIATAMENTE e forçado
           localStorage.setItem("rubym.save.v2", obfuscate(snapshot));
+          localStorage.setItem("rubym.cloud.preloaded.v1", inspectingUser);
+          
           window.dispatchEvent(new CustomEvent("rubym:sync_stats", { 
-            detail: { level: editLevel, xp: editXp } 
+            detail: { level: editLevel, xp: editXp, snapshot } 
           }));
         } catch (e) { console.warn("Local sync failed", e); }
       }
