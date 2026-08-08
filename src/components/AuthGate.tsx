@@ -131,6 +131,25 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
 
 type Mode = "login" | "signup" | "reset";
 
+function getNext7AM() {
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(7, 0, 0, 0);
+  if (now >= target) {
+    target.setDate(target.getDate() + 1);
+  }
+  return target;
+}
+
+function formatCountdown(ms: number) {
+  if (ms <= 0) return "ABERTO AGORA";
+  const seconds = Math.floor(ms / 1000);
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+
 
 /* ───────────────────────────── AUTH GATE ───────────────────────────── */
 
@@ -145,6 +164,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [isGuest, setIsGuest] = useState(false);
   const [kickedMessage, setKickedMessage] = useState<string | null>(null);
   const [maintenance, setMaintenance] = useState(true); // Manutenção ativada por padrão para a season
+  const [countdown, setCountdown] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -434,6 +454,19 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return () => { stop = true; clearInterval(iv); };
   }, [session]);
 
+  // Contagem regressiva ao vivo até 07:00
+  useEffect(() => {
+    const update = () => {
+      const target = getNext7AM();
+      const remaining = target.getTime() - Date.now();
+      setCountdown(formatCountdown(remaining));
+    };
+    update();
+    const iv = setInterval(update, 1000);
+    return () => clearInterval(iv);
+  }, []);
+
+
 
 
 
@@ -456,7 +489,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
             </p>
             <p className="text-[10px] leading-relaxed" style={{ color: "#fecaca" }}>
               PREPARANDO NOVA TEMPORADA.<br/>
-              HORÁRIO DE ABERTURA DA SEASON: 00:00
+              ABERTURA DA SEASON ÀS 07:00<br/>
+              FALTAM: <span className="font-bold" style={{ color: "#fff", textShadow: "0 0 6px rgba(255,255,255,0.5)" }}>{countdown}</span>
             </p>
           </div>
           <div className="pt-2">
