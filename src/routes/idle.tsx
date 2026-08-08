@@ -78,6 +78,7 @@ import houseLabImg from "@/assets/house-lab.png";
 import houseBankImg from "@/assets/house-bank.png";
 import houseGymImg from "@/assets/house-gym.png";
 import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
+import mapValeDouradoImg from "@/assets/map-vale-dourado.jpg";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
 import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
 import mapGymGeloSombraAsset from "@/assets/gym-gelo-sombra.png.asset.json";
@@ -498,7 +499,7 @@ type IdleMapId =
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
   | "absol_start" | "governante_hall"
   // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
-  | "santuario_glacial" | "caminho_glacial";
+  | "santuario_glacial" | "caminho_glacial" | "vale_dourado";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -561,6 +562,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
   santuario_glacial: { name: "Santuário Glacial", diff: "SEGURO", bg: mapSnowUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 10, overlay: "rgba(200,230,255,0.3)" },
+  vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
 };
 
@@ -1597,6 +1599,21 @@ function IdlePage() {
 
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [anciaoOpen, setAnciaoOpen] = useState(false);
+  const [anciaoForced, setAnciaoForced] = useState(false);
+  const anciaoForcedRef = useRef(false);
+  useEffect(() => { anciaoForcedRef.current = anciaoForced && anciaoOpen; }, [anciaoForced, anciaoOpen]);
+  // ❄️ Primeiro login: se o jogador nunca passou pelo Ancião, o diálogo dispara
+  // automaticamente e ele não consegue sair da tela antes de falar com o NPC.
+  const anciaoAutoDone = useRef(false);
+  useEffect(() => {
+    if (anciaoAutoDone.current) return;
+    if (idle.redeemedCodes?.RESETPERSON) return; // já passou — nunca repete
+    anciaoAutoDone.current = true;
+    setTab("batalha");
+    setIdle((prev) => ({ ...prev, currentMap: "santuario_glacial" }));
+    setAnciaoForced(true);
+    setAnciaoOpen(true);
+  }, [idle.redeemedCodes?.RESETPERSON]);
   const [now, setNow] = useState(() => Date.now());
 
   // Manutenção Season: Desloga jogadores não-admins
@@ -2626,6 +2643,7 @@ function IdlePage() {
   const keysRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const kd = (e: KeyboardEvent) => {
+      if (anciaoForcedRef.current) return;
       const k = e.key.toLowerCase();
       if (["w", "a", "s", "d", "arrowup", "arrowleft", "arrowdown", "arrowright"].includes(k)) {
         // ao andar manualmente, marca o alvo atual como "evitado" por um tempo,
@@ -2749,6 +2767,9 @@ function IdlePage() {
                 ],
                 santuario_glacial: [
                   { key: "sg-to-caminho", target: "caminho_glacial", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#c9b8ff" },
+                ],
+                vale_dourado: [
+                  { key: "vd-to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#f5cf6b" },
                 ],
                 caminho_glacial: [
                   { key: "cg-to-santuario", target: "santuario_glacial", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#c0e8ff" },
@@ -2900,7 +2921,7 @@ function IdlePage() {
       if (cashShopOpen) { setCashShopOpen(false); return; }
       if (blackEggHudOpen) { setBlackEggHudOpen(false); return; }
       if (governanteOpen) { setGovernanteOpen(false); return; }
-      if (anciaoOpen) { setAnciaoOpen(false); return; }
+      if (anciaoOpen) { if (!anciaoForcedRef.current) setAnciaoOpen(false); return; }
       if (bmpSwapOpen) { setBmpSwapOpen(false); return; }
       if (showAutoSettings) { setShowAutoSettings(false); return; }
       if (oddishNoStone) { setOddishNoStone(null); return; }
@@ -2997,7 +3018,7 @@ function IdlePage() {
         trainerXp: 0,
         collection: [],
         items: nextItems as typeof cur.items,
-        currentMap: "caminho_glacial",
+        currentMap: "vale_dourado",
         redeemedCodes: { ...(cur.redeemedCodes ?? {}), RESETPERSON: true },
       };
 
@@ -3020,7 +3041,7 @@ function IdlePage() {
           const uid = sess.session?.user?.id;
           if (uid) {
             await (supabase.from("trainer_state") as any)
-              .update({ trainer_level: 1, trainer_xp: 0, active_map: "caminho_glacial" })
+              .update({ trainer_level: 1, trainer_xp: 0, active_map: "vale_dourado" })
               .eq("user_id", uid);
             await (supabase.from("pokemon_collection") as any)
               .update({ level: 1, xp: 0 })
@@ -11306,7 +11327,8 @@ function IdlePage() {
       {/* ❄️ Diálogo do Ancião Glacial — Ritual da Nova Jornada */}
       <AnciaoGlacialDialog
         open={anciaoOpen}
-        onClose={() => setAnciaoOpen(false)}
+        forced={anciaoForced}
+        onClose={() => { if (!anciaoForced) setAnciaoOpen(false); }}
         onConfirm={handleSeasonResetRitual}
       />
 
@@ -16299,11 +16321,13 @@ function GovernanteDialog(props: {
 function AnciaoGlacialDialog({
   open,
   onClose,
-  onConfirm
+  onConfirm,
+  forced = false,
 }: {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  forced?: boolean;
 }) {
   const [step, setStep] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
@@ -16312,11 +16336,9 @@ function AnciaoGlacialDialog({
   if (!open) return null;
 
   const lines = [
-    "Saudações, jovem viajante. Sinto o cansaço em sua alma, mas também a chama de uma nova ambição.",
-    "Eu sou o Ancião Glacial. Guardião deste santuário e das memórias daqueles que buscam o recomeço.",
-    "O ritual da 'Nova Jornada' é severo: seu nível de treinador e de seus Pokémon retornarão ao Nível 1.",
-    "Contudo, nada se perde no gelo eterno. Seus itens, recursos e sua preciosa coleção permanecerão intactos.",
-    "Este é um caminho sem volta para esta temporada. Você está pronto para renascer nas neves do Caminho Glacial?"
+    "Saudações, viajante. O gelo eterno guardava sua chegada.",
+    "Eu sou o Ancião Glacial. Sou eu quem abre o caminho para quem busca um novo começo.",
+    "Atravesse minha bênção e eu o levarei ao Vale Dourado — terra verdejante de piso de ouro.",
   ];
 
   const handleConfirm = async () => {
@@ -16332,7 +16354,8 @@ function AnciaoGlacialDialog({
 
   return createPortal(
     <div
-      onClick={onClose}
+      onClick={forced ? undefined : onClose}
+
       style={{
         position: "fixed", inset: 0, zIndex: 20000,
         background: "radial-gradient(ellipse at center, rgba(10,30,60,0.85), rgba(0,0,0,0.95))",
@@ -16395,6 +16418,7 @@ function AnciaoGlacialDialog({
               >OUVIR MAIS ▸</button>
             ) : (
               <div style={{ display: "flex", gap: 12 }}>
+                {!forced && (
                 <button
                   onClick={onClose}
                   style={{
@@ -16404,6 +16428,8 @@ function AnciaoGlacialDialog({
                   }}
                   disabled={isResetting}
                 >RECUAR</button>
+                )}
+
                 <button
                   onClick={handleConfirm}
                   style={{
@@ -16415,7 +16441,7 @@ function AnciaoGlacialDialog({
                   }}
                   disabled={isResetting}
                 >
-                  {isResetting ? "CONGELANDO..." : "✓ ACEITO O RITUAL"}
+                  {isResetting ? "ATRAVESSANDO..." : "✦ ATRAVESSAR A BÊNÇÃO"}
                 </button>
               </div>
             )}
