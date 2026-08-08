@@ -480,25 +480,21 @@ const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 type IdleMapId =
   | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "pantano_fogo" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   | "gelius1" | "gelius2"
-  // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
+  // Cadeia endgame
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
   | "vulcao_ativo" | "nucleo_primordial"
-  // Cadeia Abissal — 5 mapas 1000-3000, recolores do Pântano em Chamas
+  // Cadeia Abissal
   | "abismo_gelo" | "abismo_veneno" | "abismo_raio" | "abismo_sombra" | "abismo_dragao"
-  // Cadeia estendida — Lv 3000 até 6000, continuação natural do Abismo do Dragão
+  // Cadeia estendida
   | "cadeia_ab" | "cadeia_ab1" | "cadeia_f1"
-  // Evento Mítico Shiny — abre 5min a cada 1h
   | "evento_myth"
-  // Evento Oddish Odyssey — 24h aberto, 3 mapas conectados por portal
   | "oddish_o1" | "oddish_o2" | "oddish_o3"
-  // Evento Grass Oddish — mapa exclusivo, entrada custa 20 Stone Verdejante
   | "grass_oddish"
-  // Evento Vale dos Fragmentos Vermelhos — abre 1h a cada 5h, entrada pelo Ginásio Medieval
   | "vale_fragmentos"
-  // 🏰 Ginásio Medieval — 3 andares endgame (Carmesim → Gelo/Sombra → Arcano)
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
-  // Continente do Governante — acesso via Carta do Governante
-  | "absol_start" | "governante_hall";
+  | "absol_start" | "governante_hall"
+  // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
+  | "santuario_glacial" | "caminho_glacial";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
