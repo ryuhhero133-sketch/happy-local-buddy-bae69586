@@ -16299,11 +16299,13 @@ function GovernanteDialog(props: {
 function AnciaoGlacialDialog({
   open,
   onClose,
-  onConfirm
+  onConfirm,
+  forced = false,
 }: {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  forced?: boolean;
 }) {
   const [step, setStep] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
@@ -16312,11 +16314,9 @@ function AnciaoGlacialDialog({
   if (!open) return null;
 
   const lines = [
-    "Saudações, jovem viajante. Sinto o cansaço em sua alma, mas também a chama de uma nova ambição.",
-    "Eu sou o Ancião Glacial. Guardião deste santuário e das memórias daqueles que buscam o recomeço.",
-    "O ritual da 'Nova Jornada' é severo: seu nível de treinador e de seus Pokémon retornarão ao Nível 1.",
-    "Contudo, nada se perde no gelo eterno. Seus itens, recursos e sua preciosa coleção permanecerão intactos.",
-    "Este é um caminho sem volta para esta temporada. Você está pronto para renascer nas neves do Caminho Glacial?"
+    "Saudações, viajante. O gelo eterno guardava sua chegada.",
+    "Eu sou o Ancião Glacial. Sou eu quem abre o caminho para quem busca um novo começo.",
+    "Atravesse minha bênção e eu o levarei ao Vale Dourado — terra verdejante de piso de ouro.",
   ];
 
   const handleConfirm = async () => {
