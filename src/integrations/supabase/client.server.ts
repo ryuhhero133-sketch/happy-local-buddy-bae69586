@@ -30,21 +30,28 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseAdminClient() {
-  // V37: Resiliência Máxima. O deploy em workers.dev pode injetar variáveis de forma diferente.
-  // Tentamos ler de todas as fontes possíveis no Worker runtime.
-  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
+  // TanStack Start (Nitro/Vinxi) injeta o contexto do Cloudflare Worker no evento H3.
+  // Tentamos ler as chaves do process.env (Node/Bun/Preview) ou do contexto do Worker (Edge).
+  let env: Record<string, string | undefined> = {};
   
-  // No Cloudflare Workers, segredos são injetados diretamente no escopo global ou via env binding.
-  // Tentamos process.env, depois globalThis.
-  const ADMIN_SB_KEY = process.env.ADMIN_SB_KEY || (globalThis as any).ADMIN_SB_KEY;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || (globalThis as any).SUPABASE_SERVICE_ROLE_KEY || ADMIN_SB_KEY;
+  try {
+    // 1. Tentamos usar process.env se disponível (Node/Bun)
+    if (typeof process !== 'undefined' && process.env) {
+      env = { ...process.env };
+    }
+  } catch (e) {}
+
+  // 2. No Cloudflare Worker, as Secrets podem estar em globalThis (se injetadas como global)
+  // ou precisam vir do contexto do request.
+  const SUPABASE_URL = env.SUPABASE_URL || env.VITE_SUPABASE_URL || (globalThis as any).SUPABASE_URL || (globalThis as any).VITE_SUPABASE_URL || "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
+  const ADMIN_SB_KEY = env.ADMIN_SB_KEY || (globalThis as any).ADMIN_SB_KEY;
+  const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || (globalThis as any).SUPABASE_SERVICE_ROLE_KEY || ADMIN_SB_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     const missing = [];
     if (!SUPABASE_URL) missing.push('SUPABASE_URL');
     if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('ADMIN_SB_KEY/SERVICE_ROLE');
     
-    // Log detalhado (sem o valor da chave) para diagnóstico no servidor
     console.error(`[SupabaseAdmin] ERRO DE CONFIGURAÇÃO: URL=${!!SUPABASE_URL}, KEY=${!!SUPABASE_SERVICE_ROLE_KEY}`);
     
     throw new Error(`Erro de Configuração no Servidor: ${missing.join(', ')} ausente no runtime do Worker. Verifique as Secrets no painel Lovable.`);

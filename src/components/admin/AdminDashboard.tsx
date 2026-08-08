@@ -3,6 +3,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { loadIdentity } from "@/components/AuthGate";
+import { useServerFn } from "@tanstack/react-start";
+import { updatePlayerStatsAdmin } from "@/lib/admin-actions.functions";
+import { getAdminDiagnostics } from "@/lib/diagnostics.functions";
 import {
   getConfig,
   saveConfig,
@@ -363,6 +366,9 @@ function DashboardTab() {
   const logs = getLogs();
   return (
     <div className="space-y-6">
+      <Card title="Diagnóstico do Servidor">
+        <ServerDiagnostics />
+      </Card>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat label="Gold" value={save?.gold ?? 0} />
         <Stat label="Cristais" value={save?.crystal ?? 0} accent="text-cyan-300" />
@@ -377,18 +383,8 @@ function DashboardTab() {
           <Stat label="Uptime" value="LIVE" accent="text-emerald-300" />
         </div>
       </Card>
-      <Card title="Atividade recente">
-        <ul className="divide-y divide-slate-800 text-xs">
-          {logs.slice(0, 8).map((l, i) => (
-            <li key={i} className="flex items-center justify-between py-2">
-              <span className="text-slate-300">{l.action}</span>
-              <span className="text-slate-500">{new Date(l.ts).toLocaleTimeString()}</span>
-            </li>
-          ))}
-          {logs.length === 0 && <li className="py-4 text-center text-slate-500">Sem atividade registrada.</li>}
-        </ul>
-      </Card>
     </div>
+
   );
 }
 
@@ -1829,6 +1825,62 @@ function ReportsTab() {
           <p>Use a busca acima para filtrar os logs de um jogador específico. Você pode cruzar os deltas de nível com os registros de IP para identificar padrões de exploração ou multi-contas.</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ServerDiagnostics() {
+  const getDiagnostics = useServerFn(getAdminDiagnostics);
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const runDiagnostics = async () => {
+    setLoading(true);
+    try {
+      const result = await getDiagnostics();
+      setData(result);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    runDiagnostics();
+  }, []);
+
+  if (loading) return <div className="text-xs text-slate-500">Carregando diagnóstico...</div>;
+  if (!data) return <div className="text-xs text-red-400">Falha ao carregar diagnóstico.</div>;
+
+  return (
+    <div className="space-y-2 text-[10px] font-monospace">
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">RUNTIME:</span>
+        <span className={data.RUNTIME.includes("Edge") ? "text-emerald-400" : "text-amber-400"}>{data.RUNTIME}</span>
+      </div>
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">ADMIN_SB_KEY:</span>
+        <span className={data.ADMIN_SB_KEY === "CONFIGURED" ? "text-emerald-400" : "text-red-400"}>{data.ADMIN_SB_KEY}</span>
+      </div>
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">SUPABASE_URL:</span>
+        <span className={data.SUPABASE_URL === "CONFIGURED" ? "text-emerald-400" : "text-red-400"}>{data.SUPABASE_URL}</span>
+      </div>
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">HAS_PROCESS_ENV:</span>
+        <span className={data.HAS_PROCESS_ENV ? "text-emerald-400" : "text-slate-500"}>{data.HAS_PROCESS_ENV ? "YES" : "NO"}</span>
+      </div>
+      <div className="flex justify-between border-b border-slate-800 pb-1">
+        <span className="text-slate-400">HAS_GLOBAL_KEY:</span>
+        <span className={data.HAS_GLOBAL_KEY ? "text-emerald-400" : "text-slate-500"}>{data.HAS_GLOBAL_KEY ? "YES" : "NO"}</span>
+      </div>
+      <button 
+        onClick={runDiagnostics}
+        className="mt-2 w-full rounded border border-slate-700 bg-slate-800 py-1 text-[9px] hover:bg-slate-700"
+      >
+        ATUALIZAR DIAGNÓSTICO
+      </button>
     </div>
   );
 }
