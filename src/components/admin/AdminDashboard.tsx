@@ -447,20 +447,21 @@ function OnlinePlayersTab({
         return;
       }
 
-      // Se profiles funcionou, ainda assim vamos enriquecer com trainer_state que é a fonte de verdade mais quente
+      // Se profiles funcionou, ainda assim vamos enriquecer com game_saves que é a autoridade máxima
       const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
-        const { data: ts } = await (supabase.from("trainer_state") as any).select("trainer_level, gold, crystal, ruby, kill_count, trainer_xp").eq("user_id", p.id).maybeSingle();
-        const { data: rs } = await supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle();
         const { data: gs } = await (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle();
+        const { data: ts } = await (supabase.from("trainer_state" as any) as any).select("trainer_level, gold, crystal, ruby, kill_count, trainer_xp").eq("user_id", p.id).maybeSingle();
+        const { data: rs } = await supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle();
         
-        // No Idle Mon o estado do jogador é salvo dentro do objeto 'idle' no JSON
         const idleState = (gs?.data as any)?.idle;
         const cloudLevel = idleState?.level || idleState?.trainerLevel;
         const cloudXp = idleState?.xp || idleState?.trainerXp;
         
+        const finalLevel = cloudLevel || (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1;
+
         return {
           ...p,
-          trainer_level: cloudLevel || (ts as any)?.trainer_level || (rs as any)?.trainer_level || p.trainer_level || 1,
+          trainer_level: finalLevel,
           trainer_xp: cloudXp || (ts as any)?.trainer_xp || 0,
           gold: (ts as any)?.gold ?? p.gold ?? 0,
           crystal: (ts as any)?.crystal ?? p.crystal ?? 0,
@@ -577,7 +578,7 @@ function OnlinePlayersTab({
       let snapshot: any = gameSave?.data;
       if (!snapshot || typeof snapshot !== 'object') {
         snapshot = {
-          idle: { level: editLevel, xp: editXp, version: 1000 },
+          idle: { level: editLevel, xp: editXp, version: 10000 },
           team: [],
           restingBench: [],
           inventory: {},
@@ -592,11 +593,12 @@ function OnlinePlayersTab({
         snapshot.idle.trainerLevel = editLevel;
         snapshot.idle.trainerXp = editXp;
         // Pulo agressivo na versão para evitar rollback pelo cache do cliente
-        snapshot.idle.version = (snapshot.idle.version || 0) + 1000;
+        snapshot.idle.version = (snapshot.idle.version || 0) + 10000;
         snapshot.savedAt = Date.now();
       }
 
       const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
+      const lockUntil = new Date(Date.now() + 15000).toISOString();
       
       // 2. Gravamos em paralelo em todas as tabelas normalizadas e no blob
       await Promise.all([
@@ -620,7 +622,7 @@ function OnlinePlayersTab({
         (supabase.from("profiles") as any).update({
           trainer_level: editLevel,
           updated_at: new Date().toISOString(),
-          lock_until: new Date(Date.now() + 8000).toISOString() 
+          lock_until: lockUntil
         }).eq("id", inspectingUser)
       ]);
 
