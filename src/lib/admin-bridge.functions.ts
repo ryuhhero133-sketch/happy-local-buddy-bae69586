@@ -20,8 +20,8 @@ const adminUpdateSchema = z.object({
  */
 export const updatePlayerStatsAdminBridge = createServerFn({ method: "POST" })
   .inputValidator((data) => adminUpdateSchema.parse(data))
-  .handler(async ({ data, request }) => {
-    const authHeader = request.headers.get("Authorization");
+  .handler(async ({ data, context }) => {
+    const authHeader = (context as any).request?.headers?.get("Authorization");
     
     const SUPABASE_URL = "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
     const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/admin-update-player`;
