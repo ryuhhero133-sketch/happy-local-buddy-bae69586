@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getEvent } from "vinxi/http";
 
 export const getAdminDiagnostics = createServerFn({ method: "GET" })
   .handler(async () => {
@@ -9,16 +8,6 @@ export const getAdminDiagnostics = createServerFn({ method: "GET" })
     try {
       if (typeof process !== 'undefined' && process.env) {
         env = { ...env, ...process.env };
-      }
-    } catch (e) {}
-
-    // 2. Tentar Contexto do Vinxi/H3 (Nitro)
-    try {
-      const event = getEvent();
-      // No Cloudflare Worker, o Nitro injeta os bindings em event.context.cloudflare.env
-      const cfEnv = (event?.context as any)?.cloudflare?.env;
-      if (cfEnv) {
-        env = { ...env, ...cfEnv };
       }
     } catch (e) {}
 
@@ -32,7 +21,6 @@ export const getAdminDiagnostics = createServerFn({ method: "GET" })
       SUPABASE_URL: SUPABASE_URL ? "CONFIGURED" : "NOT_CONFIGURED",
       RUNTIME: (globalThis as any).caches ? "Cloudflare Worker (Edge)" : "Node/Bun",
       HAS_PROCESS_ENV: typeof process !== 'undefined',
-      HAS_GLOBAL_KEY: !!(globalThis as any).ADMIN_SB_KEY,
-      HAS_VINXI_CONTEXT: !!env.ADMIN_SB_KEY && !process.env?.ADMIN_SB_KEY
+      HAS_GLOBAL_KEY: !!(globalThis as any).ADMIN_SB_KEY
     };
   });

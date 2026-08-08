@@ -1,4 +1,4 @@
-// V38 - EDGE_RUNTIME_DIAGNOSTICS_DEPLOYED
+// V38 - EDGE_RUNTIME_AUTH_AUTHORITY_VERIFIED
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
