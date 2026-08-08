@@ -454,6 +454,19 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return () => { stop = true; clearInterval(iv); };
   }, [session]);
 
+  // Contagem regressiva ao vivo até 07:00
+  useEffect(() => {
+    const update = () => {
+      const target = getNext7AM();
+      const remaining = target.getTime() - Date.now();
+      setCountdown(formatCountdown(remaining));
+    };
+    update();
+    const iv = setInterval(update, 1000);
+    return () => clearInterval(iv);
+  }, []);
+
+
 
 
 
