@@ -391,6 +391,36 @@ export function AuthGate({ children }: { children: ReactNode }) {
     };
   }, [currentUid, recoveryMode]);
 
+  // Vigilância contínua da manutenção: derruba quem já estava logado
+  useEffect(() => {
+    const email = session?.user?.email?.trim().toLowerCase();
+    const admin =
+      email === "lordryuhhhuyuyghh@gmail.com" ||
+      session?.user?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+    if (admin) return;
+    let stop = false;
+    const tick = async () => {
+      try {
+        const { data: config } = await (supabase as any)
+          .from("server_config")
+          .select("value")
+          .eq("key", "maintenance_mode")
+          .maybeSingle();
+        const off = config && (config.value === "false" || config.value === false);
+        if (stop) return;
+        setMaintenance(!off);
+        if (!off && session) await supabase.auth.signOut();
+      } catch {
+        if (!stop) setMaintenance(true);
+      }
+    };
+    void tick();
+    const iv = setInterval(tick, 30000);
+    return () => { stop = true; clearInterval(iv); };
+  }, [session]);
+
+
+
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
 
