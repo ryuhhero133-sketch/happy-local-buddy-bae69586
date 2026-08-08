@@ -3282,6 +3282,7 @@ function IdlePage() {
 
       // Ranked desativado temporariamente
       if (k === "r") { e.preventDefault(); return; }
+
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); collect(); return; }
       // Admin shortcut: Shift + A (Only for authorized admin UUIDs)
