@@ -603,63 +603,33 @@ function OnlinePlayersTab({
       const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
       const lockUntil = new Date(Date.now() + 20000).toISOString();
       
-      // V22 - A conta admin logada no browser (authenticated) não tem permissão para dar UPSERT 
-      // na linha de OUTRO jogador na tabela trainer_state devido à RLS (Row Level Security).
-      // A RLS diz: "usuário X só pode editar a linha onde user_id = X".
-      // Para resolver isso sem criar funções complexas no Postgres, usamos a Service Role Key.
+      // V23 - Refatorado para usar Server Functions (TanStack Start)
+      // O erro persistia porque o código tentava importar lógica de servidor no cliente.
+      // Agora, a operação de bypass de RLS ocorre inteiramente no servidor.
       
-      // No navegador, não podemos carregar supabaseAdmin diretamente pois ele usa process.env
-      // Mas sabemos que a URL é a mesma.
-      const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL;
-      const ADMIN_KEY = (import.meta as any).env.VITE_ADMIN_SB_KEY;
+      const { updatePlayerStatsAdmin } = await import('@/lib/admin-actions.functions');
 
-      if (!ADMIN_KEY) {
-        throw new Error("Erro de Segurança: VITE_ADMIN_SB_KEY não configurada no cliente.");
-      }
-
-      // IMPORTANTE: Criamos um cliente admin temporário APENAS para esta operação
-      const { createClient } = await import('@supabase/supabase-js');
-      const tempAdmin = createClient(SUPABASE_URL, ADMIN_KEY, {
-        auth: { persistSession: false }
+      await updatePlayerStatsAdmin({
+        data: {
+          targetUserId: inspectingUser,
+          level: editLevel,
+          xp: editXp,
+          snapshot: snapshot,
+          username: username,
+          craftPoints: inventory?.trainer?.craft_points || 0,
+          guildName: inventory?.trainer?.guild_name || null
+        }
       });
 
-      const results = await Promise.all([
-        (tempAdmin.from("game_saves") as any).upsert({
-          user_id: inspectingUser,
-          data: snapshot,
-          updated_at: new Date().toISOString()
-        }, { onConflict: "user_id" }),
-        (tempAdmin.from("trainer_state") as any).upsert({
-          user_id: inspectingUser,
-          trainer_level: editLevel,
-          trainer_xp: editXp,
-          updated_at: new Date().toISOString()
-        }, { onConflict: "user_id" }),
-        (tempAdmin.from("ranked_scores") as any).upsert({
-          user_id: inspectingUser,
-          username,
-          trainer_level: editLevel,
-          updated_at: new Date().toISOString()
-        }, { onConflict: "user_id" }),
-        (tempAdmin.from("profiles") as any).update({
-          trainer_level: editLevel,
-          updated_at: new Date().toISOString(),
-          lock_until: lockUntil,
-          account_status: 'active'
-        }).eq("id", inspectingUser),
-        (supabase.rpc as any)("record_ranked_score", {
-          _level: editLevel,
-          _craft_points: inventory?.trainer?.craft_points || 0,
-          _guild_name: inventory?.trainer?.guild_name || null
-        })
-      ]);
+      // Sincroniza ranking (via RPC que é pública para autenticados)
+      await (supabase.rpc as any)("record_ranked_score", {
+        _level: editLevel,
+        _craft_points: inventory?.trainer?.craft_points || 0,
+        _guild_name: inventory?.trainer?.guild_name || null
+      });
 
-      // Verifica erros nas operações críticas
-      const hasErrors = results.some((r: any) => r.error);
-      if (hasErrors) {
-        const firstError = results.find((r: any) => r.error)?.error;
-        throw firstError;
-      }
+      // Operação concluída com sucesso via Server Function
+      console.log("[Admin] Update successful via Server Function");
 
       // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA E AGRESSIVA)
       if (inspectingUser === identity?.id) {
