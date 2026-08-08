@@ -11852,7 +11852,6 @@ function IdlePage() {
       })()}
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
-      <SmartGuideHud hasPokemon={team.length > 0} />
 
       {/* Admin Button for lordryuhhhuyuyghh@gmail.com */}
       {(identity?.email === "lordryuhhhuyuyghh@gmail.com" || identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6") && (
@@ -15163,7 +15162,7 @@ function TabOverlay({
           </div>
         );
       })()}
-        <SmartGuideHud hasPokemon={team.length > 0} />
+        
       </div>
     </div>
   );
@@ -16022,83 +16021,6 @@ function GovernanteDialog(props: {
 
 
 
-function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
-  const [visible, setVisible] = useState(false);
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisible(true);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!visible) return null;
-
-  const messages = [
-    "Olá, Treinador! Vejo que você está começando sua jornada no Idle Mon.",
-    "O mapa é o seu campo de batalha. Fique de olho nos Pokémon selvagens!",
-    "Use a Dock Inferior para gerenciar sua equipe e sua mochila.",
-    "A Barra Superior mostra seus recursos. Ouro e Cristais são essenciais.",
-    "No Menu Lateral Direito, você acessa o Ranking e o Mapa Mundi.",
-    "Boa sorte! Estarei por aqui se precisar de dicas."
-  ];
-
-  return createPortal(
-    <div style={{
-      position: 'fixed',
-      bottom: '120px',
-      left: '20px',
-      width: '260px',
-      background: 'rgba(0,0,0,0.85)',
-      backdropFilter: 'blur(10px)',
-      border: '1.5px solid #f5cf6b',
-      borderRadius: '16px',
-      padding: '14px',
-      color: '#fff',
-      zIndex: 10000,
-      pointerEvents: 'auto',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 15px rgba(245,207,107,0.2)',
-      animation: 'fadeIn 0.3s ease-out'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', borderBottom: '1px solid rgba(245,207,107,0.3)', paddingBottom: '6px' }}>
-        <div style={{ width: '32px', height: '32px', background: 'rgba(245,207,107,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🧙</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '12px', fontWeight: 900, color: '#f5cf6b', letterSpacing: '1px' }}>PROF. CARVALHO</div>
-          <div style={{ fontSize: '8px', color: '#8a7a9c', fontWeight: 700 }}>GUIA INTELIGENTE</div>
-        </div>
-        <button onClick={() => setVisible(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', opacity: 0.6, fontSize: '14px' }}>✕</button>
-      </div>
-      <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#f3e5c5', minHeight: '50px', display: 'flex', alignItems: 'center' }}>
-        "{messages[step]}"
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          {messages.map((_, i) => (
-            <div key={i} style={{ width: '4px', height: '4px', borderRadius: '50%', background: i === step ? '#f5cf6b' : 'rgba(255,255,255,0.2)' }} />
-          ))}
-        </div>
-        <button 
-          onClick={() => setStep((s) => (s + 1) % messages.length)}
-          style={{ 
-            background: 'linear-gradient(180deg, #f5cf6b, #b8862a)', 
-            border: 'none', 
-            borderRadius: '6px', 
-            padding: '5px 14px', 
-            fontSize: '11px', 
-            fontWeight: 900, 
-            cursor: 'pointer',
-            color: '#000',
-            boxShadow: '0 2px 8px rgba(184,134,42,0.4)'
-          }}
-        >
-          {step === messages.length - 1 ? "REINICIAR" : "PRÓXIMO"}
-        </button>
-      </div>
-    </div>,
-    document.body
-  );
-}
 
 
 
