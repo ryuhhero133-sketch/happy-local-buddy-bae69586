@@ -414,7 +414,7 @@ function OnlinePlayersTab({
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, last_login, account_status, lock_until")
+        .select("id, username, last_login, account_status, lock_until, trainer_level")
         .order("username", { ascending: true });
       
       // Se profiles falhar por colunas faltantes, tenta uma query básica sem as colunas de segurança
@@ -700,7 +700,7 @@ function OnlinePlayersTab({
                       </div>
                     </td>
                     <td className="px-3 py-2 text-fuchsia-300">
-                      Lv {p.ranked_leaderboard?.[0]?.trainer_level || 1}
+                      Lv {p.trainer_level || p.ranked_leaderboard?.[0]?.trainer_level || 1}
                       {p.ranked_leaderboard?.[0]?.trainer_level >= 10000 && (
                         <span className="ml-1 text-[8px] bg-rose-500 text-white px-1 rounded animate-pulse">SUSPECT</span>
                       )}
