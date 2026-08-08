@@ -13328,7 +13328,7 @@ function TabOverlay({
                 {/* Botão do Ancião Glacial abaixo da Equipe */}
                 <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
                   <button
-                    onClick={handleAnciaoInteraction}
+                    onClick={onAnciaoInteraction}
                     style={{
                       width: "100%",
                       padding: "12px",
