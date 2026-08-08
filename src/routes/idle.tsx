@@ -1,4 +1,4 @@
-// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V15 - REALTIME_CLOUD_PERSISTENCE_FIX
+// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V16 - REALTIME_CLOUD_PERSISTENCE_FINAL_FIX
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -3282,6 +3282,7 @@ function IdlePage() {
 
       // Ranked desativado temporariamente
       if (k === "r") { e.preventDefault(); return; }
+
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); collect(); return; }
       // Admin shortcut: Shift + A (Only for authorized admin UUIDs)
