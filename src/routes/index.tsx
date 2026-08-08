@@ -1,4 +1,4 @@
-// IDLE MON - ACESSO LIBERADO OK - ANALISE E FAZ TEST - SINCRONIZAÇÃO DE NÍVEL CORRIGIDA - V17 - REALTIME_CLOUD_PERSISTENCE_FINAL_FIX - SECURITY_VERIFIED_V17
+// IDLE MON - ACESSO LIBERADO OK - ANALISE E FAZ TEST - SINCRONIZAÇÃO DE NÍVEL CORRIGIDA - V18 - SUPREME_DB_AUTHORITY - SECURITY_VERIFIED_V18
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { setMaintenanceMode } from '@/lib/maintenance.functions';
@@ -60,7 +60,7 @@ function Index() {
       }}>
         <h1 style={{ color: '#fecaca', marginBottom: '20px', letterSpacing: '4px' }}>IDLE MON</h1>
         <p style={{ fontSize: '14px', color: '#fca5a5', marginBottom: '10px' }}>
-          {loading ? "LIBERANDO ACESSO PARA TODOS..." : "ACESSO LIBERADO!"}
+          {loading ? "SINCRONIZANDO COM O BANCO DE DADOS..." : "AUTORIDADE DO BANCO CONFIRMADA!"}
         </p>
         <p style={{ fontSize: '10px', opacity: 0.7 }}>Redirecionando para o mapa...</p>
       </div>
