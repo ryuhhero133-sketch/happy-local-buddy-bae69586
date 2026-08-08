@@ -16419,7 +16419,7 @@ function AnciaoGlacialDialog({
                   }}
                   disabled={isResetting}
                 >
-                  {isResetting ? "CONGELANDO..." : "✓ ACEITO O RITUAL"}
+                  {isResetting ? "ATRAVESSANDO..." : "✦ ATRAVESSAR A BÊNÇÃO"}
                 </button>
               </div>
             )}
