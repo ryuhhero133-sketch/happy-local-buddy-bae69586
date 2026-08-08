@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V6 - FIX_REFRESH
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST - TESTADO E CORRIGIDO PARA SINCRONIZAÇÃO TOTAL - V7 - FORCED_CLOUD_SAVE_SYNC
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -581,9 +581,46 @@ function OnlinePlayersTab({
         }).eq("user_id", inspectingUser);
       } catch (e) {}
 
+      // 3.1. Sincronizar save da nuvem (game_saves) para evitar rollback do cliente
+      try {
+        const { data: gameSave } = await (supabase.from("game_saves") as any).select("data").eq("user_id", inspectingUser).maybeSingle();
+        if (gameSave?.data) {
+          const gameData = gameSave.data as any;
+          const newData = { 
+            ...gameData, 
+            idle: { 
+              ...(gameData.idle || {}), 
+              trainerLevel: editLevel,
+              trainerXp: editXp,
+              savedAt: Date.now()
+            }
+          };
+          await (supabase.from("game_saves") as any).update({ 
+            data: newData,
+            updated_at: new Date().toISOString()
+          }).eq("user_id", inspectingUser);
+          console.log("Cloud save synchronized with new trainer stats.");
+        }
+      } catch (e) {
+        console.warn("Failed to sync game_saves blob:", e);
+      }
+
       // 4. Se o usuário for o próprio admin, atualiza o estado local para ver a mudança sem refresh
       if (inspectingUser === identity?.id) {
         window.dispatchEvent(new CustomEvent("rubym:sync_stats", { detail: { level: editLevel, xp: editXp } }));
+        // Forçar persistência imediata no localStorage do admin
+        const raw = localStorage.getItem("rubym.idle.v1");
+        if (raw) {
+          try {
+            const { deobfuscate, obfuscate } = await import("@/lib/utils");
+            const idle = deobfuscate(raw);
+            if (idle) {
+              idle.trainerLevel = editLevel;
+              idle.trainerXp = editXp;
+              localStorage.setItem("rubym.idle.v1", obfuscate(idle));
+            }
+          } catch (e) {}
+        }
       }
 
       toast.success("Status do treinador atualizados! Recarregando aplicação do jogador...");
