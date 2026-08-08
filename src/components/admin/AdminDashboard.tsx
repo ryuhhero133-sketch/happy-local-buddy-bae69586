@@ -417,7 +417,6 @@ function OnlinePlayersTab({
         .select("id, username, last_login, account_status, lock_until, trainer_level, ruby, gold, crystal, kill_count")
         .order("username", { ascending: true });
       
-      // Se profiles falhar por colunas faltantes, tenta uma query básica sem as colunas de segurança
       if (profilesError) {
         console.warn("Retrying profile fetch without status columns...", profilesError);
         const { data: basicProfiles, error: basicError } = await supabase
@@ -427,34 +426,41 @@ function OnlinePlayersTab({
         
         if (basicError) throw basicError;
         
-        // Mapeia para o formato esperado com defaults
-        setPlayers((basicProfiles || []).map((p: any) => ({
-          id: p.id,
-          username: p.username,
-          last_login: p.last_login,
-          account_status: p.account_status || 'active',
-          lock_until: p.lock_until || null,
-          trainer_level: p.trainer_level || 1,
-          ruby: p.ruby || 0,
-          gold: p.gold || 0,
-          crystal: p.crystal || 0,
-          kill_count: p.kill_count || 0,
-          ranked_leaderboard: []
-        })));
+        const enriched = await Promise.all((basicProfiles || []).map(async (p: any) => {
+          const { data: ts } = await (supabase.from("trainer_state" as any) as any).select("trainer_level").eq("user_id", p.id).maybeSingle();
+          const { data: rs } = await supabase.from("ranked_scores").select("trainer_level").eq("user_id", p.id).maybeSingle();
+          
+          return {
+            id: p.id,
+            username: p.username,
+            last_login: p.last_login,
+            account_status: 'active',
+            lock_until: null,
+            trainer_level: ts?.trainer_level || rs?.trainer_level || 1,
+            ruby: 0,
+            gold: 0,
+            crystal: 0,
+            kill_count: 0
+          };
+        }));
+        setPlayers(enriched);
         return;
       }
 
-      const { data: ranked, error: rankedError } = await supabase
-        .from("ranked_scores")
-        .select("user_id, trainer_level, total_kills");
-
-      const enrichedPlayers = (profiles || []).map((p: any) => {
-        const score = (ranked || []).find((r: any) => r.user_id === p.id);
+      // Se profiles funcionou, ainda assim vamos enriquecer com trainer_state que é a fonte de verdade mais quente
+      const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
+        const { data: ts } = await (supabase.from("trainer_state" as any) as any).select("trainer_level, gold, crystal, ruby, kill_count").eq("user_id", p.id).maybeSingle();
+        const { data: rs } = await supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle();
+        
         return {
           ...p,
-          ranked_leaderboard: score ? [score] : []
+          trainer_level: ts?.trainer_level || rs?.trainer_level || p.trainer_level || 1,
+          gold: ts?.gold ?? p.gold ?? 0,
+          crystal: ts?.crystal ?? p.crystal ?? 0,
+          ruby: ts?.ruby ?? p.ruby ?? 0,
+          kill_count: ts?.kill_count ?? rs?.total_kills ?? p.kill_count ?? 0
         };
-      });
+      }));
 
       setPlayers(enrichedPlayers);
     } catch (e: any) {
@@ -776,8 +782,8 @@ function OnlinePlayersTab({
                       </div>
                     </td>
                     <td className="px-3 py-2 text-fuchsia-300">
-                      Lv {p.trainer_level || p.ranked_leaderboard?.[0]?.trainer_level || 1}
-                      {p.ranked_leaderboard?.[0]?.trainer_level >= 10000 && (
+                      Lv {p.trainer_level || 1}
+                      {p.trainer_level >= 10000 && (
                         <span className="ml-1 text-[8px] bg-rose-500 text-white px-1 rounded animate-pulse">SUSPECT</span>
                       )}
                     </td>
