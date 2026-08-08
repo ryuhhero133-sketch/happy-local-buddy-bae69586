@@ -10144,8 +10144,35 @@ function IdlePage() {
                 </div>
               ))}
             </div>
+            {/* Botão do Ancião Glacial no HUD Lateral */}
+            <div style={{ marginTop: 8 }}>
+              <button
+                onClick={handleAnciaoInteraction}
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  background: "linear-gradient(180deg, #1e40af, #0f172a)",
+                  border: "1px solid #7dd3fc",
+                  borderRadius: 8,
+                  color: "#7dd3fc",
+                  fontSize: 10,
+                  fontWeight: 900,
+                  letterSpacing: 1,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
+                  boxShadow: "0 0 10px rgba(125,211,252,0.2)",
+                  pointerEvents: "auto"
+                }}
+              >
+                ❄️ ANCIÃO GLACIAL
+              </button>
+            </div>
           </Panel>
         </div>
+
 
       <style>{`
 
@@ -13359,6 +13386,7 @@ function TabOverlay({
                     ❄️ FALAR COM O ANCIÃO GLACIAL
                   </button>
                 </div>
+
               </div>
             );
           })()}
