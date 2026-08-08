@@ -1,6 +1,7 @@
-// V50 - EDGE_FUNCTION_SETTINGS_VERIFIED
-// Analisando imagem: Configurações da Edge Function admin-update-player verificadas.
-// JWT verify habilitado, endpoint configurado corretamente para o projeto kgrspvqhpgiuxvkcxgcp.
+// V51 - AUTHENTICATION_CHECK_REQUIRED
+// Erro 401 identificado: O usuário não está logado ou a sessão expirou no navegador.
+// A Edge Function exige um JWT válido para verificar privilégios de administrador.
+
 
 
 import { createFileRoute } from '@tanstack/react-router';
@@ -111,17 +112,23 @@ function Index() {
           </Card>
         </div>
 
-        <Alert className="bg-blue-950/30 border-blue-900">
-          <ShieldCheck className="h-4 w-4 text-emerald-400" />
-          <AlertTitle className="text-blue-300 font-bold uppercase">Auditoria de Segurança V49 Concluída</AlertTitle>
-          <AlertDescription className="text-blue-200/70 space-y-2">
-            <p>A RPC <code className="text-emerald-400">admin_atomic_level_update</code> foi auditada para garantir:</p>
+        <Alert className="bg-amber-950/30 border-amber-900">
+          <AlertTriangle className="h-4 w-4 text-amber-400" />
+          <AlertTitle className="text-amber-300 font-bold uppercase">Atenção: Login Necessário</AlertTitle>
+          <AlertDescription className="text-amber-200/70 space-y-2">
+            <p>O erro <code className="text-red-400">401</code> ocorre porque você não está autenticado no navegador.</p>
+            <p className="text-xs">Para testar a Edge Function, você precisa:</p>
             <ul className="list-disc list-inside text-xs space-y-1">
-              <li>Atomicidade total entre <code className="text-slate-300">trainer_state</code>, <code className="text-slate-300">ranked_scores</code> e <code className="text-slate-300">profiles</code>.</li>
-              <li>Proteção via <code className="text-yellow-400">SET search_path = public</code> e <code className="text-yellow-400">SECURITY DEFINER</code>.</li>
-              <li>Acesso restrito: <code className="text-red-400">REVOKE EXECUTE FROM PUBLIC</code>. Apenas a Edge Function (service_role) pode disparar.</li>
-              <li>Validação de colunas: Confirmadas <code className="text-slate-300">trainer_level</code> e <code className="text-slate-300">user_id/id</code>.</li>
+              <li>Estar logado com a conta <code className="text-slate-300">lordryuhhhuyuyghh@gmail.com</code>.</li>
+              <li>O sistema de autoridade exige o envio de um JWT válido via bridge.</li>
             </ul>
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-amber-400 hover:text-amber-300 text-xs"
+              onClick={() => window.location.href = '/auth'}
+            >
+              Ir para tela de Login →
+            </Button>
           </AlertDescription>
         </Alert>
 
