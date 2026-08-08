@@ -10169,10 +10169,10 @@ function IdlePage() {
                 style={{
                   width: "100%",
                   padding: "8px",
-                  background: "linear-gradient(180deg, #1e40af, #0f172a)",
-                  border: "1px solid #7dd3fc",
+                  background: "linear-gradient(180deg, #15803d, #064e3b)",
+                  border: "1px solid #4ade80",
                   borderRadius: 8,
-                  color: "#7dd3fc",
+                  color: "#4ade80",
                   fontSize: 10,
                   fontWeight: 900,
                   letterSpacing: 1,
@@ -10181,7 +10181,7 @@ function IdlePage() {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 4,
-                  boxShadow: "0 0 10px rgba(125,211,252,0.2)",
+                  boxShadow: "0 0 10px rgba(74,222,128,0.2)",
                   pointerEvents: "auto"
                 }}
               >
@@ -13384,15 +13384,15 @@ function TabOverlay({
                     style={{
                       width: "100%",
                       padding: "12px",
-                      background: "linear-gradient(180deg, #1e40af, #0f172a)",
-                      border: "2px solid #7dd3fc",
+                      background: "linear-gradient(180deg, #15803d, #064e3b)",
+                      border: "2px solid #4ade80",
                       borderRadius: 12,
-                      color: "#7dd3fc",
+                      color: "#4ade80",
                       fontSize: 14,
                       fontWeight: 900,
                       letterSpacing: 2,
                       cursor: "pointer",
-                      boxShadow: "0 0 15px rgba(125,211,252,0.3)",
+                      boxShadow: "0 0 15px rgba(74,222,128,0.3)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -13400,12 +13400,12 @@ function TabOverlay({
                       transition: "all 0.2s ease"
                     }}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.boxShadow = "0 0 25px rgba(125,211,252,0.6)";
-                      e.currentTarget.style.borderColor = "#fff";
+                      e.currentTarget.style.boxShadow = "0 0 25px rgba(74,222,128,0.6)";
+                      e.currentTarget.style.borderColor = "#86efac";
                     }}
                     onMouseOut={(e) => {
-                      e.currentTarget.style.boxShadow = "0 0 15px rgba(125,211,252,0.3)";
-                      e.currentTarget.style.borderColor = "#7dd3fc";
+                      e.currentTarget.style.boxShadow = "0 0 15px rgba(74,222,128,0.3)";
+                      e.currentTarget.style.borderColor = "#4ade80";
                     }}
                   >
                     ❄️ FALAR COM O ANCIÃO GLACIAL
