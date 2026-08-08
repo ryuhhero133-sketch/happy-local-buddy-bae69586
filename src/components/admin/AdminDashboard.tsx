@@ -1,4 +1,4 @@
-// PAINEL DE ADDM OK - GERE COMPLETO
+// PAINEL DE ADDM OK - GERE COMPLETO - ANALISE E FAZ TEST
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -414,7 +414,7 @@ function OnlinePlayersTab({
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, last_login, account_status, lock_until, trainer_level")
+        .select("id, username, last_login, account_status, lock_until, trainer_level, ruby, gold, crystal, kill_count")
         .order("username", { ascending: true });
       
       // Se profiles falhar por colunas faltantes, tenta uma query básica sem as colunas de segurança
@@ -432,8 +432,13 @@ function OnlinePlayersTab({
           id: p.id,
           username: p.username,
           last_login: p.last_login,
-          account_status: 'active',
-          lock_until: null,
+          account_status: p.account_status || 'active',
+          lock_until: p.lock_until || null,
+          trainer_level: p.trainer_level || 1,
+          ruby: p.ruby || 0,
+          gold: p.gold || 0,
+          crystal: p.crystal || 0,
+          kill_count: p.kill_count || 0,
           ranked_leaderboard: []
         })));
         return;
@@ -558,6 +563,14 @@ function OnlinePlayersTab({
       }).eq("user_id", inspectingUser);
 
       if (rankedError) console.warn("Failed to update ranked_scores directly:", rankedError);
+
+      // 2.1. Atualizar profiles (usado para login e redundância)
+      const { error: profileUpdateError } = await (supabase.from("profiles") as any).update({
+        trainer_level: editLevel,
+        updated_at: new Date().toISOString()
+      }).eq("id", inspectingUser);
+
+      if (profileUpdateError) console.warn("Failed to update profiles trainer_level:", profileUpdateError);
 
       // 3. Atualizar record em ranked_leaderboard se existir
       try {
