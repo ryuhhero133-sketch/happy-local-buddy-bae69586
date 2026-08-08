@@ -4,7 +4,8 @@ import { getRequest } from '@tanstack/react-start/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
-
+const SUPABASE_URL_FALLBACK = 'https://kgrspvqhpgiuxvkcxgcp.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY_FALLBACK = 'sb_publishable_Sa3WLDe8oTdpLcUXXkvRTg_6-icgHQd';
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
