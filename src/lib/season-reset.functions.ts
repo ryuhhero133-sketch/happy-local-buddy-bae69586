@@ -8,14 +8,32 @@ export const executeSeasonReset = createServerFn({ method: "POST" })
     const userId = context.userId;
 
     // 1. Verificar se já resetou
-    const { data: trainer, error: trainerErr } = await supabase
+    // 1. Verificar se o estado existe ou criar se estiver faltando (bootstrap de segurança)
+    let { data: trainer, error: trainerErr } = await supabase
       .from("trainer_state")
       .select("season_reset_used")
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (trainerErr || !trainer) {
-      throw new Error("Estado do treinador não encontrado");
+    if (trainerErr) {
+      console.error("Erro ao buscar trainer_state:", trainerErr);
+      throw new Error("Erro de conexão com o banco de dados.");
+    }
+
+    if (!trainer) {
+      // Se não existe, tentamos criar um estado inicial
+      console.log("Estado não encontrado, tentando bootstrap para o usuário:", userId);
+      const { data: newState, error: upsertErr } = await supabase
+        .from("trainer_state")
+        .upsert({ user_id: userId }, { onConflict: "user_id" })
+        .select("season_reset_used")
+        .single();
+      
+      if (upsertErr) {
+        console.error("Erro no bootstrap do trainer_state:", upsertErr);
+        throw new Error("Estado do treinador não pôde ser criado.");
+      }
+      trainer = newState;
     }
     
     if (trainer.season_reset_used) {

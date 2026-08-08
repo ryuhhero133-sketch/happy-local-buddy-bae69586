@@ -2951,12 +2951,16 @@ function IdlePage() {
       if (!window.confirm("ATENÇÃO: Este ritual irá resetar seu nível e de seus Pokémon para 1. Toda sua COLEÇÃO será convertida em Fragmentos Vermelhos. Itens, Cofre e Ouro serão mantidos. Deseja continuar?")) {
         return;
       }
+      
       const res = await executeSeasonReset();
-      if (res.success) {
+      if (res?.success) {
         toast.success(res.message);
         setTimeout(() => window.location.reload(), 1500);
+      } else {
+        toast.error(res?.message || "Não foi possível realizar o ritual.");
       }
     } catch (err: any) {
+      console.error("Season Reset Error:", err);
       toast.error(err.message || "Erro ao realizar reset de temporada.");
     }
   };
