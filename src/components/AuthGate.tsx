@@ -760,7 +760,15 @@ function InfoBox({ message }: { message: string | null }) {
 
 /* ───────────────────────────── Login / Signup / Reset ─────────────── */
 
-function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
+function AuthScreen({ 
+  kickedMessage,
+  maintenance,
+  isAdmin
+}: { 
+  kickedMessage?: string | null;
+  maintenance: boolean;
+  isAdmin: boolean;
+}) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
