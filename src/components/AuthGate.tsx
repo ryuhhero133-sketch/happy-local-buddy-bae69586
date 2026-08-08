@@ -847,6 +847,9 @@ function AuthScreen({
     setBusy(true);
     try {
       if (mode === "login") {
+        if (maintenance && !isAdmin) {
+          throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
+        }
         log("signIn", email);
         const { error, data } = await withTimeout(
           supabase.auth.signInWithPassword({ email: email.trim(), password }),
@@ -856,6 +859,9 @@ function AuthScreen({
         if (error) throw error;
         log("signIn ok", data.user?.id);
       } else if (mode === "signup") {
+        if (maintenance && !isAdmin) {
+          throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
+        }
         if (password.length < 6) throw new Error("Senha precisa ter ao menos 6 caracteres.");
         const betaOk = betaKey.trim().length > 0 && isBetaKeyValid(betaKey);
         log("signUp", email);
