@@ -583,18 +583,19 @@ function OnlinePlayersTab({
 
       // 3.1. Sincronizar save da nuvem (game_saves) para evitar rollback do cliente
       try {
-        const { data: gameSave } = await supabase.from("game_saves").select("data").eq("user_id", inspectingUser).maybeSingle();
+        const { data: gameSave } = await (supabase.from("game_saves") as any).select("data").eq("user_id", inspectingUser).maybeSingle();
         if (gameSave?.data) {
+          const gameData = gameSave.data as any;
           const newData = { 
-            ...(gameSave.data as any), 
+            ...gameData, 
             idle: { 
-              ...((gameSave.data as any).idle || {}), 
+              ...(gameData.idle || {}), 
               trainerLevel: editLevel,
               trainerXp: editXp,
               savedAt: Date.now()
             }
           };
-          await supabase.from("game_saves").update({ 
+          await (supabase.from("game_saves") as any).update({ 
             data: newData,
             updated_at: new Date().toISOString()
           }).eq("user_id", inspectingUser);
