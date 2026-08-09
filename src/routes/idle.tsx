@@ -8327,8 +8327,31 @@ function IdlePage() {
         </div>
 
         {/* ============ MAIN GAME AREA (Battle/Explore) ============ */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
-          {/* O resto do jogo (Arena/Canvas) já está sendo renderizado no grid pai */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 1, overflow: "hidden" }}>
+          <div style={{
+            position: "relative",
+            width: WORLD_W,
+            height: WORLD_H,
+            transform: `scale(${zoom})`,
+            transformOrigin: `${(trainerPos.x / WORLD_W) * 100}% ${(trainerPos.y / WORLD_H) * 100}%`,
+            transition: "transform 0.3s ease-in-out",
+            background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl})`,
+            backgroundSize: "cover",
+            imageRendering: "pixelated"
+          }}>
+            {/* Background tiling to prevent gaps when zooming out */}
+            <div style={{
+              position: "absolute",
+              inset: -2000,
+              zIndex: -1,
+              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl})`,
+              backgroundSize: "600px", 
+              opacity: 0.2,
+              filter: "blur(4px)"
+            }} />
+            
+            {renderBattle()}
+          </div>
         </div>
       </div>
 
