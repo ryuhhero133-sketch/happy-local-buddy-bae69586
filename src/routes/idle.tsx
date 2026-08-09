@@ -2680,6 +2680,7 @@ function IdlePage() {
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 arena: [
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
+                  { key: "to-verde", target: "vale_verdejante", x: 60, y: WORLD_H - 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#7ef27a" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
                   { key: "to-vale_rochas", target: "vale_rochas", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
