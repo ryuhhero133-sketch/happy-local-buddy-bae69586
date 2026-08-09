@@ -7261,8 +7261,7 @@ function IdlePage() {
               width: WORLD_W, 
               height: WORLD_H, 
               imageRendering: "pixelated",
-              position: "relative"
-            }}
+              position: "relative",
               transform: "translateZ(0)",
               backfaceVisibility: "hidden",
               zIndex: 0,
