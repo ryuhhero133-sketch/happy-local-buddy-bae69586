@@ -2149,6 +2149,7 @@ function IdlePage() {
   const [colecaoDetailUid, setColecaoDetailUid] = useState<string | null>(null);
   const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
@@ -10091,12 +10092,82 @@ function IdlePage() {
                 </div>
               )
             })()}
-              onBuyMarket={buyMarketListing}
-              onCancelMarket={cancelMarketListing}
-              onClaimMarketPayout={claimMarketPayout}
-              isVip={isVip()}
-              pokemonMarketNode={
-                <PokemonMarketPanel
+
+            {showProfile && (
+              <ProfileCard
+                onClose={() => setShowProfile(false)}
+                identity={identity}
+                items={idle.items ?? {}}
+                gold={idle.bank.gold}
+                crystals={idle.bank.crystals}
+                safiras={idle.items?.safira_verde ?? 0}
+                onBuyMarket={buyMarketListing}
+                onCancelMarket={cancelMarketListing}
+                onClaimMarketPayout={claimMarketPayout}
+                isVip={isVip()}
+                pokemonMarketNode={
+                  <PokemonMarketPanel
+                    identity={identity}
+                    collection={idle.collection ?? []}
+                    gold={idle.bank.gold}
+                    crystals={idle.bank.crystals}
+                    safiras={idle.items?.safira_verde ?? 0}
+                    isVip={isVip()}
+                    gifOf={(sp) => GIF[sp]}
+                    onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
+                    onReturned={(entry) => setIdle((s) => {
+                      const col = s.collection ?? [];
+                      if (col.some(c => c.uid === entry.uid)) return s;
+                      return { ...s, collection: [...col, entry] };
+                    })}
+                    onSpend={(cur, amount) => setIdle((s) => ({
+                      ...s,
+                      bank: cur === "gold"
+                        ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
+                        : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
+                    }))}
+                    onEarn={(cur, amount) => setIdle((s) => ({
+                      ...s,
+                      bank: cur === "gold"
+                        ? { ...s.bank, gold: s.bank.gold + amount }
+                        : { ...s.bank, crystals: s.bank.crystals + amount },
+                    }))}
+                    onSpendSafira={(amount) => {
+                      const cur = idle.items?.safira_verde ?? 0;
+                      if (cur < amount) return false;
+                      setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
+                      return true;
+                    }}
+                    onEarnSafira={(amount) => {
+                      setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
+                    }}
+                    pushChat={pushChat}
+                  />
+                }
+                skinId={skinId}
+                setSkinId={setSkinId}
+                unlockedSkins={idle.unlockedSkins ?? ["default"]}
+                skinTickets={idle.items?.skin_ticket ?? 0}
+                onUnlockSkin={(sid) => {
+                  setIdle((s) => {
+                    const tickets = s.items?.skin_ticket ?? 0;
+                    const unlocked = new Set(s.unlockedSkins ?? ["default"]);
+                    if (unlocked.has(sid)) return s;
+                    if (tickets <= 0) return s;
+                    unlocked.add(sid);
+                    return {
+                      ...s,
+                      items: { ...s.items, skin_ticket: tickets - 1 },
+                      unlockedSkins: Array.from(unlocked),
+                    };
+                  });
+                  setSkinId(sid);
+                  pushChat(`✦ Skin premium desbloqueada! Você consumiu 1 Ticket de Skin.`, "cap");
+                }}
+                trainerLevel={idle.trainerLevel ?? 1}
+                onUpgradeBook={upgradeBook}
+              />
+            )}
                   identity={identity}
                   collection={idle.collection ?? []}
                   gold={idle.bank.gold}
@@ -16314,13 +16385,6 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
   );
 }
 
-// Componente AnciaoGlacialDialog foi movido para o final do arquivo para evitar duplicidade.
-function OldAnciaoGlacialDialog(props: any) { return null; }
-
-// Limpeza de resíduo de código.
-
-
-// ============ Governante NPC — cutscene de diálogo premium ============
 function GovernanteDialog(props: {
   open: boolean;
   cards: number;
