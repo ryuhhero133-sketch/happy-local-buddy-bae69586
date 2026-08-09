@@ -8261,7 +8261,32 @@ function IdlePage() {
           `}</style>
 
 
-          {/* Vertical Menu */}
+          {/* Zoom Controls Overlayed on Minimap */}
+          <div style={{
+            position: "absolute", bottom: 10, right: 10,
+            display: "flex", flexDirection: "column", gap: 4, zIndex: 10
+          }}>
+            <button
+              onClick={() => setZoom(z => Math.min(1.5, z + 0.15))}
+              style={{
+                width: 26, height: 26, borderRadius: 6,
+                background: "rgba(20, 10, 30, 0.9)", border: "1px solid rgba(201, 184, 255, 0.4)",
+                color: "#c9b8ff", fontSize: 16, fontWeight: 900, cursor: "pointer",
+                display: "grid", placeItems: "center", padding: 0
+              }}
+            >+</button>
+            <button
+              onClick={() => setZoom(z => Math.max(0.4, z - 0.15))}
+              style={{
+                width: 26, height: 26, borderRadius: 6,
+                background: "rgba(20, 10, 30, 0.9)", border: "1px solid rgba(201, 184, 255, 0.4)",
+                color: "#c9b8ff", fontSize: 16, fontWeight: 900, cursor: "pointer",
+                display: "grid", placeItems: "center", padding: 0
+              }}
+            >-</button>
+          </div>
+
+          {/* Vertical Side Menu */}
           <div style={{
             display: "flex", flexDirection: "column", gap: 8,
             background: "rgba(20, 10, 30, 0.8)", 
@@ -8270,12 +8295,10 @@ function IdlePage() {
             boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
             backdropFilter: "blur(4px)"
           }}>
-
             {([
               { id: "world", label: "Mundo", icon: "🗺️", color: "#60a5fa" },
               { id: "ranking", label: "Ranking", icon: "🏆", color: "#ffd94d" },
               { id: "wiki", label: "Wiki", icon: "📖", color: "#a855f7" },
-              { id: "shop", label: "Loja", icon: "💎", color: "#8dfa8d" },
               { id: "config", label: "Config", icon: "⚙️", color: "#a8a0b8" }
             ] as const).map(item => (
               <button
@@ -8283,7 +8306,6 @@ function IdlePage() {
                 onClick={() => {
                   if (item.id === "ranking") setRankOpen(true);
                   else if (item.id === "world") setWorldMapOpen(true);
-                  else if (item.id === "shop") setCashShopOpen(true);
                   else if (item.id === "wiki") setTab("wiki");
                   else if (item.id === "config") setTab("melhorias");
                 }}
