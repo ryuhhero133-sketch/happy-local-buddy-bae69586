@@ -439,7 +439,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
               ⚠️ JOGO EM MANUTENÇÃO
             </p>
             <p className="text-[10px] leading-relaxed" style={{ color: "#fecaca" }}>
-              euu fiz reversao reverter, o para lagumashoras antes, e agora, eu vou abrir https://idle-mon-ruby.ryuhhero133.workers.dev/idle esse link e n ta aparecendo o jogo na hora que reveritr, por issso eu pedir praanalisar .. mude esse text na asba de manurtencao deixe q o jogo abrira apeas 22horas.  &gt;&gt;
+              O jogo abrirá apenas 22 horas.
             </p>
           </div>
           <div className="pt-2">
