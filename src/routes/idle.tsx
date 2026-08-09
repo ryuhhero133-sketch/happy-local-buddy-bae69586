@@ -8237,70 +8237,59 @@ function IdlePage() {
             );
           })()}
 
-
-
-
-
-
           {/* O "Registro de Batalha" foi removido conforme solicitação do usuário. */}
-            
-            {/* HUD de Aviso Temporário (Ancião Glacial) */}
-            <div 
-              onClick={() => setAnciaoOpen(true)}
-              style={{ 
-                marginTop: 10,
-                background: "linear-gradient(135deg, rgba(201, 184, 255, 0.2), rgba(201, 184, 255, 0.05))",
-                border: "2px solid #c9b8ff",
-                borderRadius: 12,
-                padding: "10px 14px",
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                boxShadow: "0 4px 15px rgba(201, 184, 255, 0.25)",
-                animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                cursor: "pointer"
-              }}
-            >
-              <div style={{ width: 44, height: 44, position: "relative" }}>
-                <img 
-                  src={npcAnciaoGlacialUrl} 
-                  alt="Ancião Glacial" 
-                  style={{ 
-                    width: "100%", 
-                    height: "100%", 
-                    imageRendering: "pixelated",
-                    animation: "autoIconPulse 1.5s ease-in-out infinite"
-                  }} 
-                />
+          
+          {/* HUD de Aviso Temporário (Ancião Glacial) */}
+          <div 
+            onClick={() => setAnciaoOpen(true)}
+            style={{ 
+              marginTop: 10,
+              background: "linear-gradient(135deg, rgba(201, 184, 255, 0.2), rgba(201, 184, 255, 0.05))",
+              border: "2px solid #c9b8ff",
+              borderRadius: 12,
+              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              boxShadow: "0 4px 15px rgba(201, 184, 255, 0.25)",
+              animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              cursor: "pointer"
+            }}
+          >
+            <div style={{ width: 44, height: 44, position: "relative" }}>
+              <img 
+                src={npcAnciaoGlacialUrl} 
+                alt="Ancião Glacial" 
+                style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  imageRendering: "pixelated",
+                  animation: "autoIconPulse 1.5s ease-in-out infinite"
+                }} 
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ 
+                color: "#c9b8ff", 
+                fontSize: 12, 
+                fontWeight: 900, 
+                letterSpacing: 1, 
+                textShadow: "0 0 8px rgba(201, 184, 255, 0.8)" 
+              }}>
+                ❄️ NOVA JORNADA
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ 
-                  color: "#c9b8ff", 
-                  fontSize: 12, 
-                  fontWeight: 900, 
-                  letterSpacing: 1, 
-                  textShadow: "0 0 8px rgba(201, 184, 255, 0.8)" 
-                }}>
-                  ❄️ NOVA JORNADA
-                </div>
-                <div style={{ 
-                  color: "#fff", 
-                  fontSize: 10.5, 
-                  fontWeight: 700,
-                  marginTop: 2,
-                  lineHeight: 1.3
-                }}>
-                  A 3ª SEASON CHEGOU! INICIE O RITUAL NO SANTUÁRIO. 🏔️✨
-                </div>
+              <div style={{ 
+                color: "#fff", 
+                fontSize: 10.5, 
+                fontWeight: 700,
+                marginTop: 2,
+                lineHeight: 1.3
+              }}>
+                A 3ª SEASON CHEGOU! INICIE O RITUAL NO SANTUÁRIO. 🏔️✨
               </div>
             </div>
-
           </div>
         </div>
-
-
-
-
 
         {/* ============ COLUNA DIREITA ============ */}
         {/* ============ COLUNA DIREITA (RADAR E EXPLORAR) ============ */}
