@@ -10230,7 +10230,7 @@ function IdlePage() {
                   onUpgradeBook={upgradeBook}
               />
             )}
-          )}
+
         {/* Explorar Panel - Integrated into Profile Card below */}
 
 
