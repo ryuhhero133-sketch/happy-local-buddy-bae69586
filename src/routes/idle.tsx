@@ -13008,8 +13008,13 @@ function TabOverlay({
   benchUids: Set<string>;
 
 
-}) {
-  const { spriteScale } = arguments[0]; // Extrai spriteScale dos props
+function TabOverlay(props: any) {
+  const {
+    tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
+    bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
+    tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
+    onAnciaoInteraction, spriteScale
+  } = props;
 
   const title =
     tab === "pokemon"   ? "MEU POKÉMON" :
