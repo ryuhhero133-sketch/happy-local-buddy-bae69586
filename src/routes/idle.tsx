@@ -12090,19 +12090,18 @@ function IdlePage() {
       )}
       {blackEggHudOpen && createPortal(
         <BlackMiticEggHud
+          open={blackEggHudOpen}
+          onClose={() => setBlackEggHudOpen(false)}
+          uid={identity?.id ?? "guest"}
+          itemCount={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
+          stones={{
+            stone_grass: idle.items?.stone_grass ?? 0,
+            stone_fire: idle.items?.stone_fire ?? 0,
+            stone_water: idle.items?.stone_water ?? 0,
+            stone_electric: idle.items?.stone_electric ?? 0,
+            stone_dark: idle.items?.stone_dark ?? 0,
+            stone_dragon: idle.items?.stone_dragon ?? 0,
 
-        open={blackEggHudOpen}
-
-        onClose={() => setBlackEggHudOpen(false)}
-        uid={identity?.id ?? "guest"}
-        itemCount={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
-        stones={{
-          stone_grass: idle.items?.stone_grass ?? 0,
-          stone_fire: idle.items?.stone_fire ?? 0,
-          stone_water: idle.items?.stone_water ?? 0,
-          stone_electric: idle.items?.stone_electric ?? 0,
-          stone_dark: idle.items?.stone_dark ?? 0,
-          stone_dragon: idle.items?.stone_dragon ?? 0,
         }}
         onConsumeStone={(stoneId, qty) => {
           const have = idleRef.current.items?.[stoneId] ?? 0;
