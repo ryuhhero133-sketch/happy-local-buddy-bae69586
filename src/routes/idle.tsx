@@ -10091,11 +10091,6 @@ function IdlePage() {
               </div>
             );
           })()}
-                gold={idle.bank.gold}
-                crystals={idle.bank.crystals}
-                safiras={idle.items?.safira_verde ?? 0}
-                onBuyMarket={buyMarketListing}
-                onCancelMarket={cancelMarketListing}
                 onClaimMarketPayout={claimMarketPayout}
                 isVip={isVip()}
                 pokemonMarketNode={
@@ -10352,17 +10347,10 @@ function IdlePage() {
       );
     })()}
 
-
-
-
-
-
-
-
-
-
-
-
+          </Panel>
+        </div>
+      );
+    })()}
 
 
 
