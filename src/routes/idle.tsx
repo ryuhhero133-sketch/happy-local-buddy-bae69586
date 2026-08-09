@@ -7251,7 +7251,7 @@ function IdlePage() {
           {/* Fundo que preenche o mapa para evitar o "void" verde ou preto */}
           <div style={{
             position: "absolute",
-            inset: -10000,
+            inset: -20000,
             backgroundColor: viewportBg, 
             zIndex: -1
           }} />
@@ -8349,7 +8349,7 @@ function IdlePage() {
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
           <div style={{
-            width: '250px', height: '250px', background: 'rgba(0, 0, 0, 0.5)',
+            width: '230px', height: '230px', background: 'rgba(0, 0, 0, 0.5)',
             border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 0 35px rgba(0,0,0,0.9), inset 0 0 25px rgba(245,207,107,0.3)', 
