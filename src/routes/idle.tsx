@@ -3665,9 +3665,16 @@ function IdlePage() {
   const viewH = viewSize.h / effectiveZoom;
 
   // Centraliza a câmera no treinador, mas trava nas bordas do mapa.
-  // Se o zoom for tão baixo que o mapa é menor que a tela, centraliza o mapa.
   const camX = viewW >= WORLD_W ? (WORLD_W - viewW) / 2 : Math.max(0, Math.min(WORLD_W - viewW, trainerPos.x - viewW / 2));
   const camY = viewH >= WORLD_H ? (WORLD_H - viewH) / 2 : Math.max(0, Math.min(WORLD_H - viewH, trainerPos.y - viewH / 2));
+
+  // Fator de escala inverso para manter as sprites (treinador/pokemons) no tamanho padrão
+  // Independentemente do zoom aplicado ao mapa.
+  const spriteScale = useMemo(() => {
+    // 0.45 era o tamanho aproximado que as sprites tinham antes das mudanças de zoom
+    // Nós normalizamos pelo effectiveZoom para que elas não fiquem "enormes" ou "minúsculas".
+    return 0.45 / effectiveZoom;
+  }, [effectiveZoom]);
 
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * effectiveZoom) / effectiveZoom;
