@@ -16498,6 +16498,7 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
