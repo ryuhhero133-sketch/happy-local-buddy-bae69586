@@ -22,14 +22,16 @@ import navMarket from "@/assets/icons/nav-market.png";
 export type CollectionEntry = { 
   uid: string;
   speciesId: number; 
-  species?: number; // legacy compat
+  species?: any;
   level?: number;
-  rarity?: string;
+  rarity?: any;
   xp?: number;
   traits?: string[];
   count: number; 
-  firstCaughtAt: string; 
+  firstCaughtAt: string;
+  capturedAt?: string;
 };
+
 export type Item = { id: string; name: string; type: string; rarity: string; icon?: string };
 
 
