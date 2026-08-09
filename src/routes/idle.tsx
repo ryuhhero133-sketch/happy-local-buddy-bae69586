@@ -12615,7 +12615,7 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
 }
 
 
-function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, resting, infinite, energy }: any) {
+function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, resting, infinite, energy, spriteScale = 1 }: any) {
   const hexToRgba = (h: string, a: number) => {
     const n = parseInt(h.replace("#", ""), 16);
     return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
