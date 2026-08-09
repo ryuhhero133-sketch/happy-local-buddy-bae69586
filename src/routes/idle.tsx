@@ -10077,8 +10077,6 @@ function IdlePage() {
                   </button>
                 </div>
                 )}
-                <button
-              onListMarket={listMarketItem}
               onBuyMarket={buyMarketListing}
               onCancelMarket={cancelMarketListing}
               onClaimMarketPayout={claimMarketPayout}
