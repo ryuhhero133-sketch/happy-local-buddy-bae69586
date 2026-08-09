@@ -12946,7 +12946,7 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-  onAnciaoInteraction,
+  onAnciaoInteraction, spriteScale
 }: {
   tab: string;
   onClose: () => void;
@@ -12967,55 +12967,44 @@ function TabOverlay({
   onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
   spriteScale: number;
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number; teamOrbUntil?: number };
-  onBuyBall: (b: ShopBall, qty?: number) => void;
-  onBuyUltraBundle: (qty?: number) => void;
-  onBuyTeleportScroll: (qty?: number) => void;
-  onBuyBook: (bk: ShopBook, qty?: number) => void;
-  onBuyPotion: (qty?: number) => void;
-  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
-  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
-
-  onBuyChestAmulet: () => void;
-
+  buffs: any;
+  onBuyBall: any;
+  onBuyUltraBundle: any;
+  onBuyTeleportScroll: any;
+  onBuyBook: any;
+  onBuyPotion: any;
+  onBuyEgg: any;
+  shopEggs: any;
+  onBuyChestAmulet: any;
   chestAmuletOwned: number;
-  autoHeal: { enabled: boolean; threshold: number };
-  setAutoHeal: (next: { enabled: boolean; threshold: number }) => void;
-  audioSettings: { music: boolean; sfx: boolean; musicVol: number; sfxVol: number };
-  setAudioSettings: React.Dispatch<React.SetStateAction<{ music: boolean; sfx: boolean; musicVol: number; sfxVol: number }>>;
-  tasks: Task[];
-  onClaimTask: (tid: string) => void;
-  onOpenColecaoDetail: (uid: string) => void;
-  onExchange: (dir: "g2c" | "c2g", amount: number) => void;
-  onSellItem: (id: string, qty?: number, currency?: "gold" | "crystal" | "safira") => void;
-  marketSellPrices: Record<string, number>;
-  identity: LocalIdentity | null;
-  onListMarket: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
-  onBuyMarket: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
-  onCancelMarket: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
-  onClaimMarketPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
-
+  autoHeal: any;
+  setAutoHeal: any;
+  audioSettings: any;
+  setAudioSettings: any;
+  tasks: any[];
+  onClaimTask: any;
+  onOpenColecaoDetail: any;
+  onExchange: any;
+  onSellItem: any;
+  marketSellPrices: any;
+  identity: any;
+  onListMarket: any;
+  onBuyMarket: any;
+  onCancelMarket: any;
+  onClaimMarketPayout: any;
   isVip: boolean;
   skinId: string;
-  setSkinId: (id: string) => void;
+  setSkinId: any;
   trainerLevel: number;
   unlockedSkins: string[];
   skinTickets: number;
-  onUnlockSkin: (id: string) => void;
-  onUpgradeBook: (id: string) => void;
-  orbTrades: { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[];
-  onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[], rarity?: Rarity) => void;
+  onUnlockSkin: any;
+  onUpgradeBook: any;
+  orbTrades: any;
+  onTradeOrb: any;
   pokemonMarketNode?: React.ReactNode;
   benchUids: Set<string>;
-
-
-function TabOverlay(props: any) {
-  const {
-    tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
-    bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
-    tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-    onAnciaoInteraction, spriteScale
-  } = props;
+}) {
 
   const title =
     tab === "pokemon"   ? "MEU POKÉMON" :
