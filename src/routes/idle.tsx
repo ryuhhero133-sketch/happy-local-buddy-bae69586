@@ -10078,12 +10078,6 @@ function IdlePage() {
                 </div>
                 )}
                 <button
-                  onClick={() => setAB({ enabled: !on })}
-                  style={{
-                    padding: "10px 20px",
-                    background: on ? "linear-gradient(180deg, #5ec26a, #2e7d32)" : "linear-gradient(180deg, #ff5c5c, #c62828)",
-                    border: "2px solid rgba(255,255,255,0.2)",
-                    borderRadius: 12, color: "#fff", fontWeight: 900, fontSize: 13,
               onListMarket={listMarketItem}
               onBuyMarket={buyMarketListing}
               onCancelMarket={cancelMarketListing}
