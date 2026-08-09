@@ -8304,54 +8304,6 @@ function IdlePage() {
           </div>
 
 
-          <div style={{
-            background: "rgba(36,20,44,0.92)",
-            border: "1px solid rgba(201,184,255,0.25)",
-            borderRadius: 10,
-            padding: "8px 10px",
-            flex: 1,
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10
-          }}>
-             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EXPLORAR</div>
-             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
-                {enemies.slice(0, 8).map(m => (
-                  <div key={m.id} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: "5px 8px", border: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 8 }}>
-                     <img src={GIF[m.sp] ?? ""} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
-                     <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: "#fff" }}>{m.sp.toUpperCase()}</div>
-                        <div style={{ width: "100%", height: 3, background: "#000", borderRadius: 2, marginTop: 2 }}>
-                           <div style={{ width: `${(m.hp / m.maxHp) * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff4b4b, #ff8b8b)", borderRadius: 2 }} />
-                        </div>
-                     </div>
-                     <span style={{ fontSize: 9, color: "#ffb84d", fontWeight: 900 }}>Lv.{m.level}</span>
-                  </div>
-                ))}
-             </div>
-          </div>
-
-          <div style={{
-            background: "rgba(36,20,44,0.92)",
-            border: "1px solid rgba(201,184,255,0.25)",
-            borderRadius: 10,
-            padding: "8px 10px",
-            height: "180px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8
-          }}>
-             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EQUIPE</div>
-             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
-                {team.map((p, i) => (
-                   <div key={p.uid} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: 4, border: `1px solid ${i === 0 ? "#ffd66b" : "rgba(255,255,255,0.05)"}`, position: "relative", textAlign: "center" }}>
-                      <img src={GIF[p.species] ?? ""} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated" }} />
-                      <div style={{ fontSize: 8, fontWeight: 800, color: "#fff", marginTop: 2 }}>Lv.{p.level}</div>
-                   </div>
-                ))}
-             </div>
-          </div>
         </div>
       </div>
 
@@ -10118,62 +10070,6 @@ function IdlePage() {
 
 
 
-          <Panel title="EXPLORAR" accent="#3d2b52">
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-
-
-
-
-
-
-
-
-
-
-
-
-              <div ref={coletaRef} style={{
-                background: "rgba(0,0,0,0.5)",
-                border: "1px solid rgba(245,207,107,0.3)",
-                borderRadius: 12, padding: 12,
-                backdropFilter: "blur(8px)"
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 11, letterSpacing: 1 }}>COLETA</span>
-                  <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 10 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 10 }}>
-                  <span style={{ color: "#f4c430", fontWeight: 800, fontSize: 12 }}>● {fmtK(idle.bank.gold)}</span>
-                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 12 }}>💎 {Math.floor(idle.bank.crystals)}</span>
-                </div>
-
-                <button
-                  onClick={collect}
-                  style={{
-                    width: "100%", background: "linear-gradient(135deg, #7ef27a, #5ec26a)",
-                    color: "#0b0510", border: "1px solid #f5cf6b", borderRadius: 8,
-                    padding: "6px", fontWeight: 900, fontSize: 12, cursor: "pointer"
-                  }}
-                >
-                  COLETAR
-                </button>
-              </div>
-
-              {/* Eventos compactos aqui */}
-              {isGeliusActive() && (
-                <div 
-                  onClick={() => pushChat("🐧 Gelius ativo!", "info")}
-                  style={{ background: "rgba(11,46,74,0.6)", border: "1px solid #7fd8ff", borderRadius: 10, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
-                >
-                  <span style={{ fontSize: 14 }}>🐧</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 9, fontWeight: 900, color: "#c9b8ff" }}>EVENTO GELIUS</div>
-                    <div style={{ fontSize: 8, color: "#fff" }}>ONDA ATIVA</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Panel>
 
           <div style={{ height: 12 }} />
 
