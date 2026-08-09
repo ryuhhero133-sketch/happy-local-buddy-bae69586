@@ -12965,6 +12965,7 @@ function TabOverlay({
   onPickTeam: (entry: CollectionEntry) => void;
   onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
+  spriteScale: number;
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number; teamOrbUntil?: number };
   onBuyBall: (b: ShopBall, qty?: number) => void;
   onBuyUltraBundle: (qty?: number) => void;
