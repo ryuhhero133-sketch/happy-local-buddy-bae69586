@@ -8312,11 +8312,11 @@ function IdlePage() {
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
           <div style={{
             width: '180px', height: '180px', background: 'rgba(0, 0, 0, 0.5)',
-            border: '3px solid rgba(245, 207, 107, 0.7)', borderRadius: '50%',
+            border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(245,207,107,0.2)', 
+            boxShadow: '0 0 35px rgba(0,0,0,0.9), inset 0 0 25px rgba(245,207,107,0.3)', 
             overflow: 'hidden', position: 'relative', alignSelf: 'flex-end',
-            backdropFilter: 'blur(6px)', pointerEvents: 'auto'
+            backdropFilter: 'blur(8px)', pointerEvents: 'auto'
           }}>
             {/* Dynamic Map Background - Moves with the player */}
             <div style={{
@@ -8331,9 +8331,9 @@ function IdlePage() {
             {/* Indicator of player position on the small map */}
             <div style={{
               position: 'absolute',
-              width: '6px', height: '6px',
+              width: '8px', height: '8px',
               background: '#f5cf6b', borderRadius: '50%',
-              boxShadow: '0 0 8px #f5cf6b',
+              boxShadow: '0 0 10px #f5cf6b, 0 0 2px #fff',
               left: `${(trainerPos.x / WORLD_W) * 100}%`,
               top: `${(trainerPos.y / WORLD_H) * 100}%`,
               transform: 'translate(-50%, -50%)',
@@ -8343,42 +8343,25 @@ function IdlePage() {
             {/* Grid Overlay */}
             <div style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'linear-gradient(rgba(245,207,107,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(245,207,107,0.05) 1px, transparent 1px)',
-              backgroundSize: '20px 20px', pointerEvents: 'none', opacity: 0.5
+              background: 'linear-gradient(rgba(245,207,107,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(245,207,107,0.1) 1px, transparent 1px)',
+              backgroundSize: '20px 20px', pointerEvents: 'none', opacity: 0.3
             }} />
-            
-            {/* Scan Sweep Effect */}
-            <div style={{ 
-              position: 'absolute', width: '50%', height: '50%', top: 0, left: '50%', 
-              background: 'conic-gradient(from 0deg, rgba(245,207,107,0.3) 0%, transparent 40%)',
-              transformOrigin: 'bottom left', animation: 'radarScan 4s linear infinite',
-              borderLeft: '1px solid rgba(245,207,107,0.4)', zIndex: 1
-            }} />
-
-            {/* Central marker removed to avoid confusion with the new moving dot */}
             
             {/* Pulse effect following player */}
             <div style={{
-              position: 'absolute', width: '20px', height: '20px', border: '1px solid rgba(255,255,255,0.5)',
+              position: 'absolute', width: '25px', height: '25px', border: '2px solid rgba(255,255,255,0.6)',
               borderRadius: '50%', zIndex: 9, animation: 'radarPulse 2s ease-out infinite',
               left: `${(trainerPos.x / WORLD_W) * 100}%`,
               top: `${(trainerPos.y / WORLD_H) * 100}%`,
               transform: 'translate(-50%, -50%)'
             }} />
 
-            {/* Map Name Overlay */}
+            {/* Glass Border Overlay for extra elegance */}
             <div style={{
-              position: 'absolute', bottom: '12px', width: '100%', textAlign: 'center',
-              zIndex: 15, pointerEvents: 'none'
-            }}>
-              <div style={{ 
-                fontSize: '9px', color: '#f5cf6b', fontWeight: 900, 
-                textShadow: '0 1px 3px rgba(0,0,0,1)', letterSpacing: '0.8px',
-                background: 'rgba(0,0,0,0.4)', padding: '2px 0'
-              }}>
-                {IDLE_MAPS[idle.currentMap].name.toUpperCase()}
-              </div>
-            </div>
+              position: 'absolute', inset: 0, borderRadius: '50%',
+              border: '1px solid rgba(255,255,255,0.1)',
+              pointerEvents: 'none', zIndex: 12
+            }} />
 
             {/* Integrated Zoom Controls - Positioned next to radar as in image-32.png */}
             <div style={{
