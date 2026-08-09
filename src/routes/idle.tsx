@@ -7349,7 +7349,7 @@ function IdlePage() {
           background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(15px)',
           padding: '10px 35px', borderRadius: '50px', border: '1px solid #c9b8ff',
           display: 'flex', gap: '30px', pointerEvents: 'auto', boxShadow: '0 0 30px rgba(201,184,255,0.2)',
-          zIndex: 2000
+          zIndex: 9999
         }}>
 
           <button onClick={() => { console.log('Dock: Batalha'); setTab("batalha"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'batalha' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
@@ -9809,8 +9809,9 @@ function IdlePage() {
             const on = ab.enabled;
             return (
             <div style={{
-              position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
+              position: "absolute", bottom: 85, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+              zIndex: 10000,
             }}>
               {showAutoSettings && (
                 <div style={{
