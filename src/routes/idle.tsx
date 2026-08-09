@@ -3020,7 +3020,7 @@ function IdlePage() {
         trainerXp: 0,
         collection: [],
         items: nextItems as typeof cur.items,
-        currentMap: "vale_dourado",
+        currentMap: "arena",
         redeemedCodes: { ...(cur.redeemedCodes ?? {}), RESETPERSON: true },
       };
 
