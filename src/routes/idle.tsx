@@ -8204,6 +8204,7 @@ function IdlePage() {
                   padding: 2,
                   boxShadow: `0 3px 8px rgba(0,0,0,0.65), 0 0 14px ${accent}55, inset 0 0 3px rgba(0,0,0,0.4)`,
                   position: "relative",
+                  zIndex: 2,
                 }}>
                   <div style={{
                     width: "100%", height: "100%", borderRadius: "50%",
@@ -8215,7 +8216,11 @@ function IdlePage() {
                     <img
                       src={assetUrlFromJson(trainerAvatarAsset)}
                       alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      style={{ 
+                        width: "100%", height: "100%", objectFit: "cover",
+                        transform: `scale(${spriteScale * 2.2})`, // Compensa o scale global
+                        transformOrigin: 'center'
+                      }}
                     />
                   </div>
                   {/* Selo de nível — pendurado no medalhão */}
