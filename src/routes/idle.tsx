@@ -12490,7 +12490,6 @@ function IdlePage() {
         );
       })(), document.body)}
 
-
       {isAdminOpen && (
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />
       )}
