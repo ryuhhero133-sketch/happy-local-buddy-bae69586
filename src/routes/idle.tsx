@@ -12557,7 +12557,7 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
   );
 }
 
-function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () => void; energyTick?: number }) {
+function TeamRow({ pet, onClick, energyTick, spriteScale = 1 }: { pet: PetInstance; onClick?: () => void; energyTick?: number; spriteScale?: number }) {
   void energyTick; // força re-render por segundo p/ atualizar barra de energia
   const src = GIF[pet.species];
   const now = Date.now();
