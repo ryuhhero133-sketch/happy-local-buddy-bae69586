@@ -7452,6 +7452,7 @@ function IdlePage() {
             gifMap={GIF}
             onPickTeam={onPickTeamFromColecao}
             onUseItem={useItem}
+            spriteScale={spriteScale}
             bank={idle.bank || { gold: 0, crystals: 0 }}
             buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
             onBuyBall={buyBall}
