@@ -7,8 +7,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase as _supabase } from "@/integrations/supabase/client";
 import type { CollectionEntry } from "@/routes/idle";
-import type { Species, Rarity } from "@/game/systems";
-import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
+import type { Species, Rarity } from "@/game/systems.tsx";
+
+
+import { SPECIES_BASE as _SPECIES_BASE, RARITY_NAME as _RARITY_NAME } from "@/game/systems.tsx";
+const SPECIES_BASE = _SPECIES_BASE as any;
+const RARITY_NAME = _RARITY_NAME as any;
+
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
 import { readEmeraldFor, writeEmeraldFor, spendEmeraldFor, grantEmeraldFor } from "@/lib/emerald";
@@ -37,9 +42,10 @@ type ListingRow = {
   seller_name: string;
   pokemon: {
     uid: string;
-    species: Species;
+    species: any;
     level: number;
-    rarity: Rarity;
+    rarity: any;
+
     xp?: number;
     traits?: string[];
     statBoost?: number;
@@ -70,7 +76,8 @@ type OfferRow = {
   created_at: string;
 };
 
-const RARITY_COLOR: Record<string, string> = {
+const RARITY_COLOR: any = {
+
   common: "#c8b8d0", uncommon: "#7ef2a2", rare: "#6bd4ff",
   epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
 };
@@ -106,7 +113,8 @@ export interface PokemonMarketPanelProps {
   crystals: number;
   safiras?: number;
   isVip: boolean;
-  gifOf: (sp: Species) => string | undefined;
+  gifOf: (sp: any) => string | undefined;
+
   onListed: (uid: string) => void;                              // remove do estoque local
   onReturned: (entry: CollectionEntry) => void;                 // devolve p/ coleção
   onSpend: (currency: Currency, amount: number) => void;
@@ -663,7 +671,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
 
 // ============ CARDS ============
 function ListingCard(props: {
-  r: ListingRow; gifOf: (sp: Species) => string | undefined; now: number;
+  r: ListingRow; gifOf: (sp: any) => string | undefined; now: number;
   action?: React.ReactNode; badge?: string; footer?: React.ReactNode;
 }) {
   const { r, gifOf, action, badge, footer } = props;
@@ -808,7 +816,7 @@ function OffersReceived(props: {
 function CreateListing(props: {
   identity: { id: string; name: string } | null;
   collection: CollectionEntry[];
-  gifOf: (sp: Species) => string | undefined;
+  gifOf: (sp: any) => string | undefined;
   selUid: string; setSelUid: (u: string) => void;
   price: number; setPrice: (n: number) => void;
   currency: Currency; setCurrency: (c: Currency) => void;
