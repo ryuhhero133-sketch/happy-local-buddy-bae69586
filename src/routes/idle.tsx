@@ -3661,6 +3661,7 @@ function IdlePage() {
     // Calculamos o zoom base de forma que o zoom efetivo (zoom * BASE_ZOOM) resulte no preenchimento ideal.
     const fillScale = Math.max(viewSize.w / WORLD_W, viewSize.h / WORLD_H);
     // Se o slider (zoom) estiver em 0.35, queremos que o resultado seja fillScale.
+    // O usuário relatou que 0.35 é o ponto onde ele quer ver o mapa completo.
     return fillScale / 0.35;
   }, [viewSize.w, viewSize.h, WORLD_W, WORLD_H]);
 
