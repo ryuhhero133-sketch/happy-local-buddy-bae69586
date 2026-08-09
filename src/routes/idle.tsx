@@ -7331,15 +7331,61 @@ function IdlePage() {
 
         {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
 
-        {/* Menu Lateral Direito (Barra de Ícones) */}
+        {/* Menu Lateral Direito (MMO Style) */}
         <div className="side-icon-bar" style={{
-          position: 'fixed', right: '20px', bottom: '150px',
-          display: 'flex', flexDirection: 'column', gap: '15px', pointerEvents: 'auto',
-          zIndex: 1003
+          position: 'fixed', right: '15px', top: '50%', transform: 'translateY(-50%)',
+          display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'auto',
+          zIndex: 1003,
+          background: 'rgba(11, 5, 20, 0.75)',
+          backdropFilter: 'blur(10px)',
+          padding: '12px 8px',
+          borderRadius: '24px',
+          border: '1px solid rgba(201, 184, 255, 0.3)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
         }}>
-          <button className="side-btn" onClick={() => setRankOpen(true)} title="Ranking" style={{ width: '56px', height: '56px', background: 'rgba(36,20,44,0.9)', border: '1px solid #c9b8ff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '28px', boxShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>🏆</button>
-          <button className="side-btn" onClick={() => setWorldMapOpen(true)} title="Mapa" style={{ width: '56px', height: '56px', background: 'rgba(36,20,44,0.9)', border: '1px solid #c9b8ff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '28px', boxShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>🗺️</button>
-          <button className="side-btn" onClick={() => setTab("wiki")} title="Wiki" style={{ width: '56px', height: '56px', background: 'rgba(36,20,44,0.9)', border: '1px solid #c9b8ff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '28px', boxShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>📖</button>
+          {/* Evento (Placeholder with notification dot) */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer', position: 'relative' }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>📅</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Evento</span>
+            <div style={{ position: 'absolute', top: '2px', right: '4px', width: '10px', height: '10px', background: '#ff4444', borderRadius: '50%', border: '1.5px solid #0b0514' }}></div>
+          </div>
+
+          {/* Pacotes (Cash Shop) */}
+          <div onClick={() => setCashShopOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🎁</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Pacotes</span>
+          </div>
+
+          {/* Ranking */}
+          <div onClick={() => setRankOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🏆</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Ranking</span>
+          </div>
+
+          {/* Mundo (World Map) */}
+          <div onClick={() => setWorldMapOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🌍</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Mundo</span>
+          </div>
+
+          {/* Loja (Tab Loja) */}
+          <div onClick={() => setTab("loja")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>💎</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Loja</span>
+          </div>
+
+          {/* Wiki/Info */}
+          <div onClick={() => setTab("wiki")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>📖</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Wiki</span>
+          </div>
+
+          {/* Configurações (Small spacer then config) */}
+          <div style={{ height: '4px' }}></div>
+          <div onClick={() => setTab("melhorias")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer', opacity: 0.8 }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>⚙️</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Config.</span>
+          </div>
         </div>
 
 
