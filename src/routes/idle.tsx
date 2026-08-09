@@ -9120,8 +9120,8 @@ function IdlePage() {
                   <img
                     src={npcAnciaoGlacialUrl}
                     alt="Ancião Glacial"
-                    width={120} height={160}
-                    style={{ width: 120, height: 160, imageRendering: "pixelated", objectFit: "contain" }}
+                    width={170} height={230}
+                    style={{ width: 170, height: 230, imageRendering: "pixelated", objectFit: "contain" }}
                   />
                   <div style={{
                     position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
