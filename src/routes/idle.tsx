@@ -10004,6 +10004,7 @@ function IdlePage() {
             const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
             const on = ab.enabled;
             return (
+              <>
               <div style={{
                 position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
@@ -10072,7 +10073,9 @@ function IdlePage() {
                     🚪 IR PARA TELA DE LOGIN
                   </button>
                 </div>
-              )}
+                )}
+              </div>
+
             {/* MMORPG Bottom Bar Menu */}
             <div style={{
               position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)",
