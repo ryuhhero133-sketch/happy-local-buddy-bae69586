@@ -7243,6 +7243,7 @@ function IdlePage() {
       position: "relative"
     }}>
       <div
+        className="legacy-world-viewport"
         ref={viewportRef}
         onClick={(e) => {
           const t = e.target as HTMLElement;
@@ -7264,22 +7265,26 @@ function IdlePage() {
           background: viewportBg,
           cursor: 'crosshair',
           zIndex: 0,
+          pointerEvents: 'auto',
         }}
       >
-        <div style={{
-          position: "absolute",
-          left: 0, top: 0,
-          width: WORLD_W, height: WORLD_H,
-          transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
-          transformOrigin: "0 0",
-          transition: "none",
-          backgroundColor: viewportBg,
-          overflow: "visible", 
-          contain: "layout style",
-          willChange: "transform",
-          backfaceVisibility: "hidden",
-          fontSize: `${1 / effectiveZoom}px`, // Normaliza o tamanho base da fonte para compensar o scale
-        }}>
+        <div 
+          className="legacy-world-layer"
+          style={{
+            position: "absolute",
+            left: 0, top: 0,
+            width: WORLD_W, height: WORLD_H,
+            transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
+            transformOrigin: "0 0",
+            transition: "none",
+            backgroundColor: viewportBg,
+            overflow: "visible", 
+            contain: "layout style",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
+            fontSize: `${1 / effectiveZoom}px`,
+          }}
+        >
           {/* Fundo que preenche o mapa para evitar o "void" verde ou preto */}
           <div style={{
             position: "absolute",
@@ -7316,13 +7321,13 @@ function IdlePage() {
               filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
             }} />
           ))}
-
-
         </div>
       </div>
 
       {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
       <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
+
+
         
         {/* Barra Superior Moderna (Arquitetura da Imagem) */}
         <div className="modern-top-bar" style={{ 
@@ -8734,15 +8739,6 @@ function IdlePage() {
               document.body
             )}
 
-        <div className="legacy-world-layer" style={{
-          position: "absolute",
-          left: 0, top: 0,
-          width: WORLD_W, height: WORLD_H,
-          transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
-          transformOrigin: "0 0",
-          zIndex: 1,
-          pointerEvents: "none",
-        }}>
 
             {/* Painel de Colmeia — posicionar Beedrills p/ produzir Incenso de Mel */}
             {honeyShop && (() => {
@@ -9823,27 +9819,8 @@ function IdlePage() {
               );
             })}
           </div>
-          <div className="hud-overlay-layer" style={{ position: "fixed", inset: 0, zIndex: 1100, pointerEvents: "none" }}>
-            {/* O bloco de HUD moderno foi movido para o topo do return, após o Viewport. */}
-          </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          {/* Overlay de DESCANSO — congela o jogo, cura no final */}
           {restingUntil !== null && restingStart !== null && (() => {
             const totalDur = Math.max(1, restingUntil - restingStart);
             const elapsed = Math.min(totalDur, Math.max(0, Date.now() - restingStart));
@@ -12124,6 +12101,7 @@ function IdlePage() {
 
 
 
+
         open={blackEggHudOpen}
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
@@ -12512,6 +12490,8 @@ function IdlePage() {
     </div>
   );
 }
+
+
 
 
 
