@@ -9228,6 +9228,9 @@ function IdlePage() {
         </div>
       );
     })()}
+        </div>
+      );
+    })()}
                   <div style={{
                     position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
                     width: 100, height: 14, borderRadius: "50%",
@@ -10336,6 +10339,9 @@ function IdlePage() {
               </button>
             </div>
           </Panel>
+        </div>
+      );
+    })()}
         </div>
               </button>
             </div>
