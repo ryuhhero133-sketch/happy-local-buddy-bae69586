@@ -7196,8 +7196,8 @@ function IdlePage() {
   );
 
   return (
-    <>
     <div style={{
+
 
 
 
@@ -10361,7 +10361,6 @@ function IdlePage() {
             </div>
           </Panel>
         </div>
-        </>
 
 
 
@@ -12681,6 +12680,7 @@ function IdlePage() {
     </div>
   );
 }
+
 
 
 
