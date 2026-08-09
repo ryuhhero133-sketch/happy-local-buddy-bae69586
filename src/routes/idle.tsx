@@ -7281,7 +7281,7 @@ function IdlePage() {
       {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
       <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         
-        {/* Barra Superior Moderna (Arquitetura da Imagem) */}
+        {/* Barra Superior Moderna */}
         <div className="modern-top-bar" style={{ 
           position: 'fixed', top: 0, left: 0, right: 0, height: '55px',
           background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)',
@@ -7319,71 +7319,13 @@ function IdlePage() {
             </div>
           </div>
 
-          {/* Lado Direito: Topo limpo sem botões duplicados */}
+          {/* Lado Direito: Topo limpo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           </div>
         </div>
 
-        {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
-
-        {/* Menu Lateral Direito (Barra de Ícones) Removido pois agora está integrado na HUD vertical flutuante */}
-
-
-        {/* Dock Inferior Moderna */}
-        <div className="bottom-dock-container" style={{
-          position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)',
-          padding: '8px 25px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-          zIndex: 2000
-        }}>
-
-          <button onClick={() => { console.log('Dock: Batalha'); setTab("batalha"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'batalha' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>⚔️</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>BATALHA</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Equipe'); setTab("pokemon"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'pokemon' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>🛡️</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>EQUIPE</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Mochila'); setTab("mochila"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'mochila' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>🎒</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>MOCHILA</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Colecao'); setTab("colecao"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'colecao' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>📔</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>COLEÇÃO</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Mercado'); setTab("market"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'market' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>⚖️</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Loja'); setTab("loja"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'loja' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>🏪</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
-          </button>
-
-        </div>
-
-        {(tab !== "batalha" && tab !== "inicio") && (
-          <TabOverlay
-            tab={tab}
-            onClose={() => setTab("batalha")}
-            onAnciaoInteraction={handleAnciaoInteraction}
-            leader={team[0]}
-            team={team}
-            onReorderTeam={setTeam}
-            leaderHp={leaderHp}
-            items={idle.items || {}}
-            caughtSpecies={idle.caughtSpecies || []}
-            seenSpecies={idle.seenSpecies || []}
-            totals={idle.totals || { gold: 0, captured: 0 }}
-            collection={idle.collection || []}
-            craftPoints={idle.items?.cristal_fragmentado || 0}
-            onFragmentCollection={fragmentCollection}
-            gifMap={GIF}
-            onPickTeam={onPickTeamFromColecao}
-            onUseItem={useItem}
+        {/* HUD Elements rendered via portals or other overlays to handle layering correctly */}
+      </div>
             bank={idle.bank || { gold: 0, crystals: 0 }}
             buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
             onBuyBall={buyBall}
@@ -8349,6 +8291,8 @@ function IdlePage() {
               opacity: 0.2,
               filter: "blur(4px)"
             }} />
+            
+            {renderBattle()}
           </div>
         </div>
       </div>
@@ -8416,12 +8360,10 @@ function IdlePage() {
                   }}>RANKING GLOBAL</div>
                   <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
                     🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
-                  </div>
                 </div>
-
-                    </div>
-                    <div
-                      title="O ranking global é congelado e atualiza a cada 2 horas"
+              </div>
+              <div
+                title="O ranking global é congelado e atualiza a cada 2 horas"
                       style={{
                         background: "rgba(120,220,255,0.08)", border: "1px solid rgba(120,220,255,0.25)",
                         color: "#9fd8ee", fontSize: 12, height: 34, padding: "0 12px",
@@ -10111,7 +10053,7 @@ function IdlePage() {
               onUpgradeBook={upgradeBook}
             />
           )}
-        <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+        {/* Explorar Panel - Integrated into Profile Card below */}
 
 
 
@@ -12064,10 +12006,8 @@ function IdlePage() {
 
 
 
-      {/* ============ LOJINHA CASH ============ */}
       {cashShopOpen && createPortal(
         <CashShopModal
-
           open={cashShopOpen}
           onClose={() => setCashShopOpen(false)}
           identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
@@ -12080,31 +12020,31 @@ function IdlePage() {
             safiras: idle.items?.safira_verde ?? 0,
           }}
           onSpendSafiras={(n) => {
-          const cur = idle.items?.safira_verde ?? 0;
-          if (cur < n) return false;
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
-          }));
-          return true;
-        }}
-
-        onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
-        onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
-        onGrantItem={(id, qty) => {
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
-          }));
-        }}
-        codeInput={codeInput}
-        setCodeInput={setCodeInput}
-        codeMsg={codeMsg}
-        onRedeemCode={() => redeemCrystalCode()}
-      />,
-      document.body
-    )}
-    <BlackMiticEggHud
+            const cur = idle.items?.safira_verde ?? 0;
+            if (cur < n) return false;
+            setIdle((s) => ({
+              ...s,
+              items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
+            }));
+            return true;
+          }}
+          onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
+          onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
+          onGrantItem={(id, qty) => {
+            setIdle((s) => ({
+              ...s,
+              items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
+            }));
+          }}
+          codeInput={codeInput}
+          setCodeInput={setCodeInput}
+          codeMsg={codeMsg}
+          onRedeemCode={() => redeemCrystalCode()}
+        />,
+        document.body
+      )}
+      {blackEggHudOpen && createPortal(
+        <BlackMiticEggHud
 
 
 
