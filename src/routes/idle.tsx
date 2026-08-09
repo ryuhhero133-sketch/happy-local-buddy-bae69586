@@ -3649,16 +3649,15 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
-  // Zoom base dinâmico para garantir que a HUD e o mundo escalem juntos.
-  // Se o zoom for baixo (ex: 52%), a HUD diminuirá proporcionalmente, mantendo a visão do mapa "encaixada".
+  // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
+  // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
   const BASE_ZOOM = 0.45;
-  const uiScale = Math.min(1.2, Math.max(0.6, zoom)); // Limitamos a escala da HUD entre 60% e 120%
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
 
-  // Mapa real preenchido: centralizamos a câmera, mas impedimos que ela mostre áreas fora do mapa.
-  // Ajustamos o clamping para que se a visão for maior que o mundo (zoom muito baixo), o mapa não "descole" das bordas.
+  // Mapa real preenchido: centralizamos a câmera, mas impedimos que ela mostre áreas fora do mapa
+  // a menos que o mapa seja menor que a visão (o que não deve acontecer com WORLD_W/H = 2000).
   const camX = viewW >= WORLD_W ? (WORLD_W - viewW) / 2 : Math.max(0, Math.min(WORLD_W - viewW, trainerPos.x - viewW / 2));
   const camY = viewH >= WORLD_H ? (WORLD_H - viewH) / 2 : Math.max(0, Math.min(WORLD_H - viewH, trainerPos.y - viewH / 2));
 
@@ -7231,7 +7230,7 @@ function IdlePage() {
           position: 'absolute',
           inset: 0,
           overflow: 'hidden',
-          background: "#000",
+          background: viewportBg,
           cursor: 'crosshair',
           zIndex: 0,
         }}
@@ -7243,7 +7242,7 @@ function IdlePage() {
           transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
           transformOrigin: "0 0",
           transition: "none",
-          backgroundColor: "#000",
+          backgroundColor: viewportBg,
           overflow: "visible", 
           contain: "layout style",
           willChange: "transform",
@@ -7253,7 +7252,7 @@ function IdlePage() {
           <div style={{
             position: "absolute",
             inset: -10000,
-            backgroundColor: "#000", 
+            backgroundColor: viewportBg, 
             zIndex: -1
           }} />
           <img
@@ -7291,15 +7290,7 @@ function IdlePage() {
       </div>
 
       {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
-      <div className="hud-overlay-container" style={{ 
-        position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent',
-        transform: `scale(${uiScale})`,
-        transformOrigin: "center center",
-        width: `${100 / uiScale}%`,
-        height: `${100 / uiScale}%`,
-        left: `${(1 - uiScale) * 50 / uiScale}%`,
-        top: `${(1 - uiScale) * 50 / uiScale}%`
-      }}>
+      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         
         {/* Barra Superior Moderna (Arquitetura da Imagem) */}
         <div className="modern-top-bar" style={{ 
