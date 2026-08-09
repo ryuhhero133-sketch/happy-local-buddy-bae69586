@@ -8197,6 +8197,7 @@ function IdlePage() {
         </div>
       )}
 
+      <>
       <div className="idle-grid" style={{
         display: "grid",
         gridTemplateColumns: "1fr",
@@ -8207,6 +8208,7 @@ function IdlePage() {
         background: "black",
         overflow: "hidden",
       }}>
+
 
 
 
