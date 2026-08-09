@@ -9430,7 +9430,7 @@ function IdlePage() {
             <div style={{
               position: "absolute",
               left: renderTrainerX, top: renderTrainerY,
-              width: 56, height: 56,
+              width: 80, height: 80,
               transform: "translate(-50%, -50%)",
               filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
               zIndex: Math.round(trainerPos.y),
