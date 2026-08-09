@@ -10090,8 +10090,7 @@ function IdlePage() {
                   </button>
                 </div>
               </div>
-            );
-          })()}
+            )()}
 
             {showProfile && (
               <ProfileCard
