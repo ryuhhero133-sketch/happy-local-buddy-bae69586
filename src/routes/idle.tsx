@@ -13759,13 +13759,31 @@ function TabOverlay({
                   );
                 })}
                 <div style={{ flex: 1 }} />
+                
+                {/* Vault Access Button in Inventory */}
+                <button
+                  onClick={onAnciaoInteraction}
+                  style={{
+                    width: "100%", padding: "12px",
+                    background: "linear-gradient(180deg, #3b2450, #241634)",
+                    border: "2px solid #c9b8ff", borderRadius: 12,
+                    color: "#c9b8ff", fontSize: 11, fontWeight: 900,
+                    cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    marginTop: 8
+                  }}
+                >
+                  🏰 BANCO
+                </button>
+
                 <div style={{
-                  marginTop: 4, padding: "6px 8px", fontSize: 9.5, fontWeight: 700,
+                  marginTop: 8, padding: "8px", fontSize: 10, fontWeight: 800,
                   color: P.inkSoft, textAlign: "center", fontStyle: "italic",
-                  borderTop: `1px dashed ${P.goldDark}55`,
+                  borderTop: `1px solid rgba(245, 207, 107, 0.2)`,
                 }}>
                   {SLOTS_MIN - filtered.length > 0 ? `${SLOTS_MIN - filtered.length} slots livres` : "Mochila cheia"}
                 </div>
+
               </div>
 
               {/* GRADE DE ITENS */}
