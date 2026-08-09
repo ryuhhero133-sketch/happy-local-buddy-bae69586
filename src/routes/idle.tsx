@@ -9819,7 +9819,8 @@ function IdlePage() {
               );
             })}
           </div>
-
+        </div>
+      </div>
 
           {restingUntil !== null && restingStart !== null && (() => {
             const totalDur = Math.max(1, restingUntil - restingStart);
