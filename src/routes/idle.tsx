@@ -7319,25 +7319,15 @@ function IdlePage() {
             </div>
           </div>
 
-          {/* Lado Direito: Config */}
+          {/* Lado Direito: Topo limpo sem botões duplicados */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-             <button onClick={() => setTab("melhorias")} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>⚙️</button>
           </div>
         </div>
 
         {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
 
-        {/* Menu Lateral Direito (Barra de Ícones) */}
-        <div className="side-icon-bar" style={{
-          position: 'fixed', right: '20px', top: '50%', transform: 'translateY(-50%)',
-          display: 'flex', flexDirection: 'column', gap: '12px', pointerEvents: 'auto',
-          zIndex: 1003
-        }}>
-          <button className="side-btn" onClick={() => setRankOpen(true)} title="Ranking" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🏆</button>
-          <button className="side-btn" onClick={() => setWorldMapOpen(true)} title="Mapa" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🗺️</button>
-          <button className="side-btn" onClick={() => setTab("wiki")} title="Wiki" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>📖</button>
-          <button className="side-btn" onClick={() => setTab("melhorias")} title="Config" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>⚙️</button>
-        </div>
+        {/* Menu Lateral Direito (Barra de Ícones) Removido pois agora está integrado na HUD vertical flutuante */}
+
 
         {/* Dock Inferior Moderna */}
         <div className="bottom-dock-container" style={{
@@ -8275,16 +8265,20 @@ function IdlePage() {
           }}>
 
             {([
+              { id: "world", label: "Mundo", icon: "🗺️", color: "#60a5fa" },
               { id: "ranking", label: "Ranking", icon: "🏆", color: "#ffd94d" },
-              { id: "events", label: "Evento", icon: "📅", color: "#c9b8ff" },
+              { id: "wiki", label: "Wiki", icon: "📖", color: "#a855f7" },
               { id: "shop", label: "Loja", icon: "💎", color: "#8dfa8d" },
-              { id: "config", label: "Config", icon: "⚙", color: "#a8a0b8" }
+              { id: "config", label: "Config", icon: "⚙️", color: "#a8a0b8" }
             ] as const).map(item => (
               <button
                 key={item.id}
                 onClick={() => {
                   if (item.id === "ranking") setRankOpen(true);
-                  if (item.id === "shop") setCashShopOpen(true);
+                  else if (item.id === "world") setWorldMapOpen(true);
+                  else if (item.id === "shop") setCashShopOpen(true);
+                  else if (item.id === "wiki") setTab("wiki");
+                  else if (item.id === "config") setTab("melhorias");
                 }}
                 style={{
                   width: 54, height: 54, borderRadius: 14,
@@ -8295,7 +8289,7 @@ function IdlePage() {
                 onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
                 onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
               >
-                <span style={{ fontSize: 18 }}>{item.icon}</span>
+                <span style={{ fontSize: 20 }}>{item.icon}</span>
                 <span style={{ fontSize: 7, fontWeight: 900, color: item.color, letterSpacing: 0.5 }}>{item.label.toUpperCase()}</span>
               </button>
             ))}
