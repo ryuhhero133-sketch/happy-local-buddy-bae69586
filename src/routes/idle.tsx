@@ -10075,6 +10075,8 @@ function IdlePage() {
                 </div>
                 )}
               </div>
+              </>
+
 
             {/* MMORPG Bottom Bar Menu */}
             <div style={{
