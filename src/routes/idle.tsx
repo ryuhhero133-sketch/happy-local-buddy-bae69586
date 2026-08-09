@@ -7472,12 +7472,24 @@ function IdlePage() {
 
 
       {menuOpen && (
-        <TabOverlay tab="bag" onAnciaoInteraction={() => {}}
-          open={menuOpen}
+        <TabOverlay 
+          tab="bag" 
           onClose={() => setMenuOpen(false)}
-          items={idle.items || {}}
-          collection={idle.collection || []}
+          onAnciaoInteraction={() => {}}
+          leader={team[0]}
           team={team}
+          onReorderTeam={(next) => setTeam(next)}
+          leaderHp={team[0]?.hp ?? 0}
+          items={idle.items || {}}
+          caughtSpecies={[]} 
+          seenSpecies={[]}   
+          totals={{ gold: idle.bank.gold, captured: idle.collection?.length || 0 }}
+          collection={idle.collection || []}
+          craftPoints={idle.items?.craft_points || 0}
+          onFragmentCollection={async (uid) => {}}
+          gifMap={GIF}
+          onPickTeam={(entry) => {}}
+          onUseItem={useItem}
           bank={idle.bank || { gold: 0, crystals: 0 }}
           buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
           onBuyBall={buyBall}
@@ -7514,7 +7526,7 @@ function IdlePage() {
           onUpgradeBook={upgradeBook}
           orbTrades={ORB_TRADES}
           onTradeOrb={tradeForOrb}
-          pokemonMarketNode={undefined}
+          pokemonMarketNode={null}
           benchUids={new Set()}
         />
       )}
