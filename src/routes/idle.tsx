@@ -7432,22 +7432,22 @@ function IdlePage() {
 
         <div className="chat-floating-panel" style={{
           position: 'absolute', bottom: '100px', left: '20px',
-          width: '280px', maxHeight: chatOpen ? '240px' : '36px',
-          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)',
-          borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+          width: '280px', maxHeight: chatOpen ? '200px' : '40px',
+          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(10px)',
+          borderRadius: '12px', border: '1px solid rgba(201,184,255,0.2)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
           pointerEvents: 'auto', transition: 'max-height 0.3s'
         }}>
           <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#f5cf6b', fontSize: '10px', fontWeight: 900 }}>GLOBAL CHAT</span>
+            <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1 }}>GLOBAL CHAT</span>
             <button onClick={() => setChatOpen(!chatOpen)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>
               {chatOpen ? '▼' : '▲'}
             </button>
           </div>
           {chatOpen && (
             <div style={{ flex: 1, overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {chat.slice(-20).map((c, idx) => (
-                <div key={idx} style={{ fontSize: '10px', color: c.kind === 'cap' ? '#f5cf6b' : '#fff', opacity: 0.9 }}>
+              {chat.slice(-10).map((c, idx) => (
+                <div key={idx} style={{ fontSize: '10px', color: '#fff', opacity: 0.9 }}>
                   {c.text}
                 </div>
               ))}
