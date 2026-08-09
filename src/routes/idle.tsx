@@ -7255,6 +7255,7 @@ function IdlePage() {
           contain: "layout style",
           willChange: "transform",
           backfaceVisibility: "hidden",
+          fontSize: `${1 / effectiveZoom}px`, // Normaliza o tamanho base da fonte para compensar o scale
         }}>
           {/* Fundo que preenche o mapa para evitar o "void" verde ou preto */}
           <div style={{
