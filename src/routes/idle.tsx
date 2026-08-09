@@ -13032,22 +13032,52 @@ function TabOverlay({
   };
   return (
     <div className="modern-floating-window" style={{ 
-      background: "rgba(11, 5, 20, 0.96)", 
-      backdropFilter: "blur(14px)",
-      maxHeight: "92vh",
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: "min(1200px, 98vw)",
+      height: "min(800px, 92vh)",
+      background: "rgba(11, 5, 20, 0.98)", 
+      backdropFilter: "blur(20px)",
       display: "flex",
       flexDirection: "column",
       pointerEvents: "auto",
-      overflow: "hidden"
+      overflow: "hidden",
+      zIndex: 20000,
+      border: "1px solid rgba(201, 184, 255, 0.3)",
+      borderRadius: "20px",
+      boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(201, 184, 255, 0.1)"
     }}>
 
-      <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
+      <div className="modern-window-header" style={{ 
+        position: "sticky", 
+        top: 0, 
+        zIndex: 10, 
+        flexShrink: 0,
+        background: "rgba(11, 5, 20, 0.5)",
+        padding: "15px 25px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        borderBottom: "1px solid rgba(201, 184, 255, 0.2)"
+      }}>
         <h2 style={{ 
-          margin: 0, fontSize: 22, color: "#c9b8ff", 
-          fontFamily: "'Cinzel', serif", letterSpacing: 2,
-          textShadow: "0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(201, 184, 255, 0.4)"
+          margin: 0, fontSize: 24, color: "#c9b8ff", 
+          fontFamily: "'Cinzel', serif", letterSpacing: 3,
+          textShadow: "0 2px 10px rgba(201, 184, 255, 0.4)"
         }}>{title}</h2>
-        <button onClick={onClose} className="modern-close-btn">
+        <button onClick={onClose} className="modern-close-btn" style={{
+          background: "rgba(255, 50, 50, 0.15)",
+          border: "1px solid rgba(255, 50, 50, 0.3)",
+          color: "#ff8888",
+          padding: "6px 15px",
+          borderRadius: "8px",
+          fontSize: "12px",
+          fontWeight: 900,
+          cursor: "pointer",
+          transition: "all 0.2s"
+        }}>
           FECHAR ✕
         </button>
       </div>
@@ -13055,7 +13085,7 @@ function TabOverlay({
       <div className="modern-window-scroll-content" style={{ 
         flex: 1, 
         overflowY: "auto", 
-        padding: 10,
+        padding: 20,
         WebkitOverflowScrolling: "touch"
       }}>
 
