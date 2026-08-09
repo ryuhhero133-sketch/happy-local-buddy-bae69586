@@ -10170,7 +10170,7 @@ function IdlePage() {
             )}
             {false && (
               <div
-
+                  identity={identity}
                   collection={idle.collection ?? []}
                   gold={idle.bank.gold}
                   crystals={idle.bank.crystals}
@@ -10205,31 +10205,30 @@ function IdlePage() {
                     setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
                   }}
                   pushChat={pushChat}
-                />
-              }
-              skinId={skinId}
-              setSkinId={setSkinId}
-              unlockedSkins={idle.unlockedSkins ?? ["default"]}
-              skinTickets={idle.items?.skin_ticket ?? 0}
-              onUnlockSkin={(sid) => {
-                setIdle((s) => {
-                  const tickets = s.items?.skin_ticket ?? 0;
-                  const unlocked = new Set(s.unlockedSkins ?? ["default"]);
-                  if (unlocked.has(sid)) return s;
-                  if (tickets <= 0) return s;
-                  unlocked.add(sid);
-                  return {
-                    ...s,
-                    items: { ...s.items, skin_ticket: tickets - 1 },
-                    unlockedSkins: Array.from(unlocked),
-                  };
-                });
-                setSkinId(sid);
-                pushChat(`✦ Skin premium desbloqueada! Você consumiu 1 Ticket de Skin.`, "cap");
-              }}
-              trainerLevel={idle.trainerLevel ?? 1}
-              onUpgradeBook={upgradeBook}
-            />
+                  skinId={skinId}
+                  setSkinId={setSkinId}
+                  unlockedSkins={idle.unlockedSkins ?? ["default"]}
+                  skinTickets={idle.items?.skin_ticket ?? 0}
+                  onUnlockSkin={(sid) => {
+                    setIdle((s) => {
+                      const tickets = s.items?.skin_ticket ?? 0;
+                      const unlocked = new Set(s.unlockedSkins ?? ["default"]);
+                      if (unlocked.has(sid)) return s;
+                      if (tickets <= 0) return s;
+                      unlocked.add(sid);
+                      return {
+                        ...s,
+                        items: { ...s.items, skin_ticket: tickets - 1 },
+                        unlockedSkins: Array.from(unlocked),
+                      };
+                    });
+                    setSkinId(sid);
+                    pushChat(`✦ Skin premium desbloqueada! Você consumiu 1 Ticket de Skin.`, "cap");
+                  }}
+                  trainerLevel={idle.trainerLevel ?? 1}
+                  onUpgradeBook={upgradeBook}
+              />
+            )}
           )}
         {/* Explorar Panel - Integrated into Profile Card below */}
 
