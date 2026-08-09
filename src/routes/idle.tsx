@@ -499,7 +499,7 @@ type IdleMapId =
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
   | "absol_start" | "governante_hall"
   // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
-  | "santuario_glacial" | "caminho_glacial" | "vale_dourado";
+  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
