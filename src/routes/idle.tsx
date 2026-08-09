@@ -7305,18 +7305,9 @@ function IdlePage() {
 
           {/* Centro: Recursos */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div className="resource-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px 12px', borderRadius: '15px' }}>
-              <span style={{ fontSize: '14px' }}>🪙</span>
-              <span style={{ color: '#ffd700', fontSize: '13px', fontWeight: 700 }}>{idle.bank.gold.toLocaleString()}</span>
-            </div>
-            <div className="resource-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px 12px', borderRadius: '15px' }}>
-              <span style={{ fontSize: '14px' }}>💎</span>
-              <span style={{ color: '#00d2ff', fontSize: '13px', fontWeight: 700 }}>{idle.bank.crystals.toLocaleString()}</span>
-            </div>
-            <div className="resource-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px 12px', borderRadius: '15px' }}>
-              <span style={{ fontSize: '14px' }}>🔻</span>
-              <span style={{ color: '#ff4b4b', fontSize: '13px', fontWeight: 700 }}>{Math.floor(idle.items?.red_crystal_shard ?? 0)}</span>
-            </div>
+            <ResourceNiche tint="#ffd700" icon={<span style={{fontSize: '14px'}}>🪙</span>} value={idle.bank.gold.toLocaleString()} title="Ouro" />
+            <ResourceNiche tint="#00d2ff" icon={<span style={{fontSize: '14px'}}>💎</span>} value={idle.bank.crystals.toLocaleString()} title="Cristais" />
+            <ResourceNiche tint="#ff4b4b" icon={<span style={{fontSize: '14px'}}>🔻</span>} value={Math.floor(idle.items?.red_crystal_shard ?? 0).toLocaleString()} title="Fragmentos" />
           </div>
 
           {/* Lado Direito: Config */}
