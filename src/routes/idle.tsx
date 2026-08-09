@@ -9109,7 +9109,7 @@ function IdlePage() {
                   }}
                 >
                   <div style={{
-                    position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)",
+                    position: "absolute", top: -35, left: "50%", transform: "translateX(-50%)",
                     background: "linear-gradient(180deg,#1e3a8a,#0f172a)",
                     border: "1px solid #c9b8ff", color: "#c9b8ff",
                     borderRadius: 999, padding: "3px 12px",
