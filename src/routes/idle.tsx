@@ -12081,7 +12081,9 @@ function IdlePage() {
         </div>,
         document.body
       )}
-      <BlackMiticEggHud
+      {blackEggHudOpen && createPortal(
+        <BlackMiticEggHud
+
         open={blackEggHudOpen}
 
         onClose={() => setBlackEggHudOpen(false)}
