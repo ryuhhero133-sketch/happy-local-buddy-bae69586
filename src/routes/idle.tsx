@@ -23,14 +23,15 @@ export type CollectionEntry = {
   uid: string;
   speciesId: number; 
   species?: any;
-  level?: number;
+  level?: any;
   rarity?: any;
-  xp?: number;
-  traits?: string[];
+  xp?: any;
+  traits?: any;
   count: number; 
   firstCaughtAt: string;
-  capturedAt?: string;
+  capturedAt?: any;
 };
+
 
 export type Item = { id: string; name: string; type: string; rarity: string; icon?: string };
 
