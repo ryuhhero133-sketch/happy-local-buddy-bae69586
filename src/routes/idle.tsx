@@ -1,3 +1,8 @@
+// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V22 - SEASON_MAINTENANCE_LOGOUT
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+
 import { FlaskConical, Sparkles, ShieldCheck, X, Search, Settings, Map as MapIcon, Info, User, ShoppingBag, CreditCard, LayoutGrid, Heart, Star, Gift, Clock, Backpack, Store, Wallet, BookOpen, ChevronRight, ChevronDown, Plus, HelpCircle, Mail, Sword, Zap, Shield, TrendingUp, ArrowRight } from "lucide-react";
 import { obfuscate, deobfuscate } from "@/lib/utils";
 
@@ -2143,7 +2148,6 @@ function IdlePage() {
   const [colecaoDetailUid, setColecaoDetailUid] = useState<string | null>(null);
   const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
-  const [showProfile, setShowProfile] = useState(false);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
@@ -7191,148 +7195,7 @@ function IdlePage() {
   );
 
   return (
-    <div>
     <div style={{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       height: "100vh",
       background: "#0b0510",
       color: "#f3e5c5",
@@ -7340,7 +7203,6 @@ function IdlePage() {
       overflow: "hidden",
       position: "relative"
     }}>
-
       <div
         ref={viewportRef}
         onClick={(e) => {
@@ -7419,7 +7281,7 @@ function IdlePage() {
       {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
       <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         
-        {/* Barra Superior Moderna */}
+        {/* Barra Superior Moderna (Arquitetura da Imagem) */}
         <div className="modern-top-bar" style={{ 
           position: 'fixed', top: 0, left: 0, right: 0, height: '55px',
           background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)',
@@ -7457,75 +7319,121 @@ function IdlePage() {
             </div>
           </div>
 
-          {/* Lado Direito: Topo limpo */}
+          {/* Lado Direito: Config */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+             <button onClick={() => setTab("melhorias")} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>⚙️</button>
           </div>
         </div>
 
-        {/* HUD Elements rendered via portals or other overlays to handle layering correctly */}
-      </div>
+        {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
 
+        {/* Menu Lateral Direito (Barra de Ícones) */}
+        <div className="side-icon-bar" style={{
+          position: 'fixed', right: '20px', top: '50%', transform: 'translateY(-50%)',
+          display: 'flex', flexDirection: 'column', gap: '12px', pointerEvents: 'auto',
+          zIndex: 1003
+        }}>
+          <button className="side-btn" onClick={() => setRankOpen(true)} title="Ranking" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🏆</button>
+          <button className="side-btn" onClick={() => setWorldMapOpen(true)} title="Mapa" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🗺️</button>
+          <button className="side-btn" onClick={() => setTab("wiki")} title="Wiki" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>📖</button>
+          <button className="side-btn" onClick={() => setTab("melhorias")} title="Config" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>⚙️</button>
+        </div>
 
-      {menuOpen && (
-        <TabOverlay 
-          tab="bag" 
-          onClose={() => setMenuOpen(false)}
-          onAnciaoInteraction={() => {}}
-          leader={team[0]}
-          team={team}
-          onReorderTeam={(next) => setTeam(next)}
-          leaderHp={team[0]?.hp ?? 0}
-          items={idle.items || {}}
-          caughtSpecies={[]} 
-          seenSpecies={[]}   
-          totals={{ gold: idle.bank.gold, captured: idle.collection?.length || 0 }}
-          collection={idle.collection || []}
-          craftPoints={idle.items?.craft_points || 0}
-          onFragmentCollection={async (uid) => {}}
-          gifMap={GIF}
-          onPickTeam={(entry) => {}}
-          onUseItem={useItem}
-          bank={idle.bank || { gold: 0, crystals: 0 }}
-          buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
-          onBuyBall={buyBall}
-          onBuyUltraBundle={buyUltraBundle}
-          onBuyTeleportScroll={buyTeleportScroll}
-          onBuyBook={buyBook}
-          onBuyPotion={buyPotion}
-          onBuyEgg={buyEgg}
-          shopEggs={SHOP_EGGS}
-          onBuyChestAmulet={buyChestAmulet}
-          chestAmuletOwned={idle.items?.chest_amulet || 0}
-          autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
-          setAutoHeal={(next) => setIdle(s => ({ ...s, autoHeal: next }))}
-          audioSettings={audioSettings}
-          setAudioSettings={setAudioSettings}
-          tasks={idle.tasks || []}
-          onClaimTask={claimTask}
-          onOpenColecaoDetail={(uid) => setPetDetailUid(uid)}
-          onExchange={exchange}
-          onSellItem={sellItem}
-          marketSellPrices={MARKET_SELL_PRICE}
-          identity={identity}
-          onListMarket={async () => false}
-          onBuyMarket={async () => false}
-          onCancelMarket={async () => false}
-          onClaimMarketPayout={async () => false}
-          isVip={isVip()}
-          skinId={skinId}
-          setSkinId={setSkinId}
-          unlockedSkins={idle.unlockedSkins || []}
-          skinTickets={idle.items?.skin_ticket || 0}
-          onUnlockSkin={(id) => {}}
-          trainerLevel={idle.trainerLevel || 1}
-          onUpgradeBook={upgradeBook}
-          orbTrades={ORB_TRADES}
-          onTradeOrb={tradeForOrb}
-          pokemonMarketNode={null}
-          benchUids={new Set()}
-        />
-      )}
+        {/* Dock Inferior Moderna */}
+        <div className="bottom-dock-container" style={{
+          position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)',
+          padding: '8px 25px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+          zIndex: 2000
+        }}>
 
+          <button onClick={() => { console.log('Dock: Batalha'); setTab("batalha"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'batalha' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>⚔️</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>BATALHA</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Equipe'); setTab("pokemon"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'pokemon' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>🛡️</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>EQUIPE</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Mochila'); setTab("mochila"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'mochila' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>🎒</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>MOCHILA</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Colecao'); setTab("colecao"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'colecao' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>📔</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>COLEÇÃO</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Mercado'); setTab("market"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'market' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>⚖️</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Loja'); setTab("loja"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'loja' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>🏪</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
+          </button>
+
+        </div>
+
+        {(tab !== "batalha" && tab !== "inicio") && (
+          <TabOverlay
+            tab={tab}
+            onClose={() => setTab("batalha")}
+            onAnciaoInteraction={handleAnciaoInteraction}
+            leader={team[0]}
+            team={team}
+            onReorderTeam={setTeam}
+            leaderHp={leaderHp}
+            items={idle.items || {}}
+            caughtSpecies={idle.caughtSpecies || []}
+            seenSpecies={idle.seenSpecies || []}
+            totals={idle.totals || { gold: 0, captured: 0 }}
+            collection={idle.collection || []}
+            craftPoints={idle.items?.cristal_fragmentado || 0}
+            onFragmentCollection={fragmentCollection}
+            gifMap={GIF}
+            onPickTeam={onPickTeamFromColecao}
+            onUseItem={useItem}
+            bank={idle.bank || { gold: 0, crystals: 0 }}
+            buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
+            onBuyBall={buyBall}
+            onBuyUltraBundle={buyUltraBundle}
+            onBuyTeleportScroll={buyTeleportScroll}
+            onBuyBook={buyBook}
+            onBuyPotion={buyPotion}
+            onBuyEgg={buyEgg}
+            shopEggs={SHOP_EGGS}
+            onBuyChestAmulet={buyChestAmulet}
+            chestAmuletOwned={idle.items?.chest_amulet || 0}
+            autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
+            setAutoHeal={(next) => setIdle(s => ({ ...s, autoHeal: next }))}
+            audioSettings={audioSettings}
+            setAudioSettings={setAudioSettings}
+            tasks={idle.tasks || []}
+            onClaimTask={claimTask}
+            onOpenColecaoDetail={(uid) => setPetDetailUid(uid)}
+            onExchange={exchange}
+            onSellItem={sellItem}
+            marketSellPrices={MARKET_SELL_PRICE}
+            identity={identity}
+            onListMarket={async () => false}
+            onBuyMarket={async () => false}
+            onCancelMarket={async () => false}
+            onClaimMarketPayout={async () => false}
+            isVip={isVip()}
+            skinId={skinId}
+            setSkinId={setSkinId}
+            unlockedSkins={idle.unlockedSkins || []}
+            skinTickets={idle.items?.skin_ticket || 0}
+            onUnlockSkin={(id) => {}}
+            trainerLevel={idle.trainerLevel || 1}
+            onUpgradeBook={upgradeBook}
+            orbTrades={ORB_TRADES}
+            onTradeOrb={tradeForOrb}
+            pokemonMarketNode={undefined}
+            benchUids={new Set()}
+          />
+        )}
 
 
 
@@ -7556,10 +7464,11 @@ function IdlePage() {
             </div>
           )}
         </div>
+
+
       </div>
+
       <style>{`
-
-
         .modern-floating-window {
           background: rgba(11, 5, 20, 0.98) !important;
           backdrop-filter: blur(16px) !important;
@@ -7603,41 +7512,6 @@ function IdlePage() {
 
       {/* 🛡️ AVISO — leitura da nuvem falhou: progresso local protegido e retry automático */}
       {cloudSaveBlocked && (
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999,
           display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
@@ -7656,8 +7530,6 @@ function IdlePage() {
           >🔄 Reenviar agora</button>
         </div>
       )}
-
-
       {/* 🌿 MODAL — Confirmar entrada no Evento Grass Oddish */}
       {oddishConfirm && (
         <div
@@ -8205,89 +8077,18 @@ function IdlePage() {
       )}
 
       <div className="idle-grid" style={{
-
-
-
-
         display: "grid",
-        gridTemplateColumns: "1fr",
-        gridTemplateRows: "1fr",
-        position: "relative",
-        height: "100dvh",
-        width: "100dvw",
-        background: "black",
+        gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
+        gridTemplateRows: "1fr auto",
+        gap: 8, padding: 8,
+        height: "100vh",
         overflow: "hidden",
       }}>
 
 
 
-
-
-        {/* ============ TOP BAR (FLOATING) ============ */}
-        <div style={{
-          position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
-          width: "calc(100% - 24px)", maxWidth: 1400, height: 64,
-          background: "linear-gradient(180deg, rgba(20, 10, 30, 0.95) 0%, rgba(10, 5, 15, 0.98) 100%)",
-          border: "1px solid rgba(201, 184, 255, 0.25)",
-          borderRadius: 12, display: "flex", alignItems: "center", padding: "0 16px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 12px rgba(201, 184, 255, 0.1)",
-          zIndex: 1000, pointerEvents: "auto", gap: 20
-        }}>
-          {/* Left Part: Map Info */}
-          <div style={{ display: "flex", flexDirection: "column", minWidth: 160 }}>
-            <div style={{ color: "#c9b8ff", fontWeight: 900, fontSize: 13, letterSpacing: 1.5, textShadow: "0 2px 4px #000" }}>
-              {IDLE_MAPS[idle.currentMap]?.name.toUpperCase() || "VALE VERDEJANTE"}
-            </div>
-            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, letterSpacing: 0.5, marginTop: 2 }}>
-              COORD: {Math.floor(trainerPos.x)}, {Math.floor(trainerPos.y)}
-            </div>
-          </div>
-
-          {/* Center: Currencies */}
-          <div style={{ flex: 1, display: "flex", justifyContent: "center", gap: 24, alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <img src={assetUrlFromJson(iconCrystalBlue)} alt="" style={{ width: 18, height: 18 }} />
-              <span style={{ color: "#fff", fontWeight: 900, fontSize: 13 }}>{fmtK(idle.bank.gold)}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" style={{ width: 18, height: 18 }} />
-              <span style={{ color: "#ffd94d", fontWeight: 900, fontSize: 13 }}>{Math.floor(idle.bank.crystals)}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 18, height: 18, background: "#ff4b4b", borderRadius: "50%", border: "1.5px solid #fff" }} />
-              <span style={{ color: "#ff8b8b", fontWeight: 900, fontSize: 13 }}>{Math.floor(idle.items?.fragmento_vermelho ?? 0)}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <img src={assetUrlFromJson(iconCashPackage)} alt="" style={{ width: 18, height: 18 }} />
-              <span style={{ color: "#8dfa8d", fontWeight: 900, fontSize: 13 }}>{idle.items?.safira_verde ?? 0}</span>
-            </div>
-          </div>
-
-
-          {/* Right Part: Clock & Settings */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ color: "#c9b8ff", fontWeight: 900, fontSize: 14, fontFamily: "monospace" }}>
-              {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-            <button
-              onClick={() => setShowAutoSettings(!showAutoSettings)}
-              style={{
-                background: "rgba(201, 184, 255, 0.1)", border: "1px solid rgba(201, 184, 255, 0.3)",
-                color: "#c9b8ff", width: 32, height: 32, borderRadius: 8, cursor: "pointer",
-                display: "grid", placeItems: "center", fontSize: 18
-              }}
-            >⚙</button>
-          </div>
-        </div>
-
-        {/* ============ PLAYER PROFILE (LEFT FLOATING) ============ */}
-        <div style={{
-          position: "fixed", top: 88, left: 12, width: 260,
-          background: "linear-gradient(135deg, rgba(30, 15, 45, 0.95) 0%, rgba(15, 8, 25, 0.98) 100%)",
-          border: "1px solid rgba(201, 184, 255, 0.3)", borderRadius: 16,
-          padding: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-          zIndex: 900, pointerEvents: "auto"
-        }}>
+        {/* ============ COLUNA ESQUERDA ============ */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
           {(() => {
             const trainerLv = idle.trainerLevel ?? 1;
             const nextAt = trainerXpToNext(trainerLv);
@@ -8295,210 +8096,358 @@ function IdlePage() {
             const xpPct = Math.max(0, Math.min(100, (curXp / nextAt) * 100));
             const name = (identity?.name || "Treinador").slice(0, 14);
             const vip = isVip();
-
+            const accent = vip ? "#ffd66b" : "#c9b8ff";
             return (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <div style={{
+                position: "relative",
+                padding: "7px 9px 7px 7px",
+                background:
+                  "linear-gradient(180deg, rgba(36,20,44,0.96) 0%, rgba(14,8,22,0.98) 100%)",
+                border: `1px solid ${accent}55`,
+                borderRadius: 10,
+                boxShadow:
+                  `0 3px 12px rgba(0,0,0,0.55), inset 0 1px 0 ${accent}33, 0 0 14px ${accent}18`,
+                display: "flex", alignItems: "center", gap: 9,
+                overflow: "hidden",
+              }}>
+                {/* linha superior dourada muito fina */}
+                <span style={{
+                  position: "absolute", top: 0, left: 8, right: 8, height: 1,
+                  background: `linear-gradient(90deg, transparent, ${accent}bb, transparent)`,
+                }} />
+
+                {/* Medalhão circular do avatar */}
+                <div style={{
+                  width: 52, height: 52, flexShrink: 0,
+                  borderRadius: "50%",
+                  background: `conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)`,
+                  padding: 2,
+                  boxShadow: `0 3px 8px rgba(0,0,0,0.65), 0 0 14px ${accent}55, inset 0 0 3px rgba(0,0,0,0.4)`,
+                  position: "relative",
+                }}>
                   <div style={{
-                    width: 56, height: 56, borderRadius: "50%",
-                    background: "conic-gradient(from 45deg, #c9b8ff, #1e40af, #c9b8ff)",
-                    padding: 2, boxShadow: "0 0 15px rgba(201, 184, 255, 0.4)"
+                    width: "100%", height: "100%", borderRadius: "50%",
+                    background: "radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)",
+                    display: "grid", placeItems: "center", overflow: "hidden",
+                    border: "1.5px solid #0b0510",
+                    boxShadow: "inset 0 0 6px rgba(0,0,0,0.8)",
                   }}>
-                    <div style={{
-                      width: "100%", height: "100%", borderRadius: "50%",
-                      background: "#0b0510", overflow: "hidden", border: "2px solid #0b0510"
-                    }}>
-                      <img src={assetUrlFromJson(trainerAvatarAsset)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    </div>
+                    <img
+                      src={assetUrlFromJson(trainerAvatarAsset)}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <span style={{ color: "#fff", fontWeight: 900, fontSize: 14, textShadow: "0 2px 4px #000" }}>{name}</span>
-                      {vip && <span style={{ background: "#ffd94d", color: "#000", fontSize: 8, fontWeight: 900, padding: "1px 4px", borderRadius: 4 }}>VIP</span>}
-                    </div>
-                    <div style={{ color: "#c9b8ff", fontWeight: 800, fontSize: 11 }}>Nv. {trainerLv}</div>
-                  </div>
+                  {/* Selo de nível — pendurado no medalhão */}
+                  <div style={{
+                    position: "absolute", bottom: -4, right: -4,
+                    minWidth: 22, height: 20, padding: "0 5px",
+                    background: "linear-gradient(180deg, #ffe89a, #c48e2a 55%, #6b3d0a)",
+                    color: "#231407", fontWeight: 900, fontSize: 10.5,
+                    borderRadius: "50%", border: "2px solid #0b0510",
+                    display: "grid", placeItems: "center",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.35)",
+                    fontFamily: "'Cinzel', Georgia, serif", lineHeight: 1,
+                    letterSpacing: 0.2,
+                  }}>{trainerLv}</div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <div style={{ height: 18, background: "rgba(0,0,0,0.5)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.1)", position: "relative", overflow: "hidden" }}>
-                    <div style={{ width: `${Math.min(100, (leaderHp / calcIdleMaxHp(team[0] || team[0])) * 100)}%`, height: "100%", background: "linear-gradient(90deg, #ff4b4b, #ff8b8b)", transition: "width 0.3s" }} />
-                    <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#fff", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>HP LÍDER</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Nome + VIP */}
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 5,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {vip && (
+                      <span style={{
+                        fontSize: 8, fontWeight: 900, letterSpacing: 1,
+                        padding: "1px 5px", borderRadius: 3,
+                        background: "linear-gradient(180deg, #ffd66b, #b8862a)",
+                        color: "#231407", border: "1px solid rgba(0,0,0,0.4)",
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.5)", flexShrink: 0,
+                      }}>VIP</span>
+                    )}
+                    <span style={{
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      fontFamily: "'Cinzel', Georgia, serif",
+                      fontSize: 12.5, fontWeight: 900, letterSpacing: 0.5,
+                      color: "#f7ecf7",
+                      textShadow: "0 1px 0 #000",
+                    }}>{name}</span>
                   </div>
-                  <div style={{ height: 6, background: "rgba(0,0,0,0.5)", borderRadius: 3, position: "relative", overflow: "hidden" }}>
-                    <div style={{ width: `${xpPct}%`, height: "100%", background: "linear-gradient(90deg, #c9b8ff, #a25bff)", boxShadow: "0 0 8px #a25bff" }} />
+
+                  {/* Barra de XP fina */}
+                  <div style={{
+                    marginTop: 4, position: "relative",
+                    height: 5, background: "#0b0510", borderRadius: 3,
+                    border: "1px solid rgba(245,207,107,0.25)",
+                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)",
+                    overflow: "hidden",
+                  }}>
+                    <div style={{
+                      width: `${xpPct}%`, height: "100%",
+                      background: "linear-gradient(180deg, #ffe89a 0%, #ffd66b 50%, #b8862a 100%)",
+                      boxShadow: "0 0 5px rgba(245,207,107,0.6)",
+                      transition: "width 400ms",
+                    }} />
+                  </div>
+                  <div style={{
+                    marginTop: 2, fontSize: 8.5, letterSpacing: 0.4,
+                    color: "#a8a0b8", fontFamily: "monospace",
+                    display: "flex", justifyContent: "space-between",
+                  }}>
+                    <span>XP</span>
+                    <span style={{ color: "#e8d089" }}>{curXp} / {nextAt}</span>
+                  </div>
+
+                  {/* Pills de status */}
+                  <div style={{ display: "flex", gap: 3, marginTop: 4, flexWrap: "nowrap" }}>
+                    <span style={pillStyle("#ffd66b")}>🪙 {fmtK(idle.totals.gold)}</span>
+                    <span style={pillStyle("#ff97e1")}>★ {idle.totals.captured}</span>
+                    <span style={pillStyle("#8fd0ff")}>⚔ {team.length}/6</span>
                   </div>
                 </div>
               </div>
             );
           })()}
-        </div>
 
-        {/* ============ RIGHT SIDEBAR (FLOATING) ============ */}
-        <div style={{
-          position: "fixed", top: 80, right: 12, width: 160,
-          display: "flex", flexDirection: "column", gap: 12,
-          zIndex: 900, pointerEvents: "auto",
-          alignItems: "flex-end"
-        }}>
-          {/* Circular Minimap Container */}
-          <div style={{
-            width: 160, height: 160, borderRadius: "50%",
-            background: "rgba(20, 10, 30, 0.9)", border: "3px solid rgba(201, 184, 255, 0.5)",
-            display: "grid", placeItems: "center", overflow: "hidden",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 20px rgba(201, 184, 255, 0.2)",
-            position: "relative"
-          }}>
-            {/* Minimap Terrain Graphic with Game Zoom Awareness */}
-            <div style={{ 
-              width: "100%", height: "100%", 
-              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl})`,
-              backgroundPosition: `${(trainerPos.x / WORLD_W) * 100}% ${(trainerPos.y / WORLD_H) * 100}%`,
-              backgroundSize: `${200 / zoom}%`, // Ajusta o zoom do mapa baseado no zoom do jogo
-              filter: "brightness(0.6) saturate(1.2) contrast(1.1)",
-              opacity: 0.8,
-              transition: "background-position 0.2s ease-out, background-size 0.3s ease-in-out"
-            }} />
-            
-            {/* Markers on Minimap */}
-            <div style={{ position: "absolute", inset: 0 }}>
-              {/* Trainer Position (Red Dot) - Fixed Center for Radar Style */}
+
+
+          <Panel title="SUA EQUIPE" accent="#c92a2a">
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+              <button
+                onClick={() => setTeamCollapsed((v) => !v)}
+                title={teamCollapsed ? "Expandir equipe" : "Minimizar (mostrar só líder)"}
+                style={{
+                  background: "#1a0f26", color: "#f5cf6b",
+                  border: "1px solid #c92a2a55", borderRadius: 4,
+                  padding: "2px 8px", fontSize: 10, fontWeight: 800, cursor: "pointer",
+                  letterSpacing: 1,
+                }}
+              >
+                {teamCollapsed ? "▼ EXPANDIR" : "▲ MINIMIZAR"}
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
+                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
+              ))}
+              {teamCollapsed && team.length > 1 && (
+                <div style={{ fontSize: 10, color: "#8a7a9c", textAlign: "center", fontStyle: "italic" }}>
+                  +{team.length - 1} no banco (minimizado)
+                </div>
+              )}
+              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
+            </div>
+          </Panel>
+
+
+
+          {/* Chat ocupa todo o espaço restante — sem rolagem externa */}
+          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+            <Panel title="REGISTRO DE BATALHA" accent="#1e3a5f">
               <div style={{
-                position: "absolute",
-                left: "50%",
-                top: "50%",
-                width: 10, height: 10, borderRadius: "50%",
-                background: "#ff4b4b", border: "2px solid #fff",
-                boxShadow: "0 0 8px #ff4b4b", zIndex: 2,
-                transform: "translate(-50%, -50%)"
-              }} />
-              
-              {/* Enemies (Small Yellow Dots) - Relative to Trainer */}
-              {enemies.filter(e => e.hp > 0).map(e => {
-                const relX = ((e.x - trainerPos.x) / (WORLD_W * 0.25)) * 100 * zoom;
-                const relY = ((e.y - trainerPos.y) / (WORLD_H * 0.25)) * 100 * zoom;
-                return (
-                  <div key={e.id} style={{
-                    position: "absolute",
-                    left: `calc(50% + ${relX}px)`,
-                    top: `calc(50% + ${relY}px)`,
-                    width: 6, height: 6, borderRadius: "50%",
-                    background: "#ffd94d", border: "1px solid #fff",
-                    boxShadow: "0 0 4px #ffd94d", zIndex: 1,
-                    transform: "translate(-50%, -50%)"
-                  }} />
-                );
-              })}
+                height: 200, minHeight: 160, maxHeight: 240,
+                overflowY: "auto", display: "flex", flexDirection: "column-reverse",
+                gap: 4, fontSize: 11, lineHeight: 1.35,
+                background: "#0e0818", borderRadius: 6, padding: 6,
+                border: "1px solid rgba(107,212,255,0.15)",
+              }}>
+                {(() => {
+                  const classify = (m: typeof chat[number]): "system" | "world" | "captures" => {
+                    if (m.kind === "capture" || m.kind === "cap") return "captures";
+                    if (m.text.startsWith("💬") || m.text.startsWith("🌍")) return "world";
+                    return "system";
+                  };
+                  const filtered = chat.filter((m) => chatFilter === "all" ? true : classify(m) === chatFilter);
+                  return (
+                    <>
+                      {[...filtered].reverse().map((m) => {
+                        const color =
+                          m.kind === "chest" ? "#ffa64a" :
+                          m.kind === "capture" ? "#ff97e1" :
+                          m.kind === "cap" ? "#ffd94d" :
+                          m.kind === "lv" ? "#6bd4ff" :
+                          m.kind === "hit" ? "#ff6b6b" :
+                          m.kind === "dmg" ? "#f5cf6b" : "#c8b8d0";
+                        const prefix =
+                          m.kind === "chest" ? "🎁" :
+                          m.kind === "capture" ? "✦" :
+                          m.kind === "cap" ? "★" :
+                          m.kind === "lv" ? "⬆" :
+                          m.kind === "hit" ? "✖" :
+                          m.kind === "dmg" ? "⚔" : "•";
+                        return (
+                          <div key={m.id} style={{ color, textShadow: "1px 1px 0 #000", fontWeight: m.kind === "chest" ? 800 : 400 }}>
+                            <span style={{ opacity: 0.7, marginRight: 4 }}>{prefix}</span>{m.text}
+                          </div>
+                        );
+                      })}
+                      {filtered.length === 0 && (
+                        <div style={{ color: "#6a5a7c", fontStyle: "italic" }}>Nenhum evento neste filtro...</div>
+                      )}
+                    </>
+                  );
+            })()}
+          </div>
+
+              {/* Filtros do chat */}
+              <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+                {([
+                  { k: "all", l: "Tudo" },
+                  { k: "system", l: "Sistema" },
+                  { k: "world", l: "Mundo" },
+                  { k: "captures", l: "Capturas" },
+                ] as const).map((t) => {
+                  const active = chatFilter === t.k;
+                  return (
+                    <button
+                      key={t.k}
+                      onClick={() => setChatFilter(t.k)}
+                      style={{
+                        flex: 1,
+                        background: active ? "#1e3a5f" : "#0e0818",
+                        color: active ? "#fff" : "#8fa5c0",
+                        border: `1px solid ${active ? "#6bd4ff" : "rgba(107,212,255,0.2)"}`,
+                        borderRadius: 4, padding: "3px 4px", fontSize: 10, fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >{t.l}</button>
+                  );
+                })}
+              </div>
+              {/* Chat global de jogadores BLOQUEADO temporariamente */}
+              <div
+                style={{
+                  marginTop: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#1a0d0d",
+                  border: "1px solid rgba(255,107,107,0.35)",
+                  borderRadius: 6,
+                  padding: "7px 9px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#ffb3b3",
+                }}
+              >
+                🔒 Chat global desativado — apenas avisos do sistema.
+              </div>
+
+            </Panel>
+            
+            {/* HUD de Aviso Temporário (Ancião Glacial) */}
+            <div 
+              onClick={() => setAnciaoOpen(true)}
+              style={{ 
+                marginTop: 10,
+                background: "linear-gradient(135deg, rgba(201, 184, 255, 0.2), rgba(201, 184, 255, 0.05))",
+                border: "2px solid #c9b8ff",
+                borderRadius: 12,
+                padding: "10px 14px",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                boxShadow: "0 4px 15px rgba(201, 184, 255, 0.25)",
+                animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                cursor: "pointer"
+              }}
+            >
+              <div style={{ width: 44, height: 44, position: "relative" }}>
+                <img 
+                  src={npcAnciaoGlacialUrl} 
+                  alt="Ancião Glacial" 
+                  style={{ 
+                    width: "100%", 
+                    height: "100%", 
+                    imageRendering: "pixelated",
+                    animation: "autoIconPulse 1.5s ease-in-out infinite"
+                  }} 
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ 
+                  color: "#c9b8ff", 
+                  fontSize: 12, 
+                  fontWeight: 900, 
+                  letterSpacing: 1, 
+                  textShadow: "0 0 8px rgba(201, 184, 255, 0.8)" 
+                }}>
+                  ❄️ NOVA JORNADA
+                </div>
+                <div style={{ 
+                  color: "#fff", 
+                  fontSize: 10.5, 
+                  fontWeight: 700,
+                  marginTop: 2,
+                  lineHeight: 1.3
+                }}>
+                  A 3ª SEASON CHEGOU! INICIE O RITUAL NO SANTUÁRIO. 🏔️✨
+                </div>
+              </div>
             </div>
 
-            {/* Radar Sweep Animation */}
-            <div style={{
-              position: "absolute", inset: 0,
-              background: "conic-gradient(from 0deg, transparent 0%, rgba(201, 184, 255, 0.2) 20%, transparent 21%)",
-              animation: "minimapSweep 4s linear infinite",
-              pointerEvents: "none"
-            }} />
-          </div>
-
-          <style>{`
-            @keyframes minimapSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-          `}</style>
-
-
-          {/* Zoom Controls Overlayed on Minimap */}
-          <div style={{
-            position: "absolute", bottom: 10, right: 10,
-            display: "flex", flexDirection: "column", gap: 4, zIndex: 10
-          }}>
-            <button
-              onClick={() => setZoom(z => Math.min(1.5, z + 0.15))}
-              style={{
-                width: 26, height: 26, borderRadius: 6,
-                background: "rgba(20, 10, 30, 0.9)", border: "1px solid rgba(201, 184, 255, 0.4)",
-                color: "#c9b8ff", fontSize: 16, fontWeight: 900, cursor: "pointer",
-                display: "grid", placeItems: "center", padding: 0
-              }}
-            >+</button>
-            <button
-              onClick={() => setZoom(z => Math.max(0.4, z - 0.15))}
-              style={{
-                width: 26, height: 26, borderRadius: 6,
-                background: "rgba(20, 10, 30, 0.9)", border: "1px solid rgba(201, 184, 255, 0.4)",
-                color: "#c9b8ff", fontSize: 16, fontWeight: 900, cursor: "pointer",
-                display: "grid", placeItems: "center", padding: 0
-              }}
-            >-</button>
-          </div>
-
-          {/* Vertical Side Menu */}
-          <div style={{
-            display: "flex", flexDirection: "column", gap: 8,
-            background: "rgba(20, 10, 30, 0.8)", 
-            borderRadius: 24, width: 70,
-            padding: "8px", border: "1px solid rgba(201, 184, 255, 0.2)",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
-            backdropFilter: "blur(4px)"
-          }}>
-            {([
-              { id: "world", label: "Mundo", icon: "🗺️", color: "#60a5fa" },
-              { id: "ranking", label: "Ranking", icon: "🏆", color: "#ffd94d" },
-              { id: "wiki", label: "Wiki", icon: "📖", color: "#a855f7" },
-              { id: "config", label: "Config", icon: "⚙️", color: "#a8a0b8" }
-            ] as const).map(item => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (item.id === "ranking") setRankOpen(true);
-                  else if (item.id === "world") setWorldMapOpen(true);
-                  else if (item.id === "wiki") setTab("wiki");
-                  else if (item.id === "config") setTab("melhorias");
-                }}
-                style={{
-                  width: 54, height: 54, borderRadius: 14,
-                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer", gap: 2, transition: "transform 0.2s"
-                }}
-                onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
-                onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-              >
-                <span style={{ fontSize: 20 }}>{item.icon}</span>
-                <span style={{ fontSize: 7, fontWeight: 900, color: item.color, letterSpacing: 0.5 }}>{item.label.toUpperCase()}</span>
-              </button>
-            ))}
           </div>
         </div>
 
-        {/* ============ MAIN GAME AREA (Battle/Explore) ============ */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 1, overflow: "hidden" }}>
+
+
+
+
+        {/* ============ COLUNA DIREITA ============ */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
           <div style={{
-            position: "relative",
-            width: WORLD_W,
-            height: WORLD_H,
-            transform: `scale(${zoom})`,
-            transformOrigin: `${(trainerPos.x / WORLD_W) * 100}% ${(trainerPos.y / WORLD_H) * 100}%`,
-            transition: "transform 0.3s ease-in-out",
-            background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl})`,
-            backgroundSize: "cover",
-            imageRendering: "pixelated"
+            background: "rgba(36,20,44,0.92)",
+            border: "1px solid rgba(201,184,255,0.25)",
+            borderRadius: 10,
+            padding: "8px 10px",
+            flex: 1,
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10
           }}>
-            {/* Background tiling to prevent gaps when zooming out */}
-            <div style={{
-              position: "absolute",
-              inset: -2000,
-              zIndex: -1,
-              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl})`,
-              backgroundSize: "600px", 
-              opacity: 0.2,
-              filter: "blur(4px)"
-            }} />
-            
-            {renderBattle()}
+             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EXPLORAR</div>
+             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
+                {enemies.slice(0, 8).map(m => (
+                  <div key={m.id} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: "5px 8px", border: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 8 }}>
+                     <img src={GIF[m.sp] ?? ""} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
+                     <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: "#fff" }}>{m.sp.toUpperCase()}</div>
+                        <div style={{ width: "100%", height: 3, background: "#000", borderRadius: 2, marginTop: 2 }}>
+                           <div style={{ width: `${(m.hp / m.maxHp) * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff4b4b, #ff8b8b)", borderRadius: 2 }} />
+                        </div>
+                     </div>
+                     <span style={{ fontSize: 9, color: "#ffb84d", fontWeight: 900 }}>Lv.{m.level}</span>
+                  </div>
+                ))}
+             </div>
+          </div>
+
+          <div style={{
+            background: "rgba(36,20,44,0.92)",
+            border: "1px solid rgba(201,184,255,0.25)",
+            borderRadius: 10,
+            padding: "8px 10px",
+            height: "180px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8
+          }}>
+             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EQUIPE</div>
+             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+                {team.map((p, i) => (
+                   <div key={p.uid} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: 4, border: `1px solid ${i === 0 ? "#ffd66b" : "rgba(255,255,255,0.05)"}`, position: "relative", textAlign: "center" }}>
+                      <img src={GIF[p.species] ?? ""} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated" }} />
+                      <div style={{ fontSize: 8, fontWeight: 800, color: "#fff", marginTop: 2 }}>Lv.{p.level}</div>
+                   </div>
+                ))}
+             </div>
           </div>
         </div>
+
       </div>
-
-
 
       {rankOpen && createPortal(
         <div
@@ -8563,10 +8512,10 @@ function IdlePage() {
                     🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
                   </div>
                 </div>
-              </div>
 
-              <div
-                title="O ranking global é congelado e atualiza a cada 2 horas"
+                    </div>
+                    <div
+                      title="O ranking global é congelado e atualiza a cada 2 horas"
                       style={{
                         background: "rgba(120,220,255,0.08)", border: "1px solid rgba(120,220,255,0.25)",
                         color: "#9fd8ee", fontSize: 12, height: 34, padding: "0 12px",
@@ -8758,42 +8707,8 @@ function IdlePage() {
               </div>,
               document.body
             )}
+
         <div className="legacy-world-layer" style={{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
           position: "absolute",
           left: 0, top: 0,
           width: WORLD_W, height: WORLD_H,
@@ -8802,8 +8717,6 @@ function IdlePage() {
           zIndex: 1,
           pointerEvents: "none",
         }}>
-
-
 
             {/* Painel de Colmeia — posicionar Beedrills p/ produzir Incenso de Mel */}
             {honeyShop && (() => {
@@ -9216,12 +9129,21 @@ function IdlePage() {
                     boxShadow: "0 0 12px rgba(125,211,252,0.5)",
                     animation: "pulse 1.6s ease-in-out infinite",
                   }}>❄️ ANCIÃO GLACIAL</div>
-              </button>
-            </div>
-          </Panel>
-        </div>
-      );
-    })()}
+                  <img
+                    src={npcAnciaoGlacialUrl}
+                    alt="Ancião Glacial"
+                    width={120} height={160}
+                    style={{ width: 120, height: 160, imageRendering: "pixelated", objectFit: "contain" }}
+                  />
+                  <div style={{
+                    position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
+                    width: 100, height: 14, borderRadius: "50%",
+                    background: "radial-gradient(ellipse, rgba(125,211,252,0.6), transparent 70%)",
+                  }} />
+                </div>
+              );
+            })()}
+
             {/* Inimigos espalhados pelo mapa */}
             {enemies.map((e) => {
               const showSp: Species = (e.disguise && !e.revealed) ? e.disguise : e.sp;
@@ -9571,8 +9493,6 @@ function IdlePage() {
               const y = captureAnim.fromY + (captureAnim.toY - captureAnim.fromY) * dt - arcY;
               return (
                 <div style={{
-
-
                   position: "absolute", left: x, top: y,
                   width: 26, height: 26,
                   transform: `translate(-50%, -50%) rotate(${dt * 720}deg)`,
@@ -10005,19 +9925,17 @@ function IdlePage() {
             const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
             const on = ab.enabled;
             return (
-              <div style={{
-
-                position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-              }}>
-                {showAutoSettings && (
-                  <div style={{
-                    background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
-                    borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
-                    minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
-                  }}>
+            <div style={{
+              position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+            }}>
+              {showAutoSettings && (
+                <div style={{
+                  background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
+                  borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
+                  minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
+                }}>
                   <div style={{ fontWeight: 800, color: "#f5cf6b", fontSize: 12, letterSpacing: 1 }}>⚙ CONFIGURAR AUTO</div>
-
                   <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                     <span>Usar Pokébola</span>
                     <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
@@ -10071,74 +9989,153 @@ function IdlePage() {
                       fontSize: 11, fontWeight: 700, letterSpacing: 1,
                     }}
                   >
+                    🚪 IR PARA TELA DE LOGIN
                   </button>
                 </div>
+              )}
+              {/* Quick ball selector — troca rápida sem abrir configurações */}
+              <div style={{
+                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.35)",
+                borderRadius: 10, padding: "4px 8px", display: "flex", alignItems: "center", gap: 6,
+              }}>
+                {([
+                  { id: "auto" as const, img: null, label: "A", count: null as number | null, tint: "#f5cf6b" },
+                  { id: "pokeball" as const, img: ballPokeImg, label: "Poké", count: idle.items.pokeball ?? 0, tint: "#ff8080" },
+                  { id: "greatball" as const, img: ballGreatImg, label: "Great", count: idle.items.greatball ?? 0, tint: "#7ec4ff" },
+                  { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
+                ]).map((b) => {
+                  const sel = ab.preferredBall === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      onClick={() => setAB({ preferredBall: b.id, useBall: true })}
+                      title={b.id === "auto" ? "Auto (melhor disponível)" : `${b.label} (${b.count})`}
+                      style={{
+                        position: "relative", background: sel ? "rgba(245,207,107,0.18)" : "transparent",
+                        border: sel ? `1.5px solid ${b.tint}` : "1.5px solid transparent",
+                        boxShadow: sel ? `0 0 8px ${b.tint}88` : "none",
+                        borderRadius: 8, padding: 3, cursor: "pointer",
+                        width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
+                      }}
+                    >
+                      {b.img ? (
+                        <img src={b.img} alt={b.label} width={24} height={24} style={{ imageRendering: "pixelated", filter: sel ? "none" : "grayscale(0.4)" }} />
+                      ) : (
+                        <span style={{ fontSize: 14, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>A</span>
+                      )}
+                      {b.count !== null && (
+                        <span style={{
+                          position: "absolute", bottom: -2, right: -2, background: "#0b0510",
+                          border: `1px solid ${b.tint}`, borderRadius: 6, padding: "0 3px",
+                          fontSize: 8, fontWeight: 800, color: b.tint, lineHeight: "10px", minWidth: 12, textAlign: "center",
+                        }}>{b.count > 999 ? "999+" : b.count}</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
+              <div style={{
+                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.4)",
+                borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
+              }}>
+                <button
+                  onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
+                  title={on ? "Auto-batalha ATIVA (clique para desativar)" : "Auto-batalha desativada (clique para ativar)"}
+                  style={{
+                    background: "transparent", border: "none", padding: 0, cursor: "pointer",
+                    width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
+                    position: "relative",
+                  }}
+                >
+                  <img
+                    src={autoIconImg}
+                    alt="Auto"
+                    width={40}
+                    height={40}
+                    style={{
+                      width: 40, height: 40, imageRendering: "pixelated",
+                      filter: on
+                        ? "drop-shadow(0 0 6px #5ec26a) drop-shadow(0 0 10px rgba(94,194,106,0.6))"
+                        : "grayscale(1) opacity(0.55)",
+                      animation: on ? "autoIconPulse 1.2s ease-in-out infinite, autoIconSpin 6s linear infinite" : "none",
+                      transformOrigin: "50% 50%",
+                    }}
+                  />
+                </button>
+                <div style={{ fontSize: 10, color: "#c8b8d0", minWidth: 90 }}>
+                  Lv.{team[0]?.level ?? 1} · EXP {team[0]?.xp ?? 0}/{100 + (team[0]?.level ?? 1) * 20}
+                </div>
+                <button
+                  onClick={() => setShowAutoSettings((v) => !v)}
+                  title="Configurar"
+                  style={{
+                    background: showAutoSettings ? "#f5cf6b" : "rgba(255,255,255,0.06)",
+                    color: showAutoSettings ? "#0b0510" : "#f5cf6b",
+                    border: "1px solid rgba(245,207,107,0.5)",
+                    borderRadius: 8, width: 30, height: 30, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 16,
+                  }}
+                >⚙</button>
+              </div>
+            </div>
             );
           })()}
 
-            {showProfile && (
-              <ProfileCard
-                    crystals={idle.bank.crystals}
-                    safiras={idle.items?.safira_verde ?? 0}
-                    isVip={isVip()}
-                    gifOf={(sp) => GIF[sp]}
-                    onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
-                    onReturned={(entry) => setIdle((s) => {
-                      const col = s.collection ?? [];
-                      if (col.some(c => c.uid === entry.uid)) return s;
-                      return { ...s, collection: [...col, entry] };
-                    })}
-                    onSpend={(cur, amount) => setIdle((s) => ({
-                      ...s,
-                      bank: cur === "gold"
-                        ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
-                        : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
-                    }))}
-                    onEarn={(cur, amount) => setIdle((s) => ({
-                      ...s,
-                      bank: cur === "gold"
-                        ? { ...s.bank, gold: s.bank.gold + amount }
-                        : { ...s.bank, crystals: s.bank.crystals + amount },
-                    }))}
-                    onSpendSafira={(amount) => {
-                      const cur = idle.items?.safira_verde ?? 0;
-                      if (cur < amount) return false;
-                      setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
-                      return true;
-                    }}
-                    onEarnSafira={(amount) => {
-                      setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
-                    }}
-                    pushChat={pushChat}
-                  />
-                }
-                skinId={skinId}
-                setSkinId={setSkinId}
-                unlockedSkins={idle.unlockedSkins ?? ["default"]}
-                skinTickets={idle.items?.skin_ticket ?? 0}
-                onUnlockSkin={(sid) => {
-                  setIdle((s) => {
-                    const tickets = s.items?.skin_ticket ?? 0;
-                    const unlocked = new Set(s.unlockedSkins ?? ["default"]);
-                    if (unlocked.has(sid)) return s;
-                    if (tickets <= 0) return s;
-                    unlocked.add(sid);
-                    return {
-                      ...s,
-                      items: { ...s.items, skin_ticket: tickets - 1 },
-                      unlockedSkins: Array.from(unlocked),
-                    };
-                  });
-                  setSkinId(sid);
-                  pushChat(`✦ Skin premium desbloqueada! Você consumiu 1 Ticket de Skin.`, "cap");
-                }}
-                trainerLevel={idle.trainerLevel ?? 1}
-                onUpgradeBook={upgradeBook}
-              />
-            )}
-            {false && (
-              <div
+
+          {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
+          {tab !== "batalha" && (
+            <TabOverlay
+              tab={tab}
+              onClose={() => setTab("batalha")}
+              onAnciaoInteraction={handleAnciaoInteraction}
+              leader={team[0]}
+              team={team}
+              onReorderTeam={(nt) => { setTeam(nt); if (nt[0]) setLeaderHp(calcIdleMaxHp(nt[0])); }}
+              leaderHp={leaderHp}
+              items={idle.items}
+              caughtSpecies={idle.caughtSpecies}
+              seenSpecies={idle.seenSpecies}
+              totals={idle.totals}
+              collection={collectionForDisplay}
+              craftPoints={idle.craftPoints ?? 0}
+              onFragmentCollection={fragmentCollection}
+              gifMap={GIF}
+              onPickTeam={(entry) => onPickTeamFromColecao(entry)}
+              onUseItem={useItem}
+              bank={idle.bank}
+              buffs={idle.buffs}
+              onBuyBall={buyBall}
+              onBuyUltraBundle={buyUltraBundle}
+              onBuyTeleportScroll={buyTeleportScroll}
+              onBuyBook={buyBook}
+              orbTrades={ORB_TRADES}
+              onTradeOrb={tradeForOrb}
+              benchUids={new Set(restingBench.map(p => p.uid))}
+              onBuyPotion={buyPotion}
+              onBuyEgg={buyEgg}
+              shopEggs={SHOP_EGGS}
+
+              onBuyChestAmulet={buyChestAmulet}
+              chestAmuletOwned={idle.items?.chest_amulet ?? 0}
+              autoHeal={idle.autoHeal}
+              setAutoHeal={(next) => setIdle((s) => ({ ...s, autoHeal: next }))}
+              audioSettings={audioSettings}
+              setAudioSettings={setAudioSettings}
+              tasks={idle.tasks}
+              onClaimTask={claimTask}
+              onOpenColecaoDetail={(uid) => setColecaoDetailUid(uid)}
+              onExchange={exchange}
+              onSellItem={sellItem}
+              marketSellPrices={MARKET_SELL_PRICE}
+              identity={identity}
+              onListMarket={listMarketItem}
+              onBuyMarket={buyMarketListing}
+              onCancelMarket={cancelMarketListing}
+              onClaimMarketPayout={claimMarketPayout}
+              isVip={isVip()}
+              pokemonMarketNode={
+                <PokemonMarketPanel
                   identity={identity}
                   collection={idle.collection ?? []}
                   gold={idle.bank.gold}
@@ -10174,32 +10171,34 @@ function IdlePage() {
                     setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
                   }}
                   pushChat={pushChat}
-                  skinId={skinId}
-                  setSkinId={setSkinId}
-                  unlockedSkins={idle.unlockedSkins ?? ["default"]}
-                  skinTickets={idle.items?.skin_ticket ?? 0}
-                  onUnlockSkin={(sid) => {
-                    setIdle((s) => {
-                      const tickets = s.items?.skin_ticket ?? 0;
-                      const unlocked = new Set(s.unlockedSkins ?? ["default"]);
-                      if (unlocked.has(sid)) return s;
-                      if (tickets <= 0) return s;
-                      unlocked.add(sid);
-                      return {
-                        ...s,
-                        items: { ...s.items, skin_ticket: tickets - 1 },
-                        unlockedSkins: Array.from(unlocked),
-                      };
-                    });
-                    setSkinId(sid);
-                    pushChat(`✦ Skin premium desbloqueada! Você consumiu 1 Ticket de Skin.`, "cap");
-                  }}
-                  trainerLevel={idle.trainerLevel ?? 1}
-                  onUpgradeBook={upgradeBook}
-              />
-            )}
+                />
+              }
+              skinId={skinId}
+              setSkinId={setSkinId}
+              unlockedSkins={idle.unlockedSkins ?? ["default"]}
+              skinTickets={idle.items?.skin_ticket ?? 0}
+              onUnlockSkin={(sid) => {
+                setIdle((s) => {
+                  const tickets = s.items?.skin_ticket ?? 0;
+                  const unlocked = new Set(s.unlockedSkins ?? ["default"]);
+                  if (unlocked.has(sid)) return s;
+                  if (tickets <= 0) return s;
+                  unlocked.add(sid);
+                  return {
+                    ...s,
+                    items: { ...s.items, skin_ticket: tickets - 1 },
+                    unlockedSkins: Array.from(unlocked),
+                  };
+                });
+                setSkinId(sid);
+                pushChat(`✦ Skin premium desbloqueada! Você consumiu 1 Ticket de Skin.`, "cap");
+              }}
+              trainerLevel={idle.trainerLevel ?? 1}
+              onUpgradeBook={upgradeBook}
+            />
+          )}
+        <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
 
-        {/* Explorar Panel - Integrated into Profile Card below */}
 
 
 
@@ -10215,8 +10214,6 @@ function IdlePage() {
 
           <Panel title="EXPLORAR" accent="#3d2b52">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-
-
 
 
 
@@ -10322,5 +10319,6183 @@ function IdlePage() {
             </div>
           </Panel>
         </div>
-      );
-    })()}
+
+
+      <style>{`
+        .modern-floating-window {
+          max-width: 95vw !important;
+          width: 1200px !important;
+          height: 90vh !important;
+          margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+          .modern-floating-window {
+            width: 98vw !important;
+            height: 95vh !important;
+            border-radius: 12px !important;
+          }
+        }
+
+
+        @media (max-width: 1400px) {
+          .idle-grid { grid-template-columns: 210px 1fr 210px !important; gap: 6px !important; padding: 6px !important; }
+        }
+        @media (max-width: 1200px) {
+          .idle-grid { grid-template-columns: 190px 1fr 190px !important; }
+        }
+        @media (max-width: 1024px) {
+          .idle-grid { grid-template-columns: 170px 1fr 170px !important; }
+        }
+
+        @keyframes fxpop {
+          0% { transform: translateY(0) scale(0.6); opacity: 0; }
+          20% { transform: translateY(-6px) scale(1.15); opacity: 1; }
+          100% { transform: translateY(-36px) scale(0.9); opacity: 0; }
+        }
+        .fxpop { animation: fxpop 1.2s ease-out forwards; }
+        @keyframes lvToastIn {
+          0%   { opacity: 0; transform: translate(-50%, -14px) scale(0.94); }
+          60%  { opacity: 1; transform: translate(-50%, 2px) scale(1.02); }
+          100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        }
+        @keyframes lvToastOut {
+          0%   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+          100% { opacity: 0; transform: translate(-50%, -10px) scale(0.98); }
+        }
+        @keyframes lvShine {
+          0%   { left: -80px; }
+          100% { left: 110%; }
+        }
+        @keyframes shakex { 0%,100%{transform: scaleX(-1) translateX(0)} 25%{transform:scaleX(-1) translateX(-3px)} 75%{transform:scaleX(-1) translateX(3px)} }
+        @keyframes attackbob { 0%,100% { transform: scaleX(var(--face-scale, 1)) translateX(0) } 50% { transform: scaleX(var(--face-scale, 1)) translateX(12px) } }
+        .attackbob { animation: attackbob 0.8s ease-in-out infinite; }
+        /* ===== Level-up green aura ===== */
+        @keyframes lvglow {
+          0%   { transform: scale(0.6); opacity: 0; filter: blur(6px); }
+          25%  { transform: scale(1.1); opacity: 1; filter: blur(4px); }
+          100% { transform: scale(1.8); opacity: 0; filter: blur(10px); }
+        }
+        .lvaura-glow {
+          background: radial-gradient(circle,
+            rgba(180,255,150,0.85) 0%,
+            rgba(90,220,110,0.55) 30%,
+            rgba(40,180,80,0.25) 55%,
+            rgba(20,120,60,0) 80%);
+          animation: lvglow 1.4s ease-out forwards;
+          mix-blend-mode: screen;
+        }
+        @keyframes lvring {
+          0%   { transform: scale(0.5); opacity: 0; box-shadow: 0 0 0 0 rgba(140,255,160,0.9), inset 0 0 12px rgba(180,255,180,0.7); }
+          25%  { opacity: 1; }
+          100% { transform: scale(2.2); opacity: 0; box-shadow: 0 0 30px 8px rgba(140,255,160,0), inset 0 0 30px rgba(180,255,180,0); }
+        }
+        .lvaura-ring {
+          border: 2px solid rgba(180,255,180,0.9);
+          background: transparent;
+          animation: lvring 1.3s ease-out forwards;
+        }
+        .lvaura-ring2 {
+          border: 2px solid rgba(120,240,140,0.7);
+          background: transparent;
+          animation: lvring 1.5s 0.15s ease-out forwards;
+        }
+        @keyframes lvspark {
+          0%   { transform: rotate(calc(var(--i) * 45deg)) translateY(0) scale(0.4); opacity: 0; }
+          20%  { opacity: 1; }
+          100% { transform: rotate(calc(var(--i) * 45deg)) translateY(-46px) scale(1.1); opacity: 0; }
+        }
+        .lvaura-spark {
+          position: absolute; left: 50%; top: 50%;
+          width: 6px; height: 12px;
+          margin: -6px 0 0 -3px;
+          border-radius: 50%;
+          background: radial-gradient(circle, #eaffd0 0%, #7ef27a 45%, rgba(60,180,80,0) 75%);
+          box-shadow: 0 0 8px rgba(150,255,150,0.9), 0 0 16px rgba(90,240,110,0.6);
+          animation: lvspark 1.1s ease-out forwards;
+          pointer-events: none;
+          transform-origin: 50% 50%;
+        }
+        .shake { animation: shakex 0.25s infinite; }
+
+        /* ===== Weather — Pixel RPG style ===== */
+        .wx-rain-tint {
+          position: absolute; inset: 0;
+          background:
+            linear-gradient(180deg,
+              rgba(30,45,75,0.42) 0%,
+              rgba(30,45,75,0.22) 55%,
+              rgba(30,45,75,0.10) 100%);
+          pointer-events: none;
+        }
+        .wx-mist {
+          position: absolute; inset: 0;
+          background:
+            radial-gradient(ellipse at 50% 100%, rgba(180,200,230,0.18), transparent 60%),
+            radial-gradient(ellipse at 20% 30%, rgba(200,215,240,0.08), transparent 55%);
+          filter: blur(1px);
+          pointer-events: none;
+          animation: wx-mist-drift 12s ease-in-out infinite alternate;
+        }
+        @keyframes wx-mist-drift {
+          0%   { transform: translateX(0); opacity: 0.85; }
+          100% { transform: translateX(20px); opacity: 1; }
+        }
+        .wx-snow-tint {
+          position: absolute; inset: 0;
+          background: linear-gradient(180deg,
+            rgba(200,220,240,0.28) 0%,
+            rgba(200,220,240,0.10) 50%,
+            transparent 100%);
+          pointer-events: none;
+        }
+        .wx-drop {
+          position: absolute;
+          top: -30px;
+          display: block;
+          background: linear-gradient(180deg,
+            rgba(220,235,255,0) 0%,
+            rgba(220,235,255,0.35) 40%,
+            rgba(240,248,255,0.9) 100%);
+          box-shadow: 0 0 3px rgba(200,225,255,0.5);
+          transform: rotate(14deg);
+          transform-origin: top center;
+          border-radius: 2px;
+          animation-name: wx-drop-fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+          will-change: transform;
+        }
+        @keyframes wx-drop-fall {
+          0%   { transform: translate3d(0, -30px, 0) rotate(14deg); opacity: 0; }
+          8%   { opacity: 1; }
+          92%  { opacity: 1; }
+          100% { transform: translate3d(-30vh, 115vh, 0) rotate(14deg); opacity: 0; }
+        }
+        .wx-flash {
+          position: absolute; inset: 0;
+          background: radial-gradient(ellipse at 30% 10%, rgba(230,235,255,0.35), transparent 55%);
+          animation: wx-flash 9s ease-in-out infinite;
+          pointer-events: none;
+          opacity: 0;
+        }
+        @keyframes wx-flash {
+          0%, 88%, 100% { opacity: 0; }
+          89%           { opacity: 0.9; }
+          90%           { opacity: 0.1; }
+          91%           { opacity: 0.8; }
+          92%           { opacity: 0; }
+        }
+        .wx-flake {
+          position: absolute;
+          top: -10px;
+          display: block;
+          background: #ffffff;
+          box-shadow:
+            0 0 2px rgba(255,255,255,0.9),
+            0 0 4px rgba(200,220,255,0.6);
+          border-radius: 0; /* pixel look */
+          image-rendering: pixelated;
+          animation-name: wx-flake-fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+        @keyframes wx-flake-fall {
+          0%   { transform: translate3d(0, -10px, 0); }
+          50%  { transform: translate3d(var(--drift, 0px), 55vh, 0); }
+          100% { transform: translate3d(calc(var(--drift, 0px) * -0.5), 110vh, 0); }
+        }
+
+
+        /* ===== Baús ===== */
+        @keyframes chest-bob {
+          0%,100% { transform: translateY(0); }
+          50%     { transform: translateY(-4px); }
+        }
+        .chest-idle { animation: chest-bob 1.8s ease-in-out infinite; }
+        @keyframes chest-pop {
+          0%   { transform: scale(0.4); opacity: 0; }
+          60%  { transform: scale(1.15); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .chest-pop { animation: chest-pop 380ms ease-out; }
+        @keyframes evt-slide {
+          0% { opacity: 0; transform: translate(-50%, -14px); }
+          100% { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        /* ===== Sidebar goodies ===== */
+        @keyframes world-globe-spin {
+          0%   { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .world-globe-spin {
+          animation: world-globe-spin 6s linear infinite;
+          transform-origin: 50% 50%;
+        }
+        .world-globe-btn:hover .world-globe-spin { animation-duration: 2.5s; }
+        .world-globe-btn { transition: transform 120ms, box-shadow 160ms; }
+        .world-globe-btn:hover { transform: translateY(-1px); box-shadow: 0 0 22px rgba(245,207,107,0.7), inset 0 1px 0 rgba(255,240,180,0.35); }
+
+        @keyframes cash-pack-float {
+          0%,100% { transform: translateY(0) rotate(-2deg); }
+          50%     { transform: translateY(-4px) rotate(2deg); }
+        }
+        .cash-pack-float {
+          animation: cash-pack-float 2.6s ease-in-out infinite;
+          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+        }
+
+        @keyframes lojinha-pulse {
+          0%,100% { box-shadow: 0 0 14px rgba(46,255,140,0.75), 0 0 28px rgba(46,255,140,0.45), inset 0 1px 0 rgba(255,255,255,0.4); }
+          50%     { box-shadow: 0 0 22px rgba(46,255,140,1), 0 0 44px rgba(46,255,140,0.75), 0 0 60px rgba(120,255,180,0.5), inset 0 1px 0 rgba(255,255,255,0.55); }
+        }
+        .lojinha-btn-glow { animation: lojinha-pulse 1.6s ease-in-out infinite; }
+        .lojinha-btn-glow:hover { transform: translateY(-1px) scale(1.02); }
+
+        @keyframes lojinha-star-fly {
+          0%   { transform: translate(0,0) scale(0.4); opacity: 0; }
+          20%  { opacity: 1; }
+          80%  { opacity: 1; }
+          100% { transform: translate(var(--tx,20px), var(--ty,-16px)) scale(1.2); opacity: 0; }
+        }
+        .lojinha-star {
+          position: absolute;
+          color: #f6ffb0;
+          font-size: 12px;
+          text-shadow: 0 0 6px #b8ffcf, 0 0 12px #6cff9d;
+          pointer-events: none;
+          z-index: 1;
+          animation: lojinha-star-fly 1.8s ease-in-out infinite;
+        }
+        .lojinha-star-1 { top: 4px;  left: 8%;  --tx: -6px; --ty: -14px; animation-delay: 0s;    }
+        .lojinha-star-2 { top: 50%;  left: 92%; --tx: 10px; --ty: -8px;  animation-delay: 0.35s; font-size: 10px; }
+        .lojinha-star-3 { top: 60%;  left: 4%;  --tx: -12px;--ty: 10px;  animation-delay: 0.7s;  }
+        .lojinha-star-4 { top: 6px;  left: 55%; --tx: 4px;  --ty: -18px; animation-delay: 1.05s; font-size: 9px; }
+        .lojinha-star-5 { top: 70%;  left: 45%; --tx: 0px;  --ty: 14px;  animation-delay: 1.4s;  font-size: 11px; }
+
+
+      `}</style>
+
+
+      {identity && (
+        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
+          <span>{identity.name}</span>
+          <span style={{ fontFamily: "monospace", color: "#c9b8ff", fontSize: 9 }}>
+            🌐 IP: {idle.hideIp ? "•••.•••.•••.•••" : (myIp ?? "detectando...")}
+          </span>
+          <div style={{ display: "flex", gap: 4 }}>
+            <button
+              onClick={() => { setNetLogOpen(true); void loadNetLogs(); }}
+              title="Log de rede / farm"
+              style={{ background: "rgba(0,0,0,0.55)", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "2px 7px", fontSize: 9, fontWeight: 800, cursor: "pointer", letterSpacing: 0.6 }}
+            >📜 LOG</button>
+            <button
+              onClick={() => { setIdle((s) => ({ ...s, hideIp: !s.hideIp })); playClick(); }}
+              title="Oculta o IP na tela (continua registrado no servidor por segurança)"
+              style={{ background: "rgba(0,0,0,0.55)", border: `1px solid ${idle.hideIp ? "#7ee88a" : "#6a4a70"}`, color: idle.hideIp ? "#9dfaa8" : "#c8b8d0", borderRadius: 6, padding: "2px 7px", fontSize: 9, fontWeight: 800, cursor: "pointer", letterSpacing: 0.6 }}
+            >{idle.hideIp ? "👁 MOSTRAR IP" : "🔒 OCULTAR IP"}</button>
+          </div>
+        </div>
+      )}
+
+
+
+
+
+      {/* ═══ 🏦 BANCO MEDIEVAL — cofre de itens (taxa em Fragmento Vermelho) ═══ */}
+      {vaultOpen && (() => {
+        const shards = idle.items?.fragmento_vermelho ?? 0;
+        const vault = idle.vault ?? {};
+        const bagEntries = Object.entries(idle.items ?? {}).filter(([id, n]) => n > 0 && id !== "fragmento_vermelho");
+        const vaultEntries = Object.entries(vault).filter(([, n]) => n > 0);
+        const move = (id: string, qty: number, toVault: boolean) => {
+          if (shards < VAULT_FEE_SHARDS) { pushChat(`🔻 O banqueiro exige ${VAULT_FEE_SHARDS} Fragmentos Vermelhos por operação.`, "info"); return; }
+          setIdle((st) => {
+            const items = { ...(st.items ?? {}) };
+            const vlt = { ...(st.vault ?? {}) };
+            const have = toVault ? (items[id] ?? 0) : (vlt[id] ?? 0);
+            const q = Math.max(1, Math.min(qty, have));
+            if (q <= 0) return st;
+            if (toVault) { items[id] = have - q; vlt[id] = (vlt[id] ?? 0) + q; }
+            else { vlt[id] = have - q; items[id] = (items[id] ?? 0) + q; }
+            items.fragmento_vermelho = (items.fragmento_vermelho ?? 0) - VAULT_FEE_SHARDS;
+            return { ...st, items, vault: vlt };
+          });
+          playClick();
+          pushChat(toVault ? `🏦 Guardou ${qty}x no cofre (−${VAULT_FEE_SHARDS} 🔻).` : `🏦 Retirou ${qty}x do cofre (−${VAULT_FEE_SHARDS} 🔻).`, "cap");
+        };
+        // 🏦 Pokémon: guardar PARA SEMPRE (preservado na 3ª Season). BMP é grátis.
+        const isBmpEntry = (e: CollectionEntry) => !!e.event && e.event.startsWith("black_mitic");
+        const pokeVault = idle.pokeVault ?? [];
+        const storable = (idle.collection ?? []).filter((e) => !team.some((p) => p.uid === e.uid));
+        const storePoke = (e: CollectionEntry) => {
+          const fee = isBmpEntry(e) ? 0 : POKE_VAULT_FEE_SHARDS;
+          if (pokeVault.length >= POKE_VAULT_SLOTS) { pushChat(`🏦 Cofre de pokémons cheio (${POKE_VAULT_SLOTS} vagas).`, "info"); return; }
+          if (shards < fee) { pushChat(`🔻 Precisa de ${fee.toLocaleString("pt-BR")} Fragmentos Vermelhos para guardar este pokémon.`, "info"); return; }
+          setIdle((st) => {
+            const items = { ...(st.items ?? {}) };
+            if (fee > 0) items.fragmento_vermelho = (items.fragmento_vermelho ?? 0) - fee;
+            return {
+              ...st,
+              items,
+              collection: (st.collection ?? []).filter((c) => c.uid !== e.uid),
+              pokeVault: [...(st.pokeVault ?? []), e],
+            };
+          });
+          playClick();
+          pushChat(fee === 0 ? `🏦 ${e.species.replace(/_/g, " ")} guardado GRÁTIS (Black Mitic Plus).` : `🏦 ${e.species.replace(/_/g, " ")} guardado para sempre (−${fee.toLocaleString("pt-BR")} 🔻).`, "cap");
+        };
+        const withdrawPoke = (e: CollectionEntry) => {
+          setIdle((st) => ({
+            ...st,
+            pokeVault: (st.pokeVault ?? []).filter((c) => c.uid !== e.uid),
+            collection: [...(st.collection ?? []), e],
+          }));
+          playClick();
+          pushChat(`🏦 ${e.species.replace(/_/g, " ")} retirado do cofre.`, "cap");
+        };
+        const PokeRow = ({ e, stored }: { e: CollectionEntry; stored: boolean }) => {
+          const bmp = isBmpEntry(e);
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: bmp ? "linear-gradient(120deg, rgba(160,102,255,0.22), rgba(0,0,0,0.4))" : "rgba(0,0,0,0.35)", border: `1px solid ${bmp ? "rgba(160,102,255,0.55)" : "rgba(245,207,107,0.3)"}`, borderRadius: 8, padding: "6px 8px" }}>
+              {GIF[e.species] && <img src={GIF[e.species]} alt="" width={30} height={30} loading="lazy" style={{ imageRendering: "pixelated" }} />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: bmp ? "#e9d5ff" : "#ffe89a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.species.replace(/_/g, " ").toUpperCase()}</div>
+                <div style={{ fontSize: 9.5, color: bmp ? "#c9a8ff" : "#c8b8d0" }}>Nv. {e.level} · {bmp ? "BLACK MITIC PLUS · GRÁTIS" : e.rarity.toUpperCase()}</div>
+              </div>
+              <button
+                onClick={() => (stored ? withdrawPoke(e) : storePoke(e))}
+                style={{ background: "#2a1a2e", border: `1px solid ${stored ? "#6bd4ff" : "#f5cf6b"}`, color: stored ? "#bfe9ff" : "#ffe89a", borderRadius: 6, padding: "4px 8px", fontSize: 10, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" }}
+              >{stored ? "◀ RETIRAR" : bmp ? "▶ GRÁTIS" : `▶ ${fmtK(POKE_VAULT_FEE_SHARDS)} 🔻`}</button>
+            </div>
+          );
+        };
+        const Cell = ({ id, n, toVault }: { id: string; n: number; toVault: boolean }) => (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(245,207,107,0.3)", borderRadius: 8, padding: "6px 8px" }}>
+            {ITEM_IMG[id] ? (
+              <img src={ITEM_IMG[id]} alt="" width={28} height={28} loading="lazy" style={{ imageRendering: "pixelated" }} />
+            ) : (
+              <ItemPixelIcon id={id} size={28} color={ITEM_COLORS[id] ?? "#f5cf6b"} />
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#ffe89a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{id}</div>
+              <div style={{ fontSize: 10, color: "#c8b8d0" }}>x{n}</div>
+            </div>
+            <button onClick={() => move(id, 1, toVault)} style={{ background: "#2a1a2e", border: "1px solid #f5cf6b", color: "#ffe89a", borderRadius: 6, padding: "4px 7px", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>{toVault ? "▶ 1" : "◀ 1"}</button>
+            <button onClick={() => move(id, n, toVault)} style={{ background: "#2a1a2e", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "4px 7px", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>{toVault ? "▶ TUDO" : "◀ TUDO"}</button>
+          </div>
+        );
+        return createPortal(
+          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "min(760px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #241a12 0%, #0e0906 100%)", border: "3px solid #f5cf6b", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(245,207,107,0.35)" }}>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <img src={houseBankImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 17, letterSpacing: 1.4, fontFamily: "'Cinzel', Georgia, serif" }}>🏦 BANCO MEDIEVAL</div>
+                  <div style={{ color: "#c8b8d0", fontSize: 10.5 }}>Guarde seus itens em segurança · taxa de {VAULT_FEE_SHARDS} 🔻 por operação</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(0,0,0,0.45)", border: "1px solid #ff6b6b", borderRadius: 8, padding: "5px 9px" }}>
+                  <img src={redShardImg} alt="" width={18} height={18} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                  <span style={{ color: "#ff9b9b", fontWeight: 900, fontSize: 12 }}>{shards}</span>
+                </div>
+                <button onClick={() => setVaultOpen(false)} style={{ background: "#2a1a2e", border: "1px solid #6a4a70", color: "#c8b8d0", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
+              </div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                {(["itens", "pokemon"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => { setVaultTab(t); playClick(); }}
+                    style={{
+                      flex: 1, padding: "7px 10px", borderRadius: 8, cursor: "pointer",
+                      background: vaultTab === t ? "linear-gradient(180deg,#f5cf6b,#b8862a)" : "rgba(0,0,0,0.4)",
+                      border: `1px solid ${vaultTab === t ? "#ffe89a" : "#6a4a70"}`,
+                      color: vaultTab === t ? "#2a1a08" : "#c8b8d0",
+                      fontWeight: 900, fontSize: 11, letterSpacing: 1,
+                    }}
+                  >{t === "itens" ? "🗄 ITENS" : "🐾 POKÉMONS"}</button>
+                ))}
+              </div>
+              {vaultTab === "pokemon" && (
+                <div style={{ background: "rgba(160,102,255,0.12)", border: "1px solid rgba(160,102,255,0.4)", borderRadius: 8, padding: "7px 10px", marginBottom: 10, fontSize: 10.5, color: "#e0cbff", lineHeight: 1.5 }}>
+                  🛡 Pokémons guardados aqui são <b>preservados na 3ª Season</b> (não serão resetados).<br />
+                  Taxa: <b>{POKE_VAULT_FEE_SHARDS.toLocaleString("pt-BR")} 🔻</b> por pokémon · <b>Black Mitic Plus é grátis</b> · vagas usadas: <b>{pokeVault.length}/{POKE_VAULT_SLOTS}</b>
+                </div>
+              )}
+              {vaultTab === "itens" ? (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🎒 MOCHILA</div>
+                    <div style={{ display: "grid", gap: 6 }}>
+                      {bagEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Mochila vazia.</div>
+                        : bagEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault />)}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🗄 COFRE</div>
+                    <div style={{ display: "grid", gap: 6 }}>
+                      {vaultEntries.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre vazio.</div>
+                        : vaultEntries.map(([id, n]) => <Cell key={id} id={id} n={n} toVault={false} />)}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🐾 COLEÇÃO ({storable.length})</div>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
+                      {storable.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Nenhum pokémon disponível (os do time não podem ser guardados).</div>
+                        : storable.map((e) => <PokeRow key={e.uid} e={e} stored={false} />)}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: "#e0cbff", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🏦 COFRE ETERNO ({pokeVault.length}/{POKE_VAULT_SLOTS})</div>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
+                      {pokeVault.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre eterno vazio.</div>
+                        : pokeVault.map((e) => <PokeRow key={e.uid} e={e} stored />)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body
+        );
+      })()}
+
+
+      {/* ═══ 🏰 GINÁSIO MEDIEVAL — endgame: 3 andares + portal do Vale ═══ */}
+      {gymOpen && (() => {
+        const shards = idle.items?.fragmento_vermelho ?? 0;
+        const st = valeEventStatus();
+        const lv = idle.trainerLevel ?? 1;
+        const hasBmp = (idle.collection ?? []).some((e) => typeof e.event === "string" && e.event.startsWith("black_mitic"));
+        const canEnterVale = st.open && shards >= GYM_ENTRY_SHARDS && idle.currentMap !== "vale_fragmentos";
+        const enterVale = () => {
+          if (!canEnterVale) return;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - GYM_ENTRY_SHARDS },
+            valeReturnMap: s.currentMap,
+            currentMap: "vale_fragmentos",
+          }));
+          playClick();
+          pushChat(`🏰 Você entrou no Vale dos Fragmentos Vermelhos (−${GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻).`, "cap");
+          setGymOpen(false);
+        };
+        const enterFloor = (f: GymFloorDef) => {
+          if (lv < f.reqLevel || shards < f.entryShards || (f.requiresBmp && !hasBmp) || idle.currentMap === f.id) return;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), fragmento_vermelho: (s.items?.fragmento_vermelho ?? 0) - f.entryShards },
+            valeReturnMap: isGymMap(s.currentMap) ? s.valeReturnMap : s.currentMap,
+            currentMap: f.id,
+          }));
+          playClick();
+          pushChat(`🏰 Você adentrou o ${f.label} (−${f.entryShards.toLocaleString("pt-BR")} 🔻). Prepare-se.`, "cap");
+          setGymOpen(false);
+        };
+        return createPortal(
+          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.88)", display: "grid", placeItems: "center", padding: 16 }}>
+
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "min(680px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #2a1010 0%, #0d0505 60%, #150a20 100%)", border: "3px solid #ff5c5c", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(255,92,92,0.35)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <img src={houseGymImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#ff9b9b", fontWeight: 900, fontSize: 17, letterSpacing: 1.4, fontFamily: "'Cinzel', Georgia, serif" }}>🏰 GINÁSIO MEDIEVAL</div>
+                  <div style={{ color: "#c8b8d0", fontSize: 10.5 }}>Conteúdo de endgame · 3 andares encadeados · Santuário Arcano exclusivo Black Mythic</div>
+                </div>
+                <button onClick={() => setGymOpen(false)} style={{ background: "#2a1a1a", border: "1px solid #6a4a4a", color: "#c8b8d0", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
+              </div>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {GYM_FLOORS.map((f) => {
+                  const lvOk = lv >= f.reqLevel;
+                  const shOk = shards >= f.entryShards;
+                  const bmpOk = !f.requiresBmp || hasBmp;
+                  const here = idle.currentMap === f.id;
+                  const ok = lvOk && shOk && bmpOk && !here;
+                  return (
+                    <div key={f.id} style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${f.color}55`, borderRadius: 12, padding: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ color: f.color, fontWeight: 900, fontSize: 13.5, letterSpacing: 1, fontFamily: "'Cinzel', Georgia, serif" }}>{f.label}</div>
+                          <div style={{ color: "#c8b8d0", fontSize: 10.5, lineHeight: 1.5, marginTop: 2 }}>{f.desc}</div>
+                        </div>
+                        {f.requiresBmp && <div style={{ color: "#c58bff", fontSize: 10, fontWeight: 900 }}>✦ BLACK MYTHIC</div>}
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8, fontSize: 10.5 }}>
+                        <span style={{ color: lvOk ? "#7ee88a" : "#ff8b8b", fontWeight: 800 }}>Nv {f.reqLevel.toLocaleString("pt-BR")}+</span>
+                        <span style={{ color: shOk ? "#7ee88a" : "#ff8b8b", fontWeight: 800 }}>{f.entryShards.toLocaleString("pt-BR")} 🔻</span>
+                        <span style={{ color: "#ffb86b" }}>HP ×{f.hpMult} · DANO ×{f.dmgMult}</span>
+                        <span style={{ color: "#9fe8ff" }}>Drop {f.shards[0]}–{f.shards[1]} 🔻</span>
+                        <span style={{ color: "#ff8bd0" }}>Captura ×{f.captureMult}</span>
+                      </div>
+                      <button
+                        onClick={() => enterFloor(f)}
+                        disabled={!ok}
+                        style={{
+                          width: "100%", marginTop: 10, padding: "9px 0", borderRadius: 10,
+                          background: ok ? `linear-gradient(180deg,${f.color},#1a0a1a)` : "#241a24",
+                          border: `1px solid ${ok ? f.color : "#5a3a5a"}`,
+                          color: ok ? "#0d0510" : "#7a6a7a", fontWeight: 900, fontSize: 12, letterSpacing: 1.2,
+                          cursor: ok ? "pointer" : "not-allowed",
+                        }}
+                      >{here ? "VOCÊ ESTÁ AQUI" : !bmpOk ? "EXIGE UM BLACK MITIC PLUS" : !lvOk ? `NÍVEL INSUFICIENTE` : !shOk ? "FRAGMENTOS INSUFICIENTES" : "ADENTRAR 🏰"}</button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ marginTop: 14, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,92,92,0.35)", borderRadius: 10, padding: 12, fontSize: 11.5, color: "#f0d8d8", lineHeight: 1.7 }}>
+                <div style={{ color: "#ff9b9b", fontWeight: 900, marginBottom: 4 }}>🔻 VALE DOS FRAGMENTOS VERMELHOS</div>
+                <div>🔻 Cada pokémon derrotado ou capturado dropa <b>5 a 20 Fragmentos Vermelhos</b>.</div>
+                <div>⏱ Aberto <b>1 hora</b>, reabre <b>a cada 5 horas</b>.</div>
+                <div>💰 Entrada: <b style={{ color: "#ff9b9b" }}>{GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻</b> · você tem <b style={{ color: shards >= GYM_ENTRY_SHARDS ? "#7ee88a" : "#ff8b8b" }}>{shards.toLocaleString("pt-BR")} 🔻</b></div>
+                <div style={{ marginTop: 6, color: st.open ? "#7ee88a" : "#ffb86b", fontWeight: 900 }}>
+                  {st.open ? `🟢 ABERTO — fecha em ${fmtHMS(st.msUntilChange)}` : `🔴 FECHADO — abre em ${fmtHMS(st.msUntilChange)}`}
+                </div>
+                <button
+                  onClick={enterVale}
+                  disabled={!canEnterVale}
+                  style={{
+                    width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 10,
+                    background: canEnterVale ? "linear-gradient(180deg,#ff6b6b,#8b1a1a)" : "#2a1a1a",
+                    border: `1px solid ${canEnterVale ? "#ffb3b3" : "#5a3a3a"}`,
+                    color: canEnterVale ? "#fff" : "#7a6a6a", fontWeight: 900, fontSize: 12.5, letterSpacing: 1.3,
+                    cursor: canEnterVale ? "pointer" : "not-allowed",
+                  }}
+                >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        );
+      })()}
+
+
+
+      {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
+      {netLogOpen && createPortal(
+        <div onClick={() => setNetLogOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "min(720px, 100%)", maxHeight: "85vh", overflowY: "auto", background: "linear-gradient(160deg, #0d1824 0%, #05080d 100%)", border: "3px solid #6bd4ff", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(107,212,255,0.3)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: "#bfe9ff", fontWeight: 900, fontSize: 16, letterSpacing: 1.4 }}>📜 LOG DE REDE</div>
+                <div style={{ color: "#7f95a8", fontSize: 10.5 }}>Seu IP atual: <b style={{ color: "#c9b8ff", fontFamily: "monospace" }}>{myIp ?? "—"}</b> · sessão de farm: {fmtHMS(activeTime)}</div>
+              </div>
+              <button onClick={() => void loadNetLogs()} style={{ background: "#10222f", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>🔄 ATUALIZAR</button>
+              <button onClick={() => setNetLogOpen(false)} style={{ background: "#10222f", border: "1px solid #3b5a6b", color: "#9ab", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
+            </div>
+            <div style={{ display: "grid", gap: 5 }}>
+              {netLogLoading && <div style={{ color: "#7f95a8", fontSize: 11 }}>Carregando registros...</div>}
+              {!netLogLoading && netLogs.length === 0 && <div style={{ color: "#7f95a8", fontSize: 11 }}>Nenhum registro de acesso encontrado.</div>}
+              {netLogs.map((r) => (
+                <div key={r.id} style={{ display: "flex", gap: 10, alignItems: "center", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(107,212,255,0.18)", borderRadius: 8, padding: "6px 9px", fontSize: 10.5 }}>
+                  <span style={{ color: "#c9b8ff", fontFamily: "monospace", fontWeight: 900, minWidth: 118 }}>{r.ip}</span>
+                  <span style={{ color: "#ffe89a", fontWeight: 800, minWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.username ?? r.user_id.slice(0, 8)}</span>
+                  <span style={{ color: "#8fa4b4", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.user_agent ?? "—"}</span>
+                  <span style={{ color: "#7f95a8" }}>{new Date(r.created_at).toLocaleString("pt-BR")}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {worldTraderOpen && createPortal((() => {
+          const collection = idle.collection ?? [];
+          const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
+          const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
+          return (
+            <div
+              onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: "min(640px, 100%)", maxHeight: "90vh", overflowY: "auto",
+                  background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+                border: "2px solid #ffd94d", borderRadius: 16, padding: 18,
+                boxShadow: "0 12px 36px rgba(0,0,0,0.75), 0 0 32px rgba(255,217,77,0.35)",
+              }}
+            >
+              {/* Cabeçalho do NPC */}
+              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+                <img src={npcTraderUrl} alt="" width={72} height={90}
+                  style={{ imageRendering: "pixelated", filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.6))" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: "#ffd94d" }}>🧙 Elyra, a Trocadora</div>
+                  <div style={{ fontSize: 11, color: "#c8b8d0", lineHeight: 1.5, marginTop: 4, fontStyle: "italic" }}>
+                    "Traga-me Pokémon da sua <b style={{ color: "#ffd94d" }}>Coleção</b> e eu os transformarei em <b style={{ color: "#ffd94d" }}>Orbs de XP</b>. Você escolhe quais entregar."
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+                  style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 20 }}
+                >✕</button>
+              </div>
+
+              {!worldTraderPick && (
+                <>
+                  <div style={{ color: "#b8a8c8", fontSize: 12, marginBottom: 10 }}>Escolha a raridade da troca:</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    {ORB_TRADES.map((t) => {
+                      const available = collection.filter((c) =>
+                        (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
+                        && !teamUidsForTrade.has(c.uid)
+                        && !benchUidsForTrade.has(c.uid),
+                      ).length;
+                      const reqOk = !t.requires || (idle.items[t.requires.itemId] ?? 0) >= t.requires.qty;
+                      const reqOwned = t.requires ? (idle.items[t.requires.itemId] ?? 0) : 0;
+                      const canTrade = available >= t.count && reqOk;
+                      const owned = idle.items[t.orbId] ?? 0;
+                      return (
+                        <div key={`${t.orbId}-${t.rarity}`} style={{
+                          background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                          border: `2px solid ${t.color}66`, borderRadius: 14, padding: 14,
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                          boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${t.color}33`,
+                          opacity: reqOk ? 1 : 0.85,
+                        }}>
+                          <img src={t.img} alt={t.label} width={72} height={72}
+                            style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 12px ${t.color}bb)` }} />
+                          <div style={{ fontWeight: 900, color: "#eadfe8", fontSize: 14 }}>{t.label}</div>
+                          <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center", lineHeight: 1.4 }}>{t.desc}</div>
+                          <div style={{ fontSize: 11, color: available >= t.count ? "#8ae28a" : "#e28a8a", fontWeight: 700 }}>
+                            {t.rarity.toUpperCase()} na coleção: {available}/{t.count}
+                          </div>
+                          {t.requires && (
+                            <div style={{ fontSize: 10, fontWeight: 800, color: reqOk ? "#8ae28a" : "#ff9a6b", background: reqOk ? "#0f2018" : "#2a1620", border: `1px solid ${reqOk ? "#8ae28a55" : "#ff9a6b55"}`, borderRadius: 6, padding: "3px 8px", textAlign: "center" }}>
+                              {reqOk ? "✓" : "🔒"} Requer {t.requires.qty}× {t.requires.label} ({reqOwned}/{t.requires.qty})
+                            </div>
+                          )}
+                          <div style={{ fontSize: 10, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                          {/* Barra de chance base — visível já na seleção */}
+                          <div style={{ width: "100%", background: "#0f0820", border: "1px solid #3a2a4a", borderRadius: 8, padding: "6px 8px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#c8b8d0", marginBottom: 3 }}>
+                              <span>Sucesso base</span>
+                              <b style={{ color: t.baseSuccess >= 0.75 ? "#8ae28a" : t.baseSuccess >= 0.5 ? "#ffd94d" : "#ff9a6b" }}>{Math.round(t.baseSuccess * 100)}%</b>
+                            </div>
+                            <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                              <div style={{ width: `${t.baseSuccess * 100}%`, height: "100%", background: `linear-gradient(90deg, #6bd66b, ${t.color})` }} />
+                            </div>
+                            <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 3, textAlign: "center" }}>+ combustível até 95%</div>
+                          </div>
+                          <button
+                            disabled={!canTrade}
+                            onClick={() => { setWorldTraderPick(t); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); setWorldTraderFuelTab("common"); }}
+                            style={{
+                              width: "100%", padding: "8px 10px", fontWeight: 900, fontSize: 12,
+                              background: canTrade ? t.color : "#3a2a4a",
+                              color: canTrade ? "#0b0510" : "#6a5a7c",
+                              border: "none", borderRadius: 8,
+                              cursor: canTrade ? "pointer" : "not-allowed",
+                            }}
+                          >{!reqOk ? `FORJE 1 ${t.requires!.label.toUpperCase()} PRIMEIRO` : available >= t.count ? "ESCOLHER POKÉMON" : `PRECISA ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {worldTraderPick && (() => {
+                const pick = worldTraderPick;
+                const teamU = new Set(team.map((p) => p.uid));
+                const benchU = new Set(restingBench.map((p) => p.uid));
+                const eligible = collection.filter((c) => (c.rarity === pick.rarity || (pick.rarity === "mythic" && c.rarity === "mythic_shiny")) && !teamU.has(c.uid) && !benchU.has(c.uid));
+                const fuelRarities: FuelRarity[] = (["common", "uncommon", "rare"] as FuelRarity[]).filter((r) => r !== pick.rarity);
+                const fuelPool = collection.filter((c) => (c.rarity === "common" || c.rarity === "uncommon" || c.rarity === "rare") && c.rarity !== pick.rarity && !teamU.has(c.uid) && !benchU.has(c.uid));
+                const activeTab: FuelRarity = fuelRarities.includes(worldTraderFuelTab) ? worldTraderFuelTab : fuelRarities[0];
+                const fuelOfTab = fuelPool.filter((c) => c.rarity === activeTab);
+                const selCount = worldTraderSel.size;
+                const fuelCount = worldTraderFuel.size;
+                const canConfirm = selCount === pick.count;
+                const breakdown = getFuelBreakdown(worldTraderFuel);
+                const { success, lucky } = computeOrbChances(pick, breakdown);
+                // ~50% da sorte vai para "orb evolui" e 50% para "+tempo" (se houver upgrade); senão tudo vai pra tempo
+                const upgradeChance = pick.upgradeTo ? lucky * 0.5 : 0;
+                const timeChance = pick.upgradeTo ? lucky * 0.5 : lucky;
+                return (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div style={{ fontWeight: 900, color: pick.color, fontSize: 14 }}>
+                        Incubadora · {pick.count}× {pick.rarity.toUpperCase()}
+                      </div>
+                      <button
+                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); }}
+                        style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(245,207,107,0.2)", color: "#b8a8c8", cursor: "pointer", fontSize: 11, padding: "4px 10px", borderRadius: 6 }}
+                      >← VOLTAR</button>
+                    </div>
+
+                    {/* Barra de chances */}
+                    <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 10, padding: 10, marginBottom: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", marginBottom: 4 }}>
+                        <span>Chance de SUCESSO</span>
+                        <b style={{ color: success >= 0.75 ? "#8ae28a" : success >= 0.5 ? "#ffd94d" : "#ff9a6b" }}>{Math.round(success * 100)}%</b>
+                      </div>
+                      <div style={{ height: 8, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                        <div style={{ width: `${success * 100}%`, height: "100%", background: `linear-gradient(90deg, #6bd66b, ${pick.color})`, transition: "width .3s" }} />
+                      </div>
+                      {pick.upgradeTo && (
+                        <>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
+                            <span>✨ Orb EVOLUI (upgrade)</span>
+                            <b style={{ color: "#ff9adf" }}>{Math.round(upgradeChance * 100)}%</b>
+                          </div>
+                          <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                            <div style={{ width: `${upgradeChance * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff9adf, #ffd94d)" }} />
+                          </div>
+                        </>
+                      )}
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
+                        <span>⏱️ +TEMPO extra (+1~2h)</span>
+                        <b style={{ color: "#ffd94d" }}>{Math.round(timeChance * 100)}%</b>
+                      </div>
+                      <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
+                        <div style={{ width: `${timeChance * 100}%`, height: "100%", background: "linear-gradient(90deg, #ffd94d, #8ae28a)" }} />
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 6 }}>
+                      Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{pick.count}</b>
+                    </div>
+                    {eligible.length === 0 ? (
+                      <div style={{ color: "#e28a8a", fontSize: 12, padding: 24, textAlign: "center" }}>
+                        Você não tem Pokémon {pick.rarity.toUpperCase()} na coleção.
+                      </div>
+                    ) : (
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "22vh", overflowY: "auto", padding: 4 }}>
+                        {eligible.map((c) => {
+                          const sel = worldTraderSel.has(c.uid);
+                          const disabled = !sel && selCount >= pick.count;
+                          return (
+                            <button
+                              key={c.uid}
+                              disabled={disabled}
+                              onClick={() => {
+                                setWorldTraderSel((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(c.uid)) next.delete(c.uid); else next.add(c.uid);
+                                  return next;
+                                });
+                              }}
+                              style={{
+                                background: sel ? `rgba(245, 207, 107, 0.1)` : "rgba(0,0,0,0.3)",
+                                border: sel ? `2px solid ${pick.color}` : "1px solid rgba(245, 207, 107, 0.1)",
+
+                                borderRadius: 10, padding: 4, cursor: disabled ? "not-allowed" : "pointer",
+                                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                                opacity: disabled ? 0.4 : 1, position: "relative",
+                              }}
+                            >
+                              {GIF[c.species] ? (
+                                <img src={GIF[c.species]} alt="" style={{ width: 48, height: 48, imageRendering: "pixelated" }} />
+                              ) : (
+                                <div style={{ width: 48, height: 48, background: "#2a1638", borderRadius: 8 }} />
+                              )}
+                              <div style={{ fontSize: 9, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
+                              <div style={{ fontSize: 9, color: "#ffd94d" }}>Lv.{c.level}</div>
+                              {sel && (
+                                <div style={{ position: "absolute", top: 2, right: 2, background: pick.color, color: "#0b0510", width: 16, height: 16, borderRadius: 999, fontSize: 10, fontWeight: 900, display: "grid", placeItems: "center" }}>✓</div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Combustível: filtros de raridade */}
+                    <div style={{ marginTop: 10, padding: 8, background: "#0f0820", border: "1px dashed #3a2a4a", borderRadius: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, flexWrap: "wrap", gap: 6 }}>
+                        <div style={{ fontSize: 11, color: "#c8b8d0" }}>
+                          ⚡ Combustível — usados: <b style={{ color: "#ffd94d" }}>{fuelCount}/{MAX_FUEL}</b>
+                          {fuelCount > 0 && <span style={{ marginLeft: 6, fontSize: 10, color: "#8a7a9c" }}>
+                            ({breakdown.common > 0 && `${breakdown.common}C `}{breakdown.uncommon > 0 && `${breakdown.uncommon}I `}{breakdown.rare > 0 && `${breakdown.rare}R`})
+                          </span>}
+                        </div>
+                        <div style={{ display: "flex", gap: 4 }}>
+                          {fuelRarities.map((r) => {
+                            const tier = FUEL_TIERS[r];
+                            const active = activeTab === r;
+                            const count = fuelPool.filter((x) => x.rarity === r).length;
+                            return (
+                              <button key={r} onClick={() => setWorldTraderFuelTab(r)}
+                                style={{
+                                  fontSize: 10, fontWeight: 900, padding: "3px 8px", borderRadius: 6, cursor: "pointer",
+                                  background: active ? tier.color : "transparent",
+                                  color: active ? "#0b0510" : tier.color,
+                                  border: `1px solid ${tier.color}77`,
+                                }}
+                              >{tier.label} +{Math.round(tier.boost * 100)}% ({count})</button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      {fuelOfTab.length === 0 ? (
+                        <div style={{ fontSize: 11, color: "#8a7a9c", padding: 8, textAlign: "center" }}>Nenhum {FUEL_TIERS[activeTab].label} disponível.</div>
+                      ) : (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "16vh", overflowY: "auto" }}>
+                          {fuelOfTab.map((c) => {
+                            const sel = worldTraderFuel.has(c.uid);
+                            const disabled = !sel && fuelCount >= MAX_FUEL;
+                            const tierColor = FUEL_TIERS[c.rarity as FuelRarity].color;
+                            return (
+                              <button
+                                key={c.uid}
+                                disabled={disabled}
+                                onClick={() => {
+                                  setWorldTraderFuel((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(c.uid)) next.delete(c.uid); else next.add(c.uid);
+                                    return next;
+                                  });
+                                }}
+                                style={{
+                                  background: sel ? "rgba(245, 207, 107, 0.1)" : "rgba(0,0,0,0.3)",
+                                  border: sel ? `2px solid ${tierColor}` : "1px solid rgba(245, 207, 107, 0.1)",
+
+                                  borderRadius: 8, padding: 3, cursor: disabled ? "not-allowed" : "pointer",
+                                  opacity: disabled ? 0.4 : 1,
+                                }}
+                              >
+                                {GIF[c.species] ? (
+                                  <img src={GIF[c.species]} alt="" style={{ width: 38, height: 38, imageRendering: "pixelated" }} />
+                                ) : <div style={{ width: 38, height: 38, background: "#2a1638", borderRadius: 6 }} />}
+                                <div style={{ fontSize: 8, color: "#c8b8d0" }}>Lv.{c.level}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                      <button
+                        onClick={() => { setWorldTraderPick(null); setWorldTraderSel(new Set()); setWorldTraderFuel(new Set()); }}
+                        style={{ flex: 1, padding: "10px", background: "rgba(0,0,0,0.3)", color: "#eadfe8", border: "1px solid rgba(245,207,107,0.2)", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
+
+                      >CANCELAR</button>
+                      <button
+                        disabled={!canConfirm}
+                        onClick={() => {
+                          const uids = Array.from(worldTraderSel);
+                          const fuel = Array.from(worldTraderFuel);
+                          setWorldTraderPick(null);
+                          setWorldTraderSel(new Set());
+                          setWorldTraderFuel(new Set());
+                          // NÃO fechar o modal aqui — se fechar, o overlay do orbAnim
+                          // (que está dentro deste IIFE) desmonta e a animação some.
+                          tradeForOrb(pick.orbId, uids, fuel, pick.rarity);
+                        }}
+                        style={{
+                          flex: 2, padding: "10px", fontWeight: 900,
+                          background: canConfirm ? "linear-gradient(180deg, #f5cf6b, #b8862a)" : "rgba(0,0,0,0.5)",
+                          color: canConfirm ? "#000" : "#6a5a7c",
+                          border: canConfirm ? "1px solid #fff4d0" : "1px solid rgba(255,255,255,0.05)",
+                          borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
+
+                        }}
+                      >⚗️ INCUBAR</button>
+                    </div>
+                  </div>
+                );
+              })()}
+              </div>
+            </div>
+          );
+        })(), document.body)}
+
+
+
+
+
+
+
+
+
+
+
+      {/* Incubadora — animação de sucesso/falha */}
+      {orbAnim && (
+        <div
+          onClick={() => { if (orbAnim.phase !== "spinning") setOrbAnim(null); }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 10010, display: "grid", placeItems: "center", padding: 16 }}
+        >
+          <style>{`
+            @keyframes orb-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+            @keyframes orb-pulse { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 20px ${orbAnim.color}) } 50% { transform: scale(1.06); filter: drop-shadow(0 0 40px ${orbAnim.color}) } }
+            @keyframes orb-shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px) rotate(-2deg)} 40%{transform:translateX(6px) rotate(2deg)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+            @keyframes orb-drop { from { transform: translateY(-30px) scale(.4); opacity: 0 } to { transform: translateY(0) scale(1); opacity: 1 } }
+            @keyframes orb-crack { 0%{opacity:0;transform:scale(.6)} 30%{opacity:1;transform:scale(1.2)} 100%{opacity:0.8;transform:scale(1)} }
+            @keyframes orb-particle { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)} }
+          `}</style>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(420px,100%)", background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+              border: `2px solid ${orbAnim.color}`, borderRadius: 16, padding: 22, textAlign: "center",
+              boxShadow: `0 0 60px ${orbAnim.color}55`, position: "relative", overflow: "hidden",
+            }}
+          >
+            <div style={{ fontSize: 12, color: "#c8b8d0", letterSpacing: 2, fontWeight: 900, marginBottom: 8 }}>
+              {orbAnim.phase === "spinning" ? "⚗️  INCUBANDO..." : orbAnim.phase === "success" ? (orbAnim.lucky ? "🌟  SORTE!" : "✨  SUCESSO!") : "💥  FALHOU!"}
+            </div>
+            <div style={{ position: "relative", height: 240, display: "grid", placeItems: "center" }}>
+              {/* base incubadora */}
+              <img
+                src={orbIncubatorImg}
+                alt=""
+                width={200}
+                height={200}
+                style={{
+                  imageRendering: "pixelated",
+                  filter: orbAnim.phase === "fail" ? "grayscale(1) hue-rotate(-30deg) drop-shadow(0 0 12px #e94b3c)" : `drop-shadow(0 0 24px ${orbAnim.color})`,
+                  animation: orbAnim.phase === "spinning" ? "orb-pulse 1s ease-in-out infinite" : orbAnim.phase === "fail" ? "orb-shake .5s ease-in-out 2" : "orb-pulse 1.4s ease-in-out infinite",
+                  transition: "filter .3s",
+                }}
+              />
+              {/* aura girando */}
+              {orbAnim.phase === "spinning" && (
+                <div style={{
+                  position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none",
+                  animation: "orb-spin 1.2s linear infinite",
+                }}>
+                  <div style={{
+                    width: 160, height: 160, borderRadius: "50%",
+                    border: `3px dashed ${orbAnim.color}88`,
+                    boxShadow: `inset 0 0 30px ${orbAnim.color}55`,
+                  }} />
+                </div>
+              )}
+              {/* orb resultante */}
+              {orbAnim.phase === "success" && orbAnim.img && (
+                <img
+                  src={orbAnim.img}
+                  alt=""
+                  width={72}
+                  height={72}
+                  style={{
+                    position: "absolute", bottom: 30, imageRendering: "pixelated",
+                    filter: `drop-shadow(0 0 20px ${orbAnim.color})`,
+                    animation: "orb-drop .6s ease-out both, orb-pulse 2s ease-in-out infinite .6s",
+                  }}
+                />
+              )}
+              {/* rachadura fail */}
+              {orbAnim.phase === "fail" && (
+                <>
+                  <div style={{
+                    position: "absolute", fontSize: 96, animation: "orb-crack .8s ease-out both", pointerEvents: "none",
+                  }}>💔</div>
+                  {[0,1,2,3,4,5].map((i) => {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const dx = Math.cos(angle) * 80;
+                    const dy = Math.sin(angle) * 80;
+                    return (
+                      <div key={i} style={{
+                        position: "absolute", width: 8, height: 8, borderRadius: 999,
+                        background: "#e94b3c",
+                        ["--dx" as any]: `${dx}px`, ["--dy" as any]: `${dy}px`,
+                        animation: `orb-particle 1s ease-out ${i * 0.05}s forwards`,
+                      } as React.CSSProperties} />
+                    );
+                  })}
+                </>
+              )}
+            </div>
+            <div style={{ marginTop: 10, minHeight: 40 }}>
+              {orbAnim.phase === "spinning" && (
+                <div style={{ fontSize: 12, color: "#c8b8d0" }}>A energia se condensa... aguarde.</div>
+              )}
+              {orbAnim.phase === "success" && (
+                <>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: orbAnim.color }}>+1× {orbAnim.label}</div>
+                  {orbAnim.lucky && orbAnim.extraHours ? (
+                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! +{orbAnim.extraHours}h extras ao ativar</div>
+                  ) : orbAnim.lucky ? (
+                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! Orb evoluiu de raridade!</div>
+                  ) : null}
+                </>
+              )}
+              {orbAnim.phase === "fail" && (
+                <div style={{ fontSize: 12, color: "#e28a8a" }}>A instabilidade dispersou a energia. Pokémon perdidos.</div>
+              )}
+            </div>
+            {orbAnim.phase !== "spinning" && (
+              <button
+                onClick={() => setOrbAnim(null)}
+                style={{
+                  marginTop: 12, padding: "10px 20px", fontWeight: 900, fontSize: 12,
+                  background: orbAnim.color, color: "#0b0510", border: "none", borderRadius: 8, cursor: "pointer",
+                }}
+              >FECHAR</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ❄️ Diálogo do Ancião Glacial — Ritual da Nova Jornada */}
+      <AnciaoGlacialDialog
+        open={anciaoOpen}
+        forced={anciaoForced}
+        onClose={() => { if (!anciaoForced) setAnciaoOpen(false); }}
+        onConfirm={handleSeasonResetRitual}
+      />
+
+
+      {/* Botão flutuante: resgatar código */}
+      <button
+        onClick={() => { setCodeOpen(true); setCodeMsg(null); }}
+        title="Resgatar código"
+        style={{
+          position: "fixed", bottom: 12, right: 12, zIndex: 100,
+          background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
+          border: "1px solid #f5cf6b", color: "#f5cf6b",
+          borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 800,
+          fontFamily: "monospace", cursor: "pointer",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+        }}
+      >🔑 Código</button>
+
+      {codeOpen && createPortal(
+        <div
+          onClick={() => setCodeOpen(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9998,
+            background: "rgba(0,0,0,0.7)", display: "grid", placeItems: "center", padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(360px, 100%)",
+              background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+              border: "1px solid #f5cf6b", borderRadius: 10, padding: 16,
+              color: "#f3e5c5", fontFamily: "monospace",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8, whiteSpace: "pre-line" }}>
+              Digite um código secreto para receber recompensas.
+              {"\n"}DICA: use <b>RESETPERSON</b> se o Ancião Glacial falhar.
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <div style={{ fontWeight: 800, color: "#f5cf6b" }}>🔑 Resgatar código</div>
+              <button onClick={() => setCodeOpen(false)} style={{
+                background: "transparent", border: "none", color: "#f3e5c5", cursor: "pointer", fontSize: 16,
+              }}>✕</button>
+            </div>
+            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8, whiteSpace: "pre-line" }}>
+              Digite um código secreto para receber recompensas.
+              {"\n"}DICA: use <b>RESETPERSON</b> se o Ancião Glacial falhar.
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <input
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") redeemCrystalCode(); }}
+                placeholder="código…"
+                autoFocus
+                spellCheck={false}
+                style={{
+                  flex: 1, background: "#0b0510", color: "#f3e5c5",
+                  border: "1px solid #4a3a6c", borderRadius: 6, padding: "6px 8px",
+                  fontFamily: "monospace", fontSize: 13, outline: "none",
+                }}
+              />
+              <button
+                onClick={redeemCrystalCode}
+                style={{
+                  background: "linear-gradient(180deg,#f5cf6b,#c99a2e)",
+                  color: "#1a1030", border: "none", borderRadius: 6,
+                  padding: "6px 12px", fontWeight: 800, cursor: "pointer",
+                  fontFamily: "monospace", fontSize: 12,
+                }}
+              >Resgatar</button>
+            </div>
+            {codeMsg && (
+              <div style={{
+                marginTop: 10, padding: "6px 8px", borderRadius: 6, fontSize: 12,
+                background: codeMsg.kind === "ok" ? "rgba(126,242,122,0.12)" : "rgba(227,74,74,0.12)",
+                border: `1px solid ${codeMsg.kind === "ok" ? "#7ef27a" : "#e34a4a"}`,
+                color: codeMsg.kind === "ok" ? "#7ef27a" : "#ffb0b0",
+              }}>{codeMsg.text}</div>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ===== Painel de Troca Black Mitic Plus (RESGTT55) ===== */}
+      {bmpSwapOpen && createPortal((() => {
+        const isBMP = (e: { event?: string | null }) =>
+          typeof e.event === "string" && e.event.startsWith("black_mitic");
+        const bmpEntries = [
+          ...(idle.collection ?? []).filter(isBMP),
+          ...team.filter(isBMP),
+          ...restingBench.filter(isBMP),
+        ];
+        const source = bmpEntries.find((e) => e.uid === bmpSwapSourceUid) ?? null;
+        const canConfirm = !!source && !!bmpSwapTarget;
+        const confirmSwap = () => {
+          const base = idleRef.current;
+          const target = bmpSwapTarget;
+          if (!bmpSwapSourceUid || !target) {
+            setBmpSwapMsg({ kind: "err", text: "Selecione um BMP e uma espécie destino." });
+            return;
+          }
+          const currentTeam = teamRef.current;
+          const currentBench = benchRef.current;
+          const found =
+            (base.collection ?? []).find((e) => e.uid === bmpSwapSourceUid) ||
+            currentTeam.find((p) => p.uid === bmpSwapSourceUid) ||
+            currentBench.find((p) => p.uid === bmpSwapSourceUid);
+          if (!found) {
+            setBmpSwapMsg({ kind: "err", text: "Pokémon de origem não encontrado." });
+            return;
+          }
+          if (found.species === target) {
+            setBmpSwapMsg({ kind: "err", text: "O destino precisa ser diferente da espécie atual." });
+            return;
+          }
+          const patch = <T extends { uid: string; species: Species; event?: string | null; traits?: string[]; rarity: Rarity }>(p: T): T =>
+            p.uid === bmpSwapSourceUid
+              ? {
+                  ...p,
+                  species: target as Species,
+                  traits: [...GOVERNANTE_PLUS_TRAITS],
+                  rarity: "mythic_shiny" as Rarity,
+                  event: `black_mitic_plus:swap:${target}`,
+                }
+              : p;
+          const nextCollection = (base.collection ?? []).map(patch);
+          const nextTeam = currentTeam.map(patch);
+          const nextBench = currentBench.map(patch);
+          const seenSpecies = base.seenSpecies.includes(target)
+            ? base.seenSpecies : [...base.seenSpecies, target];
+          const caughtSpecies = base.caughtSpecies.includes(target)
+            ? base.caughtSpecies : [...base.caughtSpecies, target];
+          const next: IdleState = { ...base, collection: nextCollection, seenSpecies, caughtSpecies };
+          idleRef.current = next;
+          saveIdle(next);
+          setIdle(next);
+          teamRef.current = nextTeam;
+          benchRef.current = nextBench;
+          setTeam(nextTeam);
+          setRestingBench(nextBench);
+          if (!identity?.id?.startsWith("guest-")) {
+            void pushCloudSaveNow({ idle: next, team: nextTeam, restingBench: nextBench, savedAt: Date.now() });
+          }
+          pushChat(`🔄 Troca BMP concluída: ${found.species.toUpperCase()} → ${target.toUpperCase()} (6 traits VERSÁTIL).`, "cap");
+          setBmpSwapMsg({ kind: "ok", text: `Troca concluída! Seu ${found.species.toUpperCase()} agora é ${target.toString().toUpperCase()}.` });
+          setBmpSwapSourceUid(null);
+          setBmpSwapTarget(null);
+        };
+        return (
+          <div
+            onClick={() => setBmpSwapOpen(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 9999,
+              background: "rgba(4,2,10,0.88)", display: "grid", placeItems: "center", padding: 12,
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "min(880px, 100%)", maxHeight: "88vh", overflow: "auto",
+                background: "linear-gradient(160deg,#12071e 0%,#1c0a2e 55%,#0b0510 100%)",
+                border: "1px solid #a25bff", borderRadius: 14, padding: 18,
+                color: "#f3e5ff", fontFamily: "monospace",
+                boxShadow: "0 0 40px rgba(162,91,255,0.35), inset 0 0 30px rgba(162,91,255,0.15)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: 16, color: "#d9b3ff", letterSpacing: 1 }}>
+                    🔄 TROCA BLACK MITIC PLUS
+                  </div>
+                  <div style={{ fontSize: 11, color: "#b18cd9", marginTop: 2 }}>
+                    Troque um Pokémon Black Mitic Plus da sua Coleção por outra espécie. Todos vêm com 6 traits VERSÁTIL.
+                  </div>
+                </div>
+                <button
+                  onClick={() => setBmpSwapOpen(false)}
+                  style={{ background: "transparent", border: "1px solid #a25bff", color: "#d9b3ff", cursor: "pointer", fontSize: 12, padding: "4px 10px", borderRadius: 6 }}
+                >FECHAR ✕</button>
+              </div>
+
+              {/* Passo 1: escolher BMP */}
+              <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "rgba(162,91,255,0.06)", border: "1px solid rgba(162,91,255,0.25)" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#e8d1ff", marginBottom: 6 }}>
+                  1) SEU BLACK MITIC PLUS ({bmpEntries.length})
+                </div>
+                {bmpEntries.length === 0 ? (
+                  <div style={{ fontSize: 12, color: "#c8a8e8", padding: 8 }}>
+                    Você não possui nenhum Black Mitic Plus na Coleção.
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8 }}>
+                    {bmpEntries.map((e) => {
+                      const src = GIF[e.species];
+                      const sel = e.uid === bmpSwapSourceUid;
+                      return (
+                        <button
+                          key={e.uid}
+                          onClick={() => { setBmpSwapSourceUid(e.uid); setBmpSwapMsg(null); }}
+                          style={{
+                            display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                            padding: 8, borderRadius: 8, cursor: "pointer",
+                            background: sel ? "linear-gradient(180deg,#3a1660,#1a0630)" : "rgba(20,10,35,0.7)",
+                            border: sel ? "2px solid #ffd166" : "1px solid #6a3ba0",
+                            boxShadow: sel ? "0 0 12px rgba(255,209,102,0.6)" : "none",
+                            color: "#f3e5ff", fontFamily: "monospace",
+                          }}
+                        >
+                          {src ? (
+                            <img src={src} alt="" style={{ width: 48, height: 48, imageRendering: "pixelated" }} />
+                          ) : (
+                            <div style={{ width: 48, height: 48, display: "grid", placeItems: "center", fontSize: 22 }}>✦</div>
+                          )}
+                          <div style={{ fontSize: 10, fontWeight: 800, textAlign: "center" }}>
+                            {e.species.toUpperCase()}
+                          </div>
+                          <div style={{ fontSize: 9, color: "#c9a2ff" }}>Lv {e.level}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Passo 2: escolher destino */}
+              <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "rgba(162,91,255,0.06)", border: "1px solid rgba(162,91,255,0.25)" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#e8d1ff", marginBottom: 6 }}>
+                  2) ESCOLHA A ESPÉCIE DESEJADA ({BMP_SWAP_POOL.length})
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 6 }}>
+                  {BMP_SWAP_POOL.map((sp) => {
+                    const src = GIF[sp];
+                    const sel = sp === bmpSwapTarget;
+                    return (
+                      <button
+                        key={sp}
+                        onClick={() => { setBmpSwapTarget(sp); setBmpSwapMsg(null); }}
+                        style={{
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                          padding: 6, borderRadius: 6, cursor: "pointer",
+                          background: sel ? "linear-gradient(180deg,#3a1660,#1a0630)" : "rgba(15,7,28,0.75)",
+                          border: sel ? "2px solid #ffd166" : "1px solid #5a2f8a",
+                          boxShadow: sel ? "0 0 10px rgba(255,209,102,0.55)" : "none",
+                          color: "#f3e5ff", fontFamily: "monospace",
+                        }}
+                        title={sp}
+                      >
+                        {src ? (
+                          <img src={src} alt="" style={{ width: 40, height: 40, imageRendering: "pixelated" }} />
+                        ) : (
+                          <div style={{ width: 40, height: 40, display: "grid", placeItems: "center", fontSize: 18 }}>✦</div>
+                        )}
+                        <div style={{ fontSize: 9, fontWeight: 700, textAlign: "center", lineHeight: 1.1 }}>
+                          {sp.toUpperCase()}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Confirmação */}
+              <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ fontSize: 11, color: "#c8a8e8" }}>
+                  {source ? <>Fonte: <b style={{ color: "#ffd166" }}>{source.species.toUpperCase()}</b></> : "Selecione um BMP acima."}
+                  {" · "}
+                  {bmpSwapTarget ? <>Destino: <b style={{ color: "#ffd166" }}>{bmpSwapTarget.toString().toUpperCase()}</b></> : "Escolha a espécie destino."}
+                </div>
+                <button
+                  disabled={!canConfirm}
+                  onClick={confirmSwap}
+                  style={{
+                    background: canConfirm ? "linear-gradient(180deg,#ffd166,#c99a2e)" : "#2a1a3a",
+                    color: canConfirm ? "#1a1030" : "#7d6fa0",
+                    border: "none", borderRadius: 8, padding: "8px 16px",
+                    fontWeight: 900, fontSize: 12, cursor: canConfirm ? "pointer" : "not-allowed",
+                    fontFamily: "monospace",
+                    boxShadow: canConfirm ? "0 0 12px rgba(255,209,102,0.55)" : "none",
+                  }}
+                >CONFIRMAR TROCA ✦</button>
+              </div>
+              {bmpSwapMsg && (
+                <div style={{
+                  marginTop: 10, padding: "8px 10px", borderRadius: 6, fontSize: 12,
+                  background: bmpSwapMsg.kind === "ok" ? "rgba(126,242,122,0.12)" : "rgba(227,74,74,0.12)",
+                  border: `1px solid ${bmpSwapMsg.kind === "ok" ? "#7ef27a" : "#e34a4a"}`,
+                  color: bmpSwapMsg.kind === "ok" ? "#7ef27a" : "#ffb0b0",
+                }}>{bmpSwapMsg.text}</div>
+              )}
+            </div>
+          </div>
+        );
+      })(), document.body)}
+
+
+
+
+
+
+
+      {/* ===== Popup do ovo chocando ===== */}
+      {eggOpenResult && createPortal((() => {
+        const rarityColorMap: Record<string, string> = {
+          common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
+          epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
+        };
+        const rarityLabelMap: Record<string, string> = {
+          common: "Comum", uncommon: "Incomum", rare: "Raro",
+          epic: "Épico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
+        };
+        const c = rarityColorMap[eggOpenResult.rarity] ?? "#f5cf6b";
+        const label = rarityLabelMap[eggOpenResult.rarity] ?? eggOpenResult.rarity;
+        return (
+          <div
+            onClick={() => setEggOpenResult(null)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 950,
+              background: "rgba(6,3,12,0.88)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: 20, cursor: "pointer",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            <div style={{
+              background: "linear-gradient(160deg, #1a0f26 0%, #2a1638 100%)",
+              border: `3px solid ${c}`, borderRadius: 16,
+              padding: 32, maxWidth: 380, width: "100%",
+              boxShadow: `0 0 40px ${c}aa`,
+              textAlign: "center",
+              animation: "chest-pop 380ms ease-out",
+            }}>
+              <div style={{ fontSize: 12, color: "#8a7a9c", letterSpacing: 3, marginBottom: 4 }}>OVO CHOCOU!</div>
+              <div style={{
+                margin: "10px auto 16px", width: 90, height: 104,
+                borderRadius: "45% / 55%",
+                background: `radial-gradient(circle at 30% 25%, #fff, ${c} 55%, ${c}88 100%)`,
+                border: `3px solid ${c}`,
+                boxShadow: `0 0 24px ${c}, inset 0 -10px 20px rgba(0,0,0,0.3)`,
+              }} />
+              <div style={{
+                fontSize: 24, fontWeight: 900, color: "#fff",
+                letterSpacing: 2, textTransform: "uppercase",
+              }}>
+                {eggOpenResult.sp.replace(/_/g, " ")}
+              </div>
+              <div style={{
+                marginTop: 8, display: "inline-block",
+                padding: "4px 14px", borderRadius: 20,
+                background: c, color: "#0b0510",
+                fontSize: 12, fontWeight: 900, letterSpacing: 2,
+              }}>
+                {label.toUpperCase()}
+              </div>
+              <div style={{ marginTop: 16, fontSize: 11, color: "#b8a8c8" }}>
+                Foi adicionado ao seu time/coleção com stats bonificados pela raridade.
+              </div>
+              <div style={{ marginTop: 12, fontSize: 10, color: "#8a7a9c" }}>Clique para fechar</div>
+            </div>
+          </div>
+        );
+      })(), document.body)}
+
+      {/* ===== Modal de escolha do inicial ===== */}
+
+
+      {!starterChosen && createPortal(
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 1000,
+          background: "rgba(11,5,16,0.92)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 20,
+        }}>
+          <div style={{
+            background: "linear-gradient(160deg, #1a0f26 0%, #2a1638 100%)",
+            border: "2px solid #f5cf6b", borderRadius: 14,
+            padding: 28, maxWidth: 720, width: "100%",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.7)",
+          }}>
+            <h2 style={{ color: "#f5cf6b", fontSize: 22, marginBottom: 6, textAlign: "center", fontWeight: 900 }}>
+              Escolha seu Pokémon inicial!
+            </h2>
+            <div style={{ color: "#b8a8c8", fontSize: 13, textAlign: "center", marginBottom: 22 }}>
+              Você vai começar a jornada com este Pokémon (nível 5).
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+              {([
+                { sp: "charmander" as const, name: "Charmander", img: charmanderGif, color: "#ff6b3d", desc: "Fogo — ataque forte" },
+                { sp: "bulbasaur"  as const, name: "Bulbasaur",  img: bulbasaurGif,  color: "#5ec26a", desc: "Planta — equilibrado" },
+                { sp: "squirtle"   as const, name: "Squirtle",   img: squirtleGif,   color: "#6bd4ff", desc: "Água — defensivo" },
+              ]).map((c) => (
+                <button key={c.sp} onClick={() => pickStarter(c.sp)}
+                  style={{
+                    background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                    border: `2px solid ${c.color}`, borderRadius: 12, padding: 16,
+                    cursor: "pointer", display: "flex", flexDirection: "column",
+                    alignItems: "center", gap: 8, transition: "transform 0.1s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+                >
+                  <img src={c.img} alt={c.name} width={96} height={96}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 10px ${c.color}88)` }} />
+                  <div style={{ color: c.color, fontWeight: 900, fontSize: 16 }}>{c.name}</div>
+                  <div style={{ color: "#b8a8c8", fontSize: 11, textAlign: "center" }}>{c.desc}</div>
+                  <div style={{
+                    marginTop: 4, padding: "6px 14px", background: c.color, color: "#0b0510",
+                    borderRadius: 6, fontWeight: 800, fontSize: 12,
+                  }}>ESCOLHER</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ===== Modal: detalhes do Pokémon (energia + tempo) ===== */}
+      {petDetailUid && (() => {
+        void energyTick;
+        const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+        const party = save.party ?? team;
+        const pet = party.find((p) => p.uid === petDetailUid) ?? team.find((p) => p.uid === petDetailUid);
+        if (!pet) return null;
+        const now = Date.now();
+        const maxHp = calcIdleMaxHp(pet);
+        const hp = pet.uid === team[0]?.uid ? leaderHp : (pet.hp ?? maxHp);
+        const inTeam = team.some((p) => p.uid === pet.uid);
+        const energy = petCurrentEnergy(pet, now, { active: inTeam });
+        const msFull = inTeam ? 0 : petMsToFull(pet, now);
+        const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
+        const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
+        const src = GIF[pet.species];
+        return (
+          <div onClick={() => setPetDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(180deg,#1a1030,#0e0818)", border: "2px solid #f5cf6b", borderRadius: 12, padding: 18, minWidth: 300, maxWidth: 380, color: "#eadfe8" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 72, height: 72, background: "#0b0510", borderRadius: 8, display: "grid", placeItems: "center", overflow: "hidden", border: "1px solid #f5cf6b55" }}>
+                  {src && <img src={src} alt="" style={{ width: "90%", imageRendering: "pixelated" }} />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 900, fontSize: 16 }}>{pet.species.replace(/_/g, " ").toUpperCase()}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8" }}>Lv.{pet.level} · {pet.rarity}</div>
+                </div>
+                <button onClick={() => setPetDetailUid(null)} style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}>✕</button>
+              </div>
+              <div style={{ marginTop: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span>❤️ HP</span><span>{hp}/{maxHp}</span></div>
+                <div style={{ height: 8, background: "#3a1010", borderRadius: 4, marginTop: 3 }}>
+                  <div style={{ width: `${Math.max(0, Math.min(100, (hp / maxHp) * 100))}%`, height: "100%", background: "#5ec26a", borderRadius: 4 }} />
+                </div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+                  <span>⚡ Energia {resting ? "(descansando)" : ""}</span>
+                  <span>{infinite ? "∞ MÍTICO" : `${energy}/100`}</span>
+                </div>
+                <div style={{ height: 8, background: "#0e2438", borderRadius: 4, marginTop: 3 }}>
+                  <div style={{ width: `${infinite ? 100 : energy}%`, height: "100%", background: resting ? "#7fc4ff" : (energy > 30 ? "#4a9eff" : "#ff7a3d"), borderRadius: 4 }} />
+                </div>
+                <div style={{ fontSize: 10, color: "#c8b8d0", marginTop: 4, textAlign: "right" }}>
+                  {infinite ? "Não cansa" : (msFull > 0 ? `Cheia em ${fmtMS(msFull)}` : "Energia cheia")}
+                </div>
+              </div>
+              <div style={{ marginTop: 12, fontSize: 10, color: "#8a7a9c" }}>
+                XP {pet.xp ?? 0}/{100 + pet.level * 20}
+              </div>
+              {!infinite && !resting && energy < ENERGY_MAX && (
+                <button
+                  onClick={() => {
+                    const uid = pet.uid;
+                    const azul = BUILDINGS.find((b) => b.key === "azul");
+                    if (!azul) return;
+                    setPetDetailUid(null);
+                    setAzulPreselectUid(uid);
+                    walkTargetRef.current = {
+                      x: azul.x, y: azul.y - 40, label: "Casa Azul",
+                      onArrive: () => { setAzulPickerOpen(true); },
+                      resumeAuto: autoRef.current,
+                    };
+                    setWalkingTo("Casa Azul");
+                    setAuto(false);
+                    pushChat(`🏡 Indo à Casa Azul para deixar ${pet.species.toUpperCase()} descansar...`, "info");
+                  }}
+                  style={{ marginTop: 14, width: "100%", background: "#4a9eff", color: "#0b0510", border: "none", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer" }}
+                >🏡 Levar à Casa Azul (5💎 · 5 min)</button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+
+      {/* ===== Modal: Casa Azul — escolher Pokémon para descansar ===== */}
+      {azulPickerOpen && createPortal((() => {
+        void energyTick;
+        const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+        const party = save.party ?? team;
+        const now = Date.now();
+        return (
+          <div onClick={() => { setAzulPickerOpen(false); setAzulPreselectUid(null); }} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(180deg,#0a1830,#0e0818)", border: "2px solid #4a9eff", borderRadius: 12, padding: 18, width: 380, maxHeight: "80vh", overflow: "auto", color: "#eadfe8" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: 16, color: "#7fc4ff" }}>🏡 CASA AZUL</div>
+                  <div style={{ fontSize: 11, color: "#c8b8d0" }}>Restaura 100 de energia em 5 min · custa {AZUL_REST_COST}💎</div>
+                </div>
+                <button onClick={() => setAzulPickerOpen(false)} style={{ background: "#0a1830", border: "1px solid #4a9eff", color: "#7fc4ff", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}>✕</button>
+              </div>
+              <div style={{ marginTop: 8, fontSize: 11, color: "#8fd0ff" }}>Seu saldo: 💎 {idle.bank.crystals}</div>
+              <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+                {party.map((p) => {
+                  const infinite = (ENERGY_REGEN_MS[p.rarity] ?? 0) === 0;
+                  const resting = !!(p as PetEnergyExt).azulRestUntil && ((p as PetEnergyExt).azulRestUntil! > now);
+                  const energy = petCurrentEnergy(p, now);
+                  const src = GIF[p.species];
+                  const canPick = !infinite && !resting && energy < ENERGY_MAX && idle.bank.crystals >= AZUL_REST_COST;
+                  const label = infinite ? "MÍTICO (não cansa)" : resting ? `Descansando (${fmtMS(((p as PetEnergyExt).azulRestUntil!) - now)})` : `${energy}/100`;
+                  return (
+                    <div key={p.uid} style={{ display: "flex", gap: 8, alignItems: "center", background: p.uid === azulPreselectUid ? "#12305a" : "#0a1830", border: `1px solid ${p.uid === azulPreselectUid ? "#7fc4ff" : "#4a9eff33"}`, padding: 8, borderRadius: 8, boxShadow: p.uid === azulPreselectUid ? "0 0 12px #4a9eff55" : undefined }}>
+                      <div style={{ width: 44, height: 44, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", overflow: "hidden" }}>
+                        {src ? <img src={src} alt="" style={{ width: "90%", imageRendering: "pixelated" }} /> : <span>❓</span>}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700 }}>{p.species.replace(/_/g, " ").toUpperCase()}</div>
+                        <div style={{ fontSize: 10, color: "#c8b8d0" }}>Lv.{p.level} · {p.rarity}</div>
+                        <div style={{ fontSize: 10, color: resting ? "#7fc4ff" : (energy < 30 ? "#ff7a3d" : "#8fd0ff") }}>⚡ {label}</div>
+                      </div>
+                      {(() => {
+                        const canSpeed = resting && idle.bank.crystals >= AZUL_REST_COST;
+                        const canPickNow = canPick;
+                        const enabled = resting ? canSpeed : canPickNow;
+                        const label = resting ? `Adiantar (${AZUL_REST_COST}💎)` : `Deixar (${AZUL_REST_COST}💎)`;
+                        return (
+                          <button
+                            disabled={!enabled}
+                            onClick={() => resting ? speedUpAzulRest(p.uid) : restPetInAzul(p.uid)}
+                            style={{
+                              background: enabled ? "#4a9eff" : "#2a3a4a",
+                              color: enabled ? "#0b0510" : "#5a6a7a",
+                              border: "none", borderRadius: 6, padding: "6px 10px",
+                              fontWeight: 900, fontSize: 11, cursor: enabled ? "pointer" : "not-allowed",
+                            }}
+                          >{infinite ? "—" : label}</button>
+                        );
+                      })()}
+                    </div>
+                  );
+                })}
+                {party.length === 0 && <div style={{ fontSize: 11, color: "#8a7a9c" }}>Nenhum Pokémon na sua equipe.</div>}
+              </div>
+            </div>
+          </div>
+        );
+      })(), document.body)}
+
+      {/* ===== Modal: Detalhes da Coleção ===== */}
+      {colecaoDetailUid && createPortal((() => {
+        const entry = collectionForDisplay.find((p) => p.uid === colecaoDetailUid);
+        if (!entry) return null;
+        const livePet = team.find((p) => p.uid === entry.uid) ?? restingBench.find((p) => p.uid === entry.uid);
+        const displayLevel = Math.max(entry.level ?? 1, livePet?.level ?? 1);
+        const sp = entry.species;
+        const base = SPECIES_BASE[sp];
+        const rarityColor: Partial<Record<Rarity, string>> = {
+          common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
+          epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
+        };
+        const rColor = rarityColor[entry.rarity] ?? rarityColor[base.rarity] ?? "#8b6a30";
+        const src = GIF[sp];
+        const lore = SPECIES_LORE[sp] ?? RARITY_LORE[base.rarity] ?? "Um Pokémon único, com história ainda por contar.";
+        const isCurrent = team[0]?.uid === entry.uid;
+        return (
+          <div onClick={() => setColecaoDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{
+              background: "linear-gradient(180deg, #fff8e5 0%, #f5e6c8 100%)",
+              border: `3px solid ${rColor}`,
+              borderRadius: 14, padding: 20, width: 420, maxHeight: "85vh", overflow: "auto",
+              color: "#4a3010", boxShadow: `0 0 30px ${rColor}77, 0 8px 24px rgba(0,0,0,0.5)`,
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: 10, color: "#8b6a30", fontWeight: 900, letterSpacing: 2 }}>REGISTRO ✦</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: "#4a3010", fontFamily: "Georgia, serif" }}>
+                    {sp.replace(/_/g, " ").toUpperCase()}
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 11, padding: "3px 10px", borderRadius: 12, background: rColor, color: "#fff", display: "inline-block", fontWeight: 900, letterSpacing: 1 }}>
+                    {entry.rarity.toUpperCase()} · Nv. {displayLevel}
+                  </div>
+                </div>
+                <button onClick={() => setColecaoDetailUid(null)} style={{ background: "#b8862a", border: "none", color: "#fff9e8", borderRadius: 6, padding: "4px 10px", fontWeight: 900, cursor: "pointer" }}>✕</button>
+              </div>
+              <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "120px 1fr", gap: 14, alignItems: "center" }}>
+                <div style={{
+                  width: 120, height: 120, background: "linear-gradient(180deg,#fff,#e8d4a8)",
+                  border: `2px solid ${rColor}`, borderRadius: 10, display: "grid", placeItems: "center",
+                  boxShadow: `inset 0 0 20px ${rColor}55`,
+                }}>
+                  {src && <img src={src} alt="" style={{ width: 96, height: 96, imageRendering: "pixelated" }} />}
+                </div>
+                <div style={{ fontSize: 13, fontStyle: "italic", color: "#5a4020", lineHeight: 1.5 }}>&ldquo;{lore}&rdquo;</div>
+              </div>
+              <div style={{ marginTop: 14, background: "rgba(255,255,255,0.5)", border: "1px solid #b8862a55", borderRadius: 8, padding: 10 }}>
+                <div style={{ fontWeight: 900, fontSize: 11, color: "#6b4a10", letterSpacing: 2, marginBottom: 6 }}>ATRIBUTOS BASE</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, fontSize: 12 }}>
+                  {(["hp","atk","def","spa","spd","spe"] as const).map((k) => (
+                    <div key={k} style={{ background: "rgba(255,255,255,0.6)", borderRadius: 4, padding: "4px 8px" }}>
+                      <div style={{ fontSize: 9, color: "#8b6a30", fontWeight: 700 }}>{k.toUpperCase()}</div>
+                      <div style={{ fontWeight: 800, color: "#4a3010" }}>{base[k]}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginTop: 10, fontSize: 11, color: "#6b4a10" }}>
+                Ouro por derrota: <b>{base.goldRange[0]}-{base.goldRange[1]}</b> · Nível mínimo: <b>{base.minLv}</b>
+              </div>
+              <button
+                onClick={() => {
+                  const basePet = livePet ?? makePet(sp, displayLevel, entry.rarity);
+                  const pet = { ...basePet, traits: entry.traits ?? basePet.traits ?? [], event: entry.event ?? (basePet as any).event } as PetInstance;
+                  setStatsCardPet(pet);
+                  setColecaoDetailUid(null);
+                }}
+                className="card-status-btn"
+                style={{
+                  marginTop: 16, width: "100%",
+                  position: "relative",
+                  background: "linear-gradient(180deg, #f0e2c2 0%, #e2d0a4 100%)",
+                  color: "#3a2a10",
+                  border: "1px solid #b8862a",
+                  borderRadius: 10,
+                  padding: "14px 16px",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  letterSpacing: 4,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 0 rgba(120,80,20,0.25), inset 0 1px 0 rgba(255,255,255,0.55)",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+                  transition: "border-color 160ms, transform 120ms",
+                  fontFamily: "ui-serif, Georgia, serif",
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M5 4h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" stroke="#7a5410" strokeWidth="1.4" strokeLinejoin="round"/>
+                  <path d="M16 4v3h3" stroke="#7a5410" strokeWidth="1.4" strokeLinejoin="round"/>
+                  <path d="M8 11h8M8 14h8M8 17h5" stroke="#7a5410" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+                <span>Ver Ficha Completa</span>
+              </button>
+
+              {!isCurrent && (
+                <button
+                  onClick={() => { onPickTeamFromColecao(entry); setColecaoDetailUid(null); }}
+                  style={{ marginTop: 8, width: "100%", background: "linear-gradient(180deg,#5ec26a,#3d7a4a)", color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer", letterSpacing: 1 }}
+                >COLOCAR NO TIME</button>
+              )}
+              {isCurrent && (
+                <div style={{ marginTop: 14, textAlign: "center", color: "#3d7a4a", fontWeight: 900 }}>★ Este está no seu time</div>
+              )}
+            </div>
+          </div>
+        );
+      })(), document.body)}
+
+      {statsCardPet && createPortal(
+        <PokemonStatsCard
+          pet={statsCardPet}
+          team={team}
+          gifSrc={GIF[statsCardPet.species]}
+          onClose={() => setStatsCardPet(null)}
+        />,
+        document.body
+      )}
+
+
+
+
+      {/* ===== HUD do Alvo (target — centro-topo) ===== */}
+      {(() => {
+        const tgt = attackTargetId != null ? enemies.find((e) => e.id === attackTargetId && e.hp > 0) : null;
+        if (!tgt) return null;
+        const hpPct = Math.max(0, Math.min(1, tgt.hp / Math.max(1, tgt.maxHp)));
+        const hpColor = hpPct > 0.5 ? "#e56b6b" : hpPct > 0.25 ? "#f5cf6b" : "#a83232";
+        const rarityColorMap: Record<string, string> = {
+          common: "#c8c8c8", uncommon: "#7ef2a2", rare: "#6bd4ff",
+          epic: "#c78bff", legendary: "#f5cf6b", mythic: "#ff97e1", mythic_shiny: "#ffd6ff",
+        };
+        const rColor = rarityColorMap[tgt.rarity] ?? "#c8c8c8";
+        const gif = GIF[tgt.sp];
+        return (
+          <div key={tgt.id} style={{
+            position: "fixed", top: 72, left: "50%", transform: "translateX(-50%)",
+            zIndex: 9997, pointerEvents: "none",
+            display: "flex", alignItems: "center", gap: 10,
+            background: "linear-gradient(180deg, rgba(38,14,14,0.94) 0%, rgba(20,6,6,0.94) 100%)",
+            border: `2px solid ${rColor}`,
+            borderRadius: 14,
+            padding: "8px 14px 8px 8px",
+            boxShadow: `0 8px 22px rgba(0,0,0,0.6), 0 0 0 1px ${rColor}44 inset, 0 0 16px ${rColor}66`,
+            minWidth: 260,
+            animation: "evt-slide 220ms cubic-bezier(.2,.9,.3,1.2)",
+          }}>
+
+            <div style={{
+              width: 54, height: 54, flexShrink: 0, borderRadius: "50%",
+              background: `radial-gradient(circle at 40% 35%, ${rColor}66 0%, #2a0a0a 75%)`,
+              border: `2px solid ${rColor}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+              boxShadow: `inset 0 0 6px rgba(0,0,0,0.6), 0 0 10px ${rColor}88`,
+            }}>
+              {gif ? (
+                <img src={gif} alt={tgt.sp} style={{
+                  width: "120%", height: "120%", objectFit: "contain",
+                  imageRendering: "pixelated",
+                  transform: tgt.face === "right" ? "scaleX(-1)" : "none",
+                }} />
+              ) : <span style={{ fontSize: 26 }}>❓</span>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                <span style={{
+                  fontSize: 9, fontWeight: 900, color: "#1a0f26",
+                  background: `linear-gradient(180deg,${rColor},${rColor}aa)`,
+                  padding: "2px 6px", borderRadius: 4, letterSpacing: 1,
+                }}>Lv {tgt.level}</span>
+                {tgt.elite && (
+                  <span style={{
+                    fontSize: 8, fontWeight: 900, color: "#fff",
+                    background: "linear-gradient(180deg,#c72525,#7a1010)",
+                    padding: "2px 5px", borderRadius: 4, letterSpacing: 1,
+                    border: "1px solid #f5cf6b",
+                  }}>★ ELITE</span>
+                )}
+                <span style={{
+                  fontSize: 13, fontWeight: 900, color: "#ffe5c5",
+                  textShadow: "1px 1px 0 #000", letterSpacing: 0.5,
+                  textTransform: "uppercase",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>{tgt.sp.replace(/_/g, " ")}</span>
+              </div>
+              <div style={{
+                position: "relative", height: 12, background: "#0a0410",
+                border: "1px solid #4a1a1a", borderRadius: 6, overflow: "hidden",
+                boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)",
+              }}>
+                <div style={{
+                  position: "absolute", inset: 0, width: `${hpPct * 100}%`,
+                  background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
+                  transition: "width 260ms ease, background 260ms ease",
+                  boxShadow: `0 0 8px ${hpColor}99`,
+                }} />
+                <div style={{
+                  position: "absolute", inset: 0, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  fontSize: 9, fontWeight: 900, color: "#fff",
+                  textShadow: "1px 1px 0 #000, -1px -1px 0 #000",
+                  letterSpacing: 0.5,
+                }}>{Math.max(0, Math.round(tgt.hp))} / {tgt.maxHp}</div>
+              </div>
+              <div style={{
+                fontSize: 8, color: rColor, marginTop: 2, letterSpacing: 1.5,
+                textTransform: "uppercase", fontWeight: 800,
+                textShadow: "1px 1px 0 #000",
+              }}>◆ {tgt.rarity} ◆ ALVO</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
+
+      {/* Admin Button for lordryuhhhuyuyghh@gmail.com */}
+      {(identity?.email === "lordryuhhhuyuyghh@gmail.com" || identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6") && (
+        <button
+          onClick={() => setIsAdminOpen(true)}
+          style={{
+            position: "fixed",
+            bottom: 20,
+            right: 20,
+            width: 50,
+            height: 50,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #f5cf6b, #b8862a)",
+            border: "2px solid #fff",
+            boxShadow: "0 0 15px rgba(245, 207, 107, 0.6)",
+            cursor: "pointer",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 24,
+            animation: "pulse 2s infinite"
+          }}
+          title="Abrir Painel Admin"
+        >
+          ⚙️
+        </button>
+      )}
+
+
+
+      {/* ============ LOJINHA CASH ============ */}
+      {cashShopOpen && createPortal(
+        <CashShopModal
+
+          open={cashShopOpen}
+          onClose={() => setCashShopOpen(false)}
+          identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
+          wallet={{
+            coins: idle.bank.gold,
+            crystals: idle.bank.crystals,
+            level: idle.trainerLevel ?? 1,
+            xp: idle.trainerXp ?? 0,
+            xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
+            safiras: idle.items?.safira_verde ?? 0,
+          }}
+          onSpendSafiras={(n) => {
+          const cur = idle.items?.safira_verde ?? 0;
+          if (cur < n) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
+          }));
+          return true;
+        }}
+
+        onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
+        onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
+        onGrantItem={(id, qty) => {
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
+          }));
+        }}
+        codeInput={codeInput}
+        setCodeInput={setCodeInput}
+        codeMsg={codeMsg}
+        onRedeemCode={() => redeemCrystalCode()}
+      />,
+      document.body
+    )}
+    <BlackMiticEggHud
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        open={blackEggHudOpen}
+        onClose={() => setBlackEggHudOpen(false)}
+        uid={identity?.id ?? "guest"}
+        itemCount={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
+        stones={{
+          stone_grass: idle.items?.stone_grass ?? 0,
+          stone_fire: idle.items?.stone_fire ?? 0,
+          stone_water: idle.items?.stone_water ?? 0,
+          stone_electric: idle.items?.stone_electric ?? 0,
+          stone_dark: idle.items?.stone_dark ?? 0,
+          stone_dragon: idle.items?.stone_dragon ?? 0,
+        }}
+        onConsumeStone={(stoneId, qty) => {
+          const have = idleRef.current.items?.[stoneId] ?? 0;
+          if (have < qty) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), [stoneId]: (s.items?.[stoneId] ?? 0) - qty },
+          }));
+          return true;
+        }}
+        onHatched={(species, element, traits, plus) => {
+          const hatchSpecies = (species in SPECIES_BASE ? species : "charizard_shiny") as Species;
+          const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+            ? crypto.randomUUID()
+            : `bmp_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+          const base = idleRef.current;
+          const curCount = base.items?.[BLACK_EGG_ITEM_ID] ?? 0;
+          const nextItems = { ...(base.items ?? {}) };
+          if (curCount <= 1) delete nextItems[BLACK_EGG_ITEM_ID];
+          else nextItems[BLACK_EGG_ITEM_ID] = curCount - 1;
+          // Ovo Plus: uso único — não devolve a carta ao chocar.
+          const entry: CollectionEntry = {
+            uid,
+            species: hatchSpecies,
+            level: 100,
+            xp: 0,
+            rarity: "mythic_shiny",
+            capturedAt: Date.now(),
+            traits,
+            event: `black_mitic_plus:${element}${plus ? ":plus" : ""}`,
+          };
+          const nextIdle: IdleState = {
+            ...base,
+            items: nextItems,
+            seenSpecies: base.seenSpecies.includes(hatchSpecies) ? base.seenSpecies : [...base.seenSpecies, hatchSpecies],
+            caughtSpecies: base.caughtSpecies.includes(hatchSpecies) ? base.caughtSpecies : [...base.caughtSpecies, hatchSpecies],
+            collection: [...(base.collection ?? []), entry],
+            totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + 1 },
+          };
+          idleRef.current = nextIdle;
+          saveIdle(nextIdle);
+          setIdle(nextIdle);
+          void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
+          const tag = plus ? "Black Mitic PLUS ✦ (Versátil, 6 traits)" : `Black Mitic Plus (${element})`;
+          pushChat(`✦ ${tag} nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
+        }}
+        onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
+        hasIncubatorCard={true}
+        onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
+        boostCount={idle.items?.egg_boost_69 ?? 0}
+        musicControlledExternally
+        plusPending={idle.blackMiticPlusPending ?? 0}
+        onConsumePlus={(count) => {
+          setIdle((s) => ({
+            ...s,
+            blackMiticPlusPending: Math.max(0, (s.blackMiticPlusPending ?? 0) - count),
+          }));
+        }}
+        onConsumeBoost={() => {
+          const have = idleRef.current.items?.egg_boost_69 ?? 0;
+          if (have <= 0) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), egg_boost_69: (s.items?.egg_boost_69 ?? 0) - 1 },
+          }));
+          return true;
+        }}
+      />
+
+      <GovernanteDialog
+        open={governanteOpen}
+        cards={idle.items?.carta_incubadora ?? 0}
+        plusCards={idle.items?.carta_plus ?? 0}
+        rioluCards={idle.items?.carta_riolu ?? 0}
+        currentEggs={idle.items?.black_mitic_egg ?? 0}
+        onClose={() => setGovernanteOpen(false)}
+        onExchange={(qty) => {
+          const base = idleRef.current;
+          const cards = base.items?.carta_incubadora ?? 0;
+          const eggs = base.items?.black_mitic_egg ?? 0;
+          const maxByEggCap = Math.max(0, 6 - eggs);
+          const use = Math.min(qty, cards, maxByEggCap);
+          if (use <= 0) return;
+          setIdle((s) => ({
+            ...s,
+            items: {
+              ...(s.items ?? {}),
+              carta_incubadora: (s.items?.carta_incubadora ?? 0) - use,
+              black_mitic_egg: (s.items?.black_mitic_egg ?? 0) + use,
+            },
+          }));
+          pushChat(`👑 Governante consumiu ${use}× Carta da Incubadora e entregou ${use}× Black Mitic Plus Egg.`, "cap");
+        }}
+        onExchangePlus={(qty) => {
+          const base = idleRef.current;
+          const cards = base.items?.carta_plus ?? 0;
+          const collectionSlots = Math.max(0, MAX_COLLECTION - (base.collection?.length ?? 0));
+          const use = Math.min(qty, cards, collectionSlots);
+          if (use <= 0) {
+            pushChat("✦ Governante: sua Coleção está cheia. Libere espaço antes de entregar a Carta Suprema Plus.", "cap");
+            return;
+          }
+
+          const nextItems = { ...(base.items ?? {}) };
+          const remainingCards = Math.max(0, cards - use);
+          if (remainingCards <= 0) delete nextItems.carta_plus;
+          else nextItems.carta_plus = remainingCards;
+
+          const nowTs = Date.now();
+          const entries: CollectionEntry[] = Array.from({ length: use }, (_, index) => {
+            const picked = GOVERNANTE_PLUS_POOL[Math.floor(Math.random() * GOVERNANTE_PLUS_POOL.length)] ?? "charizard_shiny";
+            const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+              ? crypto.randomUUID()
+              : `bmp_plus_${nowTs}_${index}_${Math.floor(Math.random() * 1e6)}`;
+            return {
+              uid,
+              species: picked,
+              level: 100,
+              xp: 0,
+              rarity: "mythic_shiny",
+              capturedAt: nowTs + index,
+              traits: GOVERNANTE_PLUS_TRAITS,
+              event: "black_mitic_plus:governante:plus:direct",
+            };
+          });
+
+          const seenSpecies = [...base.seenSpecies];
+          const caughtSpecies = [...base.caughtSpecies];
+          for (const entry of entries) {
+            if (!seenSpecies.includes(entry.species)) seenSpecies.push(entry.species);
+            if (!caughtSpecies.includes(entry.species)) caughtSpecies.push(entry.species);
+          }
+
+          const next: IdleState = {
+            ...base,
+            items: nextItems,
+            seenSpecies,
+            caughtSpecies,
+            collection: [...(base.collection ?? []), ...entries],
+            totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + entries.length },
+          };
+          idleRef.current = next;
+          saveIdle(next);
+          setIdle(next);
+          void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+
+          const names = entries.map((entry) => entry.species.toUpperCase()).join(", ");
+          pushChat(`✦ Governante consumiu ${use}× Carta Suprema Plus e colocou na Coleção: ${names} — Black Mitic Plus VERSÁTIL com 6 traits.`, "cap");
+        }}
+        onExchangeRiolu={(qty) => {
+          const base = idleRef.current;
+          const cards = base.items?.carta_riolu ?? 0;
+          const collectionSlots = Math.max(0, MAX_COLLECTION - (base.collection?.length ?? 0));
+          const use = Math.min(qty, cards, collectionSlots);
+          if (use <= 0) {
+            pushChat("✦ Governante: sua Coleção está cheia. Libere espaço antes de entregar a Carta Riolu.", "cap");
+            return;
+          }
+          const nextItems = { ...(base.items ?? {}) };
+          const remainingCards = Math.max(0, cards - use);
+          if (remainingCards <= 0) delete nextItems.carta_riolu;
+          else nextItems.carta_riolu = remainingCards;
+
+          const nowTs = Date.now();
+          const entries: CollectionEntry[] = Array.from({ length: use }, (_, index) => {
+            const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+              ? crypto.randomUUID()
+              : `bmp_riolu_${nowTs}_${index}_${Math.floor(Math.random() * 1e6)}`;
+            return {
+              uid,
+              species: "riolu" as Species,
+              level: 1000,
+              xp: 0,
+              rarity: "mythic_shiny",
+              capturedAt: nowTs + index,
+              traits: GOVERNANTE_PLUS_TRAITS,
+              event: "black_mitic_plus:brilhant:riolu",
+            };
+          });
+
+          const seenSpecies = base.seenSpecies.includes("riolu" as Species) ? base.seenSpecies : [...base.seenSpecies, "riolu" as Species];
+          const caughtSpecies = base.caughtSpecies.includes("riolu" as Species) ? base.caughtSpecies : [...base.caughtSpecies, "riolu" as Species];
+
+          const next: IdleState = {
+            ...base,
+            items: nextItems,
+            seenSpecies,
+            caughtSpecies,
+            collection: [...(base.collection ?? []), ...entries],
+            totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + entries.length },
+          };
+          idleRef.current = next;
+          saveIdle(next);
+          setIdle(next);
+          void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+
+          pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
+        }}
+      />
+
+
+
+
+      {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
+      {pendingGate && createPortal(
+        <div onClick={() => setPendingGate(null)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#1a0f26", border: "3px solid #f5cf6b", borderRadius: 16, padding: 24, maxWidth: 420, width: "100%", cursor: "default", boxShadow: "0 0 50px rgba(0,0,0,0.8)" }}>
+            <h3 style={{ color: "#f5cf6b", margin: "0 0 16px 0", fontSize: 20, fontWeight: 900, textAlign: "center" }}>Viajar para {IDLE_MAPS[pendingGate.target as IdleMapId].name}?</h3>
+            <div style={{ background: "rgba(0,0,0,0.3)", padding: 16, borderRadius: 12, marginBottom: 20, border: "1px solid rgba(245,207,107,0.1)" }}>
+              <div style={{ color: "#d0b8f0", fontSize: 14, marginBottom: 8 }}>Requisitos:</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", color: (idle.trainerLevel ?? 1) >= (pendingGate.gate.reqLevel ?? 0) ? "#5ec26a" : "#ff5c5c" }}>
+                <span>{ (idle.trainerLevel ?? 1) >= (pendingGate.gate.reqLevel ?? 0) ? "✅" : "❌" }</span>
+                <span>Nível Treinador: {pendingGate.gate.reqLevel ?? 0}</span>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button onClick={() => setPendingGate(null)} style={{ flex: 1, padding: "12px", background: "#3a1a3a", border: "none", color: "#d0b8f0", borderRadius: 8, fontWeight: 900, cursor: "pointer" }}>CANCELAR</button>
+              <button
+                onClick={() => {
+                  const target = pendingGate.target as IdleMapId;
+                  if ((idle.trainerLevel ?? 1) < (pendingGate.gate.reqLevel ?? 0)) { pushChat(`Nível insuficiente!`, "info"); return; }
+                  setIdle(s => ({ ...s, currentMap: target }));
+                  setPendingGate(null);
+                  if (pendingGate.fromBig) setBigMapOpen(false);
+                  pushChat(`Viajou para ${IDLE_MAPS[target].name}!`, "info");
+                }}
+                style={{ flex: 1, padding: "12px", background: "linear-gradient(180deg, #f5cf6b, #d9a441)", border: "none", color: "#1a0f26", borderRadius: 8, fontWeight: 900, cursor: "pointer" }}
+              >VIAJAR</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {bigMapOpen && createPortal(
+        <div onClick={() => setBigMapOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#0b0510", border: "4px solid #f5cf6b", borderRadius: 20, padding: 24, maxWidth: 800, width: "100%", cursor: "default", boxShadow: "0 0 80px rgba(245,207,107,0.3)", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🗺️ MAPA LOCAL: {IDLE_MAPS[idle.currentMap].name.toUpperCase()}</h2>
+              <button onClick={() => setBigMapOpen(false)} style={{ background: "#3a1010", border: "2px solid #f5cf6b", color: "#f5cf6b", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer" }}>✕ FECHAR</button>
+            </div>
+            <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", background: `url(${assetUrlFromJson(idleArenaAsset)}) center/cover`, position: "relative", border: "2px solid rgba(245,207,107,0.2)" }}>
+               {(gatesByMap[idle.currentMap] ?? []).map((g: any, i: number) => (
+                 <div
+                   key={i}
+                   onClick={() => setPendingGate({ target: g.target, gate: g, fromBig: true })}
+                   style={{ position: "absolute", left: `${g.x}%`, top: `${g.y}%`, width: 32, height: 32, background: "rgba(245,207,107,0.2)", border: "2px solid #f5cf6b", borderRadius: "50%", cursor: "pointer", transform: "translate(-50%, -50%)", display: "grid", placeItems: "center", boxShadow: "0 0 15px #f5cf6b" }}
+                 >
+                   <span style={{ fontSize: 16 }}>🌀</span>
+                   <div style={{ position: "absolute", top: 35, background: "rgba(0,0,0,0.8)", padding: "2px 8px", borderRadius: 4, color: "#f5cf6b", fontSize: 12, whiteSpace: "nowrap", border: "1px solid #f5cf6b" }}>{IDLE_MAPS[g.target as IdleMapId].name}</div>
+                 </div>
+               ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {worldMapOpen && createPortal((() => {
+        const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
+          { id: "arena", x: 15, y: 22 }, { id: "terra", x: 32, y: 16 }, { id: "deserto_purpura", x: 54, y: 20 },
+          { id: "pantano_fogo", x: 87, y: 26 }, { id: "praia", x: 12, y: 60 }, { id: "caverna", x: 42, y: 48 },
+          { id: "neve", x: 74, y: 46 }, { id: "deserto", x: 92, y: 58 }, { id: "venofogo", x: 48, y: 84 }, { id: "fantasma", x: 14, y: 88 },
+        ];
+        const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
+          { id: "grass_oddish", x: 25, y: 30 }, { id: "vale_rochas", x: 15, y: 20 }, { id: "vale_planta", x: 35, y: 25 },
+          { id: "vale_gelo", x: 55, y: 30 }, { id: "vale_veneno", x: 75, y: 35 }, { id: "vale_fogo", x: 90, y: 40 },
+          { id: "vulcao_ativo", x: 85, y: 60 }, { id: "nucleo_primordial", x: 95, y: 80 }, { id: "abismo_gelo", x: 10, y: 40 },
+          { id: "abismo_veneno", x: 15, y: 50 }, { id: "abismo_raio", x: 20, y: 60 }, { id: "abismo_sombra", x: 25, y: 70 },
+          { id: "abismo_dragao", x: 30, y: 80 },
+        ];
+        const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
+          { id: "cadeia_ab", x: 20, y: 30 }, { id: "cadeia_ab1", x: 40, y: 50 }, { id: "cadeia_f1", x: 60, y: 70 },
+          { id: "evento_myth", x: 80, y: 40 }, { id: "absol_start", x: 15, y: 80 }, { id: "governante_hall", x: 85, y: 85 },
+        ];
+        const bg = worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
+        const PINS = worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1);
+        const hasGov = (idle.items?.carta_governante ?? 0) > 0;
+        return (
+          <div 
+            onClick={() => setWorldMapOpen(false)} 
+            style={{ 
+              position: "fixed", inset: 0, zIndex: 99999, 
+              background: "rgba(0,0,0,0.9)", display: "grid", 
+              placeItems: "center", padding: 20, cursor: "pointer" 
+            }}
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()} 
+              style={{ 
+                background: "#0b0510", border: "4px solid #f5cf6b", borderRadius: 20, 
+                padding: 24, maxWidth: 900, width: "100%", cursor: "default", 
+                boxShadow: "0 0 80px rgba(245,207,107,0.5)", position: "relative" 
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🌏 MAPA MUNDI — CONT. {worldTab}</h2>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button 
+                    onClick={() => setWorldTab(t => t === 3 ? 1 : (t + 1) as 1|2|3)} 
+                    style={{ 
+                      background: "linear-gradient(135deg, #f5cf6b, #d9a441)", border: "none", 
+                      color: "#160a20", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >TROCAR CONTINENTE</button>
+                  <button 
+                    onClick={() => setWorldMapOpen(false)} 
+                    style={{ 
+                      background: "#3a1010", border: "2px solid #f5cf6b", 
+                      color: "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >✕</button>
+                </div>
+              </div>
+              
+              <div style={{ 
+                width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", 
+                background: `#000 url(${assetUrlFromJson(bg)}) center/cover no-repeat`, 
+                position: "relative", border: "2px solid rgba(245,207,107,0.3)" 
+              }}>
+                {PINS.map(pin => {
+                  const m = IDLE_MAPS[pin.id]; if (!m) return null;
+                  const isGovMap = pin.id === "absol_start" || pin.id === "governante_hall";
+                  const locked = ((m.minLevel ?? 0) > (idle.trainerLevel ?? 1)) || (isGovMap && !hasGov);
+                  return (
+                    <div 
+                      key={pin.id} 
+                      onClick={() => { 
+                        if (locked) return; 
+                        setIdle(s => ({ ...s, currentMap: pin.id })); 
+                        setWorldMapOpen(false); 
+                      }}
+                      style={{ 
+                        position: "absolute", left: `${pin.x}%`, top: `${pin.y}%`, 
+                        width: 24, height: 24, 
+                        background: locked ? "#444" : "#f5cf6b", 
+                        border: "2px solid #fff", borderRadius: "50%", 
+                        cursor: locked ? "not-allowed" : "pointer", 
+                        transform: "translate(-50%,-50%)", 
+                        boxShadow: "0 0 10px #f5cf6b",
+                        zIndex: 10
+                      }}
+                    >
+                      <div style={{ 
+                        position: "absolute", top: 28, left: "50%", 
+                        transform: "translateX(-50%)", background: "rgba(0,0,0,0.85)", 
+                        padding: "3px 8px", borderRadius: 6, 
+                        color: locked ? "#888" : "#f5cf6b", fontSize: 11, 
+                        whiteSpace: "nowrap", border: "1px solid rgba(245,207,107,0.3)",
+                        pointerEvents: "none", fontWeight: 700
+                      }}>
+                        {m.name} {locked && `(Lv.${m.minLevel})`}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div style={{ marginTop: 12, textAlign: "center", color: "#8a7a9c", fontSize: 11 }}>
+                Use as teclas direcionais ou o mouse para escolher seu destino. 
+                Bloqueado? Aumente seu Nível de Treinador.
+              </div>
+            </div>
+          </div>
+        );
+      })(), document.body)}
+
+
+      {isAdminOpen && createPortal(
+        <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
+        document.body
+      )}
+    </div>
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============ Componentes visuais ============
+function Panel({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  return (
+    <div style={{
+      background: "#1a0f26",
+      border: "1px solid rgba(245,207,107,0.2)",
+      borderRadius: 10, overflow: "hidden",
+    }}>
+      <div style={{
+        background: accent, color: "#c9b8ff",
+        padding: "6px 10px", fontWeight: 700, fontSize: 12,
+        letterSpacing: 1,
+        textShadow: "0 0 8px rgba(201, 184, 255, 0.4)",
+      }}>{title}</div>
+      <div style={{ padding: 10 }}>{children}</div>
+    </div>
+  );
+}
+
+function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () => void; energyTick?: number }) {
+  void energyTick; // força re-render por segundo p/ atualizar barra de energia
+  const src = GIF[pet.species];
+  const now = Date.now();
+  const energy = petCurrentEnergy(pet, now, { active: true });
+  const msFull = petMsToFull(pet, now);
+  const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
+  const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
+  if (!src) {
+    return (
+      <div onClick={onClick} style={{ display: "flex", gap: 8, alignItems: "center", background: "#2a1a3a", padding: 6, borderRadius: 6, cursor: onClick ? "pointer" : undefined }}>
+        <div style={{ width: 48, height: 48, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 20 }}>❓</div>
+        <div style={{ flex: 1, fontSize: 12 }}>
+          <div style={{ fontWeight: 600 }}>{pet.species.replace(/_/g, " ").toUpperCase()}</div>
+          <div style={{ fontSize: 10, color: "#b8a8c8" }}>Lv.{pet.level}</div>
+        </div>
+      </div>
+    );
+  }
+  const maxHp = calcIdleMaxHp(pet);
+  const hp = pet.hp ?? maxHp;
+  const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+  const ePct = Math.max(0, Math.min(100, energy));
+  const exhausted = !infinite && energy <= 0;
+  const rarityColorMap: Record<string, string> = {
+    common: "#9aa0a6", uncommon: "#5ec26a", rare: "#6bd4ff",
+    epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
+  };
+  const rColor = rarityColorMap[pet.rarity] ?? "#c8b8d0";
+  const hexToRgba = (h: string, a: number) => {
+    const n = parseInt(h.replace("#", ""), 16);
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+  };
+  return (
+    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
+      display: "flex", gap: 8, alignItems: "center",
+      background: exhausted
+        ? "linear-gradient(135deg, #14101a 0%, #1a1420 100%)"
+        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.22)} 0%, rgba(11,5,16,0.85) 100%)`,
+      padding: "5px 8px 5px 5px",
+      borderRadius: 10,
+      cursor: onClick ? "pointer" : undefined,
+      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #333" : `1px solid ${hexToRgba(rColor, 0.7)}`),
+      boxShadow: exhausted
+        ? "inset 0 1px 0 rgba(255,255,255,0.03)"
+        : `0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 ${hexToRgba(rColor, 0.28)}, 0 0 10px ${hexToRgba(rColor, 0.18)}`,
+      opacity: exhausted ? 0.6 : 1,
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* Selo lateral (barra fina de raridade) */}
+      <span style={{
+        position: "absolute", left: 0, top: 6, bottom: 6, width: 2,
+        background: `linear-gradient(180deg, ${rColor}, ${hexToRgba(rColor, 0.3)})`,
+        borderRadius: 2,
+        boxShadow: `0 0 5px ${rColor}88`,
+      }} />
+      {/* pulse animado quando saudável */}
+      {!exhausted && (
+        <span style={{
+          position: "absolute", inset: 0, borderRadius: 10, pointerEvents: "none",
+          boxShadow: `inset 0 0 12px ${hexToRgba(rColor, 0.15)}`,
+          animation: "teamPulse 2.6s ease-in-out infinite",
+        }} />
+      )}
+
+      {/* Retrato circular clássico com moldura dourada */}
+      <div style={{
+        width: 46, height: 46, flexShrink: 0,
+        borderRadius: "50%",
+        background: exhausted
+          ? "linear-gradient(160deg, #3a3040, #1a141c)"
+          : `conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)`,
+        padding: 1.5,
+        boxShadow: exhausted
+          ? "0 1px 3px rgba(0,0,0,0.5)"
+          : `0 2px 5px rgba(0,0,0,0.65), 0 0 8px ${hexToRgba(rColor, 0.5)}, inset 0 0 2px rgba(0,0,0,0.4)`,
+        position: "relative",
+      }}>
+        <div style={{
+          width: "100%", height: "100%", borderRadius: "50%",
+          background: exhausted
+            ? "radial-gradient(circle at 50% 35%, #1a1420 0%, #0b0510 78%)"
+            : `radial-gradient(circle at 50% 35%, ${hexToRgba(rColor, 0.35)} 0%, #0b0510 78%)`,
+          border: "1.5px solid #0b0510",
+          boxShadow: "inset 0 0 5px rgba(0,0,0,0.75)",
+          display: "grid", placeItems: "center", overflow: "hidden",
+        }}>
+          <img src={src} alt="" style={{ width: "82%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
+          {resting && <span style={{ position: "absolute", top: -2, right: -2, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
+          {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 15, textShadow: "0 0 4px #000" }}>🔒</span>}
+        </div>
+      </div>
+
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 4 }}>
+          <span style={{
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            fontFamily: "'Cinzel', Georgia, serif",
+            fontSize: 11.5, fontWeight: 900, letterSpacing: 0.5,
+            color: rColor,
+            textShadow: "0 1px 0 #000",
+          }}>{pet.species.replace(/_/g, " ").toUpperCase()}</span>
+          <span style={{
+            fontSize: 9, fontWeight: 900, letterSpacing: 0.5,
+            padding: "1px 6px", borderRadius: 999,
+            background: "linear-gradient(180deg, #ffd66b, #b8862a)", color: "#2a1a0a",
+            border: "1px solid rgba(0,0,0,0.4)",
+          }}>LV {pet.level}</span>
+        </div>
+        {/* HP */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+          <span style={{ fontSize: 9, color: "#ff9d9d", width: 10 }}>❤</span>
+          <div style={{
+            flex: 1, height: 6, background: "#1a0808", borderRadius: 3,
+            border: "1px solid #3a1010", overflow: "hidden",
+            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)",
+          }}>
+            <div style={{
+              width: `${pct}%`, height: "100%",
+              background: pct > 40 ? "linear-gradient(180deg, #a7f3a0, #3ea854)" : "linear-gradient(180deg, #ff9d9d, #a83030)",
+              boxShadow: pct > 40 ? "0 0 5px #5ec26a88" : "0 0 5px #e34a4a88",
+            }} />
+          </div>
+          <span style={{ fontSize: 8.5, color: "#f0d0d0", fontWeight: 700, minWidth: 44, textAlign: "right", fontFamily: "monospace" }}>{hp}/{maxHp}</span>
+        </div>
+        {/* Energia */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+          <span style={{ fontSize: 9, color: "#8fd0ff", width: 10 }}>⚡</span>
+          <div style={{
+            flex: 1, height: 4, background: "#08131f", borderRadius: 2,
+            border: "1px solid #0e2438", overflow: "hidden",
+          }}>
+            <div style={{
+              width: `${infinite ? 100 : ePct}%`, height: "100%",
+              background: resting ? "linear-gradient(180deg, #a7d8ff, #4a9eff)" : (energy > 30 ? "linear-gradient(180deg, #8fd0ff, #2a6ec9)" : "linear-gradient(180deg, #ffb37a, #d95a1e)"),
+            }} />
+          </div>
+          <span style={{ fontSize: 8.5, color: "#a5c8ff", minWidth: 30, textAlign: "right", fontWeight: 700 }}>
+            {infinite ? "∞" : `${energy}%`}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function ProgressRow({ icon, label, value, target }: { icon: string; label: string; value: number; target: number }) {
+  const pct = Math.min(100, (value / target) * 100);
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
+        <span>{icon} {label}</span>
+        <span style={{ color: "#f5cf6b" }}>{value}/{target}</span>
+      </div>
+      <div style={{ height: 5, background: "#3a1010", borderRadius: 2 }}>
+        <div style={{ width: `${pct}%`, height: "100%", background: "#5ec26a", borderRadius: 2 }} />
+      </div>
+    </div>
+  );
+}
+
+// HUD topo — chip elegante para moeda/cristal
+function HudChip({ color, label, icon }: { color: string; label: string; icon: string }) {
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4,
+      background: `linear-gradient(180deg, ${color}22, ${color}08)`,
+      border: `1px solid ${color}66`,
+      padding: "3px 8px", borderRadius: 6,
+      color, fontWeight: 800, textShadow: "1px 1px 0 #000",
+    }}>
+      <span>{icon}</span><span>{label}</span>
+    </span>
+  );
+}
+function HudBall({ img, count, color }: { img: string; count: number; color: string }) {
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 3,
+      opacity: count > 0 ? 1 : 0.5,
+    }} title={`${count}`}>
+      <img src={img} alt="" width={20} height={20}
+        style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 4px ${color}88)` }} />
+      <span style={{ color: "#eadfe8", fontWeight: 800, textShadow: "1px 1px 0 #000" }}>x{count}</span>
+    </span>
+  );
+}
+
+// ── Pill de status do perfil de treinador
+function pillStyle(color: string): React.CSSProperties {
+  return {
+    display: "inline-flex", alignItems: "center", gap: 3,
+    padding: "2px 7px", borderRadius: 999,
+    background: `linear-gradient(180deg, ${color}22, rgba(0,0,0,0.4))`,
+    border: `1px solid ${color}66`,
+    color, fontSize: 10, fontWeight: 900, letterSpacing: 0.3,
+    textShadow: "0 1px 0 #000", whiteSpace: "nowrap",
+  };
+}
+
+
+
+// ── HUD superior: nicho clássico para OURO / CRISTAIS
+function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React.ReactNode; value: string; title: string }) {
+  return (
+    <div title={title} style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "5px 10px",
+      background: `linear-gradient(180deg, ${tint}22, rgba(0,0,0,0.35))`,
+      borderLeft: "1px solid rgba(245,207,107,0.25)",
+      borderRight: "1px solid rgba(245,207,107,0.25)",
+      boxShadow: `inset 0 0 10px ${tint}18`,
+    }}>
+      {icon}
+      <span style={{
+        color: tint, fontWeight: 900, fontSize: 12.5,
+        textShadow: "0 1px 0 #000",
+        fontFamily: "'Cinzel', Georgia, serif", letterSpacing: 0.4,
+      }}>{value}</span>
+    </div>
+  );
+}
+
+// ── HUD superior: slot elegante para cada Pokébola
+function BallSlot({ img, count, tint }: { img: string; count: number; tint: string }) {
+  const empty = count <= 0;
+  return (
+    <div style={{
+      position: "relative",
+      width: 34, height: 34,
+      margin: "0 6px",
+      display: "grid", placeItems: "center",
+      opacity: empty ? 0.5 : 1,
+      transition: "transform 120ms ease",
+    }}>
+      {/* halo colorido externo */}
+      {!empty && (
+        <span style={{
+          position: "absolute", inset: -3, borderRadius: "50%",
+          background: `radial-gradient(circle, ${tint}77 0%, transparent 65%)`,
+          filter: "blur(2px)", pointerEvents: "none",
+        }} />
+      )}
+      {/* moldura dourada circular */}
+      <span style={{
+        position: "absolute", inset: 0, borderRadius: "50%",
+        background: empty
+          ? "conic-gradient(from 45deg, #5a4a3a, #2a1a10, #4a3a2a, #5a4a3a)"
+          : "conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)",
+        padding: 1.5,
+        boxShadow: empty
+          ? "0 1px 2px rgba(0,0,0,0.6), inset 0 0 3px rgba(0,0,0,0.6)"
+          : `0 2px 4px rgba(0,0,0,0.7), inset 0 0 3px rgba(0,0,0,0.6), 0 0 8px ${tint}aa`,
+      }}>
+        <span style={{
+          display: "block", width: "100%", height: "100%", borderRadius: "50%",
+          background: `radial-gradient(circle at 35% 30%, ${empty ? "#1a121a" : tint + "55"} 0%, #0b0510 78%)`,
+          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.7)",
+        }} />
+      </span>
+      {/* pokébola */}
+      <img
+        src={img}
+        alt=""
+        width={24}
+        height={24}
+        style={{
+          position: "relative", zIndex: 2,
+          imageRendering: "pixelated",
+          filter: empty
+            ? "grayscale(0.85) brightness(0.6)"
+            : `drop-shadow(0 0 3px ${tint}) drop-shadow(0 1px 1px rgba(0,0,0,0.9))`,
+        }}
+      />
+      {/* contador — tabuleta pendurada */}
+      <span style={{
+        position: "absolute", bottom: -7, right: -9, zIndex: 3,
+        minWidth: 22, height: 15, padding: "0 5px",
+        background: empty
+          ? "linear-gradient(180deg, #3a2a3a, #1a121a)"
+          : "linear-gradient(180deg, #1a1220 0%, #0b0510 100%)",
+        color: empty ? "#8a7a9c" : "#ffe89a",
+        fontSize: 10, fontWeight: 900, letterSpacing: 0.3,
+        fontFamily: "'Cinzel', Georgia, serif",
+        border: `1px solid ${empty ? "#4a3a4a" : "#c48e2a"}`,
+        borderRadius: 8,
+        display: "grid", placeItems: "center",
+        boxShadow: "0 2px 3px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08)",
+        lineHeight: 1,
+      }}>{count}</span>
+    </div>
+  );
+}
+
+
+// ============ estilos ============
+const smallBtn: React.CSSProperties = {
+  background: "#2a1a3a", color: "#f3e5c5",
+  border: "1px solid rgba(245,207,107,0.2)",
+  padding: "6px 10px", borderRadius: 6, cursor: "pointer",
+  fontSize: 11, fontWeight: 600,
+};
+const collectBtn: React.CSSProperties = {
+  width: "100%", background: "linear-gradient(180deg, #f5cf6b, #d4a439)",
+  color: "#3d2b0a", fontWeight: 800, letterSpacing: 1,
+  border: "none", padding: "10px", borderRadius: 6, cursor: "pointer", fontSize: 13,
+};
+const pillBtn: React.CSSProperties = {
+  display: "inline-block", background: "#c92a2a", color: "#fff",
+  padding: "8px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700,
+  textDecoration: "none", boxShadow: "0 2px 8px rgba(201,42,42,0.4)",
+};
+const zoomBtn: React.CSSProperties = {
+  width: 32, height: 28, background: "rgba(20,10,30,0.85)", color: "#f5cf6b",
+  border: "1px solid rgba(245,207,107,0.4)", borderRadius: 6, cursor: "pointer",
+  fontSize: 16, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center",
+  padding: 0, lineHeight: 1,
+};
+
+// Widget de compra com quantidade: presets + input custom + botão comprar.
+function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disabledLabel = "SEM RECURSO" }:
+  { presets: number[]; max: number; unitLabel: string; buttonColor: string; canBuyFn: (n: number) => boolean; onBuy: (n: number) => void; disabledLabel?: string }) {
+  const [qty, setQty] = useState<number>(1);
+  const clamp = (v: number) => Math.max(1, Math.min(Math.max(1, max), Math.floor(v || 1)));
+  const q = clamp(qty);
+  const ok = canBuyFn(q);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "center" }}>
+        {presets.map((p) => (
+          <button key={p} onClick={() => setQty(p)} style={{
+            padding: "3px 8px", fontSize: 11, fontWeight: 800, borderRadius: 5,
+            border: `1px solid ${qty === p ? buttonColor : "#4a3a52"}`,
+            background: qty === p ? `${buttonColor}22` : "#1a0f26",
+            color: qty === p ? buttonColor : "#b8a8c8", cursor: "pointer",
+          }}>×{p}</button>
+        ))}
+        <button onClick={() => setQty(clamp(Math.max(...presets)))} style={{
+          padding: "3px 8px", fontSize: 11, fontWeight: 800, borderRadius: 5,
+          border: `1px solid #4a3a52`, background: "#1a0f26", color: "#b8a8c8", cursor: "pointer",
+        }}>MAX</button>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <button onClick={() => setQty(clamp(q - 1))} style={{ width: 28, height: 30, background: "#2a1a3a", border: "1px solid #4a3a52", color: "#eadfe8", borderRadius: 5, cursor: "pointer", fontWeight: 900 }}>−</button>
+        <input type="number" min={1} max={max} value={qty}
+          onChange={(e) => setQty(clamp(parseInt(e.target.value, 10)))}
+          style={{ flex: 1, height: 30, textAlign: "center", background: "#0f0819", border: "1px solid #4a3a52", color: "#eadfe8", borderRadius: 5, fontWeight: 800, fontSize: 13 }} />
+        <button onClick={() => setQty(clamp(q + 1))} style={{ width: 28, height: 30, background: "#2a1a3a", border: "1px solid #4a3a52", color: "#eadfe8", borderRadius: 5, cursor: "pointer", fontWeight: 900 }}>+</button>
+      </div>
+      <button onClick={() => ok && onBuy(q)} disabled={!ok} style={{
+        width: "100%", padding: "8px 10px", fontWeight: 800, fontSize: 12,
+        background: ok ? buttonColor : "#3a2a4a", color: ok ? "#0b0510" : "#6a5a7c",
+        border: "none", borderRadius: 6, cursor: ok ? "pointer" : "not-allowed",
+      }}>{ok ? `COMPRAR ×${q} ${unitLabel}` : disabledLabel}</button>
+    </div>
+  );
+}
+
+// ============ Overlay das abas ============
+function TabOverlay({
+  tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
+  bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
+  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
+  onAnciaoInteraction,
+}: {
+  tab: string;
+  onClose: () => void;
+  onAnciaoInteraction: () => void;
+  leader: PetInstance | undefined;
+  team: PetInstance[];
+  onReorderTeam: (next: PetInstance[]) => void;
+  leaderHp: number;
+  items: Record<string, number>;
+  caughtSpecies: Species[];
+  seenSpecies: Species[];
+  totals: { gold: number; captured: number };
+  collection: CollectionEntry[];
+  craftPoints: number;
+  onFragmentCollection: (uid: string) => void;
+  gifMap: Partial<Record<Species, string>>;
+  onPickTeam: (entry: CollectionEntry) => void;
+  onUseItem: (id: string, qty?: number) => void;
+  bank: { gold: number; crystals: number };
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number; teamOrbUntil?: number };
+  onBuyBall: (b: ShopBall, qty?: number) => void;
+  onBuyUltraBundle: (qty?: number) => void;
+  onBuyTeleportScroll: (qty?: number) => void;
+  onBuyBook: (bk: ShopBook, qty?: number) => void;
+  onBuyPotion: (qty?: number) => void;
+  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
+  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
+
+  onBuyChestAmulet: () => void;
+
+  chestAmuletOwned: number;
+  autoHeal: { enabled: boolean; threshold: number };
+  setAutoHeal: (next: { enabled: boolean; threshold: number }) => void;
+  audioSettings: { music: boolean; sfx: boolean; musicVol: number; sfxVol: number };
+  setAudioSettings: React.Dispatch<React.SetStateAction<{ music: boolean; sfx: boolean; musicVol: number; sfxVol: number }>>;
+  tasks: Task[];
+  onClaimTask: (tid: string) => void;
+  onOpenColecaoDetail: (uid: string) => void;
+  onExchange: (dir: "g2c" | "c2g", amount: number) => void;
+  onSellItem: (id: string, qty?: number, currency?: "gold" | "crystal" | "safira") => void;
+  marketSellPrices: Record<string, number>;
+  identity: LocalIdentity | null;
+  onListMarket: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
+  onBuyMarket: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
+  onCancelMarket: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
+  onClaimMarketPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
+
+  isVip: boolean;
+  skinId: string;
+  setSkinId: (id: string) => void;
+  trainerLevel: number;
+  unlockedSkins: string[];
+  skinTickets: number;
+  onUnlockSkin: (id: string) => void;
+  onUpgradeBook: (id: string) => void;
+  orbTrades: { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[];
+  onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[], rarity?: Rarity) => void;
+  pokemonMarketNode?: React.ReactNode;
+  benchUids: Set<string>;
+
+
+}) {
+
+  const title =
+    tab === "pokemon"   ? "MEU POKÉMON" :
+    tab === "mochila"   ? "MOCHILA" :
+    tab === "colecao"   ? "COLEÇÃO" :
+    tab === "pokedex"   ? "POKÉDEX" :
+    tab === "loja"      ? "LOJA" :
+    tab === "wallet"    ? "CARTEIRA" :
+    tab === "market"    ? "MERCADO" :
+
+    tab === "melhorias" ? "MELHORIAS" :
+    tab === "config"    ? "CONFIGURAÇÕES" :
+    tab === "tarefas"   ? "TAREFAS" :
+    tab === "wiki"      ? "WIKI · 3ª SEASON" :
+    tab === "inicio"    ? "INÍCIO" : "";
+  const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
+  const [itemDetail, setItemDetail] = useState<string | null>(null);
+  const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; rarity: Rarity; count: number; color: string; label: string }>(null);
+  const [orbPickerSel, setOrbPickerSel] = useState<Set<string>>(new Set());
+  const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
+  // Coleção: filtros + cadeado (persistidos em localStorage)
+  const LOCK_KEY = "rubym.colecao.locked.v1";
+  const [lockedSet, setLockedSet] = useState<Set<string>>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem(LOCK_KEY) : null;
+      if (!raw) return new Set<string>();
+      const parsed = JSON.parse(raw);
+      return new Set(Array.isArray(parsed) ? parsed : []);
+    } catch { return new Set<string>(); }
+  });
+  const toggleLock = (uid: string) => {
+    setLockedSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(uid)) next.delete(uid); else next.add(uid);
+      try { localStorage.setItem(LOCK_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  const [colFilterRarity, setColFilterRarity] = useState<"all" | Rarity>("all");
+  const [colFilterName, setColFilterName] = useState("");
+  const [colSort, setColSort] = useState<"recent" | "level_desc" | "level_asc" | "rarity" | "name">("recent");
+  const [colOnlyLocked, setColOnlyLocked] = useState(false);
+  // Fragmentar: modo bulk + modal de confirmação bonito
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkSel, setBulkSel] = useState<Set<string>>(new Set());
+  const [fragConfirm, setFragConfirm] = useState<null | {
+    entries: Array<{ uid: string; species: Species; level: number; rarity: Rarity; gain: number }>;
+    totalGain: number;
+  }>(null);
+  const teamUidSet = useMemo(() => new Set(team.map((p) => p.uid)), [team]);
+  const toggleBulk = (uid: string) => {
+    setBulkSel((prev) => {
+      const next = new Set(prev);
+      if (next.has(uid)) next.delete(uid); else next.add(uid);
+      return next;
+    });
+  };
+  const openFragConfirm = (uids: string[]) => {
+    const PRISMA_BY_RARITY: Record<string, number> = { common: 1, uncommon: 1, rare: 2, epic: 3, legendary: 5, mythic: 10, mythic_shiny: 20 };
+    const entries = uids
+      .map((uid) => collection.find((e) => e.uid === uid))
+      .filter((e): e is CollectionEntry => !!e)
+      .filter((e) => !teamUidSet.has(e.uid) && !lockedSet.has(e.uid))
+      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: PRISMA_BY_RARITY[e.rarity] ?? 1 }));
+    if (entries.length === 0) return;
+    const totalGain = entries.reduce((s, e) => s + e.gain, 0);
+    setFragConfirm({ entries, totalGain });
+  };
+  const confirmFrag = () => {
+    if (!fragConfirm) return;
+    fragConfirm.entries.forEach((e) => onFragmentCollection(e.uid));
+    setBulkSel(new Set());
+    setBulkMode(false);
+    setFragConfirm(null);
+  };
+  return (
+    <div className="modern-floating-window" style={{ 
+      background: "rgba(11, 5, 20, 0.96)", 
+      backdropFilter: "blur(14px)",
+      width: "95vw",
+      maxWidth: "1200px",
+      height: "90vh",
+      maxHeight: "90vh",
+      display: "flex",
+      flexDirection: "column",
+      pointerEvents: "auto",
+      overflow: "hidden",
+      position: "fixed",
+      left: "50%",
+      top: "50%",
+      transform: "translate(-50%, -50%)",
+      borderRadius: "24px",
+      border: "3px solid rgba(201, 184, 255, 0.3)",
+      boxShadow: "0 0 60px rgba(0,0,0,0.8), 0 0 20px rgba(201, 184, 255, 0.2)",
+      zIndex: 2000
+    }}>
+
+
+
+      <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
+        <h2 style={{ 
+          margin: 0, fontSize: 22, color: "#c9b8ff", 
+          fontFamily: "'Cinzel', serif", letterSpacing: 2,
+          textShadow: "0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(201, 184, 255, 0.4)"
+        }}>{title}</h2>
+        <button onClick={onClose} className="modern-close-btn">
+          FECHAR ✕
+        </button>
+      </div>
+
+      <div className="modern-window-scroll-content" style={{ 
+        flex: 1, 
+        overflowY: "auto", 
+        padding: 10,
+        WebkitOverflowScrolling: "touch"
+      }}>
+
+
+      {tab === "pokemon" && leader && (
+        <div style={{
+          position: "relative",
+          padding: "14px 12px 18px",
+          borderRadius: 18,
+          border: "2.5px solid rgba(245, 207, 107, 0.4)",
+          background: `linear-gradient(180deg, rgba(20,10,35,0.7) 0%, rgba(10,5,20,0.85) 100%)`,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 40px rgba(192,132,252,0.05)",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          minHeight: 0
+        }}>
+
+          {/* decorative sparkles overlay */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(circle at 12% 10%, rgba(255,151,225,0.18), transparent 45%), radial-gradient(circle at 88% 90%, rgba(192,132,252,0.18), transparent 45%)",
+          }} />
+          <div style={{
+            position: "absolute", top: 8, right: 14,
+            fontSize: 10, fontWeight: 900, letterSpacing: 3,
+            color: "#ff97e1", textShadow: "0 0 8px rgba(255,151,225,0.7)",
+            opacity: 0.85,
+          }}>✦ MEW ✦</div>
+          <div style={{ position: "relative" }}>
+          <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
+          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} />
+          <SpeciesLore species={leader.species} rarity={leader.rarity} />
+
+
+          {(() => {
+            const RARITY_COLORS: Record<string, { c: string; label: string }> = {
+              common:       { c: "#c8b8d0", label: "COMUM" },
+              uncommon:     { c: "#7ef2a2", label: "INCOMUM" },
+              rare:         { c: "#6bd4ff", label: "RARO" },
+              epic:         { c: "#c084fc", label: "ÉPICO" },
+              legendary:    { c: "#f5cf6b", label: "LENDÁRIO" },
+              mythic:       { c: "#ff6b3d", label: "MÍTICO" },
+              mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦" },
+            };
+            return (
+              <div style={{
+                marginTop: 18,
+                padding: "14px 16px",
+                background: "linear-gradient(135deg, rgba(30, 15, 50, 0.4) 0%, rgba(10, 5, 20, 0.6) 100%)",
+                border: "2.5px solid rgba(245, 207, 107, 0.3)",
+                borderRadius: 16,
+                boxShadow: "0 6px 22px rgba(0,0,0,0.4), inset 0 1px 0 rgba(245,207,107,0.1)",
+                position: "relative", overflow: "hidden",
+              }}>
+
+                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 20%, rgba(245,207,107,0.15), transparent 60%)", pointerEvents: "none" }} />
+                {/* Header do time */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, position: "relative" }}>
+                  <div>
+                    <div style={{ color: "#f5cf6b", fontSize: 18, fontWeight: 900, letterSpacing: 2, textShadow: "0 2px 0 #0b0510, 0 0 10px rgba(245,207,107,0.6)" }}>
+                      ⚔ SEU TIME ⚔
+                    </div>
+                    <div style={{ color: "#b8a8c8", fontSize: 10, marginTop: 2, letterSpacing: 1 }}>
+                      Ordene por prioridade — o Líder é o #1
+                    </div>
+                  </div>
+                  <div style={{
+                    background: "rgba(245,207,107,0.15)", border: "1px solid rgba(245,207,107,0.4)",
+                    padding: "4px 12px", borderRadius: 999, color: "#f5cf6b",
+                    fontSize: 12, fontWeight: 900, letterSpacing: 1,
+                  }}>{team.length}/6</div>
+                </div>
+
+                <SynergyPanel team={team} />
+
+
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
+                  {team.map((p, i) => {
+                    const src = gifMap[p.species];
+                    const isLeader = i === 0;
+                    const rarityInfo = RARITY_COLORS[p.rarity] ?? RARITY_COLORS.common;
+                    const rc = rarityInfo.c;
+                    const petMax = calcIdleMaxHp(p);
+                    const petHp = isLeader ? leaderHp : (p.hp ?? petMax);
+                    const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
+                    const hpColor = hpPct > 55 ? "#5ec26a" : hpPct > 25 ? "#f5cf6b" : "#ff5252";
+                    const move = (from: number, to: number) => {
+                      if (to < 0 || to >= team.length) return;
+                      const arr = [...team];
+                      const [x] = arr.splice(from, 1);
+                      arr.splice(to, 0, x);
+                      onReorderTeam(arr);
+                    };
+                    // Stats RPG derivados de nível + raridade (visual)
+                    const rarityBaseMap: Record<string, number> = {
+                      common: 42, uncommon: 58, rare: 78, epic: 100, legendary: 130, mythic: 160, mythic_shiny: 200,
+                    };
+                    const base = rarityBaseMap[p.rarity] ?? 42;
+                    const lvl = p.level;
+                    const stats = {
+                      atk: Math.round(base + lvl * 2.1),
+                      def: Math.round(base * 0.85 + lvl * 1.6),
+                      spa: Math.round(base + lvl * 1.9),
+                      spd: Math.round(base * 0.9 + lvl * 1.7),
+                      spe: Math.round(base * 0.8 + lvl * 2.2),
+                    };
+                    const maxStat = Math.max(stats.atk, stats.def, stats.spa, stats.spd, stats.spe, 1);
+                    const StatIcon = ({ kind, col }: { kind: string; col: string }) => {
+                      const paths: Record<string, any> = {
+                        atk: <><path d="M4 20 L14 10 M12 8 L20 4 L18 12 L10 10 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><circle cx="5" cy="19" r="1.5" fill={col}/></>,
+                        def: <><path d="M12 3 L20 6 V12 C20 17 16 20 12 21 C8 20 4 17 4 12 V6 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><path d="M9 12 L11 14 L15 10" stroke={col} strokeWidth="2" fill="none" strokeLinecap="round"/></>,
+                        spa: <><path d="M12 3 L14 10 L21 12 L14 14 L12 21 L10 14 L3 12 L10 10 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
+                        spd: <><circle cx="12" cy="12" r="8" stroke={col} strokeWidth="2" fill={col+"33"}/><path d="M12 4 Q16 12 12 20 Q8 12 12 4" stroke={col} strokeWidth="1.5" fill={col+"77"}/></>,
+                        spe: <><path d="M13 3 L4 14 H11 L9 21 L20 10 H13 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
+                      };
+                      return (
+                        <svg viewBox="0 0 24 24" width="18" height="18" style={{ filter: `drop-shadow(0 0 3px ${col}aa)` }}>
+                          {paths[kind]}
+                        </svg>
+                      );
+                    };
+                    const statRow = (kind: string, label: string, val: number, col: string) => (
+                      <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <div style={{
+                          width: 26, height: 26, borderRadius: 7,
+                          background: "rgba(0,0,0,0.3)",
+                          border: "1px solid rgba(245, 207, 107, 0.2)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0,
+                          boxShadow: "0 0 6px rgba(0,0,0,0.3)",
+
+                        }}><StatIcon kind={kind} col={col} /></div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "#c8b8d0", marginBottom: 2 }}>
+                            <span>{label}</span>
+                            <span style={{ color: col, fontFamily: "monospace", fontSize: 9 }}>{val}</span>
+                          </div>
+                          <div style={{ height: 4, background: "rgba(0,0,0,0.55)", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(0,0,0,0.7)" }}>
+                            <div style={{
+                              width: `${(val / maxStat) * 100}%`, height: "100%",
+                              background: `linear-gradient(90deg, ${col}, ${col}aa)`,
+                              boxShadow: `0 0 4px ${col}44`,
+
+                            }} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                    return (
+                      <div key={p.uid} style={{
+                        display: "flex", alignItems: "stretch", gap: 12, padding: 12,
+                        background: isLeader
+                          ? "rgba(0,0,0,0.4)"
+                          : "rgba(0,0,0,0.3)",
+                        border: `1.5px solid ${isLeader ? "#f5cf6b" : "rgba(245, 207, 107, 0.2)"}`,
+                        borderRadius: 14,
+                        boxShadow: isLeader
+                          ? "0 6px 18px rgba(0,0,0,0.5), inset 0 0 16px rgba(245,207,107,0.05)"
+                          : "0 3px 10px rgba(0,0,0,0.5)",
+
+                        position: "relative", overflow: "hidden",
+                      }}>
+                        {/* sparkle overlay */}
+                        <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 85% 15%, ${rc}22, transparent 55%)`, pointerEvents: "none" }} />
+
+                        {/* Portrait + Level badge */}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0, position: "relative" }}>
+                          <div style={{
+                            width: 82, height: 82, borderRadius: 14,
+                            background: "rgba(0,0,0,0.4)",
+                            border: "1.5px solid rgba(245, 207, 107, 0.2)",
+                            boxShadow: `inset 0 0 14px ${rc}22, 0 3px 10px rgba(0,0,0,0.5)`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            position: "relative", overflow: "hidden",
+                          }}>
+
+                            {src && <img src={src} alt="" width={70} height={70} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))" }} />}
+                            {/* Slot number top-left */}
+                            <div style={{
+                              position: "absolute", top: 2, left: 4,
+                              fontSize: 10, fontWeight: 900,
+                              color: isLeader ? "#f5cf6b" : "#b8a8c8",
+                              textShadow: "0 1px 2px #000",
+                            }}>{isLeader ? "★" : `#${i + 1}`}</div>
+
+                            {/* Level bottom-right badge */}
+                            <div style={{
+                              position: "absolute", bottom: -4, right: -4,
+                              minWidth: 28, height: 22, padding: "0 6px",
+                              background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                              color: "#000", border: "1.5px solid #fff4d0",
+                              borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center",
+
+                              fontSize: 10, fontWeight: 900, letterSpacing: 0.5,
+                              boxShadow: "0 2px 4px rgba(0,0,0,0.6)",
+                            }}>Lv{p.level}</div>
+                          </div>
+                          {isLeader && (
+                            <div style={{
+                              padding: "2px 8px", borderRadius: 999,
+                              background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                              color: "#000", fontSize: 8, fontWeight: 900, letterSpacing: 1.5,
+                              boxShadow: "0 2px 6px rgba(184,134,42,0.4)", border: "1px solid #fff4d0",
+
+                            }}>LÍDER</div>
+                          )}
+                        </div>
+
+                        {/* Info + Stats */}
+                        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6, position: "relative" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                            <div style={{ color: "#f7ecf7", fontWeight: 900, fontSize: 14, textTransform: "uppercase", letterSpacing: 1, textShadow: "0 1px 0 #000" }}>
+                              {p.species.replace(/_/g, " ")}
+                            </div>
+                            <div style={{
+                              background: rc, color: "#fff",
+                              fontSize: 8, fontWeight: 900, letterSpacing: 1,
+                              padding: "2px 7px", borderRadius: 4,
+                              boxShadow: `0 0 8px ${rc}44`, border: "1px solid rgba(255,255,255,0.1)",
+
+
+                            }}>{rarityInfo.label}</div>
+                            <button
+                              onClick={() => setStatsCardPet(p)}
+                              title="Ver ficha completa"
+                              style={{
+                                marginLeft: "auto", background: "linear-gradient(180deg,#f5cf6b,#b8862a)",
+                                color: "#000", border: "1px solid #fff4d0", borderRadius: 6,
+                                padding: "2px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 1, cursor: "pointer",
+                                boxShadow: "0 4px 8px rgba(184,134,42,0.4)",
+                              }}
+                            >⚡ {computePower(p)} • CARD</button>
+
+                          </div>
+
+
+                          {/* HP */}
+                          <div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 900, letterSpacing: 1, marginBottom: 2 }}>
+                              <span style={{ color: "#ff9ea1" }}>❤ HP</span>
+                              <span style={{ color: hpColor, fontFamily: "monospace" }}>{Math.floor(petHp)}/{petMax}</span>
+                            </div>
+                            <div style={{
+                              height: 9, background: "rgba(0,0,0,0.6)",
+                              border: "1px solid rgba(0,0,0,0.75)",
+                              borderRadius: 4, overflow: "hidden",
+                              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)",
+                            }}>
+                              <div style={{
+                                width: `${hpPct}%`, height: "100%",
+                                background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
+                                boxShadow: `0 0 6px ${hpColor}88, inset 0 1px 0 rgba(255,255,255,0.4)`,
+                                transition: "width 200ms",
+                              }} />
+                            </div>
+                          </div>
+
+                          {/* Stats grid */}
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 2 }}>
+                            {statRow("atk", "ATK", stats.atk, "#ff7a7a")}
+                            {statRow("def", "DEF", stats.def, "#7ec4ff")}
+                            {statRow("spa", "S.ATK", stats.spa, "#c084fc")}
+                            {statRow("spd", "S.DEF", stats.spd, "#7ef2a2")}
+                            {statRow("spe", "VEL", stats.spe, "#f5cf6b")}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, justifyContent: "center", flexShrink: 0, position: "relative" }}>
+                          <div style={{ display: "flex", gap: 4 }}>
+                            <button onClick={() => move(i, i - 1)} disabled={i === 0}
+                              title="Subir"
+                              style={{
+                                width: 26, height: 22, fontSize: 12, fontWeight: 900,
+                                background: i === 0 ? "rgba(0,0,0,0.5)" : "linear-gradient(180deg, #3a2450, #241634)",
+                                color: i === 0 ? "#4a3560" : "#eadfe8",
+                                border: `1px solid ${i === 0 ? "rgba(255,255,255,0.05)" : "#5a3d78"}`,
+
+                                borderRadius: 5, cursor: i === 0 ? "not-allowed" : "pointer",
+                              }}>▲</button>
+                            <button onClick={() => move(i, i + 1)} disabled={i === team.length - 1}
+                              title="Descer"
+                              style={{
+                                width: 26, height: 22, fontSize: 12, fontWeight: 900,
+                                background: i === team.length - 1 ? "rgba(0,0,0,0.5)" : "linear-gradient(180deg, #3a2450, #241634)",
+                                color: i === team.length - 1 ? "#4a3560" : "#eadfe8",
+                                border: `1px solid ${i === team.length - 1 ? "rgba(255,255,255,0.05)" : "#5a3d78"}`,
+
+                                borderRadius: 5, cursor: i === team.length - 1 ? "not-allowed" : "pointer",
+                              }}>▼</button>
+                          </div>
+                          {!isLeader && (
+                            <button onClick={() => move(i, 0)}
+                              title="Tornar Líder"
+                              style={{
+                                padding: "3px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 0.5,
+                                background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                                color: "#000", border: "1px solid #fff4d0",
+
+                                borderRadius: 5, cursor: "pointer",
+                                boxShadow: "0 2px 4px rgba(184,134,42,0.55)",
+                              }}>★ LÍDER</button>
+                          )}
+                          <button
+                            onClick={() => {
+                              if (!confirm(`Retirar ${p.species.replace(/_/g, " ")} do time? Ele continua na Coleção.`)) return;
+                              const next = team.filter((x) => x.uid !== p.uid);
+                              onReorderTeam(next);
+                            }}
+                            title="Retirar do time (fica na Coleção)"
+                            style={{
+                              padding: "3px 8px", fontSize: 9, fontWeight: 900, letterSpacing: 0.5,
+                              background: "linear-gradient(180deg, #ff7a7a, #8a1a1a)",
+                              color: "#fff", border: "1px solid #ffb8b8",
+                              borderRadius: 5, cursor: "pointer",
+                              boxShadow: "0 2px 4px rgba(138,26,26,0.55)",
+                            }}>↩ RETIRAR</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Slots vazios */}
+                  {Array.from({ length: Math.max(0, 6 - team.length) }).map((_, k) => (
+                    <div key={`empty-${k}`} style={{
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      padding: 14, minHeight: 60,
+                      background: "rgba(0,0,0,0.3)",
+                      border: "1px dashed rgba(245, 207, 107, 0.2)", borderRadius: 12,
+                      color: "#b8a8c8", fontSize: 11, fontWeight: 800, letterSpacing: 1,
+
+                    }}>
+                      <span style={{ fontSize: 16, opacity: 0.5 }}>＋</span>
+                      SLOT VAZIO — Adicione pela Coleção
+                    </div>
+                  ))}
+                </div>
+                {/* Botão do Ancião Glacial abaixo da Equipe */}
+                <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
+                  <button
+                    onClick={onAnciaoInteraction}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      background: "linear-gradient(180deg, #15803d, #064e3b)",
+                      border: "2px solid #4ade80",
+                      borderRadius: 12,
+                      color: "#4ade80",
+                      fontSize: 14,
+                      fontWeight: 900,
+                      letterSpacing: 2,
+                      cursor: "pointer",
+                      boxShadow: "0 0 15px rgba(74,222,128,0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.boxShadow = "0 0 25px rgba(74,222,128,0.6)";
+                      e.currentTarget.style.borderColor = "#86efac";
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.boxShadow = "0 0 15px rgba(74,222,128,0.3)";
+                      e.currentTarget.style.borderColor = "#4ade80";
+                    }}
+                  >
+                    ❄️ FALAR COM O ANCIÃO GLACIAL
+                  </button>
+                </div>
+
+              </div>
+            );
+          })()}
+
+          </div>
+        </div>
+      )}
+
+
+
+
+
+      {tab === "tarefas" && (
+        <div>
+          <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 12 }}>
+            Complete as tarefas para ganhar <img src={crystalGreenImg} alt="" style={{ width: 12, verticalAlign: "middle" }} /> cristais.
+          </div>
+          {tasks.length === 0 ? (
+            <div style={{ color: "#8a7a9c", fontSize: 13, padding: 20, textAlign: "center" }}>
+              Todas as tarefas foram concluídas! Aguarde novas em breve.
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {tasks.map((t) => (
+                <div key={t.id} style={{
+                  background: "rgba(0,0,0,0.3)",
+                  border: `1px solid ${t.done ? "#5ec26a55" : "rgba(245,207,107,0.2)"}`,
+                  borderRadius: 8, padding: 12,
+
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <span style={{ color: "#eadfe8", fontWeight: 700, fontSize: 13 }}>{t.title}</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#f5cf6b", fontWeight: 800 }}>
+                      <img src={crystalGreenImg} alt="" style={{ width: 14, imageRendering: "pixelated" }} />
+                      {t.reward}
+                    </span>
+                  </div>
+                  <div style={{ height: 6, background: "#3a1010", borderRadius: 3 }}>
+                    <div style={{
+                      width: `${Math.min(100, (t.progress / t.target) * 100)}%`,
+                      height: "100%", background: t.done ? "#5ec26a" : "#c92a2a",
+                      borderRadius: 3, transition: "width 200ms",
+                    }} />
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+                    <span style={{ color: "#b8a8c8", fontSize: 11 }}>{t.progress}/{t.target}</span>
+                    {t.done && (
+                      <button onClick={() => onClaimTask(t.id)}
+                        style={{ background: "#5ec26a", color: "#0b0510", border: "none", borderRadius: 6, padding: "6px 14px", fontWeight: 800, cursor: "pointer" }}>
+                        COLETAR
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "mochila" && (() => {
+        const NAMES: Record<string, string> = {
+          potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
+          book_atk: "Livro Ataque", book_def: "Livro Defesa", book_exp: "Livro EXP",
+          book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP ✦",
+          book_vip_30: "Livro VIP 30d ✦✦", book_vip_60: "Livro VIP 60d ✦✦✦",
+          chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
+          premium_box: "Caixa Premium ✦ Evento",
+          skin_ticket: "Ticket de Skin ✦",
+          bau_esmeralda: "Baú de Esmeralda 💠",
+          chave_ruby: "Chave Ruby 🔴",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_charizard_mythic: "Ovo do Charizard Mítico ✦", egg_lugia: "Ovo de Lugia ✦",
+          incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
+          orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
+          safira_verde: "Safira Verde 💚",
+          carta_governante: "Carta do Governante 👑",
+          carta_incubadora: "Carta da Incubadora Lendária 🔮",
+          carta_plus: "Carta Suprema Plus ✦",
+          carta_riolu: "Carta Riolu Suprema 🐺✦",
+          stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
+          stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
+          stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
+          black_mitic_egg: "Black Mitic Egg ✦",
+          egg_boost_69: "Cristal do Despertar ✦",
+          stone_pack_all: "Pacote das Seis Stones 💠",
+          cristal_fragmentado: "Cristal Prisma 🔷",
+          fragmento_vermelho: "Fragmento Vermelho 🔻",
+          orb_suprema: "Orb Suprema ✦✦✦", pergaminho_teleporte: "Pergaminho de Teleporte 📜",
+          fragmento_antigo: "Fragmento Antigo 🗿", pedra_mistica: "Pedra Mística 🔮",
+          medalha_medieval: "Medalha Medieval 🏅", nucleo_arcano: "Núcleo Arcano 🌀",
+          cristal_negro: "Cristal Negro 🖤",
+        };
+        const ITEM_DESC: Record<string, string> = {
+          potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
+          pokeball: "Pokébola padrão. Chance base de captura.",
+          greatball: "Great Ball. Melhor chance de captura contra pokémon fortes.",
+          ultraball: "Ultra Ball. Alta chance de captura, essencial contra míticos.",
+          book_atk: "Aumenta o Ataque do time em batalha (permanente ao usar).",
+          book_def: "Aumenta a Defesa do time em batalha (permanente ao usar).",
+          book_exp: "Livro de EXP · +10% EXP por 1 hora.",
+          book_exp_big: "Livro de EXP Raro · +20% EXP por 1 hora.",
+          book_exp_max: "Livro de EXP Lendário · +30% EXP por 1 hora.",
+          book_vip: "Livro VIP · +20% Ouro e EXP por 1 hora.",
+          book_vip_30: "Livro VIP 30 dias · +30% Ouro e EXP.",
+          book_vip_60: "Livro VIP 60 dias · +40% Ouro e EXP.",
+          orb_xp_minor: "Orb Menor ✦ · +10% EXP por 1 hora (stack com livro).",
+          orb_xp_major: "Orb Maior ✦✦ · +20% EXP por 1 hora (stack com livro).",
+          orb_xp_supreme: "Orb Supremo ✦✦✦ · +30% EXP por 1 hora (stack com livro).",
+          orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦ · +30% EXP por 24 horas contínuas. Não empilha com outro orb ativo.",
+          orb_team: "Orb de Time ✦✦✦ · distribui EXP a todo o time por 3 horas.",
+          incenso_mel: "Incenso de Mel 🍯 · +10% drop/xp/def/velocidade por 1 hora.",
+          incenso_mel_raro: "Incenso Raro ✨🍯 · +20% drop/xp/def/velocidade por 1 hora.",
+          incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
+          premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
+          bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
+          chave_ruby: "Chave Ruby 🔴 · usada para conversão na Escala Ruby (loja exclusiva). Recompensa do Top 50 do Ranked Global — coletada uma única vez por conta. Top 1: 15 · Top 2: 13 · Top 3: 11 · Top 4: 7 · Top 5–50: 3.",
+          skin_ticket: "Ticket de Skin ✦ · use na aba Início para desbloquear uma skin premium.",
+          egg_common: "Ovo Comum · chocado gera um pokémon aleatório de raridade baixa.",
+          egg_rare: "Ovo Raro · chance de raridades altas ao chocar.",
+          egg_epic: "Ovo Épico · alta chance de raridade Épica.",
+          egg_mystic: "Ovo Místico · pode chocar espécies míticas.",
+          egg_aura: "Ovo da Aura · espécies especiais com aura elemental.",
+          egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
+          egg_charizard_mythic: "Ovo do Charizard Mítico ✦ · choca um Charizard Mítico ✦ nível 500.",
+          egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
+          safira_verde: "Safira Verde 💚 · moeda do evento Oddish. Converte em Esmeraldas (200:1) na Cash Shop.",
+          berry: "Baga · restaura um pouco de HP em batalha.",
+          revive: "Reviver · devolve um pokémon caído com HP parcial.",
+          key: "Chave · abre baús trancados encontrados no mundo.",
+          chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
+          carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
+          carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
+          carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para materializar 1 Black Mitic Plus direto na Coleção, VERSÁTIL com 6 traits. Uso único.",
+          carta_riolu: "Carta Riolu Suprema 🐺✦ · leve ao Governante para materializar 1 Riolu Black Mitic Brilhant Plus (Lv 1000, 6 traits) direto na Coleção. Uso único.",
+          stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
+          stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
+          stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
+          stone_electric: "Stone Elétrica ⚡ · alimenta ovos Black Míticos e vale ouro.",
+          stone_dark: "Stone Sombria 🌑 · alimenta ovos Black Míticos, valor alto.",
+          stone_dragon: "Stone Dragão 🐉 · alimenta ovos Black Míticos, valor muito alto.",
+          black_mitic_egg: "Black Mitic Egg ✦ · ovo lendário que flutua ao seu lado. Clique nele no mapa para abrir a HUD e alimentar com Elemental Stones (50 por vez). Cooldown de 7h por alimentação. A afinidade elemental dominante decidirá o elemento do futuro Pokémon.",
+          egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
+          stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
+          cristal_fragmentado: "Cristal Prisma 🔷 · token obtido ao fragmentar Pokémon da coleção (1 por Pokémon). Vale no Ranking Global de Prisma — atualizado a cada 2 horas.",
+          orb_suprema: "Orb Suprema ✦✦✦ · relíquia do Ginásio Medieval. Item de altíssimo valor, drop extremamente raro.",
+          pergaminho_teleporte: "Pergaminho de Teleporte 📜 · relíquia do Ginásio Medieval usada em viagens arcanas.",
+          fragmento_antigo: "Fragmento Antigo 🗿 · fragmento de eras esquecidas, encontrado nos salões do Ginásio.",
+          pedra_mistica: "Pedra Mística 🔮 · pedra saturada de magia antiga. Drop muito raro do Ginásio.",
+          medalha_medieval: "Medalha Medieval 🏅 · prova de vitória nos andares do Ginásio Medieval.",
+          nucleo_arcano: "Núcleo Arcano 🌀 · núcleo do Santuário Arcano (área Black Mythic). Drop quase impossível.",
+          cristal_negro: "Cristal Negro 🖤 · o item mais raro do Ginásio Medieval. Nasce apenas onde o Black Mythic caminha.",
+          fragmento_vermelho: "Fragmento Vermelho 🔻 · fragmento de Cristal Vermelho dropado por QUALQUER pokémon derrotado. A quantidade escala pela raridade do alvo: Comum 1 · Incomum 2 · Raro 3 · Épico 4 · Lendário/Mítico 5. Aparece na COLETA e vai para a mochila ao clicar em COLETAR.",
+        };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_mythic: "#ff3d6b", egg_lugia: "#a9d8ff" };
+        const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
+          if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
+          if (id === "potion" || id === "revive" || id === "berry") return "potions";
+          if (id.startsWith("book_")) return "books";
+          if (id.startsWith("egg_")) return "eggs";
+          return "other";
+        };
+        const CATS: { id: "all" | "balls" | "potions" | "books" | "eggs" | "other"; label: string; icon: string }[] = [
+          { id: "all", label: "Tudo", icon: catAllUrl },
+          { id: "balls", label: "Bolas", icon: catBallsUrl },
+          { id: "potions", label: "Poções", icon: catPotionsUrl },
+          { id: "books", label: "Livros", icon: catBooksUrl },
+          { id: "eggs", label: "Ovos", icon: catEggsUrl },
+          { id: "other", label: "Outros", icon: catOtherUrl },
+        ];
+        // filtra chaves internas de contagem (não devem aparecer na mochila)
+        const entries = Object.entries(items).filter(([id, n]) => n > 0 && !id.startsWith("_"));
+        const totalTypes = entries.length;
+        const totalCount = entries.reduce((a, [, n]) => a + n, 0);
+        const filtered = mochilaCat === "all" ? entries : entries.filter(([id]) => catOf(id) === mochilaCat);
+        // slots: preenche a grade com mínimo de 24 slots
+        const SLOTS_MIN = 24;
+        const emptyCount = Math.max(0, SLOTS_MIN - filtered.length);
+
+        // Paleta moderna e translúcida
+        const P = {
+          bg1: "rgba(20, 10, 35, 0.4)", bg2: "rgba(10, 5, 20, 0.6)", bg3: "rgba(5, 2, 10, 0.8)",
+          ink: "#f0e2ff", inkSoft: "#b8a8c8",
+          gold: "#f5cf6b", goldLight: "#fff8e4", goldDark: "#b8862a",
+          rose: "#ff5252", roseSoft: "#ff9ea1",
+          panel: "rgba(30, 15, 50, 0.4)",
+        };
+
+        return (
+
+          <div style={{
+            background: `
+              radial-gradient(circle at 50% 30%, rgba(168,85,247,0.15), transparent 55%),
+              linear-gradient(160deg, rgba(20, 10, 35, 0.4) 0%, rgba(10, 5, 20, 0.6) 100%)
+            `,
+            borderRadius: 16, padding: 14,
+            fontFamily: '"Pixelify Sans", ui-monospace, monospace',
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            minHeight: 0
+
+          }}>
+
+            <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
+              background: "radial-gradient(ellipse at 50% 0%, rgba(212,162,255,0.18), transparent 60%)" }} />
+
+            {/* CABEÇALHO — pergaminho dourado */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
+              padding: "12px 16px",
+              background: "rgba(0, 0, 0, 0.4)",
+              border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12,
+              boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.4)",
+
+            }}>
+              <div style={{
+                width: 60, height: 60, borderRadius: 12, flexShrink: 0,
+                background: "rgba(0,0,0,0.3)",
+                display: "grid", placeItems: "center",
+                border: "1.5px solid rgba(245, 207, 107, 0.2)",
+                boxShadow: "0 3px 8px rgba(0,0,0,0.35)",
+
+              }}>
+                <img src={bagIconImg} alt="" width={40} height={40} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.4))" }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  color: "#f5cf6b", fontSize: 22, fontWeight: 900, letterSpacing: 3, lineHeight: 1,
+                  textShadow: `0 2px 4px rgba(0,0,0,0.5)`,
+                }}>✦ MOCHILA ✦</div>
+
+                <div style={{ color: P.inkSoft, fontSize: 10.5, marginTop: 6, fontStyle: "italic" }}>
+                  "Um bom aventureiro carrega o mundo nas costas."
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-end" }}>
+                <div style={{
+                  background: `linear-gradient(180deg, ${P.panel}, ${P.bg2})`, color: P.ink,
+                  border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
+                  fontSize: 10.5, fontWeight: 900, letterSpacing: 0.5,
+                  boxShadow: `inset 0 0 0 1px ${P.goldLight}80`,
+                }}>{totalTypes} tipos · {totalCount} itens</div>
+                <div style={{
+                  background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`, color: P.ink,
+                  border: "1px solid rgba(245, 207, 107, 0.3)", borderRadius: 8, padding: "3px 10px",
+                  fontSize: 11, fontWeight: 900,
+                  boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+                }}>💰 {bank.gold.toLocaleString()}</div>
+
+              </div>
+            </div>
+
+            {/* GRID LAYOUT — sidebar categorias + grade */}
+            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12, flex: 1, minHeight: 0 }}>
+              {/* SIDEBAR CATEGORIAS */}
+              <div style={{
+                background: "rgba(0, 0, 0, 0.3)",
+                border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
+                boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.2)",
+                padding: 8, display: "flex", flexDirection: "column", gap: 6,
+                overflowY: "auto"
+              }}>
+                <div style={{
+                  textAlign: "center", fontSize: 10, fontWeight: 900, letterSpacing: 2,
+                  color: P.goldDark, padding: "4px 0 6px", borderBottom: `1px dashed ${P.goldDark}55`,
+                }}>CATEGORIAS</div>
+                {CATS.map((c) => {
+                  const active = mochilaCat === c.id;
+                  const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setMochilaCat(c.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        padding: "8px 10px", fontSize: 11.5, fontWeight: 900, letterSpacing: 0.3,
+                        background: active
+                          ? `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`
+                          : `linear-gradient(180deg, ${P.panel}, ${P.bg2})`,
+                        color: P.ink,
+                        border: `1.5px solid ${active ? P.goldDark : P.gold + "77"}`,
+                        borderRadius: 9, cursor: "pointer",
+                        boxShadow: active
+                          ? `inset 0 0 0 1px #fff8e4, 0 2px 0 rgba(0,0,0,0.25)`
+                          : `0 1px 0 rgba(0,0,0,0.1)`,
+                        transform: active ? "translateX(3px)" : "translateX(0)",
+                        transition: "all 120ms",
+                        textAlign: "left", width: "100%",
+                      }}
+                    >
+                      <img
+                        src={c.icon}
+                        alt=""
+                        width={44}
+                        height={44}
+                        style={{
+                          imageRendering: "pixelated", flexShrink: 0,
+                          filter: active
+                            ? "drop-shadow(0 0 8px rgba(212,162,255,0.95)) drop-shadow(0 2px 3px rgba(0,0,0,0.55))"
+                            : "drop-shadow(0 0 4px rgba(168,85,247,0.4)) drop-shadow(0 1px 2px rgba(0,0,0,0.55))",
+                          animation: active ? "cat-bounce 1.4s ease-in-out infinite" : "cat-bounce 3.2s ease-in-out infinite",
+                        }}
+                      />
+                      <span style={{ flex: 1 }}>{c.label}</span>
+                      <span style={{
+                        background: active ? P.goldDark : P.ink + "22",
+                        color: active ? "#fff8e4" : P.inkSoft,
+                        fontSize: 10, fontWeight: 900, padding: "1px 7px",
+                        borderRadius: 999, minWidth: 22, textAlign: "center",
+                      }}>{count}</span>
+                    </button>
+                  );
+                })}
+                <div style={{ flex: 1 }} />
+                <div style={{
+                  marginTop: 4, padding: "6px 8px", fontSize: 9.5, fontWeight: 700,
+                  color: P.inkSoft, textAlign: "center", fontStyle: "italic",
+                  borderTop: `1px dashed ${P.goldDark}55`,
+                }}>
+                  {SLOTS_MIN - filtered.length > 0 ? `${SLOTS_MIN - filtered.length} slots livres` : "Mochila cheia"}
+                </div>
+              </div>
+
+              {/* GRADE DE ITENS */}
+              <div style={{
+                background: "rgba(0, 0, 0, 0.2)",
+                border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
+                boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
+                padding: 12, flex: 1, minHeight: 0, overflowY: "auto"
+              }}>
+
+
+                {filtered.length === 0 ? (
+                  <div style={{
+                    color: P.inkSoft, fontSize: 13, padding: 60, textAlign: "center", fontStyle: "italic",
+                  }}>
+                    {entries.length === 0
+                      ? "Sua mochila está vazia. Derrote Pokémon, abra baús ou visite a Loja!"
+                      : "Nenhum item nesta categoria."}
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(126px, 1fr))", gap: 10 }}>
+                    {filtered.map(([id, n]) => {
+                      const isEgg = id.startsWith("egg_");
+                      const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
+                      const img = ITEM_IMG[id];
+                      const Icon = ITEM_ICONS[id] ?? Sparkles;
+                      const sellPrice = marketSellPrices[id] ?? 0;
+                      return (
+                        <div key={id} style={{
+                          background: `linear-gradient(180deg, ${P.panel} 0%, ${P.bg1} 100%)`,
+                          border: `2px solid ${P.goldDark}`, borderRadius: 10, padding: 8,
+                          textAlign: "center", position: "relative",
+                          boxShadow: `inset 0 0 0 1px ${P.goldLight}88, 0 3px 0 rgba(0,0,0,0.18)`,
+                          display: "flex", flexDirection: "column", gap: 6, alignItems: "center",
+                          transition: "transform 120ms, box-shadow 120ms",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `inset 0 0 0 1px #fff8e4, 0 6px 14px rgba(0,0,0,0.35), 0 0 14px ${color}66`; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `inset 0 0 0 1px ${P.goldLight}88, 0 3px 0 rgba(0,0,0,0.18)`; }}
+                        >
+                          <div style={{
+                            position: "absolute", top: -6, right: -6,
+                            background: `linear-gradient(180deg, ${P.rose}, #7a1e12)`, color: "#fff8e4",
+                            fontSize: 10, fontWeight: 900, padding: "2px 7px",
+                            borderRadius: 999, minWidth: 24, textAlign: "center",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                            border: `1.5px solid ${P.panel}`,
+                          }}>x{n}</div>
+                          <div
+                            onClick={(e) => { e.stopPropagation(); setItemDetail(id); }}
+                            title="Ver detalhes"
+                            style={{
+                            width: 62, height: 62, borderRadius: 10, marginTop: 2,
+                            background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
+                            display: "grid", placeItems: "center",
+                            border: `2px inset ${P.goldDark}aa`,
+                            boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 10px ${color}44`,
+                            position: "relative", overflow: "hidden", cursor: "pointer",
+                          }}>
+                            {img ? (
+                              <img
+                                src={img}
+                                alt=""
+                                width={52}
+                                height={52}
+                                loading="lazy"
+                                style={{
+                                  imageRendering: "pixelated",
+                                  filter: `drop-shadow(0 0 6px ${color}aa) drop-shadow(0 2px 2px rgba(0,0,0,0.45))`,
+                                  animation: "item-float 2.4s ease-in-out infinite",
+                                }}
+                              />
+                            ) : (
+                              <ItemPixelIcon id={id} size={52} color={color} />
+                            )}
+                          </div>
+                          <div style={{
+                            fontSize: 10.5, fontWeight: 900, color: P.ink, letterSpacing: 0.2, lineHeight: 1.15,
+                            minHeight: 24, display: "flex", alignItems: "center",
+                          }}>{NAMES[id] ?? id}</div>
+                          <div style={{ display: "flex", gap: 4, width: "100%" }}>
+                            <button
+                              onClick={() => {
+                                const bulk = id === "book_atk" || id === "book_def" || id === "potion";
+                                if (bulk && n > 1) {
+                                  const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
+                                  if (raw == null) return;
+                                  const q = Math.max(1, Math.min(n, parseInt(raw, 10) || 1));
+                                  onUseItem(id, q);
+                                } else {
+                                  onUseItem(id, 1);
+                                }
+                              }}
+                              style={{
+                                flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
+                                background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                                color: "#000", border: "1px solid #fff4d0",
+                                borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
+                                boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+
+                              }}
+                            >{isEgg ? "CHOCAR" : "USAR"}</button>
+                            {sellPrice > 0 && !id.startsWith("stone_") && (
+                              <button
+                                onClick={() => onSellItem(id, 1)}
+                                title={`Vender 1 por ${sellPrice} ouro`}
+                                style={{
+                                  flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
+                                  background: "linear-gradient(180deg, #ff7e7e, #ff5252)",
+                                  color: "#fff", border: "1px solid rgba(255,255,255,0.2)",
+                                  borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
+                                  boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+
+                                }}
+                              >💰{sellPrice}</button>
+                            )}
+
+                            {id.startsWith("stone_") && (
+                              <button
+                                onClick={() => {
+                                  const maxBatches = Math.floor(n / 250);
+                                  if (maxBatches <= 0) return;
+                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
+                                  if (raw == null) return;
+                                  const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
+                                  onSellItem(id, b * 250, "safira");
+                                }}
+                                title="Vender por Safira Verde (250 stones = 2 safiras)"
+                                disabled={n < 250}
+                                style={{
+                                  padding: "5px 6px", fontSize: 10, fontWeight: 900,
+                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                  color: "#0b2540", border: "1.5px solid #065f46",
+                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
+                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
+                                }}
+                              >💚</button>
+                            )}
+
+                          </div>
+                          {(() => {
+                            const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+                              book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
+                              book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
+                              book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
+                              book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "VIP 60d" },
+                            };
+                            const rule = UP[id];
+                            if (!rule) return null;
+                            const okLv = trainerLevel >= rule.trainerLv;
+                            const okQty = n >= rule.cost;
+                            const enabled = okLv && okQty;
+                            const title = !okLv
+                              ? `Requer Treinador Lv.${rule.trainerLv}`
+                              : !okQty
+                                ? `Precisa de ${rule.cost}× (você tem ${n})`
+                                : `Forjar ${rule.label} usando ${rule.cost}×`;
+                            return (
+                              <button
+                                onClick={() => onUpgradeBook(id)}
+                                disabled={!enabled}
+                                title={title}
+                                style={{
+                                  marginTop: 2, width: "100%", padding: "5px 4px", fontSize: 9.5, fontWeight: 900,
+                                  background: enabled ? "linear-gradient(180deg, #8bffb0, #3a8a5a)" : `${P.bg3}88`,
+                                  color: enabled ? "#0b2010" : P.inkSoft,
+                                  border: `1.5px solid ${enabled ? "#2a5a3a" : P.gold + "77"}`,
+                                  borderRadius: 6, cursor: enabled ? "pointer" : "not-allowed", letterSpacing: 0.3,
+                                }}
+                              >⚒️ {rule.label}</button>
+                            );
+                          })()}
+                        </div>
+                      );
+                    })}
+                    {Array.from({ length: emptyCount }).map((_, i) => (
+                      <div key={`empty-${i}`} style={{
+                        background: `${P.bg2}55`,
+                        border: `2px dashed ${P.gold}66`, borderRadius: 10,
+                        minHeight: 150,
+                        boxShadow: `inset 0 0 12px ${P.gold}22`,
+                      }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <style>{`
+              @media (max-width: 720px) {
+                .mochila-body { grid-template-columns: 1fr !important; }
+              }
+            `}</style>
+
+            {itemDetail && (() => {
+              const id = itemDetail;
+              const isEgg = id.startsWith("egg_");
+              const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
+              const img = ITEM_IMG[id];
+              const name = NAMES[id] ?? id;
+              const desc = ITEM_DESC[id] ?? "Item do universo IdleMon. Ainda sem descrição detalhada.";
+              const count = items[id] ?? 0;
+              const sellPrice = marketSellPrices[id] ?? 0;
+              return (
+                <div onClick={() => setItemDetail(null)} style={{
+                  position: "fixed", inset: 0, zIndex: 9999,
+                  background: "rgba(4,4,10,0.72)", backdropFilter: "blur(6px)",
+                  display: "grid", placeItems: "center", padding: 16,
+                }}>
+                  <div onClick={(e) => e.stopPropagation()} style={{
+                    width: "min(420px, 96vw)", position: "relative",
+                    background: "linear-gradient(160deg, rgba(28, 15, 46, 0.95) 0%, rgba(11, 5, 16, 0.98) 100%)",
+                    border: "2px solid rgba(245, 207, 107, 0.3)", borderRadius: 18,
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(245, 207, 107, 0.05)",
+                    padding: 18, color: "#fff",
+                  }}>
+
+                    <button onClick={() => setItemDetail(null)} style={{
+                      position: "absolute", top: 8, right: 10, background: "transparent",
+                      border: "none", color: "#b8a8c8", fontSize: 20, cursor: "pointer", fontWeight: 900,
+                    }}>×</button>
+                    <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                      <div style={{
+                        width: 84, height: 84, borderRadius: 12, flexShrink: 0,
+                        background: "rgba(0,0,0,0.3)",
+                        display: "grid", placeItems: "center",
+                        border: "1.5px solid rgba(245, 207, 107, 0.2)",
+                        boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 14px ${color}33`,
+
+                      }}>
+                        {img ? (
+                          <img src={img} alt="" width={68} height={68} style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 6px ${color}aa)` }} />
+                        ) : (
+                          <ItemPixelIcon id={id} size={68} color={color} />
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.2 }}>{name}</div>
+                        <div style={{ fontSize: 11, color: "#b8a8c8", marginTop: 4, fontWeight: 700 }}>Quantidade: <span style={{ color: "#f5cf6b" }}>x{count}</span></div>
+                        {sellPrice > 0 && (
+                          <div style={{ fontSize: 11, color: "#b8a8c8", marginTop: 2, fontWeight: 700 }}>Preço de venda: <span style={{ color: "#ffd66b" }}>{sellPrice} 🪙</span></div>
+                        )}
+
+                      </div>
+                    </div>
+                    <div style={{
+                      marginTop: 14, padding: 12, borderRadius: 10,
+                      background: "rgba(0,0,0,0.3)", border: "1px dashed rgba(245, 207, 107, 0.2)",
+                      fontSize: 12.5, lineHeight: 1.5, color: "#fff",
+
+                    }}>{desc}</div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                      {!isEgg && count > 0 && (
+                        <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
+                          flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                          background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                          color: "#000", border: "1px solid #fff4d0",
+                          borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
+                          boxShadow: "0 4px 12px rgba(184,134,42,0.4)",
+
+                        }}>USAR</button>
+                      )}
+                      {isEgg && count > 0 && (
+                        <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
+                          flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                          background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
+                          color: "#000", border: "1px solid #fff4d0",
+                          borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
+                          boxShadow: "0 4px 12px rgba(184,134,42,0.4)",
+
+                        }}>CHOCAR</button>
+                      )}
+                      <button onClick={() => setItemDetail(null)} style={{
+                        flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                        background: "rgba(0,0,0,0.3)", color: "#b8a8c8",
+                        border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 8, cursor: "pointer",
+
+                      }}>FECHAR</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        );
+      })()}
+
+
+      {tab === "colecao" && (
+        <div style={{
+          background: "rgba(0,0,0,0.3)",
+          borderRadius: 14, padding: 18,
+          boxShadow: "inset 0 0 24px rgba(0,0,0,0.2), 0 4px 18px rgba(0,0,0,0.5)",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          minHeight: 0
+        }}>
+
+          {/* HUD topo da coleção */}
+          <div style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            marginBottom: 14, paddingBottom: 12,
+            borderBottom: "1px solid rgba(245, 207, 107, 0.2)",
+          }}>
+            <div>
+              <div style={{ color: "#f5cf6b", fontSize: 20, fontWeight: 900, letterSpacing: 3, fontFamily: "'Cinzel', serif" }}>
+                ✦ COLEÇÃO ✦
+              </div>
+
+              <div style={{ color: "#b8a8c8", fontSize: 12, marginTop: 2, fontStyle: "italic" }}>
+                Registro particular do treinador
+              </div>
+
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "rgba(0,0,0,0.4)", color: "#fff", border: "1px solid rgba(245, 207, 107, 0.2)", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
+                {collection.length} / {MAX_COLLECTION} NA COLEÇÃO
+              </div>
+              <div style={{ background: "rgba(0,0,0,0.4)", color: "#fff", border: "1px solid rgba(245, 207, 107, 0.2)", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
+                {caughtSpecies.length} ESPÉCIES
+              </div>
+              <div style={{ background: "linear-gradient(180deg,#f5cf6b,#b8862a)", color: "#000", fontWeight: 900, padding: "6px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
+                <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={20} height={20} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(233,213,255,0.9))" }} />
+                {items?.cristal_fragmentado ?? 0} CRISTAL PRISMA
+              </div>
+            </div>
+          </div>
+
+          {/* Filtros */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12, padding: "8px 10px", background: "rgba(0,0,0,0.3)", borderRadius: 10, border: "1px solid rgba(245,207,107,0.1)" }}>
+            <input
+              value={colFilterName}
+              onChange={(e) => setColFilterName(e.target.value)}
+              placeholder="🔍 Buscar por nome..."
+              style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid rgba(245,207,107,0.3)", background: "rgba(0,0,0,0.5)", color: "#fff" }}
+            />
+            <select value={colFilterRarity} onChange={(e) => setColFilterRarity(e.target.value as "all" | Rarity)}
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid rgba(245,207,107,0.3)", background: "rgba(0,0,0,0.5)", color: "#fff" }}>
+              <option value="all">Todas raridades</option>
+              <option value="common">Comum</option>
+              <option value="uncommon">Incomum</option>
+              <option value="rare">Raro</option>
+              <option value="epic">Épico</option>
+              <option value="legendary">Lendário</option>
+              <option value="mythic">Mítico</option>
+              <option value="mythic_shiny">Mítico Brilhante</option>
+            </select>
+
+            <select value={colSort} onChange={(e) => setColSort(e.target.value as typeof colSort)}
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid rgba(245,207,107,0.3)", background: "rgba(0,0,0,0.5)", color: "#fff" }}>
+              <option value="recent">Mais recentes</option>
+              <option value="level_desc">Nível ↓</option>
+              <option value="level_asc">Nível ↑</option>
+              <option value="rarity">Raridade</option>
+              <option value="name">Nome</option>
+            </select>
+            <button
+              onClick={() => setColOnlyLocked((v) => !v)}
+              style={{
+                padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
+                border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer",
+                background: colOnlyLocked ? "linear-gradient(180deg,#facc15,#b8862a)" : "rgba(0,0,0,0.5)",
+                color: colOnlyLocked ? "#4a3010" : "#fff",
+              }}
+              title="Mostrar somente Pokémon travados"
+            >🔒 {colOnlyLocked ? "SÓ TRAVADOS" : "TRAVADOS"}</button>
+
+            <button
+              onClick={() => { setBulkMode((v) => !v); setBulkSel(new Set()); }}
+              style={{
+                padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
+                border: bulkMode ? "1px solid #fff4d0" : "1px solid rgba(245, 207, 107, 0.2)", cursor: "pointer",
+                background: bulkMode ? "linear-gradient(180deg,#f5cf6b,#b8862a)" : "rgba(0,0,0,0.3)",
+                color: bulkMode ? "#000" : "#b8a8c8",
+                boxShadow: bulkMode ? "0 0 10px rgba(184,134,42,0.4)" : "none",
+
+              }}
+              title="Selecionar vários para fragmentar de uma vez"
+            >☑ {bulkMode ? "SELECIONANDO" : "SELECIONAR"}</button>
+            {bulkMode && bulkSel.size > 0 && (
+              <button
+                onClick={() => openFragConfirm([...bulkSel])}
+                style={{
+                  padding: "6px 14px", fontSize: 12, fontWeight: 900, borderRadius: 8,
+                  border: "1px solid #ff9ea1", cursor: "pointer",
+                  background: "linear-gradient(180deg,#ff5252,#c0392b)",
+                  color: "#fff",
+                  boxShadow: "0 0 10px rgba(255,82,82,0.4)",
+
+                }}
+              >⚒️ FRAGMENTAR {bulkSel.size}</button>
+            )}
+            <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 800 }}>
+              🔒 {lockedSet.size} travados
+            </div>
+          </div>
+
+          {collection.length === 0 ? (
+            <div style={{ color: "#b8a8c8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
+
+              Nenhum Pokémon capturado ainda. Continue a jornada — a taxa de captura é baixa (5%).
+            </div>
+          ) : (() => {
+            const rarityOrder: Record<Rarity, number> = {
+              common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, mythic: 5, mythic_shiny: 6,
+            } as Record<Rarity, number>;
+            const q = colFilterName.trim().toLowerCase();
+            const filtered = collection.filter((e) => {
+              if (colFilterRarity !== "all" && e.rarity !== colFilterRarity) return false;
+              if (q && !e.species.toLowerCase().includes(q)) return false;
+              if (colOnlyLocked && !lockedSet.has(e.uid)) return false;
+              return true;
+            });
+            filtered.sort((a, b) => {
+              if (colSort === "recent") return b.capturedAt - a.capturedAt;
+              if (colSort === "level_desc") return b.level - a.level;
+              if (colSort === "level_asc") return a.level - b.level;
+              if (colSort === "rarity") return (rarityOrder[b.rarity] ?? 0) - (rarityOrder[a.rarity] ?? 0);
+              return a.species.localeCompare(b.species);
+            });
+            if (filtered.length === 0) {
+              return <div style={{ color: "#b8a8c8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
+            }
+            return (
+              <div style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
+              {filtered.map((entry, i) => {
+                const sp = entry.species;
+                const isCurrent = leader?.species === sp && leader?.uid === entry.uid;
+                const teamPet = team.find((p) => p.uid === entry.uid);
+                const inTeam = !!teamPet;
+                const displayLevel = teamPet?.level ?? entry.level;
+                const rarityColor: Partial<Record<Rarity, string>> = {
+                  common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
+                  epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
+                };
+                const rColor = rarityColor[entry.rarity] ?? "#8b6a30";
+                const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
+                const locked = lockedSet.has(entry.uid);
+                 const traits = entry.traits ?? [];
+                 const fragDisabled = inTeam || locked;
+                 const isSelected = bulkSel.has(entry.uid);
+                 const canBulkPick = !inTeam && !locked;
+                 const isBMP = !!entry.event && entry.event.startsWith("black_mitic");
+                 const isBrilhant = !!entry.event && entry.event.includes("brilhant");
+                 const bmpAccent = isBrilhant ? "#ff97e1" : "#a066ff";
+                 return (
+                   <div
+                     key={entry.uid}
+                     onClick={() => {
+                       if (!bulkMode) return;
+                       if (!canBulkPick) return;
+                       toggleBulk(entry.uid);
+                     }}
+                     style={{
+                        background: isSelected ? "rgba(245, 207, 107, 0.2)" : "rgba(0,0,0,0.3)",
+                        border: `1.5px solid ${isBMP ? bmpAccent : (isSelected ? "#f5cf6b" : locked ? "#eab308" : (inTeam ? "#f5cf6b" : "rgba(245, 207, 107, 0.2)"))}`,
+
+                       borderRadius: 12, padding: 10, textAlign: "center",
+                       position: "relative",
+                       overflow: "hidden",
+                       boxShadow: isBMP
+                         ? `0 4px 14px rgba(0,0,0,0.6), 0 0 22px ${bmpAccent}88, inset 0 0 26px ${bmpAccent}33`
+                         : `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(124,58,237,0.7)" : ""}`,
+                       display: "grid",
+                       gridTemplateRows: "auto auto auto auto 36px",
+                       gap: 4,
+                       alignItems: "center",
+                       justifyItems: "center",
+                       minHeight: 220,
+                       cursor: bulkMode ? (canBulkPick ? "pointer" : "not-allowed") : "default",
+                     }}
+                   >
+                     {isBMP && (
+                       <div style={{
+                         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+                         background: `radial-gradient(circle at 50% 20%, ${bmpAccent}55, transparent 60%), radial-gradient(circle at 80% 90%, ${bmpAccent}33, transparent 55%)`,
+                       }} />
+                     )}
+                    <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1, zIndex: 2, opacity: 0.8 }}>
+                      #{String(i + 1).padStart(3, "0")}
+                    </div>
+                    {inTeam && (
+                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#5ec26a", zIndex: 2 }}>★ TIME</div>
+                    )}
+
+                    {/* Checkbox de bulk select */}
+                    {bulkMode && canBulkPick && (
+                      <div style={{
+                        position: "absolute", top: 6, left: 26,
+                        width: 22, height: 22, borderRadius: 6,
+                        border: `2px solid ${isSelected ? "#7c3aed" : "#8b6a30"}`,
+                        background: isSelected ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#fff8e5",
+                        color: "#fff", fontSize: 14, fontWeight: 900,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        boxShadow: isSelected ? "0 0 8px rgba(124,58,237,0.7)" : "none",
+                        zIndex: 3,
+                      }}>{isSelected ? "✓" : ""}</div>
+                    )}
+                    {/* Botão cadeado */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleLock(entry.uid); }}
+                      title={locked ? "Destravar (permite fragmentar)" : "Travar (protege de fragmentar)"}
+                      style={{
+                        position: "absolute", top: 22, right: 4,
+                        width: 24, height: 24, borderRadius: "50%",
+                        border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer",
+                        background: locked ? "linear-gradient(180deg,#f5cf6b,#b8862a)" : "rgba(0,0,0,0.3)",
+                        color: locked ? "#000" : "#b8a8c8",
+
+
+                        fontSize: 12, fontWeight: 900, padding: 0, zIndex: 2,
+                      }}
+                    >{locked ? "🔒" : "🔓"}</button>
+
+                    {/* Sprite + nome */}
+                     <button
+                       onClick={(e) => { e.stopPropagation(); if (bulkMode) { if (canBulkPick) toggleBulk(entry.uid); return; } onOpenColecaoDetail(entry.uid); }}
+                       style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%", position: "relative", zIndex: 1 }}
+                       title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
+                     >
+                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
+                       <div style={{ fontSize: 11, marginTop: 2, color: "#fff", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
+                     </button>
+
+                     {/* Raridade / Badge BMP */}
+                     <div style={{
+                       fontSize: 9, padding: "2px 8px", borderRadius: 10,
+                        background: isBMP ? `linear-gradient(180deg, ${bmpAccent}, #4a1080)` : rColor,
+                        color: "#fff", justifySelf: "center", fontWeight: 900, letterSpacing: 1,
+                        boxShadow: isBMP ? `0 0 8px ${bmpAccent}44` : "0 2px 4px rgba(0,0,0,0.3)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+
+                       position: "relative", zIndex: 1,
+                     }}>
+                       {isBMP ? (isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS") : entry.rarity.toUpperCase()}
+                     </div>
+
+                     {/* Nível */}
+                     <div style={{ fontSize: 11, color: "#f5cf6b", fontWeight: 900, position: "relative", zIndex: 1, textShadow: "0 1px 2px #000" }}>
+                       Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
+                     </div>
+
+                     {/* Traits — mostra TODOS (até 6) para Black Mitic */}
+                     <div
+                       style={{
+                         display: "flex", gap: 3, justifyContent: "center", alignItems: "center",
+                         flexWrap: "wrap", minHeight: 28, position: "relative", zIndex: 1,
+                         padding: isBMP ? "4px 6px" : 0,
+                         background: isBMP ? "rgba(0,0,0,0.35)" : "transparent",
+                         border: isBMP ? `1px solid ${bmpAccent}66` : "none",
+                         borderRadius: isBMP ? 8 : 0,
+                         width: isBMP ? "100%" : "auto",
+                       }}
+                       title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
+                     >
+                       {traits.length > 0
+                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
+                         : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
+                     </div>
+
+
+                    {/* Botão fragmentar (ícone cristal) */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (inTeam) { alert("Retire do time antes de fragmentar."); return; }
+                        if (locked) { alert("Este Pokémon está TRAVADO 🔒. Destrave para fragmentar."); return; }
+                        if (bulkMode) { toggleBulk(entry.uid); return; }
+                        openFragConfirm([entry.uid]);
+                      }}
+                      disabled={fragDisabled}
+                      style={{
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        padding: "4px 10px", height: 36,
+                        background: fragDisabled
+                          ? "rgba(0,0,0,0.4)"
+                          : "linear-gradient(180deg,#c4b5fd 0%,#8b5cf6 45%,#5b21b6 100%)",
+                        color: "#fff", fontWeight: 900, fontSize: 12, letterSpacing: 0.5,
+                        border: fragDisabled ? "1px solid rgba(255,255,255,0.05)" : "1px solid #3b0f7a",
+
+                        borderRadius: 9,
+                        boxShadow: fragDisabled
+                          ? "inset 0 -2px 0 rgba(0,0,0,0.15)"
+                          : "inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.35), 0 0 14px rgba(167,139,250,0.75)",
+                        cursor: fragDisabled ? "not-allowed" : "pointer",
+                        opacity: fragDisabled ? 0.75 : 1,
+                        transition: "transform 90ms, filter 120ms",
+                        textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                      }}
+                      onMouseEnter={(e) => { if (!fragDisabled) (e.currentTarget as HTMLButtonElement).style.filter = "brightness(1.15)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; }}
+                      title={inTeam ? "No time — não pode fragmentar" : locked ? "Travado — destrave para fragmentar" : `Fragmentar por +${gain} pts de craft`}
+                    >
+                      {inTeam ? (
+                        <span style={{ fontWeight: 900 }}>★ NO TIME</span>
+                      ) : locked ? (
+                        <span style={{ fontWeight: 900 }}>🔒 TRAVADO</span>
+                      ) : (
+                        <>
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", justifyContent: "center",
+                            width: 34, height: 34, borderRadius: "50%",
+                            background: "radial-gradient(circle at 40% 35%, rgba(255,255,255,0.55), rgba(196,181,253,0.15) 55%, transparent 75%)",
+                            boxShadow: "0 0 10px rgba(233,213,255,0.8), inset 0 0 8px rgba(124,58,237,0.35)",
+                          }}>
+                            <img
+                              src={assetUrlFromJson(iconFragmentCrystal)}
+                              alt=""
+                              width={30}
+                              height={30}
+                              style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(233,213,255,0.9)) drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }}
+                            />
+                          </span>
+                          <span style={{ fontSize: 13 }}>+{gain}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+              </div>
+            </div>
+            );
+          })()}
+        </div>
+      )}
+
+
+
+      {tab === "pokedex" && (
+        <div style={{
+          background: "linear-gradient(180deg, #2a0510, #1a0510)",
+          border: "2px solid #e11d48",
+          borderRadius: 10, padding: 14,
+          boxShadow: "inset 0 0 30px rgba(225,29,72,0.25)",
+        }}>
+          <div style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            marginBottom: 12, paddingBottom: 10, borderBottom: "1px solid #e11d4855",
+          }}>
+            <div>
+              <div style={{ color: "#ff6b8a", fontSize: 18, fontWeight: 900, letterSpacing: 2 }}>
+                📕 POKÉDEX
+              </div>
+              <div style={{ color: "#ffb3c1", fontSize: 11, marginTop: 2 }}>
+                Registro de Pokémon enfrentados em duelos
+              </div>
+            </div>
+            <div style={{
+              background: "#e11d48", color: "#fff", fontWeight: 900,
+              padding: "6px 14px", borderRadius: 20, fontSize: 13,
+              boxShadow: "0 0 12px #e11d4888",
+            }}>
+              {seenSpecies.length} REGISTRADO{seenSpecies.length === 1 ? "" : "S"}
+            </div>
+          </div>
+          {seenSpecies.length === 0 ? (
+            <div style={{ color: "#ffb3c1", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
+              Nenhum Pokémon registrado ainda. Derrote inimigos em batalha para registrá-los!
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: 10 }}>
+              {seenSpecies.map((sp, i) => {
+                const caught = caughtSpecies.includes(sp);
+                return (
+                  <div key={sp} style={{
+                    background: "linear-gradient(180deg, #3a0a1a, #1a0510)",
+                    border: `2px solid ${caught ? "#ffd94d" : "#e11d48"}`,
+                    borderRadius: 8, padding: 8, textAlign: "center",
+                    boxShadow: caught ? "0 0 10px #ffd94d55" : "0 0 8px #e11d4844",
+                  }}>
+                    <div style={{ fontSize: 9, color: "#ff6b8a", fontWeight: 800, letterSpacing: 1 }}>
+                      Nº {String(i + 1).padStart(3, "0")}
+                    </div>
+                    {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 56, height: 56, imageRendering: "pixelated" }} />}
+                    <div style={{ fontSize: 11, marginTop: 2, color: "#fff", fontWeight: 700 }}>
+                      {sp.replace(/_/g, " ").toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: 9, marginTop: 4, color: caught ? "#ffd94d" : "#ff6b8a", fontWeight: 800 }}>
+                      {caught ? "★ CAPTURADO" : "✓ VISTO"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+
+
+      {tab === "loja" && (
+        <div style={{ maxHeight: 650, overflowY: "auto", paddingRight: 6 }}>
+          <div style={{
+            display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
+            background: "linear-gradient(180deg, #1a0f26, #251638)",
+            border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
+            alignItems: "center", justifyContent: "space-around", fontWeight: 800,
+          }}>
+            <span style={{ color: "#f4c430" }}>● Ouro: {fmtK(bank.gold)}</span>
+            <span style={{ color: "#c084fc" }}>💎 Cristais: {Math.floor(bank.crystals)}</span>
+          </div>
+
+          {(() => {
+            const bk = SHOP_BOOKS.find((x) => x.id === "orb_team")!;
+            const owned = items[bk.id] ?? 0;
+            const canBuy = bank.crystals >= bk.price;
+            const activeUntil = buffs.teamOrbUntil ?? 0;
+            const isActive = activeUntil > Date.now();
+            const color = ITEM_COLORS[bk.id] ?? "#ff97e1";
+            return (
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>✦ Destaque da Loja — Orb de Time</h3>
+                <div style={{
+                  display: "grid", gridTemplateColumns: "minmax(92px, 120px) 1fr minmax(180px, 220px)", gap: 14,
+                  alignItems: "center", padding: 16,
+                  background: "linear-gradient(135deg, rgba(255,151,225,0.18), rgba(26,15,38,0.96) 42%, rgba(40,20,58,0.96))",
+                  border: `2px solid ${color}`,
+                  borderRadius: 14,
+                  boxShadow: `0 0 22px ${color}44, inset 0 1px 0 rgba(255,255,255,0.14)`,
+                }}>
+                  <div style={{
+                    width: 92, height: 92, borderRadius: 18,
+                    background: `radial-gradient(circle at 35% 25%, ${color}66, rgba(11,5,16,0.8) 72%)`,
+                    border: `1px solid ${color}99`, display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: `0 0 18px ${color}55, inset 0 0 18px rgba(255,255,255,0.08)`,
+                  }}>
+                    <img src={bk.img} alt="Orb de Time" width={72} height={72} style={{ filter: `drop-shadow(0 0 10px ${color})` }} />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: "#fff0fb", fontSize: 18, fontWeight: 900, letterSpacing: 1 }}>{bk.name}</div>
+                    <div style={{ color: "#eac6df", fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>{bk.desc}</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+                      <span style={{ color: "#c084fc", fontSize: 12, fontWeight: 900 }}>💎 {bk.price} cristais</span>
+                      <span style={{ color: "#8a7a9c", fontSize: 12 }}>Você tem: {owned}</span>
+                      {isActive && <span style={{ color: "#7ef2a2", fontSize: 12, fontWeight: 900 }}>ATIVO</span>}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => onBuyBook(bk)}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "11px 12px", fontWeight: 900, letterSpacing: 1,
+                      background: canBuy ? `linear-gradient(180deg, ${color}, #c84aa4)` : "#3a2a4a",
+                      color: canBuy ? "#120713" : "#6a5a7c",
+                      border: canBuy ? "1px solid #ffd9f5" : "1px solid #4a3a5a",
+                      borderRadius: 8,
+                      cursor: canBuy ? "pointer" : "not-allowed",
+                      boxShadow: canBuy ? `0 0 12px ${color}55` : "none",
+                    }}
+                  >{canBuy ? "COMPRAR ORB" : "SEM CRISTAIS"}</button>
+                </div>
+              </div>
+            );
+          })()}
+
+          <h3 style={{ color: "#6bd4ff", fontSize: 15, margin: "6px 0 10px" }}>Poções — pagas em ouro</h3>
+          <div style={{
+            background: "rgba(0,0,0,0.3)",
+            border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12, padding: 14, marginBottom: 20,
+            display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
+          }}>
+
+            <div style={{ fontSize: 40 }}>🧪</div>
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div style={{ fontWeight: 800, color: "#eadfe8" }}>Poção</div>
+              <div style={{ fontSize: 11, color: "#b8a8c8" }}>Recupera {Math.round(POTION_HEAL_PCT * 100)}% do HP. Usada no auto quando ativado.</div>
+              <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● {POTION_PRICE} ouro cada</div>
+              <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {items.potion ?? 0}</div>
+            </div>
+            <div style={{ minWidth: 220 }}>
+              <QtyBuy
+                presets={[1, 10, 50, 100]}
+                max={9999}
+                unitLabel="poção"
+                buttonColor="#6bd4ff"
+                canBuyFn={(n) => bank.gold >= POTION_PRICE * n}
+                onBuy={(n) => onBuyPotion(n)}
+                disabledLabel="SEM OURO"
+              />
+            </div>
+          </div>
+
+
+          <h3 style={{ color: "#f5cf6b", fontSize: 15, margin: "6px 0 10px" }}>Pokébolas — pagas em ouro</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 20 }}>
+            {SHOP_BALLS.map((b) => {
+              const owned = items[b.id] ?? 0;
+              const canBuy = bank.gold >= b.price;
+              const color = ITEM_COLORS[b.id] ?? "#f5cf6b";
+              return (
+                <div key={b.id} style={{
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
+
+                }}>
+                  <img src={b.img} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 8px ${color}88)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>{b.name}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8" }}>Chance de captura x{b.captureMult}</div>
+                  <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● {b.price} ouro</div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <QtyBuy
+                    presets={[1, 10, 50, 100]}
+                    max={9999}
+                    unitLabel={b.name}
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.gold >= b.price * n}
+                    onBuy={(n) => onBuyBall(b, n)}
+                    disabledLabel="SEM OURO"
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          <h3 style={{ color: "#c084fc", fontSize: 15, margin: "6px 0 10px" }}>Pacote de Ultra Ball — pago em cristais 💎</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
+            {(() => {
+              const COST = 2000, QTY = 20;
+              const owned = items.ultraball ?? 0;
+              const canBuy = bank.crystals >= COST;
+              const color = "#c084fc";
+              return (
+                <div style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                }}>
+                  <img src={ballUltraImg} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 10px ${color}bb)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>Pacote Ultra Ball ×{QTY}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>20 Ultra Ball — captura x3.5</div>
+                  <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned} Ultra Ball</div>
+                  <QtyBuy
+                    presets={[1, 5, 10, 25]}
+                    max={999}
+                    unitLabel="pacote"
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.crystals >= 2000 * n}
+                    onBuy={(n) => onBuyUltraBundle(n)}
+                    disabledLabel="SEM CRISTAIS"
+                  />
+                </div>
+              );
+            })()}
+            {(() => {
+              const COST = 100;
+              const owned = items.scroll_teleport ?? 0;
+              const canBuy = bank.crystals >= COST;
+              const color = "#8ec5ff";
+              return (
+                <div style={{
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
+
+                }}>
+                  <img src={scrollTeleportUrl} alt="" width={64} height={64}
+                    style={{ filter: `drop-shadow(0 0 10px ${color}bb)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>Pergaminho de Teleporte</div>
+                  <div style={{ fontSize: 11, color: "#b8c8dc", textAlign: "center" }}>Teleporte instantâneo no Mapa Mundi — sem taxa de ouro, sem custo de cristais</div>
+                  <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
+                  <div style={{ fontSize: 11, color: "#8aa0b8" }}>Você tem: {owned}</div>
+                  <QtyBuy
+                    presets={[1, 5, 10, 25]}
+                    max={999}
+                    unitLabel="pergaminho"
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.crystals >= 100 * n}
+                    onBuy={(n) => onBuyTeleportScroll(n)}
+                    disabledLabel="SEM CRISTAIS"
+                  />
+                </div>
+              );
+            })()}
+          </div>
+
+
+
+          <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>🥚 Ovos — chocam Pokémon com raridade aleatória</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
+            {shopEggs.map((e) => {
+              const owned = items[e.id] ?? 0;
+              const canBuy = e.currency === "gold" ? bank.gold >= e.price : bank.crystals >= e.price;
+              return (
+                <div key={e.id} style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${e.color}77`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${e.color}22`,
+                }}>
+                  <div style={{
+                    width: 72, height: 82, borderRadius: "45% / 55%",
+                    background: `radial-gradient(circle at 30% 25%, #fff8, ${e.color} 55%, ${e.color}66 100%)`,
+                    border: `2px solid ${e.color}`,
+                    boxShadow: `0 0 14px ${e.color}88, inset 0 -6px 12px rgba(0,0,0,0.3)`,
+                    position: "relative",
+                  }}>
+                    <div style={{
+                      position: "absolute", top: 20, left: 12, right: 12, height: 3,
+                      background: `${e.color}dd`, opacity: 0.6, borderRadius: 2, transform: "rotate(-8deg)",
+                    }} />
+                    <div style={{
+                      position: "absolute", top: 40, left: 8, right: 14, height: 3,
+                      background: `${e.color}dd`, opacity: 0.5, borderRadius: 2, transform: "rotate(6deg)",
+                    }} />
+                  </div>
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>{e.name}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center", minHeight: 30 }}>{e.desc}</div>
+                  <div style={{ fontSize: 12, color: e.currency === "gold" ? "#f4c430" : "#c084fc", fontWeight: 700 }}>
+                    {e.currency === "gold" ? "●" : "💎"} {e.price} {e.currency === "gold" ? "ouro" : "cristais"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <button
+                    onClick={() => onBuyEgg(e)}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800,
+                      background: canBuy ? e.color : "#3a2a4a",
+                      color: canBuy ? "#0b0510" : "#6a5a7c",
+                      border: "none", borderRadius: 6,
+                      cursor: canBuy ? "pointer" : "not-allowed",
+                    }}
+                  >{canBuy ? "COMPRAR" : "SEM RECURSOS"}</button>
+                </div>
+              );
+            })}
+          </div>
+
+          <h3 style={{ color: "#c084fc", fontSize: 15, margin: "6px 0 10px" }}>Livros de Habilidade — pagos em cristais 💎</h3>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+            {SHOP_BOOKS.map((bk) => {
+              const owned = items[bk.id] ?? 0;
+              const useGold = bk.currency === "gold";
+              const canBuy = useGold ? bank.gold >= bk.price : bank.crystals >= bk.price;
+              const color = ITEM_COLORS[bk.id] ?? "#c084fc";
+              return (
+                <div key={bk.id} style={{
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
+
+                }}>
+                  <img src={bk.img} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 8px ${color}88)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 13 }}>{bk.name}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{bk.desc}</div>
+                  <div style={{ fontSize: 12, color: useGold ? "#ffd94d" : "#c084fc", fontWeight: 700 }}>{useGold ? "🪙" : "💎"} {bk.price}</div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <QtyBuy
+                    presets={[1, 10, 50, 100]}
+                    max={9999}
+                    unitLabel={bk.name}
+                    buttonColor={color}
+                    canBuyFn={(n) => (useGold ? bank.gold >= bk.price * n : bank.crystals >= bk.price * n) && (!bk.priceGold || bank.gold >= bk.priceGold * n)}
+                    onBuy={(n) => onBuyBook(bk, n)}
+                    disabledLabel={useGold ? "SEM OURO" : "SEM CRISTAL"}
+                  />
+
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ═══ Trocador NPC — Orbs de XP por Pokémon capturados ═══ */}
+          <h3 style={{ color: "#ffd94d", fontSize: 15, margin: "22px 0 6px" }}>
+            🧙 Trocador NPC — Orbs de XP
+          </h3>
+          <div style={{ color: "#b8a8c8", fontSize: 11, marginBottom: 10, lineHeight: 1.5 }}>
+            O NPC aceita Pokémon da sua <b>Coleção</b> (não da equipe) em troca de Orbs mais fortes.
+            <b style={{ color: "#ffd94d" }}> Você escolhe</b> quais Pokémon entregar.
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+            {orbTrades.map((t) => {
+              const available = collection.filter((c) =>
+                (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
+                && !teamUidSet.has(c.uid)
+                && !benchUids.has(c.uid)
+                && !lockedSet.has(c.uid),
+              ).length;
+              const reqOk = !t.requires || (items[t.requires.itemId] ?? 0) >= t.requires.qty;
+              const reqOwned = t.requires ? (items[t.requires.itemId] ?? 0) : 0;
+              const canTrade = available >= t.count && reqOk;
+              const owned = items[t.orbId] ?? 0;
+              return (
+                <div key={`${t.orbId}-${t.rarity}`} style={{
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
+
+                }}>
+                  <img src={t.img} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 10px ${t.color}aa)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 13 }}>{t.label}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{t.desc}</div>
+                  <div style={{ fontSize: 11, color: canTrade ? "#8ae28a" : "#e28a8a" }}>
+                    Coleção {t.rarity.toUpperCase()}: {available} (precisa {t.count})
+                  </div>
+                  {t.requires && (
+                    <div style={{ fontSize: 10, fontWeight: 800, color: reqOk ? "#8ae28a" : "#ff9a6b", background: reqOk ? "#0f2018" : "#2a1620", border: `1px solid ${reqOk ? "#8ae28a55" : "#ff9a6b55"}`, borderRadius: 6, padding: "3px 8px", textAlign: "center" }}>
+                      {reqOk ? "✓" : "🔒"} Requer {t.requires.qty}× {t.requires.label} ({reqOwned}/{t.requires.qty})
+                    </div>
+                  )}
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <button
+                    disabled={!canTrade}
+                    onClick={() => {
+                      setOrbPicker({ orbId: t.orbId, rarity: t.rarity, count: t.count, color: t.color, label: t.label });
+                      setOrbPickerSel(new Set());
+                    }}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800,
+                      background: canTrade ? t.color : "#3a2a4a",
+                      color: canTrade ? "#0b0510" : "#6a5a7c",
+                      border: "none", borderRadius: 6,
+                      cursor: canTrade ? "pointer" : "not-allowed",
+                    }}
+                  >{!reqOk ? `FORJE 1 ${t.requires!.label.toUpperCase()} PRIMEIRO` : canTrade ? "ESCOLHER POKÉMON" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                </div>
+              );
+            })}
+          </div>
+
+          {orbPicker && (() => {
+            // Exclui Pokémon do time e travados — evita "não consome / orb infinito"
+            // quando o jogador tenta trocar um Pokémon que está em uso.
+            const eligible = collection.filter((c) =>
+              (c.rarity === orbPicker.rarity || (orbPicker.rarity === "mythic" && c.rarity === "mythic_shiny")) && !teamUidSet.has(c.uid) && !benchUids.has(c.uid) && !lockedSet.has(c.uid),
+            );
+            const selCount = orbPickerSel.size;
+            const canConfirm = selCount === orbPicker.count;
+            return (
+              <div
+                onClick={() => setOrbPicker(null)}
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 10000, display: "grid", placeItems: "center", padding: 16 }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: "min(560px, 100%)", maxHeight: "88vh", overflowY: "auto",
+                    background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+                    border: `2px solid ${orbPicker.color}`, borderRadius: 14, padding: 16,
+                    boxShadow: `0 10px 30px rgba(0,0,0,0.7), 0 0 20px ${orbPicker.color}55`,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ fontWeight: 900, color: orbPicker.color, fontSize: 15 }}>
+                      🧙 Escolha {orbPicker.count} Pokémon {orbPicker.rarity.toUpperCase()}
+                    </div>
+                    <button onClick={() => setOrbPicker(null)} style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 18 }}>✕</button>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 10 }}>
+                    Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{orbPicker.count}</b> — Recompensa: <b>{orbPicker.label}</b>
+                  </div>
+                  {eligible.length === 0 ? (
+                    <div style={{ color: "#e28a8a", fontSize: 12, padding: 20, textAlign: "center" }}>
+                      Você não tem Pokémon {orbPicker.rarity.toUpperCase()} na coleção.
+                    </div>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
+                      {eligible.map((c) => {
+                        const sel = orbPickerSel.has(c.uid);
+                        const disabled = !sel && selCount >= orbPicker.count;
+                        return (
+                          <button
+                            key={c.uid}
+                            disabled={disabled}
+                            onClick={() => {
+                              setOrbPickerSel((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(c.uid)) next.delete(c.uid); else next.add(c.uid);
+                                return next;
+                              });
+                            }}
+                            style={{
+                              background: sel ? `linear-gradient(160deg, ${orbPicker.color}55, ${orbPicker.color}22)` : "#1a0f26",
+                              border: sel ? `2px solid ${orbPicker.color}` : "2px solid #3a2a4a",
+                              borderRadius: 10, padding: 6, cursor: disabled ? "not-allowed" : "pointer",
+                              display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                              opacity: disabled ? 0.4 : 1, position: "relative",
+                            }}
+                          >
+                            {gifMap[c.species] ? (
+                              <img src={gifMap[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
+                            ) : (
+                              <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
+                            )}
+                            <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
+                            <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
+                            {sel && (
+                              <div style={{
+                                position: "absolute", top: 2, right: 2, background: orbPicker.color, color: "#0b0510",
+                                width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
+                              }}>✓</div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                    <button
+                      onClick={() => setOrbPicker(null)}
+                      style={{ flex: 1, padding: "10px", background: "#3a2a4a", color: "#eadfe8", border: "none", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
+                    >CANCELAR</button>
+                    <button
+                      disabled={!canConfirm}
+                      onClick={(e) => {
+                        const btn = e.currentTarget;
+                        if (btn.dataset.busy === "1") return;
+                        btn.dataset.busy = "1";
+                        btn.disabled = true;
+                        const uids = Array.from(orbPickerSel);
+                        setOrbPicker(null);
+                        setOrbPickerSel(new Set());
+                        onTradeOrb(orbPicker.orbId, uids, [], orbPicker.rarity);
+                      }}
+                      style={{
+                        flex: 2, padding: "10px", fontWeight: 900,
+                        background: canConfirm ? orbPicker.color : "#3a2a4a",
+                        color: canConfirm ? "#0b0510" : "#6a5a7c",
+                        border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
+                      }}
+                    >CONFIRMAR TROCA</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Loja Cash removed due to missing constants in scope - applying translucent style to remaining elements */}
+
+
+
+
+      {tab === "melhorias" && (() => {
+        const nowMs = Date.now();
+        const bookActive = !!(buffs?.expMultUntil && nowMs < buffs.expMultUntil);
+        const orbActive = !!(buffs?.orbUntil && nowMs < buffs.orbUntil);
+        const honeyActive = !!(buffs?.honeyUntil && nowMs < buffs.honeyUntil);
+        const honeyRareActive = !!(buffs?.honeyRareUntil && nowMs < buffs.honeyRareUntil);
+        const bookPct = bookActive ? Math.round((buffs?.expMult ?? 0) * 100) : 0;
+        const orbPct = orbActive ? Math.round((buffs?.orbMult ?? 0) * 100) : 0;
+        const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
+        const totalExpPct = bookPct + orbPct + honeyPct;
+        const fmtTime = (ms: number) => {
+          const s = Math.max(0, Math.floor(ms / 1000));
+          const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+          return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${r}s` : `${r}s`;
+        };
+        return (
+          <div>
+            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
+              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((buffs?.atk ?? 0) * 100)}%`} color="#ff5252" />
+              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
+              <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
+            </div>
+            {(bookActive || orbActive || honeyActive || honeyRareActive) && (
+              <div style={{ background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 8, padding: 10, marginBottom: 14 }}>
+                <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Composição EXP:</div>
+                {bookActive && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d0c0e0", padding: "3px 0" }}>
+                    <span>📖 Livro EXP <span style={{ color: "#8a80a8" }}>({fmtTime(buffs!.expMultUntil! - nowMs)})</span></span>
+                    <span style={{ color: "#5ec26a", fontWeight: 700 }}>+{bookPct}%</span>
+                  </div>
+                )}
+                {orbActive && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d0c0e0", padding: "3px 0" }}>
+                    <span>✦ Orb EXP <span style={{ color: "#8a80a8" }}>({fmtTime(buffs!.orbUntil! - nowMs)})</span></span>
+                    <span style={{ color: "#c084fc", fontWeight: 700 }}>+{orbPct}%</span>
+                  </div>
+                )}
+                {honeyRareActive ? (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#fff0c8", padding: "3px 0" }}>
+                    <span>✨🍯 Incenso Raro <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyRareUntil! - nowMs)})</span></span>
+                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+20% drop/xp/def/vel</span>
+                  </div>
+                ) : honeyActive && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#ffe9a8", padding: "3px 0" }}>
+                    <span>🍯 Incenso de Mel <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyUntil! - nowMs)})</span></span>
+                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+10% drop/xp/def/vel</span>
+                  </div>
+                )}
+                <div style={{ borderTop: "1px solid #3a2e58", marginTop: 6, paddingTop: 6, display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
+                  <span style={{ color: "#f5cf6b" }}>Total EXP</span>
+                  <span style={{ color: "#ffd94d" }}>+{totalExpPct}%</span>
+                </div>
+              </div>
+            )}
+            <div style={{ color: "#b8a8c8", fontSize: 12, lineHeight: 1.5 }}>
+              Livros, Orbs e Incenso de Mel <strong style={{ color: "#f5cf6b" }}>somam</strong> enquanto ativos. Quando cada tempo acaba, o bônus daquela fonte sai.
+            </div>
+          </div>
+        );
+      })()}
+
+
+      {tab === "wiki" && (() => {
+        const Sec = ({ title, color, children }: { title: string; color: string; children: React.ReactNode }) => (
+          <div style={{ background: "linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,0,0,0.35))", border: `1px solid ${color}55`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
+            <div style={{ color, fontWeight: 900, fontSize: 12.5, letterSpacing: 1.2, marginBottom: 7, fontFamily: "'Cinzel', Georgia, serif" }}>{title}</div>
+            <div style={{ fontSize: 11, color: "#e6dcf0", lineHeight: 1.75 }}>{children}</div>
+          </div>
+        );
+        return (
+          <div style={{ padding: 12, overflowY: "auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 12 }}>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, fontFamily: "'Cinzel', Georgia, serif" }}>📖 WIKI — 3ª SEASON</div>
+              <div style={{ fontSize: 10.5, color: "#a898b8" }}>Tudo que você precisa saber antes do reset</div>
+            </div>
+
+            <Sec title="♻ O QUE SERÁ RESETADO" color="#ff8b8b">
+              • Nível do treinador e XP<br />
+              • Nível dos pokémons do time e da coleção<br />
+              • Ouro, Cristais e progresso de mapas / quests<br />
+              • Rankings globais (Treinador e Cristal Prisma)
+            </Sec>
+
+            <Sec title="🛡 O QUE SERÁ PRESERVADO" color="#7ee88a">
+              • Todo pokémon guardado no <b>Banco Medieval</b> (Cofre Eterno)<br />
+              • Taxa: {POKE_VAULT_FEE_SHARDS.toLocaleString("pt-BR")} 🔻 por pokémon · <b>Black Mitic Plus é grátis</b><br />
+              • Vagas do cofre: {POKE_VAULT_SLOTS} pokémons
+            </Sec>
+
+            <Sec title="✨ NOVOS SISTEMAS" color="#c084fc">
+              • <b>PvP</b> — duelos entre treinadores<br />
+              • <b>Party</b> — grupos de até 5 jogadores com XP compartilhado<br />
+              • <b>Mercado dolarizado</b> — negociação com moeda global<br />
+              • <b>Ginásio Medieval</b> — portal para o Vale dos Fragmentos Vermelhos
+            </Sec>
+
+            <Sec title="🔻 VALE DOS FRAGMENTOS VERMELHOS" color="#ff5c5c">
+              • Entrada pelo Ginásio Medieval: {GYM_ENTRY_SHARDS.toLocaleString("pt-BR")} 🔻<br />
+              • Abre por <b>1 hora</b> e reabre <b>a cada 5 horas</b><br />
+              • Cada pokémon derrotado ou capturado dropa <b>5 a 20 🔻</b>
+            </Sec>
+
+            <Sec title="⚙ MECÂNICAS EXISTENTES" color="#6bd4ff">
+              • <b>Raridades:</b> Comum → Incomum → Raro → Épico → Lendário → Mítico → Mítico Shiny → Black Mitic Plus<br />
+              • <b>Eggs:</b> incubação, afinidade e alimentação com Stones elementais<br />
+              • <b>AFK / Idle:</b> auto-batalha, auto-potion e coleta acumulada<br />
+              • <b>Sinergias:</b> bônus elementais por composição do time
+            </Sec>
+
+            <Sec title="📊 TAXAS OFICIAIS" color="#ffd66b">
+              • Captura (Poké/Great/Ultra): Comum 55/75/90% · Raro 18/35/55% · Épico 8/18/35% · Lendário 3/8/18%<br />
+              • Mítico: 0.2/0.8/2.8% · Mítico Shiny: 0.1/0.3/1.8% · Master Ball: 100%<br />
+              • Fragmento Vermelho: 1 a 5 por abate (5 a 20 no Vale)<br />
+              • Teto de acumulação na coleta: {RED_SHARD_PENDING_CAP.toLocaleString("pt-BR")} 🔻
+            </Sec>
+
+            <Sec title="🔒 PRIVACIDADE" color="#a898b8">
+              O botão <b>🔒 Ocultar IP</b> esconde seu endereço da tela (ideal para prints e streams).
+              O registro continua salvo internamente apenas para segurança e anti-cheat.
+            </Sec>
+          </div>
+        );
+      })()}
+
+      {tab === "inicio" && (
+        <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6 }}>
+          <p style={{ marginTop: 0 }}>Bem-vindo ao <strong style={{ color: "#f5cf6b" }}>Modo Idle</strong>!</p>
+          <ul style={{ paddingLeft: 20 }}>
+            <li>Seus Pokémon batalham automaticamente.</li>
+            <li>Ache <strong>baús</strong> pelo mapa — dão ouro extra.</li>
+            <li>Compre <strong>Pokébolas</strong> na Loja para capturar Pokémon.</li>
+            <li>Use <strong>Livros</strong> pra ficar mais forte.</li>
+            <li>Novos Pokémon aparecem conforme seu nível sobe.</li>
+          </ul>
+
+          <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "18px 0 10px" }}>
+            Escolher Skin <span style={{ fontSize: 11, color: "#b9a7ff" }}>· 🎟️ Tickets: {skinTickets}</span>
+          </h3>
+          <div style={{ fontSize: 11, color: "#b9a7ff", marginBottom: 8 }}>
+            Skins premium ficam bloqueadas. Abra a <strong>Caixa Premium ✦</strong> na Mochila para ganhar Tickets e desbloquear a skin que quiser.
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
+            {SKINS.map((s) => {
+              const active = s.id === skinId;
+              const unlocked = unlockedSkins.includes(s.id);
+              const canUnlock = !unlocked && skinTickets > 0;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    if (unlocked) { setSkinId(s.id); return; }
+                    if (canUnlock) {
+                      if (window.confirm(`Desbloquear a skin "${s.label}" usando 1 Ticket de Skin ✦?`)) {
+                        onUnlockSkin(s.id);
+                      }
+                    }
+                  }}
+                  disabled={!unlocked && !canUnlock}
+                  style={{
+                    position: "relative",
+                    background: active ? "linear-gradient(160deg,#3a1f5c,#6b3fb0)" : unlocked ? "#1a0f26" : "#120a1c",
+                    border: `2px solid ${active ? "#f5cf6b" : unlocked ? "rgba(107,212,255,0.35)" : "rgba(255,255,255,0.08)"}`,
+                    borderRadius: 10, padding: 10,
+                    cursor: unlocked ? "pointer" : canUnlock ? "pointer" : "not-allowed",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                    color: unlocked ? "#eadfe8" : "#7a6f8a", fontFamily: "inherit",
+                    boxShadow: active ? "0 0 18px rgba(245,207,107,0.45)" : "none",
+                    opacity: unlocked ? 1 : 0.85,
+                  }}
+                >
+                  <div style={{
+                    width: 72, height: 72, display: "grid", placeItems: "center",
+                    background: "rgba(0,0,0,0.35)", borderRadius: 8,
+                    imageRendering: "pixelated",
+                    filter: unlocked ? "none" : "grayscale(1) brightness(0.55)",
+                  }}>
+                    {s.url ? (
+                      <img src={s.url} alt={s.label} style={{ maxWidth: "100%", maxHeight: "100%", imageRendering: "pixelated" }} />
+                    ) : (
+                      <div style={{ fontSize: 32 }}>🧢</div>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, textAlign: "center" }}>{s.label}</div>
+                  {active && <div style={{ fontSize: 9, color: "#f5cf6b" }}>✓ EM USO</div>}
+                  {!unlocked && (
+                    <div style={{ fontSize: 9, color: canUnlock ? "#f5cf6b" : "#8a7fa0", fontWeight: 700 }}>
+                      {canUnlock ? "🎟️ USAR TICKET" : "🔒 BLOQUEADA"}
+                    </div>
+                  )}
+                  {!unlocked && (
+                    <div style={{ position: "absolute", top: 6, right: 6, fontSize: 14 }}>🔒</div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+        </div>
+      )}
+
+      {tab === "wallet" && (
+        <WalletScreen bank={bank} onExchange={onExchange} />
+      )}
+
+      {tab === "market" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {pokemonMarketNode}
+          <MarketScreen
+            items={items}
+            bank={bank}
+            identity={identity}
+            isVip={isVip}
+            onList={onListMarket}
+            onBuy={onBuyMarket}
+            onCancel={onCancelMarket}
+            onClaimPayout={onClaimMarketPayout}
+            onNpcSell={onSellItem}
+            npcPrices={marketSellPrices}
+          />
+        </div>
+      )}
+
+
+
+      {tab === "config" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 520 }}>
+          <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.5 }}>
+            Ajuste os sons e a música do jogo. A música toca em loop de fundo enquanto você joga.
+          </div>
+
+          <div style={{
+            background: "linear-gradient(160deg, #1a0f26, #251638)",
+            border: "1px solid rgba(107,212,255,0.35)", borderRadius: 12, padding: 16,
+            display: "flex", flexDirection: "column", gap: 14,
+          }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+              <input type="checkbox" checked={audioSettings.music}
+                onChange={(e) => setAudioSettings((s) => ({ ...s, music: e.target.checked }))}
+                style={{ width: 18, height: 18 }} />
+              <span style={{ color: "#eadfe8", fontWeight: 700 }}>🎵 Música de fundo</span>
+            </label>
+            <div>
+              <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>Volume da música: {Math.round(audioSettings.musicVol * 100)}%</div>
+              <input type="range" min={0} max={1} step={0.05} value={audioSettings.musicVol}
+                onChange={(e) => setAudioSettings((s) => ({ ...s, musicVol: Number(e.target.value) }))}
+                style={{ width: "100%" }} />
+            </div>
+          </div>
+
+          <div style={{
+            background: "linear-gradient(160deg, #1a0f26, #251638)",
+            border: "1px solid rgba(245,207,107,0.35)", borderRadius: 12, padding: 16,
+            display: "flex", flexDirection: "column", gap: 14,
+          }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+              <input type="checkbox" checked={audioSettings.sfx}
+                onChange={(e) => setAudioSettings((s) => ({ ...s, sfx: e.target.checked }))}
+                style={{ width: 18, height: 18 }} />
+              <span style={{ color: "#eadfe8", fontWeight: 700 }}>🔊 Efeitos sonoros (clique, level-up, capturas)</span>
+            </label>
+            <div>
+              <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>Volume dos efeitos: {Math.round(audioSettings.sfxVol * 100)}%</div>
+              <input type="range" min={0} max={1} step={0.05} value={audioSettings.sfxVol}
+                onChange={(e) => setAudioSettings((s) => ({ ...s, sfxVol: Number(e.target.value) }))}
+                style={{ width: "100%" }} />
+            </div>
+          </div>
+
+          <div style={{
+            background: "linear-gradient(160deg, #0f1f2e, #16324a)",
+            border: "1px solid rgba(107,212,255,0.4)", borderRadius: 12, padding: 16,
+            display: "flex", flexDirection: "column", gap: 12,
+          }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+              <input type="checkbox" checked={autoHeal.enabled}
+                onChange={(e) => setAutoHeal({ ...autoHeal, enabled: e.target.checked })}
+                style={{ width: 18, height: 18 }} />
+              <span style={{ color: "#eadfe8", fontWeight: 700 }}>🧪 Auto-Poção no modo Auto</span>
+            </label>
+            <div>
+              <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>
+                Usar poção quando HP &lt;= {Math.round(autoHeal.threshold * 100)}% (você tem {items.potion ?? 0} poção)
+              </div>
+              <input type="range" min={0.1} max={0.9} step={0.05} value={autoHeal.threshold}
+                onChange={(e) => setAutoHeal({ ...autoHeal, threshold: Number(e.target.value) })}
+                style={{ width: "100%" }} />
+            </div>
+            <div style={{ fontSize: 11, color: "#8a7a9c" }}>
+              Cada poção custa {POTION_PRICE} ouro na Loja e recupera {Math.round(POTION_HEAL_PCT * 100)}% de HP.
+            </div>
+          </div>
+
+          <div style={{ fontSize: 11, color: "#8a7a9c" }}>
+            Se a música não iniciar automaticamente, clique em qualquer lugar da tela — os navegadores exigem uma interação antes de tocar áudio.
+          </div>
+        </div>
+      )}
+
+      {statsCardPet && (
+        <PokemonStatsCard pet={statsCardPet} team={team} gifSrc={gifMap[statsCardPet.species]} onClose={() => setStatsCardPet(null)} />
+      )}
+
+      {fragConfirm && (() => {
+        const rarityColor: Partial<Record<Rarity, string>> = {
+          common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
+          epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
+        };
+        const list = fragConfirm.entries;
+        const isBulk = list.length > 1;
+        return (
+          <div
+            onClick={() => setFragConfirm(null)}
+            style={{ position: "fixed", inset: 0, zIndex: 10001, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(6px)", display: "grid", placeItems: "center", padding: 16 }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "min(560px, 100%)", maxHeight: "88vh", overflowY: "auto",
+                background: "linear-gradient(160deg, #2a0f4a 0%, #1a0526 55%, #0b0510 100%)",
+                border: "3px solid #a78bfa",
+                borderRadius: 18,
+                boxShadow: "0 20px 60px rgba(0,0,0,0.85), 0 0 40px rgba(167,139,250,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
+                position: "relative", overflow: "hidden",
+              }}
+            >
+              <div style={{
+                position: "absolute", inset: 0, pointerEvents: "none",
+                background: "radial-gradient(circle at 50% 10%, rgba(196,181,253,0.28), transparent 55%)",
+              }} />
+              <div style={{
+                padding: "16px 18px", display: "flex", alignItems: "center", gap: 14,
+                borderBottom: "2px solid rgba(167,139,250,0.35)", position: "relative",
+              }}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  width: 56, height: 56, borderRadius: "50%",
+                  background: "radial-gradient(circle at 40% 35%, rgba(255,255,255,0.5), rgba(196,181,253,0.15) 55%, transparent 75%)",
+                  boxShadow: "0 0 18px rgba(233,213,255,0.9), inset 0 0 10px rgba(124,58,237,0.4)",
+                }}>
+                  <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={44} height={44}
+                    style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(233,213,255,0.9))" }} />
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "#f7ecf7", letterSpacing: 2, textShadow: "0 2px 0 #000" }}>
+                    ⚒️ FRAGMENTAR {isBulk ? `${list.length} POKÉMON` : "POKÉMON"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#c8b8d0", marginTop: 2, fontStyle: "italic" }}>
+                    Ação permanente — 1 🔷 Cristal Prisma por Pokémon.
+                  </div>
+                </div>
+                <button onClick={() => setFragConfirm(null)} style={{
+                  width: 32, height: 32, borderRadius: 8, border: "1px solid #6a5a7c",
+                  background: "#2a1638", color: "#f7ecf7", fontSize: 16, fontWeight: 900, cursor: "pointer",
+                }}>✕</button>
+              </div>
+
+              <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: isBulk ? "repeat(auto-fill, minmax(120px, 1fr))" : "1fr",
+                  gap: 10, maxHeight: 320, overflowY: "auto", padding: 4,
+                }}>
+                  {list.map((e) => {
+                    const rc = rarityColor[e.rarity] ?? "#8b6a30";
+                    return (
+                      <div key={e.uid} style={{
+                        background: "linear-gradient(180deg, rgba(30,15,50,0.85), rgba(11,5,16,0.9))",
+                        border: `2px solid ${rc}88`,
+                        borderRadius: 12, padding: 10, textAlign: "center",
+                        boxShadow: `inset 0 0 12px ${rc}33, 0 2px 8px rgba(0,0,0,0.4)`,
+                      }}>
+                        {gifMap[e.species] && (
+                          <img src={gifMap[e.species]} alt="" style={{ width: 56, height: 56, imageRendering: "pixelated" }} />
+                        )}
+                        <div style={{ fontSize: 10, fontWeight: 900, color: "#f7ecf7", letterSpacing: 1, marginTop: 2 }}>
+                          {e.species.replace(/_/g, " ").toUpperCase()}
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 8, background: rc, color: "#0b0510", fontWeight: 900, letterSpacing: 1 }}>
+                            {e.rarity.toUpperCase()}
+                          </span>
+                          <span style={{ fontSize: 9, color: "#f5cf6b", fontWeight: 900 }}>Lv {e.level}</span>
+                        </div>
+                        <div style={{
+                          marginTop: 6, fontSize: 11, fontWeight: 900,
+                          color: "#e9d5ff", letterSpacing: 0.5,
+                          display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                        }}>
+                          <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
+                          +{e.gain}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{
+                  marginTop: 4, padding: "12px 14px", borderRadius: 12,
+                  background: "linear-gradient(90deg, rgba(139,92,246,0.25), rgba(196,181,253,0.15), rgba(139,92,246,0.25))",
+                  border: "1.5px solid #a78bfa88",
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: "#c8b8d0", letterSpacing: 2 }}>GANHO TOTAL</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <img src={assetUrlFromJson(iconFragmentCrystal)} alt="" width={26} height={26}
+                      style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(233,213,255,0.9))" }} />
+                    <span style={{
+                      fontSize: 26, fontWeight: 900, fontFamily: "monospace",
+                      background: "linear-gradient(180deg, #f5d0fe, #a78bfa)",
+                      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                    }}>+{fragConfirm.totalGain}</span>
+                    <span style={{ fontSize: 10, color: "#c8b8d0", fontWeight: 800, letterSpacing: 1 }}>CRISTAL PRISMA</span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                  <button
+                    onClick={() => setFragConfirm(null)}
+                    style={{
+                      flex: 1, padding: "12px 14px", fontSize: 12, fontWeight: 900, letterSpacing: 1,
+                      background: "linear-gradient(180deg, #3a2450, #241634)", color: "#eadfe8",
+                      border: "1px solid #5a3d78", borderRadius: 10, cursor: "pointer",
+                    }}
+                  >CANCELAR</button>
+                  <button
+                    onClick={confirmFrag}
+                    style={{
+                      flex: 1.4, padding: "12px 14px", fontSize: 13, fontWeight: 900, letterSpacing: 1,
+                      background: "linear-gradient(180deg,#c4b5fd 0%,#8b5cf6 45%,#5b21b6 100%)",
+                      color: "#fff",
+                      border: "1px solid #3b0f7a", borderRadius: 10, cursor: "pointer",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 0 16px rgba(167,139,250,0.75)",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                    }}
+                  >⚒️ CONFIRMAR</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+        
+      </div>
+    </div>
+  );
+}
+
+
+
+
+function BuffCell({ img, label, value, color }: { img: string; label: string; value: string; color: string }) {
+  return (
+    <div style={{
+      background: "#1a0f26", border: `1px solid ${color}55`, borderRadius: 10,
+      padding: 12, textAlign: "center",
+    }}>
+      <img src={img} alt="" width={40} height={40} style={{ imageRendering: "pixelated" }} />
+      <div style={{ fontSize: 12, color: "#c8b8d0", marginTop: 4 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color }}>{value}</div>
+    </div>
+  );
+}
+
+// ============ CARTEIRA (câmbio) ============
+function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: number }; onExchange: (dir: "g2c" | "c2g", amount: number) => void }) {
+  const [buyAmt, setBuyAmt] = useState(1);
+  const [sellAmt, setSellAmt] = useState(1);
+
+  const buyCost = buyAmt * 1000;
+  const sellGain = sellAmt * 800;
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, maxWidth: 780 }}>
+      <div style={{
+        gridColumn: "1 / -1",
+        position: "relative",
+        borderRadius: 14,
+        overflow: "hidden",
+        border: "2px solid #f5cf6b66",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.55), inset 0 0 40px rgba(0,0,0,0.4)",
+        backgroundImage: `url(${walletHero})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center 30%",
+        minHeight: 190,
+      }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(180deg, rgba(11,5,16,0.15) 0%, rgba(11,5,16,0.55) 55%, rgba(11,5,16,0.95) 100%)",
+        }} />
+        <div style={{ position: "relative", padding: "16px 18px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 10 }}>
+          <div>
+            <div style={{ color: "#ffe58a", fontWeight: 900, fontSize: 20, letterSpacing: 2, textShadow: "2px 2px 0 #000, 0 0 12px #f5cf6b66" }}>✦ CASA DE CÂMBIO</div>
+            <div style={{ color: "#dcc8e0", fontSize: 12, marginTop: 3, textShadow: "1px 1px 0 #000" }}>Converta ouro em cristais e vice-versa. Taxa: 1000 💰 ⇄ 1 💎 (compra) · 1 💎 → 800 💰 (venda).</div>
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #f5cf6b88", borderRadius: 8, padding: "6px 12px", color: "#f5cf6b", fontWeight: 800, boxShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>💰 {bank.gold.toLocaleString()}</div>
+            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #8fd0ff88", borderRadius: 8, padding: "6px 12px", color: "#8fd0ff", fontWeight: 800, boxShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>💎 {bank.crystals.toLocaleString()}</div>
+          </div>
+        </div>
+      </div>
+      <div style={{ background: "#1a0f26", border: "1px solid #8fd0ff55", borderRadius: 10, padding: 14 }}>
+        <div style={{ color: "#8fd0ff", fontWeight: 800, marginBottom: 6 }}>Comprar 💎 com Ouro</div>
+        <div style={{ color: "#c8b8d0", fontSize: 12, marginBottom: 10 }}>1 💎 = 1000 ouro</div>
+        <input type="number" min={1} value={buyAmt} onChange={(e) => setBuyAmt(Math.max(1, parseInt(e.target.value) || 1))}
+          style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #8fd0ff55", borderRadius: 6, padding: 8, fontSize: 14 }} />
+        <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Custo: <b style={{ color: "#f5cf6b" }}>{buyCost.toLocaleString()} ouro</b></div>
+        <button disabled={bank.gold < buyCost} onClick={() => onExchange("g2c", buyAmt)}
+          style={{ width: "100%", background: bank.gold < buyCost ? "#333" : "linear-gradient(180deg,#4a9eff,#1e3a5f)", color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: bank.gold < buyCost ? "not-allowed" : "pointer" }}>
+          Comprar {buyAmt} 💎
+        </button>
+      </div>
+      <div style={{ background: "#1a0f26", border: "1px solid #f5cf6b55", borderRadius: 10, padding: 14 }}>
+        <div style={{ color: "#f5cf6b", fontWeight: 800, marginBottom: 6 }}>Vender 💎 por Ouro</div>
+        <div style={{ color: "#c8b8d0", fontSize: 12, marginBottom: 10 }}>1 💎 = 800 ouro (spread)</div>
+        <input type="number" min={1} value={sellAmt} onChange={(e) => setSellAmt(Math.max(1, parseInt(e.target.value) || 1))}
+          style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #f5cf6b55", borderRadius: 6, padding: 8, fontSize: 14 }} />
+        <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Você recebe: <b style={{ color: "#f5cf6b" }}>{sellGain.toLocaleString()} ouro</b></div>
+        <button disabled={bank.crystals < sellAmt} onClick={() => onExchange("c2g", sellAmt)}
+          style={{ width: "100%", background: bank.crystals < sellAmt ? "#333" : "linear-gradient(180deg,#f5cf6b,#8b6a30)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: bank.crystals < sellAmt ? "not-allowed" : "pointer" }}>
+          Vender {sellAmt} 💎
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============ MERCADO P2P (jogador vs jogador) ============
+type MarketListing = {
+  id: string;
+  seller_id: string;
+  seller_name: string;
+  item_id: string;
+  qty: number;
+  price: number;
+  currency?: "gold" | "crystal" | "safira";
+  created_at: string;
+};
+function MarketScreen({
+  items, bank, identity, isVip, onList, onBuy, onCancel, onClaimPayout, onNpcSell, npcPrices,
+}: {
+  items: Record<string, number>;
+  bank: { gold: number; crystals: number };
+  identity: LocalIdentity | null;
+  isVip: boolean;
+  onList: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
+  onBuy: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
+  onCancel: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
+  onClaimPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
+  onNpcSell: (id: string, qty?: number) => void;
+  npcPrices: Record<string, number>;
+}) {
+  const LABELS: Record<string, string> = {
+    pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
+    chest_amulet: "Amuleto do Baú",
+    potion: "Poção",
+    stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
+    stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
+    stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
+  };
+  const ICONS: Record<string, string> = {
+    pokeball: "⚪", greatball: "🔴", ultraball: "🟡",
+    chest_amulet: "🎗", potion: "🧪",
+    stone_grass: "🌿", stone_fire: "🔥", stone_water: "💧",
+    stone_electric: "⚡", stone_dark: "🌑", stone_dragon: "🐉",
+  };
+  const CUR_LABEL: Record<string, string> = { gold: "ouro", crystal: "💎 cristais", safira: "💚 safiras" };
+  const CUR_COLOR: Record<string, string> = { gold: "#ff9d3d", crystal: "#6bd4ff", safira: "#7dffbe" };
+  const [listings, setListings] = useState<MarketListing[]>([]);
+  const [soldPayouts, setSoldPayouts] = useState<MarketListing[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"browse" | "create" | "npc">("browse");
+  const [selItem, setSelItem] = useState<string>("pokeball");
+  const [selQty, setSelQty] = useState<number>(1);
+  const [selPrice, setSelPrice] = useState<number>(500);
+  const [selCurrency, setSelCurrency] = useState<"gold" | "crystal" | "safira">("gold");
+
+  const refresh = async () => {
+    setLoading(true);
+    const [openRes, soldRes] = await Promise.all([
+      supabase
+        .from("market_listings")
+        .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at")
+        .is("sold_at", null)
+        .order("created_at", { ascending: false })
+        .limit(100),
+      identity?.id
+        ? (supabase as any)
+            .from("market_listings")
+            .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at, payout_claimed")
+            .eq("seller_id", identity.id)
+            .eq("payout_claimed", false)
+            .not("sold_at", "is", null)
+            .order("sold_at", { ascending: false })
+            .limit(50)
+        : Promise.resolve({ data: [], error: null } as any),
+    ]);
+    setLoading(false);
+    if (!openRes.error && openRes.data) setListings(openRes.data as unknown as MarketListing[]);
+    if (!soldRes.error && soldRes.data) setSoldPayouts(soldRes.data as unknown as MarketListing[]);
+  };
+  useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, []);
+
+  const mine = listings.filter((l) => l.seller_id === (identity?.id ?? ""));
+  const others = listings.filter((l) => l.seller_id !== (identity?.id ?? ""));
+
+
+  return (
+    <div style={{ maxWidth: 900 }}>
+      <div style={{ background: "linear-gradient(180deg,#3d2b0f,#241503)", border: "2px solid #ff9d3d66", borderRadius: 12, padding: 16, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ color: "#ff9d3d", fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>🏷 MERCADO ENTRE TREINADORES</div>
+          <div style={{ color: "#c8a878", fontSize: 12, marginTop: 4, fontStyle: "italic" }}>
+            Compre e venda itens de outros jogadores. Anunciar é exclusivo <b style={{ color: "#ffd94d" }}>VIP ✦</b>.
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ background: "#0e0818", border: "1px solid #f5cf6b55", borderRadius: 8, padding: "6px 12px", color: "#f5cf6b", fontWeight: 800 }}>💰 {bank.gold.toLocaleString()}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+        {(["browse", "create", "npc"] as const).map((m) => (
+          <button key={m} onClick={() => setMode(m)} style={{
+            padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 800,
+            border: mode === m ? "1px solid #ff9d3d" : "1px solid #3a2a4a",
+            background: mode === m ? "#3d2b0f" : "transparent",
+            color: mode === m ? "#ff9d3d" : "#c8b8d0", cursor: "pointer",
+          }}>
+            {m === "browse" ? "Anúncios" : m === "create" ? "Anunciar (VIP)" : "Vender NPC"}
+          </button>
+        ))}
+        <button onClick={() => void refresh()} disabled={loading} style={{ marginLeft: "auto", padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 800, border: "1px solid #3a2a4a", background: "transparent", color: "#c8b8d0", cursor: loading ? "wait" : "pointer" }}>
+          {loading ? "…" : "↻ Atualizar"}
+        </button>
+      </div>
+
+      {mode === "browse" && (
+        <>
+          {soldPayouts.length > 0 && (
+            <>
+              <div style={{ color: "#ffd94d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>💰 VENDAS CONCLUÍDAS — COLETAR PAGAMENTO</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10, marginBottom: 16 }}>
+                {soldPayouts.map((l) => {
+                  const cur = l.currency ?? "gold";
+                  return (
+                    <div key={l.id} style={{ background: "linear-gradient(180deg,#2a1f08,#150e02)", border: "1px solid #ffd94d88", borderRadius: 10, padding: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {STONE_CHEST[l.item_id] ? (
+                          <img src={STONE_CHEST[l.item_id]} alt="" width={44} height={44} />
+                        ) : (
+                          <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                        )}
+                        <div>
+                          <div style={{ color: "#ffd94d", fontWeight: 800, fontSize: 13 }}>Vendido: {l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
+                          <div style={{ color: "#c8a878", fontSize: 11 }}>Receber <b style={{ color: CUR_COLOR[cur] }}>{l.price.toLocaleString()} {CUR_LABEL[cur]}</b></div>
+                        </div>
+                      </div>
+                      <button onClick={() => void onClaimPayout({ id: l.id, item_id: l.item_id, qty: l.qty, price: l.price, currency: l.currency }).then((ok) => { if (ok) { setSoldPayouts((prev) => prev.filter((x) => x.id !== l.id)); } })}
+                        style={{ width: "100%", marginTop: 8, background: "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 6, padding: "8px 0", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                        Coletar {l.price.toLocaleString()} {CUR_LABEL[cur]}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+          {mine.length > 0 && (
+            <>
+
+              <div style={{ color: "#8fd0ff", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>MEUS ANÚNCIOS</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10, marginBottom: 16 }}>
+                {mine.map((l) => (
+                  <div key={l.id} style={{ background: "#101a2a", border: "1px solid #4a9eff55", borderRadius: 10, padding: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      {STONE_CHEST[l.item_id] ? (
+                        <div style={{ width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(255,217,77,0.18), transparent 70%)", borderRadius: 8, filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.6))" }}>
+                          <img src={STONE_CHEST[l.item_id]} alt="" width={52} height={52} style={{ imageRendering: "auto" }} />
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      )}
+                      <div>
+                        <div style={{ color: "#f5cf6b", fontWeight: 800, fontSize: 13 }}>{l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
+                        <div style={{ color: "#8a7a9c", fontSize: 11 }}>Seu anúncio</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: CUR_COLOR[l.currency ?? "gold"] }}>{l.price.toLocaleString()} {CUR_LABEL[l.currency ?? "gold"]}</b></div>
+
+                    <button onClick={() => void onCancel(l).then((ok) => { if (ok) void refresh(); })}
+                      style={{ width: "100%", background: "#3a1010", color: "#fff", border: "1px solid #ff6b6b55", borderRadius: 6, padding: "6px 0", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                      Cancelar anúncio
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          <div style={{ color: "#ff9d3d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>À VENDA ({others.length})</div>
+          {others.length === 0 ? (
+            <div style={{ color: "#8a7a9c", fontStyle: "italic", padding: 20, textAlign: "center" }}>Nenhum anúncio ativo no momento.</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
+              {others.map((l) => {
+                const cur = l.currency ?? "gold";
+                const bal = cur === "gold" ? bank.gold : cur === "crystal" ? bank.crystals : (items.safira_verde ?? 0);
+                const canBuy = bal >= l.price;
+                return (
+                  <div key={l.id} style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: 10, padding: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      {STONE_CHEST[l.item_id] ? (
+                        <div style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(255,157,61,0.22), transparent 70%)", borderRadius: 10, filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.7))" }}>
+                          <img src={STONE_CHEST[l.item_id]} alt="" width={58} height={58} style={{ imageRendering: "auto" }} />
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                      )}
+                      <div>
+                        <div style={{ color: "#f5cf6b", fontWeight: 800, fontSize: 13 }}>{l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
+                        <div style={{ color: "#8a7a9c", fontSize: 11 }}>por <b style={{ color: "#c8b8d0" }}>{l.seller_name}</b></div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Preço: <b style={{ color: CUR_COLOR[cur] }}>{l.price.toLocaleString()} {CUR_LABEL[cur]}</b></div>
+                    <button disabled={!canBuy} onClick={() => void onBuy(l).then((ok) => {
+                        if (ok) {
+                          setListings((prev) => prev.filter((x) => x.id !== l.id));
+                          void refresh();
+                        }
+                      })}
+                      style={{ width: "100%", background: !canBuy ? "#333" : "linear-gradient(180deg,#ff9d3d,#8b4a10)", color: "#0e0818", border: "none", borderRadius: 6, padding: "8px 0", fontWeight: 800, cursor: !canBuy ? "not-allowed" : "pointer", fontSize: 12 }}>
+                      {canBuy ? "Comprar" : `${CUR_LABEL[cur]} insuficiente(s)`}
+                    </button>
+
+                  </div>
+                );
+              })}
+
+            </div>
+          )}
+        </>
+      )}
+
+      {mode === "create" && (
+        <div style={{ background: "#1a0f26", border: `1px solid ${isVip ? "#ffd94d" : "#3a2a4a"}`, borderRadius: 10, padding: 16, maxWidth: 480 }}>
+          {!isVip && (
+            <div style={{ background: "#3a1010", border: "1px solid #ff6b6b55", borderRadius: 8, padding: 10, marginBottom: 12, color: "#ff9d9d", fontSize: 12 }}>
+              ✦ Anunciar no mercado é exclusivo VIP. Compre um <b>Livro VIP 30d/60d</b> na Loja para liberar.
+            </div>
+          )}
+          <div style={{ color: "#ffd94d", fontWeight: 800, fontSize: 14, marginBottom: 10 }}>Novo anúncio</div>
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Item</label>
+          <select value={selItem} onChange={(e) => { const v = e.target.value; setSelItem(v); if (isStoneId(v)) setSelQty(STONE_PACK_SIZE); }}
+            style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }}>
+            {Object.keys(npcPrices).map((id) => (
+              <option key={id} value={id}>{LABELS[id] ?? id} (tenho {items[id] ?? 0})</option>
+            ))}
+          </select>
+          {isStoneId(selItem) && STONE_CHEST[selItem] && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12, background: "linear-gradient(180deg,#2a1a3e,#160b24)", border: "1px solid #ffd94d66", borderRadius: 10, padding: 10, marginBottom: 10 }}>
+              <img src={STONE_CHEST[selItem]} alt="" width={64} height={64} style={{ filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.7))" }} />
+              <div>
+                <div style={{ color: "#ffd94d", fontWeight: 900, fontSize: 13 }}>Baú de {LABELS[selItem]}</div>
+                <div style={{ color: "#c8b8d0", fontSize: 11 }}>Pack mínimo <b style={{ color: "#7dffbe" }}>{STONE_PACK_SIZE}</b> stones — pode anunciar mais.</div>
+              </div>
+            </div>
+          )}
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Quantidade {isStoneId(selItem) && <span style={{ color: "#8a7a9c" }}>(mín. {STONE_PACK_SIZE} para stones)</span>}</label>
+          <input type="number" min={isStoneId(selItem) ? STONE_PACK_SIZE : 1} max={99999} value={selQty}
+            onChange={(e) => {
+              const raw = Math.max(1, parseInt(e.target.value) || 1);
+              setSelQty(isStoneId(selItem) ? Math.max(STONE_PACK_SIZE, raw) : raw);
+            }}
+            style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }} />
+
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Moeda</label>
+          <select value={selCurrency} onChange={(e) => setSelCurrency(e.target.value as any)}
+            style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }}>
+            <option value="gold">💰 Ouro</option>
+            <option value="crystal">💎 Cristal</option>
+            <option value="safira">💚 Safira Verde</option>
+          </select>
+          <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Preço total ({CUR_LABEL[selCurrency]})</label>
+          <input type="number" min={1} value={selPrice} onChange={(e) => setSelPrice(Math.max(1, parseInt(e.target.value) || 1))}
+            style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 12 }} />
+          {(() => {
+            const stoneQty = isStoneId(selItem) ? Math.max(STONE_PACK_SIZE, selQty) : selQty;
+            const belowMin = isStoneId(selItem) && stoneQty < STONE_PACK_SIZE;
+            const noStock = (items[selItem] ?? 0) < stoneQty;
+            const disabled = !isVip || belowMin || noStock;
+            return (
+              <button disabled={disabled}
+                onClick={async () => { const ok = await onList(selItem, stoneQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
+                style={{ width: "100%", background: disabled ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer" }}>
+                {!isVip ? "🔒 VIP necessário" : belowMin ? `Mínimo ${STONE_PACK_SIZE} stones` : noStock ? `Precisa de ${stoneQty}× ${LABELS[selItem] ?? selItem}` : `Publicar anúncio (${stoneQty}x)`}
+              </button>
+            );
+          })()}
+
+
+        </div>
+      )}
+
+      {mode === "npc" && (
+        <>
+          <div style={{ color: "#c8a878", fontSize: 12, marginBottom: 10, fontStyle: "italic" }}>Venda rápida ao NPC — preço fixo, sem esperar comprador.</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+            {Object.keys(npcPrices).map((id) => {
+              const have = items[id] ?? 0;
+              const price = npcPrices[id];
+              const disabled = have <= 0;
+              return (
+                <div key={id} style={{ background: "#1a0f26", border: `1px solid ${disabled ? "#3a2a4a" : "#ff9d3d66"}`, borderRadius: 10, padding: 12, opacity: disabled ? 0.55 : 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <div style={{ fontSize: 22 }}>{ICONS[id] ?? "📦"}</div>
+                    <div>
+                      <div style={{ color: "#f5cf6b", fontWeight: 800, fontSize: 13 }}>{LABELS[id] ?? id}</div>
+                      <div style={{ color: "#8a7a9c", fontSize: 11 }}>Estoque: <b style={{ color: "#c8b8d0" }}>{have}</b></div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, color: "#c8b8d0", marginBottom: 8 }}>NPC: <b style={{ color: "#ff9d3d" }}>{price} ouro / un.</b></div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button disabled={disabled} onClick={() => onNpcSell(id, 1)}
+                      style={{ flex: 1, background: disabled ? "#333" : "linear-gradient(180deg,#ff9d3d,#8b4a10)", color: "#0e0818", border: "none", borderRadius: 6, padding: "6px 0", fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer", fontSize: 12 }}>
+                      Vender 1
+                    </button>
+                    <button disabled={disabled || have < 10} onClick={() => onNpcSell(id, 10)}
+                      style={{ flex: 1, background: (disabled || have < 10) ? "#333" : "#8b4a10", color: "#fff", border: "none", borderRadius: 6, padding: "6px 0", fontWeight: 800, cursor: (disabled || have < 10) ? "not-allowed" : "pointer", fontSize: 12 }}>
+                      Vender 10
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+
+function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: number; src: string | undefined }) {
+
+  const base = SPECIES_BASE[pet.species];
+  const maxHp = calcIdleMaxHp(pet);
+  const hpPct = Math.max(0, (currentHp / maxHp) * 100);
+  const xpNeeded = 100 + pet.level * 20;
+  const xp = pet.xp ?? 0;
+  const xpPct = Math.min(100, (xp / xpNeeded) * 100);
+  const now = Date.now();
+  const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
+  const energy = petCurrentEnergy(pet, now);
+  const msFull = petMsToFull(pet, now);
+  const crit = Math.round(Math.min(60, 5 + pet.level * 0.3 + (((pet.ascensionStats as Record<string, number> | undefined)?.crit) ?? 0) * 0.5) * 10) / 10;
+
+  const rarityColor: Record<string, string> = {
+    common: "#a0b4c8", uncommon: "#7ef27a", rare: "#6bd4ff",
+    epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff7ac0", mythic_shiny: "#fff28a",
+  };
+  const rColor = rarityColor[pet.rarity] ?? "#f5cf6b";
+
+  return (
+    <div style={{
+      position: "relative",
+      background: "linear-gradient(160deg, #1a0f2e 0%, #0b0716 100%)",
+      border: `1px solid ${rColor}55`,
+      borderRadius: 10,
+      padding: 10,
+      boxShadow: `0 6px 18px rgba(0,0,0,0.5), inset 0 0 30px ${rColor}12`,
+      display: "grid",
+      gridTemplateColumns: "150px 1fr",
+      gap: 10,
+      alignItems: "stretch",
+    }}>
+      {/* LEFT: PORTRAIT + LEVEL */}
+      <div style={{
+        display: "flex", flexDirection: "column", gap: 6,
+      }}>
+        <div style={{
+          position: "relative",
+          background: `radial-gradient(circle at 50% 40%, ${rColor}22 0%, #1a0a2e 60%, #0b0510 100%)`,
+          border: `1px solid ${rColor}66`,
+          borderRadius: 8,
+          padding: 6,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          minHeight: 120,
+          boxShadow: `inset 0 0 18px ${rColor}22`,
+        }}>
+          {src && <img src={src} alt="" style={{ width: 96, height: 96, imageRendering: "pixelated", filter: `drop-shadow(0 3px 6px ${rColor}66)` }} />}
+          <div style={{
+            position: "absolute", top: 4, left: 4,
+            fontSize: 8, letterSpacing: 1.5, color: "#8a7a9c", fontWeight: 700,
+          }}>Nº {String(Object.keys(SPECIES_BASE).indexOf(pet.species) + 1).padStart(3, "0")}</div>
+          <div style={{
+            position: "absolute", bottom: 4, right: 4,
+            background: "linear-gradient(180deg,#f5cf6b,#b8862a)",
+            color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
+            fontWeight: 900, fontSize: 10, letterSpacing: 1,
+            boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
+          }}>LV {pet.level}</div>
+        </div>
+        <div style={{
+          padding: "4px 6px", fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+          color: "#0b0510", background: rColor, borderRadius: 4, textAlign: "center",
+        }}>{base.rarity.toUpperCase()}</div>
+      </div>
+
+      {/* RIGHT: NAME + BARS + STATS */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
+        <div style={{
+          fontSize: 18, fontWeight: 900, color: rColor,
+          textShadow: `1px 1px 0 #000, 0 0 10px ${rColor}55`,
+          letterSpacing: 1.5, lineHeight: 1,
+        }}>{pet.species.replace(/_/g, " ").toUpperCase()}</div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <StatBar label="HP" value={Math.floor(currentHp)} max={maxHp} pct={hpPct} color="#5ec26a" />
+          <StatBar label="EXP" value={xp} max={xpNeeded} pct={xpPct} color="#6bd4ff" />
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 2 }}>
+              <span style={{ color: "#c8b8d0", fontWeight: 700, letterSpacing: 1 }}>⚡ ENERGIA</span>
+              <span style={{ color: "#8fd0ff", fontWeight: 700 }}>{infinite ? "∞ MÍTICO" : `${energy}/100${msFull > 0 ? " · " + fmtMS(msFull) : ""}`}</span>
+            </div>
+            <div style={{ height: 8, background: "#0e1a2e", borderRadius: 3, border: "1px solid rgba(0,0,0,0.6)" }}>
+              <div style={{
+                width: `${infinite ? 100 : energy}%`, height: "100%", borderRadius: 3,
+                background: energy > 30 ? "linear-gradient(90deg,#3b7fd6,#6cb6ff)" : "linear-gradient(90deg,#c74a1a,#ff9a5a)",
+              }} />
+            </div>
+          </div>
+        </div>
+
+        {/* STATS ROW */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+          <StatCell label="ATK" value={base.atk} />
+          <StatCell label="DEF" value={base.def} />
+          <StatCell label="SPA" value={base.spa} />
+          <StatCell label="SPD" value={base.spd} />
+          <StatCell label="VEL" value={base.spe} />
+          <StatCell label="HP" value={maxHp} />
+          <StatCell label="CRIT" value={crit} />
+        </div>
+
+        {pet.ascensionStats && Object.keys(pet.ascensionStats).length > 0 && (
+          <div style={{
+            background: "linear-gradient(180deg, rgba(20,40,25,0.7), rgba(11,20,14,0.7))",
+            border: "1px solid rgba(126,242,122,0.35)",
+            borderRadius: 6, padding: "5px 7px",
+          }}>
+            <div style={{ color: "#7ef27a", fontSize: 9, fontWeight: 900, letterSpacing: 1.5, marginBottom: 4 }}>✨ ASCENSÃO</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+              {(["hp","atk","def","spa","spd","spe","crit"] as const).map((k) => {
+                const v = (pet.ascensionStats as Record<string, number>)[k];
+                if (!v) return null;
+                const lbl: Record<string,string> = { hp:"HP", atk:"ATK", def:"DEF", spa:"SPA", spd:"SPD", spe:"VEL", crit:"CRIT" };
+                return <StatCell key={k} label={`+${lbl[k]}`} value={v} />;
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+      {/* Portals moved to top-level for maximum reliability */}
+    </div>
+  );
+}
+function StatBar({ label, value, max, pct, color }: { label: string; value: number; max: number; pct: number; color: string }) {
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 2 }}>
+        <span style={{ color: "#c8b8d0", fontWeight: 700, letterSpacing: 1 }}>{label}</span>
+        <span style={{ color: "#f5cf6b", fontWeight: 700 }}>{value}/{max}</span>
+      </div>
+      <div style={{ height: 8, background: "#2a0808", borderRadius: 3, border: "1px solid rgba(0,0,0,0.6)" }}>
+        <div style={{
+          width: `${pct}%`, height: "100%", borderRadius: 3,
+          background: `linear-gradient(90deg, ${color}cc, ${color})`,
+          boxShadow: `0 0 6px ${color}66`,
+          transition: "width 300ms",
+        }} />
+      </div>
+    </div>
+  );
+}
+function StatCell({ label, value }: { label: string; value: number }) {
+  return (
+    <div style={{
+      background: "linear-gradient(180deg, #1a0f26, #0b0510)",
+      border: "1px solid rgba(245,207,107,0.22)",
+      borderRadius: 4, padding: "3px 4px", textAlign: "center",
+    }}>
+      <div style={{ fontSize: 8, color: "#8a7a9c", letterSpacing: 1, fontWeight: 700 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 900, color: "#f3e5c5", textShadow: "1px 1px 0 #000" }}>{value}</div>
+    </div>
+  );
+}
+
+
+// ===== Descrições curtas por raridade (fallback) e por espécie =====
+const SPECIES_LORE: Partial<Record<Species, string>> = {
+  charmander: "Um lagarto de fogo curioso. A chama em sua cauda revela seu ânimo — cresce quando saudável e feliz.",
+  charmeleon: "Mais feroz e territorial, seu fogo já queima florestas inteiras se não for controlado.",
+  charizard: "Poderoso dragão de fogo. Sua chama derrete rochas e voa acima das nuvens com facilidade.",
+  bulbasaur: "Carrega uma semente nas costas que absorve luz solar para crescer aos poucos.",
+  ivysaur: "A semente floresceu em um botão pesado que anuncia sua próxima evolução.",
+  venusaur: "Sua flor libera aromas relaxantes; é conhecido por sua paciência e imensa força.",
+  squirtle: "Esconde-se em seu casco quando ameaçado e dispara jatos d'água precisos.",
+  wartortle: "Sua cauda peluda é sinal de longevidade — símbolo de sabedoria e sorte.",
+  blastoise: "Canhões d'água de alta pressão em seu casco podem furar aço grosso.",
+  pikachu: "Mochila elétrica ambulante. Solta faíscas quando surpreso ou emocionado.",
+  mewtwo: "Criado em laboratório com propósitos bélicos — sua mente é uma tempestade psíquica.",
+  mew: "Considerado ancestral de todos os Pokémon. Aparece somente para corações puros.",
+  lucario: "Sente e manipula a aura ao seu redor; capaz de prever movimentos antes que aconteçam.",
+};
+const RARITY_LORE: Partial<Record<Rarity, string>> = {
+  common: "Um companheiro leal — comum, mas cheio de potencial nas mãos certas.",
+  uncommon: "Um pouco acima da média. Boa base para longas jornadas.",
+  rare: "Raro de se encontrar — atrai olhares por onde passa.",
+  epic: "Épico em batalha, temido por treinadores iniciantes.",
+  legendary: "Um lendário — poucos treinadores têm o privilégio de encontrá-lo.",
+  mythic: "Ser mítico e atemporal. Sua presença altera o curso do combate.",
+  mythic_shiny: "Mítico brilhante — uma variante quase impossível de existir.",
+};
+function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) {
+  const lore = SPECIES_LORE[species] ?? RARITY_LORE[rarity] ?? "Um Pokémon único, com história ainda por contar.";
+  return (
+    <div style={{
+      marginTop: 14,
+      background: "linear-gradient(135deg, #2a1a3e 0%, #1a0f26 100%)",
+      border: "1px solid rgba(245,207,107,0.35)",
+      borderRadius: 10, padding: 14,
+      boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <span style={{ fontSize: 14 }}>📖</span>
+        <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 12, letterSpacing: 2 }}>SOBRE {species.replace(/_/g, " ").toUpperCase()}</span>
+      </div>
+      <div style={{ fontSize: 13, color: "#e8dbe5", lineHeight: 1.55, fontStyle: "italic" }}>&ldquo;{lore}&rdquo;</div>
+    </div>
+  );
+}
+function ActiveBonuses({ leaderRarity, team, buffs }: {
+  leaderRarity: Rarity;
+  team: { rarity: Rarity }[];
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
+}) {
+  const now = Date.now();
+  const expActive = !!(buffs.expMultUntil && now < buffs.expMultUntil);
+  const goldActive = !!(buffs.goldMultUntil && now < buffs.goldMultUntil);
+  const rarityDropBonus: Partial<Record<Rarity, number>> = {
+    rare: 0.03, epic: 0.07, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
+  };
+  const rarityBonus = rarityDropBonus[leaderRarity] ?? 0;
+  const teamSynergyMap: Partial<Record<Rarity, number>> = {
+    rare: 0.02, epic: 0.05, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
+  };
+  const synergyRarity = team.length >= 2 && team.every((p) => p.rarity === leaderRarity) ? leaderRarity : null;
+  const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
+  const rarityLabel: Record<Rarity, string> = {
+    common: "Comum", uncommon: "Incomum", rare: "Raro", epic: "Épico",
+    legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
+  } as Record<Rarity, string>;
+  const totalXpPct = Math.round(((expActive ? buffs.expMult : 0) + rarityBonus + synergyBonus) * 100);
+  const totalGoldPct = Math.round(((goldActive ? (buffs.goldMult ?? 0) : 0) + rarityBonus + synergyBonus) * 100);
+  const fmt = (ms: number) => {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+    return h > 24 ? `${Math.floor(h / 24)}d` : (h > 0 ? `${h}h ${m}m` : `${m}m`);
+  };
+  // handleSeasonReset foi movido para o escopo pai para ser acessível pelo sistema de códigos e NPC.
+
+  // handleAnciaoInteraction removido daqui para ser movido para o escopo correto
+
+  const Chip = ({ label, value, color, sub }: { label: string; value: string; color: string; sub?: string }) => (
+    <div style={{
+      background: `linear-gradient(180deg, ${color}22, ${color}08)`,
+      border: `1px solid ${color}66`, borderRadius: 8, padding: "8px 10px",
+      minWidth: 110, flex: "1 1 120px",
+    }}>
+      <div style={{ fontSize: 10, color: "#c8b8d0", letterSpacing: 1 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 900, color, textShadow: "1px 1px 0 #000" }}>{value}</div>
+      {sub && <div style={{ fontSize: 9, color: "#8a7a9c", marginTop: 2 }}>{sub}</div>}
+    </div>
+  );
+  // Preview de sinergia por tier
+  const synergyRow = (["rare","epic","legendary","mythic"] as Rarity[]).map((r) => ({
+    r, pct: Math.round((teamSynergyMap[r] ?? 0) * 100),
+    active: synergyRarity === r,
+  }));
+  return (
+    <div style={{
+      marginTop: 14,
+      background: "#1a0f26", border: "1px solid rgba(245,207,107,0.15)",
+      borderRadius: 10, padding: 12,
+    }}>
+      <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 900, letterSpacing: 2, marginBottom: 8 }}>✨ BÔNUS ATIVOS</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <Chip label="EXP TOTAL" value={`+${totalXpPct}%`} color="#6bd4ff"
+          sub={`${expActive ? `Livro +${Math.round(buffs.expMult * 100)}% (${fmt(buffs.expMultUntil! - now)})` : "Sem livro"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
+        <Chip label="OURO TOTAL" value={`+${totalGoldPct}%`} color="#ffd94d"
+          sub={`${goldActive ? `VIP +${Math.round((buffs.goldMult ?? 0) * 100)}% (${fmt(buffs.goldMultUntil! - now)})` : "Sem VIP"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
+        <Chip label="DROP ITENS" value={`+${Math.round((rarityBonus + synergyBonus) * 100)}%`} color="#c084fc"
+          sub={`Líder ${leaderRarity} +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
+        <Chip label="ATK / DEF" value={`+${Math.round(buffs.atk * 100)}% / -${Math.round(buffs.def * 100)}%`} color="#ff7a3d"
+          sub={`Livros permanentes de ATK / DEF`} />
+      </div>
+      <div style={{
+        marginTop: 10, padding: "8px 10px",
+        background: synergyBonus > 0 ? "linear-gradient(180deg,#2a1a3a,#180d24)" : "#150a1e",
+        border: `1px solid ${synergyBonus > 0 ? "#c084fc66" : "rgba(255,255,255,0.06)"}`,
+        borderRadius: 8,
+      }}>
+        <div style={{ fontSize: 10, letterSpacing: 1, color: "#c8b8d0", marginBottom: 6 }}>
+          🤝 SINERGIA DE TIME {synergyRarity ? `— ativo: ${rarityLabel[synergyRarity]} +${Math.round(synergyBonus * 100)}%` : "— monte um time todo da mesma tier"}
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {synergyRow.map(({ r, pct, active }) => (
+            <div key={r} style={{
+              padding: "4px 8px", borderRadius: 6,
+              background: active ? "#c084fc22" : "#0f0818",
+              border: `1px solid ${active ? "#c084fc" : "rgba(255,255,255,0.08)"}`,
+              fontSize: 10, color: active ? "#e9d5ff" : "#8a7a9c", fontWeight: 700,
+            }}>
+              {rarityLabel[r]} · +{pct}%
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Componente AnciaoGlacialDialog foi movido para o final do arquivo para evitar duplicidade.
+function OldAnciaoGlacialDialog(props: any) { return null; }
+
+// Limpeza de resíduo de código.
+
+
+// ============ Governante NPC — cutscene de diálogo premium ============
+function GovernanteDialog(props: {
+  open: boolean;
+  cards: number;
+  plusCards?: number;
+  rioluCards?: number;
+  currentEggs: number;
+  onClose: () => void;
+  onExchange: (qty: number) => void;
+  onExchangePlus?: (qty: number) => void;
+  onExchangeRiolu?: (qty: number) => void;
+}) {
+  const { open, cards, plusCards = 0, rioluCards = 0, currentEggs, onClose, onExchange, onExchangePlus, onExchangeRiolu } = props;
+  const [step, setStep] = useState(0);
+  useEffect(() => { if (open) setStep(0); }, [open]);
+  if (!open) return null;
+  const maxByCap = Math.max(0, 6 - currentEggs);
+  const canGive = Math.min(cards, maxByCap);
+  const canGivePlus = plusCards;
+  const canGiveRiolu = rioluCards;
+  const lines = [
+    "Ah... um treinador digno enfim cruza meu salão.",
+    plusCards > 0
+      ? `Percebo o brilho de ${plusCards} Carta${plusCards > 1 ? "s" : ""} Suprema${plusCards > 1 ? "s" : ""} Plus. Cada uma materializa um Black Mitic Plus direto na sua Coleção, com 6 traits garantidos.`
+      : cards > 0
+        ? `Vejo em suas mãos ${cards} Carta${cards > 1 ? "s" : ""} Lendária${cards > 1 ? "s" : ""}. Cada uma vale um Black Mitic Plus Egg.`
+        : "Você não porta nenhuma Carta... volte quando obtiver ao menos uma.",
+    (canGive > 0 || canGivePlus > 0)
+      ? `Posso materializar ${canGivePlus > 0 ? `${canGivePlus} Pokémon PLUS ✦ na Coleção` : ""}${canGivePlus > 0 && canGive > 0 ? " ou " : ""}${canGive > 0 ? `${canGive} ovo${canGive > 1 ? "s" : ""} comum` : ""}.`
+      : (cards > 0 || plusCards > 0)
+        ? "Mas você já carrega o máximo de 6 ovos comuns. Choque os primeiros antes de retornar."
+        : "Volte quando estiver pronto.",
+  ];
+  const isLast = step >= lines.length - 1;
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 20000,
+        background: "radial-gradient(ellipse at center, rgba(30,10,60,0.85), rgba(0,0,0,0.95))",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        padding: "0 0 40px 0", backdropFilter: "blur(4px)",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(720px, 94vw)",
+          background: "linear-gradient(180deg, rgba(40,20,70,0.98), rgba(15,5,30,0.98))",
+          border: "3px solid transparent",
+          borderImage: "linear-gradient(135deg, #ffd44a, #a066ff, #ffd44a) 1",
+          borderRadius: 14,
+          boxShadow: "0 0 40px rgba(160,80,255,0.55), inset 0 0 20px rgba(255,212,74,0.15)",
+          padding: 16, display: "flex", gap: 16, color: "#f5eaff",
+          position: "relative", animation: "govFadeIn 0.35s ease-out",
+        }}
+      >
+        <style>{`
+          @keyframes govFadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
+          @keyframes govGlow { 0%,100% { filter: drop-shadow(0 0 8px #ffd44a);} 50% { filter: drop-shadow(0 0 20px #a066ff);} }
+        `}</style>
+        {/* Retrato */}
+        <div style={{
+          flex: "0 0 160px", height: 200,
+          background: "linear-gradient(180deg, #2a1550, #150828)",
+          border: "2px solid #ffd44a", borderRadius: 10,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          overflow: "hidden", animation: "govGlow 3s ease-in-out infinite",
+        }}>
+          <img
+            src={npcGovernanteUrl}
+            alt="Governante"
+            style={{ width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated" }}
+          />
+        </div>
+        {/* Conteúdo */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{
+            fontSize: 20, fontWeight: 900, letterSpacing: 2,
+            color: "#ffd44a", textShadow: "0 0 10px rgba(255,212,74,0.6)",
+          }}>
+            👑 GOVERNANTE
+            <span style={{ marginLeft: 8, fontSize: 10, color: "#c58bff", letterSpacing: 3 }}>SENHOR DAS CARTAS</span>
+          </div>
+          <div style={{
+            background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,212,74,0.35)",
+            borderRadius: 8, padding: 14, minHeight: 90, fontSize: 14, lineHeight: 1.5,
+            fontStyle: "italic", color: "#f5eaff",
+          }}>
+            "{lines[step]}"
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ fontSize: 11, color: "#c58bff" }}>
+              Cartas: <b style={{ color: "#ffd44a" }}>{cards}</b> · Plus: <b style={{ color: "#ffd44a" }}>{plusCards}</b> · Riolu: <b style={{ color: "#7ec4ff" }}>{rioluCards}</b> · Ovos atuais: <b style={{ color: "#ffd44a" }}>{currentEggs}/6</b>
+            </div>
+            <div style={{ flex: 1 }} />
+            {!isLast ? (
+              <button
+                onClick={() => setStep((s) => s + 1)}
+                style={{
+                  padding: "8px 16px", background: "linear-gradient(180deg, #a066ff, #6b28c8)",
+                  border: "1px solid #c58bff", borderRadius: 8, color: "#fff",
+                  fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                }}
+              >CONTINUAR ▸</button>
+            ) : (canGive > 0 || canGivePlus > 0 || canGiveRiolu > 0) ? (
+              <>
+                <button
+                  onClick={onClose}
+                  style={{
+                    padding: "8px 14px", background: "rgba(40,20,60,0.8)",
+                    border: "1px solid #5a3a7a", borderRadius: 8, color: "#c58bff",
+                    fontWeight: 600, cursor: "pointer", fontSize: 11,
+                  }}
+                >Agora não</button>
+                {canGivePlus > 0 && onExchangePlus && (
+                  <button
+                    onClick={() => { onExchangePlus(canGivePlus); onClose(); }}
+                    style={{
+                      padding: "10px 18px",
+                      background: "linear-gradient(180deg, #d066ff, #4a1080)",
+                      border: "1px solid #ffe988", borderRadius: 8, color: "#fff",
+                      fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                      boxShadow: "0 0 18px rgba(208,102,255,0.85)",
+                    }}
+                  >✦ PLUS {canGivePlus} POKÉMON{canGivePlus > 1 ? "S" : ""} NA COLEÇÃO</button>
+                )}
+                {canGiveRiolu > 0 && onExchangeRiolu && (
+                  <button
+                    onClick={() => { onExchangeRiolu(canGiveRiolu); onClose(); }}
+                    style={{
+                      padding: "10px 18px",
+                      background: "linear-gradient(180deg, #1a1a4a, #050515)",
+                      border: "1px solid #7ec4ff", borderRadius: 8, color: "#e0f0ff",
+                      fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                      boxShadow: "0 0 20px rgba(126,196,255,0.9), inset 0 0 12px rgba(160,80,255,0.4)",
+                    }}
+                  >🐺✦ RIOLU BLACK MITIC BRILHANT PLUS ×{canGiveRiolu}</button>
+                )}
+                {canGive > 0 && (
+                  <button
+                    onClick={() => { onExchange(canGive); onClose(); }}
+                    style={{
+                      padding: "10px 18px",
+                      background: "linear-gradient(180deg, #ffd44a, #b88010)",
+                      border: "1px solid #ffe988", borderRadius: 8, color: "#2a1500",
+                      fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                      boxShadow: "0 0 14px rgba(255,212,74,0.7)",
+                    }}
+                  >✦ RECEBER {canGive} OVO{canGive > 1 ? "S" : ""}</button>
+                )}
+              </>
+            ) : (
+              <button
+                onClick={onClose}
+                style={{
+                  padding: "10px 18px", background: "linear-gradient(180deg, #a066ff, #6b28c8)",
+                  border: "1px solid #c58bff", borderRadius: 8, color: "#fff",
+                  fontWeight: 700, cursor: "pointer", fontSize: 12, letterSpacing: 1,
+                }}
+              >Despedir-se</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+
+// ============ Ancião Glacial — NPC de Reset de Temporada ============
+function AnciaoGlacialDialog({
+  open,
+  onClose,
+  onConfirm,
+  forced = false,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  forced?: boolean;
+}) {
+  const [step, setStep] = useState(0);
+  const [isResetting, setIsResetting] = useState(false);
+
+  useEffect(() => { if (open) setStep(0); }, [open]);
+  if (!open) return null;
+
+  const lines = [
+    "Saudações, viajante. O gelo eterno guardava sua chegada.",
+    "Eu sou o Ancião Glacial. Sou eu quem abre o caminho para quem busca um novo começo.",
+    "Atravesse minha bênção e eu o levarei ao Vale Dourado — terra verdejante de piso de ouro.",
+  ];
+
+  const handleConfirm = async () => {
+    setIsResetting(true);
+    try {
+      await onConfirm();
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const isLast = step >= lines.length - 1;
+
+  return createPortal(
+    <div
+      onClick={forced ? undefined : onClose}
+
+      style={{
+        position: "fixed", inset: 0, zIndex: 20000,
+        background: "radial-gradient(ellipse at center, rgba(10,30,60,0.85), rgba(0,0,0,0.95))",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        padding: "0 0 40px 0", backdropFilter: "blur(6px)",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(720px, 94vw)",
+          background: "linear-gradient(180deg, rgba(20,40,70,0.98), rgba(5,15,30,0.98))",
+          border: "3px solid transparent",
+          borderImage: "linear-gradient(135deg, #c9b8ff, #1e40af, #c9b8ff) 1",
+          borderRadius: 14,
+          boxShadow: "0 0 50px rgba(125,211,252,0.4), inset 0 0 20px rgba(125,211,252,0.1)",
+          padding: 20, display: "flex", gap: 20, color: "#e0f2fe",
+        }}
+      >
+        <div style={{ flexShrink: 0, position: "relative" }}>
+           <img 
+             src="/npc-anciao-glacial.png" 
+             alt="Ancião Glacial" 
+             style={{ 
+               width: 120, height: 120, imageRendering: "pixelated",
+               filter: "drop-shadow(0 0 10px rgba(125,211,252,0.6))"
+             }} 
+           />
+           <div style={{
+             position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)",
+             background: "rgba(30,58,138,0.9)", border: "1px solid #c9b8ff", borderRadius: 4,
+             padding: "2px 8px", fontSize: 10, fontWeight: 900, color: "#fff", whiteSpace: "nowrap"
+           }}>ANCIÃO GLACIAL</div>
+        </div>
+
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{
+            fontSize: 14, fontWeight: 800, color: "#c9b8ff", letterSpacing: 1.5,
+            borderBottom: "1px solid rgba(125,211,252,0.2)", paddingBottom: 6
+          }}>RITUAL DA NOVA JORNADA</div>
+
+          <div style={{
+            fontSize: 16, lineHeight: 1.6, minHeight: 80, color: "#fff",
+            textShadow: "1px 1px 2px rgba(0,0,0,0.5)"
+          }}>
+            {lines[step]}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", marginTop: 10 }}>
+            <div style={{ flex: 1 }} />
+            {!isLast ? (
+              <button
+                onClick={() => setStep(s => s + 1)}
+                style={{
+                  padding: "10px 20px", background: "linear-gradient(180deg, #c9b8ff, #1e40af)",
+                  border: "1px solid #fff", borderRadius: 8, color: "#fff",
+                  fontWeight: 800, cursor: "pointer", fontSize: 13, letterSpacing: 1,
+                  boxShadow: "0 0 15px rgba(125,211,252,0.5)"
+                }}
+              >OUVIR MAIS ▸</button>
+            ) : (
+              <div style={{ display: "flex", gap: 12 }}>
+                {!forced && (
+                <button
+                  onClick={onClose}
+                  style={{
+                    padding: "10px 20px", background: "rgba(30,58,138,0.4)",
+                    border: "1px solid #c9b8ff66", borderRadius: 8, color: "#c9b8ff",
+                    fontWeight: 700, cursor: "pointer", fontSize: 13
+                  }}
+                  disabled={isResetting}
+                >RECUAR</button>
+                )}
+
+                <button
+                  onClick={handleConfirm}
+                  style={{
+                    padding: "12px 24px",
+                    background: "linear-gradient(180deg, #c9b8ff, #1e40af)",
+                    border: "1px solid #fff", borderRadius: 8, color: "#fff",
+                    fontWeight: 900, cursor: "pointer", fontSize: 14, letterSpacing: 1,
+                    boxShadow: "0 0 20px rgba(125,211,252,0.8)",
+                  }}
+                  disabled={isResetting}
+                >
+                  {isResetting ? "ATRAVESSANDO..." : "✦ ATRAVESSAR A BÊNÇÃO"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+
+
+
+
+
+
