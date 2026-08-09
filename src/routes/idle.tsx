@@ -8322,11 +8322,22 @@ function IdlePage() {
             <div style={{
               position: 'absolute', inset: '0', borderRadius: '50%',
               backgroundImage: `url(${IDLE_MAPS[idle.currentMap].bg})`,
-              backgroundSize: `${(WORLD_W / 180) * 100 * 2}%`, // Scaled for radar view
-              backgroundPosition: `${(trainerPos.x / WORLD_W) * 100}% ${(trainerPos.y / WORLD_H) * 100}%`,
+              backgroundSize: '100% 100%', // Show full map
+              backgroundPosition: 'center',
               filter: 'brightness(0.75) contrast(1.1)',
-              transition: 'background-position 0.1s linear, background-image 0.5s ease',
-              transform: 'scale(1.1)' // Small overscan to hide edges
+              transition: 'background-image 0.5s ease',
+            }} />
+
+            {/* Indicator of player position on the small map */}
+            <div style={{
+              position: 'absolute',
+              width: '6px', height: '6px',
+              background: '#f5cf6b', borderRadius: '50%',
+              boxShadow: '0 0 8px #f5cf6b',
+              left: `${(trainerPos.x / WORLD_W) * 100}%`,
+              top: `${(trainerPos.y / WORLD_H) * 100}%`,
+              transform: 'translate(-50%, -50%)',
+              zIndex: 11
             }} />
 
             {/* Grid Overlay */}
