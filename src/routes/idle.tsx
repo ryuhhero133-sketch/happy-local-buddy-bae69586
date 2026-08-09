@@ -3649,18 +3649,21 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
-  const viewW = viewSize.w / zoom;
-  const viewH = viewSize.h / zoom;
+  // Zoom base de 0.7 para dar uma visão mais ampla, similar ao zoom de 75% no navegador
+  const BASE_ZOOM = 0.7;
+  const effectiveZoom = zoom * BASE_ZOOM;
+  const viewW = viewSize.w / effectiveZoom;
+  const viewH = viewSize.h / effectiveZoom;
   const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
   const camY = Math.max(0, Math.min(Math.max(0, WORLD_H - viewH), trainerPos.y - viewH / 2));
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
-  const renderCamX = Math.round(camX * zoom) / zoom;
-  const renderCamY = Math.round(camY * zoom) / zoom;
-  camViewRef.current = { camX: renderCamX, camY: renderCamY, zoom };
-  const renderTrainerX = Math.round(trainerPos.x * zoom) / zoom;
-  const renderTrainerY = Math.round(trainerPos.y * zoom) / zoom;
-  const renderFollowerX = Math.round(followerState.x * zoom) / zoom;
-  const renderFollowerY = Math.round(followerState.y * zoom) / zoom;
+  const renderCamX = Math.round(camX * effectiveZoom) / effectiveZoom;
+  const renderCamY = Math.round(camY * effectiveZoom) / effectiveZoom;
+  camViewRef.current = { camX: renderCamX, camY: renderCamY, zoom: effectiveZoom };
+  const renderTrainerX = Math.round(trainerPos.x * effectiveZoom) / effectiveZoom;
+  const renderTrainerY = Math.round(trainerPos.y * effectiveZoom) / effectiveZoom;
+  const renderFollowerX = Math.round(followerState.x * effectiveZoom) / effectiveZoom;
+  const renderFollowerY = Math.round(followerState.y * effectiveZoom) / effectiveZoom;
 
   // ---- Offline catch-up (uma vez ao montar) ----
   useEffect(() => {
@@ -7231,7 +7234,7 @@ function IdlePage() {
           position: "absolute",
           left: 0, top: 0,
           width: WORLD_W, height: WORLD_H,
-          transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
+          transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
           transformOrigin: "0 0",
           transition: "none",
           backgroundColor: viewportBg,
@@ -8680,7 +8683,7 @@ function IdlePage() {
           position: "absolute",
           left: 0, top: 0,
           width: WORLD_W, height: WORLD_H,
-          transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
+          transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
           transformOrigin: "0 0",
           zIndex: 1,
           pointerEvents: "none",
