@@ -2662,8 +2662,8 @@ function IdlePage() {
   }, []);
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+  const WORLD_W = (idle.currentMap === "deserto_purpura" ? 3840 : 1920) * 1.5;
+  const WORLD_H = (idle.currentMap === "deserto_purpura" ? 3840 : 1920) * 1.5;
               type GateDef = {
                 key: string;
                 target: IdleMapId;
@@ -3651,7 +3651,7 @@ function IdlePage() {
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
   // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
-  const BASE_ZOOM = 0.2;
+  const BASE_ZOOM = 0.45;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
