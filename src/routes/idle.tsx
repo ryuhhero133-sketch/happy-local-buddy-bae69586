@@ -10010,6 +10010,7 @@ function IdlePage() {
               }}>
                 {showAutoSettings && (
 
+
                 <div style={{
                   background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
                   borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
