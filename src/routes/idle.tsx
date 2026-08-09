@@ -10086,13 +10086,11 @@ function IdlePage() {
                       fontSize: 11, fontWeight: 700, letterSpacing: 1,
                     }}
                   >
-                    🚪 IR PARA TELA DE LOGIN
                   </button>
                 </div>
               </div>
             );
           })()}
-                items={idle.items ?? {}}
                 gold={idle.bank.gold}
                 crystals={idle.bank.crystals}
                 safiras={idle.items?.safira_verde ?? 0}
@@ -10349,17 +10347,10 @@ function IdlePage() {
           </Panel>
         </div>
         </div>
-    })()}
-
           </Panel>
         </div>
       );
     })()}
-
-
-
-
-
 
 
 
