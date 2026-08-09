@@ -3657,8 +3657,8 @@ function IdlePage() {
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
 
-  // Mapa real preenchido: centralizamos a câmera, mas impedimos que ela mostre áreas fora do mapa
-  // a menos que o mapa seja menor que a visão (o que não deve acontecer com WORLD_W/H = 2000).
+  // Mapa real preenchido: centralizamos a câmera, mas impedimos que ela mostre áreas fora do mapa.
+  // Ajustamos o clamping para que se a visão for maior que o mundo (zoom muito baixo), o mapa não "descole" das bordas.
   const camX = viewW >= WORLD_W ? (WORLD_W - viewW) / 2 : Math.max(0, Math.min(WORLD_W - viewW, trainerPos.x - viewW / 2));
   const camY = viewH >= WORLD_H ? (WORLD_H - viewH) / 2 : Math.max(0, Math.min(WORLD_H - viewH, trainerPos.y - viewH / 2));
 
