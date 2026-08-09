@@ -10091,20 +10091,18 @@ function IdlePage() {
                   <span style={{ fontSize: 18 }}>{(idle.autoBattle?.enabled ?? true) ? "⚔️" : "🛑"}</span>
                   {(idle.autoBattle?.enabled ?? true) ? "BATALHA AUTO: ON" : "BATALHA AUTO: OFF"}
                 </button>
-                </div>
-              )
+              </div>
+            )}
 
-
-          <div style={{
-            position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)",
-
-
+            <div style={{
+              position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)",
               background: "linear-gradient(180deg, rgba(20, 10, 30, 0.95) 0%, rgba(10, 5, 15, 0.98) 100%)",
               border: "1px solid rgba(201, 184, 255, 0.25)",
               borderRadius: 16, display: "flex", alignItems: "center", padding: "6px 20px",
               boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 12px rgba(201, 184, 255, 0.1)",
               zIndex: 1000, pointerEvents: "auto", gap: 14
             }}>
+
               {([
                 { id: "batalha", label: "Chat", icon: "💬" },
                 { id: "pokemon", label: "Pokémon", icon: "🦁" },
@@ -12772,10 +12770,6 @@ function IdlePage() {
   );
 }
 
-
-
-
-}
 
 
 
