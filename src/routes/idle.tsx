@@ -10089,7 +10089,8 @@ function IdlePage() {
                     🚪 IR PARA TELA DE LOGIN
                   </button>
                 </div>
-                </div>
+                )}
+
               )
             })()}
 
