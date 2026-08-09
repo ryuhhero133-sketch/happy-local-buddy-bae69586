@@ -8361,7 +8361,7 @@ function IdlePage() {
             <div style={{
               position: 'absolute', inset: '0', borderRadius: '50%',
               backgroundImage: `url(${IDLE_MAPS[idle.currentMap].bg})`,
-              backgroundSize: '100% 100%', // Show full map
+              backgroundSize: 'cover',
               backgroundPosition: 'center',
               filter: 'brightness(0.75) contrast(1.1)',
               transition: 'background-image 0.5s ease',
