@@ -8205,39 +8205,46 @@ function IdlePage() {
             boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 20px rgba(201, 184, 255, 0.2)",
             position: "relative"
           }}>
-            {/* Minimap Terrain Graphic */}
+            {/* Minimap Terrain Graphic with Game Zoom Awareness */}
             <div style={{ 
               width: "100%", height: "100%", 
-              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl}) center/cover`,
+              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl})`,
+              backgroundPosition: `${(trainerPos.x / WORLD_W) * 100}% ${(trainerPos.y / WORLD_H) * 100}%`,
+              backgroundSize: `${200 / zoom}%`, // Ajusta o zoom do mapa baseado no zoom do jogo
               filter: "brightness(0.6) saturate(1.2) contrast(1.1)",
-              opacity: 0.8
+              opacity: 0.8,
+              transition: "background-position 0.2s ease-out, background-size 0.3s ease-in-out"
             }} />
             
             {/* Markers on Minimap */}
             <div style={{ position: "absolute", inset: 0 }}>
-              {/* Trainer Position (Red Dot) */}
+              {/* Trainer Position (Red Dot) - Fixed Center for Radar Style */}
               <div style={{
                 position: "absolute",
-                left: `${(trainerPos.x / WORLD_W) * 100}%`,
-                top: `${(trainerPos.y / WORLD_H) * 100}%`,
+                left: "50%",
+                top: "50%",
                 width: 10, height: 10, borderRadius: "50%",
                 background: "#ff4b4b", border: "2px solid #fff",
                 boxShadow: "0 0 8px #ff4b4b", zIndex: 2,
                 transform: "translate(-50%, -50%)"
               }} />
               
-              {/* Enemies (Small Yellow Dots) */}
-              {enemies.filter(e => e.hp > 0).map(e => (
-                <div key={e.id} style={{
-                  position: "absolute",
-                  left: `${(e.x / WORLD_W) * 100}%`,
-                  top: `${(e.y / WORLD_H) * 100}%`,
-                  width: 6, height: 6, borderRadius: "50%",
-                  background: "#ffd94d", border: "1px solid #fff",
-                  boxShadow: "0 0 4px #ffd94d", zIndex: 1,
-                  transform: "translate(-50%, -50%)"
-                }} />
-              ))}
+              {/* Enemies (Small Yellow Dots) - Relative to Trainer */}
+              {enemies.filter(e => e.hp > 0).map(e => {
+                const relX = ((e.x - trainerPos.x) / (WORLD_W * 0.25)) * 100 * zoom;
+                const relY = ((e.y - trainerPos.y) / (WORLD_H * 0.25)) * 100 * zoom;
+                return (
+                  <div key={e.id} style={{
+                    position: "absolute",
+                    left: `calc(50% + ${relX}px)`,
+                    top: `calc(50% + ${relY}px)`,
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: "#ffd94d", border: "1px solid #fff",
+                    boxShadow: "0 0 4px #ffd94d", zIndex: 1,
+                    transform: "translate(-50%, -50%)"
+                  }} />
+                );
+              })}
             </div>
 
             {/* Radar Sweep Animation */}
