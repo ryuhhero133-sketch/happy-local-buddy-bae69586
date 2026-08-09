@@ -12888,23 +12888,6 @@ function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React
     </div>
   );
 }
-    <div title={title} style={{
-      display: "inline-flex", alignItems: "center", gap: 6,
-      padding: "5px 10px",
-      background: `linear-gradient(180deg, ${tint}22, rgba(0,0,0,0.35))`,
-      borderLeft: "1px solid rgba(245,207,107,0.25)",
-      borderRight: "1px solid rgba(245,207,107,0.25)",
-      boxShadow: `inset 0 0 10px ${tint}18`,
-    }}>
-      {icon}
-      <span style={{
-        color: tint, fontWeight: 900, fontSize: 12.5,
-        textShadow: "0 1px 0 #000",
-        fontFamily: "'Cinzel', Georgia, serif", letterSpacing: 0.4,
-      }}>{value}</span>
-    </div>
-  );
-}
 
 // ── HUD superior: slot elegante para cada Pokébola
 function BallSlot({ img, count, tint }: { img: string; count: number; tint: string }) {
