@@ -13835,7 +13835,7 @@ function TabOverlay({
                                 }}
                               />
                             ) : (
-                              <ItemPixelIcon id={id} size={52} color={color} />
+                              <ItemPixelIcon id={id} size={68} color={color} />
                             )}
                           </div>
                           <div style={{
