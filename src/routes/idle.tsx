@@ -2661,9 +2661,9 @@ function IdlePage() {
     return () => { window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); };
   }, []);
 
-  // ---- Mundo em pixels + câmera que segue o treinador ----
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+  // Mundo em pixels: aumentamos o tamanho base para garantir proporção em telas ultra-wide.
+  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 2560;
+  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 2560;
               type GateDef = {
                 key: string;
                 target: IdleMapId;
