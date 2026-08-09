@@ -12790,24 +12790,6 @@ function IdlePage() {
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
         document.body
       )}
-    </div>
-    </>
-  );
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
 
 
 
