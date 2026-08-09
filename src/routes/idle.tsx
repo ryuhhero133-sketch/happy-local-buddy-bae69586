@@ -3658,8 +3658,8 @@ function IdlePage() {
 
   // Mapa real preenchido: centralizamos a câmera, mas impedimos que ela mostre áreas fora do mapa
   // a menos que o mapa seja menor que a visão (o que não deve acontecer com WORLD_W/H = 2000).
-  const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
-  const camY = Math.max(0, Math.min(Math.max(0, WORLD_H - viewH), trainerPos.y - viewH / 2));
+  const camX = viewW >= WORLD_W ? (WORLD_W - viewW) / 2 : Math.max(0, Math.min(WORLD_W - viewW, trainerPos.x - viewW / 2));
+  const camY = viewH >= WORLD_H ? (WORLD_H - viewH) / 2 : Math.max(0, Math.min(WORLD_H - viewH, trainerPos.y - viewH / 2));
 
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * effectiveZoom) / effectiveZoom;
