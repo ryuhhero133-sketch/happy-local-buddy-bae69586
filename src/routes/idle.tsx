@@ -8271,7 +8271,8 @@ function IdlePage() {
             <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
           </div>
 
-          <div style={{ 
+          {/* SUA EQUIPE (Coluna Direita) */}
+          <div className="team-panel-hud" style={{ 
             display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
             padding: '12px', background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(10px)',
             borderRadius: '15px', border: '1px solid rgba(201,184,255,0.3)',
@@ -8299,6 +8300,36 @@ function IdlePage() {
                 borderRadius: '6px', padding: '5px', color: '#c9b8ff', fontSize: '10px', fontWeight: 700,
                 cursor: 'pointer', marginTop: '4px'
               }} onClick={() => setTab("pokemon")}>GERENCIAR EQUIPE</button>
+            </div>
+            
+            {/* Botão do Ancião Glacial unificado aqui, um embaixo do outro */}
+            <div style={{ marginTop: 8 }}>
+              <button
+                onClick={handleAnciaoInteraction}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  background: "linear-gradient(180deg, #15803d, #064e3b)",
+                  border: "1px solid #4ade80",
+                  borderRadius: 8,
+                  color: "#fff",
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: 1,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)",
+                  pointerEvents: "auto",
+                  transition: "all 0.2s"
+                }}
+                onMouseOver={(e) => e.currentTarget.style.filter = "brightness(1.2)"}
+                onMouseOut={(e) => e.currentTarget.style.filter = "brightness(1)"}
+              >
+                ❄️ ANCIÃO GLACIAL
+              </button>
             </div>
           </div>
 
