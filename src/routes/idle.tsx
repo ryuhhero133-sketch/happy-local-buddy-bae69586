@@ -8202,14 +8202,14 @@ function IdlePage() {
 
         {/* ============ RIGHT SIDEBAR (FLOATING) ============ */}
         <div style={{
-          position: "fixed", top: 88, right: 12, width: 220,
+          position: "fixed", top: 80, right: 12, width: 160,
           display: "flex", flexDirection: "column", gap: 12,
           zIndex: 900, pointerEvents: "auto",
           alignItems: "flex-end"
         }}>
           {/* Circular Minimap Container */}
           <div style={{
-            width: 220, height: 220, borderRadius: "50%",
+            width: 160, height: 160, borderRadius: "50%",
             background: "rgba(20, 10, 30, 0.9)", border: "3px solid rgba(201, 184, 255, 0.5)",
             display: "grid", placeItems: "center", overflow: "hidden",
             boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 20px rgba(201, 184, 255, 0.2)",
@@ -8267,14 +8267,14 @@ function IdlePage() {
           {/* Vertical Menu */}
           <div style={{
             display: "flex", flexDirection: "column", gap: 8,
-            background: "linear-gradient(180deg, rgba(20, 10, 30, 0.9) 0%, rgba(10, 5, 20, 0.95) 100%)", 
-            borderRadius: 24, width: 80,
-            padding: "10px", border: "1px solid rgba(201, 184, 255, 0.3)",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.6)"
+            background: "rgba(20, 10, 30, 0.8)", 
+            borderRadius: 24, width: 70,
+            padding: "8px", border: "1px solid rgba(201, 184, 255, 0.2)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
+            backdropFilter: "blur(4px)"
           }}>
 
             {([
-              { id: "world", label: "Mundo", icon: "🌍", color: "#6bd4ff" },
               { id: "ranking", label: "Ranking", icon: "🏆", color: "#ffd94d" },
               { id: "events", label: "Evento", icon: "📅", color: "#c9b8ff" },
               { id: "shop", label: "Loja", icon: "💎", color: "#8dfa8d" },
@@ -8284,10 +8284,10 @@ function IdlePage() {
                 key={item.id}
                 onClick={() => {
                   if (item.id === "ranking") setRankOpen(true);
-                  if (item.id === "world") setWorldMapOpen(true);
+                  if (item.id === "shop") setCashShopOpen(true);
                 }}
                 style={{
-                  width: 60, height: 60, borderRadius: 16,
+                  width: 54, height: 54, borderRadius: 14,
                   background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
                   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                   cursor: "pointer", gap: 2, transition: "transform 0.2s"
@@ -8295,8 +8295,8 @@ function IdlePage() {
                 onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
                 onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
               >
-                <span style={{ fontSize: 20 }}>{item.icon}</span>
-                <span style={{ fontSize: 8, fontWeight: 900, color: item.color, letterSpacing: 0.5 }}>{item.label.toUpperCase()}</span>
+                <span style={{ fontSize: 18 }}>{item.icon}</span>
+                <span style={{ fontSize: 7, fontWeight: 900, color: item.color, letterSpacing: 0.5 }}>{item.label.toUpperCase()}</span>
               </button>
             ))}
           </div>
