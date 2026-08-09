@@ -8110,9 +8110,9 @@ function IdlePage() {
       }}>
 
         {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
-        <div style={{ 
-          position: 'fixed', top: '75px', left: '20px', width: '240px', 
-          display: "flex", flexDirection: "column", gap: 6, zIndex: 1005,
+        <div className="trainer-profile-hud" style={{ 
+          position: 'fixed', top: '75px', left: '20px', width: '260px', 
+          display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
           {(() => {
