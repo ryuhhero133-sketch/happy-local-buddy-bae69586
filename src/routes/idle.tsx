@@ -3651,7 +3651,7 @@ function IdlePage() {
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
   // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
-  const BASE_ZOOM = 0.15;
+  const BASE_ZOOM = 0.2;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
@@ -8149,7 +8149,7 @@ function IdlePage() {
 
         {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
         <div className="trainer-profile-hud" style={{ 
-          position: 'fixed', top: '75px', left: '20px', width: '260px', 
+          position: 'fixed', top: '75px', left: '20px', width: '320px', 
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
@@ -9101,7 +9101,7 @@ function IdlePage() {
                   style={{
                     position: "absolute",
                     left: npcX - 60, top: npcY - 90,
-                    width: 120, height: 160,
+                    width: 170, height: 230,
                     cursor: "pointer",
                     zIndex: Math.round(npcY),
                     display: "flex", flexDirection: "column", alignItems: "center",
@@ -9109,7 +9109,7 @@ function IdlePage() {
                   }}
                 >
                   <div style={{
-                    position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)",
+                    position: "absolute", top: -35, left: "50%", transform: "translateX(-50%)",
                     background: "linear-gradient(180deg,#1e3a8a,#0f172a)",
                     border: "1px solid #c9b8ff", color: "#c9b8ff",
                     borderRadius: 999, padding: "3px 12px",
@@ -9120,8 +9120,8 @@ function IdlePage() {
                   <img
                     src={npcAnciaoGlacialUrl}
                     alt="Ancião Glacial"
-                    width={120} height={160}
-                    style={{ width: 120, height: 160, imageRendering: "pixelated", objectFit: "contain" }}
+                    width={170} height={230}
+                    style={{ width: 170, height: 230, imageRendering: "pixelated", objectFit: "contain" }}
                   />
                   <div style={{
                     position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
@@ -9142,7 +9142,7 @@ function IdlePage() {
               const face = e.face ?? "left";
               const sx = face === "left" ? 1 : -1;
               const scale = (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
-              const size = Math.round(46 * scale);
+              const size = Math.round(70 * scale);
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
               const rarityAura: Record<Rarity, string> = {
                 common: "rgba(200,200,200,0.55)",
@@ -9399,7 +9399,7 @@ function IdlePage() {
             {chests.map((c) => (
               <div key={`chest-${c.id}`} style={{
                 position: "absolute", left: c.x, top: c.y,
-                width: 56, height: 56,
+                width: 80, height: 80,
                 transform: "translate(-50%, -50%)",
                 zIndex: Math.round(c.y),
                 pointerEvents: "none",
@@ -9430,7 +9430,7 @@ function IdlePage() {
             <div style={{
               position: "absolute",
               left: renderTrainerX, top: renderTrainerY,
-              width: 56, height: 56,
+              width: 80, height: 80,
               transform: "translate(-50%, -50%)",
               filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
               zIndex: Math.round(trainerPos.y),
@@ -9501,7 +9501,7 @@ function IdlePage() {
                 <div key={rp.id} style={{
                   position: "absolute",
                   left: rp.x, top: rp.y,
-                  width: 56, height: 56,
+                  width: 80, height: 80,
                   transform: "translate(-50%, -50%)",
                   transition: "left 220ms linear, top 220ms linear",
                   filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
@@ -9606,7 +9606,7 @@ function IdlePage() {
                 <div style={{
                   position: "absolute",
                   left: leaderX, top: leaderY,
-                  width: 54, height: 54,
+                  width: 80, height: 80,
                   transform: "translate(-50%, -50%)",
                   transition: attackAnim ? "none" : undefined,
                   filter: `drop-shadow(0 3px 3px rgba(0,0,0,0.55)) ${fainted ? "grayscale(1) brightness(0.6)" : ""}`,
