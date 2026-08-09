@@ -8243,7 +8243,7 @@ function IdlePage() {
         </div>
 
         {/* ============ COLUNA DIREITA ============ */}
-        {/* ============ COLUNA DIREITA (RADAR E EXPLORAR) ============ */}
+        {/* ============ COLUNA DIREITA (RADAR) ============ */}
         <div className="hud-right-column" style={{ 
           position: 'fixed', top: '75px', right: '20px', width: '260px',
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
@@ -8270,71 +8270,6 @@ function IdlePage() {
             </div>
             <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
           </div>
-
-          {/* Painel da Equipe (Abaixo do Radar) */}
-          <div className="team-panel-hud" style={{ 
-            display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
-            padding: '12px', background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(10px)',
-            borderRadius: '15px', border: '1px solid rgba(201,184,255,0.3)',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
-            marginTop: '0' 
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-              <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1.5 }}>SUA EQUIPE</span>
-              <button
-                onClick={() => setTeamCollapsed((v) => !v)}
-                style={{
-                  background: "rgba(201,184,255,0.1)", color: "#c9b8ff",
-                  border: "1px solid rgba(201,184,255,0.3)", borderRadius: 4,
-                  padding: "2px 6px", fontSize: 9, fontWeight: 800, cursor: "pointer",
-                }}
-              >
-                {teamCollapsed ? "EXPANDIR" : "RECOLHER"}
-              </button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
-                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
-              ))}
-              <button style={{ 
-                width: '100%', background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.2)',
-                borderRadius: '6px', padding: '5px', color: '#c9b8ff', fontSize: '10px', fontWeight: 700,
-                cursor: 'pointer', marginTop: '4px'
-              }} onClick={() => setTab("pokemon")}>GERENCIAR EQUIPE</button>
-            </div>
-            
-            {/* Botão do Ancião Glacial unificado aqui, um embaixo do outro */}
-            <div style={{ marginTop: 8 }}>
-              <button
-                onClick={handleAnciaoInteraction}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "linear-gradient(180deg, #15803d, #064e3b)",
-                  border: "1px solid #4ade80",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontSize: 11,
-                  fontWeight: 900,
-                  letterSpacing: 1,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)",
-                  pointerEvents: "auto",
-                  transition: "all 0.2s"
-                }}
-                onMouseOver={(e) => e.currentTarget.style.filter = "brightness(1.2)"}
-                onMouseOut={(e) => e.currentTarget.style.filter = "brightness(1)"}
-              >
-                ❄️ ANCIÃO GLACIAL
-              </button>
-            </div>
-          </div>
-
-
         </div>
       </div>
 
