@@ -7200,7 +7200,7 @@ function IdlePage() {
   return (
     <div style={{
       height: "100vh",
-      background: "#0b0510",
+      background: "#000",
       color: "#f3e5c5",
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
@@ -7215,8 +7215,8 @@ function IdlePage() {
           if (!rect) return;
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
-          const wx = renderCamX + sx / zoom;
-          const wy = renderCamY + sy / zoom;
+          const wx = renderCamX + sx / effectiveZoom;
+          const wy = renderCamY + sy / effectiveZoom;
           walkTargetRef.current = { x: wx, y: wy, label: "destino", resumeAuto: autoRef.current };
           setWalkingTo("destino");
           setAuto(false);
@@ -7237,7 +7237,7 @@ function IdlePage() {
           transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
           transformOrigin: "0 0",
           transition: "none",
-          backgroundColor: viewportBg,
+          backgroundColor: "#000",
           overflow: "hidden",
           contain: "layout paint style",
           willChange: "transform",
