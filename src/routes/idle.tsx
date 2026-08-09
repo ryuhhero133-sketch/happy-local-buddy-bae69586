@@ -10168,7 +10168,9 @@ function IdlePage() {
                 onUpgradeBook={upgradeBook}
               />
             )}
-                  identity={identity}
+            {false && (
+              <div
+
                   collection={idle.collection ?? []}
                   gold={idle.bank.gold}
                   crystals={idle.bank.crystals}
