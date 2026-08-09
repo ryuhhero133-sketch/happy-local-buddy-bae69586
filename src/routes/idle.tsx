@@ -10002,10 +10002,11 @@ function IdlePage() {
             const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
             const on = ab.enabled;
             return (
-            <div style={{
-              position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-            }}>
+              <div style={{
+                position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+              }}>
+
               {showAutoSettings && (
                 <div style={{
                   background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
