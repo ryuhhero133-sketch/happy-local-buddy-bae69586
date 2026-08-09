@@ -7242,17 +7242,17 @@ function IdlePage() {
           transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
           transformOrigin: "0 0",
           transition: "none",
-          backgroundColor: "#000",
-          overflow: "visible", // Permitir que o background do mapa preencha vazios
+          backgroundColor: viewportBg,
+          overflow: "visible", 
           contain: "layout style",
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}>
-          {/* Solid color background or same map stretched to extreme bounds to avoid leaks */}
+          {/* Fundo que preenche o mapa para evitar o "void" verde ou preto */}
           <div style={{
             position: "absolute",
             inset: -10000,
-            backgroundColor: "#000", // Fundo preto sólido para o "void"
+            backgroundColor: viewportBg, 
             zIndex: -1
           }} />
           <img
