@@ -7247,13 +7247,11 @@ function IdlePage() {
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}>
+          {/* Solid color background or same map stretched to extreme bounds to avoid leaks */}
           <div style={{
             position: "absolute",
-            inset: -4000,
-            backgroundImage: `url(${map.bg})`,
-            backgroundRepeat: "repeat",
-            backgroundSize: `${WORLD_W}px ${WORLD_H}px`,
-            imageRendering: "pixelated",
+            inset: -10000,
+            backgroundColor: "#000", // Fundo preto sólido para o "void"
             zIndex: -1
           }} />
           <img
