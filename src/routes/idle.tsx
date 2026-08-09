@@ -8319,7 +8319,7 @@ function IdlePage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
-                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
+                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} spriteScale={spriteScale} />
               ))}
               <button style={{ 
                 width: '100%', background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.2)',
