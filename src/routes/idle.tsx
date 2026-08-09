@@ -7196,8 +7196,8 @@ function IdlePage() {
   );
 
   return (
-    <>
     <div style={{
+
 
 
 
@@ -12675,9 +12675,9 @@ function IdlePage() {
         document.body
       )}
     </div>
-    </>
   );
 }
+
 
 
 
