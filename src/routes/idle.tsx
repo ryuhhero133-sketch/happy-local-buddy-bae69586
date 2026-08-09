@@ -3651,7 +3651,7 @@ function IdlePage() {
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
   // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
-  const BASE_ZOOM = 0.2;
+  const BASE_ZOOM = 0.08;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
@@ -8149,7 +8149,7 @@ function IdlePage() {
 
         {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
         <div className="trainer-profile-hud" style={{ 
-          position: 'fixed', top: '75px', left: '20px', width: '230px', 
+          position: 'fixed', top: '75px', left: '20px', width: '210px', 
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
@@ -11919,7 +11919,7 @@ function IdlePage() {
             borderRadius: 14,
             padding: "8px 14px 8px 8px",
             boxShadow: `0 8px 22px rgba(0,0,0,0.6), 0 0 0 1px ${rColor}44 inset, 0 0 16px ${rColor}66`,
-            minWidth: 260,
+            minWidth: 220,
             animation: "evt-slide 220ms cubic-bezier(.2,.9,.3,1.2)",
           }}>
 
