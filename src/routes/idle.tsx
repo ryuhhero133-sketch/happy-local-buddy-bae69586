@@ -13807,7 +13807,8 @@ function TabOverlay({
                       : "Nenhum item nesta categoria."}
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(126px, 1fr))", gap: 10 }}>
+                  <>
+
                     {filtered.map(([id, n]) => {
                       const isEgg = id.startsWith("egg_");
                       const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
