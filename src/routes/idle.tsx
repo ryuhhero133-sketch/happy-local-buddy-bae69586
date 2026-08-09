@@ -2662,8 +2662,8 @@ function IdlePage() {
   }, []);
 
   // Mundo em pixels: aumentamos o tamanho base para garantir proporção em telas ultra-wide.
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 2560;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 2560;
+  const WORLD_W = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado") ? 3840 : 2560;
+  const WORLD_H = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado") ? 3840 : 2560;
               type GateDef = {
                 key: string;
                 target: IdleMapId;
