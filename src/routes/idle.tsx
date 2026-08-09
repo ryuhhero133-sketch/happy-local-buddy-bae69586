@@ -8219,9 +8219,12 @@ function IdlePage() {
           {/* Vertical Menu */}
           <div style={{
             display: "flex", flexDirection: "column", gap: 8,
-            background: "rgba(20, 10, 30, 0.8)", borderRadius: 20,
-            padding: "8px", border: "1px solid rgba(201, 184, 255, 0.2)"
+            background: "linear-gradient(180deg, rgba(20, 10, 30, 0.9) 0%, rgba(10, 5, 20, 0.95) 100%)", 
+            borderRadius: 24, width: 80,
+            padding: "10px", border: "1px solid rgba(201, 184, 255, 0.3)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.6)"
           }}>
+
             {([
               { id: "world", label: "Mundo", icon: "🌍", color: "#6bd4ff" },
               { id: "ranking", label: "Ranking", icon: "🏆", color: "#ffd94d" },
