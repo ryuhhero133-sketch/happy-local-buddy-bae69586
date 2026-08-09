@@ -131,25 +131,6 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
 
 type Mode = "login" | "signup" | "reset";
 
-function getNext7AM() {
-  const now = new Date();
-  const target = new Date(now);
-  target.setHours(7, 0, 0, 0);
-  if (now >= target) {
-    target.setDate(target.getDate() + 1);
-  }
-  return target;
-}
-
-function formatCountdown(ms: number) {
-  if (ms <= 0) return "ABERTO AGORA";
-  const seconds = Math.floor(ms / 1000);
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-}
-
 
 /* ───────────────────────────── AUTH GATE ───────────────────────────── */
 
@@ -164,7 +145,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [isGuest, setIsGuest] = useState(false);
   const [kickedMessage, setKickedMessage] = useState<string | null>(null);
   const [maintenance, setMaintenance] = useState(true); // Manutenção ativada por padrão para a season
-  const [countdown, setCountdown] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -264,25 +244,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
         const off = config && (config.value === "false" || config.value === false);
         if (cfgErr) warn("Erro config manutenção", cfgErr);
         setMaintenance(!off);
-
-        // HARD LOCK: se está em manutenção e a conta não é admin, derruba na hora.
-        if (!off && sess?.user?.id) {
-          const adminNow =
-            sess.user.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
-            sess.user.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-          if (!adminNow) {
-            setKickedMessage("JOGO EM MANUTENÇÃO — ABERTURA DA SEASON 00:00");
-            setSession(null);
-            await supabase.auth.signOut();
-            setChecking(false);
-            return;
-          }
-        }
       } catch (e) {
         warn("Erro ao verificar manutenção", e);
         setMaintenance(true);
       }
-
 
 
 
@@ -454,19 +419,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return () => { stop = true; clearInterval(iv); };
   }, [session]);
 
-  // Contagem regressiva ao vivo até 07:00
-  useEffect(() => {
-    const update = () => {
-      const target = getNext7AM();
-      const remaining = target.getTime() - Date.now();
-      setCountdown(formatCountdown(remaining));
-    };
-    update();
-    const iv = setInterval(update, 1000);
-    return () => clearInterval(iv);
-  }, []);
-
-
 
 
 
@@ -478,19 +430,17 @@ export function AuthGate({ children }: { children: ReactNode }) {
     session?.user?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
   // O modo de manutenção no banco de dados continua bloqueando jogadores normais,
   // mas o admin sempre passa independentemente do valor de 'maintenance'.
-  if (maintenance && !isAdmin && (session || isGuest)) {
-
+  if (maintenance && !isAdmin) {
     return (
       <PanelShell title="SISTEMA EM MANUTENÇÃO">
         <div className="space-y-4 text-center">
           <div className="p-3 rounded border border-red-900/50 bg-red-950/30">
-            <p className="text-[12px] font-bold tracking-[1px] mb-2" style={{ color: "#c9b8ff", textShadow: "0 0 8px rgba(168,85,247,0.5)" }}>
+            <p className="text-[12px] font-bold tracking-[1px] mb-2" style={{ color: "#fca5a5", textShadow: "0 0 8px rgba(239,68,68,0.5)" }}>
               ⚠️ JOGO EM MANUTENÇÃO
             </p>
             <p className="text-[10px] leading-relaxed" style={{ color: "#fecaca" }}>
               PREPARANDO NOVA TEMPORADA.<br/>
-              ABERTURA DA SEASON ÀS 07:00<br/>
-              FALTAM: <span className="font-bold" style={{ color: "#fff", textShadow: "0 0 6px rgba(255,255,255,0.5)" }}>{countdown}</span>
+              HORÁRIO DE ABERTURA DA SEASON: 00:00
             </p>
           </div>
           <div className="pt-2">
@@ -896,13 +846,7 @@ function AuthScreen({
     if (!email.trim() && mode !== "reset") return setError("Informe seu e-mail.");
     setBusy(true);
     try {
-      const ADMIN_EMAIL = "lordryuhhhuyuyghh@gmail.com";
-      const typedIsAdmin = email.trim().toLowerCase() === ADMIN_EMAIL;
       if (mode === "login") {
-        // Em manutenção somente o admin pode sequer tentar autenticar.
-        if (maintenance && !isAdmin && !typedIsAdmin) {
-          throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
-        }
         log("signIn", email);
         const { error, data } = await withTimeout(
           supabase.auth.signInWithPassword({ email: email.trim(), password }),
@@ -911,16 +855,7 @@ function AuthScreen({
         );
         if (error) throw error;
         log("signIn ok", data.user?.id);
-        // Rede de segurança: se por algum motivo não for admin, derruba imediatamente.
-        if (maintenance && !typedIsAdmin) {
-          await supabase.auth.signOut();
-          throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
-        }
       } else if (mode === "signup") {
-        if (maintenance && !isAdmin) {
-          throw new Error("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
-        }
-
         if (password.length < 6) throw new Error("Senha precisa ter ao menos 6 caracteres.");
         const betaOk = betaKey.trim().length > 0 && isBetaKeyValid(betaKey);
         log("signUp", email);

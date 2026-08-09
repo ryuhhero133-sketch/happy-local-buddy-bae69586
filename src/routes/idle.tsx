@@ -10322,21 +10322,6 @@ function IdlePage() {
 
 
       <style>{`
-        .modern-floating-window {
-          max-width: 95vw !important;
-          width: 1200px !important;
-          height: 90vh !important;
-          margin: 0 auto;
-        }
-
-        @media (max-width: 768px) {
-          .modern-floating-window {
-            width: 98vw !important;
-            height: 95vh !important;
-            border-radius: 12px !important;
-          }
-        }
-
 
         @media (max-width: 1400px) {
           .idle-grid { grid-template-columns: 210px 1fr 210px !important; gap: 6px !important; padding: 6px !important; }
@@ -13170,25 +13155,12 @@ function TabOverlay({
     <div className="modern-floating-window" style={{ 
       background: "rgba(11, 5, 20, 0.96)", 
       backdropFilter: "blur(14px)",
-      width: "95vw",
-      maxWidth: "1200px",
-      height: "90vh",
-      maxHeight: "90vh",
+      maxHeight: "92vh",
       display: "flex",
       flexDirection: "column",
       pointerEvents: "auto",
-      overflow: "hidden",
-      position: "fixed",
-      left: "50%",
-      top: "50%",
-      transform: "translate(-50%, -50%)",
-      borderRadius: "24px",
-      border: "3px solid rgba(201, 184, 255, 0.3)",
-      boxShadow: "0 0 60px rgba(0,0,0,0.8), 0 0 20px rgba(201, 184, 255, 0.2)",
-      zIndex: 2000
+      overflow: "hidden"
     }}>
-
-
 
       <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
         <h2 style={{ 
@@ -13218,12 +13190,8 @@ function TabOverlay({
           background: `linear-gradient(180deg, rgba(20,10,35,0.7) 0%, rgba(10,5,20,0.85) 100%)`,
           boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 40px rgba(192,132,252,0.05)",
           overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          minHeight: 0
-        }}>
 
+        }}>
           {/* decorative sparkles overlay */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
@@ -13777,11 +13745,6 @@ function TabOverlay({
             borderRadius: 16, padding: 14,
             fontFamily: '"Pixelify Sans", ui-monospace, monospace',
             position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            height: "100%",
-            minHeight: 0
-
           }}>
 
             <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
@@ -13834,14 +13797,14 @@ function TabOverlay({
             </div>
 
             {/* GRID LAYOUT — sidebar categorias + grade */}
-            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12, flex: 1, minHeight: 0 }}>
+            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12 }}>
               {/* SIDEBAR CATEGORIAS */}
               <div style={{
                 background: "rgba(0, 0, 0, 0.3)",
                 border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
                 boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.2)",
+
                 padding: 8, display: "flex", flexDirection: "column", gap: 6,
-                overflowY: "auto"
               }}>
                 <div style={{
                   textAlign: "center", fontSize: 10, fontWeight: 900, letterSpacing: 2,
@@ -13909,9 +13872,9 @@ function TabOverlay({
                 background: "rgba(0, 0, 0, 0.2)",
                 border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
                 boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
-                padding: 12, flex: 1, minHeight: 0, overflowY: "auto"
+                padding: 12, minHeight: 360,
+                maxHeight: 600, overflowY: "auto"
               }}>
-
 
                 {filtered.length === 0 ? (
                   <div style={{
@@ -14193,12 +14156,9 @@ function TabOverlay({
           background: "rgba(0,0,0,0.3)",
           borderRadius: 14, padding: 18,
           boxShadow: "inset 0 0 24px rgba(0,0,0,0.2), 0 4px 18px rgba(0,0,0,0.5)",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          minHeight: 0
-        }}>
 
+
+        }}>
           {/* HUD topo da coleção */}
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -14325,7 +14285,7 @@ function TabOverlay({
               return <div style={{ color: "#b8a8c8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
             return (
-              <div style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
+              <div style={{ maxHeight: 600, overflowY: "auto", paddingRight: 4 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
               {filtered.map((entry, i) => {
                 const sp = entry.species;
