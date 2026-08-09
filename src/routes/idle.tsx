@@ -12690,7 +12690,6 @@ function IdlePage() {
         document.body
       )}
     </div>
-    </>
   );
 }
 
