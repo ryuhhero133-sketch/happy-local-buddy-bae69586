@@ -8390,40 +8390,7 @@ function IdlePage() {
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.6)', overflow: 'hidden', position: 'relative'
           }}>
-            {/* Equipe do Jogador (Reposicionada abaixo do Radar) */}
             <div style={{ 
-              display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
-              padding: '12px', background: 'rgba(11, 5, 20, 0.6)', backdropFilter: 'blur(10px)',
-              borderRadius: '15px', border: '1px solid rgba(201,184,255,0.15)',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.4)'
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1.5 }}>SUA EQUIPE</span>
-                <button
-                  onClick={() => setTeamCollapsed((v) => !v)}
-                  style={{
-                    background: "rgba(201,184,255,0.1)", color: "#c9b8ff",
-                    border: "1px solid rgba(201,184,255,0.3)", borderRadius: 4,
-                    padding: "2px 6px", fontSize: 9, fontWeight: 800, cursor: "pointer",
-                  }}
-                >
-                  {teamCollapsed ? "EXPANDIR" : "RECOLHER"}
-                </button>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
-                  <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
-                ))}
-                <button style={{ 
-                  width: '100%', background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.2)',
-                  borderRadius: '6px', padding: '5px', color: '#c9b8ff', fontSize: '10px', fontWeight: 700,
-                  cursor: 'pointer', marginTop: '4px'
-                }} onClick={() => setTab("pokemon")}>GERENCIAR EQUIPE</button>
-              </div>
-            </div>
-
-            <div style={{ 
-
               width: '100px', height: '100px', borderRadius: '50%', 
               border: '2px dashed rgba(201,184,255,0.2)', position: 'relative',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -8437,6 +8404,39 @@ function IdlePage() {
             </div>
             <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
           </div>
+
+          {/* Equipe do Jogador (Reposicionada abaixo do Radar) */}
+          <div style={{ 
+            display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
+            padding: '12px', background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(10px)',
+            borderRadius: '15px', border: '1px solid rgba(201,184,255,0.3)',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.6)'
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+              <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1.5 }}>SUA EQUIPE</span>
+              <button
+                onClick={() => setTeamCollapsed((v) => !v)}
+                style={{
+                  background: "rgba(201,184,255,0.1)", color: "#c9b8ff",
+                  border: "1px solid rgba(201,184,255,0.3)", borderRadius: 4,
+                  padding: "2px 6px", fontSize: 9, fontWeight: 800, cursor: "pointer",
+                }}
+              >
+                {teamCollapsed ? "EXPANDIR" : "RECOLHER"}
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
+                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
+              ))}
+              <button style={{ 
+                width: '100%', background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.2)',
+                borderRadius: '6px', padding: '5px', color: '#c9b8ff', fontSize: '10px', fontWeight: 700,
+                cursor: 'pointer', marginTop: '4px'
+              }} onClick={() => setTab("pokemon")}>GERENCIAR EQUIPE</button>
+            </div>
+          </div>
+
 
           <div style={{
             background: "rgba(36,20,44,0.92)",
