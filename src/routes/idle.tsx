@@ -8355,12 +8355,7 @@ function IdlePage() {
               borderLeft: '1px solid rgba(245,207,107,0.4)', zIndex: 1
             }} />
 
-            {/* Fixed Player Marker (Center of Radar) */}
-            <div style={{
-              position: 'absolute', width: '10px', height: '10px', background: '#fff',
-              borderRadius: '50%', boxShadow: '0 0 10px #fff, 0 0 6px #f5cf6b',
-              zIndex: 10, border: '1px solid #000'
-            }} />
+            {/* Central marker removed to avoid confusion with the new moving dot */}
             
             {/* Pulse effect around player */}
             <div style={{
