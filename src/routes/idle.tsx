@@ -4043,8 +4043,8 @@ function IdlePage() {
           setPokemonFace(nextFace);
         }
         // AUTO: sem colisão — anda em linha reta atravessando obstáculos
-        const ww = idle.currentMap === "arena" ? WORLD_W_ARENA : WORLD_W;
-        const wh = idle.currentMap === "arena" ? WORLD_H_ARENA : WORLD_H;
+        const ww = WORLD_W;
+        const wh = WORLD_H;
         const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
         const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
         return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
