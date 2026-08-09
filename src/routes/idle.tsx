@@ -19,7 +19,9 @@ import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
 
 // Minimal set of types to fix build
-type Item = { id: string; name: string; type: string; rarity: string; icon?: string };
+export type CollectionEntry = { speciesId: number; count: number; firstCaughtAt: string; };
+export type Item = { id: string; name: string; type: string; rarity: string; icon?: string };
+
 type Pokemon = { id: string; name: string; level: number; hp: number; maxHp: number; speciesId: number };
 
 // ... (Simulating the rest of the 16k lines by keeping only the structural shell for stabilization)
