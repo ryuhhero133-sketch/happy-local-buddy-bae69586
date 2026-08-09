@@ -8071,8 +8071,9 @@ function IdlePage() {
         gridTemplateColumns: "1fr",
         gridTemplateRows: "1fr",
         position: "relative",
-        height: "100vh",
-        width: "100vw",
+        height: "100dvh",
+        width: "100dvw",
+        background: "black",
         overflow: "hidden",
       }}>
 
@@ -8205,39 +8206,46 @@ function IdlePage() {
             boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 20px rgba(201, 184, 255, 0.2)",
             position: "relative"
           }}>
-            {/* Minimap Terrain Graphic */}
+            {/* Minimap Terrain Graphic with Game Zoom Awareness */}
             <div style={{ 
               width: "100%", height: "100%", 
-              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl}) center/cover`,
+              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl})`,
+              backgroundPosition: `${(trainerPos.x / WORLD_W) * 100}% ${(trainerPos.y / WORLD_H) * 100}%`,
+              backgroundSize: `${200 / zoom}%`, // Ajusta o zoom do mapa baseado no zoom do jogo
               filter: "brightness(0.6) saturate(1.2) contrast(1.1)",
-              opacity: 0.8
+              opacity: 0.8,
+              transition: "background-position 0.2s ease-out, background-size 0.3s ease-in-out"
             }} />
             
             {/* Markers on Minimap */}
             <div style={{ position: "absolute", inset: 0 }}>
-              {/* Trainer Position (Red Dot) */}
+              {/* Trainer Position (Red Dot) - Fixed Center for Radar Style */}
               <div style={{
                 position: "absolute",
-                left: `${(trainerPos.x / WORLD_W) * 100}%`,
-                top: `${(trainerPos.y / WORLD_H) * 100}%`,
+                left: "50%",
+                top: "50%",
                 width: 10, height: 10, borderRadius: "50%",
                 background: "#ff4b4b", border: "2px solid #fff",
                 boxShadow: "0 0 8px #ff4b4b", zIndex: 2,
                 transform: "translate(-50%, -50%)"
               }} />
               
-              {/* Enemies (Small Yellow Dots) */}
-              {enemies.filter(e => e.hp > 0).map(e => (
-                <div key={e.id} style={{
-                  position: "absolute",
-                  left: `${(e.x / WORLD_W) * 100}%`,
-                  top: `${(e.y / WORLD_H) * 100}%`,
-                  width: 6, height: 6, borderRadius: "50%",
-                  background: "#ffd94d", border: "1px solid #fff",
-                  boxShadow: "0 0 4px #ffd94d", zIndex: 1,
-                  transform: "translate(-50%, -50%)"
-                }} />
-              ))}
+              {/* Enemies (Small Yellow Dots) - Relative to Trainer */}
+              {enemies.filter(e => e.hp > 0).map(e => {
+                const relX = ((e.x - trainerPos.x) / (WORLD_W * 0.25)) * 100 * zoom;
+                const relY = ((e.y - trainerPos.y) / (WORLD_H * 0.25)) * 100 * zoom;
+                return (
+                  <div key={e.id} style={{
+                    position: "absolute",
+                    left: `calc(50% + ${relX}px)`,
+                    top: `calc(50% + ${relY}px)`,
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: "#ffd94d", border: "1px solid #fff",
+                    boxShadow: "0 0 4px #ffd94d", zIndex: 1,
+                    transform: "translate(-50%, -50%)"
+                  }} />
+                );
+              })}
             </div>
 
             {/* Radar Sweep Animation */}
@@ -8254,7 +8262,32 @@ function IdlePage() {
           `}</style>
 
 
-          {/* Vertical Menu */}
+          {/* Zoom Controls Overlayed on Minimap */}
+          <div style={{
+            position: "absolute", bottom: 10, right: 10,
+            display: "flex", flexDirection: "column", gap: 4, zIndex: 10
+          }}>
+            <button
+              onClick={() => setZoom(z => Math.min(1.5, z + 0.15))}
+              style={{
+                width: 26, height: 26, borderRadius: 6,
+                background: "rgba(20, 10, 30, 0.9)", border: "1px solid rgba(201, 184, 255, 0.4)",
+                color: "#c9b8ff", fontSize: 16, fontWeight: 900, cursor: "pointer",
+                display: "grid", placeItems: "center", padding: 0
+              }}
+            >+</button>
+            <button
+              onClick={() => setZoom(z => Math.max(0.4, z - 0.15))}
+              style={{
+                width: 26, height: 26, borderRadius: 6,
+                background: "rgba(20, 10, 30, 0.9)", border: "1px solid rgba(201, 184, 255, 0.4)",
+                color: "#c9b8ff", fontSize: 16, fontWeight: 900, cursor: "pointer",
+                display: "grid", placeItems: "center", padding: 0
+              }}
+            >-</button>
+          </div>
+
+          {/* Vertical Side Menu */}
           <div style={{
             display: "flex", flexDirection: "column", gap: 8,
             background: "rgba(20, 10, 30, 0.8)", 
@@ -8263,12 +8296,10 @@ function IdlePage() {
             boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
             backdropFilter: "blur(4px)"
           }}>
-
             {([
               { id: "world", label: "Mundo", icon: "🗺️", color: "#60a5fa" },
               { id: "ranking", label: "Ranking", icon: "🏆", color: "#ffd94d" },
               { id: "wiki", label: "Wiki", icon: "📖", color: "#a855f7" },
-              { id: "shop", label: "Loja", icon: "💎", color: "#8dfa8d" },
               { id: "config", label: "Config", icon: "⚙️", color: "#a8a0b8" }
             ] as const).map(item => (
               <button
@@ -8276,7 +8307,6 @@ function IdlePage() {
                 onClick={() => {
                   if (item.id === "ranking") setRankOpen(true);
                   else if (item.id === "world") setWorldMapOpen(true);
-                  else if (item.id === "shop") setCashShopOpen(true);
                   else if (item.id === "wiki") setTab("wiki");
                   else if (item.id === "config") setTab("melhorias");
                 }}
@@ -8297,8 +8327,29 @@ function IdlePage() {
         </div>
 
         {/* ============ MAIN GAME AREA (Battle/Explore) ============ */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
-          {/* O resto do jogo (Arena/Canvas) já está sendo renderizado no grid pai */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 1, overflow: "hidden" }}>
+          <div style={{
+            position: "relative",
+            width: WORLD_W,
+            height: WORLD_H,
+            transform: `scale(${zoom})`,
+            transformOrigin: `${(trainerPos.x / WORLD_W) * 100}% ${(trainerPos.y / WORLD_H) * 100}%`,
+            transition: "transform 0.3s ease-in-out",
+            background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl})`,
+            backgroundSize: "cover",
+            imageRendering: "pixelated"
+          }}>
+            {/* Background tiling to prevent gaps when zooming out */}
+            <div style={{
+              position: "absolute",
+              inset: -2000,
+              zIndex: -1,
+              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl})`,
+              backgroundSize: "600px", 
+              opacity: 0.2,
+              filter: "blur(4px)"
+            }} />
+          </div>
         </div>
       </div>
 
@@ -9848,91 +9899,99 @@ function IdlePage() {
                   </button>
                 </div>
               )}
-              {/* Quick ball selector — troca rápida sem abrir configurações */}
-              <div style={{
-                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.35)",
-                borderRadius: 10, padding: "4px 8px", display: "flex", alignItems: "center", gap: 6,
-              }}>
-                {([
-                  { id: "auto" as const, img: null, label: "A", count: null as number | null, tint: "#f5cf6b" },
-                  { id: "pokeball" as const, img: ballPokeImg, label: "Poké", count: idle.items.pokeball ?? 0, tint: "#ff8080" },
-                  { id: "greatball" as const, img: ballGreatImg, label: "Great", count: idle.items.greatball ?? 0, tint: "#7ec4ff" },
-                  { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
-                ]).map((b) => {
-                  const sel = ab.preferredBall === b.id;
-                  return (
-                    <button
-                      key={b.id}
-                      onClick={() => setAB({ preferredBall: b.id, useBall: true })}
-                      title={b.id === "auto" ? "Auto (melhor disponível)" : `${b.label} (${b.count})`}
-                      style={{
-                        position: "relative", background: sel ? "rgba(245,207,107,0.18)" : "transparent",
-                        border: sel ? `1.5px solid ${b.tint}` : "1.5px solid transparent",
-                        boxShadow: sel ? `0 0 8px ${b.tint}88` : "none",
-                        borderRadius: 8, padding: 3, cursor: "pointer",
-                        width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-                      }}
-                    >
-                      {b.img ? (
-                        <img src={b.img} alt={b.label} width={24} height={24} style={{ imageRendering: "pixelated", filter: sel ? "none" : "grayscale(0.4)" }} />
-                      ) : (
-                        <span style={{ fontSize: 14, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>A</span>
-                      )}
-                      {b.count !== null && (
-                        <span style={{
-                          position: "absolute", bottom: -2, right: -2, background: "#0b0510",
-                          border: `1px solid ${b.tint}`, borderRadius: 6, padding: "0 3px",
-                          fontSize: 8, fontWeight: 800, color: b.tint, lineHeight: "10px", minWidth: 12, textAlign: "center",
-                        }}>{b.count > 999 ? "999+" : b.count}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{
-                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.4)",
-                borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
-              }}>
+            {/* MMORPG Bottom Bar Menu */}
+            <div style={{
+              position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)",
+              background: "linear-gradient(180deg, rgba(20, 10, 30, 0.95) 0%, rgba(10, 5, 15, 0.98) 100%)",
+              border: "1px solid rgba(201, 184, 255, 0.25)",
+              borderRadius: 16, display: "flex", alignItems: "center", padding: "6px 20px",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 12px rgba(201, 184, 255, 0.1)",
+              zIndex: 1000, pointerEvents: "auto", gap: 14
+            }}>
+              {([
+                { id: "batalha", label: "Chat", icon: "💬" },
+                { id: "pokemon", label: "Pokémon", icon: "🦁" },
+                { id: "mochila", label: "Mochila", icon: "🎒" },
+                { id: "tarefas", label: "Missões", icon: "📜" },
+                { id: "loja", label: "Loja", icon: "💎" },
+                { id: "colecao", label: "Coleção", icon: "📗" },
+                { id: "pokedex", label: "Pokédex", icon: "📱" },
+                { id: "wallet", label: "Carteira", icon: "💰" }
+              ] as const).map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setTab(item.id)}
+                  style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    background: tab === item.id ? "rgba(201, 184, 255, 0.1)" : "transparent",
+                    border: "none", borderRadius: 8, padding: "4px 8px",
+                    cursor: "pointer", transition: "all 0.2s",
+                    minWidth: 60
+                  }}
+                >
+                  <span style={{ fontSize: 24, filter: tab === item.id ? "drop-shadow(0 0 8px #c9b8ff)" : "grayscale(0.5)" }}>{item.icon}</span>
+                  <span style={{ 
+                    fontSize: 9, fontWeight: 900, 
+                    color: tab === item.id ? "#c9b8ff" : "rgba(255,255,255,0.5)",
+                    letterSpacing: 0.5 
+                  }}>{item.label.toUpperCase()}</span>
+                </button>
+              ))}
+
+              <div style={{ width: 1, height: 30, background: "rgba(201, 184, 255, 0.2)", margin: "0 6px" }} />
+
+              {/* Auto Battle Toggle & Ball Selector integrated into bar */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <button
                   onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
-                  title={on ? "Auto-batalha ATIVA (clique para desativar)" : "Auto-batalha desativada (clique para ativar)"}
                   style={{
                     background: "transparent", border: "none", padding: 0, cursor: "pointer",
-                    width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
-                    position: "relative",
+                    position: "relative", width: 42, height: 42
                   }}
                 >
                   <img
                     src={autoIconImg}
                     alt="Auto"
-                    width={40}
-                    height={40}
+                    width={38}
+                    height={38}
                     style={{
-                      width: 40, height: 40, imageRendering: "pixelated",
-                      filter: on
-                        ? "drop-shadow(0 0 6px #5ec26a) drop-shadow(0 0 10px rgba(94,194,106,0.6))"
-                        : "grayscale(1) opacity(0.55)",
-                      animation: on ? "autoIconPulse 1.2s ease-in-out infinite, autoIconSpin 6s linear infinite" : "none",
-                      transformOrigin: "50% 50%",
+                      imageRendering: "pixelated",
+                      filter: on ? "drop-shadow(0 0 8px #5ec26a)" : "grayscale(1) opacity(0.5)",
+                      animation: on ? "autoIconPulse 1.2s ease-in-out infinite" : "none"
                     }}
                   />
                 </button>
-                <div style={{ fontSize: 10, color: "#c8b8d0", minWidth: 90 }}>
-                  Lv.{team[0]?.level ?? 1} · EXP {team[0]?.xp ?? 0}/{100 + (team[0]?.level ?? 1) * 20}
+                
+                <div style={{ display: "flex", gap: 4 }}>
+                  {([
+                    { id: "pokeball" as const, img: ballPokeImg, tint: "#ff8080" },
+                    { id: "ultraball" as const, img: ballUltraImg, tint: "#ffd66b" }
+                  ]).map((b) => {
+                    const sel = ab.preferredBall === b.id;
+                    const count = idle.items[b.id] ?? 0;
+                    return (
+                      <button
+                        key={b.id}
+                        onClick={() => setAB({ preferredBall: b.id, useBall: true })}
+                        style={{
+                          background: sel ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.05)",
+                          border: sel ? `1px solid ${b.tint}` : "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: 8, padding: 4, cursor: "pointer",
+                          width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", position: "relative"
+                        }}
+                      >
+                        <img src={b.img} alt="" width={22} height={22} style={{ imageRendering: "pixelated" }} />
+                        <span style={{
+                          position: "absolute", bottom: -2, right: -2, background: "#0b0510",
+                          border: `1px solid ${b.tint}`, borderRadius: 4, padding: "0 2px",
+                          fontSize: 7, fontWeight: 900, color: b.tint
+                        }}>{count > 99 ? "99+" : count}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <button
-                  onClick={() => setShowAutoSettings((v) => !v)}
-                  title="Configurar"
-                  style={{
-                    background: showAutoSettings ? "#f5cf6b" : "rgba(255,255,255,0.06)",
-                    color: showAutoSettings ? "#0b0510" : "#f5cf6b",
-                    border: "1px solid rgba(245,207,107,0.5)",
-                    borderRadius: 8, width: 30, height: 30, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 16,
-                  }}
-                >⚙</button>
               </div>
+            </div>
             </div>
             );
           })()}
