@@ -7333,9 +7333,9 @@ function IdlePage() {
         {/* Dock Inferior Moderna */}
         <div className="bottom-dock-container" style={{
           position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)',
-          padding: '8px 25px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(15px)',
+          padding: '10px 35px', borderRadius: '50px', border: '1px solid #c9b8ff',
+          display: 'flex', gap: '30px', pointerEvents: 'auto', boxShadow: '0 0 30px rgba(201,184,255,0.2)',
           zIndex: 2000
         }}>
 
