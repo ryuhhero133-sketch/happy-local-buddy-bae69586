@@ -1129,6 +1129,11 @@ export function redShardTravelCost(minLevel: number): number {
   return 0;
 }
 
+}
+
+const WORLD_W = 2560;
+const WORLD_H = 2560;
+
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
 
 export const MAX_COLLECTION = 500;
