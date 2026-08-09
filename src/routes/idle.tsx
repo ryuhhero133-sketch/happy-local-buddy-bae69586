@@ -10085,41 +10085,7 @@ function IdlePage() {
               onUpgradeBook={upgradeBook}
             />
           )}
-        <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          <div style={{ height: 12 }} />
-
-          <Panel title="SUA EQUIPE" accent="#3d2b52">
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {team.map((p, i) => (
-                <div key={p.uid} style={{ 
-                  display: "flex", alignItems: "center", gap: 6, 
-                  background: i === 0 ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.03)",
-                  padding: "4px 8px", borderRadius: 8,
-                  border: i === 0 ? "1px solid rgba(245,207,107,0.3)" : "1px solid rgba(255,255,255,0.05)"
-                }}>
-                  <img src={GIF[p.species]} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 9, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.species.toUpperCase()}</div>
-                    <div style={{ fontSize: 8, color: "rgba(255,255,255,0.5)" }}>LV.{p.level}</div>
-                  </div>
-                  <div style={{ width: 40, height: 4, background: "rgba(0,0,0,0.5)", borderRadius: 2, overflow: "hidden" }}>
-                    <div style={{ width: "100%", height: "100%", background: "#5ec26a" }} />
-                  </div>
+        {/* Painel lateral antigo removido para evitar duplicidade na HUD */}
                 </div>
               ))}
             </div>
