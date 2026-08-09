@@ -382,8 +382,6 @@ const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
 const idleArenaUrl = mapValeDouradoImg;
-const WORLD_W_ARENA = 3840;
-const WORLD_H_ARENA = 3840;
 
 const mapSnowUrl = assetUrlFromJson(mapSnowAsset);
 const mapDesertUrl = assetUrlFromJson(mapDesertAsset);
