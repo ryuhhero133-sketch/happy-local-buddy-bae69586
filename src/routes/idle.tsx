@@ -19,8 +19,19 @@ import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
 
 // Minimal set of types to fix build
-export type CollectionEntry = { speciesId: number; count: number; firstCaughtAt: string; };
+export type CollectionEntry = { 
+  uid: string;
+  speciesId: number; 
+  species?: number; // legacy compat
+  level?: number;
+  rarity?: string;
+  xp?: number;
+  traits?: string[];
+  count: number; 
+  firstCaughtAt: string; 
+};
 export type Item = { id: string; name: string; type: string; rarity: string; icon?: string };
+
 
 type Pokemon = { id: string; name: string; level: number; hp: number; maxHp: number; speciesId: number };
 
