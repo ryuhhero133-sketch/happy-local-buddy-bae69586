@@ -7243,20 +7243,26 @@ function IdlePage() {
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}>
+          <div style={{
+            position: "absolute",
+            inset: -4000,
+            backgroundImage: `url(${map.bg})`,
+            backgroundRepeat: "repeat",
+            backgroundSize: `${WORLD_W}px ${WORLD_H}px`,
+            imageRendering: "pixelated",
+            zIndex: -1
+          }} />
           <img
             src={map.bg}
             alt=""
             aria-hidden="true"
             draggable={false}
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "fill",
-              pointerEvents: "none",
-              userSelect: "none",
-              imageRendering: "auto",
+            style={{ 
+              width: WORLD_W, 
+              height: WORLD_H, 
+              imageRendering: "pixelated",
+              position: "relative"
+            }}
               transform: "translateZ(0)",
               backfaceVisibility: "hidden",
               zIndex: 0,
