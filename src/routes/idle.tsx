@@ -12081,28 +12081,8 @@ function IdlePage() {
         document.body
       )}
       <BlackMiticEggHud
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         open={blackEggHudOpen}
+
         onClose={() => setBlackEggHudOpen(false)}
         uid={identity?.id ?? "guest"}
         itemCount={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
