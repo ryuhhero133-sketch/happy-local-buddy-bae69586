@@ -381,7 +381,7 @@ const IDLE_KEY = "rubym.idle.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
-const idleArenaUrl = assetUrlFromJson(idleArenaAsset);
+const idleArenaUrl = mapValeDouradoImg;
 
 const mapSnowUrl = assetUrlFromJson(mapSnowAsset);
 const mapDesertUrl = assetUrlFromJson(mapDesertAsset);
