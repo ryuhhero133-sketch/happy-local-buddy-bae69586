@@ -8237,162 +8237,59 @@ function IdlePage() {
             );
           })()}
 
-
-
-
-
-
-          {/* Chat ocupa todo o espaço restante — sem rolagem externa */}
-          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-            <Panel title="REGISTRO DE BATALHA" accent="#1e3a5f">
-              <div style={{
-                height: 200, minHeight: 160, maxHeight: 240,
-                overflowY: "auto", display: "flex", flexDirection: "column-reverse",
-                gap: 4, fontSize: 11, lineHeight: 1.35,
-                background: "#0e0818", borderRadius: 6, padding: 6,
-                border: "1px solid rgba(107,212,255,0.15)",
+          {/* O "Registro de Batalha" foi removido conforme solicitação do usuário. */}
+          
+          {/* HUD de Aviso Temporário (Ancião Glacial) */}
+          <div 
+            onClick={() => setAnciaoOpen(true)}
+            style={{ 
+              marginTop: 10,
+              background: "linear-gradient(135deg, rgba(201, 184, 255, 0.2), rgba(201, 184, 255, 0.05))",
+              border: "2px solid #c9b8ff",
+              borderRadius: 12,
+              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              boxShadow: "0 4px 15px rgba(201, 184, 255, 0.25)",
+              animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              cursor: "pointer"
+            }}
+          >
+            <div style={{ width: 44, height: 44, position: "relative" }}>
+              <img 
+                src={npcAnciaoGlacialUrl} 
+                alt="Ancião Glacial" 
+                style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  imageRendering: "pixelated",
+                  animation: "autoIconPulse 1.5s ease-in-out infinite"
+                }} 
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ 
+                color: "#c9b8ff", 
+                fontSize: 12, 
+                fontWeight: 900, 
+                letterSpacing: 1, 
+                textShadow: "0 0 8px rgba(201, 184, 255, 0.8)" 
               }}>
-                {(() => {
-                  const classify = (m: typeof chat[number]): "system" | "world" | "captures" => {
-                    if (m.kind === "capture" || m.kind === "cap") return "captures";
-                    if (m.text.startsWith("💬") || m.text.startsWith("🌍")) return "world";
-                    return "system";
-                  };
-                  const filtered = chat.filter((m) => chatFilter === "all" ? true : classify(m) === chatFilter);
-                  return (
-                    <>
-                      {[...filtered].reverse().map((m) => {
-                        const color =
-                          m.kind === "chest" ? "#ffa64a" :
-                          m.kind === "capture" ? "#ff97e1" :
-                          m.kind === "cap" ? "#ffd94d" :
-                          m.kind === "lv" ? "#6bd4ff" :
-                          m.kind === "hit" ? "#ff6b6b" :
-                          m.kind === "dmg" ? "#f5cf6b" : "#c8b8d0";
-                        const prefix =
-                          m.kind === "chest" ? "🎁" :
-                          m.kind === "capture" ? "✦" :
-                          m.kind === "cap" ? "★" :
-                          m.kind === "lv" ? "⬆" :
-                          m.kind === "hit" ? "✖" :
-                          m.kind === "dmg" ? "⚔" : "•";
-                        return (
-                          <div key={m.id} style={{ color, textShadow: "1px 1px 0 #000", fontWeight: m.kind === "chest" ? 800 : 400 }}>
-                            <span style={{ opacity: 0.7, marginRight: 4 }}>{prefix}</span>{m.text}
-                          </div>
-                        );
-                      })}
-                      {filtered.length === 0 && (
-                        <div style={{ color: "#6a5a7c", fontStyle: "italic" }}>Nenhum evento neste filtro...</div>
-                      )}
-                    </>
-                  );
-                })()}
+                ❄️ NOVA JORNADA
               </div>
-
-              {/* Filtros do chat */}
-              <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
-                {([
-                  { k: "all", l: "Tudo" },
-                  { k: "system", l: "Sistema" },
-                  { k: "world", l: "Mundo" },
-                  { k: "captures", l: "Capturas" },
-                ] as const).map((t) => {
-                  const active = chatFilter === t.k;
-                  return (
-                    <button
-                      key={t.k}
-                      onClick={() => setChatFilter(t.k)}
-                      style={{
-                        flex: 1,
-                        background: active ? "#1e3a5f" : "#0e0818",
-                        color: active ? "#fff" : "#8fa5c0",
-                        border: `1px solid ${active ? "#6bd4ff" : "rgba(107,212,255,0.2)"}`,
-                        borderRadius: 4, padding: "3px 4px", fontSize: 10, fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >{t.l}</button>
-                  );
-                })}
-              </div>
-              {/* Chat global de jogadores BLOQUEADO temporariamente */}
-              <div
-                style={{
-                  marginTop: 6,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "#1a0d0d",
-                  border: "1px solid rgba(255,107,107,0.35)",
-                  borderRadius: 6,
-                  padding: "7px 9px",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#ffb3b3",
-                }}
-              >
-                🔒 Chat global desativado — apenas avisos do sistema.
-              </div>
-
-            </Panel>
-            
-            {/* HUD de Aviso Temporário (Ancião Glacial) */}
-            <div 
-              onClick={() => setAnciaoOpen(true)}
-              style={{ 
-                marginTop: 10,
-                background: "linear-gradient(135deg, rgba(201, 184, 255, 0.2), rgba(201, 184, 255, 0.05))",
-                border: "2px solid #c9b8ff",
-                borderRadius: 12,
-                padding: "10px 14px",
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                boxShadow: "0 4px 15px rgba(201, 184, 255, 0.25)",
-                animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                cursor: "pointer"
-              }}
-            >
-              <div style={{ width: 44, height: 44, position: "relative" }}>
-                <img 
-                  src={npcAnciaoGlacialUrl} 
-                  alt="Ancião Glacial" 
-                  style={{ 
-                    width: "100%", 
-                    height: "100%", 
-                    imageRendering: "pixelated",
-                    animation: "autoIconPulse 1.5s ease-in-out infinite"
-                  }} 
-                />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ 
-                  color: "#c9b8ff", 
-                  fontSize: 12, 
-                  fontWeight: 900, 
-                  letterSpacing: 1, 
-                  textShadow: "0 0 8px rgba(201, 184, 255, 0.8)" 
-                }}>
-                  ❄️ NOVA JORNADA
-                </div>
-                <div style={{ 
-                  color: "#fff", 
-                  fontSize: 10.5, 
-                  fontWeight: 700,
-                  marginTop: 2,
-                  lineHeight: 1.3
-                }}>
-                  A 3ª SEASON CHEGOU! INICIE O RITUAL NO SANTUÁRIO. 🏔️✨
-                </div>
+              <div style={{ 
+                color: "#fff", 
+                fontSize: 10.5, 
+                fontWeight: 700,
+                marginTop: 2,
+                lineHeight: 1.3
+              }}>
+                A 3ª SEASON CHEGOU! INICIE O RITUAL NO SANTUÁRIO. 🏔️✨
               </div>
             </div>
-
           </div>
         </div>
-
-
-
-
 
         {/* ============ COLUNA DIREITA ============ */}
         {/* ============ COLUNA DIREITA (RADAR E EXPLORAR) ============ */}
