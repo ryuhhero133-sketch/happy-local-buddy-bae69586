@@ -7231,7 +7231,7 @@ function IdlePage() {
           position: 'absolute',
           inset: 0,
           overflow: 'hidden',
-          background: viewportBg,
+          background: "#000",
           cursor: 'crosshair',
           zIndex: 0,
         }}
