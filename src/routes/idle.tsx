@@ -8265,16 +8265,20 @@ function IdlePage() {
           }}>
 
             {([
+              { id: "world", label: "Mundo", icon: "🗺️", color: "#60a5fa" },
               { id: "ranking", label: "Ranking", icon: "🏆", color: "#ffd94d" },
-              { id: "events", label: "Evento", icon: "📅", color: "#c9b8ff" },
+              { id: "wiki", label: "Wiki", icon: "📖", color: "#a855f7" },
               { id: "shop", label: "Loja", icon: "💎", color: "#8dfa8d" },
-              { id: "config", label: "Config", icon: "⚙", color: "#a8a0b8" }
+              { id: "config", label: "Config", icon: "⚙️", color: "#a8a0b8" }
             ] as const).map(item => (
               <button
                 key={item.id}
                 onClick={() => {
                   if (item.id === "ranking") setRankOpen(true);
-                  if (item.id === "shop") setCashShopOpen(true);
+                  else if (item.id === "world") setWorldMapOpen(true);
+                  else if (item.id === "shop") setCashShopOpen(true);
+                  else if (item.id === "wiki") setTab("wiki");
+                  else if (item.id === "config") setTab("melhorias");
                 }}
                 style={{
                   width: 54, height: 54, borderRadius: 14,
@@ -8285,7 +8289,7 @@ function IdlePage() {
                 onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
                 onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
               >
-                <span style={{ fontSize: 18 }}>{item.icon}</span>
+                <span style={{ fontSize: 20 }}>{item.icon}</span>
                 <span style={{ fontSize: 7, fontWeight: 900, color: item.color, letterSpacing: 0.5 }}>{item.label.toUpperCase()}</span>
               </button>
             ))}
