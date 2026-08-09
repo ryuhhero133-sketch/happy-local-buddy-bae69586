@@ -1129,7 +1129,6 @@ export function redShardTravelCost(minLevel: number): number {
   return 0;
 }
 
-}
 
 const WORLD_W = 2560;
 const WORLD_H = 2560;
