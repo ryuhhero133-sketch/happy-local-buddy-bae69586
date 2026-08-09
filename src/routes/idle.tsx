@@ -79,6 +79,7 @@ import houseBankImg from "@/assets/house-bank.png";
 import houseGymImg from "@/assets/house-gym.png";
 import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
 import mapValeDouradoImg from "@/assets/map-vale-verdejante-ice.png";
+import mapTerraHornetImg from "@/assets/map-terra-hornet.jpg";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
 import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
 import mapGymGeloSombraAsset from "@/assets/gym-gelo-sombra.png.asset.json";
@@ -512,7 +513,7 @@ type IdleMapDef = {
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
-  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
+  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraHornetImg,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
   deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
   terry:    { name: "Terras de Terry",         diff: "Elite",     bg: mapTerryUrl,     rate: 3.2, minLevel: 200, maxLevel: 400, element: "Terra", stars: 4, entryCrystals: 8 },
   n2:       { name: "Planície de Terry",        diff: "Elite+",    bg: mapN2Url,        rate: 3.8, minLevel: 350, maxLevel: 550, element: "Terra", stars: 5, entryCrystals: 20 },
@@ -564,7 +565,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   santuario_glacial: { name: "Santuário Glacial", diff: "SEGURO", bg: mapSnowUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 10, overlay: "rgba(200,230,255,0.3)" },
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
-  vale_verdejante: { name: "Vale Verdejante (v3)", diff: "JORNADA", bg: mapValeDouradoImg, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Grama", stars: 1 },
+  vale_verdejante: { name: "Vale Verdejante (Ice)", diff: "JORNADA", bg: mapValeDouradoImg, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Grama", stars: 1 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
