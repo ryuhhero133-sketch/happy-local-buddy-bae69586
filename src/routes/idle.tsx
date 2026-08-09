@@ -9809,7 +9809,7 @@ function IdlePage() {
             const on = ab.enabled;
             return (
             <div style={{
-              position: "absolute", bottom: 85, left: "50%", transform: "translateX(-50%)",
+              position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
               zIndex: 10000,
             }}>
@@ -9877,90 +9877,105 @@ function IdlePage() {
                   </button>
                 </div>
               )}
-              {/* Quick ball selector — troca rápida sem abrir configurações */}
+              {/* HUD de Ações Inferiores (Auto-Ataque e Bolas) */}
               <div style={{
-                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.35)",
-                borderRadius: 10, padding: "4px 8px", display: "flex", alignItems: "center", gap: 6,
+                background: "rgba(11,5,16,0.95)", border: "1px solid rgba(201,184,255,0.3)",
+                borderRadius: 14, padding: "6px 12px", display: "flex", alignItems: "center", gap: 12,
+                boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05)",
+                backdropFilter: "blur(12px)",
               }}>
-                {([
-                  { id: "auto" as const, img: null, label: "A", count: null as number | null, tint: "#f5cf6b" },
-                  { id: "pokeball" as const, img: ballPokeImg, label: "Poké", count: idle.items.pokeball ?? 0, tint: "#ff8080" },
-                  { id: "greatball" as const, img: ballGreatImg, label: "Great", count: idle.items.greatball ?? 0, tint: "#7ec4ff" },
-                  { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
-                ]).map((b) => {
-                  const sel = ab.preferredBall === b.id;
-                  return (
-                    <button
-                      key={b.id}
-                      onClick={() => setAB({ preferredBall: b.id, useBall: true })}
-                      title={b.id === "auto" ? "Auto (melhor disponível)" : `${b.label} (${b.count})`}
-                      style={{
-                        position: "relative", background: sel ? "rgba(245,207,107,0.18)" : "transparent",
-                        border: sel ? `1.5px solid ${b.tint}` : "1.5px solid transparent",
-                        boxShadow: sel ? `0 0 8px ${b.tint}88` : "none",
-                        borderRadius: 8, padding: 3, cursor: "pointer",
-                        width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-                      }}
-                    >
-                      {b.img ? (
-                        <img src={b.img} alt={b.label} width={24} height={24} style={{ imageRendering: "pixelated", filter: sel ? "none" : "grayscale(0.4)" }} />
-                      ) : (
-                        <span style={{ fontSize: 14, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>A</span>
-                      )}
-                      {b.count !== null && (
-                        <span style={{
-                          position: "absolute", bottom: -2, right: -2, background: "#0b0510",
-                          border: `1px solid ${b.tint}`, borderRadius: 6, padding: "0 3px",
-                          fontSize: 8, fontWeight: 800, color: b.tint, lineHeight: "10px", minWidth: 12, textAlign: "center",
-                        }}>{b.count > 999 ? "999+" : b.count}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{
-                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.4)",
-                borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
-              }}>
-                <button
-                  onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
-                  title={on ? "Auto-batalha ATIVA (clique para desativar)" : "Auto-batalha desativada (clique para ativar)"}
-                  style={{
-                    background: "transparent", border: "none", padding: 0, cursor: "pointer",
-                    width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
-                    position: "relative",
-                  }}
-                >
-                  <img
-                    src={autoIconImg}
-                    alt="Auto"
-                    width={40}
-                    height={40}
-                    style={{
-                      width: 40, height: 40, imageRendering: "pixelated",
-                      filter: on
-                        ? "drop-shadow(0 0 6px #5ec26a) drop-shadow(0 0 10px rgba(94,194,106,0.6))"
-                        : "grayscale(1) opacity(0.55)",
-                      animation: on ? "autoIconPulse 1.2s ease-in-out infinite, autoIconSpin 6s linear infinite" : "none",
-                      transformOrigin: "50% 50%",
-                    }}
-                  />
-                </button>
-                <div style={{ fontSize: 10, color: "#c8b8d0", minWidth: 90 }}>
-                  Lv.{team[0]?.level ?? 1} · EXP {team[0]?.xp ?? 0}/{100 + (team[0]?.level ?? 1) * 20}
+                {/* Seletor Compacto de Bolas */}
+                <div style={{ display: "flex", gap: 4 }}>
+                  {([
+                    { id: "auto" as const, img: null, label: "A", count: null as number | null, tint: "#f5cf6b" },
+                    { id: "pokeball" as const, img: ballPokeImg, label: "Poké", count: idle.items.pokeball ?? 0, tint: "#ff8080" },
+                    { id: "greatball" as const, img: ballGreatImg, label: "Great", count: idle.items.greatball ?? 0, tint: "#7ec4ff" },
+                    { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
+                  ]).map((b) => {
+                    const sel = ab.preferredBall === b.id;
+                    return (
+                      <button
+                        key={b.id}
+                        onClick={() => setAB({ preferredBall: b.id, useBall: true })}
+                        title={b.id === "auto" ? "Auto (melhor disponível)" : `${b.label} (${b.count})`}
+                        style={{
+                          position: "relative", background: sel ? "rgba(201,184,255,0.2)" : "rgba(255,255,255,0.03)",
+                          border: sel ? `1.5px solid ${b.tint}` : "1.5px solid rgba(255,255,255,0.1)",
+                          borderRadius: 8, padding: 2, cursor: "pointer",
+                          width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        {b.img ? (
+                          <img src={b.img} alt={b.label} width={20} height={20} style={{ imageRendering: "pixelated", filter: sel ? "none" : "grayscale(0.6) opacity(0.7)" }} />
+                        ) : (
+                          <span style={{ fontSize: 12, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>A</span>
+                        )}
+                        {b.count !== null && (
+                          <span style={{
+                            position: "absolute", bottom: -3, right: -3, background: "#0b0510",
+                            border: `1px solid ${b.tint}`, borderRadius: 5, padding: "0 2px",
+                            fontSize: 7, fontWeight: 800, color: b.tint, lineHeight: "8px", minWidth: 10, textAlign: "center",
+                          }}>{b.count > 99 ? "99+" : b.count}</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <button
-                  onClick={() => setShowAutoSettings((v) => !v)}
-                  title="Configurar"
-                  style={{
-                    background: showAutoSettings ? "#f5cf6b" : "rgba(255,255,255,0.06)",
-                    color: showAutoSettings ? "#0b0510" : "#f5cf6b",
-                    border: "1px solid rgba(245,207,107,0.5)",
-                    borderRadius: 8, width: 30, height: 30, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 16,
-                  }}
-                >⚙</button>
+
+                <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.1)" }} />
+
+                {/* Botão de Auto-Ataque e Info Compacta */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <button
+                    onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
+                    title={on ? "Auto-batalha ATIVA" : "Auto-batalha desativada"}
+                    style={{
+                      background: on ? "rgba(94,194,106,0.15)" : "rgba(255,255,255,0.03)",
+                      border: on ? "1px solid #5ec26a" : "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: 10, padding: 0, cursor: "pointer",
+                      width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center",
+                      position: "relative", transition: "all 0.3s",
+                    }}
+                  >
+                    <img
+                      src={autoIconImg}
+                      alt="Auto"
+                      width={28}
+                      height={28}
+                      style={{
+                        imageRendering: "pixelated",
+                        filter: on ? "drop-shadow(0 0 4px #5ec26a)" : "grayscale(1) opacity(0.4)",
+                        animation: on ? "autoIconPulse 1.2s ease-in-out infinite" : "none",
+                      }}
+                    />
+                  </button>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: "#c9b8ff", letterSpacing: 0.5 }}>
+                      LV.{team[0]?.level ?? 1}
+                    </div>
+                    <div style={{ width: 60, height: 3, background: "rgba(0,0,0,0.5)", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ 
+                        width: `${Math.min(100, ((team[0]?.xp ?? 0) / (100 + (team[0]?.level ?? 1) * 20)) * 100)}%`, 
+                        height: "100%", background: "#5ec26a", transition: "width 0.3s" 
+                      }} />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowAutoSettings((v) => !v)}
+                    title="Configurar"
+                    style={{
+                      background: showAutoSettings ? "#c9b8ff" : "rgba(255,255,255,0.05)",
+                      color: showAutoSettings ? "#0b0510" : "#c9b8ff",
+                      border: "1px solid rgba(201,184,255,0.3)",
+                      borderRadius: 8, width: 28, height: 28, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 14, transition: "all 0.2s",
+                    }}
+                  >⚙</button>
+                </div>
               </div>
             </div>
             );
