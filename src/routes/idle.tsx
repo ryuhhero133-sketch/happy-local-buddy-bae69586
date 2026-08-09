@@ -13844,7 +13844,7 @@ function TabOverlay({
                             fontSize: 10.5, fontWeight: 900, color: P.ink, letterSpacing: 0.2, lineHeight: 1.15,
                             minHeight: 24, display: "flex", alignItems: "center",
                           }}>{NAMES[id] ?? id}</div>
-                          <div style={{ display: "flex", gap: 4, width: "100%" }}>
+                          <div style={{ display: "flex", gap: 4, width: "100%", marginTop: "auto" }}>
                             <button
                               onClick={() => {
                                 const bulk = id === "book_atk" || id === "book_def" || id === "potion";
@@ -13858,52 +13858,31 @@ function TabOverlay({
                                 }
                               }}
                               style={{
-                                flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
+                                flex: 1, padding: "8px 0", fontSize: 10, fontWeight: 900,
                                 background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
                                 color: "#000", border: "1px solid #fff4d0",
                                 borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
-                                boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.4)"
                               }}
                             >{isEgg ? "CHOCAR" : "USAR"}</button>
-                            {sellPrice > 0 && !id.startsWith("stone_") && (
-                              <button
-                                onClick={() => onSellItem(id, 1)}
-                                title={`Vender 1 por ${sellPrice} ouro`}
-                                style={{
-                                  flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
-                                  background: "linear-gradient(180deg, #ff7e7e, #ff5252)",
-                                  color: "#fff", border: "1px solid rgba(255,255,255,0.2)",
-                                  borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
-                                  boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-
-                                }}
-                              >💰{sellPrice}</button>
-                            )}
-
-                            {id.startsWith("stone_") && (
-                              <button
-                                onClick={() => {
-                                  const maxBatches = Math.floor(n / 250);
-                                  if (maxBatches <= 0) return;
-                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
-                                  if (raw == null) return;
-                                  const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
-                                  onSellItem(id, b * 250, "safira");
-                                }}
-                                title="Vender por Safira Verde (250 stones = 2 safiras)"
-                                disabled={n < 250}
-                                style={{
-                                  padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
-                                  color: "#0b2540", border: "1.5px solid #065f46",
-                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
-                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
-                                }}
-                              >💚</button>
-                            )}
-
+                            
+                            <button
+                              onClick={() => {
+                                const raw = window.prompt(`Vender quantos ${NAMES[id] ?? id}? (1–${n})`, "1");
+                                if (raw == null) return;
+                                const q = Math.max(1, Math.min(n, parseInt(raw, 10) || 1));
+                                onSellItem(id, q);
+                              }}
+                              style={{
+                                width: 34, height: 32, display: "grid", placeItems: "center",
+                                background: "linear-gradient(180deg, #ff7a7a, #8a1a1a)",
+                                border: "1px solid #ffb8b8", borderRadius: 6, cursor: "pointer",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.4)"
+                              }}
+                              title="Vender ao NPC"
+                            >💰</button>
                           </div>
+
                           {(() => {
                             const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
                               book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
