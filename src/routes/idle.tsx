@@ -8271,7 +8271,6 @@ function IdlePage() {
             <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
           </div>
 
-          {/* Equipe do Jogador (Reposicionada abaixo do Radar) */}
           <div style={{ 
             display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
             padding: '12px', background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(10px)',
@@ -10073,7 +10072,7 @@ function IdlePage() {
 
           <div style={{ height: 12 }} />
 
-          <Panel title="EQUIPE" accent="#3d2b52">
+          <Panel title="SUA EQUIPE" accent="#3d2b52">
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {team.map((p, i) => (
                 <div key={p.uid} style={{ 
@@ -10093,7 +10092,7 @@ function IdlePage() {
                 </div>
               ))}
             </div>
-            {/* Botão do Ancião Glacial no HUD Lateral */}
+            {/* Botão do Ancião Glacial unificado aqui no painel de equipe lateral */}
             <div style={{ marginTop: 8 }}>
               <button
                 onClick={handleAnciaoInteraction}
@@ -13331,40 +13330,7 @@ function TabOverlay({
                     </div>
                   ))}
                 </div>
-                {/* Botão do Ancião Glacial abaixo da Equipe */}
-                <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
-                  <button
-                    onClick={onAnciaoInteraction}
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      background: "linear-gradient(180deg, #15803d, #064e3b)",
-                      border: "2px solid #4ade80",
-                      borderRadius: 12,
-                      color: "#4ade80",
-                      fontSize: 14,
-                      fontWeight: 900,
-                      letterSpacing: 2,
-                      cursor: "pointer",
-                      boxShadow: "0 0 15px rgba(74,222,128,0.3)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      transition: "all 0.2s ease"
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.boxShadow = "0 0 25px rgba(74,222,128,0.6)";
-                      e.currentTarget.style.borderColor = "#86efac";
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.boxShadow = "0 0 15px rgba(74,222,128,0.3)";
-                      e.currentTarget.style.borderColor = "#4ade80";
-                    }}
-                  >
-                    ❄️ FALAR COM O ANCIÃO GLACIAL
-                  </button>
-                </div>
+                {/* Botão removido daqui e unificado no painel lateral */}
 
               </div>
             );
