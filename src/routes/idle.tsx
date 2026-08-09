@@ -1,4 +1,5 @@
 // VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V22 - SEASON_MAINTENANCE_LOGOUT
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -7196,6 +7197,83 @@ function IdlePage() {
 
   return (
     <div style={{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       height: "100vh",
       background: "#0b0510",
       color: "#f3e5c5",
@@ -7203,6 +7281,7 @@ function IdlePage() {
       overflow: "hidden",
       position: "relative"
     }}>
+
       <div
         ref={viewportRef}
         onClick={(e) => {
@@ -7326,46 +7405,56 @@ function IdlePage() {
 
         {/* HUD Elements rendered via portals or other overlays to handle layering correctly */}
       </div>
-            bank={idle.bank || { gold: 0, crystals: 0 }}
-            buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
-            onBuyBall={buyBall}
-            onBuyUltraBundle={buyUltraBundle}
-            onBuyTeleportScroll={buyTeleportScroll}
-            onBuyBook={buyBook}
-            onBuyPotion={buyPotion}
-            onBuyEgg={buyEgg}
-            shopEggs={SHOP_EGGS}
-            onBuyChestAmulet={buyChestAmulet}
-            chestAmuletOwned={idle.items?.chest_amulet || 0}
-            autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
-            setAutoHeal={(next) => setIdle(s => ({ ...s, autoHeal: next }))}
-            audioSettings={audioSettings}
-            setAudioSettings={setAudioSettings}
-            tasks={idle.tasks || []}
-            onClaimTask={claimTask}
-            onOpenColecaoDetail={(uid) => setPetDetailUid(uid)}
-            onExchange={exchange}
-            onSellItem={sellItem}
-            marketSellPrices={MARKET_SELL_PRICE}
-            identity={identity}
-            onListMarket={async () => false}
-            onBuyMarket={async () => false}
-            onCancelMarket={async () => false}
-            onClaimMarketPayout={async () => false}
-            isVip={isVip()}
-            skinId={skinId}
-            setSkinId={setSkinId}
-            unlockedSkins={idle.unlockedSkins || []}
-            skinTickets={idle.items?.skin_ticket || 0}
-            onUnlockSkin={(id) => {}}
-            trainerLevel={idle.trainerLevel || 1}
-            onUpgradeBook={upgradeBook}
-            orbTrades={ORB_TRADES}
-            onTradeOrb={tradeForOrb}
-            pokemonMarketNode={undefined}
-            benchUids={new Set()}
-          />
-        )}
+
+
+      {menuOpen && (
+        <InventoryModal
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          items={idle.items || {}}
+          collection={idle.collection || []}
+          team={team}
+          bank={idle.bank || { gold: 0, crystals: 0 }}
+          buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
+          onBuyBall={buyBall}
+          onBuyUltraBundle={buyUltraBundle}
+          onBuyTeleportScroll={buyTeleportScroll}
+          onBuyBook={buyBook}
+          onBuyPotion={buyPotion}
+          onBuyEgg={buyEgg}
+          shopEggs={SHOP_EGGS}
+          onBuyChestAmulet={buyChestAmulet}
+          chestAmuletOwned={idle.items?.chest_amulet || 0}
+          autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
+          setAutoHeal={(next) => setIdle(s => ({ ...s, autoHeal: next }))}
+          audioSettings={audioSettings}
+          setAudioSettings={setAudioSettings}
+          tasks={idle.tasks || []}
+          onClaimTask={claimTask}
+          onOpenColecaoDetail={(uid) => setPetDetailUid(uid)}
+          onExchange={exchange}
+          onSellItem={sellItem}
+          marketSellPrices={MARKET_SELL_PRICE}
+          identity={identity}
+          onListMarket={async () => false}
+          onBuyMarket={async () => false}
+          onCancelMarket={async () => false}
+          onClaimMarketPayout={async () => false}
+          isVip={isVip()}
+          skinId={skinId}
+          setSkinId={setSkinId}
+          unlockedSkins={idle.unlockedSkins || []}
+          skinTickets={idle.items?.skin_ticket || 0}
+          onUnlockSkin={(id) => {}}
+          trainerLevel={idle.trainerLevel || 1}
+          onUpgradeBook={upgradeBook}
+          orbTrades={ORB_TRADES}
+          onTradeOrb={tradeForOrb}
+          pokemonMarketNode={undefined}
+          benchUids={new Set()}
+        />
+      )}
+
 
 
 
@@ -7396,11 +7485,10 @@ function IdlePage() {
             </div>
           )}
         </div>
-
-
       </div>
-
       <style>{`
+
+
         .modern-floating-window {
           background: rgba(11, 5, 20, 0.98) !important;
           backdrop-filter: blur(16px) !important;
@@ -7444,6 +7532,41 @@ function IdlePage() {
 
       {/* 🛡️ AVISO — leitura da nuvem falhou: progresso local protegido e retry automático */}
       {cloudSaveBlocked && (
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999,
           display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
@@ -7462,6 +7585,8 @@ function IdlePage() {
           >🔄 Reenviar agora</button>
         </div>
       )}
+
+
       {/* 🌿 MODAL — Confirmar entrada no Evento Grass Oddish */}
       {oddishConfirm && (
         <div
@@ -8360,8 +8485,10 @@ function IdlePage() {
                   }}>RANKING GLOBAL</div>
                   <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
                     🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
+                  </div>
                 </div>
               </div>
+
               <div
                 title="O ranking global é congelado e atualiza a cada 2 horas"
                       style={{
@@ -8555,8 +8682,42 @@ function IdlePage() {
               </div>,
               document.body
             )}
-
         <div className="legacy-world-layer" style={{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
           position: "absolute",
           left: 0, top: 0,
           width: WORLD_W, height: WORLD_H,
@@ -8565,6 +8726,8 @@ function IdlePage() {
           zIndex: 1,
           pointerEvents: "none",
         }}>
+
+
 
             {/* Painel de Colmeia — posicionar Beedrills p/ produzir Incenso de Mel */}
             {honeyShop && (() => {
@@ -10067,9 +10230,10 @@ function IdlePage() {
 
 
 
-
           <Panel title="EXPLORAR" accent="#3d2b52">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+
+
 
 
 
@@ -10177,6 +10341,47 @@ function IdlePage() {
         </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       <style>{`
         .modern-floating-window {
           max-width: 95vw !important;
@@ -10184,6 +10389,7 @@ function IdlePage() {
           height: 90vh !important;
           margin: 0 auto;
         }
+
 
         @media (max-width: 768px) {
           .modern-floating-window {
@@ -10454,6 +10660,8 @@ function IdlePage() {
           </div>
         </div>
       )}
+
+
 
 
 
@@ -12045,105 +12253,88 @@ function IdlePage() {
       )}
       {blackEggHudOpen && createPortal(
         <BlackMiticEggHud
+          open={blackEggHudOpen}
+          onClose={() => setBlackEggHudOpen(false)}
+          uid={identity?.id ?? "guest"}
+          itemCount={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
+          stones={{
+            stone_grass: idle.items?.stone_grass ?? 0,
+            stone_fire: idle.items?.stone_fire ?? 0,
+            stone_water: idle.items?.stone_water ?? 0,
+            stone_electric: idle.items?.stone_electric ?? 0,
+            stone_dark: idle.items?.stone_dark ?? 0,
+            stone_dragon: idle.items?.stone_dragon ?? 0,
+          }}
+          onConsumeStone={(stoneId, qty) => {
+            const have = idleRef.current.items?.[stoneId] ?? 0;
+            if (have < qty) return false;
+            setIdle((s) => ({
+              ...s,
+              items: { ...(s.items ?? {}), [stoneId]: (s.items?.[stoneId] ?? 0) - qty },
+            }));
+            return true;
+          }}
+          onHatched={(species, element, traits, plus) => {
+            const hatchSpecies = (species in SPECIES_BASE ? species : "charizard_shiny") as Species;
+            const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+              ? crypto.randomUUID()
+              : `bmp_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+            const base = idleRef.current;
+            const curCount = base.items?.[BLACK_EGG_ITEM_ID] ?? 0;
+            const nextItems = { ...(base.items ?? {}) };
+            if (curCount <= 1) delete nextItems[BLACK_EGG_ITEM_ID];
+            else nextItems[BLACK_EGG_ITEM_ID] = curCount - 1;
+            // Ovo Plus: uso único — não devolve a carta ao chocar.
+            const entry: CollectionEntry = {
+              uid,
+              species: hatchSpecies,
+              level: 100,
+              xp: 0,
+              rarity: "mythic_shiny",
+              capturedAt: Date.now(),
+              traits,
+              event: `black_mitic_plus:${element}${plus ? ":plus" : ""}`,
+            };
+            const nextIdle: IdleState = {
+              ...base,
+              items: nextItems,
+              seenSpecies: base.seenSpecies.includes(hatchSpecies) ? base.seenSpecies : [...base.seenSpecies, hatchSpecies],
+              caughtSpecies: base.caughtSpecies.includes(hatchSpecies) ? base.caughtSpecies : [...base.caughtSpecies, hatchSpecies],
+              collection: [...(base.collection ?? []), entry],
+              totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + 1 },
+            };
+            idleRef.current = nextIdle;
+            saveIdle(nextIdle);
+            setIdle(nextIdle);
+            void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
+            const tag = plus ? "Black Mitic PLUS ✦ (Versátil, 6 traits)" : `Black Mitic Plus (${element})`;
+            pushChat(`✦ ${tag} nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
+          }}
+          onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
+          hasIncubatorCard={true}
+          onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
+          boostCount={idle.items?.egg_boost_69 ?? 0}
+          musicControlledExternally
+          plusPending={idle.blackMiticPlusPending ?? 0}
+          onConsumePlus={(count) => {
+            setIdle((s) => ({
+              ...s,
+              blackMiticPlusPending: Math.max(0, (s.blackMiticPlusPending ?? 0) - count),
+            }));
+          }}
+          onConsumeBoost={() => {
+            const have = idleRef.current.items?.egg_boost_69 ?? 0;
+            if (have <= 0) return false;
+            setIdle((s) => ({
+              ...s,
+              items: { ...(s.items ?? {}), egg_boost_69: (s.items?.egg_boost_69 ?? 0) - 1 },
+            }));
+            return true;
+          }}
+        />,
+        document.body
+      )}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        open={blackEggHudOpen}
-        onClose={() => setBlackEggHudOpen(false)}
-        uid={identity?.id ?? "guest"}
-        itemCount={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
-        stones={{
-          stone_grass: idle.items?.stone_grass ?? 0,
-          stone_fire: idle.items?.stone_fire ?? 0,
-          stone_water: idle.items?.stone_water ?? 0,
-          stone_electric: idle.items?.stone_electric ?? 0,
-          stone_dark: idle.items?.stone_dark ?? 0,
-          stone_dragon: idle.items?.stone_dragon ?? 0,
-        }}
-        onConsumeStone={(stoneId, qty) => {
-          const have = idleRef.current.items?.[stoneId] ?? 0;
-          if (have < qty) return false;
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), [stoneId]: (s.items?.[stoneId] ?? 0) - qty },
-          }));
-          return true;
-        }}
-        onHatched={(species, element, traits, plus) => {
-          const hatchSpecies = (species in SPECIES_BASE ? species : "charizard_shiny") as Species;
-          const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
-            ? crypto.randomUUID()
-            : `bmp_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
-          const base = idleRef.current;
-          const curCount = base.items?.[BLACK_EGG_ITEM_ID] ?? 0;
-          const nextItems = { ...(base.items ?? {}) };
-          if (curCount <= 1) delete nextItems[BLACK_EGG_ITEM_ID];
-          else nextItems[BLACK_EGG_ITEM_ID] = curCount - 1;
-          // Ovo Plus: uso único — não devolve a carta ao chocar.
-          const entry: CollectionEntry = {
-            uid,
-            species: hatchSpecies,
-            level: 100,
-            xp: 0,
-            rarity: "mythic_shiny",
-            capturedAt: Date.now(),
-            traits,
-            event: `black_mitic_plus:${element}${plus ? ":plus" : ""}`,
-          };
-          const nextIdle: IdleState = {
-            ...base,
-            items: nextItems,
-            seenSpecies: base.seenSpecies.includes(hatchSpecies) ? base.seenSpecies : [...base.seenSpecies, hatchSpecies],
-            caughtSpecies: base.caughtSpecies.includes(hatchSpecies) ? base.caughtSpecies : [...base.caughtSpecies, hatchSpecies],
-            collection: [...(base.collection ?? []), entry],
-            totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + 1 },
-          };
-          idleRef.current = nextIdle;
-          saveIdle(nextIdle);
-          setIdle(nextIdle);
-          void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
-          const tag = plus ? "Black Mitic PLUS ✦ (Versátil, 6 traits)" : `Black Mitic Plus (${element})`;
-          pushChat(`✦ ${tag} nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
-        }}
-        onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
-        hasIncubatorCard={true}
-        onActivateEgg={() => { /* incubadora sempre desbloqueada — nada a consumir */ }}
-        boostCount={idle.items?.egg_boost_69 ?? 0}
-        musicControlledExternally
-        plusPending={idle.blackMiticPlusPending ?? 0}
-        onConsumePlus={(count) => {
-          setIdle((s) => ({
-            ...s,
-            blackMiticPlusPending: Math.max(0, (s.blackMiticPlusPending ?? 0) - count),
-          }));
-        }}
-        onConsumeBoost={() => {
-          const have = idleRef.current.items?.egg_boost_69 ?? 0;
-          if (have <= 0) return false;
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), egg_boost_69: (s.items?.egg_boost_69 ?? 0) - 1 },
-          }));
-          return true;
-        }}
-      />
 
       <GovernanteDialog
         open={governanteOpen}
@@ -12281,6 +12472,7 @@ function IdlePage() {
 
       {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
       {pendingGate && createPortal(
+
         <div onClick={() => setPendingGate(null)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: "#1a0f26", border: "3px solid #f5cf6b", borderRadius: 16, padding: 24, maxWidth: 420, width: "100%", cursor: "default", boxShadow: "0 0 50px rgba(0,0,0,0.8)" }}>
             <h3 style={{ color: "#f5cf6b", margin: "0 0 16px 0", fontSize: 20, fontWeight: 900, textAlign: "center" }}>Viajar para {IDLE_MAPS[pendingGate.target as IdleMapId].name}?</h3>
@@ -12309,6 +12501,7 @@ function IdlePage() {
         </div>,
         document.body
       )}
+
 
       {bigMapOpen && createPortal(
         <div onClick={() => setBigMapOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.9)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
@@ -12453,6 +12646,57 @@ function IdlePage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
