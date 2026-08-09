@@ -9101,7 +9101,7 @@ function IdlePage() {
                   style={{
                     position: "absolute",
                     left: npcX - 60, top: npcY - 90,
-                    width: 120, height: 160,
+                    width: 170, height: 230,
                     cursor: "pointer",
                     zIndex: Math.round(npcY),
                     display: "flex", flexDirection: "column", alignItems: "center",
