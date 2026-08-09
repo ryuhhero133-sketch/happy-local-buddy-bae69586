@@ -3651,7 +3651,7 @@ function IdlePage() {
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
   // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
-  const BASE_ZOOM = 0.2;
+  const BASE_ZOOM = 0.08;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
@@ -7251,7 +7251,7 @@ function IdlePage() {
           {/* Fundo que preenche o mapa para evitar o "void" verde ou preto */}
           <div style={{
             position: "absolute",
-            inset: -10000,
+            inset: -20000,
             backgroundColor: viewportBg, 
             zIndex: -1
           }} />
@@ -7383,7 +7383,7 @@ function IdlePage() {
 
         {/* Dock Inferior Moderna */}
         <div className="bottom-dock-container" style={{
-          position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
+          position: 'fixed', bottom: '15px', left: '50%', transform: 'translateX(-50%)',
           background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(15px)',
           padding: '10px 35px', borderRadius: '50px', border: '1px solid #c9b8ff',
           display: 'flex', gap: '30px', pointerEvents: 'auto', boxShadow: '0 0 30px rgba(201,184,255,0.2)',
@@ -8149,7 +8149,7 @@ function IdlePage() {
 
         {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
         <div className="trainer-profile-hud" style={{ 
-          position: 'fixed', top: '75px', left: '20px', width: '230px', 
+          position: 'fixed', top: '75px', left: '20px', width: '190px', 
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
@@ -8349,7 +8349,7 @@ function IdlePage() {
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
           <div style={{
-            width: '250px', height: '250px', background: 'rgba(0, 0, 0, 0.5)',
+            width: '200px', height: '200px', background: 'rgba(0, 0, 0, 0.5)',
             border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 0 35px rgba(0,0,0,0.9), inset 0 0 25px rgba(245,207,107,0.3)', 
@@ -9914,7 +9914,7 @@ function IdlePage() {
             const on = ab.enabled;
             return (
             <div style={{
-              position: "absolute", bottom: 130, left: "50%", transform: "translateX(-50%)",
+              position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
               zIndex: 10000,
             }}>
@@ -11919,7 +11919,7 @@ function IdlePage() {
             borderRadius: 14,
             padding: "8px 14px 8px 8px",
             boxShadow: `0 8px 22px rgba(0,0,0,0.6), 0 0 0 1px ${rColor}44 inset, 0 0 16px ${rColor}66`,
-            minWidth: 260,
+            minWidth: 220,
             animation: "evt-slide 220ms cubic-bezier(.2,.9,.3,1.2)",
           }}>
 
@@ -13062,8 +13062,8 @@ function TabOverlay({
       top: "50%",
       left: "50%",
       transform: "translate(-50%, -50%)",
-      width: "min(1200px, 98vw)",
-      height: "min(840px, 92vh)",
+      width: "min(1000px, 98vw)",
+      height: "min(700px, 92vh)",
       background: "rgba(11, 5, 20, 0.98)", 
       backdropFilter: "blur(20px)",
       display: "flex",
