@@ -10014,8 +10014,8 @@ function IdlePage() {
                     borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
                     minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
                   }}>
-
                   <div style={{ fontWeight: 800, color: "#f5cf6b", fontSize: 12, letterSpacing: 1 }}>⚙ CONFIGURAR AUTO</div>
+
                   <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                     <span>Usar Pokébola</span>
                     <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
