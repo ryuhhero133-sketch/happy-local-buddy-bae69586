@@ -10,7 +10,10 @@ import type { CollectionEntry } from "@/routes/idle";
 import type { Species, Rarity } from "@/game/systems.tsx";
 
 
-import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
+import { SPECIES_BASE as _SPECIES_BASE, RARITY_NAME as _RARITY_NAME } from "@/game/systems.tsx";
+const SPECIES_BASE = _SPECIES_BASE as any;
+const RARITY_NAME = _RARITY_NAME as any;
+
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
 import { readEmeraldFor, writeEmeraldFor, spendEmeraldFor, grantEmeraldFor } from "@/lib/emerald";
