@@ -8304,50 +8304,7 @@ function IdlePage() {
           </div>
 
 
-          <div style={{
-            background: "rgba(36,20,44,0.92)",
-            border: "1px solid rgba(201,184,255,0.25)",
-            borderRadius: 10,
-            padding: "8px 10px",
-            flex: 1,
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10
-          }}>
-             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EXPLORAR</div>
-             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
-                {enemies.slice(0, 8).map(m => (
-                  <div key={m.id} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: "5px 8px", border: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 8 }}>
-                     <img src={GIF[m.sp] ?? ""} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
-                     <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: "#fff" }}>{m.sp.toUpperCase()}</div>
-                        <div style={{ width: "100%", height: 3, background: "#000", borderRadius: 2, marginTop: 2 }}>
-                           <div style={{ width: `${(m.hp / m.maxHp) * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff4b4b, #ff8b8b)", borderRadius: 2 }} />
-                        </div>
-                     </div>
-                     <span style={{ fontSize: 9, color: "#ffb84d", fontWeight: 900 }}>Lv.{m.level}</span>
-                  </div>
-                ))}
-             </div>
-          </div>
 
-          <div style={{
-            background: "rgba(36,20,44,0.92)",
-            border: "1px solid rgba(201,184,255,0.25)",
-            borderRadius: 10,
-            padding: "8px 10px",
-            height: "180px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8
-          }}>
-             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "#c9b8ff", textAlign: "center", textShadow: "0 2px 4px #000" }}>EQUIPE</div>
-             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
-                {team.map((p, i) => (
-                   <div key={p.uid} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: 4, border: `1px solid ${i === 0 ? "#ffd66b" : "rgba(255,255,255,0.05)"}`, position: "relative", textAlign: "center" }}>
-                      <img src={GIF[p.species] ?? ""} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated" }} />
-                      <div style={{ fontSize: 8, fontWeight: 800, color: "#fff", marginTop: 2 }}>Lv.{p.level}</div>
                    </div>
                 ))}
              </div>
