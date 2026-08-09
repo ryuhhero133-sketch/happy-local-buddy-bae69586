@@ -8271,12 +8271,13 @@ function IdlePage() {
             <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
           </div>
 
-          {/* SUA EQUIPE (Coluna Direita) */}
+          {/* Painel da Equipe (Abaixo do Radar) */}
           <div className="team-panel-hud" style={{ 
             display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
             padding: '12px', background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(10px)',
             borderRadius: '15px', border: '1px solid rgba(201,184,255,0.3)',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.6)'
+            boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
+            marginTop: '0' 
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
               <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1.5 }}>SUA EQUIPE</span>
