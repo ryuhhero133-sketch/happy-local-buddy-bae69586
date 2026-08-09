@@ -12609,7 +12609,7 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
       transition: 'all 0.2s',
       marginBottom: '2px'
     }}>
-      <TeamRowContent pet={pet} pct={pct} maxHp={maxHp} hp={hp} ePct={ePct} exhausted={exhausted} rColor={rColor} src={src} resting={resting} infinite={infinite} energy={energy} />
+      <TeamRowContent pet={pet} pct={pct} maxHp={maxHp} hp={hp} ePct={ePct} exhausted={exhausted} rColor={rColor} src={src} resting={resting} infinite={infinite} energy={energy} spriteScale={spriteScale} />
     </div>
   );
 }
