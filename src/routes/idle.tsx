@@ -9501,7 +9501,7 @@ function IdlePage() {
                 <div key={rp.id} style={{
                   position: "absolute",
                   left: rp.x, top: rp.y,
-                  width: 56, height: 56,
+                  width: 80, height: 80,
                   transform: "translate(-50%, -50%)",
                   transition: "left 220ms linear, top 220ms linear",
                   filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
