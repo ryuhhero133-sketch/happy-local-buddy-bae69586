@@ -7291,7 +7291,15 @@ function IdlePage() {
       </div>
 
       {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
-      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
+      <div className="hud-overlay-container" style={{ 
+        position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent',
+        transform: `scale(${uiScale})`,
+        transformOrigin: "center center",
+        width: `${100 / uiScale}%`,
+        height: `${100 / uiScale}%`,
+        left: `${(1 - uiScale) * 50 / uiScale}%`,
+        top: `${(1 - uiScale) * 50 / uiScale}%`
+      }}>
         
         {/* Barra Superior Moderna (Arquitetura da Imagem) */}
         <div className="modern-top-bar" style={{ 
