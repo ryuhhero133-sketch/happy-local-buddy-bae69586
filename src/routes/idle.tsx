@@ -3839,8 +3839,8 @@ function IdlePage() {
           pokemonFaceRef.current = nextFace; setPokemonFace(nextFace);
         }
         setTrainerPos((tp) => {
-          const ww = idle.currentMap === "arena" ? WORLD_W_ARENA : WORLD_W;
-          const wh = idle.currentMap === "arena" ? WORLD_H_ARENA : WORLD_H;
+          const ww = WORLD_W;
+          const wh = WORLD_H;
           const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
           const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
           let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
