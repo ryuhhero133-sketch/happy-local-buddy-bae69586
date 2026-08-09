@@ -8071,8 +8071,9 @@ function IdlePage() {
         gridTemplateColumns: "1fr",
         gridTemplateRows: "1fr",
         position: "relative",
-        height: "100vh",
-        width: "100vw",
+        height: "100dvh",
+        width: "100dvw",
+        background: "black",
         overflow: "hidden",
       }}>
 
