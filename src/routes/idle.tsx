@@ -3654,8 +3654,12 @@ function IdlePage() {
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
+
+  // Mapa real preenchido: centralizamos a câmera, mas impedimos que ela mostre áreas fora do mapa
+  // a menos que o mapa seja menor que a visão (o que não deve acontecer com WORLD_W/H = 2000).
   const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
   const camY = Math.max(0, Math.min(Math.max(0, WORLD_H - viewH), trainerPos.y - viewH / 2));
+
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * effectiveZoom) / effectiveZoom;
   const renderCamY = Math.round(camY * effectiveZoom) / effectiveZoom;
@@ -7243,13 +7247,11 @@ function IdlePage() {
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}>
+          {/* Solid color background or same map stretched to extreme bounds to avoid leaks */}
           <div style={{
             position: "absolute",
-            inset: -4000,
-            backgroundImage: `url(${map.bg})`,
-            backgroundRepeat: "repeat",
-            backgroundSize: `${WORLD_W}px ${WORLD_H}px`,
-            imageRendering: "pixelated",
+            inset: -10000,
+            backgroundColor: "#000", // Fundo preto sólido para o "void"
             zIndex: -1
           }} />
           <img
@@ -8357,7 +8359,7 @@ function IdlePage() {
             <div style={{
               position: 'absolute', inset: '0', borderRadius: '50%',
               backgroundImage: `url(${IDLE_MAPS[idle.currentMap].bg})`,
-              backgroundSize: '100% 100%', // Show full map
+              backgroundSize: 'cover',
               backgroundPosition: 'center',
               filter: 'brightness(0.75) contrast(1.1)',
               transition: 'background-image 0.5s ease',
@@ -8401,7 +8403,7 @@ function IdlePage() {
             {/* Integrated Zoom Controls - Positioned next to radar as in image-32.png */}
             <div style={{
               position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-              display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 20
+              display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 20, alignItems: 'center'
             }}>
               <button 
                 onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(1.5, z + 0.1)); }}
@@ -8409,6 +8411,15 @@ function IdlePage() {
               >
                 <Plus size={16} />
               </button>
+              
+              <div style={{
+                background: 'rgba(0,0,0,0.7)', padding: '2px 6px', borderRadius: '10px',
+                border: '1px solid rgba(245,207,107,0.3)', color: '#f5cf6b',
+                fontSize: '10px', fontWeight: 900, textShadow: '0 1px 2px #000'
+              }}>
+                {Math.round(zoom * 100)}%
+              </div>
+
               <button 
                 onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(0.4, z - 0.1)); }}
                 style={{ ...zoomBtn, borderRadius: '50%', width: '32px', height: '32px', background: 'rgba(0,0,0,0.8)', border: '2px solid rgba(245,207,107,0.6)', boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
