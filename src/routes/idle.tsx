@@ -10187,7 +10187,8 @@ function IdlePage() {
                 </div>
               </div>
             );
-          })}
+          })()}
+
 
 
 
