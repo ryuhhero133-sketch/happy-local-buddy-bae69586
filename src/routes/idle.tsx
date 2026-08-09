@@ -9819,7 +9819,6 @@ function IdlePage() {
                 </div>
               );
             })}
-          </div>
         </div>
       </div>
 
@@ -12175,11 +12174,11 @@ function IdlePage() {
           }));
           return true;
         }}
-      />
-    </div>
-  </div>,
-  document.body
-)}
+        />
+          </div>
+        </div>,
+        document.body
+      )}
 
       {governanteOpen && createPortal(
         <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "auto", background: "rgba(0,0,0,0.75)" }}>
