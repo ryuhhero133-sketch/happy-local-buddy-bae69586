@@ -565,7 +565,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   santuario_glacial: { name: "Santuário Glacial", diff: "SEGURO", bg: mapSnowUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 10, overlay: "rgba(200,230,255,0.3)" },
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
-  vale_verdejante: { name: "Vale Verdejante (Ice)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Grama", stars: 1, overlay: "rgba(180,210,255,0.25)" },
+  vale_verdejante: { name: "Vale Verdejante (Ice)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Grama", stars: 1, overlay: "rgba(180,210,255,0.85)", zoomOverride: 0.35 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -12053,7 +12053,8 @@ function IdlePage() {
 
       {/* ============ LOJINHA CASH ============ */}
       {cashShopOpen && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "none" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "auto", background: "rgba(0,0,0,0.75)" }}>
+
           <div style={{ pointerEvents: "auto" }}>
             <CashShopModal
               open={cashShopOpen}
@@ -12094,6 +12095,8 @@ function IdlePage() {
         document.body
       )}
       {blackEggHudOpen && createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "auto", background: "rgba(0,0,0,0.75)" }}>
+          <div style={{ pointerEvents: "auto" }}>
         <BlackMiticEggHud
           open={blackEggHudOpen}
           onClose={() => setBlackEggHudOpen(false)}
@@ -12173,9 +12176,16 @@ function IdlePage() {
           }));
           return true;
         }}
-      />
+        />
+          </div>
+        </div>,
+        document.body
+      )}
 
-      <GovernanteDialog
+      {governanteOpen && createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "auto", background: "rgba(0,0,0,0.75)" }}>
+          <div style={{ pointerEvents: "auto" }}>
+            <GovernanteDialog
         open={governanteOpen}
         cards={idle.items?.carta_incubadora ?? 0}
         plusCards={idle.items?.carta_plus ?? 0}
@@ -12304,7 +12314,11 @@ function IdlePage() {
 
           pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
         }}
-      />
+        />
+          </div>
+        </div>,
+        document.body
+      )}
 
 
 
@@ -12478,9 +12492,8 @@ function IdlePage() {
       })(), document.body)}
 
 
-      {isAdminOpen && createPortal(
-        <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
-        document.body
+      {isAdminOpen && (
+        <AdminDashboard onClose={() => setIsAdminOpen(false)} />
       )}
     </div>
   );
