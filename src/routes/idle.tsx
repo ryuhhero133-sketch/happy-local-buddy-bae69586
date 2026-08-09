@@ -7466,12 +7466,12 @@ function IdlePage() {
           box-shadow: 0 0 60px rgba(0,0,0,0.85), inset 0 0 40px rgba(167, 139, 250, 0.05) !important;
         }
         .side-btn {
-          transition: transform 0.2s, background 0.2s;
+          transition: transform 0.2s, background 0.2s, border-color 0.2s;
         }
         .side-btn:hover {
           transform: scale(1.1);
-          background: rgba(245, 207, 107, 0.2) !important;
-          border-color: #f5cf6b !important;
+          background: rgba(201, 184, 255, 0.2) !important;
+          border-color: #fff !important;
         }
         .side-btn:active {
           transform: scale(0.95);
