@@ -3651,7 +3651,7 @@ function IdlePage() {
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
   // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
-  const BASE_ZOOM = 0.13;
+  const BASE_ZOOM = 0.125;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
@@ -8149,7 +8149,7 @@ function IdlePage() {
 
         {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
         <div className="trainer-profile-hud" style={{ 
-          position: 'fixed', top: '75px', left: '20px', width: '280px', 
+          position: 'fixed', top: '75px', left: '20px', width: '270px', 
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
@@ -8342,14 +8342,14 @@ function IdlePage() {
         {/* ============ COLUNA DIREITA ============ */}
         {/* ============ COLUNA DIREITA (RADAR) ============ */}
         <div className="hud-right-column" style={{ 
-          position: 'fixed', top: '75px', right: '20px', width: '320px',
+          position: 'fixed', top: '75px', right: '20px', width: '300px',
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
           <div style={{
-            width: '320px', height: '320px', background: 'rgba(0, 0, 0, 0.5)',
+            width: '300px', height: '300px', background: 'rgba(0, 0, 0, 0.5)',
             border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 0 35px rgba(0,0,0,0.9), inset 0 0 25px rgba(245,207,107,0.3)', 
@@ -9101,7 +9101,7 @@ function IdlePage() {
                   style={{
                     position: "absolute",
                     left: npcX - 60, top: npcY - 90,
-                    width: 200, height: 270,
+                    width: 230, height: 300,
                     cursor: "pointer",
                     zIndex: Math.round(npcY),
                     display: "flex", flexDirection: "column", alignItems: "center",
@@ -9120,8 +9120,8 @@ function IdlePage() {
                   <img
                     src={npcAnciaoGlacialUrl}
                     alt="Ancião Glacial"
-                    width={200} height={270}
-                    style={{ width: 200, height: 270, imageRendering: "pixelated", objectFit: "contain" }}
+                    width={230} height={300}
+                    style={{ width: 230, height: 300, imageRendering: "pixelated", objectFit: "contain" }}
                   />
                   <div style={{
                     position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
@@ -9142,7 +9142,7 @@ function IdlePage() {
               const face = e.face ?? "left";
               const sx = face === "left" ? 1 : -1;
               const scale = (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
-              const size = Math.round(100 * scale);
+              const size = Math.round(115 * scale);
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
               const rarityAura: Record<Rarity, string> = {
                 common: "rgba(200,200,200,0.55)",
@@ -9399,7 +9399,7 @@ function IdlePage() {
             {chests.map((c) => (
               <div key={`chest-${c.id}`} style={{
                 position: "absolute", left: c.x, top: c.y,
-                      width: 110, height: 110,
+                      width: 125, height: 125,
                 transform: "translate(-50%, -50%)",
                 zIndex: Math.round(c.y),
                 pointerEvents: "none",
@@ -9430,7 +9430,7 @@ function IdlePage() {
             <div style={{
               position: "absolute",
               left: renderTrainerX, top: renderTrainerY,
-              width: 100, height: 100,
+              width: 115, height: 115,
               transform: "translate(-50%, -50%)",
               filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
               zIndex: Math.round(trainerPos.y),
@@ -9606,7 +9606,7 @@ function IdlePage() {
                 <div style={{
                   position: "absolute",
                   left: leaderX, top: leaderY,
-                  width: 100, height: 100,
+                  width: 115, height: 115,
                   transform: "translate(-50%, -50%)",
                   transition: attackAnim ? "none" : undefined,
                   filter: `drop-shadow(0 3px 3px rgba(0,0,0,0.55)) ${fainted ? "grayscale(1) brightness(0.6)" : ""}`,
@@ -9914,7 +9914,7 @@ function IdlePage() {
             const on = ab.enabled;
             return (
             <div style={{
-              position: "absolute", bottom: 120, left: "50%", transform: "translateX(-50%)",
+              position: "absolute", bottom: 130, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
               zIndex: 10000,
             }}>
