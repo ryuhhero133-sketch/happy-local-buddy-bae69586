@@ -13706,9 +13706,11 @@ function TabOverlay({
               }}>
 
                 <div style={{
-                  textAlign: "center", fontSize: 10, fontWeight: 900, letterSpacing: 2,
-                  color: P.goldDark, padding: "4px 0 6px", borderBottom: `1px dashed ${P.goldDark}55`,
-                }}>CATEGORIAS</div>
+                  textAlign: "center", fontSize: 12, fontWeight: 900, letterSpacing: 2,
+                  color: "#f5cf6b", padding: "8px 0", borderBottom: `2px solid rgba(245, 207, 107, 0.3)`,
+                  marginBottom: 8, textShadow: "0 2px 4px rgba(0,0,0,0.5)"
+                }}>FILTROS</div>
+
                 {CATS.map((c) => {
                   const active = mochilaCat === c.id;
                   const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
