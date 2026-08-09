@@ -7253,7 +7253,7 @@ function IdlePage() {
           <div style={{
             position: "absolute",
             inset: -10000,
-            backgroundColor: viewportBg, 
+            backgroundColor: "#000", 
             zIndex: -1
           }} />
           <img
