@@ -9819,7 +9819,8 @@ function IdlePage() {
               );
             })}
           </div>
-      </div>
+          {restingUntil !== null && restingStart !== null && (() => {
+
 
             const totalDur = Math.max(1, restingUntil - restingStart);
             const elapsed = Math.min(totalDur, Math.max(0, Date.now() - restingStart));
