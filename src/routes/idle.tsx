@@ -12710,20 +12710,21 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   const src = GIF[pet.species];
   const now = Date.now();
   const energy = petCurrentEnergy(pet, now, { active: true });
-  const msFull = petMsToFull(pet, now);
   const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
   const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
+  
   if (!src) {
     return (
       <div onClick={onClick} style={{ display: "flex", gap: 8, alignItems: "center", background: "#2a1a3a", padding: 6, borderRadius: 6, cursor: onClick ? "pointer" : undefined }}>
-        <div style={{ width: 48, height: 48, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 20 }}>❓</div>
-        <div style={{ flex: 1, fontSize: 12 }}>
+        <div style={{ width: 36, height: 36, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 16 }}>❓</div>
+        <div style={{ flex: 1, fontSize: 10 }}>
           <div style={{ fontWeight: 600 }}>{pet.species.replace(/_/g, " ").toUpperCase()}</div>
-          <div style={{ fontSize: 10, color: "#b8a8c8" }}>Lv.{pet.level}</div>
+          <div style={{ fontSize: 9, color: "#b8a8c8" }}>Lv.{pet.level}</div>
         </div>
       </div>
     );
   }
+  
   const maxHp = calcIdleMaxHp(pet);
   const hp = pet.hp ?? maxHp;
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
@@ -12738,34 +12739,29 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
     const n = parseInt(h.replace("#", ""), 16);
     return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
   };
+
   return (
-    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
+    <div onClick={onClick} style={{
       display: "flex", gap: 8, alignItems: "center",
       background: exhausted
         ? "linear-gradient(135deg, #14101a 0%, #1a1420 100%)"
-        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.22)} 0%, rgba(11,5,16,0.85) 100%)`,
-      padding: "5px 8px 5px 5px",
-      borderRadius: 10,
+        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.15)} 0%, rgba(11,5,16,0.6) 100%)`,
+      padding: "5px 10px",
+      borderRadius: "12px",
       cursor: onClick ? "pointer" : undefined,
-      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #333" : `1px solid ${hexToRgba(rColor, 0.7)}`),
-      boxShadow: exhausted
-        ? "inset 0 1px 0 rgba(255,255,255,0.03)"
-        : `0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 ${hexToRgba(rColor, 0.28)}, 0 0 10px ${hexToRgba(rColor, 0.18)}`,
-      opacity: exhausted ? 0.6 : 1,
+      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #333" : `1px solid ${hexToRgba(rColor, 0.4)}`),
+      boxShadow: exhausted ? "none" : `0 2px 8px rgba(0,0,0,0.4), inset 0 0 10px ${hexToRgba(rColor, 0.1)}`,
+      opacity: exhausted ? 0.7 : 1,
       position: "relative",
       overflow: "hidden",
+      transition: 'all 0.2s',
+      marginBottom: '2px'
     }}>
-      {/* Selo lateral (barra fina de raridade) */}
-      <span style={{
-        position: "absolute", left: 0, top: 6, bottom: 6, width: 2,
-        background: `linear-gradient(180deg, ${rColor}, ${hexToRgba(rColor, 0.3)})`,
-        borderRadius: 2,
-        boxShadow: `0 0 5px ${rColor}88`,
-      }} />
       <TeamRowContent pet={pet} pct={pct} maxHp={maxHp} hp={hp} ePct={ePct} exhausted={exhausted} rColor={rColor} src={src} resting={resting} infinite={infinite} energy={energy} />
     </div>
   );
 }
+
 
 function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, resting, infinite, energy }: any) {
   const hexToRgba = (h: string, a: number) => {
