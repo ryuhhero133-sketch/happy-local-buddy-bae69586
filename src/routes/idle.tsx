@@ -10076,24 +10076,24 @@ function IdlePage() {
                 </div>
                 )}
                 <button
-                  onClick={() => setAB({ enabled: !on })}
+                  onClick={() => setIdle(s => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: !(s.autoBattle?.enabled ?? true) } }))}
                   style={{
                     padding: "10px 20px",
-                    background: on ? "linear-gradient(180deg, #5ec26a, #2e7d32)" : "linear-gradient(180deg, #ff5c5c, #c62828)",
+                    background: (idle.autoBattle?.enabled ?? true) ? "linear-gradient(180deg, #5ec26a, #2e7d32)" : "linear-gradient(180deg, #ff5c5c, #c62828)",
                     border: "2px solid rgba(255,255,255,0.2)",
                     borderRadius: 12, color: "#fff", fontWeight: 900, fontSize: 13,
                     letterSpacing: 1.5, cursor: "pointer",
-                    boxShadow: on ? "0 0 15px rgba(94,194,106,0.4)" : "0 0 15px rgba(255,92,92,0.4)",
+                    boxShadow: (idle.autoBattle?.enabled ?? true) ? "0 0 15px rgba(94,194,106,0.4)" : "0 0 15px rgba(255,92,92,0.4)",
                     display: "flex", alignItems: "center", gap: 8,
                     transition: "all 0.2s"
                   }}
                 >
-                  <span style={{ fontSize: 18 }}>{on ? "⚔️" : "🛑"}</span>
-                  {on ? "BATALHA AUTO: ON" : "BATALHA AUTO: OFF"}
+                  <span style={{ fontSize: 18 }}>{(idle.autoBattle?.enabled ?? true) ? "⚔️" : "🛑"}</span>
+                  {(idle.autoBattle?.enabled ?? true) ? "BATALHA AUTO: ON" : "BATALHA AUTO: OFF"}
                 </button>
               </div>
-            );
-          })()}
+          )}
+
           <div style={{
             position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)",
 
