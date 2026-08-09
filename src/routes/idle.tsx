@@ -7509,6 +7509,7 @@ function IdlePage() {
         .chat-floating-panel:hover {
            max-height: 300px !important;
         }
+      `}</style>
 
 
 
