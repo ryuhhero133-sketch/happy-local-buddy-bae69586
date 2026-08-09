@@ -39,9 +39,10 @@ type ListingRow = {
   seller_name: string;
   pokemon: {
     uid: string;
-    species: Species;
+    species: any;
     level: number;
-    rarity: Rarity;
+    rarity: any;
+
     xp?: number;
     traits?: string[];
     statBoost?: number;
@@ -109,7 +110,8 @@ export interface PokemonMarketPanelProps {
   crystals: number;
   safiras?: number;
   isVip: boolean;
-  gifOf: (sp: Species) => string | undefined;
+  gifOf: (sp: any) => string | undefined;
+
   onListed: (uid: string) => void;                              // remove do estoque local
   onReturned: (entry: CollectionEntry) => void;                 // devolve p/ coleção
   onSpend: (currency: Currency, amount: number) => void;
@@ -666,7 +668,7 @@ export function PokemonMarketPanel(props: PokemonMarketPanelProps) {
 
 // ============ CARDS ============
 function ListingCard(props: {
-  r: ListingRow; gifOf: (sp: Species) => string | undefined; now: number;
+  r: ListingRow; gifOf: (sp: any) => string | undefined; now: number;
   action?: React.ReactNode; badge?: string; footer?: React.ReactNode;
 }) {
   const { r, gifOf, action, badge, footer } = props;
@@ -811,7 +813,7 @@ function OffersReceived(props: {
 function CreateListing(props: {
   identity: { id: string; name: string } | null;
   collection: CollectionEntry[];
-  gifOf: (sp: Species) => string | undefined;
+  gifOf: (sp: any) => string | undefined;
   selUid: string; setSelUid: (u: string) => void;
   price: number; setPrice: (n: number) => void;
   currency: Currency; setCurrency: (c: Currency) => void;
