@@ -10179,6 +10179,7 @@ function IdlePage() {
 
 
 
+
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
           {tab !== "batalha" && (
             <TabOverlay
