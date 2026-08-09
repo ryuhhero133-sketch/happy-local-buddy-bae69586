@@ -8386,7 +8386,34 @@ function IdlePage() {
 
 
         {/* ============ COLUNA DIREITA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+        {/* ============ COLUNA DIREITA (RADAR E EXPLORAR) ============ */}
+        <div style={{ 
+          position: 'fixed', top: '75px', right: '20px', width: '240px',
+          display: "flex", flexDirection: "column", gap: 6, zIndex: 1005,
+          pointerEvents: 'auto'
+        }}>
+          {/* Radar HUD */}
+          <div style={{
+            height: '140px', background: 'rgba(11, 5, 20, 0.85)',
+            border: '1px solid rgba(201,184,255,0.3)', borderRadius: '15px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.5)', overflow: 'hidden', position: 'relative'
+          }}>
+            <div style={{ 
+              width: '100px', height: '100px', borderRadius: '50%', 
+              border: '2px dashed rgba(201,184,255,0.2)', position: 'relative',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <div style={{ 
+                position: 'absolute', width: '2px', height: '50%', bottom: '50%', 
+                background: 'linear-gradient(to top, transparent, #c9b8ff)',
+                transformOrigin: 'bottom', animation: 'radarScan 4s linear infinite'
+              }} />
+              <span style={{ fontSize: '10px', color: '#c9b8ff', fontWeight: 900 }}>RADAR</span>
+            </div>
+            <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+          </div>
+
           <div style={{
             background: "rgba(36,20,44,0.92)",
             border: "1px solid rgba(201,184,255,0.25)",
