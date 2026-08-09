@@ -12000,45 +12000,47 @@ function IdlePage() {
 
       {/* ============ LOJINHA CASH ============ */}
       {cashShopOpen && createPortal(
-        <CashShopModal
-
-          open={cashShopOpen}
-          onClose={() => setCashShopOpen(false)}
-          identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
-          wallet={{
-            coins: idle.bank.gold,
-            crystals: idle.bank.crystals,
-            level: idle.trainerLevel ?? 1,
-            xp: idle.trainerXp ?? 0,
-            xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
-            safiras: idle.items?.safira_verde ?? 0,
-          }}
-          onSpendSafiras={(n) => {
-          const cur = idle.items?.safira_verde ?? 0;
-          if (cur < n) return false;
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
-          }));
-          return true;
-        }}
-
-        onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
-        onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
-        onGrantItem={(id, qty) => {
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
-          }));
-        }}
-        codeInput={codeInput}
-        setCodeInput={setCodeInput}
-        codeMsg={codeMsg}
-        onRedeemCode={() => redeemCrystalCode()}
-      />,
-      document.body
-    )}
-    <BlackMiticEggHud
+        <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "none" }}>
+          <div style={{ pointerEvents: "auto" }}>
+            <CashShopModal
+              open={cashShopOpen}
+              onClose={() => setCashShopOpen(false)}
+              identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
+              wallet={{
+                coins: idle.bank.gold,
+                crystals: idle.bank.crystals,
+                level: idle.trainerLevel ?? 1,
+                xp: idle.trainerXp ?? 0,
+                xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
+                safiras: idle.items?.safira_verde ?? 0,
+              }}
+              onSpendSafiras={(n) => {
+                const cur = idle.items?.safira_verde ?? 0;
+                if (cur < n) return false;
+                setIdle((s) => ({
+                  ...s,
+                  items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
+                }));
+                return true;
+              }}
+              onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
+              onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
+              onGrantItem={(id, qty) => {
+                setIdle((s) => ({
+                  ...s,
+                  items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
+                }));
+              }}
+              codeInput={codeInput}
+              setCodeInput={setCodeInput}
+              codeMsg={codeMsg}
+              onRedeemCode={() => redeemCrystalCode()}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+      <BlackMiticEggHud
 
 
 
@@ -13032,22 +13034,52 @@ function TabOverlay({
   };
   return (
     <div className="modern-floating-window" style={{ 
-      background: "rgba(11, 5, 20, 0.96)", 
-      backdropFilter: "blur(14px)",
-      maxHeight: "92vh",
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: "min(1200px, 98vw)",
+      height: "min(800px, 92vh)",
+      background: "rgba(11, 5, 20, 0.98)", 
+      backdropFilter: "blur(20px)",
       display: "flex",
       flexDirection: "column",
       pointerEvents: "auto",
-      overflow: "hidden"
+      overflow: "hidden",
+      zIndex: 20000,
+      border: "1px solid rgba(201, 184, 255, 0.3)",
+      borderRadius: "20px",
+      boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(201, 184, 255, 0.1)"
     }}>
 
-      <div className="modern-window-header" style={{ position: "sticky", top: 0, zIndex: 10, flexShrink: 0 }}>
+      <div className="modern-window-header" style={{ 
+        position: "sticky", 
+        top: 0, 
+        zIndex: 10, 
+        flexShrink: 0,
+        background: "rgba(11, 5, 20, 0.5)",
+        padding: "15px 25px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        borderBottom: "1px solid rgba(201, 184, 255, 0.2)"
+      }}>
         <h2 style={{ 
-          margin: 0, fontSize: 22, color: "#c9b8ff", 
-          fontFamily: "'Cinzel', serif", letterSpacing: 2,
-          textShadow: "0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(201, 184, 255, 0.4)"
+          margin: 0, fontSize: 24, color: "#c9b8ff", 
+          fontFamily: "'Cinzel', serif", letterSpacing: 3,
+          textShadow: "0 2px 10px rgba(201, 184, 255, 0.4)"
         }}>{title}</h2>
-        <button onClick={onClose} className="modern-close-btn">
+        <button onClick={onClose} className="modern-close-btn" style={{
+          background: "rgba(255, 50, 50, 0.15)",
+          border: "1px solid rgba(255, 50, 50, 0.3)",
+          color: "#ff8888",
+          padding: "6px 15px",
+          borderRadius: "8px",
+          fontSize: "12px",
+          fontWeight: 900,
+          cursor: "pointer",
+          transition: "all 0.2s"
+        }}>
           FECHAR ✕
         </button>
       </div>
@@ -13055,7 +13087,7 @@ function TabOverlay({
       <div className="modern-window-scroll-content" style={{ 
         flex: 1, 
         overflowY: "auto", 
-        padding: 10,
+        padding: 20,
         WebkitOverflowScrolling: "touch"
       }}>
 
@@ -13719,7 +13751,7 @@ function TabOverlay({
                 border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
                 boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
                 padding: 12, minHeight: 360,
-                maxHeight: 600, overflowY: "auto"
+                maxHeight: 1000, overflowY: "auto"
               }}>
 
                 {filtered.length === 0 ? (
@@ -14131,7 +14163,7 @@ function TabOverlay({
               return <div style={{ color: "#b8a8c8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
             return (
-              <div style={{ maxHeight: 600, overflowY: "auto", paddingRight: 4 }}>
+              <div style={{ maxHeight: 1000, overflowY: "auto", paddingRight: 4 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
               {filtered.map((entry, i) => {
                 const sp = entry.species;
