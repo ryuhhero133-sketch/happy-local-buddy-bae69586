@@ -8349,8 +8349,6 @@ function IdlePage() {
               opacity: 0.2,
               filter: "blur(4px)"
             }} />
-            
-            {renderBattle()}
           </div>
         </div>
       </div>
