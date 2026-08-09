@@ -7472,7 +7472,7 @@ function IdlePage() {
 
 
       {menuOpen && (
-        <InventoryModal
+        <TabOverlay tab="bag" onAnciaoInteraction={() => {}}
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
           items={idle.items || {}}
