@@ -2661,9 +2661,9 @@ function IdlePage() {
     return () => { window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); };
   }, []);
 
-  // ---- Mundo em pixels + câmera que segue o treinador ----
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+  // Mundo em pixels: aumentamos o tamanho base para garantir proporção em telas ultra-wide.
+  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 2560;
+  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 2560;
               type GateDef = {
                 key: string;
                 target: IdleMapId;
@@ -3665,9 +3665,16 @@ function IdlePage() {
   const viewH = viewSize.h / effectiveZoom;
 
   // Centraliza a câmera no treinador, mas trava nas bordas do mapa.
-  // Se o zoom for tão baixo que o mapa é menor que a tela, centraliza o mapa.
   const camX = viewW >= WORLD_W ? (WORLD_W - viewW) / 2 : Math.max(0, Math.min(WORLD_W - viewW, trainerPos.x - viewW / 2));
   const camY = viewH >= WORLD_H ? (WORLD_H - viewH) / 2 : Math.max(0, Math.min(WORLD_H - viewH, trainerPos.y - viewH / 2));
+
+  // Fator de escala inverso para manter as sprites (treinador/pokemons) no tamanho padrão
+  // Independentemente do zoom aplicado ao mapa.
+  const spriteScale = useMemo(() => {
+    // 0.45 era o tamanho aproximado que as sprites tinham antes das mudanças de zoom
+    // Nós normalizamos pelo effectiveZoom para que elas não fiquem "enormes" ou "minúsculas".
+    return 0.45 / effectiveZoom;
+  }, [effectiveZoom]);
 
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * effectiveZoom) / effectiveZoom;
@@ -7255,6 +7262,7 @@ function IdlePage() {
           contain: "layout style",
           willChange: "transform",
           backfaceVisibility: "hidden",
+          fontSize: `${1 / effectiveZoom}px`, // Normaliza o tamanho base da fonte para compensar o scale
         }}>
           {/* Fundo que preenche o mapa para evitar o "void" verde ou preto */}
           <div style={{
@@ -7444,6 +7452,7 @@ function IdlePage() {
             gifMap={GIF}
             onPickTeam={onPickTeamFromColecao}
             onUseItem={useItem}
+            spriteScale={spriteScale}
             bank={idle.bank || { gold: 0, crystals: 0 }}
             buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
             onBuyBall={buyBall}
@@ -7456,12 +7465,12 @@ function IdlePage() {
             onBuyChestAmulet={buyChestAmulet}
             chestAmuletOwned={idle.items?.chest_amulet || 0}
             autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
-            setAutoHeal={(next) => setIdle(s => ({ ...s, autoHeal: next }))}
+            setAutoHeal={(next: { enabled: boolean; threshold: number }) => setIdle(s => ({ ...s, autoHeal: next }))}
             audioSettings={audioSettings}
             setAudioSettings={setAudioSettings}
             tasks={idle.tasks || []}
             onClaimTask={claimTask}
-            onOpenColecaoDetail={(uid) => setPetDetailUid(uid)}
+            onOpenColecaoDetail={(uid: string) => setPetDetailUid(uid)}
             onExchange={exchange}
             onSellItem={sellItem}
             marketSellPrices={MARKET_SELL_PRICE}
@@ -7475,7 +7484,7 @@ function IdlePage() {
             setSkinId={setSkinId}
             unlockedSkins={idle.unlockedSkins || []}
             skinTickets={idle.items?.skin_ticket || 0}
-            onUnlockSkin={(id) => {}}
+            onUnlockSkin={(id: string) => {}}
             trainerLevel={idle.trainerLevel || 1}
             onUpgradeBook={upgradeBook}
             orbTrades={ORB_TRADES}
@@ -8196,6 +8205,7 @@ function IdlePage() {
                   padding: 2,
                   boxShadow: `0 3px 8px rgba(0,0,0,0.65), 0 0 14px ${accent}55, inset 0 0 3px rgba(0,0,0,0.4)`,
                   position: "relative",
+                  zIndex: 2,
                 }}>
                   <div style={{
                     width: "100%", height: "100%", borderRadius: "50%",
@@ -8207,7 +8217,11 @@ function IdlePage() {
                     <img
                       src={assetUrlFromJson(trainerAvatarAsset)}
                       alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      style={{ 
+                        width: "100%", height: "100%", objectFit: "cover",
+                        transform: `scale(${spriteScale * 2.2})`, // Compensa o scale global
+                        transformOrigin: 'center'
+                      }}
                     />
                   </div>
                   {/* Selo de nível — pendurado no medalhão */}
@@ -8306,7 +8320,7 @@ function IdlePage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
-                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
+                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} spriteScale={spriteScale} />
               ))}
               <button style={{ 
                 width: '100%', background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.2)',
@@ -10098,6 +10112,7 @@ function IdlePage() {
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
           {tab !== "batalha" && (
             <TabOverlay
+              spriteScale={spriteScale}
               tab={tab}
               onClose={() => setTab("batalha")}
               onAnciaoInteraction={handleAnciaoInteraction}
@@ -10131,12 +10146,12 @@ function IdlePage() {
               onBuyChestAmulet={buyChestAmulet}
               chestAmuletOwned={idle.items?.chest_amulet ?? 0}
               autoHeal={idle.autoHeal}
-              setAutoHeal={(next) => setIdle((s) => ({ ...s, autoHeal: next }))}
+              setAutoHeal={(next: { enabled: boolean; threshold: number }) => setIdle((s) => ({ ...s, autoHeal: next }))}
               audioSettings={audioSettings}
               setAudioSettings={setAudioSettings}
               tasks={idle.tasks}
               onClaimTask={claimTask}
-              onOpenColecaoDetail={(uid) => setColecaoDetailUid(uid)}
+              onOpenColecaoDetail={(uid: string) => setColecaoDetailUid(uid)}
               onExchange={exchange}
               onSellItem={sellItem}
               marketSellPrices={MARKET_SELL_PRICE}
@@ -10189,7 +10204,7 @@ function IdlePage() {
               setSkinId={setSkinId}
               unlockedSkins={idle.unlockedSkins ?? ["default"]}
               skinTickets={idle.items?.skin_ticket ?? 0}
-              onUnlockSkin={(sid) => {
+              onUnlockSkin={(sid: string) => {
                 setIdle((s) => {
                   const tickets = s.items?.skin_ticket ?? 0;
                   const unlocked = new Set(s.unlockedSkins ?? ["default"]);
@@ -12544,7 +12559,7 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
   );
 }
 
-function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () => void; energyTick?: number }) {
+function TeamRow({ pet, onClick, energyTick, spriteScale = 1 }: { pet: PetInstance; onClick?: () => void; energyTick?: number; spriteScale?: number }) {
   void energyTick; // força re-render por segundo p/ atualizar barra de energia
   const src = GIF[pet.species];
   const now = Date.now();
@@ -12596,13 +12611,13 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
       transition: 'all 0.2s',
       marginBottom: '2px'
     }}>
-      <TeamRowContent pet={pet} pct={pct} maxHp={maxHp} hp={hp} ePct={ePct} exhausted={exhausted} rColor={rColor} src={src} resting={resting} infinite={infinite} energy={energy} />
+      <TeamRowContent pet={pet} pct={pct} maxHp={maxHp} hp={hp} ePct={ePct} exhausted={exhausted} rColor={rColor} src={src} resting={resting} infinite={infinite} energy={energy} spriteScale={spriteScale} />
     </div>
   );
 }
 
 
-function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, resting, infinite, energy }: any) {
+function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, resting, infinite, energy, spriteScale = 1 }: any) {
   const hexToRgba = (h: string, a: number) => {
     const n = parseInt(h.replace("#", ""), 16);
     return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
@@ -12640,7 +12655,12 @@ function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, res
           boxShadow: "inset 0 0 5px rgba(0,0,0,0.75)",
           display: "grid", placeItems: "center", overflow: "hidden",
         }}>
-          <img src={src} alt="" style={{ width: "82%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
+          <img src={src} alt="" style={{ 
+            width: "82%", imageRendering: "pixelated", 
+            filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.8))",
+            transform: `scale(${spriteScale * 2.2})`, // Compensa o scale global
+            transformOrigin: 'center'
+          }} />
           {resting && <span style={{ position: "absolute", top: -2, right: -2, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
           {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 15, textShadow: "0 0 4px #000" }}>🔒</span>}
         </div>
@@ -12926,7 +12946,7 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-  onAnciaoInteraction,
+  onAnciaoInteraction, spriteScale
 }: {
   tab: string;
   onClose: () => void;
@@ -12946,48 +12966,44 @@ function TabOverlay({
   onPickTeam: (entry: CollectionEntry) => void;
   onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number; teamOrbUntil?: number };
-  onBuyBall: (b: ShopBall, qty?: number) => void;
-  onBuyUltraBundle: (qty?: number) => void;
-  onBuyTeleportScroll: (qty?: number) => void;
-  onBuyBook: (bk: ShopBook, qty?: number) => void;
-  onBuyPotion: (qty?: number) => void;
-  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
-  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
-
-  onBuyChestAmulet: () => void;
-
+  spriteScale: number;
+  buffs: any;
+  onBuyBall: any;
+  onBuyUltraBundle: any;
+  onBuyTeleportScroll: any;
+  onBuyBook: any;
+  onBuyPotion: any;
+  onBuyEgg: any;
+  shopEggs: any;
+  onBuyChestAmulet: any;
   chestAmuletOwned: number;
-  autoHeal: { enabled: boolean; threshold: number };
-  setAutoHeal: (next: { enabled: boolean; threshold: number }) => void;
-  audioSettings: { music: boolean; sfx: boolean; musicVol: number; sfxVol: number };
-  setAudioSettings: React.Dispatch<React.SetStateAction<{ music: boolean; sfx: boolean; musicVol: number; sfxVol: number }>>;
-  tasks: Task[];
-  onClaimTask: (tid: string) => void;
-  onOpenColecaoDetail: (uid: string) => void;
-  onExchange: (dir: "g2c" | "c2g", amount: number) => void;
-  onSellItem: (id: string, qty?: number, currency?: "gold" | "crystal" | "safira") => void;
-  marketSellPrices: Record<string, number>;
-  identity: LocalIdentity | null;
-  onListMarket: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
-  onBuyMarket: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
-  onCancelMarket: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
-  onClaimMarketPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
-
+  autoHeal: any;
+  setAutoHeal: any;
+  audioSettings: any;
+  setAudioSettings: any;
+  tasks: any[];
+  onClaimTask: any;
+  onOpenColecaoDetail: any;
+  onExchange: any;
+  onSellItem: any;
+  marketSellPrices: any;
+  identity: any;
+  onListMarket: any;
+  onBuyMarket: any;
+  onCancelMarket: any;
+  onClaimMarketPayout: any;
   isVip: boolean;
   skinId: string;
-  setSkinId: (id: string) => void;
+  setSkinId: any;
   trainerLevel: number;
   unlockedSkins: string[];
   skinTickets: number;
-  onUnlockSkin: (id: string) => void;
-  onUpgradeBook: (id: string) => void;
-  orbTrades: { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[];
-  onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[], rarity?: Rarity) => void;
+  onUnlockSkin: any;
+  onUpgradeBook: any;
+  orbTrades: any;
+  onTradeOrb: any;
   pokemonMarketNode?: React.ReactNode;
   benchUids: Set<string>;
-
-
 }) {
 
   const title =
@@ -13295,7 +13311,11 @@ function TabOverlay({
                             position: "relative", overflow: "hidden",
                           }}>
 
-                            {src && <img src={src} alt="" width={70} height={70} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))" }} />}
+                            {src && <img src={src} alt="" width={70} height={70} style={{ 
+                              imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
+                              transform: `scale(${spriteScale * 2.2})`, // Compensa o scale global
+                              transformOrigin: 'center'
+                            }} />}
                             {/* Slot number top-left */}
                             <div style={{
                               position: "absolute", top: 2, left: 4,
@@ -14660,7 +14680,7 @@ function TabOverlay({
 
           <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>🥚 Ovos — chocam Pokémon com raridade aleatória</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
-            {shopEggs.map((e) => {
+            {shopEggs.map((e: any) => {
               const owned = items[e.id] ?? 0;
               const canBuy = e.currency === "gold" ? bank.gold >= e.price : bank.crystals >= e.price;
               return (
@@ -14754,7 +14774,7 @@ function TabOverlay({
             <b style={{ color: "#ffd94d" }}> Você escolhe</b> quais Pokémon entregar.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
-            {orbTrades.map((t) => {
+            {orbTrades.map((t: any) => {
               const available = collection.filter((c) =>
                 (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
                 && !teamUidSet.has(c.uid)
@@ -15157,14 +15177,14 @@ function TabOverlay({
           }}>
             <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
               <input type="checkbox" checked={audioSettings.music}
-                onChange={(e) => setAudioSettings((s) => ({ ...s, music: e.target.checked }))}
+                onChange={(e) => setAudioSettings((s: any) => ({ ...s, music: e.target.checked }))}
                 style={{ width: 18, height: 18 }} />
               <span style={{ color: "#eadfe8", fontWeight: 700 }}>🎵 Música de fundo</span>
             </label>
             <div>
               <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>Volume da música: {Math.round(audioSettings.musicVol * 100)}%</div>
               <input type="range" min={0} max={1} step={0.05} value={audioSettings.musicVol}
-                onChange={(e) => setAudioSettings((s) => ({ ...s, musicVol: Number(e.target.value) }))}
+                onChange={(e) => setAudioSettings((s: any) => ({ ...s, musicVol: Number(e.target.value) }))}
                 style={{ width: "100%" }} />
             </div>
           </div>
@@ -15176,14 +15196,14 @@ function TabOverlay({
           }}>
             <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
               <input type="checkbox" checked={audioSettings.sfx}
-                onChange={(e) => setAudioSettings((s) => ({ ...s, sfx: e.target.checked }))}
+                onChange={(e) => setAudioSettings((s: any) => ({ ...s, sfx: e.target.checked }))}
                 style={{ width: 18, height: 18 }} />
               <span style={{ color: "#eadfe8", fontWeight: 700 }}>🔊 Efeitos sonoros (clique, level-up, capturas)</span>
             </label>
             <div>
               <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>Volume dos efeitos: {Math.round(audioSettings.sfxVol * 100)}%</div>
               <input type="range" min={0} max={1} step={0.05} value={audioSettings.sfxVol}
-                onChange={(e) => setAudioSettings((s) => ({ ...s, sfxVol: Number(e.target.value) }))}
+                onChange={(e) => setAudioSettings((s: any) => ({ ...s, sfxVol: Number(e.target.value) }))}
                 style={{ width: "100%" }} />
             </div>
           </div>
