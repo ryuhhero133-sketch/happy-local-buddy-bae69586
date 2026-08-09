@@ -9819,6 +9819,7 @@ function IdlePage() {
                 </div>
               );
             })}
+          </div>
         </div>
       </div>
 
@@ -12174,11 +12175,20 @@ function IdlePage() {
           }));
           return true;
         }}
+        onUseBoost={() => {
+          const have = idle.items?.egg_boost_69 ?? 0;
+          if (have <= 0) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), egg_boost_69: (s.items?.egg_boost_69 ?? 0) - 1 },
+          }));
+          return true;
+        }}
         />
-          </div>
-        </div>,
-        document.body
-      )}
+      </div>
+    </div>,
+    document.body
+  )}
 
       {governanteOpen && createPortal(
         <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "auto", background: "rgba(0,0,0,0.75)" }}>
