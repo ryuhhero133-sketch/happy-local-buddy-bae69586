@@ -13814,7 +13814,7 @@ function TabOverlay({
                             onClick={(e) => { e.stopPropagation(); setItemDetail(id); }}
                             title="Ver detalhes"
                             style={{
-                            width: 62, height: 62, borderRadius: 10, marginTop: 2,
+                            width: 82, height: 82, borderRadius: 10, marginTop: 2,
                             background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
                             display: "grid", placeItems: "center",
                             border: `2px inset ${P.goldDark}aa`,
