@@ -10165,7 +10165,6 @@ function IdlePage() {
             </div>
           );
         })()}
-          })()}
 
 
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
