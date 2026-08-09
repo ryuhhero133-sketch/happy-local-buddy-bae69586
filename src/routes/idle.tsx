@@ -13313,7 +13313,11 @@ function TabOverlay({
                             position: "relative", overflow: "hidden",
                           }}>
 
-                            {src && <img src={src} alt="" width={70} height={70} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))" }} />}
+                            {src && <img src={src} alt="" width={70} height={70} style={{ 
+                              imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
+                              transform: `scale(${spriteScale * 2.2})`, // Compensa o scale global
+                              transformOrigin: 'center'
+                            }} />}
                             {/* Slot number top-left */}
                             <div style={{
                               position: "absolute", top: 2, left: 4,
