@@ -7243,7 +7243,7 @@ function IdlePage() {
           transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
           transformOrigin: "0 0",
           transition: "none",
-          backgroundColor: viewportBg,
+          backgroundColor: "#000",
           overflow: "visible", 
           contain: "layout style",
           willChange: "transform",
