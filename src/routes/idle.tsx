@@ -13768,11 +13768,12 @@ function TabOverlay({
 
               {/* GRADE DE ITENS */}
               <div style={{
-                background: "rgba(0, 0, 0, 0.2)",
-                border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
-                boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
-                padding: 12, flex: 1, minHeight: 0, overflowY: "auto"
+                background: "rgba(0, 0, 0, 0.4)",
+                border: "2px solid rgba(245, 207, 107, 0.3)", borderRadius: 16,
+                boxShadow: "inset 0 0 30px rgba(0, 0, 0, 0.5)",
+                padding: 14, flex: 1, minHeight: 0, overflowY: "auto"
               }}>
+
 
 
                 {filtered.length === 0 ? (
