@@ -10086,37 +10086,6 @@ function IdlePage() {
             />
           )}
         {/* Painel lateral antigo removido para evitar duplicidade na HUD */}
-                </div>
-              ))}
-            </div>
-            {/* Botão do Ancião Glacial unificado aqui no painel de equipe lateral */}
-            <div style={{ marginTop: 8 }}>
-              <button
-                onClick={handleAnciaoInteraction}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  background: "linear-gradient(180deg, #15803d, #064e3b)",
-                  border: "1px solid #4ade80",
-                  borderRadius: 8,
-                  color: "#4ade80",
-                  fontSize: 10,
-                  fontWeight: 900,
-                  letterSpacing: 1,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 4,
-                  boxShadow: "0 0 10px rgba(74,222,128,0.2)",
-                  pointerEvents: "auto"
-                }}
-              >
-                ❄️ ANCIÃO GLACIAL
-              </button>
-            </div>
-          </Panel>
-        </div>
 
 
       <style>{`
