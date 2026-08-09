@@ -12907,22 +12907,31 @@ function pillStyle(color: string): React.CSSProperties {
 function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React.ReactNode; value: string; title: string }) {
   return (
     <div title={title} style={{
-      display: "inline-flex", alignItems: "center", gap: 6,
-      padding: "5px 12px",
-      background: "rgba(0,0,0,0.3)",
-      borderRadius: "15px",
-      border: "1px solid rgba(201,184,255,0.15)",
-      boxShadow: `inset 0 0 10px ${tint}18`,
+      display: "inline-flex", alignItems: "center", gap: 10,
+      padding: "6px 16px",
+      background: "rgba(11, 5, 20, 0.75)",
+      backdropFilter: "blur(8px)",
+      borderRadius: "12px",
+      border: "1px solid rgba(201,184,255,0.25)",
+      boxShadow: `0 2px 8px rgba(0,0,0,0.4), inset 0 0 12px ${tint}15`,
+      minWidth: '100px'
     }}>
-      {icon}
-      <span style={{
-        color: tint, fontWeight: 900, fontSize: 13,
-        textShadow: "0 1px 0 #000",
-        letterSpacing: 0.4,
-      }}>{value}</span>
+      <div style={{ 
+        width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.3)',
+        display: 'grid', placeItems: 'center', boxShadow: `0 0 10px ${tint}44`
+      }}>{icon}</div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '8px', fontWeight: 900, letterSpacing: 0.5, textTransform: 'uppercase' }}>{title}</span>
+        <span style={{
+          color: '#fff', fontWeight: 900, fontSize: 13,
+          textShadow: "0 1px 2px rgba(0,0,0,0.8)",
+          letterSpacing: 0.4,
+        }}>{value}</span>
+      </div>
     </div>
   );
 }
+
 
 // ── HUD superior: slot elegante para cada Pokébola
 function BallSlot({ img, count, tint }: { img: string; count: number; tint: string }) {
