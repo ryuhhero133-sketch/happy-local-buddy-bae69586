@@ -3657,11 +3657,11 @@ function IdlePage() {
   // O usuário deseja o mapa inteiro na tela, sem o "vazio" verde em volta.
   const BASE_ZOOM = useMemo(() => {
     if (!viewSize.w || !viewSize.h) return 0.2;
-    // Calcula o zoom necessário para que o mapa preencha a viewport (aspect-fill).
-    // Usamos o maior fator de escala para garantir cobertura total sem bordas vazias.
-    const scaleX = viewSize.w / WORLD_W;
-    const scaleY = viewSize.h / WORLD_H;
-    return Math.max(scaleX, scaleY);
+    // O usuário deseja que com 35% de zoom (0.35) o mapa fique completo na tela.
+    // Calculamos o zoom base de forma que o zoom efetivo (zoom * BASE_ZOOM) resulte no preenchimento ideal.
+    const fillScale = Math.max(viewSize.w / WORLD_W, viewSize.h / WORLD_H);
+    // Se o slider (zoom) estiver em 0.35, queremos que o resultado seja fillScale.
+    return fillScale / 0.35;
   }, [viewSize.w, viewSize.h, WORLD_W, WORLD_H]);
 
   const effectiveZoom = zoom * BASE_ZOOM;
