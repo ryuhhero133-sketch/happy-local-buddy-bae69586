@@ -3651,7 +3651,7 @@ function IdlePage() {
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
   // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
-  const BASE_ZOOM = 0.125;
+  const BASE_ZOOM = 0.08;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
@@ -8149,7 +8149,7 @@ function IdlePage() {
 
         {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
         <div className="trainer-profile-hud" style={{ 
-          position: 'fixed', top: '75px', left: '20px', width: '270px', 
+          position: 'fixed', top: '75px', left: '20px', width: '230px', 
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
@@ -8342,14 +8342,14 @@ function IdlePage() {
         {/* ============ COLUNA DIREITA ============ */}
         {/* ============ COLUNA DIREITA (RADAR) ============ */}
         <div className="hud-right-column" style={{ 
-          position: 'fixed', top: '75px', right: '20px', width: '300px',
+          position: 'fixed', top: '75px', right: '20px', width: '250px',
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
           <div style={{
-            width: '300px', height: '300px', background: 'rgba(0, 0, 0, 0.5)',
+            width: '250px', height: '250px', background: 'rgba(0, 0, 0, 0.5)',
             border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 0 35px rgba(0,0,0,0.9), inset 0 0 25px rgba(245,207,107,0.3)', 
@@ -13062,8 +13062,8 @@ function TabOverlay({
       top: "50%",
       left: "50%",
       transform: "translate(-50%, -50%)",
-      width: "min(1340px, 98vw)",
-      height: "min(920px, 92vh)",
+      width: "min(1200px, 98vw)",
+      height: "min(840px, 92vh)",
       background: "rgba(11, 5, 20, 0.98)", 
       backdropFilter: "blur(20px)",
       display: "flex",
