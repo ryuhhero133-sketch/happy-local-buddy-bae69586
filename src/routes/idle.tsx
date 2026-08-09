@@ -8237,41 +8237,7 @@ function IdlePage() {
             );
           })()}
 
-          {/* O "Registro de Batalha" foi removido conforme solicitação do usuário. */}
-          
-          {/* Botão do Ancião Glacial removido conforme solicitação do usuário. */}
-        </div>
-
-        {/* ============ COLUNA DIREITA ============ */}
-        {/* ============ COLUNA DIREITA (RADAR E EXPLORAR) ============ */}
-        <div className="hud-right-column" style={{ 
-          position: 'fixed', top: '75px', right: '20px', width: '260px',
-          display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
-          pointerEvents: 'auto'
-        }}>
-          {/* Radar HUD */}
-          <div style={{
-            height: '160px', background: 'rgba(11, 5, 20, 0.85)',
-            border: '1px solid rgba(201,184,255,0.3)', borderRadius: '15px',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.6)', overflow: 'hidden', position: 'relative'
-          }}>
-            <div style={{ 
-              width: '100px', height: '100px', borderRadius: '50%', 
-              border: '2px dashed rgba(201,184,255,0.2)', position: 'relative',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <div style={{ 
-                position: 'absolute', width: '2px', height: '50%', bottom: '50%', 
-                background: 'linear-gradient(to top, transparent, #c9b8ff)',
-                transformOrigin: 'bottom', animation: 'radarScan 4s linear infinite'
-              }} />
-              <span style={{ fontSize: '10px', color: '#c9b8ff', fontWeight: 900 }}>RADAR</span>
-            </div>
-            <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-          </div>
-
-          {/* Painel da Equipe (Abaixo do Radar) */}
+          {/* Painel da Equipe (Abaixo do Perfil do Treinador) */}
           <div className="team-panel-hud" style={{ 
             display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
             padding: '12px', background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(10px)',
@@ -8303,7 +8269,7 @@ function IdlePage() {
               }} onClick={() => setTab("pokemon")}>GERENCIAR EQUIPE</button>
             </div>
             
-            {/* Botão do Ancião Glacial unificado aqui, um embaixo do outro */}
+            {/* Botão do Ancião Glacial unificado aqui */}
             <div style={{ marginTop: 8 }}>
               <button
                 onClick={handleAnciaoInteraction}
@@ -8333,8 +8299,36 @@ function IdlePage() {
               </button>
             </div>
           </div>
+        </div>
 
-
+        {/* ============ COLUNA DIREITA ============ */}
+        {/* ============ COLUNA DIREITA (RADAR) ============ */}
+        <div className="hud-right-column" style={{ 
+          position: 'fixed', top: '75px', right: '20px', width: '260px',
+          display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
+          pointerEvents: 'auto'
+        }}>
+          {/* Radar HUD */}
+          <div style={{
+            height: '160px', background: 'rgba(11, 5, 20, 0.85)',
+            border: '1px solid rgba(201,184,255,0.3)', borderRadius: '15px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.6)', overflow: 'hidden', position: 'relative'
+          }}>
+            <div style={{ 
+              width: '100px', height: '100px', borderRadius: '50%', 
+              border: '2px dashed rgba(201,184,255,0.2)', position: 'relative',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <div style={{ 
+                position: 'absolute', width: '2px', height: '50%', bottom: '50%', 
+                background: 'linear-gradient(to top, transparent, #c9b8ff)',
+                transformOrigin: 'bottom', animation: 'radarScan 4s linear infinite'
+              }} />
+              <span style={{ fontSize: '10px', color: '#c9b8ff', fontWeight: 900 }}>RADAR</span>
+            </div>
+            <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+          </div>
         </div>
       </div>
 
