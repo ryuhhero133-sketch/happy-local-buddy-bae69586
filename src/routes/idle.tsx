@@ -8405,7 +8405,7 @@ function IdlePage() {
             {/* Integrated Zoom Controls - Positioned next to radar as in image-32.png */}
             <div style={{
               position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-              display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 20
+              display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 20, alignItems: 'center'
             }}>
               <button 
                 onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(1.5, z + 0.1)); }}
@@ -8413,6 +8413,15 @@ function IdlePage() {
               >
                 <Plus size={16} />
               </button>
+              
+              <div style={{
+                background: 'rgba(0,0,0,0.7)', padding: '2px 6px', borderRadius: '10px',
+                border: '1px solid rgba(245,207,107,0.3)', color: '#f5cf6b',
+                fontSize: '10px', fontWeight: 900, textShadow: '0 1px 2px #000'
+              }}>
+                {Math.round(zoom * 100)}%
+              </div>
+
               <button 
                 onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(0.4, z - 0.1)); }}
                 style={{ ...zoomBtn, borderRadius: '50%', width: '32px', height: '32px', background: 'rgba(0,0,0,0.8)', border: '2px solid rgba(245,207,107,0.6)', boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
