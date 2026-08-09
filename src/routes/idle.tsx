@@ -8202,26 +8202,77 @@ function IdlePage() {
 
         {/* ============ RIGHT SIDEBAR (FLOATING) ============ */}
         <div style={{
-          position: "fixed", top: 88, right: 12, width: 80,
+          position: "fixed", top: 88, right: 12, width: 220,
           display: "flex", flexDirection: "column", gap: 12,
-          zIndex: 900, pointerEvents: "auto"
+          zIndex: 900, pointerEvents: "auto",
+          alignItems: "flex-end"
         }}>
           {/* Circular Minimap Container */}
           <div style={{
-            width: 80, height: 80, borderRadius: "50%",
-            background: "rgba(20, 10, 30, 0.9)", border: "2px solid rgba(201, 184, 255, 0.4)",
+            width: 220, height: 220, borderRadius: "50%",
+            background: "rgba(20, 10, 30, 0.9)", border: "3px solid rgba(201, 184, 255, 0.5)",
             display: "grid", placeItems: "center", overflow: "hidden",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
+            boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 20px rgba(201, 184, 255, 0.2)",
+            position: "relative"
           }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "radial-gradient(circle, #2a1545 0%, #0b0510 100%)", border: "1px solid rgba(201, 184, 255, 0.2)" }} />
+            {/* Minimap Terrain Graphic */}
+            <div style={{ 
+              width: "100%", height: "100%", 
+              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl}) center/cover`,
+              filter: "brightness(0.6) saturate(1.2) contrast(1.1)",
+              opacity: 0.8
+            }} />
+            
+            {/* Markers on Minimap */}
+            <div style={{ position: "absolute", inset: 0 }}>
+              {/* Trainer Position (Red Dot) */}
+              <div style={{
+                position: "absolute",
+                left: `${(trainerPos.x / WORLD_W) * 100}%`,
+                top: `${(trainerPos.y / WORLD_H) * 100}%`,
+                width: 10, height: 10, borderRadius: "50%",
+                background: "#ff4b4b", border: "2px solid #fff",
+                boxShadow: "0 0 8px #ff4b4b", zIndex: 2,
+                transform: "translate(-50%, -50%)"
+              }} />
+              
+              {/* Enemies (Small Yellow Dots) */}
+              {enemies.filter(e => e.hp > 0).map(e => (
+                <div key={e.id} style={{
+                  position: "absolute",
+                  left: `${(e.x / WORLD_W) * 100}%`,
+                  top: `${(e.y / WORLD_H) * 100}%`,
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: "#ffd94d", border: "1px solid #fff",
+                  boxShadow: "0 0 4px #ffd94d", zIndex: 1,
+                  transform: "translate(-50%, -50%)"
+                }} />
+              ))}
+            </div>
+
+            {/* Radar Sweep Animation */}
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "conic-gradient(from 0deg, transparent 0%, rgba(201, 184, 255, 0.2) 20%, transparent 21%)",
+              animation: "minimapSweep 4s linear infinite",
+              pointerEvents: "none"
+            }} />
           </div>
+
+          <style>{`
+            @keyframes minimapSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          `}</style>
+
 
           {/* Vertical Menu */}
           <div style={{
             display: "flex", flexDirection: "column", gap: 8,
-            background: "rgba(20, 10, 30, 0.8)", borderRadius: 20,
-            padding: "8px", border: "1px solid rgba(201, 184, 255, 0.2)"
+            background: "linear-gradient(180deg, rgba(20, 10, 30, 0.9) 0%, rgba(10, 5, 20, 0.95) 100%)", 
+            borderRadius: 24, width: 80,
+            padding: "10px", border: "1px solid rgba(201, 184, 255, 0.3)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.6)"
           }}>
+
             {([
               { id: "world", label: "Mundo", icon: "🌍", color: "#6bd4ff" },
               { id: "ranking", label: "Ranking", icon: "🏆", color: "#ffd94d" },
@@ -13578,7 +13629,6 @@ function TabOverlay({
         };
 
         return (
-
           <div style={{
             background: `
               radial-gradient(circle at 50% 30%, rgba(168,85,247,0.15), transparent 55%),
@@ -13644,19 +13694,22 @@ function TabOverlay({
             </div>
 
             {/* GRID LAYOUT — sidebar categorias + grade */}
-            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12, flex: 1, minHeight: 0 }}>
+            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "180px 1fr 280px", gap: 16, flex: 1, minHeight: 0 }}>
               {/* SIDEBAR CATEGORIAS */}
               <div style={{
-                background: "rgba(0, 0, 0, 0.3)",
-                border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
-                boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.2)",
-                padding: 8, display: "flex", flexDirection: "column", gap: 6,
+                background: "rgba(0, 0, 0, 0.4)",
+                border: "2px solid rgba(245, 207, 107, 0.3)", borderRadius: 16,
+                boxShadow: "inset 0 0 20px rgba(0, 0, 0, 0.5)",
+                padding: 10, display: "flex", flexDirection: "column", gap: 8,
                 overflowY: "auto"
               }}>
+
                 <div style={{
-                  textAlign: "center", fontSize: 10, fontWeight: 900, letterSpacing: 2,
-                  color: P.goldDark, padding: "4px 0 6px", borderBottom: `1px dashed ${P.goldDark}55`,
-                }}>CATEGORIAS</div>
+                  textAlign: "center", fontSize: 12, fontWeight: 900, letterSpacing: 2,
+                  color: "#f5cf6b", padding: "8px 0", borderBottom: `2px solid rgba(245, 207, 107, 0.3)`,
+                  marginBottom: 8, textShadow: "0 2px 4px rgba(0,0,0,0.5)"
+                }}>FILTROS</div>
+
                 {CATS.map((c) => {
                   const active = mochilaCat === c.id;
                   const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
@@ -13705,22 +13758,42 @@ function TabOverlay({
                   );
                 })}
                 <div style={{ flex: 1 }} />
+                
+                {/* Vault Access Button in Inventory */}
+                <button
+                  onClick={onAnciaoInteraction}
+                  style={{
+                    width: "100%", padding: "12px",
+                    background: "linear-gradient(180deg, #3b2450, #241634)",
+                    border: "2px solid #c9b8ff", borderRadius: 12,
+                    color: "#c9b8ff", fontSize: 11, fontWeight: 900,
+                    cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    marginTop: 8
+                  }}
+                >
+                  🏰 BANCO
+                </button>
+
                 <div style={{
-                  marginTop: 4, padding: "6px 8px", fontSize: 9.5, fontWeight: 700,
+                  marginTop: 8, padding: "8px", fontSize: 10, fontWeight: 800,
                   color: P.inkSoft, textAlign: "center", fontStyle: "italic",
-                  borderTop: `1px dashed ${P.goldDark}55`,
+                  borderTop: `1px solid rgba(245, 207, 107, 0.2)`,
                 }}>
                   {SLOTS_MIN - filtered.length > 0 ? `${SLOTS_MIN - filtered.length} slots livres` : "Mochila cheia"}
                 </div>
+
               </div>
 
               {/* GRADE DE ITENS */}
               <div style={{
-                background: "rgba(0, 0, 0, 0.2)",
-                border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
-                boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
-                padding: 12, flex: 1, minHeight: 0, overflowY: "auto"
+                background: "rgba(0, 0, 0, 0.4)",
+                border: "2px solid rgba(245, 207, 107, 0.3)", borderRadius: 16,
+                boxShadow: "inset 0 0 30px rgba(0, 0, 0, 0.5)",
+                padding: 14, flex: 1, minHeight: 0, overflowY: "auto"
               }}>
+
+
 
 
                 {filtered.length === 0 ? (
@@ -13733,6 +13806,8 @@ function TabOverlay({
                   </div>
                 ) : (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(126px, 1fr))", gap: 10 }}>
+
+
                     {filtered.map(([id, n]) => {
                       const isEgg = id.startsWith("egg_");
                       const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
@@ -13791,7 +13866,7 @@ function TabOverlay({
                             fontSize: 10.5, fontWeight: 900, color: P.ink, letterSpacing: 0.2, lineHeight: 1.15,
                             minHeight: 24, display: "flex", alignItems: "center",
                           }}>{NAMES[id] ?? id}</div>
-                          <div style={{ display: "flex", gap: 4, width: "100%" }}>
+                          <div style={{ display: "flex", gap: 4, width: "100%", marginTop: "auto" }}>
                             <button
                               onClick={() => {
                                 const bulk = id === "book_atk" || id === "book_def" || id === "potion";
@@ -13805,52 +13880,31 @@ function TabOverlay({
                                 }
                               }}
                               style={{
-                                flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
+                                flex: 1, padding: "8px 0", fontSize: 10, fontWeight: 900,
                                 background: "linear-gradient(180deg, #f5cf6b, #b8862a)",
                                 color: "#000", border: "1px solid #fff4d0",
                                 borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
-                                boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.4)"
                               }}
                             >{isEgg ? "CHOCAR" : "USAR"}</button>
-                            {sellPrice > 0 && !id.startsWith("stone_") && (
-                              <button
-                                onClick={() => onSellItem(id, 1)}
-                                title={`Vender 1 por ${sellPrice} ouro`}
-                                style={{
-                                  flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
-                                  background: "linear-gradient(180deg, #ff7e7e, #ff5252)",
-                                  color: "#fff", border: "1px solid rgba(255,255,255,0.2)",
-                                  borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
-                                  boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-
-                                }}
-                              >💰{sellPrice}</button>
-                            )}
-
-                            {id.startsWith("stone_") && (
-                              <button
-                                onClick={() => {
-                                  const maxBatches = Math.floor(n / 250);
-                                  if (maxBatches <= 0) return;
-                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
-                                  if (raw == null) return;
-                                  const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
-                                  onSellItem(id, b * 250, "safira");
-                                }}
-                                title="Vender por Safira Verde (250 stones = 2 safiras)"
-                                disabled={n < 250}
-                                style={{
-                                  padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
-                                  color: "#0b2540", border: "1.5px solid #065f46",
-                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
-                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
-                                }}
-                              >💚</button>
-                            )}
-
+                            
+                            <button
+                              onClick={() => {
+                                const raw = window.prompt(`Vender quantos ${NAMES[id] ?? id}? (1–${n})`, "1");
+                                if (raw == null) return;
+                                const q = Math.max(1, Math.min(n, parseInt(raw, 10) || 1));
+                                onSellItem(id, q);
+                              }}
+                              style={{
+                                width: 34, height: 32, display: "grid", placeItems: "center",
+                                background: "linear-gradient(180deg, #ff7a7a, #8a1a1a)",
+                                border: "1px solid #ffb8b8", borderRadius: 6, cursor: "pointer",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.4)"
+                              }}
+                              title="Vender ao NPC"
+                            >💰</button>
                           </div>
+
                           {(() => {
                             const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
                               book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
@@ -13898,6 +13952,8 @@ function TabOverlay({
                 )}
               </div>
             </div>
+
+
             <style>{`
               @media (max-width: 720px) {
                 .mochila-body { grid-template-columns: 1fr !important; }
@@ -15301,11 +15357,13 @@ function TabOverlay({
           </div>
         );
       })()}
-        
       </div>
     </div>
   );
 }
+
+
+
 
 
 
