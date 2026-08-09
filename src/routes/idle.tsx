@@ -78,7 +78,7 @@ import houseLabImg from "@/assets/house-lab.png";
 import houseBankImg from "@/assets/house-bank.png";
 import houseGymImg from "@/assets/house-gym.png";
 import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
-import mapValeDouradoImg from "@/assets/map-vale-dourado.jpg";
+import mapValeDouradoImg from "@/assets/map-vale-dourado-v2.png";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
 import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
 import mapGymGeloSombraAsset from "@/assets/gym-gelo-sombra.png.asset.json";
@@ -2662,8 +2662,8 @@ function IdlePage() {
   }, []);
 
   // Mundo em pixels: aumentamos o tamanho base para garantir proporção em telas ultra-wide.
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 2560;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 2560;
+  const WORLD_W = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado") ? 3840 : 2560;
+  const WORLD_H = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado") ? 3840 : 2560;
               type GateDef = {
                 key: string;
                 target: IdleMapId;
