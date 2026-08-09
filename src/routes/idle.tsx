@@ -10076,10 +10076,8 @@ function IdlePage() {
                 )}
               </div>
             );
+          })()}
 
-
-
-            {/* MMORPG Bottom Bar Menu */}
             <div style={{
               position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)",
               background: "linear-gradient(180deg, rgba(20, 10, 30, 0.95) 0%, rgba(10, 5, 15, 0.98) 100%)",
