@@ -381,7 +381,7 @@ const IDLE_KEY = "rubym.idle.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
-const idleArenaUrl = assetUrlFromJson(idleArenaAsset);
+const idleArenaUrl = mapValeDouradoImg;
 
 const mapSnowUrl = assetUrlFromJson(mapSnowAsset);
 const mapDesertUrl = assetUrlFromJson(mapDesertAsset);
@@ -1126,6 +1126,10 @@ export function redShardTravelCost(minLevel: number): number {
   if (minLevel >= 200) return 50;
   return 0;
 }
+
+
+const WORLD_W = 2560;
+const WORLD_H = 2560;
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
 
@@ -2662,8 +2666,8 @@ function IdlePage() {
   }, []);
 
   // Mundo em pixels: aumentamos o tamanho base para garantir proporção em telas ultra-wide.
-  const WORLD_W = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado") ? 3840 : 2560;
-  const WORLD_H = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado") ? 3840 : 2560;
+  const WORLD_W = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado" || idle.currentMap === "arena") ? 3840 : 2560;
+  const WORLD_H = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado" || idle.currentMap === "arena") ? 3840 : 2560;
               type GateDef = {
                 key: string;
                 target: IdleMapId;
@@ -3018,7 +3022,7 @@ function IdlePage() {
         trainerXp: 0,
         collection: [],
         items: nextItems as typeof cur.items,
-        currentMap: "vale_dourado",
+        currentMap: "arena",
         redeemedCodes: { ...(cur.redeemedCodes ?? {}), RESETPERSON: true },
       };
 
@@ -3041,7 +3045,7 @@ function IdlePage() {
           const uid = sess.session?.user?.id;
           if (uid) {
             await (supabase.from("trainer_state") as any)
-              .update({ trainer_level: 1, trainer_xp: 0, active_map: "vale_dourado" })
+              .update({ trainer_level: 1, trainer_xp: 0, active_map: "arena" })
               .eq("user_id", uid);
             await (supabase.from("pokemon_collection") as any)
               .update({ level: 1, xp: 0 })
@@ -3835,8 +3839,10 @@ function IdlePage() {
           pokemonFaceRef.current = nextFace; setPokemonFace(nextFace);
         }
         setTrainerPos((tp) => {
-          const clampX = (v: number) => Math.max(20, Math.min(WORLD_W - 20, v));
-          const clampY = (v: number) => Math.max(20, Math.min(WORLD_H - 20, v));
+          const ww = WORLD_W;
+          const wh = WORLD_H;
+          const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
+          const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
           let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
           if (collidesWithAny(nx, ny)) {
             nx = clampX(tp.x + stepX);
@@ -3878,8 +3884,10 @@ function IdlePage() {
           if (nextFace !== pokemonFaceRef.current) {
             pokemonFaceRef.current = nextFace; setPokemonFace(nextFace);
           }
-          const clampX = (v: number) => Math.max(20, Math.min(WORLD_W - 20, v));
-          const clampY = (v: number) => Math.max(20, Math.min(WORLD_H - 20, v));
+          const ww = WORLD_W;
+          const wh = WORLD_H;
+          const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
+          const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
           return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
         });
         return;
@@ -4035,8 +4043,10 @@ function IdlePage() {
           setPokemonFace(nextFace);
         }
         // AUTO: sem colisão — anda em linha reta atravessando obstáculos
-        const clampX = (v: number) => Math.max(20, Math.min(WORLD_W - 20, v));
-        const clampY = (v: number) => Math.max(20, Math.min(WORLD_H - 20, v));
+        const ww = WORLD_W;
+        const wh = WORLD_H;
+        const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
+        const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
         return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
       });
 
