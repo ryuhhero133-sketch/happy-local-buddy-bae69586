@@ -1041,32 +1041,40 @@ function AuthScreen({
         </div>
 
         {mode === "login" && (
-          <button
-            type="button"
-            onClick={() => {
-              if (maintenance && !isAdmin) {
-                alert("JOGO EM MANUTENÇÃO - ABERTURA SEASON 00:00");
-                return;
-              }
-              try {
-                const name = (prompt("Nome do treinador (aparece no chat):", "Convidado") || "").trim().slice(0, 16);
-                if (name.length < 2) return;
-                const guest: LocalIdentity = {
-                  id: `guest-${crypto.randomUUID?.() ?? Date.now()}`,
-                  name,
-                  secretKey: "",
-                  createdAt: Date.now(),
-                };
-                localStorage.setItem(IDENTITY_KEY, JSON.stringify(guest));
-                localStorage.setItem(GUEST_KEY, "1");
-                window.location.reload();
-              } catch { /* ignore */ }
-            }}
-            className="w-full mt-2 py-2 text-[11px] tracking-[2px] underline"
-            style={{ color: "#fde68a" }}
-          >
-            MODO CONVIDADO
-          </button>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                const pass = prompt("Digite a senha para Modo Convidado:");
+                if (pass !== "123") {
+                  alert("Senha incorreta.");
+                  return;
+                }
+                try {
+                  const name = (prompt("Nome do treinador (aparece no chat):", "Convidado") || "").trim().slice(0, 16);
+                  if (name.length < 2) return;
+                  const guest: LocalIdentity = {
+                    id: `guest-${crypto.randomUUID?.() ?? Date.now()}`,
+                    name,
+                    secretKey: "",
+                    createdAt: Date.now(),
+                  };
+                  localStorage.setItem(IDENTITY_KEY, JSON.stringify(guest));
+                  localStorage.setItem(GUEST_KEY, "1");
+                  window.location.reload();
+                } catch { /* ignore */ }
+              }}
+              className="w-full py-2 text-[11px] tracking-[2px] font-bold"
+              style={{ 
+                color: "#fde68a", 
+                background: "rgba(253, 230, 138, 0.1)",
+                border: "1px solid rgba(253, 230, 138, 0.3)",
+                borderRadius: "6px"
+              }}
+            >
+              MODO CONVIDADO
+            </button>
+          </div>
         )}
       </form>
     </PanelShell>
