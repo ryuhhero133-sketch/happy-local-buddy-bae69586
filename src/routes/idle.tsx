@@ -9877,91 +9877,99 @@ function IdlePage() {
                   </button>
                 </div>
               )}
-              {/* Quick ball selector — troca rápida sem abrir configurações */}
-              <div style={{
-                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.35)",
-                borderRadius: 10, padding: "4px 8px", display: "flex", alignItems: "center", gap: 6,
-              }}>
-                {([
-                  { id: "auto" as const, img: null, label: "A", count: null as number | null, tint: "#f5cf6b" },
-                  { id: "pokeball" as const, img: ballPokeImg, label: "Poké", count: idle.items.pokeball ?? 0, tint: "#ff8080" },
-                  { id: "greatball" as const, img: ballGreatImg, label: "Great", count: idle.items.greatball ?? 0, tint: "#7ec4ff" },
-                  { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
-                ]).map((b) => {
-                  const sel = ab.preferredBall === b.id;
-                  return (
-                    <button
-                      key={b.id}
-                      onClick={() => setAB({ preferredBall: b.id, useBall: true })}
-                      title={b.id === "auto" ? "Auto (melhor disponível)" : `${b.label} (${b.count})`}
-                      style={{
-                        position: "relative", background: sel ? "rgba(245,207,107,0.18)" : "transparent",
-                        border: sel ? `1.5px solid ${b.tint}` : "1.5px solid transparent",
-                        boxShadow: sel ? `0 0 8px ${b.tint}88` : "none",
-                        borderRadius: 8, padding: 3, cursor: "pointer",
-                        width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-                      }}
-                    >
-                      {b.img ? (
-                        <img src={b.img} alt={b.label} width={24} height={24} style={{ imageRendering: "pixelated", filter: sel ? "none" : "grayscale(0.4)" }} />
-                      ) : (
-                        <span style={{ fontSize: 14, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>A</span>
-                      )}
-                      {b.count !== null && (
-                        <span style={{
-                          position: "absolute", bottom: -2, right: -2, background: "#0b0510",
-                          border: `1px solid ${b.tint}`, borderRadius: 6, padding: "0 3px",
-                          fontSize: 8, fontWeight: 800, color: b.tint, lineHeight: "10px", minWidth: 12, textAlign: "center",
-                        }}>{b.count > 999 ? "999+" : b.count}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{
-                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.4)",
-                borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
-              }}>
+            {/* MMORPG Bottom Bar Menu */}
+            <div style={{
+              position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)",
+              background: "linear-gradient(180deg, rgba(20, 10, 30, 0.95) 0%, rgba(10, 5, 15, 0.98) 100%)",
+              border: "1px solid rgba(201, 184, 255, 0.25)",
+              borderRadius: 16, display: "flex", alignItems: "center", padding: "6px 20px",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 12px rgba(201, 184, 255, 0.1)",
+              zIndex: 1000, pointerEvents: "auto", gap: 14
+            }}>
+              {([
+                { id: "batalha", label: "Chat", icon: "💬" },
+                { id: "pokemon", label: "Pokémon", icon: "🦁" },
+                { id: "mochila", label: "Mochila", icon: "🎒" },
+                { id: "tarefas", label: "Missões", icon: "📜" },
+                { id: "loja", label: "Loja", icon: "💎" },
+                { id: "colecao", label: "Coleção", icon: "📗" },
+                { id: "pokedex", label: "Pokédex", icon: "📱" },
+                { id: "wallet", label: "Carteira", icon: "💰" }
+              ] as const).map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setTab(item.id)}
+                  style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    background: tab === item.id ? "rgba(201, 184, 255, 0.1)" : "transparent",
+                    border: "none", borderRadius: 8, padding: "4px 8px",
+                    cursor: "pointer", transition: "all 0.2s",
+                    minWidth: 60
+                  }}
+                >
+                  <span style={{ fontSize: 24, filter: tab === item.id ? "drop-shadow(0 0 8px #c9b8ff)" : "grayscale(0.5)" }}>{item.icon}</span>
+                  <span style={{ 
+                    fontSize: 9, fontWeight: 900, 
+                    color: tab === item.id ? "#c9b8ff" : "rgba(255,255,255,0.5)",
+                    letterSpacing: 0.5 
+                  }}>{item.label.toUpperCase()}</span>
+                </button>
+              ))}
+
+              <div style={{ width: 1, height: 30, background: "rgba(201, 184, 255, 0.2)", margin: "0 6px" }} />
+
+              {/* Auto Battle Toggle & Ball Selector integrated into bar */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <button
                   onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
-                  title={on ? "Auto-batalha ATIVA (clique para desativar)" : "Auto-batalha desativada (clique para ativar)"}
                   style={{
                     background: "transparent", border: "none", padding: 0, cursor: "pointer",
-                    width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
-                    position: "relative",
+                    position: "relative", width: 42, height: 42
                   }}
                 >
                   <img
                     src={autoIconImg}
                     alt="Auto"
-                    width={40}
-                    height={40}
+                    width={38}
+                    height={38}
                     style={{
-                      width: 40, height: 40, imageRendering: "pixelated",
-                      filter: on
-                        ? "drop-shadow(0 0 6px #5ec26a) drop-shadow(0 0 10px rgba(94,194,106,0.6))"
-                        : "grayscale(1) opacity(0.55)",
-                      animation: on ? "autoIconPulse 1.2s ease-in-out infinite, autoIconSpin 6s linear infinite" : "none",
-                      transformOrigin: "50% 50%",
+                      imageRendering: "pixelated",
+                      filter: on ? "drop-shadow(0 0 8px #5ec26a)" : "grayscale(1) opacity(0.5)",
+                      animation: on ? "autoIconPulse 1.2s ease-in-out infinite" : "none"
                     }}
                   />
                 </button>
-                <div style={{ fontSize: 10, color: "#c8b8d0", minWidth: 90 }}>
-                  Lv.{team[0]?.level ?? 1} · EXP {team[0]?.xp ?? 0}/{100 + (team[0]?.level ?? 1) * 20}
+                
+                <div style={{ display: "flex", gap: 4 }}>
+                  {([
+                    { id: "pokeball" as const, img: ballPokeImg, tint: "#ff8080" },
+                    { id: "ultraball" as const, img: ballUltraImg, tint: "#ffd66b" }
+                  ]).map((b) => {
+                    const sel = ab.preferredBall === b.id;
+                    const count = idle.items[b.id] ?? 0;
+                    return (
+                      <button
+                        key={b.id}
+                        onClick={() => setAB({ preferredBall: b.id, useBall: true })}
+                        style={{
+                          background: sel ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.05)",
+                          border: sel ? `1px solid ${b.tint}` : "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: 8, padding: 4, cursor: "pointer",
+                          width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", position: "relative"
+                        }}
+                      >
+                        <img src={b.img} alt="" width={22} height={22} style={{ imageRendering: "pixelated" }} />
+                        <span style={{
+                          position: "absolute", bottom: -2, right: -2, background: "#0b0510",
+                          border: `1px solid ${b.tint}`, borderRadius: 4, padding: "0 2px",
+                          fontSize: 7, fontWeight: 900, color: b.tint
+                        }}>{count > 99 ? "99+" : count}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <button
-                  onClick={() => setShowAutoSettings((v) => !v)}
-                  title="Configurar"
-                  style={{
-                    background: showAutoSettings ? "#f5cf6b" : "rgba(255,255,255,0.06)",
-                    color: showAutoSettings ? "#0b0510" : "#f5cf6b",
-                    border: "1px solid rgba(245,207,107,0.5)",
-                    borderRadius: 8, width: 30, height: 30, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 16,
-                  }}
-                >⚙</button>
               </div>
+            </div>
             </div>
             );
           })()}
