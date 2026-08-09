@@ -15359,8 +15359,6 @@ function TabOverlay({
         );
       })()}
         
-      </div>
-    </div>
   );
 }
 
