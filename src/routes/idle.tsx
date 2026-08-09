@@ -10088,7 +10088,6 @@ function IdlePage() {
                   >
                     🚪 IR PARA TELA DE LOGIN
                   </button>
-                  </button>
                 </div>
               </div>
             );
@@ -10354,7 +10353,6 @@ function IdlePage() {
           </Panel>
         </div>
         </div>
-      );
     })()}
 
 
