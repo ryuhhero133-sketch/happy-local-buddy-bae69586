@@ -3649,8 +3649,9 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
-  // Zoom base de 0.6 para dar uma visão ainda mais ampla, compatível com resoluções menores/telas densas
-  const BASE_ZOOM = 0.6;
+  // Zoom base de 0.4 para dar a visão ampla de "75% de zoom do navegador" em 100% nativo.
+  // Isso faz com que as HUDs fiquem menores e a visão do mapa seja maior, como solicitado.
+  const BASE_ZOOM = 0.4;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
