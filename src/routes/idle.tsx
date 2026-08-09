@@ -7197,7 +7197,7 @@ function IdlePage() {
   );
 
   return (
-    <>
+    <div>
     <div style={{
 
 
