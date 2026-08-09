@@ -3649,8 +3649,8 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
-  // Zoom base de 0.7 para dar uma visão mais ampla, similar ao zoom de 75% no navegador
-  const BASE_ZOOM = 0.7;
+  // Zoom base de 0.6 para dar uma visão ainda mais ampla, compatível com resoluções menores/telas densas
+  const BASE_ZOOM = 0.6;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
@@ -7238,25 +7238,30 @@ function IdlePage() {
           transformOrigin: "0 0",
           transition: "none",
           backgroundColor: "#000",
-          overflow: "hidden",
-          contain: "layout paint style",
+          overflow: "visible", // Permitir que o background do mapa preencha vazios
+          contain: "layout style",
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}>
+          <div style={{
+            position: "absolute",
+            inset: -4000,
+            backgroundImage: `url(${map.bg})`,
+            backgroundRepeat: "repeat",
+            backgroundSize: `${WORLD_W}px ${WORLD_H}px`,
+            imageRendering: "pixelated",
+            zIndex: -1
+          }} />
           <img
             src={map.bg}
             alt=""
             aria-hidden="true"
             draggable={false}
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "fill",
-              pointerEvents: "none",
-              userSelect: "none",
-              imageRendering: "auto",
+            style={{ 
+              width: WORLD_W, 
+              height: WORLD_H, 
+              imageRendering: "pixelated",
+              position: "relative",
               transform: "translateZ(0)",
               backfaceVisibility: "hidden",
               zIndex: 0,
