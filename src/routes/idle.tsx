@@ -8418,7 +8418,7 @@ function IdlePage() {
                 border: '1px solid rgba(245,207,107,0.3)', color: '#f5cf6b',
                 fontSize: '10px', fontWeight: 900, textShadow: '0 1px 2px #000'
               }}>
-                {Math.round(zoom * 100)}%
+                {Math.round(effectiveZoom * 100)}%
               </div>
 
               <button 
