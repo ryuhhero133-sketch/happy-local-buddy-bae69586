@@ -20,17 +20,18 @@ import navMarket from "@/assets/icons/nav-market.png";
 
 // Minimal set of types to fix build
 export type CollectionEntry = { 
-  uid: string;
-  speciesId: number; 
+  uid?: string;
+  speciesId?: number; 
   species?: any;
   level?: any;
   rarity?: any;
   xp?: any;
   traits?: any;
-  count: number; 
-  firstCaughtAt: string;
+  count?: number; 
+  firstCaughtAt?: string;
   capturedAt?: any;
 };
+
 
 
 export type Item = { id: string; name: string; type: string; rarity: string; icon?: string };
