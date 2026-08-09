@@ -13952,9 +13952,8 @@ function TabOverlay({
                   </div>
                 )}
               </div>
-
-              </div>
             </div>
+
 
             <style>{`
               @media (max-width: 720px) {
