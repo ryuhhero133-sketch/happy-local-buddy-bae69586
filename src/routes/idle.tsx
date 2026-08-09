@@ -3649,8 +3649,9 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
-  // Zoom base de 0.6 para dar uma visão ainda mais ampla, compatível com resoluções menores/telas densas
-  const BASE_ZOOM = 0.6;
+  // Zoom base de 0.4 para dar a visão ampla de "75% de zoom do navegador" em 100% nativo.
+  // Isso faz com que as HUDs fiquem menores e a visão do mapa seja maior, como solicitado.
+  const BASE_ZOOM = 0.4;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
@@ -7241,17 +7242,17 @@ function IdlePage() {
           transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
           transformOrigin: "0 0",
           transition: "none",
-          backgroundColor: "#000",
-          overflow: "visible", // Permitir que o background do mapa preencha vazios
+          backgroundColor: viewportBg,
+          overflow: "visible", 
           contain: "layout style",
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}>
-          {/* Solid color background or same map stretched to extreme bounds to avoid leaks */}
+          {/* Fundo que preenche o mapa para evitar o "void" verde ou preto */}
           <div style={{
             position: "absolute",
             inset: -10000,
-            backgroundColor: "#000", // Fundo preto sólido para o "void"
+            backgroundColor: viewportBg, 
             zIndex: -1
           }} />
           <img
@@ -8417,7 +8418,7 @@ function IdlePage() {
                 border: '1px solid rgba(245,207,107,0.3)', color: '#f5cf6b',
                 fontSize: '10px', fontWeight: 900, textShadow: '0 1px 2px #000'
               }}>
-                {Math.round(zoom * 100)}%
+                {Math.round(effectiveZoom * 100)}%
               </div>
 
               <button 
