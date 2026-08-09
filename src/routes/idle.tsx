@@ -10002,16 +10002,12 @@ function IdlePage() {
                 REVIVER
               </button>
             </div>
-          ) : (() => {
-            const ab = idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
-            const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
-            const on = ab.enabled;
-            return (
-              <div style={{
+          ) : (
+            <div style={{
+              position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+            }}>
 
-                position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-              }}>
                 {showAutoSettings && (
                   <div style={{
                     background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
@@ -10022,25 +10018,27 @@ function IdlePage() {
 
                   <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                     <span>Usar Pokébola</span>
-                    <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
+                    <input type="checkbox" checked={(idle.autoBattle?.useBall ?? true)} onChange={(e) => setIdle(s => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), useBall: e.target.checked } }))} />
                   </label>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     <span style={{ color: "#c8b8d0" }}>Pokébola preferida</span>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                       {(["auto","pokeball","greatball","ultraball"] as const).map((p) => {
                         const label = p === "auto" ? "Auto" : p === "pokeball" ? "Poké" : p === "greatball" ? "Great" : "Ultra";
-                        const sel = ab.preferredBall === p;
+                        const sel = (idle.autoBattle?.preferredBall ?? "auto") === p;
+                        const useBall = idle.autoBattle?.useBall ?? true;
                         return (
-                          <button key={p} onClick={() => setAB({ preferredBall: p })} disabled={!ab.useBall} style={{
+                          <button key={p} onClick={() => setIdle(s => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), preferredBall: p } }))} disabled={!useBall} style={{
                             background: sel ? "#f5cf6b" : "rgba(255,255,255,0.06)",
                             color: sel ? "#0b0510" : "#eadfe8", border: "1px solid rgba(245,207,107,0.4)",
                             borderRadius: 6, padding: "4px 8px", fontSize: 10, fontWeight: 700,
-                            cursor: ab.useBall ? "pointer" : "not-allowed", opacity: ab.useBall ? 1 : 0.5,
+                            cursor: useBall ? "pointer" : "not-allowed", opacity: useBall ? 1 : 0.5,
                           }}>{label}</button>
                         );
                       })}
                     </div>
                   </div>
+
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     <span style={{ color: "#c8b8d0" }}>Auto-Poção HP% ≤ {Math.round((idle.autoHeal?.threshold ?? 0.5) * 100)}%</span>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -10189,7 +10187,9 @@ function IdlePage() {
                   })}
                 </div>
               </div>
-            )}
+            </div>
+          )}
+
 
 
 
