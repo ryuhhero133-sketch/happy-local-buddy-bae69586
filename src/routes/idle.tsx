@@ -3652,7 +3652,7 @@ function IdlePage() {
   // Zoom base dinâmico para garantir que a HUD e o mundo escalem juntos.
   // Se o zoom for baixo (ex: 52%), a HUD diminuirá proporcionalmente, mantendo a visão do mapa "encaixada".
   const BASE_ZOOM = 0.45;
-  const uiScale = Math.min(1, zoom); // Fator de escala da HUD baseado no zoom do radar (100% = 1, 52% = 0.52)
+  const uiScale = Math.min(1.2, Math.max(0.6, zoom)); // Limitamos a escala da HUD entre 60% e 120%
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
