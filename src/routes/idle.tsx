@@ -12653,7 +12653,12 @@ function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, res
           boxShadow: "inset 0 0 5px rgba(0,0,0,0.75)",
           display: "grid", placeItems: "center", overflow: "hidden",
         }}>
-          <img src={src} alt="" style={{ width: "82%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
+          <img src={src} alt="" style={{ 
+            width: "82%", imageRendering: "pixelated", 
+            filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.8))",
+            transform: `scale(${spriteScale * 2.2})`, // Compensa o scale global
+            transformOrigin: 'center'
+          }} />
           {resting && <span style={{ position: "absolute", top: -2, right: -2, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
           {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 15, textShadow: "0 0 4px #000" }}>🔒</span>}
         </div>
