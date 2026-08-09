@@ -8284,7 +8284,7 @@ function IdlePage() {
                 key={item.id}
                 onClick={() => {
                   if (item.id === "ranking") setRankOpen(true);
-                  if (item.id === "shop") setActiveTab("loja"); // Adicionado atalho para loja
+                  if (item.id === "shop") setCashShopOpen(true);
                 }}
                 style={{
                   width: 54, height: 54, borderRadius: 14,
