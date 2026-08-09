@@ -13751,7 +13751,7 @@ function TabOverlay({
                 border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
                 boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
                 padding: 12, minHeight: 360,
-                maxHeight: 600, overflowY: "auto"
+                maxHeight: 1000, overflowY: "auto"
               }}>
 
                 {filtered.length === 0 ? (
