@@ -8322,11 +8322,22 @@ function IdlePage() {
             <div style={{
               position: 'absolute', inset: '0', borderRadius: '50%',
               backgroundImage: `url(${IDLE_MAPS[idle.currentMap].bg})`,
-              backgroundSize: `${(WORLD_W / 180) * 100 * 2}%`, // Scaled for radar view
-              backgroundPosition: `${(trainerPos.x / WORLD_W) * 100}% ${(trainerPos.y / WORLD_H) * 100}%`,
+              backgroundSize: '100% 100%', // Show full map
+              backgroundPosition: 'center',
               filter: 'brightness(0.75) contrast(1.1)',
-              transition: 'background-position 0.1s linear, background-image 0.5s ease',
-              transform: 'scale(1.1)' // Small overscan to hide edges
+              transition: 'background-image 0.5s ease',
+            }} />
+
+            {/* Indicator of player position on the small map */}
+            <div style={{
+              position: 'absolute',
+              width: '6px', height: '6px',
+              background: '#f5cf6b', borderRadius: '50%',
+              boxShadow: '0 0 8px #f5cf6b',
+              left: `${(trainerPos.x / WORLD_W) * 100}%`,
+              top: `${(trainerPos.y / WORLD_H) * 100}%`,
+              transform: 'translate(-50%, -50%)',
+              zIndex: 11
             }} />
 
             {/* Grid Overlay */}
@@ -8344,17 +8355,15 @@ function IdlePage() {
               borderLeft: '1px solid rgba(245,207,107,0.4)', zIndex: 1
             }} />
 
-            {/* Fixed Player Marker (Center of Radar) */}
-            <div style={{
-              position: 'absolute', width: '10px', height: '10px', background: '#fff',
-              borderRadius: '50%', boxShadow: '0 0 10px #fff, 0 0 6px #f5cf6b',
-              zIndex: 10, border: '1px solid #000'
-            }} />
+            {/* Central marker removed to avoid confusion with the new moving dot */}
             
-            {/* Pulse effect around player */}
+            {/* Pulse effect following player */}
             <div style={{
               position: 'absolute', width: '20px', height: '20px', border: '1px solid rgba(255,255,255,0.5)',
-              borderRadius: '50%', zIndex: 9, animation: 'radarPulse 2s ease-out infinite'
+              borderRadius: '50%', zIndex: 9, animation: 'radarPulse 2s ease-out infinite',
+              left: `${(trainerPos.x / WORLD_W) * 100}%`,
+              top: `${(trainerPos.y / WORLD_H) * 100}%`,
+              transform: 'translate(-50%, -50%)'
             }} />
 
             {/* Map Name Overlay */}
