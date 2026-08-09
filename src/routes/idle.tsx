@@ -20,7 +20,7 @@ import navMarket from "@/assets/icons/nav-market.png";
 
 // Minimal set of types to fix build
 export type CollectionEntry = { 
-  uid?: string;
+  uid: string;
   speciesId?: number; 
   species?: any;
   level?: any;
@@ -31,6 +31,7 @@ export type CollectionEntry = {
   firstCaughtAt?: string;
   capturedAt?: any;
 };
+
 
 
 
