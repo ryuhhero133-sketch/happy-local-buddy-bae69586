@@ -12000,7 +12000,9 @@ function IdlePage() {
 
       {/* ============ LOJINHA CASH ============ */}
       {cashShopOpen && createPortal(
-        <CashShopModal
+        <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "none" }}>
+          <div style={{ pointerEvents: "auto" }}>
+            <CashShopModal
 
           open={cashShopOpen}
           onClose={() => setCashShopOpen(false)}
