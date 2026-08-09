@@ -9532,8 +9532,10 @@ function IdlePage() {
               const arcY = Math.sin(dt * Math.PI) * 60;
               const x = captureAnim.fromX + (captureAnim.toX - captureAnim.fromX) * dt;
               const y = captureAnim.fromY + (captureAnim.toY - captureAnim.fromY) * dt - arcY;
-              return (
-                <div style={{
+  return (
+    <>
+    <div style={{
+
                   position: "absolute", left: x, top: y,
                   width: 26, height: 26,
                   transform: `translate(-50%, -50%) rotate(${dt * 720}deg)`,
@@ -12691,8 +12693,10 @@ function IdlePage() {
         document.body
       )}
     </div>
+    </>
   );
 }
+
 
 
 
