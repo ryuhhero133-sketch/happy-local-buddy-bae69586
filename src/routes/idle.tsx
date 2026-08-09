@@ -7512,6 +7512,10 @@ function IdlePage() {
         .modern-top-bar button:hover {
           transform: rotate(15deg);
         }
+        .top-cfg-btn:hover {
+          background: rgba(201,184,255,0.25) !important;
+          transform: rotate(90deg) scale(1.1);
+        }
         .side-icon-bar button {
           transition: transform 0.2s, box-shadow 0.2s;
         }
@@ -7520,8 +7524,9 @@ function IdlePage() {
           box-shadow: 0 0 15px rgba(201,184,255,0.4);
         }
         .chat-floating-panel:hover {
-           max-height: 300px !important;
+           max-height: 400px !important;
         }
+
       `}</style>
 
 
