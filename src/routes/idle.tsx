@@ -12105,8 +12105,7 @@ function IdlePage() {
             stone_electric: idle.items?.stone_electric ?? 0,
             stone_dark: idle.items?.stone_dark ?? 0,
             stone_dragon: idle.items?.stone_dragon ?? 0,
-
-        }}
+          }}
         onConsumeStone={(stoneId, qty) => {
           const have = idleRef.current.items?.[stoneId] ?? 0;
           if (have < qty) return false;
