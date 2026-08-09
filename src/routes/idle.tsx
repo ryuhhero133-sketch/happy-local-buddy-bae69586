@@ -3649,9 +3649,9 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
-  // Zoom base de 0.35 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
+  // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
   // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
-  const BASE_ZOOM = 0.35;
+  const BASE_ZOOM = 0.2;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
