@@ -10205,6 +10205,10 @@ function IdlePage() {
 
 
       <style>{`
+        .mochila-body::-webkit-scrollbar { width: 6px; }
+        .mochila-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        .mochila-body::-webkit-scrollbar-thumb { background: rgba(245,207,107,0.3); borderRadius: 10px; }
+
 
         @media (max-width: 1400px) {
           .idle-grid { grid-template-columns: 210px 1fr 210px !important; gap: 6px !important; padding: 6px !important; }
