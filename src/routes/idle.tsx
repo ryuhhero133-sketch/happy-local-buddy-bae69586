@@ -8360,12 +8360,10 @@ function IdlePage() {
                   }}>RANKING GLOBAL</div>
                   <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
                     🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
-                  </div>
                 </div>
-
-                    </div>
-                    <div
-                      title="O ranking global é congelado e atualiza a cada 2 horas"
+              </div>
+              <div
+                title="O ranking global é congelado e atualiza a cada 2 horas"
                       style={{
                         background: "rgba(120,220,255,0.08)", border: "1px solid rgba(120,220,255,0.25)",
                         color: "#9fd8ee", fontSize: 12, height: 34, padding: "0 12px",
