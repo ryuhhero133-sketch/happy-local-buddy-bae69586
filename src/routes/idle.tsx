@@ -8357,10 +8357,13 @@ function IdlePage() {
 
             {/* Central marker removed to avoid confusion with the new moving dot */}
             
-            {/* Pulse effect around player */}
+            {/* Pulse effect following player */}
             <div style={{
               position: 'absolute', width: '20px', height: '20px', border: '1px solid rgba(255,255,255,0.5)',
-              borderRadius: '50%', zIndex: 9, animation: 'radarPulse 2s ease-out infinite'
+              borderRadius: '50%', zIndex: 9, animation: 'radarPulse 2s ease-out infinite',
+              left: `${(trainerPos.x / WORLD_W) * 100}%`,
+              top: `${(trainerPos.y / WORLD_H) * 100}%`,
+              transform: 'translate(-50%, -50%)'
             }} />
 
             {/* Map Name Overlay */}
