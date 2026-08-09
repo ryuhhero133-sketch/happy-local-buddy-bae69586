@@ -3649,8 +3649,8 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
-  // Zoom base de 0.7 para dar uma visão mais ampla, similar ao zoom de 75% no navegador
-  const BASE_ZOOM = 0.7;
+  // Zoom base de 0.6 para dar uma visão ainda mais ampla, compatível com resoluções menores/telas densas
+  const BASE_ZOOM = 0.6;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
@@ -7238,8 +7238,8 @@ function IdlePage() {
           transformOrigin: "0 0",
           transition: "none",
           backgroundColor: "#000",
-          overflow: "hidden",
-          contain: "layout paint style",
+          overflow: "visible", // Permitir que o background do mapa preencha vazios
+          contain: "layout style",
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}>
