@@ -71,6 +71,7 @@ type OfferRow = {
 };
 
 const RARITY_COLOR: Record<string, string> = {
+
   common: "#c8b8d0", uncommon: "#7ef2a2", rare: "#6bd4ff",
   epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
 };

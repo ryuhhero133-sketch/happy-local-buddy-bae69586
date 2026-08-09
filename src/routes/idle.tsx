@@ -23,7 +23,19 @@ import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { toast } from "sonner";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 
+export type CollectionEntry = {
+  uid: string;
+  species: string;
+  level: number;
+  rarity: string;
+  shiny?: boolean;
+  event?: string | null;
+  xp?: number;
+  [key: string]: any;
+};
+
 export const Route = createFileRoute("/idle")({
+
   component: () => (
     <AuthGate>
       <IdleGame />
