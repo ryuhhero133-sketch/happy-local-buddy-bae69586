@@ -12293,7 +12293,8 @@ function IdlePage() {
 
           pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
         }}
-      ), document.body)}
+      />
+
 
 
 
