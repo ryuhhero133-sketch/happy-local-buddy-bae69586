@@ -8201,6 +8201,7 @@ function IdlePage() {
 
 
 
+
         display: "grid",
         gridTemplateColumns: "1fr",
         gridTemplateRows: "1fr",
