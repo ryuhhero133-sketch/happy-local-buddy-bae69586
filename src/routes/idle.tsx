@@ -7465,12 +7465,12 @@ function IdlePage() {
             onBuyChestAmulet={buyChestAmulet}
             chestAmuletOwned={idle.items?.chest_amulet || 0}
             autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
-            setAutoHeal={(next) => setIdle(s => ({ ...s, autoHeal: next }))}
+            setAutoHeal={(next: { enabled: boolean; threshold: number }) => setIdle(s => ({ ...s, autoHeal: next }))}
             audioSettings={audioSettings}
             setAudioSettings={setAudioSettings}
             tasks={idle.tasks || []}
             onClaimTask={claimTask}
-            onOpenColecaoDetail={(uid) => setPetDetailUid(uid)}
+            onOpenColecaoDetail={(uid: string) => setPetDetailUid(uid)}
             onExchange={exchange}
             onSellItem={sellItem}
             marketSellPrices={MARKET_SELL_PRICE}
@@ -7484,7 +7484,7 @@ function IdlePage() {
             setSkinId={setSkinId}
             unlockedSkins={idle.unlockedSkins || []}
             skinTickets={idle.items?.skin_ticket || 0}
-            onUnlockSkin={(id) => {}}
+            onUnlockSkin={(id: string) => {}}
             trainerLevel={idle.trainerLevel || 1}
             onUpgradeBook={upgradeBook}
             orbTrades={ORB_TRADES}
@@ -10146,12 +10146,12 @@ function IdlePage() {
               onBuyChestAmulet={buyChestAmulet}
               chestAmuletOwned={idle.items?.chest_amulet ?? 0}
               autoHeal={idle.autoHeal}
-              setAutoHeal={(next) => setIdle((s) => ({ ...s, autoHeal: next }))}
+              setAutoHeal={(next: { enabled: boolean; threshold: number }) => setIdle((s) => ({ ...s, autoHeal: next }))}
               audioSettings={audioSettings}
               setAudioSettings={setAudioSettings}
               tasks={idle.tasks}
               onClaimTask={claimTask}
-              onOpenColecaoDetail={(uid) => setColecaoDetailUid(uid)}
+              onOpenColecaoDetail={(uid: string) => setColecaoDetailUid(uid)}
               onExchange={exchange}
               onSellItem={sellItem}
               marketSellPrices={MARKET_SELL_PRICE}
@@ -10204,7 +10204,7 @@ function IdlePage() {
               setSkinId={setSkinId}
               unlockedSkins={idle.unlockedSkins ?? ["default"]}
               skinTickets={idle.items?.skin_ticket ?? 0}
-              onUnlockSkin={(sid) => {
+              onUnlockSkin={(sid: string) => {
                 setIdle((s) => {
                   const tickets = s.items?.skin_ticket ?? 0;
                   const unlocked = new Set(s.unlockedSkins ?? ["default"]);
@@ -14680,7 +14680,7 @@ function TabOverlay({
 
           <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>🥚 Ovos — chocam Pokémon com raridade aleatória</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
-            {shopEggs.map((e) => {
+            {shopEggs.map((e: any) => {
               const owned = items[e.id] ?? 0;
               const canBuy = e.currency === "gold" ? bank.gold >= e.price : bank.crystals >= e.price;
               return (
@@ -14774,7 +14774,7 @@ function TabOverlay({
             <b style={{ color: "#ffd94d" }}> Você escolhe</b> quais Pokémon entregar.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
-            {orbTrades.map((t) => {
+            {orbTrades.map((t: any) => {
               const available = collection.filter((c) =>
                 (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
                 && !teamUidSet.has(c.uid)
@@ -15177,14 +15177,14 @@ function TabOverlay({
           }}>
             <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
               <input type="checkbox" checked={audioSettings.music}
-                onChange={(e) => setAudioSettings((s) => ({ ...s, music: e.target.checked }))}
+                onChange={(e) => setAudioSettings((s: any) => ({ ...s, music: e.target.checked }))}
                 style={{ width: 18, height: 18 }} />
               <span style={{ color: "#eadfe8", fontWeight: 700 }}>🎵 Música de fundo</span>
             </label>
             <div>
               <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>Volume da música: {Math.round(audioSettings.musicVol * 100)}%</div>
               <input type="range" min={0} max={1} step={0.05} value={audioSettings.musicVol}
-                onChange={(e) => setAudioSettings((s) => ({ ...s, musicVol: Number(e.target.value) }))}
+                onChange={(e) => setAudioSettings((s: any) => ({ ...s, musicVol: Number(e.target.value) }))}
                 style={{ width: "100%" }} />
             </div>
           </div>
@@ -15196,14 +15196,14 @@ function TabOverlay({
           }}>
             <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
               <input type="checkbox" checked={audioSettings.sfx}
-                onChange={(e) => setAudioSettings((s) => ({ ...s, sfx: e.target.checked }))}
+                onChange={(e) => setAudioSettings((s: any) => ({ ...s, sfx: e.target.checked }))}
                 style={{ width: 18, height: 18 }} />
               <span style={{ color: "#eadfe8", fontWeight: 700 }}>🔊 Efeitos sonoros (clique, level-up, capturas)</span>
             </label>
             <div>
               <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>Volume dos efeitos: {Math.round(audioSettings.sfxVol * 100)}%</div>
               <input type="range" min={0} max={1} step={0.05} value={audioSettings.sfxVol}
-                onChange={(e) => setAudioSettings((s) => ({ ...s, sfxVol: Number(e.target.value) }))}
+                onChange={(e) => setAudioSettings((s: any) => ({ ...s, sfxVol: Number(e.target.value) }))}
                 style={{ width: "100%" }} />
             </div>
           </div>
