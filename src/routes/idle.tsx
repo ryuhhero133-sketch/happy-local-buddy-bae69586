@@ -12043,7 +12043,8 @@ function IdlePage() {
         />,
         document.body
       )}
-    <BlackMiticEggHud
+      {blackEggHudOpen && createPortal(
+        <BlackMiticEggHud
 
 
 
