@@ -8110,9 +8110,9 @@ function IdlePage() {
       }}>
 
         {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
-        <div style={{ 
-          position: 'fixed', top: '75px', left: '20px', width: '240px', 
-          display: "flex", flexDirection: "column", gap: 6, zIndex: 1005,
+        <div className="trainer-profile-hud" style={{ 
+          position: 'fixed', top: '75px', left: '20px', width: '260px', 
+          display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
           {(() => {
@@ -8271,11 +8271,13 @@ function IdlePage() {
             <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
           </div>
 
-          <div style={{ 
+          {/* Painel da Equipe (Abaixo do Radar) */}
+          <div className="team-panel-hud" style={{ 
             display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
             padding: '12px', background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(10px)',
             borderRadius: '15px', border: '1px solid rgba(201,184,255,0.3)',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.6)'
+            boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
+            marginTop: '0' 
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
               <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1.5 }}>SUA EQUIPE</span>
@@ -8299,6 +8301,36 @@ function IdlePage() {
                 borderRadius: '6px', padding: '5px', color: '#c9b8ff', fontSize: '10px', fontWeight: 700,
                 cursor: 'pointer', marginTop: '4px'
               }} onClick={() => setTab("pokemon")}>GERENCIAR EQUIPE</button>
+            </div>
+            
+            {/* Botão do Ancião Glacial unificado aqui, um embaixo do outro */}
+            <div style={{ marginTop: 8 }}>
+              <button
+                onClick={handleAnciaoInteraction}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  background: "linear-gradient(180deg, #15803d, #064e3b)",
+                  border: "1px solid #4ade80",
+                  borderRadius: 8,
+                  color: "#fff",
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: 1,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)",
+                  pointerEvents: "auto",
+                  transition: "all 0.2s"
+                }}
+                onMouseOver={(e) => e.currentTarget.style.filter = "brightness(1.2)"}
+                onMouseOut={(e) => e.currentTarget.style.filter = "brightness(1)"}
+              >
+                ❄️ ANCIÃO GLACIAL
+              </button>
             </div>
           </div>
 
@@ -10054,72 +10086,7 @@ function IdlePage() {
               onUpgradeBook={upgradeBook}
             />
           )}
-        <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          <div style={{ height: 12 }} />
-
-          <Panel title="SUA EQUIPE" accent="#3d2b52">
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {team.map((p, i) => (
-                <div key={p.uid} style={{ 
-                  display: "flex", alignItems: "center", gap: 6, 
-                  background: i === 0 ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.03)",
-                  padding: "4px 8px", borderRadius: 8,
-                  border: i === 0 ? "1px solid rgba(245,207,107,0.3)" : "1px solid rgba(255,255,255,0.05)"
-                }}>
-                  <img src={GIF[p.species]} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 9, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.species.toUpperCase()}</div>
-                    <div style={{ fontSize: 8, color: "rgba(255,255,255,0.5)" }}>LV.{p.level}</div>
-                  </div>
-                  <div style={{ width: 40, height: 4, background: "rgba(0,0,0,0.5)", borderRadius: 2, overflow: "hidden" }}>
-                    <div style={{ width: "100%", height: "100%", background: "#5ec26a" }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-            {/* Botão do Ancião Glacial unificado aqui no painel de equipe lateral */}
-            <div style={{ marginTop: 8 }}>
-              <button
-                onClick={handleAnciaoInteraction}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  background: "linear-gradient(180deg, #15803d, #064e3b)",
-                  border: "1px solid #4ade80",
-                  borderRadius: 8,
-                  color: "#4ade80",
-                  fontSize: 10,
-                  fontWeight: 900,
-                  letterSpacing: 1,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 4,
-                  boxShadow: "0 0 10px rgba(74,222,128,0.2)",
-                  pointerEvents: "auto"
-                }}
-              >
-                ❄️ ANCIÃO GLACIAL
-              </button>
-            </div>
-          </Panel>
-        </div>
+        {/* Painel lateral antigo removido para evitar duplicidade na HUD */}
 
 
       <style>{`
