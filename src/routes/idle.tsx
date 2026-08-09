@@ -9809,8 +9809,9 @@ function IdlePage() {
             const on = ab.enabled;
             return (
             <div style={{
-              position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
+              position: "absolute", bottom: 85, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+              zIndex: 10000,
             }}>
               {showAutoSettings && (
                 <div style={{
