@@ -12167,14 +12167,6 @@ function IdlePage() {
           }));
         }}
         onConsumeBoost={() => {
-          const have = idleRef.current.items?.egg_boost_69 ?? 0;
-          if (have <= 0) return false;
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), egg_boost_69: (s.items?.egg_boost_69 ?? 0) - 1 },
-          }));
-          return true;
-        }}
         onUseBoost={() => {
           const have = idle.items?.egg_boost_69 ?? 0;
           if (have <= 0) return false;
