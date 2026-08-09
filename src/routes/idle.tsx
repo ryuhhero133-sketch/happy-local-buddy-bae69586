@@ -78,7 +78,7 @@ import houseLabImg from "@/assets/house-lab.png";
 import houseBankImg from "@/assets/house-bank.png";
 import houseGymImg from "@/assets/house-gym.png";
 import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
-import mapValeDouradoImg from "@/assets/map-vale-dourado-v2.png";
+import mapValeDouradoImg from "@/assets/map-vale-verdejante-v3.png";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
 import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
 import mapGymGeloSombraAsset from "@/assets/gym-gelo-sombra.png.asset.json";
@@ -499,7 +499,7 @@ type IdleMapId =
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
   | "absol_start" | "governante_hall"
   // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
-  | "santuario_glacial" | "caminho_glacial" | "vale_dourado";
+  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -564,6 +564,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   santuario_glacial: { name: "Santuário Glacial", diff: "SEGURO", bg: mapSnowUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 10, overlay: "rgba(200,230,255,0.3)" },
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
+  vale_verdejante: { name: "Vale Verdejante (v3)", diff: "JORNADA", bg: mapValeDouradoImg, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Grama", stars: 1 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -2666,8 +2667,8 @@ function IdlePage() {
   }, []);
 
   // Mundo em pixels: aumentamos o tamanho base para garantir proporção em telas ultra-wide.
-  const WORLD_W = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado" || idle.currentMap === "arena") ? 3840 : 2560;
-  const WORLD_H = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado" || idle.currentMap === "arena") ? 3840 : 2560;
+  const WORLD_W = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado" || idle.currentMap === "arena" || idle.currentMap === "vale_verdejante") ? 3840 : 2560;
+  const WORLD_H = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado" || idle.currentMap === "arena" || idle.currentMap === "vale_verdejante") ? 3840 : 2560;
               type GateDef = {
                 key: string;
                 target: IdleMapId;
@@ -2679,6 +2680,7 @@ function IdlePage() {
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 arena: [
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
+                  { key: "to-verde", target: "vale_verdejante", x: 60, y: WORLD_H - 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#7ef27a" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
                   { key: "to-vale_rochas", target: "vale_rochas", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
@@ -2833,6 +2835,9 @@ function IdlePage() {
                 ],
                 gelius2: [
                   { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                vale_verdejante: [
+                  { key: "vv-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
               };
   const ATTACK_RANGE = 90; // px
@@ -3657,11 +3662,12 @@ function IdlePage() {
   // O usuário deseja o mapa inteiro na tela, sem o "vazio" verde em volta.
   const BASE_ZOOM = useMemo(() => {
     if (!viewSize.w || !viewSize.h) return 0.2;
-    // Calcula o zoom necessário para que o mapa preencha a viewport (aspect-fill).
-    // Usamos o maior fator de escala para garantir cobertura total sem bordas vazias.
-    const scaleX = viewSize.w / WORLD_W;
-    const scaleY = viewSize.h / WORLD_H;
-    return Math.max(scaleX, scaleY);
+    // O usuário deseja que com 35% de zoom (0.35) o mapa fique completo na tela.
+    // Calculamos o zoom base de forma que o zoom efetivo (zoom * BASE_ZOOM) resulte no preenchimento ideal.
+    const fillScale = Math.max(viewSize.w / WORLD_W, viewSize.h / WORLD_H);
+    // Se o slider (zoom) estiver em 0.35, queremos que o resultado seja fillScale.
+    // O usuário relatou que 0.35 é o ponto onde ele quer ver o mapa completo.
+    return fillScale / 0.35;
   }, [viewSize.w, viewSize.h, WORLD_W, WORLD_H]);
 
   const effectiveZoom = zoom * BASE_ZOOM;
