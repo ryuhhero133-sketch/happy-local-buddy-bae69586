@@ -27,7 +27,7 @@ export type CollectionEntry = {
   uid: string;
   species: string;
   level: number;
-  rarity: string;
+  rarity: any;
   shiny?: boolean;
   event?: string | null;
   xp?: number;
