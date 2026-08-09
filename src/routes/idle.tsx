@@ -8196,8 +8196,12 @@ function IdlePage() {
           </div>
         </div>
       )}
+      </>
+    );
+  })()}
 
       <div className="idle-grid" style={{
+
 
         display: "grid",
         gridTemplateColumns: "1fr",
