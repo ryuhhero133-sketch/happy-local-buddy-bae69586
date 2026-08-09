@@ -7490,8 +7490,25 @@ function IdlePage() {
         .bottom-dock-container {
           pointer-events: auto !important;
         }
-
-      `}</style>
+        .resource-item {
+          transition: transform 0.2s;
+        }
+        .resource-item:hover {
+          transform: translateY(-2px);
+        }
+        .modern-top-bar button:hover {
+          transform: rotate(15deg);
+        }
+        .side-icon-bar button {
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .side-icon-bar button:hover {
+          transform: translateX(-5px);
+          box-shadow: 0 0 15px rgba(201,184,255,0.4);
+        }
+        .chat-floating-panel:hover {
+           max-height: 300px !important;
+        }
 
 
 
