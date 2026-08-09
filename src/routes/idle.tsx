@@ -565,7 +565,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   santuario_glacial: { name: "Santuário Glacial", diff: "SEGURO", bg: mapSnowUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 10, overlay: "rgba(200,230,255,0.3)" },
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
-  vale_verdejante: { name: "Vale Verdejante (Ice)", diff: "JORNADA", bg: mapTerraUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Grama", stars: 1, overlay: "rgba(180,210,255,0.25)" },
+  vale_verdejante: { name: "Vale Verdejante (Ice)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Grama", stars: 1, overlay: "rgba(180,210,255,0.25)" },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
