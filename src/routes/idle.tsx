@@ -8342,7 +8342,7 @@ function IdlePage() {
         {/* ============ COLUNA DIREITA ============ */}
         {/* ============ COLUNA DIREITA (RADAR) ============ */}
         <div className="hud-right-column" style={{ 
-          position: 'fixed', top: '75px', right: '20px', width: '260px',
+          position: 'fixed', top: '75px', right: '20px', width: '320px',
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
