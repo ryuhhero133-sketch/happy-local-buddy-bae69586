@@ -8202,19 +8202,67 @@ function IdlePage() {
 
         {/* ============ RIGHT SIDEBAR (FLOATING) ============ */}
         <div style={{
-          position: "fixed", top: 88, right: 12, width: 80,
+          position: "fixed", top: 88, right: 12, width: 220,
           display: "flex", flexDirection: "column", gap: 12,
-          zIndex: 900, pointerEvents: "auto"
+          zIndex: 900, pointerEvents: "auto",
+          alignItems: "flex-end"
         }}>
           {/* Circular Minimap Container */}
           <div style={{
-            width: 80, height: 80, borderRadius: "50%",
-            background: "rgba(20, 10, 30, 0.9)", border: "2px solid rgba(201, 184, 255, 0.4)",
+            width: 220, height: 220, borderRadius: "50%",
+            background: "rgba(20, 10, 30, 0.9)", border: "3px solid rgba(201, 184, 255, 0.5)",
             display: "grid", placeItems: "center", overflow: "hidden",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
+            boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 0 20px rgba(201, 184, 255, 0.2)",
+            position: "relative"
           }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "radial-gradient(circle, #2a1545 0%, #0b0510 100%)", border: "1px solid rgba(201, 184, 255, 0.2)" }} />
+            {/* Minimap Terrain Graphic */}
+            <div style={{ 
+              width: "100%", height: "100%", 
+              background: `url(${IDLE_MAPS[idle.currentMap]?.bg || idleArenaUrl}) center/cover`,
+              filter: "brightness(0.6) saturate(1.2) contrast(1.1)",
+              opacity: 0.8
+            }} />
+            
+            {/* Markers on Minimap */}
+            <div style={{ position: "absolute", inset: 0 }}>
+              {/* Trainer Position (Red Dot) */}
+              <div style={{
+                position: "absolute",
+                left: `${(trainerPos.x / WORLD_W) * 100}%`,
+                top: `${(trainerPos.y / WORLD_H) * 100}%`,
+                width: 10, height: 10, borderRadius: "50%",
+                background: "#ff4b4b", border: "2px solid #fff",
+                boxShadow: "0 0 8px #ff4b4b", zIndex: 2,
+                transform: "translate(-50%, -50%)"
+              }} />
+              
+              {/* Enemies (Small Yellow Dots) */}
+              {enemies.filter(e => e.hp > 0).map(e => (
+                <div key={e.id} style={{
+                  position: "absolute",
+                  left: `${(e.x / WORLD_W) * 100}%`,
+                  top: `${(e.y / WORLD_H) * 100}%`,
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: "#ffd94d", border: "1px solid #fff",
+                  boxShadow: "0 0 4px #ffd94d", zIndex: 1,
+                  transform: "translate(-50%, -50%)"
+                }} />
+              ))}
+            </div>
+
+            {/* Radar Sweep Animation */}
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "conic-gradient(from 0deg, transparent 0%, rgba(201, 184, 255, 0.2) 20%, transparent 21%)",
+              animation: "minimapSweep 4s linear infinite",
+              pointerEvents: "none"
+            }} />
           </div>
+
+          <style>{`
+            @keyframes minimapSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          `}</style>
+
 
           {/* Vertical Menu */}
           <div style={{
