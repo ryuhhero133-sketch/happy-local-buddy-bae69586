@@ -8308,25 +8308,79 @@ function IdlePage() {
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
-          {/* Radar HUD */}
+          {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           <div style={{
-            height: '160px', background: 'rgba(11, 5, 20, 0.85)',
-            border: '1px solid rgba(201,184,255,0.3)', borderRadius: '15px',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.6)', overflow: 'hidden', position: 'relative'
+            width: '180px', height: '180px', background: 'rgba(0, 0, 0, 0.4)',
+            border: '3px solid rgba(245, 207, 107, 0.6)', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(245,207,107,0.2)', 
+            overflow: 'hidden', position: 'relative', alignSelf: 'flex-end',
+            backdropFilter: 'blur(4px)'
           }}>
+            {/* Map background with current player map view */}
+            <div style={{
+              position: 'absolute', inset: '4px', borderRadius: '50%',
+              backgroundImage: `url(${IDLE_MAPS[idle.currentMap].bg})`,
+              backgroundSize: '400%', // Zoomed in effect for radar
+              backgroundPosition: 'center',
+              filter: 'brightness(0.7) contrast(1.1)',
+              transition: 'background-image 0.5s ease'
+            }} />
+
+            {/* Scanning line / Grid effect */}
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: '50%',
+              background: 'radial-gradient(circle, transparent 40%, rgba(245,207,107,0.1) 100%)',
+              pointerEvents: 'none'
+            }} />
+            
+            {/* Scan Sweep */}
             <div style={{ 
-              width: '100px', height: '100px', borderRadius: '50%', 
-              border: '2px dashed rgba(201,184,255,0.2)', position: 'relative',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              position: 'absolute', width: '50%', height: '50%', top: 0, left: '50%', 
+              background: 'conic-gradient(from 0deg, rgba(245,207,107,0.4) 0%, transparent 40%)',
+              transformOrigin: 'bottom left', animation: 'radarScan 4s linear infinite',
+              borderLeft: '1px solid rgba(245,207,107,0.6)'
+            }} />
+
+            {/* Trainer Marker (Center) */}
+            <div style={{
+              position: 'absolute', width: '8px', height: '8px', background: '#fff',
+              borderRadius: '50%', boxShadow: '0 0 10px #fff, 0 0 5px #f5cf6b',
+              zIndex: 2
+            }} />
+
+            {/* Radar Label Overlay */}
+            <div style={{
+              position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center',
+              zIndex: 3, pointerEvents: 'none'
             }}>
               <div style={{ 
-                position: 'absolute', width: '2px', height: '50%', bottom: '50%', 
-                background: 'linear-gradient(to top, transparent, #c9b8ff)',
-                transformOrigin: 'bottom', animation: 'radarScan 4s linear infinite'
-              }} />
-              <span style={{ fontSize: '10px', color: '#c9b8ff', fontWeight: 900 }}>RADAR</span>
+                fontSize: '9px', color: '#f5cf6b', fontWeight: 900, 
+                textShadow: '0 1px 3px rgba(0,0,0,0.8)', letterSpacing: '0.5px'
+              }}>
+                {IDLE_MAPS[idle.currentMap].name.toUpperCase()}
+              </div>
             </div>
+
+            {/* Zoom Controls (Inside Radar UI area or next to it) */}
+            <div style={{
+              position: 'absolute', left: '-50px', top: '50%', transform: 'translateY(-50%)',
+              display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'auto'
+            }}>
+              <button 
+                onClick={() => setZoom(z => Math.min(1.5, z + 0.1))}
+                style={{ ...zoomBtn, borderRadius: '50%', width: '36px', height: '36px', background: 'rgba(0,0,0,0.7)', border: '2px solid rgba(245,207,107,0.5)' }}
+              >
+                <Plus size={18} />
+              </button>
+              <button 
+                onClick={() => setZoom(z => Math.max(0.4, z - 0.1))}
+                style={{ ...zoomBtn, borderRadius: '50%', width: '36px', height: '36px', background: 'rgba(0,0,0,0.7)', border: '2px solid rgba(245,207,107,0.5)' }}
+              >
+                <div style={{ width: '12px', height: '3px', background: '#f5cf6b' }} />
+              </button>
+            </div>
+
             <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
           </div>
         </div>
