@@ -13825,8 +13825,8 @@ function TabOverlay({
                               <img
                                 src={img}
                                 alt=""
-                                width={52}
-                                height={52}
+                                width={68}
+                                height={68}
                                 loading="lazy"
                                 style={{
                                   imageRendering: "pixelated",
