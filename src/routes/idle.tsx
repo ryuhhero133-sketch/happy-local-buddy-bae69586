@@ -8309,79 +8309,91 @@ function IdlePage() {
           pointerEvents: 'auto'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
+          {/* Refactored Radar HUD - Interactive Map & Player Marker */}
           <div style={{
-            width: '180px', height: '180px', background: 'rgba(0, 0, 0, 0.4)',
-            border: '3px solid rgba(245, 207, 107, 0.6)', borderRadius: '50%',
+            width: '180px', height: '180px', background: 'rgba(0, 0, 0, 0.5)',
+            border: '3px solid rgba(245, 207, 107, 0.7)', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(245,207,107,0.2)', 
             overflow: 'hidden', position: 'relative', alignSelf: 'flex-end',
-            backdropFilter: 'blur(4px)'
+            backdropFilter: 'blur(6px)', pointerEvents: 'auto'
           }}>
-            {/* Map background with current player map view */}
+            {/* Dynamic Map Background - Moves with the player */}
             <div style={{
-              position: 'absolute', inset: '4px', borderRadius: '50%',
+              position: 'absolute', inset: '0', borderRadius: '50%',
               backgroundImage: `url(${IDLE_MAPS[idle.currentMap].bg})`,
-              backgroundSize: '400%', // Zoomed in effect for radar
-              backgroundPosition: 'center',
-              filter: 'brightness(0.7) contrast(1.1)',
-              transition: 'background-image 0.5s ease'
+              backgroundSize: `${(WORLD_W / 180) * 100 * 2}%`, // Scaled for radar view
+              backgroundPosition: `${(trainerPos.x / WORLD_W) * 100}% ${(trainerPos.y / WORLD_H) * 100}%`,
+              filter: 'brightness(0.75) contrast(1.1)',
+              transition: 'background-position 0.1s linear, background-image 0.5s ease',
+              transform: 'scale(1.1)' // Small overscan to hide edges
             }} />
 
-            {/* Scanning line / Grid effect */}
+            {/* Grid Overlay */}
             <div style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'radial-gradient(circle, transparent 40%, rgba(245,207,107,0.1) 100%)',
-              pointerEvents: 'none'
+              background: 'linear-gradient(rgba(245,207,107,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(245,207,107,0.05) 1px, transparent 1px)',
+              backgroundSize: '20px 20px', pointerEvents: 'none', opacity: 0.5
             }} />
             
-            {/* Scan Sweep */}
+            {/* Scan Sweep Effect */}
             <div style={{ 
               position: 'absolute', width: '50%', height: '50%', top: 0, left: '50%', 
-              background: 'conic-gradient(from 0deg, rgba(245,207,107,0.4) 0%, transparent 40%)',
+              background: 'conic-gradient(from 0deg, rgba(245,207,107,0.3) 0%, transparent 40%)',
               transformOrigin: 'bottom left', animation: 'radarScan 4s linear infinite',
-              borderLeft: '1px solid rgba(245,207,107,0.6)'
+              borderLeft: '1px solid rgba(245,207,107,0.4)', zIndex: 1
             }} />
 
-            {/* Trainer Marker (Center) */}
+            {/* Fixed Player Marker (Center of Radar) */}
             <div style={{
-              position: 'absolute', width: '8px', height: '8px', background: '#fff',
-              borderRadius: '50%', boxShadow: '0 0 10px #fff, 0 0 5px #f5cf6b',
-              zIndex: 2
+              position: 'absolute', width: '10px', height: '10px', background: '#fff',
+              borderRadius: '50%', boxShadow: '0 0 10px #fff, 0 0 6px #f5cf6b',
+              zIndex: 10, border: '1px solid #000'
+            }} />
+            
+            {/* Pulse effect around player */}
+            <div style={{
+              position: 'absolute', width: '20px', height: '20px', border: '1px solid rgba(255,255,255,0.5)',
+              borderRadius: '50%', zIndex: 9, animation: 'radarPulse 2s ease-out infinite'
             }} />
 
-            {/* Radar Label Overlay */}
+            {/* Map Name Overlay */}
             <div style={{
-              position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center',
-              zIndex: 3, pointerEvents: 'none'
+              position: 'absolute', bottom: '12px', width: '100%', textAlign: 'center',
+              zIndex: 15, pointerEvents: 'none'
             }}>
               <div style={{ 
                 fontSize: '9px', color: '#f5cf6b', fontWeight: 900, 
-                textShadow: '0 1px 3px rgba(0,0,0,0.8)', letterSpacing: '0.5px'
+                textShadow: '0 1px 3px rgba(0,0,0,1)', letterSpacing: '0.8px',
+                background: 'rgba(0,0,0,0.4)', padding: '2px 0'
               }}>
                 {IDLE_MAPS[idle.currentMap].name.toUpperCase()}
               </div>
             </div>
 
-            {/* Zoom Controls (Inside Radar UI area or next to it) */}
+            {/* Integrated Zoom Controls - Positioned next to radar as in image-32.png */}
             <div style={{
-              position: 'absolute', left: '-50px', top: '50%', transform: 'translateY(-50%)',
-              display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'auto'
+              position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
+              display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 20
             }}>
               <button 
-                onClick={() => setZoom(z => Math.min(1.5, z + 0.1))}
-                style={{ ...zoomBtn, borderRadius: '50%', width: '36px', height: '36px', background: 'rgba(0,0,0,0.7)', border: '2px solid rgba(245,207,107,0.5)' }}
+                onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(1.5, z + 0.1)); }}
+                style={{ ...zoomBtn, borderRadius: '50%', width: '32px', height: '32px', background: 'rgba(0,0,0,0.8)', border: '2px solid rgba(245,207,107,0.6)', boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
               >
-                <Plus size={18} />
+                <Plus size={16} />
               </button>
               <button 
-                onClick={() => setZoom(z => Math.max(0.4, z - 0.1))}
-                style={{ ...zoomBtn, borderRadius: '50%', width: '36px', height: '36px', background: 'rgba(0,0,0,0.7)', border: '2px solid rgba(245,207,107,0.5)' }}
+                onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(0.4, z - 0.1)); }}
+                style={{ ...zoomBtn, borderRadius: '50%', width: '32px', height: '32px', background: 'rgba(0,0,0,0.8)', border: '2px solid rgba(245,207,107,0.6)', boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
               >
-                <div style={{ width: '12px', height: '3px', background: '#f5cf6b' }} />
+                <div style={{ width: '10px', height: '2px', background: '#f5cf6b' }} />
               </button>
             </div>
 
-            <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            <style>{`
+              @keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+              @keyframes radarPulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+            `}</style>
           </div>
         </div>
       </div>
