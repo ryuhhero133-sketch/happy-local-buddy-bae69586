@@ -1,8 +1,8 @@
-// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V22 - SEASON_MAINTENANCE_LOGOUT
-
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
 
 import { FlaskConical, Sparkles, ShieldCheck, X, Search, Settings, Map as MapIcon, Info, User, ShoppingBag, CreditCard, LayoutGrid, Heart, Star, Gift, Clock, Backpack, Store, Wallet, BookOpen, ChevronRight, ChevronDown, Plus, HelpCircle, Mail, Sword, Zap, Shield, TrendingUp, ArrowRight } from "lucide-react";
 import { obfuscate, deobfuscate } from "@/lib/utils";
@@ -9222,12 +9222,12 @@ function IdlePage() {
                     boxShadow: "0 0 12px rgba(125,211,252,0.5)",
                     animation: "pulse 1.6s ease-in-out infinite",
                   }}>❄️ ANCIÃO GLACIAL</div>
-                  <img
-                    src={npcAnciaoGlacialUrl}
-                    alt="Ancião Glacial"
-                    width={120} height={160}
-                    style={{ width: 120, height: 160, imageRendering: "pixelated", objectFit: "contain" }}
-                  />
+              </button>
+            </div>
+          </Panel>
+        </div>
+      );
+    })()}
                   <div style={{
                     position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
                     width: 100, height: 14, borderRadius: "50%",
