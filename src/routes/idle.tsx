@@ -3653,13 +3653,12 @@ function IdlePage() {
   // O usuário deseja o mapa inteiro na tela, sem o "vazio" verde em volta.
   const BASE_ZOOM = useMemo(() => {
     if (!viewSize.w || !viewSize.h) return 0.2;
-    // Calcula o zoom necessário para que o menor lado do mapa (WORLD_W ou WORLD_H) preencha a visão.
-    // Como WORLD_W=2000 e WORLD_H=2000, calculamos o fator de escala para cobrir a viewport.
+    // Calcula o zoom necessário para que o mapa preencha a viewport (aspect-fill).
+    // Usamos o maior fator de escala para garantir cobertura total sem bordas vazias.
     const scaleX = viewSize.w / WORLD_W;
     const scaleY = viewSize.h / WORLD_H;
-    // Usamos o maior scale para garantir cobertura total (aspect-fill)
     return Math.max(scaleX, scaleY);
-  }, [viewSize.w, viewSize.h]);
+  }, [viewSize.w, viewSize.h, WORLD_W, WORLD_H]);
 
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
