@@ -10096,6 +10096,9 @@ function IdlePage() {
             );
           })()}
 
+            );
+          })()}
+
 
             <div style={{
               position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)",
