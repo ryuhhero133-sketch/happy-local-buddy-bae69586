@@ -15365,9 +15365,6 @@ function TabOverlay({
   );
 }
 
-  );
-}
-
 
 
 
