@@ -3649,15 +3649,24 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
-  // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
-  // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
-  const BASE_ZOOM = 0.08;
+  // Zoom base dinâmico para garantir que o mapa preencha a tela.
+  // O usuário deseja o mapa inteiro na tela, sem o "vazio" verde em volta.
+  const BASE_ZOOM = useMemo(() => {
+    if (!viewSize.w || !viewSize.h) return 0.2;
+    // Calcula o zoom necessário para que o menor lado do mapa (WORLD_W ou WORLD_H) preencha a visão.
+    // Como WORLD_W=2000 e WORLD_H=2000, calculamos o fator de escala para cobrir a viewport.
+    const scaleX = viewSize.w / WORLD_W;
+    const scaleY = viewSize.h / WORLD_H;
+    // Usamos o maior scale para garantir cobertura total (aspect-fill)
+    return Math.max(scaleX, scaleY);
+  }, [viewSize.w, viewSize.h]);
+
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
 
-  // Mapa real preenchido: centralizamos a câmera, mas impedimos que ela mostre áreas fora do mapa
-  // a menos que o mapa seja menor que a visão (o que não deve acontecer com WORLD_W/H = 2000).
+  // Centraliza a câmera no treinador, mas trava nas bordas do mapa.
+  // Se o zoom for tão baixo que o mapa é menor que a tela, centraliza o mapa.
   const camX = viewW >= WORLD_W ? (WORLD_W - viewW) / 2 : Math.max(0, Math.min(WORLD_W - viewW, trainerPos.x - viewW / 2));
   const camY = viewH >= WORLD_H ? (WORLD_H - viewH) / 2 : Math.max(0, Math.min(WORLD_H - viewH, trainerPos.y - viewH / 2));
 
