@@ -3043,7 +3043,7 @@ function IdlePage() {
           const uid = sess.session?.user?.id;
           if (uid) {
             await (supabase.from("trainer_state") as any)
-              .update({ trainer_level: 1, trainer_xp: 0, active_map: "vale_dourado" })
+              .update({ trainer_level: 1, trainer_xp: 0, active_map: "arena" })
               .eq("user_id", uid);
             await (supabase.from("pokemon_collection") as any)
               .update({ level: 1, xp: 0 })
