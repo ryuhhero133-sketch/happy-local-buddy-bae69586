@@ -9399,7 +9399,7 @@ function IdlePage() {
             {chests.map((c) => (
               <div key={`chest-${c.id}`} style={{
                 position: "absolute", left: c.x, top: c.y,
-                width: 80, height: 80,
+                      width: 110, height: 110,
                 transform: "translate(-50%, -50%)",
                 zIndex: Math.round(c.y),
                 pointerEvents: "none",
