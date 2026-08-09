@@ -10091,13 +10091,9 @@ function IdlePage() {
               </div>
             );
           })()}
-                onClaimMarketPayout={claimMarketPayout}
-                isVip={isVip()}
-                pokemonMarketNode={
-                  <PokemonMarketPanel
-                    identity={identity}
-                    collection={idle.collection ?? []}
-                    gold={idle.bank.gold}
+
+            {showProfile && (
+              <ProfileCard
                     crystals={idle.bank.crystals}
                     safiras={idle.items?.safira_verde ?? 0}
                     isVip={isVip()}
@@ -10341,22 +10337,12 @@ function IdlePage() {
             </div>
           </Panel>
         </div>
-        </div>
+              </button>
+            </div>
           </Panel>
         </div>
       );
     })()}
-
-          </Panel>
-        </div>
-      );
-    })()}
-
-
-
-
-
-
 
 
 
@@ -12659,6 +12645,18 @@ function IdlePage() {
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
         document.body
       )}
+      {isAdminOpen && createPortal(
+        <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
+        document.body
+      )}
+    </div>
+  );
+}
+
+export default RouteComponent;
+
+const Panel = ({ title, children, accent = "#f5cf6b", style = {} }: any) => (
+  <div style={{
       {isAdminOpen && createPortal(
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
         document.body
