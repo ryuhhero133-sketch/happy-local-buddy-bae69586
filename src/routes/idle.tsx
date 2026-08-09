@@ -13793,6 +13793,8 @@ function TabOverlay({
                 boxShadow: "inset 0 0 30px rgba(0, 0, 0, 0.5)",
                 padding: 14, flex: 1, minHeight: 0, overflowY: "auto"
               }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
+
 
 
 
