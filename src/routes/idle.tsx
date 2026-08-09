@@ -10012,9 +10012,9 @@ function IdlePage() {
                   <div style={{
                     background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
                     borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
+                    minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
+                  }}>
 
-                  minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
-                }}>
                   <div style={{ fontWeight: 800, color: "#f5cf6b", fontSize: 12, letterSpacing: 1 }}>⚙ CONFIGURAR AUTO</div>
                   <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                     <span>Usar Pokébola</span>
