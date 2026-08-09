@@ -8102,7 +8102,7 @@ function IdlePage() {
           {/* Left Part: Map Info */}
           <div style={{ display: "flex", flexDirection: "column", minWidth: 160 }}>
             <div style={{ color: "#c9b8ff", fontWeight: 900, fontSize: 13, letterSpacing: 1.5, textShadow: "0 2px 4px #000" }}>
-              {WORLD_MAPS[worldMap]?.label.toUpperCase() || "VALE VERDEJANTE"}
+              {IDLE_MAPS[idle.currentMap]?.name.toUpperCase() || "VALE VERDEJANTE"}
             </div>
             <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, letterSpacing: 0.5, marginTop: 2 }}>
               COORD: {Math.floor(trainerPos.x)}, {Math.floor(trainerPos.y)}
@@ -8125,9 +8125,10 @@ function IdlePage() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <img src={assetUrlFromJson(iconCashPackage)} alt="" style={{ width: 18, height: 18 }} />
-              <span style={{ color: "#8dfa8d", fontWeight: 900, fontSize: 13 }}>{idle.bank.safiras ?? 0}</span>
+              <span style={{ color: "#8dfa8d", fontWeight: 900, fontSize: 13 }}>{idle.items?.safira_verde ?? 0}</span>
             </div>
           </div>
+
 
           {/* Right Part: Clock & Settings */}
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
