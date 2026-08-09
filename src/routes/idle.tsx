@@ -7283,38 +7283,51 @@ function IdlePage() {
         
         {/* Barra Superior Moderna (Arquitetura da Imagem) */}
         <div className="modern-top-bar" style={{ 
-          position: 'fixed', top: 0, left: 0, right: 0, height: '55px',
-          background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)',
+          position: 'fixed', top: 0, left: 0, right: 0, height: '65px',
+          background: 'linear-gradient(180deg, rgba(11, 5, 20, 0.95) 0%, rgba(11, 5, 20, 0.7) 100%)',
+          backdropFilter: 'blur(10px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)',
+          padding: '0 30px', borderBottom: '1px solid rgba(201,184,255,0.2)',
           pointerEvents: 'auto',
-          zIndex: 1001
+          zIndex: 1001,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
         }}>
           {/* Lado Esquerdo: Localização e Info */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>{map.name}</span>
-              <span style={{ color: '#aaa', fontSize: '10px' }}>Dificuldade: Normal | {Math.floor(trainerPos.x)}, {Math.floor(trainerPos.y)}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: 40, height: 40, background: 'rgba(201,184,255,0.1)', borderRadius: '10px', display: 'grid', placeItems: 'center', border: '1px solid rgba(201,184,255,0.2)' }}>
+                <span style={{ fontSize: '20px' }}>📍</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ color: '#fff', fontSize: '15px', fontWeight: 900, letterSpacing: 0.5 }}>{map.name}</span>
+                <span style={{ color: '#c9b8ff', fontSize: '10px', opacity: 0.7, fontWeight: 700 }}>X: {Math.floor(trainerPos.x)} | Y: {Math.floor(trainerPos.y)}</span>
+              </div>
             </div>
-            <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '1px', height: '30px', background: 'rgba(201,184,255,0.15)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(201,184,255,0.1)' }}>
                <span style={{ fontSize: '14px' }}>🕒</span>
-               <span style={{ color: '#fff', fontSize: '12px' }}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+               <span style={{ color: '#fff', fontSize: '12px', fontWeight: 800 }}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
 
           {/* Centro: Recursos */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <ResourceNiche tint="#ffd700" icon={<span style={{fontSize: '14px'}}>🪙</span>} value={idle.bank.gold.toLocaleString()} title="Ouro" />
-            <ResourceNiche tint="#00d2ff" icon={<span style={{fontSize: '14px'}}>💎</span>} value={idle.bank.crystals.toLocaleString()} title="Cristais" />
-            <ResourceNiche tint="#ff4b4b" icon={<span style={{fontSize: '14px'}}>🔻</span>} value={Math.floor(idle.items?.red_crystal_shard ?? 0).toLocaleString()} title="Fragmentos" />
+            <ResourceNiche tint="#ffd700" icon={<span style={{fontSize: '16px'}}>🪙</span>} value={idle.bank.gold.toLocaleString()} title="Ouro" />
+            <ResourceNiche tint="#00d2ff" icon={<span style={{fontSize: '16px'}}>💎</span>} value={idle.bank.crystals.toLocaleString()} title="Cristais" />
+            <ResourceNiche tint="#ff4b4b" icon={<span style={{fontSize: '16px'}}>🔻</span>} value={Math.floor(idle.items?.red_crystal_shard ?? 0).toLocaleString()} title="Fragmentos" />
           </div>
 
           {/* Lado Direito: Config */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-             <button onClick={() => setTab("melhorias")} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>⚙️</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+             <button onClick={() => setTab("melhorias")} style={{ 
+               background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.3)', 
+               color: '#c9b8ff', width: '38px', height: '38px', borderRadius: '50%',
+               cursor: 'pointer', fontSize: '18px', display: 'grid', placeItems: 'center',
+               transition: 'all 0.2s'
+             }} className="top-cfg-btn">⚙️</button>
           </div>
         </div>
+
 
         {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
 
