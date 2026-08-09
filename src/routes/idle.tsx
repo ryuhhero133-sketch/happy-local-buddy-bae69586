@@ -10405,6 +10405,8 @@ function IdlePage() {
             </div>
           </Panel>
         </div>
+        </>
+
 
 
 
@@ -12741,7 +12743,6 @@ function IdlePage() {
         document.body
       )}
     </div>
-    </>
   );
 }
 
