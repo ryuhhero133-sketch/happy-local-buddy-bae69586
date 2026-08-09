@@ -7333,7 +7333,7 @@ function IdlePage() {
 
         {/* Menu Lateral Direito (MMO Style) */}
         <div className="side-icon-bar" style={{
-          position: 'fixed', right: '15px', top: '50%', transform: 'translateY(-50%)',
+          position: 'fixed', right: '15px', top: 'calc(180px + 100px)', transform: 'translateY(0)',
           display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'auto',
           zIndex: 1003,
           background: 'rgba(11, 5, 20, 0.75)',
@@ -7343,13 +7343,6 @@ function IdlePage() {
           border: '1px solid rgba(201, 184, 255, 0.3)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
         }}>
-          {/* Evento (Placeholder with notification dot) */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer', position: 'relative' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>📅</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Evento</span>
-            <div style={{ position: 'absolute', top: '2px', right: '4px', width: '10px', height: '10px', background: '#ff4444', borderRadius: '50%', border: '1.5px solid #0b0514' }}></div>
-          </div>
-
           {/* Pacotes (Cash Shop) */}
           <div onClick={() => setCashShopOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
             <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🎁</div>
@@ -7366,18 +7359,6 @@ function IdlePage() {
           <div onClick={() => setWorldMapOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
             <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🌍</div>
             <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Mundo</span>
-          </div>
-
-          {/* Loja (Tab Loja) */}
-          <div onClick={() => setTab("loja")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>💎</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Loja</span>
-          </div>
-
-          {/* Wiki/Info */}
-          <div onClick={() => setTab("wiki")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>📖</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Wiki</span>
           </div>
 
           {/* Configurações (Small spacer then config) */}
