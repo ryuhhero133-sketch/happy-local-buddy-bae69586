@@ -10088,11 +10088,11 @@ function IdlePage() {
                   >
                     🚪 IR PARA TELA DE LOGIN
                   </button>
+                  </button>
                 </div>
               </div>
             );
           })()}
-
             {showProfile && (
               <ProfileCard
                 onClose={() => setShowProfile(false)}
@@ -10353,9 +10353,9 @@ function IdlePage() {
             </div>
           </Panel>
         </div>
-      ) : null}
-
-
+        </div>
+      );
+    })()}
 
 
 
