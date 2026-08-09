@@ -8068,18 +8068,17 @@ function IdlePage() {
       )}
 
       <div className="idle-grid" style={{
-        display: "grid",
-        gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
-        gridTemplateRows: "1fr auto",
-        gap: 8, padding: 8,
+        position: 'relative',
         height: "100vh",
         overflow: "hidden",
       }}>
 
-
-
-        {/* ============ COLUNA ESQUERDA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+        {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
+        <div style={{ 
+          position: 'fixed', top: '75px', left: '20px', width: '240px', 
+          display: "flex", flexDirection: "column", gap: 6, zIndex: 1005,
+          pointerEvents: 'auto'
+        }}>
           {(() => {
             const trainerLv = idle.trainerLevel ?? 1;
             const nextAt = trainerXpToNext(trainerLv);
