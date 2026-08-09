@@ -7283,68 +7283,72 @@ function IdlePage() {
         
         {/* Barra Superior Moderna (Arquitetura da Imagem) */}
         <div className="modern-top-bar" style={{ 
-          position: 'fixed', top: 0, left: 0, right: 0, height: '55px',
-          background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)',
+          position: 'fixed', top: 0, left: 0, right: 0, height: '65px',
+          background: 'linear-gradient(180deg, rgba(11, 5, 20, 0.95) 0%, rgba(11, 5, 20, 0.7) 100%)',
+          backdropFilter: 'blur(10px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)',
+          padding: '0 30px', borderBottom: '1px solid rgba(201,184,255,0.2)',
           pointerEvents: 'auto',
-          zIndex: 1001
+          zIndex: 1001,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
         }}>
           {/* Lado Esquerdo: Localização e Info */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>{map.name}</span>
-              <span style={{ color: '#aaa', fontSize: '10px' }}>Dificuldade: Normal | {Math.floor(trainerPos.x)}, {Math.floor(trainerPos.y)}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: 40, height: 40, background: 'rgba(201,184,255,0.1)', borderRadius: '10px', display: 'grid', placeItems: 'center', border: '1px solid rgba(201,184,255,0.2)' }}>
+                <span style={{ fontSize: '20px' }}>📍</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ color: '#fff', fontSize: '15px', fontWeight: 900, letterSpacing: 0.5 }}>{map.name}</span>
+                <span style={{ color: '#c9b8ff', fontSize: '10px', opacity: 0.7, fontWeight: 700 }}>X: {Math.floor(trainerPos.x)} | Y: {Math.floor(trainerPos.y)}</span>
+              </div>
             </div>
-            <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '1px', height: '30px', background: 'rgba(201,184,255,0.15)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(201,184,255,0.1)' }}>
                <span style={{ fontSize: '14px' }}>🕒</span>
-               <span style={{ color: '#fff', fontSize: '12px' }}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+               <span style={{ color: '#fff', fontSize: '12px', fontWeight: 800 }}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
 
           {/* Centro: Recursos */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div className="resource-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px 12px', borderRadius: '15px' }}>
-              <span style={{ fontSize: '14px' }}>🪙</span>
-              <span style={{ color: '#ffd700', fontSize: '13px', fontWeight: 700 }}>{idle.bank.gold.toLocaleString()}</span>
-            </div>
-            <div className="resource-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px 12px', borderRadius: '15px' }}>
-              <span style={{ fontSize: '14px' }}>💎</span>
-              <span style={{ color: '#00d2ff', fontSize: '13px', fontWeight: 700 }}>{idle.bank.crystals.toLocaleString()}</span>
-            </div>
-            <div className="resource-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px 12px', borderRadius: '15px' }}>
-              <span style={{ fontSize: '14px' }}>🔻</span>
-              <span style={{ color: '#ff4b4b', fontSize: '13px', fontWeight: 700 }}>{Math.floor(idle.items?.red_crystal_shard ?? 0)}</span>
-            </div>
+            <ResourceNiche tint="#ffd700" icon={<span style={{fontSize: '16px'}}>🪙</span>} value={idle.bank.gold.toLocaleString()} title="Ouro" />
+            <ResourceNiche tint="#00d2ff" icon={<span style={{fontSize: '16px'}}>💎</span>} value={idle.bank.crystals.toLocaleString()} title="Cristais" />
+            <ResourceNiche tint="#ff4b4b" icon={<span style={{fontSize: '16px'}}>🔻</span>} value={Math.floor(idle.items?.red_crystal_shard ?? 0).toLocaleString()} title="Fragmentos" />
           </div>
 
           {/* Lado Direito: Config */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-             <button onClick={() => setTab("melhorias")} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>⚙️</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+             <button onClick={() => setTab("melhorias")} style={{ 
+               background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.3)', 
+               color: '#c9b8ff', width: '38px', height: '38px', borderRadius: '50%',
+               cursor: 'pointer', fontSize: '18px', display: 'grid', placeItems: 'center',
+               transition: 'all 0.2s'
+             }} className="top-cfg-btn">⚙️</button>
           </div>
         </div>
+
 
         {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
 
         {/* Menu Lateral Direito (Barra de Ícones) */}
         <div className="side-icon-bar" style={{
-          position: 'fixed', right: '20px', top: '50%', transform: 'translateY(-50%)',
-          display: 'flex', flexDirection: 'column', gap: '12px', pointerEvents: 'auto',
+          position: 'fixed', right: '20px', bottom: '150px',
+          display: 'flex', flexDirection: 'column', gap: '15px', pointerEvents: 'auto',
           zIndex: 1003
         }}>
-          <button className="side-btn" onClick={() => setRankOpen(true)} title="Ranking" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🏆</button>
-          <button className="side-btn" onClick={() => setWorldMapOpen(true)} title="Mapa" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>🗺️</button>
-          <button className="side-btn" onClick={() => setTab("wiki")} title="Wiki" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>📖</button>
-          <button className="side-btn" onClick={() => setTab("melhorias")} title="Config" style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px' }}>⚙️</button>
+          <button className="side-btn" onClick={() => setRankOpen(true)} title="Ranking" style={{ width: '56px', height: '56px', background: 'rgba(36,20,44,0.9)', border: '1px solid #c9b8ff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '28px', boxShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>🏆</button>
+          <button className="side-btn" onClick={() => setWorldMapOpen(true)} title="Mapa" style={{ width: '56px', height: '56px', background: 'rgba(36,20,44,0.9)', border: '1px solid #c9b8ff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '28px', boxShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>🗺️</button>
+          <button className="side-btn" onClick={() => setTab("wiki")} title="Wiki" style={{ width: '56px', height: '56px', background: 'rgba(36,20,44,0.9)', border: '1px solid #c9b8ff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '28px', boxShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>📖</button>
         </div>
+
 
         {/* Dock Inferior Moderna */}
         <div className="bottom-dock-container" style={{
           position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(15px)',
-          padding: '8px 25px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', gap: '20px', pointerEvents: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(15px)',
+          padding: '10px 35px', borderRadius: '50px', border: '1px solid #c9b8ff',
+          display: 'flex', gap: '30px', pointerEvents: 'auto', boxShadow: '0 0 30px rgba(201,184,255,0.2)',
           zIndex: 2000
         }}>
 
@@ -7441,22 +7445,22 @@ function IdlePage() {
 
         <div className="chat-floating-panel" style={{
           position: 'absolute', bottom: '100px', left: '20px',
-          width: '280px', maxHeight: chatOpen ? '240px' : '36px',
-          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)',
-          borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+          width: '280px', maxHeight: chatOpen ? '200px' : '40px',
+          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(10px)',
+          borderRadius: '12px', border: '1px solid rgba(201,184,255,0.2)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
           pointerEvents: 'auto', transition: 'max-height 0.3s'
         }}>
           <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#f5cf6b', fontSize: '10px', fontWeight: 900 }}>GLOBAL CHAT</span>
+            <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1 }}>GLOBAL CHAT</span>
             <button onClick={() => setChatOpen(!chatOpen)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>
               {chatOpen ? '▼' : '▲'}
             </button>
           </div>
           {chatOpen && (
             <div style={{ flex: 1, overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {chat.slice(-20).map((c, idx) => (
-                <div key={idx} style={{ fontSize: '10px', color: c.kind === 'cap' ? '#f5cf6b' : '#fff', opacity: 0.9 }}>
+              {chat.slice(-10).map((c, idx) => (
+                <div key={idx} style={{ fontSize: '10px', color: '#fff', opacity: 0.9 }}>
                   {c.text}
                 </div>
               ))}
@@ -7475,12 +7479,12 @@ function IdlePage() {
           box-shadow: 0 0 60px rgba(0,0,0,0.85), inset 0 0 40px rgba(167, 139, 250, 0.05) !important;
         }
         .side-btn {
-          transition: transform 0.2s, background 0.2s;
+          transition: transform 0.2s, background 0.2s, border-color 0.2s;
         }
         .side-btn:hover {
           transform: scale(1.1);
-          background: rgba(245, 207, 107, 0.2) !important;
-          border-color: #f5cf6b !important;
+          background: rgba(201, 184, 255, 0.2) !important;
+          border-color: #fff !important;
         }
         .side-btn:active {
           transform: scale(0.95);
@@ -7498,6 +7502,29 @@ function IdlePage() {
         }
         .bottom-dock-container {
           pointer-events: auto !important;
+        }
+        .resource-item {
+          transition: transform 0.2s;
+        }
+        .resource-item:hover {
+          transform: translateY(-2px);
+        }
+        .modern-top-bar button:hover {
+          transform: rotate(15deg);
+        }
+        .top-cfg-btn:hover {
+          background: rgba(201,184,255,0.25) !important;
+          transform: rotate(90deg) scale(1.1);
+        }
+        .side-icon-bar button {
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .side-icon-bar button:hover {
+          transform: translateX(-5px);
+          box-shadow: 0 0 15px rgba(201,184,255,0.4);
+        }
+        .chat-floating-panel:hover {
+           max-height: 400px !important;
         }
 
       `}</style>
@@ -8077,18 +8104,17 @@ function IdlePage() {
       )}
 
       <div className="idle-grid" style={{
-        display: "grid",
-        gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
-        gridTemplateRows: "1fr auto",
-        gap: 8, padding: 8,
+        position: 'relative',
         height: "100vh",
         overflow: "hidden",
       }}>
 
-
-
-        {/* ============ COLUNA ESQUERDA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+        {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
+        <div style={{ 
+          position: 'fixed', top: '75px', left: '20px', width: '240px', 
+          display: "flex", flexDirection: "column", gap: 6, zIndex: 1005,
+          pointerEvents: 'auto'
+        }}>
           {(() => {
             const trainerLv = idle.trainerLevel ?? 1;
             const nextAt = trainerXpToNext(trainerLv);
@@ -8213,33 +8239,6 @@ function IdlePage() {
 
 
 
-          <Panel title="SUA EQUIPE" accent="#c92a2a">
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
-              <button
-                onClick={() => setTeamCollapsed((v) => !v)}
-                title={teamCollapsed ? "Expandir equipe" : "Minimizar (mostrar só líder)"}
-                style={{
-                  background: "#1a0f26", color: "#f5cf6b",
-                  border: "1px solid #c92a2a55", borderRadius: 4,
-                  padding: "2px 8px", fontSize: 10, fontWeight: 800, cursor: "pointer",
-                  letterSpacing: 1,
-                }}
-              >
-                {teamCollapsed ? "▼ EXPANDIR" : "▲ MINIMIZAR"}
-              </button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
-                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
-              ))}
-              {teamCollapsed && team.length > 1 && (
-                <div style={{ fontSize: 10, color: "#8a7a9c", textAlign: "center", fontStyle: "italic" }}>
-                  +{team.length - 1} no banco (minimizado)
-                </div>
-              )}
-              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
-            </div>
-          </Panel>
 
 
 
@@ -8288,8 +8287,8 @@ function IdlePage() {
                       )}
                     </>
                   );
-            })()}
-          </div>
+                })()}
+              </div>
 
               {/* Filtros do chat */}
               <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
@@ -8396,7 +8395,67 @@ function IdlePage() {
 
 
         {/* ============ COLUNA DIREITA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+        {/* ============ COLUNA DIREITA (RADAR E EXPLORAR) ============ */}
+        <div className="hud-right-column" style={{ 
+          position: 'fixed', top: '75px', right: '20px', width: '260px',
+          display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
+          pointerEvents: 'auto'
+        }}>
+          {/* Radar HUD */}
+          <div style={{
+            height: '160px', background: 'rgba(11, 5, 20, 0.85)',
+            border: '1px solid rgba(201,184,255,0.3)', borderRadius: '15px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.6)', overflow: 'hidden', position: 'relative'
+          }}>
+            <div style={{ 
+              width: '100px', height: '100px', borderRadius: '50%', 
+              border: '2px dashed rgba(201,184,255,0.2)', position: 'relative',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <div style={{ 
+                position: 'absolute', width: '2px', height: '50%', bottom: '50%', 
+                background: 'linear-gradient(to top, transparent, #c9b8ff)',
+                transformOrigin: 'bottom', animation: 'radarScan 4s linear infinite'
+              }} />
+              <span style={{ fontSize: '10px', color: '#c9b8ff', fontWeight: 900 }}>RADAR</span>
+            </div>
+            <style>{`@keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+          </div>
+
+          {/* Equipe do Jogador (Reposicionada abaixo do Radar) */}
+          <div style={{ 
+            display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
+            padding: '12px', background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(10px)',
+            borderRadius: '15px', border: '1px solid rgba(201,184,255,0.3)',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.6)'
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+              <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1.5 }}>SUA EQUIPE</span>
+              <button
+                onClick={() => setTeamCollapsed((v) => !v)}
+                style={{
+                  background: "rgba(201,184,255,0.1)", color: "#c9b8ff",
+                  border: "1px solid rgba(201,184,255,0.3)", borderRadius: 4,
+                  padding: "2px 6px", fontSize: 9, fontWeight: 800, cursor: "pointer",
+                }}
+              >
+                {teamCollapsed ? "EXPANDIR" : "RECOLHER"}
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
+                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
+              ))}
+              <button style={{ 
+                width: '100%', background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.2)',
+                borderRadius: '6px', padding: '5px', color: '#c9b8ff', fontSize: '10px', fontWeight: 700,
+                cursor: 'pointer', marginTop: '4px'
+              }} onClick={() => setTab("pokemon")}>GERENCIAR EQUIPE</button>
+            </div>
+          </div>
+
+
           <div style={{
             background: "rgba(36,20,44,0.92)",
             border: "1px solid rgba(201,184,255,0.25)",
@@ -8446,7 +8505,6 @@ function IdlePage() {
              </div>
           </div>
         </div>
-
       </div>
 
       {rankOpen && createPortal(
@@ -12652,20 +12710,21 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   const src = GIF[pet.species];
   const now = Date.now();
   const energy = petCurrentEnergy(pet, now, { active: true });
-  const msFull = petMsToFull(pet, now);
   const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
   const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
+  
   if (!src) {
     return (
       <div onClick={onClick} style={{ display: "flex", gap: 8, alignItems: "center", background: "#2a1a3a", padding: 6, borderRadius: 6, cursor: onClick ? "pointer" : undefined }}>
-        <div style={{ width: 48, height: 48, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 20 }}>❓</div>
-        <div style={{ flex: 1, fontSize: 12 }}>
+        <div style={{ width: 36, height: 36, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 16 }}>❓</div>
+        <div style={{ flex: 1, fontSize: 10 }}>
           <div style={{ fontWeight: 600 }}>{pet.species.replace(/_/g, " ").toUpperCase()}</div>
-          <div style={{ fontSize: 10, color: "#b8a8c8" }}>Lv.{pet.level}</div>
+          <div style={{ fontSize: 9, color: "#b8a8c8" }}>Lv.{pet.level}</div>
         </div>
       </div>
     );
   }
+  
   const maxHp = calcIdleMaxHp(pet);
   const hp = pet.hp ?? maxHp;
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
@@ -12680,30 +12739,37 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
     const n = parseInt(h.replace("#", ""), 16);
     return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
   };
+
   return (
-    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
+    <div onClick={onClick} style={{
       display: "flex", gap: 8, alignItems: "center",
       background: exhausted
         ? "linear-gradient(135deg, #14101a 0%, #1a1420 100%)"
-        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.22)} 0%, rgba(11,5,16,0.85) 100%)`,
-      padding: "5px 8px 5px 5px",
-      borderRadius: 10,
+        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.15)} 0%, rgba(11,5,16,0.6) 100%)`,
+      padding: "5px 10px",
+      borderRadius: "12px",
       cursor: onClick ? "pointer" : undefined,
-      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #333" : `1px solid ${hexToRgba(rColor, 0.7)}`),
-      boxShadow: exhausted
-        ? "inset 0 1px 0 rgba(255,255,255,0.03)"
-        : `0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 ${hexToRgba(rColor, 0.28)}, 0 0 10px ${hexToRgba(rColor, 0.18)}`,
-      opacity: exhausted ? 0.6 : 1,
+      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #333" : `1px solid ${hexToRgba(rColor, 0.4)}`),
+      boxShadow: exhausted ? "none" : `0 2px 8px rgba(0,0,0,0.4), inset 0 0 10px ${hexToRgba(rColor, 0.1)}`,
+      opacity: exhausted ? 0.7 : 1,
       position: "relative",
       overflow: "hidden",
+      transition: 'all 0.2s',
+      marginBottom: '2px'
     }}>
-      {/* Selo lateral (barra fina de raridade) */}
-      <span style={{
-        position: "absolute", left: 0, top: 6, bottom: 6, width: 2,
-        background: `linear-gradient(180deg, ${rColor}, ${hexToRgba(rColor, 0.3)})`,
-        borderRadius: 2,
-        boxShadow: `0 0 5px ${rColor}88`,
-      }} />
+      <TeamRowContent pet={pet} pct={pct} maxHp={maxHp} hp={hp} ePct={ePct} exhausted={exhausted} rColor={rColor} src={src} resting={resting} infinite={infinite} energy={energy} />
+    </div>
+  );
+}
+
+
+function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, resting, infinite, energy }: any) {
+  const hexToRgba = (h: string, a: number) => {
+    const n = parseInt(h.replace("#", ""), 16);
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+  };
+  return (
+    <>
       {/* pulse animado quando saudável */}
       {!exhausted && (
         <span style={{
@@ -12791,10 +12857,9 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
           </span>
         </div>
       </div>
-    </div>
+    </>
   );
 }
-
 
 function ProgressRow({ icon, label, value, target }: { icon: string; label: string; value: number; target: number }) {
   const pct = Math.min(100, (value / target) * 100);
@@ -12856,22 +12921,31 @@ function pillStyle(color: string): React.CSSProperties {
 function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React.ReactNode; value: string; title: string }) {
   return (
     <div title={title} style={{
-      display: "inline-flex", alignItems: "center", gap: 6,
-      padding: "5px 10px",
-      background: `linear-gradient(180deg, ${tint}22, rgba(0,0,0,0.35))`,
-      borderLeft: "1px solid rgba(245,207,107,0.25)",
-      borderRight: "1px solid rgba(245,207,107,0.25)",
-      boxShadow: `inset 0 0 10px ${tint}18`,
+      display: "inline-flex", alignItems: "center", gap: 10,
+      padding: "6px 16px",
+      background: "rgba(11, 5, 20, 0.75)",
+      backdropFilter: "blur(8px)",
+      borderRadius: "12px",
+      border: "1px solid rgba(201,184,255,0.25)",
+      boxShadow: `0 2px 8px rgba(0,0,0,0.4), inset 0 0 12px ${tint}15`,
+      minWidth: '100px'
     }}>
-      {icon}
-      <span style={{
-        color: tint, fontWeight: 900, fontSize: 12.5,
-        textShadow: "0 1px 0 #000",
-        fontFamily: "'Cinzel', Georgia, serif", letterSpacing: 0.4,
-      }}>{value}</span>
+      <div style={{ 
+        width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.3)',
+        display: 'grid', placeItems: 'center', boxShadow: `0 0 10px ${tint}44`
+      }}>{icon}</div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '8px', fontWeight: 900, letterSpacing: 0.5, textTransform: 'uppercase' }}>{title}</span>
+        <span style={{
+          color: '#fff', fontWeight: 900, fontSize: 13,
+          textShadow: "0 1px 2px rgba(0,0,0,0.8)",
+          letterSpacing: 0.4,
+        }}>{value}</span>
+      </div>
     </div>
   );
 }
+
 
 // ── HUD superior: slot elegante para cada Pokébola
 function BallSlot({ img, count, tint }: { img: string; count: number; tint: string }) {
