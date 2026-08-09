@@ -3651,15 +3651,15 @@ function IdlePage() {
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   // Zoom base de 0.2 para dar a visão exata solicitada (similar a 75% de zoom do navegador).
   // Isso faz com que as HUDs fiquem menores e a visão do mapa seja ainda mais ampla.
-  const BASE_ZOOM = 0.2;
+  const BASE_ZOOM = 0.15;
   const effectiveZoom = zoom * BASE_ZOOM;
   const viewW = viewSize.w / effectiveZoom;
   const viewH = viewSize.h / effectiveZoom;
 
   // Mapa real preenchido: centralizamos a câmera, mas impedimos que ela mostre áreas fora do mapa
   // a menos que o mapa seja menor que a visão (o que não deve acontecer com WORLD_W/H = 2000).
-  const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
-  const camY = Math.max(0, Math.min(Math.max(0, WORLD_H - viewH), trainerPos.y - viewH / 2));
+  const camX = viewW >= WORLD_W ? (WORLD_W - viewW) / 2 : Math.max(0, Math.min(WORLD_W - viewW, trainerPos.x - viewW / 2));
+  const camY = viewH >= WORLD_H ? (WORLD_H - viewH) / 2 : Math.max(0, Math.min(WORLD_H - viewH, trainerPos.y - viewH / 2));
 
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * effectiveZoom) / effectiveZoom;
@@ -8342,14 +8342,14 @@ function IdlePage() {
         {/* ============ COLUNA DIREITA ============ */}
         {/* ============ COLUNA DIREITA (RADAR) ============ */}
         <div className="hud-right-column" style={{ 
-          position: 'fixed', top: '75px', right: '20px', width: '260px',
+          position: 'fixed', top: '75px', right: '20px', width: '380px',
           display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
           pointerEvents: 'auto'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
           <div style={{
-            width: '180px', height: '180px', background: 'rgba(0, 0, 0, 0.5)',
+            width: '380px', height: '380px', background: 'rgba(0, 0, 0, 0.5)',
             border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 0 35px rgba(0,0,0,0.9), inset 0 0 25px rgba(245,207,107,0.3)', 
@@ -9914,7 +9914,7 @@ function IdlePage() {
             const on = ab.enabled;
             return (
             <div style={{
-              position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
+              position: "absolute", bottom: 120, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
               zIndex: 10000,
             }}>
@@ -10205,6 +10205,10 @@ function IdlePage() {
 
 
       <style>{`
+        .mochila-body::-webkit-scrollbar { width: 6px; }
+        .mochila-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        .mochila-body::-webkit-scrollbar-thumb { background: rgba(245,207,107,0.3); borderRadius: 10px; }
+
 
         @media (max-width: 1400px) {
           .idle-grid { grid-template-columns: 210px 1fr 210px !important; gap: 6px !important; padding: 6px !important; }
@@ -13058,8 +13062,8 @@ function TabOverlay({
       top: "50%",
       left: "50%",
       transform: "translate(-50%, -50%)",
-      width: "min(1200px, 98vw)",
-      height: "min(800px, 92vh)",
+      width: "min(1340px, 98vw)",
+      height: "min(920px, 92vh)",
       background: "rgba(11, 5, 20, 0.98)", 
       backdropFilter: "blur(20px)",
       display: "flex",
@@ -13783,7 +13787,7 @@ function TabOverlay({
                       : "Nenhum item nesta categoria."}
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(126px, 1fr))", gap: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 10 }}>
                     {filtered.map(([id, n]) => {
                       const isEgg = id.startsWith("egg_");
                       const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
@@ -13814,7 +13818,7 @@ function TabOverlay({
                             onClick={(e) => { e.stopPropagation(); setItemDetail(id); }}
                             title="Ver detalhes"
                             style={{
-                            width: 62, height: 62, borderRadius: 10, marginTop: 2,
+                            width: 82, height: 82, borderRadius: 10, marginTop: 2,
                             background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
                             display: "grid", placeItems: "center",
                             border: `2px inset ${P.goldDark}aa`,
@@ -13825,8 +13829,8 @@ function TabOverlay({
                               <img
                                 src={img}
                                 alt=""
-                                width={52}
-                                height={52}
+                                width={68}
+                                height={68}
                                 loading="lazy"
                                 style={{
                                   imageRendering: "pixelated",
@@ -13835,7 +13839,7 @@ function TabOverlay({
                                 }}
                               />
                             ) : (
-                              <ItemPixelIcon id={id} size={52} color={color} />
+                              <ItemPixelIcon id={id} size={68} color={color} />
                             )}
                           </div>
                           <div style={{
@@ -14316,7 +14320,7 @@ function TabOverlay({
                        title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
                      >
                        {traits.length > 0
-                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
+                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 28 : 28} />)
                          : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
                      </div>
 
