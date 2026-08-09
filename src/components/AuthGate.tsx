@@ -439,8 +439,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
               ⚠️ JOGO EM MANUTENÇÃO
             </p>
             <p className="text-[10px] leading-relaxed" style={{ color: "#fecaca" }}>
-              PREPARANDO NOVA TEMPORADA.<br/>
-              HORÁRIO DE ABERTURA DA SEASON: 00:00
+              euu fiz reversao reverter, o para lagumashoras antes, e agora, eu vou abrir https://idle-mon-ruby.ryuhhero133.workers.dev/idle esse link e n ta aparecendo o jogo na hora que reveritr, por issso eu pedir praanalisar
             </p>
           </div>
           <div className="pt-2">
