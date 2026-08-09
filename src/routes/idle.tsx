@@ -12040,7 +12040,7 @@ function IdlePage() {
         </div>,
         document.body
       )}
-    <BlackMiticEggHud
+      <BlackMiticEggHud
 
 
 
