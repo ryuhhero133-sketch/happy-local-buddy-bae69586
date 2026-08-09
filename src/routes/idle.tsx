@@ -9606,7 +9606,7 @@ function IdlePage() {
                 <div style={{
                   position: "absolute",
                   left: leaderX, top: leaderY,
-                  width: 80, height: 80,
+                  width: 100, height: 100,
                   transform: "translate(-50%, -50%)",
                   transition: attackAnim ? "none" : undefined,
                   filter: `drop-shadow(0 3px 3px rgba(0,0,0,0.55)) ${fainted ? "grayscale(1) brightness(0.6)" : ""}`,
