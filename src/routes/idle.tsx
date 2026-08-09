@@ -13629,8 +13629,6 @@ function TabOverlay({
         };
 
         return (
-
-
           <div style={{
             background: `
               radial-gradient(circle at 50% 30%, rgba(168,85,247,0.15), transparent 55%),
