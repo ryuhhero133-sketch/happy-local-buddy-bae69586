@@ -9819,7 +9819,14 @@ function IdlePage() {
               );
             })}
           </div>
-          {restingUntil !== null && restingStart !== null && (() => {
+        </div>
+      </div>
+    </div>
+
+    {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
+    <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
+      {restingUntil !== null && restingStart !== null && (() => {
+
 
 
             const totalDur = Math.max(1, restingUntil - restingStart);
