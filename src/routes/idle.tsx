@@ -10113,7 +10113,7 @@ function IdlePage() {
               onUpgradeBook={upgradeBook}
             />
           )}
-        <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+        {/* Explorar Panel - Integrated into Profile Card below */}
 
 
 
