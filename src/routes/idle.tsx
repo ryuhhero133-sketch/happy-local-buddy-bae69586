@@ -8296,8 +8296,8 @@ function IdlePage() {
                       )}
                     </>
                   );
-            })()}
-          </div>
+                })()}
+              </div>
 
               {/* Filtros do chat */}
               <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
