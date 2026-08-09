@@ -13009,6 +13009,7 @@ function TabOverlay({
 
 
 }) {
+  const { spriteScale } = arguments[0]; // Extrai spriteScale dos props
 
   const title =
     tab === "pokemon"   ? "MEU POKÉMON" :
