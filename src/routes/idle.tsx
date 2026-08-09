@@ -10091,8 +10091,9 @@ function IdlePage() {
                   <span style={{ fontSize: 18 }}>{(idle.autoBattle?.enabled ?? true) ? "⚔️" : "🛑"}</span>
                   {(idle.autoBattle?.enabled ?? true) ? "BATALHA AUTO: ON" : "BATALHA AUTO: OFF"}
                 </button>
-              </div>
-          )}
+                </div>
+              )
+
 
           <div style={{
             position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)",
@@ -10188,7 +10189,7 @@ function IdlePage() {
                 </div>
               </div>
             </div>
-          )}
+
 
 
 
@@ -12763,14 +12764,14 @@ function IdlePage() {
         );
       })(), document.body)}
 
-
       {isAdminOpen && createPortal(
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
         document.body
       )}
     </div>
-    </>
   );
+}
+
 
 
 
