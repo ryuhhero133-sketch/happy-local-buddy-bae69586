@@ -12873,6 +12873,23 @@ function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React
   return (
     <div title={title} style={{
       display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "5px 12px",
+      background: "rgba(0,0,0,0.3)",
+      borderRadius: "15px",
+      border: "1px solid rgba(201,184,255,0.15)",
+      boxShadow: `inset 0 0 10px ${tint}18`,
+    }}>
+      {icon}
+      <span style={{
+        color: tint, fontWeight: 900, fontSize: 13,
+        textShadow: "0 1px 0 #000",
+        letterSpacing: 0.4,
+      }}>{value}</span>
+    </div>
+  );
+}
+    <div title={title} style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
       padding: "5px 10px",
       background: `linear-gradient(180deg, ${tint}22, rgba(0,0,0,0.35))`,
       borderLeft: "1px solid rgba(245,207,107,0.25)",
