@@ -3414,7 +3414,7 @@ function IdlePage() {
 
 
 
-  const [zoom, setZoom] = useState(0.75);
+  const [zoom, setZoom] = useState(1.0);
   // ===== Ranking Global =====
   type RankRow = {
     id: string;
@@ -7267,7 +7267,7 @@ function IdlePage() {
   );
 
   return (
-    <div style={{
+    <div className="game-root-container" style={{
       height: "100vh",
       background: "#000",
       color: "#f3e5c5",
@@ -8193,7 +8193,7 @@ function IdlePage() {
         {/* ============ COLUNA DIREITA (RADAR) ============ */}
         <div className="hud-right-column" style={{ 
           position: 'fixed', top: '75px', right: '20px', width: '250px',
-          display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
+          display: "flex", flexDirection: "column", gap: 15, zIndex: 10005,
           pointerEvents: 'auto'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
@@ -8210,7 +8210,7 @@ function IdlePage() {
             <div style={{
               position: 'absolute', 
               width: '1200px', height: '1200px', // Larger size to allow panning
-              backgroundImage: `url(${IDLE_MAPS[idle.currentMap].bg})`,
+              backgroundImage: `url(${IDLE_MAPS[idle.currentMap || 'vale_verdejante'].bg})`,
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
@@ -8219,7 +8219,7 @@ function IdlePage() {
               // Center the background and offset by player position relative to world
               // Map is 1200x1200px. Radar is 200x200px.
               // We want the trainerPos (relative to WORLD_W/H) to be at the center (50%, 50%).
-              transform: `translate(calc(-50% + 100px - ${(trainerPos.x / WORLD_W) * 1000 - 500}px), calc(-50% + 100px - ${(trainerPos.y / WORLD_H) * 1000 - 500}px))`,
+              transform: `translate(calc(-50% + 100px - ${(trainerPos.x / WORLD_W) * 1200 - 600}px), calc(-50% + 100px - ${(trainerPos.y / WORLD_H) * 1200 - 600}px))`,
               left: '50%', top: '50%',
             }} />
 
