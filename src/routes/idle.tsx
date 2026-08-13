@@ -93,6 +93,7 @@ import npcAnciaoGlacialAsset from "@/assets/npc-anciao-glacial.png.asset.json";
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
+const mapTerraHornetImg = assetUrlFromJson(mapTerraHornetJson);
 import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
