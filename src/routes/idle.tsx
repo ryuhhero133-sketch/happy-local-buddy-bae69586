@@ -8191,6 +8191,9 @@ function IdlePage() {
 
         {/* ============ COLUNA DIREITA ============ */}
         {/* ============ COLUNA DIREITA (RADAR) ============ */}
+        {/* Portal para o body: o bloco pai fica dentro da camada do mundo (transform),
+            o que jogava o radar fora da tela. O portal isola o radar da câmera. */}
+        {typeof document !== "undefined" && createPortal(
         <div className="hud-right-column" style={{ 
           position: 'fixed', top: '75px', right: '20px', width: '250px',
           display: "flex", flexDirection: "column", gap: 15, zIndex: 10005,
@@ -8294,8 +8297,9 @@ function IdlePage() {
               @keyframes radarPulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
             `}</style>
           </div>
-        </div>
+        </div>, document.body)}
       </div>
+
 
       {rankOpen && createPortal(
         <div
