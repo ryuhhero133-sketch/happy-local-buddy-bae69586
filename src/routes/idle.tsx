@@ -8193,7 +8193,7 @@ function IdlePage() {
         {/* ============ COLUNA DIREITA (RADAR) ============ */}
         <div className="hud-right-column" style={{ 
           position: 'fixed', top: '75px', right: '20px', width: '250px',
-          display: "flex", flexDirection: "column", gap: 15, zIndex: 10005, background: 'red', width: '250px', height: '250px',
+          display: "flex", flexDirection: "column", gap: 15, zIndex: 10005,
           pointerEvents: 'auto'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
