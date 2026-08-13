@@ -9653,6 +9653,7 @@ function IdlePage() {
         </div>
 
 
+
         {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
 
         {/* Menu Lateral Direito (MMO Style) */}
