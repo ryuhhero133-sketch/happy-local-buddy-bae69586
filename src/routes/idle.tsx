@@ -9652,9 +9652,84 @@ function IdlePage() {
           </div>
         </div>
 
+        {/* Painel do Treinador e Time (Lado Esquerdo) */}
+        <div className="trainer-team-panel" style={{
+          position: 'fixed', left: '20px', top: '80px',
+          display: 'flex', flexDirection: 'column', gap: '12px',
+          pointerEvents: 'auto', zIndex: 1002
+        }}>
+          {/* Card do Treinador */}
+          <div style={{
+            background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(201, 184, 255, 0.3)', borderRadius: '16px',
+            padding: '12px 15px', display: 'flex', alignItems: 'center', gap: '15px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)', width: '220px'
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: '12px', overflow: 'hidden',
+              background: 'rgba(201, 184, 255, 0.1)', border: '1px solid rgba(201, 184, 255, 0.2)',
+              flexShrink: 0
+            }}>
+              <div style={{
+                width: '100%', height: '100%',
+                backgroundImage: `url(${skinUrl ?? trainerSheet})`,
+                backgroundSize: '400% 400%',
+                backgroundPosition: '0 0',
+                imageRendering: 'pixelated'
+              }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+              <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {identity?.name || 'Treinador'}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ color: '#c9b8ff', fontSize: '11px', fontWeight: 800 }}>Nv. {idle.trainerLevel || 1}</span>
+                <div style={{ flex: 1, height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ 
+                    width: `${((idle.trainerXp || 0) / (150 + (idle.trainerLevel || 1) * 80)) * 100}%`, 
+                    height: '100%', background: '#6bd4ff' 
+                  }} />
+                </div>
+              </div>
+            </div>
+          </div>
 
+          {/* Lista da Equipe */}
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: '6px'
+          }}>
+            {team.map((p, i) => {
+              const petMax = calcIdleMaxHp(p);
+              const petHp = i === 0 ? leaderHp : (p.hp ?? petMax);
+              const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
+              return (
+                <div key={p.uid} onClick={() => setStatsCardPet(p)} style={{
+                  background: i === 0 ? 'rgba(201, 184, 255, 0.2)' : 'rgba(11, 5, 20, 0.7)',
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${i === 0 ? '#c9b8ff' : 'rgba(201, 184, 255, 0.2)'}`,
+                  borderRadius: '10px', padding: '6px 10px',
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  cursor: 'pointer', transition: 'transform 0.2s',
+                  boxShadow: i === 0 ? '0 0 15px rgba(201, 184, 255, 0.2)' : 'none'
+                }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateX(5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateX(0)'}>
+                  <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={GIF[p.species]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '10px', color: '#fff', fontWeight: 800 }}>{p.species.replace(/_/g, ' ').toUpperCase()}</span>
+                      <span style={{ fontSize: '9px', color: '#c9b8ff' }}>Lv.{p.level}</span>
+                    </div>
+                    <div style={{ height: '3px', background: 'rgba(0,0,0,0.4)', borderRadius: '2px', overflow: 'hidden', marginTop: '2px' }}>
+                      <div style={{ width: `${hpPct}%`, height: '100%', background: hpPct > 50 ? '#5ec26a' : hpPct > 20 ? '#f5cf6b' : '#ff5252' }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-        {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
 
         {/* Menu Lateral Direito (MMO Style) */}
         <div className="side-icon-bar" style={{
