@@ -8223,6 +8223,7 @@ function IdlePage() {
               // Map is 1200x1200px. Radar is 200x200px.
               // We want the trainerPos (relative to WORLD_W/H) to be at the center (50%, 50%).
               transform: `translate(calc(-50% + 100px - ${((trainerPos.x / WORLD_W) * 1200 - 600) * zoom}px), calc(-50% + 100px - ${((trainerPos.y / WORLD_H) * 1200 - 600) * zoom}px)) scale(${zoom})`,
+              display: 'block', opacity: 1, visibility: 'visible', zIndex: 1,
               
 
               left: '50%', top: '50%',
