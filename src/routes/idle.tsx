@@ -8192,9 +8192,9 @@ function IdlePage() {
         {/* ============ COLUNA DIREITA ============ */}
         {/* ============ COLUNA DIREITA (RADAR) ============ */}
         <div className="hud-right-column" style={{ 
-          position: 'fixed', top: '75px', right: '20px', width: '250px',
+          position: 'fixed', top: '75px', right: '20px', width: '250px', height: '250px',
           display: "flex", flexDirection: "column", gap: 15, zIndex: 10005,
-          pointerEvents: 'auto'
+          pointerEvents: 'auto', border: '5px solid yellow', background: 'rgba(255,255,0,0.2)'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
