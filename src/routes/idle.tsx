@@ -8208,12 +8208,17 @@ function IdlePage() {
           }}>
             {/* Dynamic Map Background - Moves with the player */}
             <div style={{
-              position: 'absolute', inset: '0', borderRadius: '50%',
+              position: 'absolute', 
+              width: '1000px', height: '1000px', // Larger size to allow panning
               backgroundImage: `url(${IDLE_MAPS[idle.currentMap].bg})`,
-              backgroundSize: 'cover',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
-              filter: 'brightness(0.75) contrast(1.1)',
-              transition: 'background-image 0.5s ease',
+              filter: 'brightness(0.9) contrast(1.1)',
+              transition: 'transform 0.1s ease-out',
+              // Center the background and offset by player position relative to world
+              transform: `translate(calc(-50% + 100px - ${(trainerPos.x / WORLD_W) * 800 - 400}px), calc(-50% + 100px - ${(trainerPos.y / WORLD_H) * 800 - 400}px))`,
+              left: '50%', top: '50%',
             }} />
 
             {/* Indicator of player position on the small map */}
