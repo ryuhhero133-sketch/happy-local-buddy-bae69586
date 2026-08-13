@@ -8212,7 +8212,7 @@ function IdlePage() {
             <div style={{
               position: 'absolute', 
               width: '1200px', height: '1200px', // Larger size to allow panning
-              backgroundColor: 'red',
+              
               backgroundImage: `url(${IDLE_MAPS[idle.currentMap || 'vale_verdejante']?.bg || ''})`,
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
