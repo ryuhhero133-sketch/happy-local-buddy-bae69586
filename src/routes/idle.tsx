@@ -8211,22 +8211,19 @@ function IdlePage() {
             {/* Dynamic Map Background - Moves with the player */}
             <div style={{
               position: 'absolute', 
-              width: '1200px', height: '1200px', // Larger size to allow panning
-              
+              width: '1200px', height: '1200px',
               backgroundImage: `url(${IDLE_MAPS[idle.currentMap || 'vale_verdejante']?.bg || ''})`,
-              backgroundSize: 'contain',
+              backgroundSize: '100% 100%',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
               filter: 'brightness(1.0) contrast(1.1)',
               transition: 'transform 0.1s ease-out',
-              // Center the background and offset by player position relative to world
-              // Map is 1200x1200px. Radar is 200x200px.
-              // We want the trainerPos (relative to WORLD_W/H) to be at the center (50%, 50%).
-              transform: `translate(calc(-50% + 100px - ${((trainerPos.x / WORLD_W) * 1200 - 600) * zoom}px), calc(-50% + 100px - ${((trainerPos.y / WORLD_H) * 1200 - 600) * zoom}px)) scale(${zoom})`,
+              // Calculate correct transform for 1200px map image in 200px container
+              // trainerPos is 0 to WORLD_W/WORLD_H (2560)
+              // We need to map (trainerPos.x / WORLD_W) to the 1200px image range
+              transform: `translate(calc(-${(trainerPos.x / WORLD_W) * 100}% + 100px), calc(-${(trainerPos.y / WORLD_H) * 100}% + 100px)) scale(${zoom})`,
               display: 'block', opacity: 1, visibility: 'visible', zIndex: 1,
-              
-
-              left: '50%', top: '50%',
+              left: '0', top: '0',
             }} />
 
             {/* Fixed Indicator of player position (always centered in radar) */}
