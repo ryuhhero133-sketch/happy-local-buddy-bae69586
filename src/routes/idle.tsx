@@ -10006,13 +10006,14 @@ function IdlePage() {
               zIndex: 1002
             }}>
               <div style={{ width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 82, 82, 0.1)', borderRadius: '12px' }}>
-                <img src={GIF[targetPet.species]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
+                <img src={GIF[targetPet.sp]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900 }}>{targetPet.species.replace(/_/g, ' ').toUpperCase()}</span>
+                  <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900 }}>{targetPet.sp.replace(/_/g, ' ').toUpperCase()}</span>
                   <span style={{ color: '#ff5252', fontSize: '11px', fontWeight: 800 }}>Lv.{targetPet.level}</span>
                 </div>
+
                 <div style={{ position: 'relative', height: '8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{ 
                     width: `${Math.max(0, Math.min(100, (targetPet.hp / targetPet.maxHp) * 100))}%`, 
