@@ -7267,7 +7267,7 @@ function IdlePage() {
   );
 
   return (
-    <div style={{
+    <div className="game-root-container" style={{
       height: "100vh",
       background: "#000",
       color: "#f3e5c5",
