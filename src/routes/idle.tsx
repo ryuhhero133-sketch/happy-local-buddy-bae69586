@@ -9992,7 +9992,48 @@ function IdlePage() {
             );
           })()}
 
+          {/* HUD do Target (Inimigo Selecionado) */}
+          {targetPet && (
+            <div style={{
+              position: 'fixed', left: '50%', top: '85px', transform: 'translateX(-50%)',
+              width: '320px', background: 'rgba(11, 5, 20, 0.9)', backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 82, 82, 0.4)', borderRadius: '16px',
+              padding: '12px', display: 'flex', alignItems: 'center', gap: '15px',
+              boxShadow: '0 0 30px rgba(255, 82, 82, 0.2)', pointerEvents: 'auto',
+              zIndex: 1002
+            }}>
+              <div style={{ width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 82, 82, 0.1)', borderRadius: '12px' }}>
+                <img src={GIF[targetPet.species]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900 }}>{targetPet.species.replace(/_/g, ' ').toUpperCase()}</span>
+                  <span style={{ color: '#ff5252', fontSize: '11px', fontWeight: 800 }}>Lv.{targetPet.level}</span>
+                </div>
+                <div style={{ position: 'relative', height: '8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ 
+                    width: `${Math.max(0, Math.min(100, (targetPet.hp / targetPet.maxHp) * 100))}%`, 
+                    height: '100%', background: 'linear-gradient(90deg, #ff5252, #ff8080)',
+                    transition: 'width 0.3s ease-out'
+                  }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px' }}>
+                  <span style={{ color: '#ff8080', fontSize: '9px', fontWeight: 700, opacity: 0.8 }}>
+                    {Math.ceil(targetPet.hp)} / {Math.ceil(targetPet.maxHp)} HP
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => setTargetPet(null)} style={{
+                position: 'absolute', top: '-10px', right: '-10px', width: '24px', height: '24px',
+                background: '#ff5252', border: '2px solid #fff', borderRadius: '50%',
+                color: '#fff', fontSize: '12px', fontWeight: 900, cursor: 'pointer',
+                display: 'grid', placeItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+              }}>×</button>
+            </div>
+          )}
+
           {/* Faixa BATALHA AUTOMÁTICA / DESMAIADO */}
+
 
           {leaderHp <= 0 ? (
             <div style={{
