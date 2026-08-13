@@ -4137,14 +4137,25 @@ function IdlePage() {
       const leader = team[0];
       if (!leader) return;
       // Se o meu pokémon está desmaiado: não faz nada (precisa reviver)
-      if (leaderHp <= 0) { setAttackTargetId((c) => c !== null ? null : c); return; }
+      if (leaderHp <= 0) { 
+        setAttackTargetId((c) => c !== null ? null : c);
+        setTargetPet(null);
+        return; 
+      }
       // Líder sem energia (e nenhum reserva usável): não ataca nem farma
-      if (petIsExhausted(leader)) { setAttackTargetId((c) => c !== null ? null : c); return; }
-      if (!autoBattleRef.current?.enabled) { setAttackTargetId((c) => c !== null ? null : c); return; }
+      if (petIsExhausted(leader)) { 
+        setAttackTargetId((c) => c !== null ? null : c);
+        setTargetPet(null);
+        return; 
+      }
+      if (!autoBattleRef.current?.enabled) { 
+        setAttackTargetId((c) => c !== null ? null : c);
+        setTargetPet(null);
+        return; 
+      }
 
       if (Date.now() < paralyzedUntilRef.current) return;
       setEnemies((prev) => {
-
         if (prev.length === 0) return spawnEnemies();
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
@@ -4159,10 +4170,13 @@ function IdlePage() {
         if (Math.sqrt(bestD) > ATTACK_RANGE) {
           // Alvo fora de alcance: limpa target para não ficar preso mostrando HUD
           setAttackTargetId((cur) => (cur !== null ? null : cur));
+          setTargetPet(null);
           return prev;
         }
         // marca alvo atual (para virar o pokémon na direção dele)
         setAttackTargetId(target.id);
+        setTargetPet(target);
+
         const attackFace = target.x >= trainerPos.x ? "right" : "left";
         if (attackFace !== pokemonFaceRef.current) {
           pokemonFaceRef.current = attackFace;
