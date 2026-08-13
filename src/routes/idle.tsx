@@ -8208,24 +8208,32 @@ function IdlePage() {
           }}>
             {/* Dynamic Map Background - Moves with the player */}
             <div style={{
-              position: 'absolute', inset: '0', borderRadius: '50%',
+              position: 'absolute', 
+              width: '1200px', height: '1200px', // Larger size to allow panning
               backgroundImage: `url(${IDLE_MAPS[idle.currentMap].bg})`,
-              backgroundSize: 'cover',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
-              filter: 'brightness(0.75) contrast(1.1)',
-              transition: 'background-image 0.5s ease',
+              filter: 'brightness(1.0) contrast(1.1)',
+              transition: 'transform 0.1s ease-out',
+              // Center the background and offset by player position relative to world
+              // Map is 1200x1200px. Radar is 200x200px.
+              // We want the trainerPos (relative to WORLD_W/H) to be at the center (50%, 50%).
+              transform: `translate(calc(-50% + 100px - ${(trainerPos.x / WORLD_W) * 1000 - 500}px), calc(-50% + 100px - ${(trainerPos.y / WORLD_H) * 1000 - 500}px))`,
+              left: '50%', top: '50%',
             }} />
 
-            {/* Indicator of player position on the small map */}
+            {/* Fixed Indicator of player position (always centered in radar) */}
             <div style={{
               position: 'absolute',
-              width: '8px', height: '8px',
+              width: '12px', height: '12px',
               background: '#f5cf6b', borderRadius: '50%',
-              boxShadow: '0 0 10px #f5cf6b, 0 0 2px #fff',
-              left: `${(trainerPos.x / WORLD_W) * 100}%`,
-              top: `${(trainerPos.y / WORLD_H) * 100}%`,
+              boxShadow: '0 0 15px #f5cf6b, 0 0 5px #fff',
+              left: '50%',
+              top: '50%',
               transform: 'translate(-50%, -50%)',
-              zIndex: 11
+              zIndex: 11,
+              border: '2px solid #000'
             }} />
 
             {/* Grid Overlay */}
@@ -8235,12 +8243,12 @@ function IdlePage() {
               backgroundSize: '20px 20px', pointerEvents: 'none', opacity: 0.3
             }} />
             
-            {/* Pulse effect following player */}
+            {/* Pulse effect following player (centered) */}
             <div style={{
-              position: 'absolute', width: '25px', height: '25px', border: '2px solid rgba(255,255,255,0.6)',
+              position: 'absolute', width: '30px', height: '30px', border: '2px solid rgba(245,207,107,0.6)',
               borderRadius: '50%', zIndex: 9, animation: 'radarPulse 2s ease-out infinite',
-              left: `${(trainerPos.x / WORLD_W) * 100}%`,
-              top: `${(trainerPos.y / WORLD_H) * 100}%`,
+              left: '50%',
+              top: '50%',
               transform: 'translate(-50%, -50%)'
             }} />
 
