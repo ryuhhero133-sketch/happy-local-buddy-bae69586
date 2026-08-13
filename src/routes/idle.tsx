@@ -79,7 +79,7 @@ import houseBankImg from "@/assets/house-bank.png";
 import houseGymImg from "@/assets/house-gym.png";
 import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
 import mapValeDouradoImg from "@/assets/map-vale-verdejante-ice.png";
-import mapTerraHornetImg from "@/assets/map-terra-hornet.jpg";
+import mapTerraHornetJson from "@/assets/map-terra-hornet.jpg.asset.json";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
 import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
 import mapGymGeloSombraAsset from "@/assets/gym-gelo-sombra.png.asset.json";
