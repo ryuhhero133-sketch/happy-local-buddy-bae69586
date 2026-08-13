@@ -8298,8 +8298,9 @@ function IdlePage() {
               @keyframes radarPulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
             `}</style>
           </div>
-        </div>
+        </div>, document.body)}
       </div>
+
 
       {rankOpen && createPortal(
         <div
