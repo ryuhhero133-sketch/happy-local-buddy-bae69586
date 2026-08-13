@@ -8219,7 +8219,7 @@ function IdlePage() {
               // Center the background and offset by player position relative to world
               // Map is 1200x1200px. Radar is 200x200px.
               // We want the trainerPos (relative to WORLD_W/H) to be at the center (50%, 50%).
-              transform: `translate(calc(-50% + 100px - ${(trainerPos.x / WORLD_W) * 1200 - 600}px), calc(-50% + 100px - ${(trainerPos.y / WORLD_H) * 1200 - 600}px))`,
+              transform: `translate(calc(-50% + 100px - ${((trainerPos.x / WORLD_W) * 1200 - 600) * zoom}px), calc(-50% + 100px - ${((trainerPos.y / WORLD_H) * 1200 - 600) * zoom}px)) scale(${zoom})`,
               left: '50%', top: '50%',
             }} />
 
