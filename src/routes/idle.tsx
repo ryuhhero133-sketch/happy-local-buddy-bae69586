@@ -8199,7 +8199,7 @@ function IdlePage() {
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
           <div 
-            onClick={() => console.log('Radar Clicked')}
+            
             style={{
             width: '200px', height: '200px', background: 'rgba(0, 0, 0, 0.5)',
             border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
