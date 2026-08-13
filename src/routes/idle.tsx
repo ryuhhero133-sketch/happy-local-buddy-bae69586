@@ -1655,7 +1655,10 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, [identity, navigate]);
 
+  const [targetPet, setTargetPet] = useState<Enemy | null>(null);
+
   const handleSeasonResetRitual = async () => {
+
     // O diálogo do Ancião já é a confirmação — executa o ritual direto.
     await handleSeasonReset(true);
   };
