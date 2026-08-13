@@ -12491,6 +12491,7 @@ function IdlePage() {
       {isAdminOpen && (
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />
       )}
+      </div>
     </div>
   );
 }
