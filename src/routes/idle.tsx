@@ -8198,7 +8198,9 @@ function IdlePage() {
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
-          <div style={{
+          <div 
+            
+            style={{
             width: '200px', height: '200px', background: 'rgba(0, 0, 0, 0.5)',
             border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -8210,7 +8212,8 @@ function IdlePage() {
             <div style={{
               position: 'absolute', 
               width: '1200px', height: '1200px', // Larger size to allow panning
-              backgroundImage: `url(${IDLE_MAPS[idle.currentMap || 'vale_verdejante'].bg})`,
+              
+              backgroundImage: `url(${IDLE_MAPS[idle.currentMap || 'vale_verdejante']?.bg || ''})`,
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
@@ -8219,7 +8222,9 @@ function IdlePage() {
               // Center the background and offset by player position relative to world
               // Map is 1200x1200px. Radar is 200x200px.
               // We want the trainerPos (relative to WORLD_W/H) to be at the center (50%, 50%).
-              transform: `translate(calc(-50% + 100px - ${(trainerPos.x / WORLD_W) * 1200 - 600}px), calc(-50% + 100px - ${(trainerPos.y / WORLD_H) * 1200 - 600}px))`,
+              transform: `translate(calc(-50% + 100px - ${((trainerPos.x / WORLD_W) * 1200 - 600) * zoom}px), calc(-50% + 100px - ${((trainerPos.y / WORLD_H) * 1200 - 600) * zoom}px)) scale(${zoom})`,
+              
+
               left: '50%', top: '50%',
             }} />
 
@@ -8359,7 +8364,7 @@ function IdlePage() {
                   </div>
                 </div>
 
-                    </div>
+              </div>
                     <div
                       title="O ranking global é congelado e atualiza a cada 2 horas"
                       style={{
