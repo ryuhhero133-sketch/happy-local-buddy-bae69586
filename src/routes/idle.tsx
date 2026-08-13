@@ -8194,12 +8194,11 @@ function IdlePage() {
         <div className="hud-right-column" style={{ 
           position: 'fixed', top: '75px', right: '20px', width: '250px',
           display: "flex", flexDirection: "column", gap: 15, zIndex: 10005,
-          pointerEvents: 'auto'
+          pointerEvents: 'none'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
           {/* Refactored Radar HUD - Interactive Map & Player Marker */}
           <div 
-            
             style={{
             width: '200px', height: '200px', background: 'rgba(0, 0, 0, 0.5)',
             border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
