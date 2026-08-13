@@ -7322,232 +7322,6 @@ function IdlePage() {
               filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
             }} />
           ))}
-        </div>
-      </div>
-
-      {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
-      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
-
-
-        
-        {/* Barra Superior Moderna (Arquitetura da Imagem) */}
-        <div className="modern-top-bar" style={{ 
-          position: 'fixed', top: 0, left: 0, right: 0, height: '65px',
-          background: 'linear-gradient(180deg, rgba(11, 5, 20, 0.95) 0%, rgba(11, 5, 20, 0.7) 100%)',
-          backdropFilter: 'blur(10px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 30px', borderBottom: '1px solid rgba(201,184,255,0.2)',
-          pointerEvents: 'auto',
-          zIndex: 1001,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
-        }}>
-          {/* Lado Esquerdo: Localização e Info */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: 40, height: 40, background: 'rgba(201,184,255,0.1)', borderRadius: '10px', display: 'grid', placeItems: 'center', border: '1px solid rgba(201,184,255,0.2)' }}>
-                <span style={{ fontSize: '20px' }}>📍</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ color: '#fff', fontSize: '15px', fontWeight: 900, letterSpacing: 0.5 }}>{map.name}</span>
-                <span style={{ color: '#c9b8ff', fontSize: '10px', opacity: 0.7, fontWeight: 700 }}>X: {Math.floor(trainerPos.x)} | Y: {Math.floor(trainerPos.y)}</span>
-              </div>
-            </div>
-            <div style={{ width: '1px', height: '30px', background: 'rgba(201,184,255,0.15)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(201,184,255,0.1)' }}>
-               <span style={{ fontSize: '14px' }}>🕒</span>
-               <span style={{ color: '#fff', fontSize: '12px', fontWeight: 800 }}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-          </div>
-
-          {/* Centro: Recursos */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <ResourceNiche tint="#ffd700" icon={<span style={{fontSize: '16px'}}>🪙</span>} value={idle.bank.gold.toLocaleString()} title="Ouro" />
-            <ResourceNiche tint="#00d2ff" icon={<span style={{fontSize: '16px'}}>💎</span>} value={idle.bank.crystals.toLocaleString()} title="Cristais" />
-            <ResourceNiche tint="#ff4b4b" icon={<span style={{fontSize: '16px'}}>🔻</span>} value={Math.floor(idle.items?.red_crystal_shard ?? 0).toLocaleString()} title="Fragmentos" />
-          </div>
-
-          {/* Lado Direito: Config */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-             <button onClick={() => setTab("melhorias")} style={{ 
-               background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.3)', 
-               color: '#c9b8ff', width: '38px', height: '38px', borderRadius: '50%',
-               cursor: 'pointer', fontSize: '18px', display: 'grid', placeItems: 'center',
-               transition: 'all 0.2s'
-             }} className="top-cfg-btn">⚙️</button>
-          </div>
-        </div>
-
-
-        {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
-
-        {/* Menu Lateral Direito (MMO Style) */}
-        <div className="side-icon-bar" style={{
-          position: 'fixed', right: '15px', top: 'calc(180px + 100px)', transform: 'translateY(0)',
-          display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'auto',
-          zIndex: 1003,
-          background: 'rgba(11, 5, 20, 0.75)',
-          backdropFilter: 'blur(10px)',
-          padding: '12px 8px',
-          borderRadius: '24px',
-          border: '1px solid rgba(201, 184, 255, 0.3)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
-        }}>
-          {/* Pacotes (Cash Shop) */}
-          <div onClick={() => setCashShopOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🎁</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Pacotes</span>
-          </div>
-
-          {/* Ranking */}
-          <div onClick={() => setRankOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🏆</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Ranking</span>
-          </div>
-
-          {/* Mundo (World Map) */}
-          <div onClick={() => setWorldMapOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🌍</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Mundo</span>
-          </div>
-
-          {/* Configurações (Small spacer then config) */}
-          <div style={{ height: '4px' }}></div>
-          <div onClick={() => setTab("melhorias")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer', opacity: 0.8 }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>⚙️</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Config.</span>
-          </div>
-        </div>
-
-
-        {/* Dock Inferior Moderna */}
-        <div className="bottom-dock-container" style={{
-          position: 'fixed', bottom: '15px', left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(15px)',
-          padding: '10px 35px', borderRadius: '50px', border: '1px solid #c9b8ff',
-          display: 'flex', gap: '30px', pointerEvents: 'auto', boxShadow: '0 0 30px rgba(201,184,255,0.2)',
-          zIndex: 9999
-        }}>
-
-          <button onClick={() => { console.log('Dock: Batalha'); setTab("batalha"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'batalha' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>⚔️</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>BATALHA</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Equipe'); setTab("pokemon"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'pokemon' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>🛡️</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>EQUIPE</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Mochila'); setTab("mochila"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'mochila' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>🎒</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>MOCHILA</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Colecao'); setTab("colecao"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'colecao' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>📔</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>COLEÇÃO</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Mercado'); setTab("market"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'market' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>⚖️</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Loja'); setTab("loja"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'loja' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>🏪</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
-          </button>
-
-        </div>
-
-        {(tab !== "batalha" && tab !== "inicio") && (
-          <TabOverlay
-            tab={tab}
-            onClose={() => setTab("batalha")}
-            onAnciaoInteraction={handleAnciaoInteraction}
-            leader={team[0]}
-            team={team}
-            onReorderTeam={setTeam}
-            leaderHp={leaderHp}
-            items={idle.items || {}}
-            caughtSpecies={idle.caughtSpecies || []}
-            seenSpecies={idle.seenSpecies || []}
-            totals={idle.totals || { gold: 0, captured: 0 }}
-            collection={idle.collection || []}
-            craftPoints={idle.items?.cristal_fragmentado || 0}
-            onFragmentCollection={fragmentCollection}
-            gifMap={GIF}
-            onPickTeam={onPickTeamFromColecao}
-            onUseItem={useItem}
-            spriteScale={spriteScale}
-            bank={idle.bank || { gold: 0, crystals: 0 }}
-            buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
-            onBuyBall={buyBall}
-            onBuyUltraBundle={buyUltraBundle}
-            onBuyTeleportScroll={buyTeleportScroll}
-            onBuyBook={buyBook}
-            onBuyPotion={buyPotion}
-            onBuyEgg={buyEgg}
-            shopEggs={SHOP_EGGS}
-            onBuyChestAmulet={buyChestAmulet}
-            chestAmuletOwned={idle.items?.chest_amulet || 0}
-            autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
-            setAutoHeal={(next: { enabled: boolean; threshold: number }) => setIdle(s => ({ ...s, autoHeal: next }))}
-            audioSettings={audioSettings}
-            setAudioSettings={setAudioSettings}
-            tasks={idle.tasks || []}
-            onClaimTask={claimTask}
-            onOpenColecaoDetail={(uid: string) => setPetDetailUid(uid)}
-            onExchange={exchange}
-            onSellItem={sellItem}
-            marketSellPrices={MARKET_SELL_PRICE}
-            identity={identity}
-            onListMarket={async () => false}
-            onBuyMarket={async () => false}
-            onCancelMarket={async () => false}
-            onClaimMarketPayout={async () => false}
-            isVip={isVip()}
-            skinId={skinId}
-            setSkinId={setSkinId}
-            unlockedSkins={idle.unlockedSkins || []}
-            skinTickets={idle.items?.skin_ticket || 0}
-            onUnlockSkin={(id: string) => {}}
-            trainerLevel={idle.trainerLevel || 1}
-            onUpgradeBook={upgradeBook}
-            orbTrades={ORB_TRADES}
-            onTradeOrb={tradeForOrb}
-            pokemonMarketNode={undefined}
-            benchUids={new Set()}
-          />
-        )}
-
-
-
-
-
-        <div className="chat-floating-panel" style={{
-          position: 'absolute', bottom: '100px', left: '20px',
-          width: '280px', maxHeight: chatOpen ? '200px' : '40px',
-          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(10px)',
-          borderRadius: '12px', border: '1px solid rgba(201,184,255,0.2)',
-          display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          pointerEvents: 'auto', transition: 'max-height 0.3s'
-        }}>
-          <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1 }}>GLOBAL CHAT</span>
-            <button onClick={() => setChatOpen(!chatOpen)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>
-              {chatOpen ? '▼' : '▲'}
-            </button>
-          </div>
-          {chatOpen && (
-            <div style={{ flex: 1, overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {chat.slice(-10).map((c, idx) => (
-                <div key={idx} style={{ fontSize: '10px', color: '#fff', opacity: 0.9 }}>
-                  {c.text}
-                </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-          )}
-        </div>
-
-
-      </div>
 
       <style>{`
         .modern-floating-window {
@@ -9821,6 +9595,230 @@ function IdlePage() {
             })}
           </div>
         </div>
+
+
+      {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
+      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
+
+
+        
+        {/* Barra Superior Moderna (Arquitetura da Imagem) */}
+        <div className="modern-top-bar" style={{ 
+          position: 'fixed', top: 0, left: 0, right: 0, height: '65px',
+          background: 'linear-gradient(180deg, rgba(11, 5, 20, 0.95) 0%, rgba(11, 5, 20, 0.7) 100%)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 30px', borderBottom: '1px solid rgba(201,184,255,0.2)',
+          pointerEvents: 'auto',
+          zIndex: 1001,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+        }}>
+          {/* Lado Esquerdo: Localização e Info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: 40, height: 40, background: 'rgba(201,184,255,0.1)', borderRadius: '10px', display: 'grid', placeItems: 'center', border: '1px solid rgba(201,184,255,0.2)' }}>
+                <span style={{ fontSize: '20px' }}>📍</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ color: '#fff', fontSize: '15px', fontWeight: 900, letterSpacing: 0.5 }}>{map.name}</span>
+                <span style={{ color: '#c9b8ff', fontSize: '10px', opacity: 0.7, fontWeight: 700 }}>X: {Math.floor(trainerPos.x)} | Y: {Math.floor(trainerPos.y)}</span>
+              </div>
+            </div>
+            <div style={{ width: '1px', height: '30px', background: 'rgba(201,184,255,0.15)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(201,184,255,0.1)' }}>
+               <span style={{ fontSize: '14px' }}>🕒</span>
+               <span style={{ color: '#fff', fontSize: '12px', fontWeight: 800 }}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          </div>
+
+          {/* Centro: Recursos */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <ResourceNiche tint="#ffd700" icon={<span style={{fontSize: '16px'}}>🪙</span>} value={idle.bank.gold.toLocaleString()} title="Ouro" />
+            <ResourceNiche tint="#00d2ff" icon={<span style={{fontSize: '16px'}}>💎</span>} value={idle.bank.crystals.toLocaleString()} title="Cristais" />
+            <ResourceNiche tint="#ff4b4b" icon={<span style={{fontSize: '16px'}}>🔻</span>} value={Math.floor(idle.items?.red_crystal_shard ?? 0).toLocaleString()} title="Fragmentos" />
+          </div>
+
+          {/* Lado Direito: Config */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+             <button onClick={() => setTab("melhorias")} style={{ 
+               background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.3)', 
+               color: '#c9b8ff', width: '38px', height: '38px', borderRadius: '50%',
+               cursor: 'pointer', fontSize: '18px', display: 'grid', placeItems: 'center',
+               transition: 'all 0.2s'
+             }} className="top-cfg-btn">⚙️</button>
+          </div>
+        </div>
+
+
+        {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
+
+        {/* Menu Lateral Direito (MMO Style) */}
+        <div className="side-icon-bar" style={{
+          position: 'fixed', right: '15px', top: 'calc(180px + 100px)', transform: 'translateY(0)',
+          display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'auto',
+          zIndex: 1003,
+          background: 'rgba(11, 5, 20, 0.75)',
+          backdropFilter: 'blur(10px)',
+          padding: '12px 8px',
+          borderRadius: '24px',
+          border: '1px solid rgba(201, 184, 255, 0.3)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+        }}>
+          {/* Pacotes (Cash Shop) */}
+          <div onClick={() => setCashShopOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🎁</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Pacotes</span>
+          </div>
+
+          {/* Ranking */}
+          <div onClick={() => setRankOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🏆</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Ranking</span>
+          </div>
+
+          {/* Mundo (World Map) */}
+          <div onClick={() => setWorldMapOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🌍</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Mundo</span>
+          </div>
+
+          {/* Configurações (Small spacer then config) */}
+          <div style={{ height: '4px' }}></div>
+          <div onClick={() => setTab("melhorias")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer', opacity: 0.8 }}>
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>⚙️</div>
+            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Config.</span>
+          </div>
+        </div>
+
+
+        {/* Dock Inferior Moderna */}
+        <div className="bottom-dock-container" style={{
+          position: 'fixed', bottom: '15px', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(15px)',
+          padding: '10px 35px', borderRadius: '50px', border: '1px solid #c9b8ff',
+          display: 'flex', gap: '30px', pointerEvents: 'auto', boxShadow: '0 0 30px rgba(201,184,255,0.2)',
+          zIndex: 9999
+        }}>
+
+          <button onClick={() => { console.log('Dock: Batalha'); setTab("batalha"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'batalha' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>⚔️</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>BATALHA</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Equipe'); setTab("pokemon"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'pokemon' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>🛡️</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>EQUIPE</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Mochila'); setTab("mochila"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'mochila' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>🎒</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>MOCHILA</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Colecao'); setTab("colecao"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'colecao' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>📔</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>COLEÇÃO</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Mercado'); setTab("market"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'market' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>⚖️</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
+          </button>
+          <button onClick={() => { console.log('Dock: Loja'); setTab("loja"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'loja' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+            <span style={{ fontSize: '24px' }}>🏪</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
+          </button>
+
+        </div>
+
+        {(tab !== "batalha" && tab !== "inicio") && (
+          <TabOverlay
+            tab={tab}
+            onClose={() => setTab("batalha")}
+            onAnciaoInteraction={handleAnciaoInteraction}
+            leader={team[0]}
+            team={team}
+            onReorderTeam={setTeam}
+            leaderHp={leaderHp}
+            items={idle.items || {}}
+            caughtSpecies={idle.caughtSpecies || []}
+            seenSpecies={idle.seenSpecies || []}
+            totals={idle.totals || { gold: 0, captured: 0 }}
+            collection={idle.collection || []}
+            craftPoints={idle.items?.cristal_fragmentado || 0}
+            onFragmentCollection={fragmentCollection}
+            gifMap={GIF}
+            onPickTeam={onPickTeamFromColecao}
+            onUseItem={useItem}
+            spriteScale={spriteScale}
+            bank={idle.bank || { gold: 0, crystals: 0 }}
+            buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
+            onBuyBall={buyBall}
+            onBuyUltraBundle={buyUltraBundle}
+            onBuyTeleportScroll={buyTeleportScroll}
+            onBuyBook={buyBook}
+            onBuyPotion={buyPotion}
+            onBuyEgg={buyEgg}
+            shopEggs={SHOP_EGGS}
+            onBuyChestAmulet={buyChestAmulet}
+            chestAmuletOwned={idle.items?.chest_amulet || 0}
+            autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
+            setAutoHeal={(next: { enabled: boolean; threshold: number }) => setIdle(s => ({ ...s, autoHeal: next }))}
+            audioSettings={audioSettings}
+            setAudioSettings={setAudioSettings}
+            tasks={idle.tasks || []}
+            onClaimTask={claimTask}
+            onOpenColecaoDetail={(uid: string) => setPetDetailUid(uid)}
+            onExchange={exchange}
+            onSellItem={sellItem}
+            marketSellPrices={MARKET_SELL_PRICE}
+            identity={identity}
+            onListMarket={async () => false}
+            onBuyMarket={async () => false}
+            onCancelMarket={async () => false}
+            onClaimMarketPayout={async () => false}
+            isVip={isVip()}
+            skinId={skinId}
+            setSkinId={setSkinId}
+            unlockedSkins={idle.unlockedSkins || []}
+            skinTickets={idle.items?.skin_ticket || 0}
+            onUnlockSkin={(id: string) => {}}
+            trainerLevel={idle.trainerLevel || 1}
+            onUpgradeBook={upgradeBook}
+            orbTrades={ORB_TRADES}
+            onTradeOrb={tradeForOrb}
+            pokemonMarketNode={undefined}
+            benchUids={new Set()}
+          />
+        )}
+
+
+
+
+
+        <div className="chat-floating-panel" style={{
+          position: 'absolute', bottom: '100px', left: '20px',
+          width: '280px', maxHeight: chatOpen ? '200px' : '40px',
+          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(10px)',
+          borderRadius: '12px', border: '1px solid rgba(201,184,255,0.2)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          pointerEvents: 'auto', transition: 'max-height 0.3s'
+        }}>
+          <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1 }}>GLOBAL CHAT</span>
+            <button onClick={() => setChatOpen(!chatOpen)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>
+              {chatOpen ? '▼' : '▲'}
+            </button>
+          </div>
+          {chatOpen && (
+            <div style={{ flex: 1, overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {chat.slice(-10).map((c, idx) => (
+                <div key={idx} style={{ fontSize: '10px', color: '#fff', opacity: 0.9 }}>
+                  {c.text}
+                </div>
+              ))}
+              <div ref={chatEndRef} />
+            </div>
+          )}
+        </div>
+
+
       </div>
 
       {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
