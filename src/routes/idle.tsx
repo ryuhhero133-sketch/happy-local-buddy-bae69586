@@ -90,6 +90,7 @@ import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 
 import npcAnciaoGlacialAsset from "@/assets/npc-anciao-glacial.png.asset.json";
 
+import { GuestGate } from "@/components/GuestGate";
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
@@ -1535,9 +1536,9 @@ export const Route = createFileRoute("/idle")({
     ],
   }),
   component: () => (
-    <AuthGate>
+    <GuestGate>
       <IdlePage />
-    </AuthGate>
+    </GuestGate>
   ),
 });
 
