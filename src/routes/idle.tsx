@@ -1655,7 +1655,10 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, [identity, navigate]);
 
+  const [targetPet, setTargetPet] = useState<Enemy | null>(null);
+
   const handleSeasonResetRitual = async () => {
+
     // O diálogo do Ancião já é a confirmação — executa o ritual direto.
     await handleSeasonReset(true);
   };
@@ -4006,6 +4009,18 @@ function IdlePage() {
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
         const target = candidates[0];
+        // Leash logic: se o alvo inimigo estiver muito longe ( > 700px), limpa o alvo
+        // Isso impede que o treinador persiga indefinidamente um alvo que ficou pra trás.
+        if (target.kind === "enemy") {
+          const dSq = (target.x - tp.x) ** 2 + (target.y - tp.y) ** 2;
+          if (dSq > 700 * 700) {
+            setAttackTargetId(null);
+            setTargetPet(null);
+            if (moving) setMoving(false);
+            return tp;
+          }
+        }
+
         const dx = target.x - tp.x;
         const dy = target.y - tp.y;
         const dist = Math.hypot(dx, dy);
@@ -4134,14 +4149,25 @@ function IdlePage() {
       const leader = team[0];
       if (!leader) return;
       // Se o meu pokémon está desmaiado: não faz nada (precisa reviver)
-      if (leaderHp <= 0) { setAttackTargetId((c) => c !== null ? null : c); return; }
+      if (leaderHp <= 0) { 
+        setAttackTargetId((c) => c !== null ? null : c);
+        setTargetPet(null);
+        return; 
+      }
       // Líder sem energia (e nenhum reserva usável): não ataca nem farma
-      if (petIsExhausted(leader)) { setAttackTargetId((c) => c !== null ? null : c); return; }
-      if (!autoBattleRef.current?.enabled) { setAttackTargetId((c) => c !== null ? null : c); return; }
+      if (petIsExhausted(leader)) { 
+        setAttackTargetId((c) => c !== null ? null : c);
+        setTargetPet(null);
+        return; 
+      }
+      if (!autoBattleRef.current?.enabled) { 
+        setAttackTargetId((c) => c !== null ? null : c);
+        setTargetPet(null);
+        return; 
+      }
 
       if (Date.now() < paralyzedUntilRef.current) return;
       setEnemies((prev) => {
-
         if (prev.length === 0) return spawnEnemies();
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
@@ -4156,10 +4182,13 @@ function IdlePage() {
         if (Math.sqrt(bestD) > ATTACK_RANGE) {
           // Alvo fora de alcance: limpa target para não ficar preso mostrando HUD
           setAttackTargetId((cur) => (cur !== null ? null : cur));
+          setTargetPet(null);
           return prev;
         }
         // marca alvo atual (para virar o pokémon na direção dele)
         setAttackTargetId(target.id);
+        setTargetPet(target);
+
         const attackFace = target.x >= trainerPos.x ? "right" : "left";
         if (attackFace !== pokemonFaceRef.current) {
           pokemonFaceRef.current = attackFace;
@@ -9652,8 +9681,84 @@ function IdlePage() {
           </div>
         </div>
 
+        {/* Painel do Treinador e Time (Lado Esquerdo) */}
+        <div className="trainer-team-panel" style={{
+          position: 'fixed', left: '20px', top: '80px',
+          display: 'flex', flexDirection: 'column', gap: '12px',
+          pointerEvents: 'auto', zIndex: 1002
+        }}>
+          {/* Card do Treinador */}
+          <div style={{
+            background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(201, 184, 255, 0.3)', borderRadius: '16px',
+            padding: '12px 15px', display: 'flex', alignItems: 'center', gap: '15px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)', width: '220px'
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: '12px', overflow: 'hidden',
+              background: 'rgba(201, 184, 255, 0.1)', border: '1px solid rgba(201, 184, 255, 0.2)',
+              flexShrink: 0
+            }}>
+              <div style={{
+                width: '100%', height: '100%',
+                backgroundImage: `url(${skinUrl ?? trainerSheet})`,
+                backgroundSize: '400% 400%',
+                backgroundPosition: '0 0',
+                imageRendering: 'pixelated'
+              }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+              <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {identity?.name || 'Treinador'}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ color: '#c9b8ff', fontSize: '11px', fontWeight: 800 }}>Nv. {idle.trainerLevel || 1}</span>
+                <div style={{ flex: 1, height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ 
+                    width: `${((idle.trainerXp || 0) / (150 + (idle.trainerLevel || 1) * 80)) * 100}%`, 
+                    height: '100%', background: '#6bd4ff' 
+                  }} />
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Painel do Jogador (Card Compacto) Removido a pedido do usuário */}
+          {/* Lista da Equipe */}
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: '6px'
+          }}>
+            {team.map((p, i) => {
+              const petMax = calcIdleMaxHp(p);
+              const petHp = i === 0 ? leaderHp : (p.hp ?? petMax);
+              const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
+              return (
+                <div key={p.uid} onClick={() => setStatsCardPet(p)} style={{
+                  background: i === 0 ? 'rgba(201, 184, 255, 0.2)' : 'rgba(11, 5, 20, 0.7)',
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${i === 0 ? '#c9b8ff' : 'rgba(201, 184, 255, 0.2)'}`,
+                  borderRadius: '10px', padding: '6px 10px',
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  cursor: 'pointer', transition: 'transform 0.2s',
+                  boxShadow: i === 0 ? '0 0 15px rgba(201, 184, 255, 0.2)' : 'none'
+                }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateX(5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateX(0)'}>
+                  <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={GIF[p.species]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '10px', color: '#fff', fontWeight: 800 }}>{p.species.replace(/_/g, ' ').toUpperCase()}</span>
+                      <span style={{ fontSize: '9px', color: '#c9b8ff' }}>Lv.{p.level}</span>
+                    </div>
+                    <div style={{ height: '3px', background: 'rgba(0,0,0,0.4)', borderRadius: '2px', overflow: 'hidden', marginTop: '2px' }}>
+                      <div style={{ width: `${hpPct}%`, height: '100%', background: hpPct > 50 ? '#5ec26a' : hpPct > 20 ? '#f5cf6b' : '#ff5252' }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
 
         {/* Menu Lateral Direito (MMO Style) */}
         <div className="side-icon-bar" style={{
@@ -9916,7 +10021,49 @@ function IdlePage() {
             );
           })()}
 
+          {/* HUD do Target (Inimigo Selecionado) */}
+          {targetPet && (
+            <div style={{
+              position: 'fixed', left: '50%', top: '85px', transform: 'translateX(-50%)',
+              width: '320px', background: 'rgba(11, 5, 20, 0.9)', backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 82, 82, 0.4)', borderRadius: '16px',
+              padding: '12px', display: 'flex', alignItems: 'center', gap: '15px',
+              boxShadow: '0 0 30px rgba(255, 82, 82, 0.2)', pointerEvents: 'auto',
+              zIndex: 1002
+            }}>
+              <div style={{ width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 82, 82, 0.1)', borderRadius: '12px' }}>
+                <img src={GIF[targetPet.sp]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900 }}>{targetPet.sp.replace(/_/g, ' ').toUpperCase()}</span>
+                  <span style={{ color: '#ff5252', fontSize: '11px', fontWeight: 800 }}>Lv.{targetPet.level}</span>
+                </div>
+
+                <div style={{ position: 'relative', height: '8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ 
+                    width: `${Math.max(0, Math.min(100, (targetPet.hp / targetPet.maxHp) * 100))}%`, 
+                    height: '100%', background: 'linear-gradient(90deg, #ff5252, #ff8080)',
+                    transition: 'width 0.3s ease-out'
+                  }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px' }}>
+                  <span style={{ color: '#ff8080', fontSize: '9px', fontWeight: 700, opacity: 0.8 }}>
+                    {Math.ceil(targetPet.hp)} / {Math.ceil(targetPet.maxHp)} HP
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => setTargetPet(null)} style={{
+                position: 'absolute', top: '-10px', right: '-10px', width: '24px', height: '24px',
+                background: '#ff5252', border: '2px solid #fff', borderRadius: '50%',
+                color: '#fff', fontSize: '12px', fontWeight: 900, cursor: 'pointer',
+                display: 'grid', placeItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+              }}>×</button>
+            </div>
+          )}
+
           {/* Faixa BATALHA AUTOMÁTICA / DESMAIADO */}
+
 
           {leaderHp <= 0 ? (
             <div style={{
@@ -11926,98 +12073,6 @@ function IdlePage() {
 
 
 
-      {/* ===== HUD do Alvo (target — centro-topo) ===== */}
-      {(() => {
-        const tgt = attackTargetId != null ? enemies.find((e) => e.id === attackTargetId && e.hp > 0) : null;
-        if (!tgt) return null;
-        const hpPct = Math.max(0, Math.min(1, tgt.hp / Math.max(1, tgt.maxHp)));
-        const hpColor = hpPct > 0.5 ? "#e56b6b" : hpPct > 0.25 ? "#f5cf6b" : "#a83232";
-        const rarityColorMap: Record<string, string> = {
-          common: "#c8c8c8", uncommon: "#7ef2a2", rare: "#6bd4ff",
-          epic: "#c78bff", legendary: "#f5cf6b", mythic: "#ff97e1", mythic_shiny: "#ffd6ff",
-        };
-        const rColor = rarityColorMap[tgt.rarity] ?? "#c8c8c8";
-        const gif = GIF[tgt.sp];
-        return (
-          <div key={tgt.id} style={{
-            position: "fixed", top: 72, left: "50%", transform: "translateX(-50%)",
-            zIndex: 9997, pointerEvents: "none",
-            display: "flex", alignItems: "center", gap: 10,
-            background: "linear-gradient(180deg, rgba(38,14,14,0.94) 0%, rgba(20,6,6,0.94) 100%)",
-            border: `2px solid ${rColor}`,
-            borderRadius: 14,
-            padding: "8px 14px 8px 8px",
-            boxShadow: `0 8px 22px rgba(0,0,0,0.6), 0 0 0 1px ${rColor}44 inset, 0 0 16px ${rColor}66`,
-            minWidth: 220,
-            animation: "evt-slide 220ms cubic-bezier(.2,.9,.3,1.2)",
-          }}>
-
-            <div style={{
-              width: 54, height: 54, flexShrink: 0, borderRadius: "50%",
-              background: `radial-gradient(circle at 40% 35%, ${rColor}66 0%, #2a0a0a 75%)`,
-              border: `2px solid ${rColor}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
-              boxShadow: `inset 0 0 6px rgba(0,0,0,0.6), 0 0 10px ${rColor}88`,
-            }}>
-              {gif ? (
-                <img src={gif} alt={tgt.sp} style={{
-                  width: "120%", height: "120%", objectFit: "contain",
-                  imageRendering: "pixelated",
-                  transform: tgt.face === "right" ? "scaleX(-1)" : "none",
-                }} />
-              ) : <span style={{ fontSize: 26 }}>❓</span>}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                <span style={{
-                  fontSize: 9, fontWeight: 900, color: "#1a0f26",
-                  background: `linear-gradient(180deg,${rColor},${rColor}aa)`,
-                  padding: "2px 6px", borderRadius: 4, letterSpacing: 1,
-                }}>Lv {tgt.level}</span>
-                {tgt.elite && (
-                  <span style={{
-                    fontSize: 8, fontWeight: 900, color: "#fff",
-                    background: "linear-gradient(180deg,#c72525,#7a1010)",
-                    padding: "2px 5px", borderRadius: 4, letterSpacing: 1,
-                    border: "1px solid #f5cf6b",
-                  }}>★ ELITE</span>
-                )}
-                <span style={{
-                  fontSize: 13, fontWeight: 900, color: "#ffe5c5",
-                  textShadow: "1px 1px 0 #000", letterSpacing: 0.5,
-                  textTransform: "uppercase",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>{tgt.sp.replace(/_/g, " ")}</span>
-              </div>
-              <div style={{
-                position: "relative", height: 12, background: "#0a0410",
-                border: "1px solid #4a1a1a", borderRadius: 6, overflow: "hidden",
-                boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)",
-              }}>
-                <div style={{
-                  position: "absolute", inset: 0, width: `${hpPct * 100}%`,
-                  background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
-                  transition: "width 260ms ease, background 260ms ease",
-                  boxShadow: `0 0 8px ${hpColor}99`,
-                }} />
-                <div style={{
-                  position: "absolute", inset: 0, display: "flex",
-                  alignItems: "center", justifyContent: "center",
-                  fontSize: 9, fontWeight: 900, color: "#fff",
-                  textShadow: "1px 1px 0 #000, -1px -1px 0 #000",
-                  letterSpacing: 0.5,
-                }}>{Math.max(0, Math.round(tgt.hp))} / {tgt.maxHp}</div>
-              </div>
-              <div style={{
-                fontSize: 8, color: rColor, marginTop: 2, letterSpacing: 1.5,
-                textTransform: "uppercase", fontWeight: 800,
-                textShadow: "1px 1px 0 #000",
-              }}>◆ {tgt.rarity} ◆ ALVO</div>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
 
