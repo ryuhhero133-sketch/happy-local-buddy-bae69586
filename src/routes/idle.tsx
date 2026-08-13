@@ -3414,7 +3414,7 @@ function IdlePage() {
 
 
 
-  const [zoom, setZoom] = useState(0.75);
+  const [zoom, setZoom] = useState(1.0);
   // ===== Ranking Global =====
   type RankRow = {
     id: string;
