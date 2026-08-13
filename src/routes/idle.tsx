@@ -8359,7 +8359,7 @@ function IdlePage() {
                   </div>
                 </div>
 
-                    </div>
+              </div>
                     <div
                       title="O ranking global é congelado e atualiza a cada 2 horas"
                       style={{
