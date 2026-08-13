@@ -510,6 +510,8 @@ type IdleMapDef = {
   entryCrystals?: number;
   /** Mapa de RAID: níveis exibidos não indicam progressão de treinador, e sim faixa dos chefes/encontros. */
   raid?: boolean;
+  /** Zoom base forçado para este mapa (0-1). */
+  zoomOverride?: number;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
