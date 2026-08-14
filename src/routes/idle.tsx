@@ -4047,7 +4047,9 @@ function IdlePage() {
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
         const target = candidates[0];
-        // Leash logic: se o alvo inimigo estiver muito longe ( > 1600px), limpa o alvo
+        // Leash logic: Removido conforme solicitado para que o treinador persiga o alvo
+        // independentemente da distância no mapa.
+        /*
         if (target.kind === "enemy") {
           const dSq = (target.x - tp.x) ** 2 + (target.y - tp.y) ** 2;
           if (dSq > 1600 * 1600) {
@@ -4057,6 +4059,7 @@ function IdlePage() {
             return tp;
           }
         }
+        */
 
         const dx = target.x - tp.x;
         const dy = target.y - tp.y;
