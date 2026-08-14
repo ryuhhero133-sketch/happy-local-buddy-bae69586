@@ -13769,7 +13769,15 @@ function TabOverlay({
 
 
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: maximizeTeam ? "repeat(auto-fit, minmax(280px, 1fr))" : "1fr", 
+                  gap: 8, 
+                  position: "relative",
+                  maxHeight: maximizeTeam ? "calc(100vh - 400px)" : "auto", // Ajustado para dar espaço ao chat e quests
+                  overflowY: maximizeTeam ? "auto" : "visible",
+                  paddingRight: maximizeTeam ? "4px" : "0"
+                }}>
                   {team.map((p, i) => {
                     if (!maximizeTeam && i >= 3) return null;
                     const src = gifMap[p.species];
