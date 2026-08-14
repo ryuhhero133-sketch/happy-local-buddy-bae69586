@@ -10388,13 +10388,8 @@ function IdlePage() {
             const on = ab.enabled;
             return (
               <>
-                {/* Buffs Ativos HUD */}
-                <div style={{
-                  position: "fixed", top: 80, left: "50%", transform: "translateX(-50%)",
-                  display: "flex", gap: 8, zIndex: 1000000, pointerEvents: "none"
-                }}>
-                  <ActiveBuffsHUD buffs={idle.buffs} />
-                </div>
+                {/* Buffs Ativos HUD - Removido da sobreposição da tela principal conforme solicitado */}
+
 
 
                 <div style={{
@@ -12620,17 +12615,8 @@ function IdlePage() {
 
 
 
-      {/* HUD de Buffs Ativos — Posicionado abaixo do tempo para evitar sobreposições */}
-      <div style={{
-        position: 'fixed',
-        top: 60,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 10001,
-        pointerEvents: 'none'
-      }}>
-        <ActiveBuffsHUD buffs={idle.buffs} />
-      </div>
+      {/* Buffs Ativos HUD - Removido da sobreposição da tela principal conforme solicitado */}
+
 
       {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
       {pendingGate && createPortal(
@@ -13030,7 +13016,7 @@ function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, res
   );
 }
 
-function ActiveBuffsHUD({ buffs }: { buffs: any }) {
+export function ActiveBuffsHUD({ buffs }: { buffs: any }) {
   if (!buffs) return null;
   const now = Date.now();
   const active = [];
@@ -15360,7 +15346,7 @@ function TabOverlay({
         };
         return (
           <div>
-            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
+            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos (Orbs, Incensos e XP)</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
               <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((buffs?.atk ?? 0) * 100)}%`} color="#ff5252" />
               <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
@@ -15381,6 +15367,7 @@ function TabOverlay({
                     <span style={{ color: "#c084fc", fontWeight: 700 }}>+{orbPct}%</span>
                   </div>
                 )}
+
                 {honeyRareActive ? (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#fff0c8", padding: "3px 0" }}>
                     <span>✨🍯 Incenso Raro <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyRareUntil! - nowMs)})</span></span>
@@ -15395,6 +15382,9 @@ function TabOverlay({
                 <div style={{ borderTop: "1px solid #3a2e58", marginTop: 6, paddingTop: 6, display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
                   <span style={{ color: "#f5cf6b" }}>Total EXP</span>
                   <span style={{ color: "#ffd94d" }}>+{totalExpPct}%</span>
+                </div>
+                <div style={{ marginTop: 14, paddingTop: 10, borderTop: "1px solid rgba(245,207,107,0.2)" }}>
+                  <ActiveBuffsHUD buffs={buffs} />
                 </div>
               </div>
             )}
