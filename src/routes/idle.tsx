@@ -10220,7 +10220,7 @@ function IdlePage() {
                 {/* Botão de Auto-Ataque e Info Compacta */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <button
-                    onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
+                    onClick={(e) => { e.stopPropagation(); setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
                     title={on ? "Auto-batalha ATIVA" : "Auto-batalha desativada"}
                     style={{
                       background: on ? "rgba(94,194,106,0.15)" : "rgba(255,255,255,0.03)",
@@ -10639,7 +10639,7 @@ function IdlePage() {
 
 
       {identity && (
-        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
+        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 10002, display: "flex", flexDirection: "column", gap: 2 }}>
           <span>{identity.name}</span>
           <span style={{ fontFamily: "monospace", color: "#c9b8ff", fontSize: 9 }}>
             🌐 IP: {idle.hideIp ? "•••.•••.•••.•••" : (myIp ?? "detectando...")}
@@ -11305,7 +11305,7 @@ function IdlePage() {
             <div style={{ fontSize: 12, color: "#c8b8d0", letterSpacing: 2, fontWeight: 900, marginBottom: 8 }}>
               {orbAnim.phase === "spinning" ? "⚗️  INCUBANDO..." : orbAnim.phase === "success" ? (orbAnim.lucky ? "🌟  SORTE!" : "✨  SUCESSO!") : "💥  FALHOU!"}
             </div>
-            <div style={{ position: "relative", height: 240, display: "grid", placeItems: "center" }}>
+            <div style={{ position: 'relative', height: 240, display: 'grid', placeItems: 'center', zIndex: 1 }}>
               {/* base incubadora */}
               <img
                 src={orbIncubatorImg}
@@ -11343,6 +11343,7 @@ function IdlePage() {
                     position: "absolute", bottom: 30, imageRendering: "pixelated",
                     filter: `drop-shadow(0 0 20px ${orbAnim.color})`,
                     animation: "orb-drop .6s ease-out both, orb-pulse 2s ease-in-out infinite .6s",
+                    zIndex: 2,
                   }}
                 />
               )}
@@ -11413,7 +11414,7 @@ function IdlePage() {
         onClick={() => { setCodeOpen(true); setCodeMsg(null); }}
         title="Resgatar código"
         style={{
-          position: "fixed", bottom: 12, right: 12, zIndex: 100,
+          position: "fixed", bottom: 12, right: 12, zIndex: 10002,
           background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
           border: "1px solid #f5cf6b", color: "#f5cf6b",
           borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 800,
@@ -13165,7 +13166,7 @@ function TabOverlay({
       flexDirection: "column",
       pointerEvents: "auto",
       overflow: "hidden",
-      zIndex: 20000,
+      zIndex: 200000,
       border: "1px solid rgba(201, 184, 255, 0.3)",
       borderRadius: "20px",
       boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(201, 184, 255, 0.1)"
