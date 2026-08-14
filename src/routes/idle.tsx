@@ -3875,7 +3875,14 @@ function IdlePage() {
         if (keys.has("s") || keys.has("arrowdown")) dy += 1;
         if (keys.has("a") || keys.has("arrowleft")) dx -= 1;
         if (keys.has("d") || keys.has("arrowright")) dx += 1;
-        if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
+        if (dx === 0 && dy === 0) { 
+          if (moving) setMoving(false); 
+          return; 
+        }
+        // Quando o jogador move manualmente, desativa o auto-battle conforme solicitado.
+        if (idle.autoBattle?.enabled) {
+          setIdle(s => ({ ...s, autoBattle: { ...s.autoBattle!, enabled: false } }));
+        }
         if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
         const speed = 7 * (1 + honeyBonusNow());
