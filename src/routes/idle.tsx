@@ -12299,6 +12299,18 @@ function IdlePage() {
 
 
 
+      {/* HUD de Buffs Ativos — Posicionado abaixo do tempo para evitar sobreposições */}
+      <div style={{
+        position: 'fixed',
+        top: 60,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 10001,
+        pointerEvents: 'none'
+      }}>
+        <ActiveBuffsHUD buffs={idle.buffs} />
+      </div>
+
       {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
       {pendingGate && createPortal(
         <div onClick={() => setPendingGate(null)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
@@ -13057,12 +13069,19 @@ function TabOverlay({
     fragConfirm.entries.forEach((e) => {
       // Cálculo de fragmentos de habilidade/defesa baseado no nível e raridade
       const baseFrags = 1;
-      const rarityMult: Record<string, number> = { common: 1, uncommon: 2, rare: 4, epic: 8, legendary: 16, mythic: 32, mythic_shiny: 64 };
+      const rarityMult: Record<string, number> = { 
+        common: 1, uncommon: 2, rare: 4, epic: 8, 
+        legendary: 16, mythic: 32, mythic_shiny: 64 
+      };
       const mult = rarityMult[e.rarity] ?? 1;
       const countHab = Math.floor((e.level / 10) * mult) + baseFrags;
       const countDef = Math.floor((e.level / 10) * mult) + baseFrags;
 
-      onFragmentCollection(e.uid);
+      onFragmentCollection(e.uid, {
+        prisma: e.gain,
+        hab: countHab,
+        def: countDef
+      });
     });
     setBulkSel(new Set());
     setBulkMode(false);
