@@ -965,7 +965,7 @@ type IdleState = {
   bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro); teamOrb = distribui EXP para todo o time por 1h
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
-  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
+  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number; targetRarities?: Rarity[] };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
@@ -4155,8 +4155,10 @@ function IdlePage() {
         const nearLockedPortal = (x: number, y: number) =>
           lockedPortals.some((p) => Math.hypot(x - p.x, y - p.y) < 200);
         const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
-        // Líder pode atacar qualquer Pokémon do mapa — ganhos serão nerfados se muito acima.
-        const alive = aliveAll;
+        const autoFilters = idle.autoBattle?.targetRarities;
+        const alive = (autoFilters && autoFilters.length > 0)
+          ? aliveAll.filter((e) => autoFilters.includes(e.rarity))
+          : aliveAll;
         const enemyPool = alive.length > 0 ? alive : [];
 
 
@@ -4401,18 +4403,25 @@ function IdlePage() {
         const qDef = mq && !mq.completed ? QUEST_DATA.find(x => x.id === mq.currentQuestId) : null;
         
         let pool = alive;
+        const autoFilters = idle.autoBattle?.targetRarities;
+        if (autoFilters && autoFilters.length > 0) {
+          pool = alive.filter(e => autoFilters.includes(e.rarity));
+        }
+
+        if (pool.length === 0) pool = alive;
+
         if (qDef) {
           if (qDef.type === "capture_rarity") {
-            const targets = alive.filter(e => e.rarity === qDef.rarity);
+            const targets = pool.filter(e => e.rarity === qDef.rarity);
             if (targets.length > 0) pool = targets;
           } else if (qDef.type === "capture_species") {
-            const targets = alive.filter(e => e.sp === qDef.species);
+            const targets = pool.filter(e => e.sp === qDef.species);
             if (targets.length > 0) pool = targets;
           }
         }
         
-        // Se não achou alvos da quest, prioriza comuns e incomuns se houver muitos monstros
-        if (pool.length === alive.length) {
+        // Se não achou alvos da quest e não tem filtro de raridade manual, prioriza comuns e incomuns
+        if (pool.length === alive.length && (!autoFilters || autoFilters.length === 0)) {
           const lowRarity = alive.filter(e => e.rarity === "common" || e.rarity === "uncommon");
           if (lowRarity.length > 0) pool = lowRarity;
         }
@@ -10179,6 +10188,9 @@ function IdlePage() {
             seenSpecies={idle.seenSpecies || []}
             totals={idle.totals || { gold: 0, captured: 0 }}
             collection={idle.collection || []}
+            idle={idle}
+            setIdle={setIdle}
+
             craftPoints={idle.items?.cristal_fragmentado || 0}
             onFragmentCollection={fragmentCollection}
             gifMap={GIF}
@@ -10663,6 +10675,10 @@ function IdlePage() {
               caughtSpecies={idle.caughtSpecies}
               seenSpecies={idle.seenSpecies}
               totals={idle.totals}
+              idle={idle}
+              setIdle={setIdle}
+
+
               collection={collectionForDisplay}
               craftPoints={idle.craftPoints ?? 0}
               onFragmentCollection={fragmentCollection}
@@ -13477,6 +13493,8 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
+  idle, setIdle,
+
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
   onAnciaoInteraction, spriteScale
 }: {
@@ -13499,6 +13517,9 @@ function TabOverlay({
   onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
   spriteScale: number;
+  idle: IdleState;
+  setIdle: React.Dispatch<React.SetStateAction<IdleState>>;
+
   buffs: any;
   onBuyBall: any;
   onBuyUltraBundle: any;
@@ -13714,7 +13735,7 @@ function TabOverlay({
           }}>✦ MEW ✦</div>
           <div style={{ position: "relative" }}>
           <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
-          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} />
+          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} benchUids={benchUids} onAnciaoInteraction={onAnciaoInteraction} spriteScale={spriteScale} idle={idle} setIdle={setIdle} />
           <SpeciesLore species={leader.species} rarity={leader.rarity} />
 
 
@@ -15806,6 +15827,53 @@ function TabOverlay({
           </div>
 
           <div style={{
+            background: "linear-gradient(160deg, #1c102a, #2a1a3a)",
+            border: "1px solid rgba(245, 207, 107, 0.4)", borderRadius: 12, padding: 16,
+            display: "flex", flexDirection: "column", gap: 10,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>🎯 FILTRAR AUTO-BATALHA</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {(["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"] as Rarity[]).map((r) => {
+                const active = idle.autoBattle?.targetRarities?.includes(r) ?? false;
+                const rColors: Record<string, string> = {
+                  common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
+                  epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d"
+                };
+                const color = rColors[r] || "#fff";
+                return (
+                  <button
+                    key={r}
+                    onClick={() => {
+                      const current = idle.autoBattle?.targetRarities || [];
+                      const next = current.includes(r) ? current.filter(x => x !== r) : [...current, r];
+                      setIdle({ ...idle, autoBattle: { ...idle.autoBattle!, targetRarities: next } });
+                    }}
+                    style={{
+                      padding: "4px 8px", fontSize: 10, fontWeight: 900, borderRadius: 6, cursor: "pointer",
+                      background: active ? color : "rgba(0,0,0,0.3)",
+                      color: active ? "#0b0510" : color,
+                      border: `1px solid ${color}${active ? "ff" : "44"}`,
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    {r.replace("_", " ").toUpperCase()}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setIdle({ ...idle, autoBattle: { ...idle.autoBattle!, targetRarities: [] } })}
+                style={{
+                  padding: "4px 8px", fontSize: 10, fontWeight: 900, borderRadius: 6, cursor: "pointer",
+                  background: "rgba(255,255,255,0.05)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)"
+                }}
+              >TODOS</button>
+            </div>
+            <div style={{ fontSize: 10, color: "#8a7a9c", fontStyle: "italic" }}>
+              Se nenhum estiver selecionado, atacará todos os Pokémon.
+            </div>
+          </div>
+
+          <div style={{
             background: "linear-gradient(160deg, #0f1f2e, #16324a)",
             border: "1px solid rgba(107,212,255,0.4)", borderRadius: 12, padding: 16,
             display: "flex", flexDirection: "column", gap: 12,
@@ -16578,11 +16646,17 @@ function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) 
     </div>
   );
 }
-function ActiveBonuses({ leaderRarity, team, buffs }: {
+function ActiveBonuses({ leaderRarity, team, buffs, benchUids, onAnciaoInteraction, spriteScale, idle, setIdle }: {
   leaderRarity: Rarity;
   team: { rarity: Rarity }[];
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
+  benchUids: Set<string>;
+  onAnciaoInteraction: () => void;
+  spriteScale: number;
+  idle: IdleState;
+  setIdle: React.Dispatch<React.SetStateAction<IdleState>>;
 }) {
+
   const now = Date.now();
   const expActive = !!(buffs.expMultUntil && now < buffs.expMultUntil);
   const goldActive = !!(buffs.goldMultUntil && now < buffs.goldMultUntil);
