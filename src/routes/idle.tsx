@@ -3532,8 +3532,8 @@ function IdlePage() {
   }, []);
 
   const [rankRefreshTick, setRankRefreshTick] = useState(0);
-  const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking congelado, sem atualizar direto
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v8_frozen_2h_${mode}`;
+  const RANK_CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3h — ranking global atualiza apenas a cada 3 horas
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v8_frozen_3h_${mode}`;
 
   useEffect(() => {
     if (!rankOpen) return;
