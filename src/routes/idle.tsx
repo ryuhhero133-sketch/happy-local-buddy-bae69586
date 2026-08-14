@@ -4419,7 +4419,7 @@ function IdlePage() {
         setAttackTargetId(target.id);
         setTargetPet(target);
 
-        const attackFace = target.x >= trainerPos.x ? "right" : "left";
+        const attackFace = target.x >= trainerPosRef.current.x ? "right" : "left";
         if (attackFace !== pokemonFaceRef.current) {
           pokemonFaceRef.current = attackFace;
           setPokemonFace(attackFace);
