@@ -1166,7 +1166,8 @@ export type MainQuestState = {
   currentQuestId: number;
   progress: number;
   completed: boolean;
-  minimized?: boolean; // 📉 Adicionado: opção de minimizar HUD
+  minimized?: boolean;
+  expiresAt?: number;
 };
 
 export type MainQuestDef = {
