@@ -144,7 +144,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [kickedMessage, setKickedMessage] = useState<string | null>(null);
-  const [maintenance, setMaintenance] = useState(true); // Manutenção ativada por padrão para a season
+  const [maintenance, setMaintenance] = useState(false); // Liberado para todos
 
   useEffect(() => {
     setMounted(true);
@@ -243,7 +243,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         // FAIL-CLOSED: só libera se o banco disser explicitamente 'false'
         const off = config && (config.value === "false" || config.value === false);
         if (cfgErr) warn("Erro config manutenção", cfgErr);
-        setMaintenance(!off);
+        setMaintenance(false); // Liberado para todos pelo sistema central
       } catch (e) {
         warn("Erro ao verificar manutenção", e);
         setMaintenance(true);
@@ -408,8 +408,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
           .maybeSingle();
         const off = config && (config.value === "false" || config.value === false);
         if (stop) return;
-        setMaintenance(!off);
-        if (!off && session) await supabase.auth.signOut();
+        setMaintenance(false);
+        // if (!off && session) await supabase.auth.signOut();
       } catch {
         if (!stop) setMaintenance(true);
       }
@@ -439,7 +439,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
               ⚠️ JOGO EM MANUTENÇÃO
             </p>
             <p className="text-[10px] leading-relaxed" style={{ color: "#fecaca" }}>
-              O jogo abrirá apenas 22 horas.
+              O jogo está sendo preparado para a nova temporada.
             </p>
           </div>
           <div className="pt-2">
@@ -677,6 +677,7 @@ function PanelShell({ children, title }: { children: ReactNode; title?: string }
             background: "linear-gradient(180deg, #fca5a5 0%, #b91c1c 45%, #450a0a 100%)",
             borderRadius: 10,
             boxShadow: "0 20px 60px rgba(0,0,0,0.85), 0 0 22px rgba(239,68,68,0.35)",
+            animation: "rubym-pulse-glow 4s ease-in-out infinite",
           }}
         >
           <div
@@ -803,7 +804,7 @@ function AuthScreen({
   maintenance: boolean;
   isAdmin: boolean;
 }) {
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>("signup"); // Começar na tela de criar conta para novos jogadores
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [betaKey, setBetaKey] = useState("");
@@ -1018,7 +1019,11 @@ function AuthScreen({
         <InfoBox message={info} />
 
         <PrimaryButton disabled={busy}>
-          {busy ? "AGUARDE..." : primaryLabel}
+          <div className="flex items-center justify-center gap-2">
+            <span className="animate-pulse">✨</span>
+            {busy ? "PROCESSANDO..." : primaryLabel}
+            <span className="animate-pulse">✨</span>
+          </div>
         </PrimaryButton>
 
         <div className="flex justify-between text-[10px] tracking-[2px]" style={{ color: "#fecaca" }}>
