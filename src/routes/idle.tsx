@@ -4239,12 +4239,15 @@ function IdlePage() {
             stuckRef.current = { id: target.id, count: 1 };
             (stuckRef.current as any).lastDist = dist;
           }
-          // Detecta travamento muito mais rápido no auto: ~30 ticks (~3.5s) sem progresso real
+          // Detecta travamento no auto: se ficar 45 ticks (~3.5s) sem progresso real, busca outro.
           if (stuckRef.current.count > 45) {
-            blacklistRef.current.set(target.id, nowT + 8000);
+            blacklistRef.current.set(target.id, nowT + 12000); // Blacklist por 12s para garantir que procure outros
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
-            return tp;
+            // Ao destravar, tenta um pulo aleatório maior para sair de quinas
+            const escapeX = Math.max(20, Math.min(WORLD_W - 20, tp.x + (Math.random() - 0.5) * 40));
+            const escapeY = Math.max(20, Math.min(WORLD_H - 20, tp.y + (Math.random() - 0.5) * 40));
+            return { x: escapeX, y: escapeY };
           }
         } else {
           stuckRef.current = { id: 0, count: 0 };
@@ -4412,6 +4415,7 @@ function IdlePage() {
         }
 
         for (const e of pool) {
+          if (blacklistRef.current.has(e.id)) continue; // Ignora inimigos na blacklist (travados)
           const d = (e.x - trainerPosRef.current.x) ** 2 + (e.y - trainerPosRef.current.y) ** 2;
           if (d < bestD) {
             bestD = d;
