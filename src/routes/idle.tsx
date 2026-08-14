@@ -4222,18 +4222,11 @@ function IdlePage() {
         const dist = Math.sqrt(bestD);
         
         // Auto-battle: se não tem target ou o target atual sumiu/morreu, persegue o mais próximo
-        // Se estiver longe (fora do ATTACK_RANGE), o auto-battle deve se mover até lá.
-        if (dist > ATTACK_RANGE && dist < 1200) {
-          // Apenas define o movimento, mas não o ID de ataque ainda
+        // Revisado: persegue inimigos independentemente da distância no mapa (removido o cap de 1200px)
+        if (dist > ATTACK_RANGE) {
           walkTargetRef.current = { x: target.x, y: target.y, label: "Perseguindo " + target.sp };
           setAttackTargetId(null);
           setTargetPet(target);
-          return prev;
-        }
-
-        if (dist > 1200) {
-          setAttackTargetId(null);
-          setTargetPet(null);
           return prev;
         }
         // marca alvo atual (para virar o pokémon na direção dele)
