@@ -190,37 +190,63 @@ export function AuthGate({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
       log("authStateChange", event, sess?.user?.id);
 
-      // Verifica status de manutenção e banimento no banco
-      if (sess?.user?.id) {
+      if (event === "SIGNED_OUT") {
+        setIdentity(null);
+        setNeedsChar(false);
+        setSession(null);
         try {
-          // Simplificando verificação de status para evitar falhas no login
-          const { data: profile, error: profileErr } = await (supabase as any)
-            .from("profiles")
-            .select("id, username") // Seleciona apenas campos básicos para evitar erro de coluna inexistente
-            .eq("id", sess.user.id)
-            .maybeSingle();
+          localStorage.removeItem(IDENTITY_KEY);
+          wipeLocalGameData();
+          localStorage.removeItem(CURRENT_UID_KEY);
+        } catch { /* ignore */ }
+        return;
+      }
 
-          if (profileErr) {
-             warn("Erro ao buscar perfil básico", profileErr);
+      // Se a sessão sumiu (ex: deletada via SQL), forçamos o estado local para deslogado
+      if (!sess) {
+        if (session) {
+          log("Sessão invalidada pelo servidor — forçando logout");
+          setSession(null);
+          setIdentity(null);
+          setNeedsChar(false);
+          wipeLocalGameData();
+          localStorage.removeItem(CURRENT_UID_KEY);
+          localStorage.removeItem(IDENTITY_KEY);
+        }
+        return;
+      }
+
+      // IMPORTANTE: Atualiza a sessão IMEDIATAMENTE para evitar loops
+      setSession(sess);
+
+      if (event === "SIGNED_IN") {
+        try {
+          const prev = localStorage.getItem(CURRENT_UID_KEY);
+          if (prev && prev !== sess.user.id) {
+            wipeLocalGameData();
           }
+          localStorage.setItem(CURRENT_UID_KEY, sess.user.id);
+        } catch { /* ignore */ }
+      }
 
-          // Busca status separadamente ou assume 'active' se falhar
-          let accountStatus = 'active';
-          try {
+      // Verifica status de manutenção e banimento no banco em background
+      // sem dar await para não bloquear a renderização inicial e causar loops
+      const checkStatus = async () => {
+        try {
+          const userId = sess.user.id;
+          const isAdmin = sess.user.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
+                          userId === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+          
+          if (!isAdmin) {
+            // Busca status
             const { data: statusData } = await (supabase as any)
               .from("profiles")
               .select("account_status")
-              .eq("id", sess.user.id)
+              .eq("id", userId)
               .maybeSingle();
-            if (statusData?.account_status) accountStatus = statusData.account_status;
-          } catch (e) {
-            warn("Coluna account_status pode não existir", e);
-          }
 
-          const isAdmin = sess.user.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
-                          sess.user.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-          
-          if (!isAdmin) {
+            const accountStatus = statusData?.account_status || 'active';
+
             if (accountStatus === "banned") {
               setKickedMessage("CONTA BANIDA.");
               await supabase.auth.signOut();
@@ -235,54 +261,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
         } catch (e) {
           warn("Erro verificação status", e);
         }
-      }
+      };
 
-      try {
-        const { data: config } = await (supabase as any)
-          .from("server_config")
-          .select("value")
-          .eq("key", "maintenance_mode")
-          .maybeSingle();
-        const off = config && (config.value === "false" || config.value === false);
-        setMaintenance(false); 
-      } catch (e) {
-        setMaintenance(false);
-      }
-
-
-
-      // Se a sessão sumiu (ex: deletada via SQL), forçamos o estado local para deslogado
-      if (!sess && session) {
-        log("Sessão invalidada pelo servidor — forçando logout");
-        setSession(null);
-        setIdentity(null);
-        setNeedsChar(false);
-        wipeLocalGameData();
-        localStorage.removeItem(CURRENT_UID_KEY);
-        localStorage.removeItem(IDENTITY_KEY);
-      } else {
-        setSession(sess);
-      }
+      void checkStatus();
 
       if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
-      if (event === "SIGNED_IN" && sess?.user?.id) {
-        try {
-          const prev = localStorage.getItem(CURRENT_UID_KEY);
-          if (prev && prev !== sess.user.id) {
-            wipeLocalGameData();
-          }
-          localStorage.setItem(CURRENT_UID_KEY, sess.user.id);
-        } catch { /* ignore */ }
-      }
-      if (event === "SIGNED_OUT") {
-        setIdentity(null);
-        setNeedsChar(false);
-        try {
-          localStorage.removeItem(IDENTITY_KEY);
-          wipeLocalGameData();
-          localStorage.removeItem(CURRENT_UID_KEY);
-        } catch { /* ignore */ }
-      }
     });
 
     // Em F5 não desloga: a sessão ativa é necessária para reidratar/salvar no Supabase
@@ -324,18 +307,20 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [kicked] = useState(false);
 
 
-  // Quando logado: garante profile, decide se precisa criar treinador,
-  // pré-carrega save da nuvem.
-  // Bootstrap apenas quando o USER ID muda. O Supabase emite TOKEN_REFRESHED
-  // ao trocar de aba / voltar do minimizado, criando um novo objeto session
-  // — sem esse guard, o efeito re-executava, mostrava o splash e re-hidratava
-  // o save da nuvem por cima do estado atual (parecia um "refresh").
+  // Bootstrap apenas quando o USER ID muda.
   const bootstrappedUidRef = useRef<string | null>(null);
   const currentUid = session?.user?.id ?? null;
   useEffect(() => {
-    if (!currentUid) { bootstrappedUidRef.current = null; return; }
+    // Se não há UID, limpa o ref para permitir bootstrap futuro e sai
+    if (!currentUid) { 
+      bootstrappedUidRef.current = null; 
+      return; 
+    }
+    // Não faz bootstrap em modo de recuperação
     if (recoveryMode) return;
+    // Se já fizemos bootstrap para este UID, ignora (evita loops por tokens renovados)
     if (bootstrappedUidRef.current === currentUid) return;
+    
     bootstrappedUidRef.current = currentUid;
     let cancelled = false;
     (async () => {
@@ -406,6 +391,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
       email === "lordryuhhhuyuyghh@gmail.com" ||
       session?.user?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
     if (admin) return;
+    if (!session) return; // Se não tem sessão, não precisa checar manutenção contínua
+
     let stop = false;
     const tick = async () => {
       try {
@@ -414,16 +401,21 @@ export function AuthGate({ children }: { children: ReactNode }) {
           .select("value")
           .eq("key", "maintenance_mode")
           .maybeSingle();
-        const off = config && (config.value === "false" || config.value === false);
+        const maintenanceEnabled = config && (config.value === "true" || config.value === true);
+        
         if (stop) return;
-        setMaintenance(false);
-        // if (!off && session) await supabase.auth.signOut();
+        
+        if (maintenanceEnabled) {
+          setMaintenance(true);
+        } else {
+          setMaintenance(false);
+        }
       } catch {
         if (!stop) setMaintenance(false);
       }
     };
     void tick();
-    const iv = setInterval(tick, 30000);
+    const iv = setInterval(tick, 60000); // Aumentado para 60s para reduzir carga e chance de erro
     return () => { stop = true; clearInterval(iv); };
   }, [session]);
 
