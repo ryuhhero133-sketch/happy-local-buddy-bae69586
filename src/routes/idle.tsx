@@ -10188,6 +10188,9 @@ function IdlePage() {
             seenSpecies={idle.seenSpecies || []}
             totals={idle.totals || { gold: 0, captured: 0 }}
             collection={idle.collection || []}
+            idle={idle}
+            setIdle={setIdle}
+
             craftPoints={idle.items?.cristal_fragmentado || 0}
             onFragmentCollection={fragmentCollection}
             gifMap={GIF}
@@ -10672,6 +10675,9 @@ function IdlePage() {
               caughtSpecies={idle.caughtSpecies}
               seenSpecies={idle.seenSpecies}
               totals={idle.totals}
+              idle={idle}
+              setIdle={setIdle}
+
               collection={collectionForDisplay}
               craftPoints={idle.craftPoints ?? 0}
               onFragmentCollection={fragmentCollection}
