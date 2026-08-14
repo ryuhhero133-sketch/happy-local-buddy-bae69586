@@ -8999,6 +8999,27 @@ function IdlePage() {
                     }} />
                   )}
 
+                  {/* Efeito de Ataque Elemental (Sprites) */}
+                  {attackAnim && attackAnim.toX === e.x && attackAnim.toY === e.y && (
+                    <div style={{
+                      position: "absolute",
+                      left: "50%",
+                      top: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: 120,
+                      height: 120,
+                      pointerEvents: "none",
+                      zIndex: 20,
+                      animation: "fxpop 0.4s forwards"
+                    }}>
+                      <img 
+                        src={ELEMENT_FX_IMG[attackAnim.element as ElementType] || fxSlashImg} 
+                        alt="" 
+                        style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 0 8px rgba(255,255,255,0.8))" }} 
+                      />
+                    </div>
+                  )}
+
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
                   {e.sp === "raichu" && !camouflaged && (
                     <div style={{
