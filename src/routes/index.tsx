@@ -1,8 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
-
-
-// SEASON 3 - PRODUCTION READY
+// Redireciona para o jogo principal. Removido placeholder de texto da v3.
 export const Route = createFileRoute('/')({
   beforeLoad: () => {
     throw redirect({ to: '/idle' });
