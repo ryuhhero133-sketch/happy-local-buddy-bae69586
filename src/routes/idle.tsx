@@ -9895,7 +9895,7 @@ function IdlePage() {
           )}
         </div>
       </div>
-    </div>
+      
       <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         {restingUntil !== null && restingStart !== null && (() => {
 
@@ -10056,7 +10056,7 @@ function IdlePage() {
             const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
             const on = ab.enabled;
             return (
-              <>
+              <React.Fragment key="auto-battle-hud">
                 {/* Buffs Ativos HUD */}
                 <div style={{
                   position: "fixed", top: 80, left: "50%", transform: "translateX(-50%)",
@@ -10071,171 +10071,63 @@ function IdlePage() {
                   zIndex: 99997,
                   pointerEvents: "auto",
                 }}>
-              {showAutoSettings && (
-                <div style={{
-                  background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
-                  borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
-                  minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
-                  pointerEvents: "auto",
-                }}>
-                  <div style={{ fontWeight: 800, color: "#f5cf6b", fontSize: 12, letterSpacing: 1 }}>⚙ CONFIGURAR AUTO</div>
-                  <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                    <span>Usar Pokébola</span>
-                    <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
-                  </label>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <span style={{ color: "#c8b8d0" }}>Pokébola preferida</span>
-                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                      {(["auto","pokeball","greatball","ultraball"] as const).map((p) => {
-                        const label = p === "auto" ? "Auto" : p === "pokeball" ? "Poké" : p === "greatball" ? "Great" : "Ultra";
-                        const sel = ab.preferredBall === p;
-                        return (
-                          <button key={p} onClick={(e) => { e.stopPropagation(); setAB({ preferredBall: p }); }} disabled={!ab.useBall} style={{
-                            background: sel ? "#f5cf6b" : "rgba(255,255,255,0.06)",
-                            color: sel ? "#0b0510" : "#eadfe8", border: "1px solid rgba(245,207,107,0.4)",
-                            borderRadius: 6, padding: "4px 8px", fontSize: 10, fontWeight: 700,
-                            cursor: ab.useBall ? "pointer" : "not-allowed", opacity: ab.useBall ? 1 : 0.5,
-                          }}>{label}</button>
-                        );
-                      })}
+                  {showAutoSettings && (
+                    <div style={{
+                      background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
+                      borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
+                      minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
+                      pointerEvents: "auto",
+                    }}>
+                      <div style={{ fontWeight: 800, color: "#f5cf6b", fontSize: 12, letterSpacing: 1 }}>⚙ CONFIGURAR AUTO</div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span>Lançar Pokébola</span>
+                        <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
+                      </div>
+                      <div style={{ display: "flex", gap: 4 }}>
+                        {(["auto", "poke", "great", "ultra"] as const).map((b) => (
+                          <button
+                            key={b}
+                            onClick={() => setAB({ preferredBall: b })}
+                            style={{
+                              flex: 1, padding: "6px 2px", borderRadius: 4, fontSize: 9, fontWeight: 900,
+                              background: ab.preferredBall === b ? "#f5cf6b" : "rgba(255,255,255,0.05)",
+                              color: ab.preferredBall === b ? "#0b0510" : "#fff",
+                              border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer"
+                            }}
+                          >
+                            {b === "auto" ? "MELHOR" : b === "poke" ? "COMUM" : b === "great" ? "GREAT" : "ULTRA"}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <span style={{ color: "#c8b8d0" }}>Auto-Poção HP% ≤ {Math.round((idle.autoHeal?.threshold ?? 0.5) * 100)}%</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <input type="range" min={0.1} max={0.9} step={0.05}
-                        value={idle.autoHeal?.threshold ?? 0.5}
-                        onChange={(e) => setIdle((s) => ({ ...s, autoHeal: { ...(s.autoHeal ?? { enabled: false, threshold: 0.5 }), threshold: parseFloat(e.target.value) } }))}
-                        style={{ flex: 1 }}
-                      />
-                      <input type="checkbox"
-                        checked={idle.autoHeal?.enabled ?? false}
-                        onChange={(e) => setIdle((s) => ({ ...s, autoHeal: { ...(s.autoHeal ?? { enabled: false, threshold: 0.5 }), enabled: e.target.checked } }))}
-                        title="Ativar auto-poção"
-                      />
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 10, color: "#8f8296", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 6 }}>
-                    💡 Clique em um Pokémon selvagem para lançar a Pokébola manualmente.
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (confirm("Sair e voltar para a tela de login?")) {
-                        signOutRubyM().finally(() => { window.location.reload(); });
-                      }
-                    }}
-                    style={{
-                      marginTop: 6,
-                      background: "linear-gradient(180deg,#7a1d1d,#4a0e0e)",
-                      border: "1px solid #ff6b6b", color: "#ffd7d7",
-                      borderRadius: 8, padding: "6px 10px", cursor: "pointer",
-                      fontSize: 11, fontWeight: 700, letterSpacing: 1,
-                    }}
-                  >
-                    🚪 IR PARA TELA DE LOGIN
-                  </button>
-                </div>
-              )}
-              {/* HUD de Ações Inferiores (Auto-Ataque e Bolas) */}
-              <div style={{
-                background: "rgba(11,5,16,0.95)", border: "1px solid rgba(201,184,255,0.3)",
-                borderRadius: 14, padding: "6px 12px", display: "flex", alignItems: "center", gap: 12,
-                boxShadow: "0 8px 32px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05)",
-                backdropFilter: "blur(12px)",
-              }}>
-                {/* Seletor Compacto de Bolas */}
-                <div style={{ display: "flex", gap: 4 }}>
-                  {([
-                    { id: "auto" as const, img: null, label: "A", count: null as number | null, tint: "#f5cf6b" },
-                    { id: "pokeball" as const, img: ballPokeImg, label: "Poké", count: idle.items.pokeball ?? 0, tint: "#ff8080" },
-                    { id: "greatball" as const, img: ballGreatImg, label: "Great", count: idle.items.greatball ?? 0, tint: "#7ec4ff" },
-                    { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
-                  ]).map((b) => {
-                    const sel = ab.preferredBall === b.id;
-                    return (
-                      <button
-                        key={b.id}
-                        onClick={() => setAB({ preferredBall: b.id, useBall: true })}
-                        title={b.id === "auto" ? "Auto (melhor disponível)" : `${b.label} (${b.count})`}
-                        style={{
-                          position: "relative", background: sel ? "rgba(201,184,255,0.2)" : "rgba(255,255,255,0.03)",
-                          border: sel ? `1.5px solid ${b.tint}` : "1.5px solid rgba(255,255,255,0.1)",
-                          borderRadius: 8, padding: 2, cursor: "pointer",
-                          width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
-                          transition: "all 0.2s",
-                        }}
-                      >
-                        {b.img ? (
-                          <img src={b.img} alt={b.label} width={20} height={20} style={{ imageRendering: "pixelated", filter: sel ? "none" : "grayscale(0.6) opacity(0.7)" }} />
-                        ) : (
-                          <span style={{ fontSize: 12, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>A</span>
-                        )}
-                        {b.count !== null && (
-                          <span style={{
-                            position: "absolute", bottom: -3, right: -3, background: "#0b0510",
-                            border: `1px solid ${b.tint}`, borderRadius: 5, padding: "0 2px",
-                            fontSize: 7, fontWeight: 800, color: b.tint, lineHeight: "8px", minWidth: 10, textAlign: "center",
-                          }}>{b.count > 99 ? "99+" : b.count}</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                  )}
 
-                <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.1)" }} />
-
-                {/* Botão de Auto-Ataque e Info Compacta */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
-                    title={on ? "Auto-batalha ATIVA" : "Auto-batalha desativada"}
-                    style={{
-                      background: on ? "rgba(94,194,106,0.15)" : "rgba(255,255,255,0.03)",
-                      border: on ? "1px solid #5ec26a" : "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 10, padding: 0, cursor: "pointer",
-                      width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center",
-                      position: "relative", transition: "all 0.3s",
-                    }}
-                  >
-                    <img
-                      src={autoIconImg}
-                      alt="Auto"
-                      width={28}
-                      height={28}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <button
+                      onClick={() => setAB({ enabled: !on })}
                       style={{
-                        imageRendering: "pixelated",
-                        filter: on ? "drop-shadow(0 0 4px #5ec26a)" : "grayscale(1) opacity(0.4)",
-                        animation: on ? "autoIconPulse 1.2s ease-in-out infinite" : "none",
+                        background: on ? "linear-gradient(135deg, #5ec26a 0%, #2e7d32 100%)" : "linear-gradient(135deg, #ff5c5c 0%, #b71c1c 100%)",
+                        color: "#fff", border: "2px solid rgba(255,255,255,0.2)", borderRadius: 12,
+                        padding: "10px 24px", fontWeight: 900, fontSize: 13, letterSpacing: 1.5,
+                        cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.4)", textTransform: "uppercase"
                       }}
-                    />
-                  </button>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                    <div style={{ fontSize: 9, fontWeight: 800, color: "#c9b8ff", letterSpacing: 0.5 }}>
-                      LV.{team[0]?.level ?? 1}
-                    </div>
-                    <div style={{ width: 60, height: 3, background: "rgba(0,0,0,0.5)", borderRadius: 2, overflow: "hidden" }}>
-                      <div style={{ 
-                        width: `${Math.min(100, ((team[0]?.xp ?? 0) / (100 + (team[0]?.level ?? 1) * 20)) * 100)}%`, 
-                        height: "100%", background: "#5ec26a", transition: "width 0.3s" 
-                      }} />
-                    </div>
+                    >
+                      {on ? "⚔ Auto-Batalha ON" : "🛡 Auto-Batalha OFF"}
+                    </button>
+                    <button
+                      onClick={() => setShowAutoSettings(!showAutoSettings)}
+                      style={{
+                        background: showAutoSettings ? "#c9b8ff" : "rgba(255,255,255,0.05)",
+                        color: showAutoSettings ? "#0b0510" : "#c9b8ff",
+                        border: "1px solid rgba(201,184,255,0.3)",
+                        borderRadius: 8, width: 28, height: 28, cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 14, transition: "all 0.2s",
+                      }}
+                    >⚙</button>
                   </div>
-
-                  <button
-                    onClick={() => setShowAutoSettings((v) => !v)}
-                    title="Configurar"
-                    style={{
-                      background: showAutoSettings ? "#c9b8ff" : "rgba(255,255,255,0.05)",
-                      color: showAutoSettings ? "#0b0510" : "#c9b8ff",
-                      border: "1px solid rgba(201,184,255,0.3)",
-                      borderRadius: 8, width: 28, height: 28, cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 14, transition: "all 0.2s",
-                    }}
-                  >⚙</button>
                 </div>
-              </>
+              </React.Fragment>
             );
           })()}
 
