@@ -391,6 +391,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
       email === "lordryuhhhuyuyghh@gmail.com" ||
       session?.user?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
     if (admin) return;
+    if (!session) return; // Se não tem sessão, não precisa checar manutenção contínua
+
     let stop = false;
     const tick = async () => {
       try {
@@ -399,16 +401,21 @@ export function AuthGate({ children }: { children: ReactNode }) {
           .select("value")
           .eq("key", "maintenance_mode")
           .maybeSingle();
-        const off = config && (config.value === "false" || config.value === false);
+        const maintenanceEnabled = config && (config.value === "true" || config.value === true);
+        
         if (stop) return;
-        setMaintenance(false);
-        // if (!off && session) await supabase.auth.signOut();
+        
+        if (maintenanceEnabled) {
+          setMaintenance(true);
+        } else {
+          setMaintenance(false);
+        }
       } catch {
         if (!stop) setMaintenance(false);
       }
     };
     void tick();
-    const iv = setInterval(tick, 30000);
+    const iv = setInterval(tick, 60000); // Aumentado para 60s para reduzir carga e chance de erro
     return () => { stop = true; clearInterval(iv); };
   }, [session]);
 
