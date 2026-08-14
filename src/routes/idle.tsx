@@ -5518,6 +5518,41 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ==== Main Quest Timer: Reset a cada 1 hora ====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const nowT = Date.now();
+      setIdle((s) => {
+        const mq = s.mainQuest;
+        if (!mq) return s;
+        if (mq.expiresAt && nowT >= mq.expiresAt) {
+          // Reset: próxima quest aleatória ou sequencial
+          const nextId = (mq.currentQuestId % QUEST_DATA.length) + 1;
+          pushChat(`⏳ Tempo esgotado! Uma nova Main Quest foi atribuída.`, "info");
+          return {
+            ...s,
+            mainQuest: {
+              currentQuestId: nextId,
+              progress: 0,
+              completed: false,
+              minimized: mq.minimized ?? false,
+              expiresAt: nowT + 3600000
+            }
+          };
+        }
+        // Inicializa expiração se não houver
+        if (!mq.expiresAt) {
+          return {
+            ...s,
+            mainQuest: { ...mq, expiresAt: nowT + 3600000 }
+          };
+        }
+        return s;
+      });
+    }, 5000);
+    return () => clearInterval(iv);
+  }, []);
+
 
 
   // ==== Peçonha (Terry) — DoT enquanto poisonUntilRef ativo ====
