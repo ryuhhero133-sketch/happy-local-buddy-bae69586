@@ -121,7 +121,10 @@ async function preloadCloudSave(userId: string) {
 /** Nunca deixa uma promise pendurada travar a tela de login. */
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error(`${label}: tempo esgotado`)), ms);
+    const t = setTimeout(() => {
+      console.warn(`[AuthGate] Timeout em: ${label}`);
+      resolve(null as any); // Resolve como null para não travar o fluxo
+    }, ms);
     p.then(
       (v) => { clearTimeout(t); resolve(v); },
       (e) => { clearTimeout(t); reject(e); },
@@ -235,18 +238,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
       }
 
       try {
-        const { data: config, error: cfgErr } = await (supabase as any)
+        const { data: config } = await (supabase as any)
           .from("server_config")
           .select("value")
           .eq("key", "maintenance_mode")
           .maybeSingle();
-        // FAIL-CLOSED: só libera se o banco disser explicitamente 'false'
         const off = config && (config.value === "false" || config.value === false);
-        if (cfgErr) warn("Erro config manutenção", cfgErr);
-        setMaintenance(false); // Liberado para todos pelo sistema central
+        setMaintenance(false); 
       } catch (e) {
-        warn("Erro ao verificar manutenção", e);
-        setMaintenance(false); // Liberado em caso de erro de conexão também
+        setMaintenance(false);
       }
 
 
@@ -342,7 +342,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setBootstrapping(true);
       const uid = currentUid;
       try {
-        const username = await withTimeout(ensureProfile(uid), 12000, "perfil");
+        const username = await withTimeout(ensureProfile(uid), 8000, "perfil");
         if (cancelled) return;
 
         if (username && username.trim().length > 0) {
