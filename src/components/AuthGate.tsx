@@ -1025,8 +1025,6 @@ function AuthScreen({
             <span className="animate-pulse">✨</span>
           </div>
         </PrimaryButton>
-          {busy ? "AGUARDE..." : primaryLabel}
-        </PrimaryButton>
 
         <div className="flex justify-between text-[10px] tracking-[2px]" style={{ color: "#fecaca" }}>
           {mode !== "login" ? (
