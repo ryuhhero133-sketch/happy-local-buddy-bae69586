@@ -95,7 +95,6 @@ export function TeamPanelHUD({ team, leaderHp, calcIdleMaxHp, onOpenPokemon }: a
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontWeight: 900, color: '#c9b8ff', fontSize: 10, letterSpacing: 1 }}>SUA EQUIPE</span>
-        <button onClick={onOpenPokemon} style={{ color: '#f5cf6b', fontSize: 10, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>GERENCIAR</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {team.slice(0, 3).map((p: any, i: number) => {
