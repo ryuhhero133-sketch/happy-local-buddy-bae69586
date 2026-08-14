@@ -4297,8 +4297,8 @@ function IdlePage() {
       setEnemies((prev) => {
         if (prev.length === 0) return prev;
         let changed = false;
-        const tx = trainerPos.x;
-        const ty = trainerPos.y;
+        const tx = trainerPosRef.current.x;
+        const ty = trainerPosRef.current.y;
         const next = prev.map((e) => {
           if (e.hp <= 0) return e;
           let ne = e;
