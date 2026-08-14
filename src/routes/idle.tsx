@@ -1443,13 +1443,15 @@ const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
 };
 
 // Duração (segundos) que 100 de energia dura em auto-battle como líder.
+// Pokémons não cansam mais (dur = 0), mantendo consistência com Míticos.
 const ENERGY_ACTIVE_DURATION_S: Partial<Record<Rarity, number>> = {
-  common: 25 * 60,       // 25 min
-  uncommon: 35 * 60,     // 35 min
-  rare: 1 * 3600,        // 1 h
-  epic: 2 * 3600,        // 2 h
-  legendary: 5 * 3600,   // 5 h
-  mythic: 0, mythic_shiny: 0,
+  common: 0,
+  uncommon: 0,
+  rare: 0,
+  epic: 0,
+  legendary: 0,
+  mythic: 0,
+  mythic_shiny: 0,
 };
 function energyDrainPerSec(rarity: Rarity): number {
   const dur = ENERGY_ACTIVE_DURATION_S[rarity] ?? 5 * 60;
@@ -3873,7 +3875,14 @@ function IdlePage() {
         if (keys.has("s") || keys.has("arrowdown")) dy += 1;
         if (keys.has("a") || keys.has("arrowleft")) dx -= 1;
         if (keys.has("d") || keys.has("arrowright")) dx += 1;
-        if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
+        if (dx === 0 && dy === 0) { 
+          if (moving) setMoving(false); 
+          return; 
+        }
+        // Quando o jogador move manualmente, desativa o auto-battle conforme solicitado.
+        if (idle.autoBattle?.enabled) {
+          setIdle(s => ({ ...s, autoBattle: { ...s.autoBattle!, enabled: false } }));
+        }
         if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
         const speed = 7 * (1 + honeyBonusNow());
@@ -4045,7 +4054,9 @@ function IdlePage() {
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
         const target = candidates[0];
-        // Leash logic: se o alvo inimigo estiver muito longe ( > 1600px), limpa o alvo
+        // Leash logic: Removido conforme solicitado para que o treinador persiga o alvo
+        // independentemente da distância no mapa.
+        /*
         if (target.kind === "enemy") {
           const dSq = (target.x - tp.x) ** 2 + (target.y - tp.y) ** 2;
           if (dSq > 1600 * 1600) {
@@ -4055,6 +4066,7 @@ function IdlePage() {
             return tp;
           }
         }
+        */
 
         const dx = target.x - tp.x;
         const dy = target.y - tp.y;
@@ -4065,13 +4077,22 @@ function IdlePage() {
         if (target.kind === "enemy") {
           const sr = stuckRef.current;
           if (sr.id === target.id) {
-            sr.count += 1;
+            // Se a distância NÃO DIMINUIU significativamente, incrementa o contador de stuck
+            const lastD = (sr as any).lastDist || Infinity;
+            if (dist >= lastD - 0.5) {
+              sr.count += 1;
+            } else {
+              // Se está se movendo em direção ao alvo, reduz o contador (evita blacklist em caminhadas longas)
+              sr.count = Math.max(0, sr.count - 2);
+            }
+            (sr as any).lastDist = dist;
           } else {
             stuckRef.current = { id: target.id, count: 1 };
+            (stuckRef.current as any).lastDist = dist;
           }
-          // ~150 ticks * 120ms = ~18s realmente travado sem progredir
-          if (stuckRef.current.count > 150) {
-            blacklistRef.current.set(target.id, nowT + 15000);
+          // ~250 ticks * 120ms = ~30s realmente travado
+          if (stuckRef.current.count > 250) {
+            blacklistRef.current.set(target.id, nowT + 10000);
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
             return tp;
@@ -4217,18 +4238,11 @@ function IdlePage() {
         const dist = Math.sqrt(bestD);
         
         // Auto-battle: se não tem target ou o target atual sumiu/morreu, persegue o mais próximo
-        // Se estiver longe (fora do ATTACK_RANGE), o auto-battle deve se mover até lá.
-        if (dist > ATTACK_RANGE && dist < 1200) {
-          // Apenas define o movimento, mas não o ID de ataque ainda
+        // Revisado: persegue inimigos independentemente da distância no mapa (removido o cap de 1200px)
+        if (dist > ATTACK_RANGE) {
           walkTargetRef.current = { x: target.x, y: target.y, label: "Perseguindo " + target.sp };
           setAttackTargetId(null);
           setTargetPet(target);
-          return prev;
-        }
-
-        if (dist > 1200) {
-          setAttackTargetId(null);
-          setTargetPet(null);
           return prev;
         }
         // marca alvo atual (para virar o pokémon na direção dele)
@@ -4419,13 +4433,9 @@ function IdlePage() {
         }
 
         setTimeout(() => {
-          setEnemyAttackAnim({
-            id: attackAnimIdRef.current++,
-            fromX: target.x, fromY: target.y,
-            toX: followerAtX, toY: followerAtY,
-            ts: Date.now(),
-            element: elementOf(target.sp),
-          });
+          // Efeito visual de skill quando o inimigo ataca o jogador
+          const enemyElement = elementOf(target.sp) || "normal";
+          pushFxAt(followerAtX, followerAtY - 20, `skill_${enemyElement}` as FxKind, "enemyDmg");
           pushFxAt(followerAtX, followerAtY - 34, `-${eDmg}`, "enemyDmg");
         }, 480);
         setLeaderHp((h) => {
@@ -10054,7 +10064,7 @@ function IdlePage() {
             </div>
           ) : (() => {
             const ab = idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
-            const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
+            const setAB = (patch: Partial<Omit<typeof ab, 'preferredBall'> & { preferredBall: typeof ab['preferredBall'] | 'masterball' }>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } as any }));
             const on = ab.enabled;
             return (
               <>
@@ -10086,7 +10096,7 @@ function IdlePage() {
                         <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
                       </div>
                       <div style={{ display: "flex", gap: 4 }}>
-                        {(["auto", "pokeball", "greatball", "ultraball"] as const).map((b) => (
+                        {(["auto", "pokeball", "greatball", "ultraball", "masterball"] as const).map((b) => (
                           <button
                             key={b}
                             onClick={() => setAB({ preferredBall: b })}
@@ -10097,7 +10107,7 @@ function IdlePage() {
                               border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer"
                             }}
                           >
-                            {b === "auto" ? "MELHOR" : b === "pokeball" ? "COMUM" : b === "greatball" ? "GREAT" : "ULTRA"}
+                            {b === "auto" ? "MELHOR" : b === "pokeball" ? "COMUM" : b === "greatball" ? "GREAT" : b === "ultraball" ? "ULTRA" : "MASTER"}
                           </button>
                         ))}
                       </div>
@@ -13281,7 +13291,7 @@ function TabOverlay({
 
                             {src && <img src={src} alt="" width={70} height={70} style={{ 
                               imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
-                              transform: `scale(${spriteScale * 1.8})`, // Reduzido de 2.2 para 1.8
+                              transform: `scale(${spriteScale * 1.3})`, // Reduzido de 1.8 para 1.3 para ficar proporcional
                               transformOrigin: 'center'
                             }} />}
                             {/* Slot number top-left */}
