@@ -9858,7 +9858,7 @@ function IdlePage() {
 
         {/* Profile & Team HUD (Top-Left) */}
         <div style={{
-          position: 'fixed', left: '20px', top: '80px',
+          position: 'fixed', left: '20px', top: '150px',
           display: 'flex', flexDirection: 'column', gap: '10px',
           zIndex: 1002, pointerEvents: 'none'
         }}>
