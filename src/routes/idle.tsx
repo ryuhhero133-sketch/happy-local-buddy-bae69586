@@ -9439,7 +9439,7 @@ function IdlePage() {
                       style={{
                         width: "100%", imageRendering: "pixelated",
                         "--face-scale": faceScale,
-                        transform: `scaleX(${faceScale})`,
+                        transform: `scaleX(${faceScale}) scale(1)`,
                       } as React.CSSProperties} />
                   )}
 
