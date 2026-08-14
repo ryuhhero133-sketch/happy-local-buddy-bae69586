@@ -147,7 +147,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [kickedMessage, setKickedMessage] = useState<string | null>(null);
-  const [maintenance, setMaintenance] = useState(false); // Liberado para todos
+  const [maintenance, setMaintenance] = useState(false); // Liberado para todos (Override forçado)
 
   useEffect(() => {
     setMounted(true);
@@ -406,7 +406,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
         if (stop) return;
         
         if (maintenanceEnabled) {
-          setMaintenance(true);
+          // setMaintenance(true); // Desativado para liberar o jogo
+          setMaintenance(false);
         } else {
           setMaintenance(false);
         }
