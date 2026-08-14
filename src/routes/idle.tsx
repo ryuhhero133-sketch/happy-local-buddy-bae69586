@@ -4973,11 +4973,15 @@ function IdlePage() {
           ...s,
           lastTickAt: Date.now(),
           pending: {
-            gold: s.pending.gold + inc.g,
+            gold: 0,
             rubies: s.pending.rubies + inc.r,
-            crystals: s.pending.crystals + inc.c,
+            crystals: 0,
             redshards: Math.min(RED_SHARD_PENDING_CAP, s.pending.redshards ?? 0),
           },
+          bank: {
+            ...s.bank,
+            gold: s.bank.gold + inc.g + s.pending.gold
+          }
         };
         const nt = ns.tasks.map((t) => t.id === "t2" && !t.done
           ? { ...t, progress: Math.min(t.target, Math.floor(ns.pending.gold + ns.totals.gold)), done: (ns.pending.gold + ns.totals.gold) >= t.target }
