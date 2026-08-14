@@ -1114,7 +1114,27 @@ export const GYM_RARE_DROPS: Record<GymFloorId, Array<{ id: string; chance: numb
 };
 
 
+const RARITY_COLORS: Record<string, { c: string; aura: string }> = {
+  common: { c: "#94a3b8", aura: "" },
+  uncommon: { c: "#4ade80", aura: "0 0 10px rgba(74, 222, 128, 0.3)" },
+  rare: { c: "#60a5fa", aura: "0 0 15px rgba(96, 165, 250, 0.6), 0 0 30px rgba(96, 165, 250, 0.3)" },
+  epic: { c: "#c084fc", aura: "0 0 20px rgba(192, 132, 252, 0.7), 0 0 40px rgba(192, 132, 252, 0.4)" },
+  legendary: { c: "#f59e0b", aura: "0 0 25px rgba(245, 158, 11, 0.8), 0 0 50px rgba(245, 158, 11, 0.5)" },
+  mythic: { c: "#ef4444", aura: "0 0 30px rgba(239, 68, 68, 0.9), 0 0 60px rgba(239, 68, 68, 0.6)" },
+  mythic_shiny: { c: "#f472b6", aura: "0 0 35px rgba(244, 114, 182, 1), 0 0 70px rgba(244, 114, 182, 0.7)" },
+};
+
+export type Enemy = {
+  id: number; sp: Species; hp: number; maxHp: number; x: number; y: number;
+  face: "left" | "right"; aggressive: boolean; aggroR: number; elite: boolean;
+  level: number; rarity: Rarity; xpTitle: boolean; rider: boolean;
+  guardian: boolean; apex: boolean; eventLegendary: boolean;
+  disguise?: Species; revealed: boolean; menace: boolean; mtcBoss: boolean;
+  drops?: string[];
+};
+
 // 🔻 Evento Vale dos Fragmentos: abre 1 hora a cada 5 horas (ciclo global, igual pra todos).
+
 export const VALE_CYCLE_MS = 5 * 60 * 60 * 1000;
 export const VALE_OPEN_MS = 60 * 60 * 1000;
 export function valeEventStatus(now: number = Date.now()): { open: boolean; msUntilChange: number } {
@@ -1195,6 +1215,8 @@ const ITEM_COLORS: Record<string, string> = {
   revive: "#ff5b8a", berry: "#4a7bff", key: "#f5cf6b",
   book_atk: "#ff5252", book_def: "#4a7bff", book_exp: "#5ec26a",
   book_exp_big: "#8bffb0", book_exp_max: "#ffd94d", book_vip: "#ffb347",
+  stone_grass: "#5ec26a", stone_fire: "#ff5252", stone_water: "#4a7bff",
+  stone_electric: "#f5cf6b", stone_dark: "#a855f7", stone_dragon: "#ff8b3d",
 };
 const ITEM_IMG: Record<string, string> = {
   potion: potionNewImg,
@@ -1211,6 +1233,9 @@ const ITEM_IMG: Record<string, string> = {
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
   cristal_fragmentado: assetUrlFromJson(iconFragmentCrystal),
   fragmento_vermelho: redShardImg,
+  stone_grass: "/items/stone-grass.png", stone_fire: "/items/stone-fire.png", 
+  stone_water: "/items/stone-water.png", stone_electric: "/items/stone-electric.png",
+  stone_dark: "/items/stone-dark.png", stone_dragon: "/items/stone-dragon.png",
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -4505,24 +4530,27 @@ function IdlePage() {
           xpAccumRef.current.map = idle.currentMap;
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
+          
+          // 💎 DROP DE STONES ELEMENTAIS ALEATÓRIAS (Qualquer Pokémon pode dropar, chance baixa)
+          const STONES = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
+          if (Math.random() < 0.05) { // 5% de chance base de drop de stone em qualquer mob
+            drops.push(STONES[Math.floor(Math.random() * STONES.length)]);
+          }
+
           const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
           if (isOddishMap) {
             // 🌿 EVENTO ODISSÉIA ODDISH — SÓ dropa Stones Elementais.
-            // Épico / mítico / mítico shiny / lendário são os únicos que dropam.
             const isValuable = target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
             if (isValuable) {
-              const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
-              // Drop nerfado: ~25% chance de 1 stone random
+              // Drop nerfado: ~25% chance de 1 stone random (acumula com a chance base acima)
               if (Math.random() < 0.25) {
                 const first = STONES[Math.floor(Math.random() * STONES.length)];
                 drops.push(first);
-                // ~8% de chance de vir uma SEGUNDA stone de elemento DIFERENTE
                 if (Math.random() < 0.08) {
                   const rest = STONES.filter((s) => s !== first);
                   drops.push(rest[Math.floor(Math.random() * rest.length)]);
                 }
               }
-              // Míticos/shiny: 40% de chance de bônus de uma stone extra diferente (antes garantido)
               if ((target.rarity === "mythic" || target.rarity === "mythic_shiny") && Math.random() < 0.40) {
                 const already = new Set(drops);
                 const rest = STONES.filter((s) => !already.has(s));
@@ -4534,7 +4562,6 @@ function IdlePage() {
               if (it.id === "pokeball") continue;
               if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
             }
-            // Ultra Ball: raro+, 30% padrão. Mapas Terry/n2/n3 têm chance elevada e Great Ball extra.
             const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
             const cm = idle.currentMap;
             const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
@@ -6368,7 +6395,14 @@ function IdlePage() {
       // 🏷️ TÍTULO DE XP — a partir do Lv 5.000 de treinador, alguns selvagens
       // nascem com o título "XP" acima da cabeça e valem 2x de experiência.
       const xpTitle = (idle.trainerLevel ?? 1) >= 5000 && Math.random() < 0.12;
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, xpTitle, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss };
+      // 💎 DROP DE STONES ELEMENTAIS ALEATÓRIAS (Qualquer Pokémon pode dropar, chance baixa)
+      const STONES_LIST = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
+      const enemyDrops: string[] = [];
+      if (Math.random() < 0.05) { // 5% de chance base de drop de stone
+        enemyDrops.push(STONES_LIST[Math.floor(Math.random() * STONES_LIST.length)]);
+      }
+
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, xpTitle, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, drops: enemyDrops } as any;
 
 
     }
@@ -8915,7 +8949,6 @@ function IdlePage() {
                         animation: "pulse 1.6s ease-in-out infinite",
                         pointerEvents: "none", zIndex: -1,
                       }} />
-                      {/* Anel de estrelas girando */}
                       <div style={{
                         position: "absolute", inset: -46, borderRadius: "50%",
                         border: "2px solid rgba(180,120,255,0.55)",
@@ -8936,6 +8969,36 @@ function IdlePage() {
                       ))}
                     </>
                   )}
+
+                  {/* Element Floating Icon (for drops) */}
+                  {(["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"].some(s => (e as any).drops?.includes(s))) && (
+                    <div className="stone-float-indicator" style={{
+                      position: "absolute", top: -15, right: -5,
+                      width: 18, height: 18, borderRadius: "50%",
+                      background: "rgba(255,255,255,0.8)", border: "1.5px solid #fff",
+                      boxShadow: "0 0 10px rgba(255,255,255,0.8)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 10, animation: "floatstone 2s ease-in-out infinite",
+                      zIndex: 10, pointerEvents: "none"
+                    }}>
+                      {(e as any).drops?.includes("stone_grass") ? "🌿" : 
+                       (e as any).drops?.includes("stone_fire") ? "🔥" :
+                       (e as any).drops?.includes("stone_water") ? "💧" :
+                       (e as any).drops?.includes("stone_electric") ? "⚡" :
+                       (e as any).drops?.includes("stone_dark") ? "🌑" : "🐉"}
+                    </div>
+                  )}
+
+                  {/* Aura de Raridade no Inimigo */}
+                  {RARITY_COLORS[e.rarity as string]?.aura && (
+                    <div style={{
+                      position: "absolute", inset: -10, borderRadius: "50%",
+                      boxShadow: `inset 0 0 20px ${RARITY_COLORS[e.rarity as string].c}66, ${RARITY_COLORS[e.rarity as string].aura}`,
+                      pointerEvents: "none", zIndex: -1,
+                      animation: "auraPulse 2s ease-in-out infinite"
+                    }} />
+                  )}
+
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
                   {e.sp === "raichu" && !camouflaged && (
                     <div style={{
@@ -11138,16 +11201,40 @@ function IdlePage() {
             </div>
           );
         })(), document.body)}
+        {/* ═══ 🕰 BUFFS ATIVOS (Incensos / Orbs) ═══ */}
+        <div style={{
+          position: "fixed", top: 10, left: "50%", transform: "translateX(-50%)",
+          display: "flex", gap: 10, zIndex: 10005, pointerEvents: "none"
+        }}>
+          {(() => {
+            const now = Date.now();
+            const activeBuffs = [
+              { id: "exp", until: idle.buffs.expMultUntil, icon: "✨", label: "EXP", color: "#6bd4ff" },
+              { id: "gold", until: idle.buffs.goldMultUntil, icon: "🪙", label: "OURO", color: "#f5cf6b" },
+              { id: "honey", until: Math.max(idle.buffs.honeyUntil ?? 0, idle.buffs.honeyRareUntil ?? 0), icon: "🍯", label: "MEL", color: "#ffd94d" },
+              { id: "orb", until: idle.buffs.orbUntil, icon: "🔮", label: "ORB", color: "#c084fc" },
+              { id: "team", until: idle.buffs.teamOrbUntil, icon: "👥", label: "TIME", color: "#7ef2a2" },
+            ].filter(b => b.until && b.until > now);
 
+            if (activeBuffs.length === 0) return null;
 
-
-
-
-
-
-
-
-
+            return activeBuffs.map(b => (
+              <div key={b.id} style={{
+                background: "rgba(0,0,0,0.7)", border: `1px solid ${b.color}`, borderRadius: 12,
+                padding: "4px 10px", display: "flex", alignItems: "center", gap: 6,
+                boxShadow: `0 0 10px ${b.color}44`, backdropFilter: "blur(4px)", pointerEvents: "auto"
+              }}>
+                <span style={{ fontSize: 14 }}>{b.icon}</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  <span style={{ fontSize: 8, fontWeight: 900, color: b.color, letterSpacing: 1 }}>{b.label}</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "monospace" }}>
+                    {fmtOddishMs(b.until! - now)}
+                  </span>
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
 
       {/* Incubadora — animação de sucesso/falha */}
       {orbAnim && (
@@ -13035,7 +13122,7 @@ function TabOverlay({
       flexDirection: "column",
       pointerEvents: "auto",
       overflow: "hidden",
-      zIndex: 200000,
+      zIndex: 2000000,
       border: "1px solid rgba(201, 184, 255, 0.3)",
       borderRadius: "20px",
       boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(201, 184, 255, 0.1)"
@@ -13110,14 +13197,14 @@ function TabOverlay({
 
 
           {(() => {
-            const RARITY_COLORS: Record<string, { c: string; label: string }> = {
+            const RARITY_COLORS: Record<string, { c: string; label: string; aura?: string }> = {
               common:       { c: "#c8b8d0", label: "COMUM" },
               uncommon:     { c: "#7ef2a2", label: "INCOMUM" },
-              rare:         { c: "#6bd4ff", label: "RARO" },
-              epic:         { c: "#c084fc", label: "ÉPICO" },
-              legendary:    { c: "#f5cf6b", label: "LENDÁRIO" },
-              mythic:       { c: "#ff6b3d", label: "MÍTICO" },
-              mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦" },
+              rare:         { c: "#6bd4ff", label: "RARO", aura: "0 0 15px rgba(107, 212, 255, 0.6)" },
+              epic:         { c: "#c084fc", label: "ÉPICO", aura: "0 0 20px rgba(192, 132, 252, 0.7)" },
+              legendary:    { c: "#f5cf6b", label: "LENDÁRIO", aura: "0 0 25px rgba(245, 207, 107, 0.8)" },
+              mythic:       { c: "#ff6b3d", label: "MÍTICO", aura: "0 0 30px rgba(255, 107, 61, 0.9)" },
+              mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦", aura: "0 0 35px rgba(255, 151, 225, 1)" },
             };
             return (
               <div style={{
@@ -13247,9 +13334,9 @@ function TabOverlay({
                             width: 82, height: 82, borderRadius: 14,
                             background: "rgba(0,0,0,0.4)",
                             border: "1.5px solid rgba(245, 207, 107, 0.2)",
-                            boxShadow: `inset 0 0 14px ${rc}22, 0 3px 10px rgba(0,0,0,0.5)`,
+                            boxShadow: `inset 0 0 14px ${rc}22, 0 3px 10px rgba(0,0,0,0.5), ${rarityInfo.aura || ""}`,
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            position: "relative", overflow: "hidden",
+                            position: "relative", overflow: "visible", // mudado para visible para a aura aparecer
                           }}>
 
                             {src && <img src={src} alt="" width={70} height={70} style={{ 
@@ -15322,7 +15409,7 @@ function TabOverlay({
           </div>
         );
       })()}
-        
+
       </div>
     </div>
   );
