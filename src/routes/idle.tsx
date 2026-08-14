@@ -15461,7 +15461,7 @@ function TabOverlay({
                             }}
                           >
                             {gifMap[c.species] ? (
-                              <img src={gifMap[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
+                              <img src={gifMap[c.species]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated" }} />
                             ) : (
                               <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
                             )}
