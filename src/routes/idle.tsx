@@ -8137,7 +8137,9 @@ function IdlePage() {
           })()}
 
           {/* Painel da Equipe (Abaixo do Perfil do Treinador) */}
-          <div className="team-panel-hud" style={{ 
+          {tab !== "pokemon" && (
+            <div className="team-panel-hud" style={{ 
+
             display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
             padding: '12px', background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(10px)',
             borderRadius: '15px', border: '1px solid rgba(201,184,255,0.3)',
@@ -8199,7 +8201,8 @@ function IdlePage() {
                 </button>
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* ============ COLUNA DIREITA ============ */}
@@ -10021,7 +10024,7 @@ function IdlePage() {
                 background: "rgba(11,5,16,0.95)",
                 border: `2px solid ${bColor}`,
                 borderRadius: 10, padding: "10px 16px",
-                display: "flex", alignItems: "center", gap: 12, zIndex: 20,
+                display: "flex", alignItems: "center", gap: 12, zIndex: 1000000,
                 boxShadow: `0 0 20px ${bColor}66`,
                 animation: "chest-pop 220ms ease-out",
               }}>
