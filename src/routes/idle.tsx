@@ -8005,10 +8005,9 @@ function IdlePage() {
 
         {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
         <div className="trainer-profile-hud" style={{ 
-          position: 'fixed', top: '75px', left: '20px', width: '190px', 
-          display: "flex", flexDirection: "column", gap: 15, zIndex: 1005,
-          pointerEvents: 'auto'
+          display: "none"
         }}>
+
           {(() => {
             const trainerLv = idle.trainerLevel ?? 1;
             const nextAt = trainerXpToNext(trainerLv);
