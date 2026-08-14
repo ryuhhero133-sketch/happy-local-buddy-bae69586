@@ -10358,6 +10358,7 @@ function IdlePage() {
               trainerLevel={idle.trainerLevel ?? 1}
               onUpgradeBook={upgradeBook}
             />
+            </div>
           )}
         {/* Painel lateral antigo removido para evitar duplicidade na HUD */}
 
