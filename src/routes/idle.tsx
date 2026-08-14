@@ -4702,8 +4702,9 @@ function IdlePage() {
             ? (2 + Math.floor(Math.random() * 4))
             : Math.floor(35 + Math.random() * 55);
           // Se o treinador passou do cap do mapa, ouro colapsa junto com o XP.
-          const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
-          const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
+          const mapDefKill = IDLE_MAPS[s.currentMap];
+          const mapCapGold = mapDefKill?.maxLevel;
+          const overCapGold = mapCapGold != null ? Math.max(0, (s.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1);
           const gold = Math.max(1, Math.floor(baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
           if (isRiderKill) {
