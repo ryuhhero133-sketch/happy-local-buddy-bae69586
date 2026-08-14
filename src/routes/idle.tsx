@@ -35,7 +35,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
-import { ActiveBuffsHUD, TrainerProfileHUD, TeamPanelHUD } from "@/components/GameHUDs";
+import { TrainerProfileHUD, TeamPanelHUD } from "@/components/GameHUDs";
 
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
@@ -4525,7 +4525,7 @@ function IdlePage() {
           const mythEventXpMult = idle.currentMap === "evento_myth" ? 6 : 1;
           const grassOddishXpMult = idle.currentMap === "grass_oddish" ? 3 : 1;
           const xpTitleMult = target.xpTitle ? 2 : 1; // 🏷️ título XP dobra a experiência
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * xpTitleMult);
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.12 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * xpTitleMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -4822,7 +4822,10 @@ function IdlePage() {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
-                 const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
+                const rKey = target.rarity as string;
+                const rarityMult = (rKey === "mythic" || rKey === "mythic_shiny") ? 0.01 : target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
+
+
                 const gymCapMult = GYM_FLOOR_BY_ID[idle.currentMap]?.captureMult ?? 1;
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult * gymCapMult;
               }
@@ -5934,7 +5937,9 @@ function IdlePage() {
     { sp: "gloom" as Species,      w: 2, forcedRarity: "rare" },
     { sp: "parasect" as Species,   w: 2, forcedRarity: "rare" },
     // (Épico só é liberado quando o líder chega ao nível 50 — em outros mapas)
+    // Raridades superiores (Lendário/Mítico) não aparecem na Arena/Vale Verdejante.
   ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
+
 
   function pickArenaSpawn(): { sp: Species; forcedRarity?: Rarity } {
     const total = ARENA_SPAWN_TABLE.reduce((s, e) => s + e.w, 0);
@@ -6729,9 +6734,9 @@ function IdlePage() {
     stone_grass: 10, stone_fire: 10, stone_water: 10,
     stone_electric: 10, stone_dark: 15, stone_dragon: 20,
   };
-  // Sell 250 stones → 2 safiras
-  const STONE_SAFIRA_BATCH = 250;
-  const STONE_SAFIRA_PER_BATCH = 2;
+  // Sell 1000 stones → 8 safiras (250:2 = 125:1 ratio kept, 1000 = 8)
+  const STONE_SAFIRA_BATCH = 1000;
+  const STONE_SAFIRA_PER_BATCH = 8;
 
 
   const sellItem = (id: string, qty = 1, currency: "gold" | "crystal" | "safira" = "gold") => {
@@ -12299,6 +12304,18 @@ function IdlePage() {
 
 
 
+      {/* HUD de Buffs Ativos — Posicionado abaixo do tempo para evitar sobreposições */}
+      <div style={{
+        position: 'fixed',
+        top: 60,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 10001,
+        pointerEvents: 'none'
+      }}>
+        <ActiveBuffsHUD buffs={idle.buffs} />
+      </div>
+
       {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
       {pendingGate && createPortal(
         <div onClick={() => setPendingGate(null)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
@@ -12697,6 +12714,54 @@ function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, res
   );
 }
 
+function ActiveBuffsHUD({ buffs }: { buffs: any }) {
+  if (!buffs) return null;
+  const now = Date.now();
+  const active = [];
+  if (buffs.expMultUntil && now < buffs.expMultUntil) 
+    active.push({ id: 'exp', label: 'EXP', icon: '✨', color: '#6bd4ff', end: buffs.expMultUntil });
+  if (buffs.goldMultUntil && now < buffs.goldMultUntil) 
+    active.push({ id: 'gold', label: 'VIP', icon: '💰', color: '#ffd94d', end: buffs.goldMultUntil });
+  if (buffs.teamOrbUntil && now < buffs.teamOrbUntil)
+    active.push({ id: 'team', label: 'TIME', icon: '👥', color: '#c084fc', end: buffs.teamOrbUntil });
+  if (buffs.orbUntil && now < buffs.orbUntil)
+    active.push({ id: 'orb', label: 'ORB', icon: '🔮', color: '#a7d8ff', end: buffs.orbUntil });
+
+  if (active.length === 0) return null;
+
+  const fmt = (ms: number) => {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(s / 60), r = s % 60;
+    return `${m}:${String(r).padStart(2, "0")}`;
+  };
+
+  return (
+    <div style={{ display: 'flex', gap: 6, pointerEvents: 'auto' }}>
+      {active.map(b => (
+        <div key={b.id} style={{
+          background: 'rgba(11,5,16,0.9)',
+          border: `1px solid ${b.color}66`,
+          borderRadius: 8,
+          padding: '4px 10px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 1,
+          boxShadow: `0 2px 10px rgba(0,0,0,0.5), 0 0 5px ${b.color}22`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 900, color: b.color }}>
+            <span>{b.icon}</span>
+            <span style={{ letterSpacing: 1 }}>{b.label}</span>
+          </div>
+          <div style={{ fontSize: 9, color: '#fff', opacity: 0.8, fontFamily: 'monospace', fontWeight: 700 }}>
+            {fmt(b.end - now)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ProgressRow({ icon, label, value, target }: { icon: string; label: string; value: number; target: number }) {
   const pct = Math.min(100, (value / target) * 100);
   return (
@@ -13041,6 +13106,8 @@ function TabOverlay({
   };
   const openFragConfirm = (uids: string[]) => {
     const PRISMA_BY_RARITY: Record<string, number> = { common: 1, uncommon: 1, rare: 2, epic: 3, legendary: 5, mythic: 10, mythic_shiny: 20 };
+    const FRAG_HAB_BY_LEVEL: Record<string, number> = { common: 5, uncommon: 10, rare: 20, epic: 40, legendary: 80, mythic: 150, mythic_shiny: 300 };
+    const FRAG_DEF_BY_LEVEL: Record<string, number> = { common: 5, uncommon: 10, rare: 20, epic: 40, legendary: 80, mythic: 150, mythic_shiny: 300 };
     const entries = uids
       .map((uid) => collection.find((e) => e.uid === uid))
       .filter((e): e is CollectionEntry => !!e)
@@ -13052,7 +13119,19 @@ function TabOverlay({
   };
   const confirmFrag = () => {
     if (!fragConfirm) return;
-    fragConfirm.entries.forEach((e) => onFragmentCollection(e.uid));
+    fragConfirm.entries.forEach((e) => {
+      // Cálculo de fragmentos de habilidade/defesa baseado no nível e raridade
+      const baseFrags = 1;
+      const rarityMult: Record<string, number> = { 
+        common: 1, uncommon: 2, rare: 4, epic: 8, 
+        legendary: 16, mythic: 32, mythic_shiny: 64 
+      };
+      const mult = rarityMult[e.rarity] ?? 1;
+      const countHab = Math.floor((e.level / 10) * mult) + baseFrags;
+      const countDef = Math.floor((e.level / 10) * mult) + baseFrags;
+
+      onFragmentCollection(e.uid);
+    });
     setBulkSel(new Set());
     setBulkMode(false);
     setFragConfirm(null);
@@ -13271,7 +13350,6 @@ function TabOverlay({
                         boxShadow: isLeader
                           ? "0 6px 18px rgba(0,0,0,0.5), inset 0 0 16px rgba(245,207,107,0.05)"
                           : "0 3px 10px rgba(0,0,0,0.5)",
-
                         position: "relative", overflow: "hidden",
                       }}>
                         {/* sparkle overlay */}
@@ -13530,6 +13608,8 @@ function TabOverlay({
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
           safira_verde: "Safira Verde 💚",
+          frag_habilidade: "Fragmento de Habilidade 📖",
+          frag_defesa: "Fragmento de Defesa 🛡️",
           carta_governante: "Carta do Governante 👑",
           carta_incubadora: "Carta da Incubadora Lendária 🔮",
           carta_plus: "Carta Suprema Plus ✦",
@@ -13854,7 +13934,7 @@ function TabOverlay({
                           <div style={{ display: "flex", gap: 4, width: "100%" }}>
                             <button
                               onClick={() => {
-                                const bulk = id === "book_atk" || id === "book_def" || id === "potion";
+                                const bulk = id === "book_atk" || id === "book_def" || id === "potion" || id === "safira_verde" || id.startsWith("stone_");
                                 if (bulk && n > 1) {
                                   const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
                                   if (raw == null) return;
@@ -13870,7 +13950,6 @@ function TabOverlay({
                                 color: "#000", border: "1px solid #fff4d0",
                                 borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
                                 boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-
                               }}
                             >{isEgg ? "CHOCAR" : "USAR"}</button>
                             {sellPrice > 0 && !id.startsWith("stone_") && (
@@ -13883,7 +13962,6 @@ function TabOverlay({
                                   color: "#fff", border: "1px solid rgba(255,255,255,0.2)",
                                   borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
                                   boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-
                                 }}
                               >💰{sellPrice}</button>
                             )}
@@ -13891,28 +13969,29 @@ function TabOverlay({
                             {id.startsWith("stone_") && (
                               <button
                                 onClick={() => {
-                                  const maxBatches = Math.floor(n / 250);
+                                  const maxBatches = Math.floor(n / 1000);
                                   if (maxBatches <= 0) return;
-                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
+                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n1000 stones = 8 💚 Safiras`, String(maxBatches));
                                   if (raw == null) return;
                                   const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
-                                  onSellItem(id, b * 250, "safira");
+                                  onSellItem(id, b * 1000, "safira");
                                 }}
-                                title="Vender por Safira Verde (250 stones = 2 safiras)"
-                                disabled={n < 250}
+                                title="Vender por Safira Verde (1000 stones = 8 safiras)"
+                                disabled={n < 1000}
                                 style={{
                                   padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                  background: n < 1000 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
                                   color: "#0b2540", border: "1.5px solid #065f46",
-                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
-                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
+                                  borderRadius: 6, cursor: n < 1000 ? "not-allowed" : "pointer",
+                                  boxShadow: "0 2px 0 #065f46", opacity: n < 1000 ? 0.5 : 1,
                                 }}
                               >💚</button>
                             )}
-
                           </div>
                           {(() => {
                             const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+                              book_atk: { to: "frag_habilidade", cost: 1000, trainerLv: 50, label: "Frag Hab." },
+                              book_def: { to: "frag_defesa", cost: 1000, trainerLv: 50, label: "Frag Def." },
                               book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
                               book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
                               book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
