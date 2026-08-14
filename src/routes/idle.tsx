@@ -8945,7 +8945,7 @@ function IdlePage() {
 
 
             {/* ❄️ NPC Ancião Glacial — visível apenas no Santuário Glacial */}
-            {idle.currentMap === "santuario_glacial" && (() => {
+            {idle.currentMap === "santuario_glacial" && !idle.redeemedCodes?.RESETPERSON && (() => {
               const npcX = WORLD_W / 2, npcY = WORLD_H / 2 - 40;
               return (
                 <div
@@ -10111,6 +10111,7 @@ function IdlePage() {
                   background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
                   borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
                   minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
+                  pointerEvents: "auto",
                 }}>
                   <div style={{ fontWeight: 800, color: "#f5cf6b", fontSize: 12, letterSpacing: 1 }}>⚙ CONFIGURAR AUTO</div>
                   <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -10124,7 +10125,7 @@ function IdlePage() {
                         const label = p === "auto" ? "Auto" : p === "pokeball" ? "Poké" : p === "greatball" ? "Great" : "Ultra";
                         const sel = ab.preferredBall === p;
                         return (
-                          <button key={p} onClick={() => setAB({ preferredBall: p })} disabled={!ab.useBall} style={{
+                          <button key={p} onClick={(e) => { e.stopPropagation(); setAB({ preferredBall: p }); }} disabled={!ab.useBall} style={{
                             background: sel ? "#f5cf6b" : "rgba(255,255,255,0.06)",
                             color: sel ? "#0b0510" : "#eadfe8", border: "1px solid rgba(245,207,107,0.4)",
                             borderRadius: 6, padding: "4px 8px", fontSize: 10, fontWeight: 700,
@@ -14909,7 +14910,7 @@ function TabOverlay({
             return (
               <div
                 onClick={() => setOrbPicker(null)}
-                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 10000, display: "grid", placeItems: "center", padding: 16 }}
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 9999999, display: "grid", placeItems: "center", padding: 16 }}
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
