@@ -11581,7 +11581,7 @@ function IdlePage() {
                       {fuelOfTab.length === 0 ? (
                         <div style={{ fontSize: 11, color: "#8a7a9c", padding: 8, textAlign: "center" }}>Nenhum {FUEL_TIERS[activeTab].label} disponível.</div>
                       ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "16vh", overflowY: "auto" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "140px", overflowY: "auto" }}>
                           {fuelOfTab.map((c) => {
                             const sel = worldTraderFuel.has(c.uid);
                             const disabled = !sel && fuelCount >= MAX_FUEL;
