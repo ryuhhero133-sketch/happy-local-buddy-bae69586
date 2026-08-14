@@ -4001,7 +4001,10 @@ function IdlePage() {
   useEffect(() => {
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
-      if (restingRef.current) { if (moving) setMoving(false); return; }
+      if (restingRef.current) {
+        if (movingRef.current) setMoving(false);
+        return;
+      }
       // ---- Modo manual (WASD) — só se NÃO houver destino clicado ----
       if (!autoRef.current && !walkTargetRef.current) {
         const keys = keysRef.current;
@@ -4010,15 +4013,16 @@ function IdlePage() {
         if (keys.has("s") || keys.has("arrowdown")) dy += 1;
         if (keys.has("a") || keys.has("arrowleft")) dx -= 1;
         if (keys.has("d") || keys.has("arrowright")) dx += 1;
-        if (dx === 0 && dy === 0) { 
-          if (moving) setMoving(false); 
-          return; 
+
+        if (dx === 0 && dy === 0) {
+          if (movingRef.current) setMoving(false);
+          return;
         }
         // Quando o jogador move manualmente, desativa o auto-battle conforme solicitado.
-        if (idle.autoBattle?.enabled) {
+        if (autoBattleRef.current?.enabled) {
           setIdle(s => ({ ...s, autoBattle: { ...s.autoBattle!, enabled: false } }));
         }
-        if (!moving) setMoving(true);
+        if (!movingRef.current) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
         const speed = 7 * (1 + honeyBonusNow());
         const stepX = (dx / mag) * speed;
