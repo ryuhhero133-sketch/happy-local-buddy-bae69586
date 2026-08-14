@@ -13279,7 +13279,7 @@ function TabOverlay({
 
                             {src && <img src={src} alt="" width={70} height={70} style={{ 
                               imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
-                              transform: `scale(${spriteScale * 1.8})`, // Reduzido de 2.2 para 1.8
+                              transform: `scale(${spriteScale * 1.3})`, // Reduzido de 1.8 para 1.3 para ficar proporcional
                               transformOrigin: 'center'
                             }} />}
                             {/* Slot number top-left */}
