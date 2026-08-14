@@ -4044,11 +4044,10 @@ function IdlePage() {
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
         const target = candidates[0];
-        // Leash logic: se o alvo inimigo estiver muito longe ( > 1200px), limpa o alvo
-        // Isso impede que o treinador persiga indefinidamente um alvo que ficou pra trás.
+        // Leash logic: se o alvo inimigo estiver muito longe ( > 1600px), limpa o alvo
         if (target.kind === "enemy") {
           const dSq = (target.x - tp.x) ** 2 + (target.y - tp.y) ** 2;
-          if (dSq > 1200 * 1200) {
+          if (dSq > 1600 * 1600) {
             setAttackTargetId(null);
             setTargetPet(null);
             if (moving) setMoving(false);
@@ -9023,16 +9022,16 @@ function IdlePage() {
                       left: "50%",
                       top: "50%",
                       transform: "translate(-50%, -50%)",
-                      width: 120,
-                      height: 120,
+                      width: 140,
+                      height: 140,
                       pointerEvents: "none",
-                      zIndex: 20,
-                      animation: "fxpop 0.4s forwards"
+                      zIndex: 100,
+                      animation: "fxpop 0.5s forwards"
                     }}>
                       <img 
                         src={ELEMENT_FX_IMG[attackAnim.element as ElementType] || fxSlashImg} 
                         alt="" 
-                        style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 0 8px rgba(255,255,255,0.8))" }} 
+                        style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 0 10px rgba(255,255,255,0.9))" }} 
                       />
                     </div>
                   )}
@@ -10063,7 +10062,7 @@ function IdlePage() {
               <>
                 {/* Buffs Ativos HUD */}
                 <div style={{
-                  position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
+                  position: "fixed", top: 80, left: "50%", transform: "translateX(-50%)",
                   display: "flex", gap: 8, zIndex: 1000000, pointerEvents: "none"
                 }}>
                   <ActiveBuffsHUD buffs={idle.buffs} />
@@ -10246,6 +10245,7 @@ function IdlePage() {
 
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
           {tab !== "batalha" && (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 2000000, pointerEvents: 'auto' }}>
             <TabOverlay
               spriteScale={spriteScale}
               tab={tab}
@@ -11847,7 +11847,7 @@ function IdlePage() {
         const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
         const src = GIF[pet.species];
         return (
-          <div onClick={() => setPetDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={() => setPetDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 2100000, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(180deg,#1a1030,#0e0818)", border: "2px solid #f5cf6b", borderRadius: 12, padding: 18, minWidth: 300, maxWidth: 380, color: "#eadfe8" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ width: 72, height: 72, background: "#0b0510", borderRadius: 8, display: "grid", placeItems: "center", overflow: "hidden", border: "1px solid #f5cf6b55" }}>
@@ -11986,7 +11986,7 @@ function IdlePage() {
         const lore = SPECIES_LORE[sp] ?? RARITY_LORE[base.rarity] ?? "Um Pokémon único, com história ainda por contar.";
         const isCurrent = team[0]?.uid === entry.uid;
         return (
-          <div onClick={() => setColecaoDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={() => setColecaoDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 2100000, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{
               background: "linear-gradient(180deg, #fff8e5 0%, #f5e6c8 100%)",
               border: `3px solid ${rColor}`,
