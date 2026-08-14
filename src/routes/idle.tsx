@@ -10248,7 +10248,8 @@ function IdlePage() {
             />
             </div>
           )}
-        {/* Painel lateral antigo removido para evitar duplicidade na HUD */}
+        </div>
+      </div>
 
 
       <style>{`
