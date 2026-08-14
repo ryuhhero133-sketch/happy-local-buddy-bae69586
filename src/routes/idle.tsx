@@ -9862,6 +9862,7 @@ function IdlePage() {
                 </div>
                 <button
                   onClick={() => {
+                    playClick();
                     if (nearBuilding === "lab") { setVaultOpen(true); setNearBuilding(null); }
                     else if (nearBuilding === "gym") { setGymOpen(true); setNearBuilding(null); }
                     else if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
@@ -9872,6 +9873,7 @@ function IdlePage() {
                     color: "#0b0510", border: "none", borderRadius: 6,
                     padding: "8px 14px", fontWeight: 900, fontSize: 12,
                     letterSpacing: 1, cursor: "pointer",
+                    pointerEvents: "auto",
                   }}
                 >{bAction}</button>
               </div>
