@@ -569,7 +569,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   santuario_glacial: { name: "Santuário Glacial", diff: "SEGURO", bg: mapSnowUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 10, overlay: "rgba(200,230,255,0.3)" },
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
-  vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
+  vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
+
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -1166,7 +1167,8 @@ export type MainQuestState = {
   currentQuestId: number;
   progress: number;
   completed: boolean;
-  minimized?: boolean; // 📉 Adicionado: opção de minimizar HUD
+  minimized?: boolean;
+  expiresAt?: number;
 };
 
 export type MainQuestDef = {
@@ -1174,14 +1176,15 @@ export type MainQuestDef = {
   title: string;
   description: string;
   target: number;
-  type: "capture_rarity" | "capture_species";
+  type: "capture_rarity" | "capture_species" | "kill_count";
   rarity?: Rarity;
   species?: Species;
   reward: {
     items?: Record<string, number>;
     redshards?: number;
-    trainerXp?: number; // 🌟 Bônus de XP para o Treinador
-    teamXp?: number;    // 🐾 Bônus de XP para os Pokémons
+    trainerXp?: number;
+    teamXp?: number;
+    trainerLevels?: number;
   };
 };
 
@@ -1193,63 +1196,88 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 10,
     type: "capture_rarity",
     rarity: "uncommon",
-    reward: { items: { ultraball: 10 }, trainerXp: 500, teamXp: 1000 }
+    reward: { items: { fragmento_ultraball: 5 }, trainerXp: 500, teamXp: 1000 }
   },
   {
     id: 2,
-    title: "Treinamento Árduo",
-    description: "Capture 15 Pokémon Comuns para treinar seu foco.",
-    target: 15,
-    type: "capture_rarity",
-    rarity: "common",
-    reward: { redshards: 50, trainerXp: 1500, teamXp: 3000 }
+    title: "Mestre da Caça",
+    description: "Derrote 100 Pokémon para ganhar Fragmentos de Ultra Ball.",
+    target: 100,
+    type: "kill_count",
+    reward: { items: { fragmento_ultraball: 25 }, trainerXp: 2000, teamXp: 5000 }
   },
   {
     id: 3,
-    title: "Caçador de Raridades",
-    description: "Capture 5 Pokémon Raros para o Laboratório.",
+    title: "Pesquisador Raro",
+    description: "Capture 5 Pokémon Raros para ganhar um Ovo Épico.",
     target: 5,
     type: "capture_rarity",
     rarity: "rare",
-    reward: { redshards: 100, trainerXp: 3000, teamXp: 6000 }
+    reward: { items: { egg_epic: 1, fragmento_ultraball: 10 }, trainerXp: 5000, teamXp: 10000 }
   },
   {
     id: 4,
-    title: "Desafio Elemental",
-    description: "Capture 20 Pokémon de qualquer raridade para ganhar XP extra.",
-    target: 20,
-    type: "capture_rarity",
-    rarity: "common", // fallback, logic handles any capture if we wanted, but let's keep it specific
-    reward: { trainerXp: 5000, teamXp: 15000 }
-  },
-  {
-    id: 5,
-    title: "O Desafio Épico",
-    description: "Capture 3 Pokémon Épicos para mostrar sua força.",
-    target: 3,
-    type: "capture_rarity",
-    rarity: "epic",
-    reward: { redshards: 250, trainerXp: 8000, teamXp: 20000 }
-  },
-  {
-    id: 6,
-    title: "Lenda em Foco",
-    description: "Capture 1 Pokémon Lendário para entrar para a história.",
-    target: 1,
-    type: "capture_rarity",
-    rarity: "legendary",
-    reward: { items: { egg_epic: 1 }, trainerXp: 20000, teamXp: 50000 }
-  },
-  {
-    id: 7,
-    title: "O Favorito",
-    description: "Capture 1 Pikachu para completar a coleção real.",
+    title: "Caçador de Lendas",
+    description: "Capture 1 Pikachu para ganhar 1 Nível de Treinador.",
     target: 1,
     type: "capture_species",
     species: "pikachu",
-    reward: { redshards: 500, trainerXp: 35000, teamXp: 100000 }
+    reward: { items: { fragmento_ultraball: 50 }, trainerLevels: 1, teamXp: 25000 }
+  },
+  {
+    id: 5,
+    title: "Elite Trainer",
+    description: "Capture 2 Pokémon Épicos para o Ancião Glacial.",
+    target: 2,
+    type: "capture_rarity",
+    rarity: "epic",
+    reward: { items: { fragmento_ultraball: 100, fragmento_vermelho: 5000 }, trainerXp: 15000, teamXp: 50000 }
+  },
+  {
+    id: 6,
+    title: "Massacre do Vale",
+    description: "Derrote 500 Pokémon em qualquer mapa.",
+    target: 500,
+    type: "kill_count",
+    reward: { items: { fragmento_ultraball: 150, egg_epic: 2 }, trainerLevels: 1, redshards: 10000 }
+  },
+  {
+    id: 7,
+    title: "Captura Perfeita",
+    description: "Capture 20 Pokémon Incomuns seguidos.",
+    target: 20,
+    type: "capture_rarity",
+    rarity: "uncommon",
+    reward: { items: { fragmento_ultraball: 200 }, trainerLevels: 2, teamXp: 100000 }
+  },
+  {
+    id: 8,
+    title: "Veterano Arcano",
+    description: "Derrote 1000 Pokémon para desbloquear bônus.",
+    target: 1000,
+    type: "kill_count",
+    reward: { items: { fragmento_ultraball: 500, fragmento_vermelho: 20000 }, trainerLevels: 3, teamXp: 250000 }
+  },
+  {
+    id: 9,
+    title: "Ascensão Rápida",
+    description: "Capture 10 Pokémon Raros.",
+    target: 10,
+    type: "capture_rarity",
+    rarity: "rare",
+    reward: { items: { egg_epic: 3, fragmento_ultraball: 300 }, trainerLevels: 2, teamXp: 150000 }
+  },
+  {
+    id: 10,
+    title: "Relíquia Suprema",
+    description: "Capture 5 Pokémon Épicos para a glória eterna.",
+    target: 5,
+    type: "capture_rarity",
+    rarity: "epic",
+    reward: { items: { fragmento_ultraball: 1000, egg_epic: 1 }, trainerLevels: 5, redshards: 50000 }
   }
 ];
+
 
 
 
@@ -1320,6 +1348,8 @@ const ITEM_IMG: Record<string, string> = {
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
   premium_box: premiumBoxImg,
+  egg_epic: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/rare-candy.png",
+  fragmento_ultraball: ballUltraImg,
   bau_esmeralda: chestEmeraldImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
   orb_xp_supreme_24h: orb24hImg,
@@ -1476,11 +1506,14 @@ function trainerXpToNext(lv: number): number {
   return 150 + lv * 80;
 }
 // Aplica ganho de XP ao treinador e resolve level-ups em cadeia
-function applyTrainerXp(s: IdleState, gained: number): { state: IdleState; leveledTo: number | null } {
+function applyTrainerXp(s: IdleState, gained: number, levels: number = 0): { state: IdleState; leveledTo: number | null } {
   const startLv = s.trainerLevel ?? 1;
-  let lv = startLv;
+  let lv = startLv + levels;
   let xp = (s.trainerXp ?? 0) + Math.max(0, Math.floor(gained));
-  while (lv < 10000 && xp >= trainerXpToNext(lv)) { xp -= trainerXpToNext(lv); lv += 1; }
+  while (lv < 10000 && xp >= trainerXpToNext(lv)) {
+    xp -= trainerXpToNext(lv);
+    lv += 1;
+  }
   return {
     state: { ...s, trainerLevel: lv, trainerXp: xp },
     leveledTo: lv > startLv ? lv : null,
@@ -1599,6 +1632,7 @@ function petIsExhausted(pet: PetInstance, now: number = Date.now(), opts?: { act
   if (p.azulRestUntil && p.azulRestUntil > now) return true;
   return petCurrentEnergy(pet, now, opts) <= 0;
 }
+const MAIN_QUEST_RESET_MS = 60 * 60 * 1000;
 function fmtMS(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
   const m = Math.floor(s / 60), r = s % 60;
@@ -3031,12 +3065,22 @@ function IdlePage() {
   };
 
   const [trainerPos, setTrainerPos] = useState({ x: WORLD_W / 2, y: WORLD_H / 2 });
+  const trainerPosRef = useRef(trainerPos);
+  useEffect(() => {
+    trainerPosRef.current = trainerPos;
+  }, [trainerPos]);
+
   const [walkStep, setWalkStep] = useState(0);
   const [walkDir, setWalkDir] = useState<Dir>("right");
   const walkDirRef = useRef<Dir>("right");
   const [pokemonFace, setPokemonFace] = useState<"left" | "right">("right");
   const pokemonFaceRef = useRef<"left" | "right">("right");
   const [moving, setMoving] = useState(true);
+  const movingRef = useRef(true);
+  useEffect(() => {
+    movingRef.current = moving;
+  }, [moving]);
+
   // Alvo de deslocamento automático (clicar em "Ir ao Lar", "Ir ao Lab", "Ir Floresta")
   const walkTargetRef = useRef<{ x: number; y: number; label: string; onArrive?: () => void; resumeAuto?: boolean } | null>(null);
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
@@ -3382,8 +3426,6 @@ function IdlePage() {
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
   type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number; skinUrl?: string; mapId?: IdleMapId };
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
-  const trainerPosRef = useRef(trainerPos);
-  useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
   const walkStepRef = useRef(walkStep);
   useEffect(() => { walkStepRef.current = walkStep; }, [walkStep]);
   const leaderSpRef = useRef<Species | undefined>(team[0]?.species);
@@ -3552,7 +3594,7 @@ function IdlePage() {
 
 
 
-  const [zoom, setZoom] = useState(0.65);
+  const [zoom, setZoom] = useState(0.40);
   // ===== Ranking Global =====
   type RankRow = {
     id: string;
@@ -3807,11 +3849,11 @@ function IdlePage() {
   // O usuário deseja o mapa inteiro na tela, sem o "vazio" verde em volta.
   const BASE_ZOOM = useMemo(() => {
     if (!viewSize.w || !viewSize.h) return 0.2;
-    // O usuário deseja que o slider possa diminuir até 65% (0.65).
-    // O preenchimento ideal da tela (fillScale) deve acontecer quando o slider está em 0.65.
+    // O usuário deseja que o slider possa diminuir até 35% (0.35).
+    // O preenchimento ideal da tela (fillScale) deve acontecer quando o slider está em 0.35.
     const fillScale = Math.max(viewSize.w / WORLD_W, viewSize.h / WORLD_H);
-    // Se o slider (zoom) estiver em 0.65, o resultado (effectiveZoom) deve ser fillScale.
-    return fillScale / 0.65;
+    // Se o slider (zoom) estiver em 0.35, o resultado (effectiveZoom) deve ser fillScale.
+    return fillScale / 0.35;
   }, [viewSize.w, viewSize.h, WORLD_W, WORLD_H]);
 
   const effectiveZoom = zoom * BASE_ZOOM;
@@ -3964,7 +4006,10 @@ function IdlePage() {
   useEffect(() => {
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
-      if (restingRef.current) { if (moving) setMoving(false); return; }
+      if (restingRef.current) {
+        if (movingRef.current) setMoving(false);
+        return;
+      }
       // ---- Modo manual (WASD) — só se NÃO houver destino clicado ----
       if (!autoRef.current && !walkTargetRef.current) {
         const keys = keysRef.current;
@@ -3973,15 +4018,16 @@ function IdlePage() {
         if (keys.has("s") || keys.has("arrowdown")) dy += 1;
         if (keys.has("a") || keys.has("arrowleft")) dx -= 1;
         if (keys.has("d") || keys.has("arrowright")) dx += 1;
-        if (dx === 0 && dy === 0) { 
-          if (moving) setMoving(false); 
-          return; 
+
+        if (dx === 0 && dy === 0) {
+          if (movingRef.current) setMoving(false);
+          return;
         }
         // Quando o jogador move manualmente, desativa o auto-battle conforme solicitado.
-        if (idle.autoBattle?.enabled) {
+        if (autoBattleRef.current?.enabled) {
           setIdle(s => ({ ...s, autoBattle: { ...s.autoBattle!, enabled: false } }));
         }
-        if (!moving) setMoving(true);
+        if (!movingRef.current) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
         const speed = 7 * (1 + honeyBonusNow());
         const stepX = (dx / mag) * speed;
@@ -4032,10 +4078,10 @@ function IdlePage() {
             setWalkingTo(null);
             wt.onArrive?.();
             if (resume) setAuto(true);
-            if (moving) setMoving(false);
+            if (movingRef.current) setMoving(false);
             return tp;
           }
-          if (!moving) setMoving(true);
+          if (!movingRef.current) setMoving(true);
           const speed = 7 * (1 + honeyBonusNow());
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
@@ -4056,7 +4102,7 @@ function IdlePage() {
         return;
       }
 
-      if (!autoRef.current) { if (moving) setMoving(false); return; }
+      if (!autoRef.current) { if (movingRef.current) setMoving(false); return; }
       // Time inviável: se todos estão desmaiados (HP=0) → vai ao Lar curar (5s).
       // Se time está vazio mas há pokémon prontos na Coleção → não trava, só
       // pausa o auto e avisa pra escolher outro. Sem energia é resolvido
@@ -4076,7 +4122,7 @@ function IdlePage() {
             };
             setWalkingTo("Lar");
           }
-          if (moving) setMoving(false);
+          if (movingRef.current) setMoving(false);
           return;
         }
         if (noTeam) {
@@ -4085,7 +4131,7 @@ function IdlePage() {
             setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
             pushChat(`🎒 Sem Pokémon no time. Abra a Coleção e escolha outro para batalhar.`, "info");
           }
-          if (moving) setMoving(false);
+          if (movingRef.current) setMoving(false);
           return;
         }
       }
@@ -4251,8 +4297,8 @@ function IdlePage() {
       setEnemies((prev) => {
         if (prev.length === 0) return prev;
         let changed = false;
-        const tx = trainerPos.x;
-        const ty = trainerPos.y;
+        const tx = trainerPosRef.current.x;
+        const ty = trainerPosRef.current.y;
         const next = prev.map((e) => {
           if (e.hp <= 0) return e;
           let ne = e;
@@ -4342,13 +4388,40 @@ function IdlePage() {
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
         
-        // Acha o mais próximo do treinador
-        let target = alive[0];
+        // Acha o mais próximo do treinador (priorizando o objetivo da Main Quest se existir)
+        let target: Enemy | null = null;
         let bestD = Infinity;
-        for (const e of alive) {
-          const d = (e.x - trainerPos.x) ** 2 + (e.y - trainerPos.y) ** 2;
-          if (d < bestD) { bestD = d; target = e; }
+
+        // Se houver Main Quest ativa, prioriza os alvos dela
+        const mq = idle.mainQuest;
+        const qDef = mq && !mq.completed ? QUEST_DATA.find(x => x.id === mq.currentQuestId) : null;
+        
+        let pool = alive;
+        if (qDef) {
+          if (qDef.type === "capture_rarity") {
+            const targets = alive.filter(e => e.rarity === qDef.rarity);
+            if (targets.length > 0) pool = targets;
+          } else if (qDef.type === "capture_species") {
+            const targets = alive.filter(e => e.sp === qDef.species);
+            if (targets.length > 0) pool = targets;
+          }
         }
+        
+        // Se não achou alvos da quest, prioriza comuns e incomuns se houver muitos monstros
+        if (pool.length === alive.length) {
+          const lowRarity = alive.filter(e => e.rarity === "common" || e.rarity === "uncommon");
+          if (lowRarity.length > 0) pool = lowRarity;
+        }
+
+        for (const e of pool) {
+          const d = (e.x - trainerPosRef.current.x) ** 2 + (e.y - trainerPosRef.current.y) ** 2;
+          if (d < bestD) {
+            bestD = d;
+            target = e;
+          }
+        }
+
+        if (!target) return prev;
 
         const dist = Math.sqrt(bestD);
         
@@ -4364,11 +4437,17 @@ function IdlePage() {
         setAttackTargetId(target.id);
         setTargetPet(target);
 
-        const attackFace = target.x >= trainerPos.x ? "right" : "left";
+        const attackFace = target.x >= trainerPosRef.current.x ? "right" : "left";
         if (attackFace !== pokemonFaceRef.current) {
           pokemonFaceRef.current = attackFace;
           setPokemonFace(attackFace);
         }
+
+        // Se estiver em auto-battle e o target morreu ou sumiu, tenta achar outro imediatamente
+        if (target.hp <= 0) {
+          return prev;
+        }
+
 
         // Posição atual do pokémon líder (trilha suave)
         const dir = walkDirRef.current;
@@ -4404,7 +4483,7 @@ function IdlePage() {
 
 
         // Contra-ataque do inimigo: dano no meu pokémon (reduzido pelo buff de def)
-        const eBase = SPECIES_BASE[target.sp];
+        const eBase = (SPECIES_BASE as any)[target.sp];
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyDef = honeyBonusNow();
         let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
@@ -4647,7 +4726,8 @@ function IdlePage() {
             ? (2 + Math.floor(Math.random() * 4))
             : Math.floor(35 + Math.random() * 55);
           // Se o treinador passou do cap do mapa, ouro colapsa junto com o XP.
-          const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
+          const mapDefKill = IDLE_MAPS[idle.currentMap];
+          const mapCapGold = mapDefKill?.maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1);
           const gold = Math.max(1, Math.floor(baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
@@ -5012,7 +5092,7 @@ function IdlePage() {
             // Traits não são mais anunciados no chat (só a captura em si).
             // === XP DO TREINADOR (separado do XP do pokémon) ===
             // Base: ~40% do xp do pokémon, escalado pelo nível do inimigo e raridade.
-            const rarityTrainerMult: Record<Rarity, number> = {
+            const rarityTrainerMult: Record<string, number> = {
               common: 1, uncommon: 1.2, rare: 1.5, epic: 2, legendary: 3, mythic: 4.5, mythic_shiny: 6,
             };
             const rMult = rarityTrainerMult[target.rarity] ?? 1;
@@ -5022,12 +5102,13 @@ function IdlePage() {
             const lvScale = lvDiff <= 0 ? 1 : Math.max(0.1, 1 - lvDiff * 0.08);
             // Penalidade extra: se o treinador ultrapassou o teto do mapa, XP colapsa
             // (força migrar de mapa). Vale Verdejante tem teto 30.
-            const mapCap = idle.currentMap === "arena" ? 30 : Infinity;
+            const mapDef = IDLE_MAPS[s.currentMap];
+            const mapCap = mapDef?.maxLevel ?? Infinity;
             const overCap = Math.max(0, trLv - mapCap);
             const capPenalty = overCap > 0 ? Math.max(0.05, 1 - overCap * 0.2) : 1;
             const finalScale = lvScale * capPenalty;
-            const mythEvKillMult = idle.currentMap === "evento_myth" ? 6 : 1;
-            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult * (target.xpTitle ? 2 : 1)));
+            const mythEvKillMult = s.currentMap === "evento_myth" ? 6 : 1;
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? s.buffs.expMult : 0)) * 0.3 * mythEvKillMult * (target.xpTitle ? 2 : 1)));
             const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3)) : 0;
             const totalTrainerXp = killTrainerXp + captureTrainerXp;
             const applied = applyTrainerXp(s, totalTrainerXp);
@@ -5066,20 +5147,59 @@ function IdlePage() {
             }
             // Main Quest progress
             let nextMainQuest = s.mainQuest ?? { currentQuestId: 1, progress: 0, completed: false };
-            if (captured && !nextMainQuest.completed) {
+            if (!nextMainQuest.completed) {
               const q = QUEST_DATA.find(x => x.id === nextMainQuest.currentQuestId);
               if (q) {
                 let match = false;
-                if (q.type === "capture_rarity" && target.rarity === q.rarity) match = true;
-                if (q.type === "capture_species" && target.sp === q.species) match = true;
+                if (captured) {
+                  if (q.type === "capture_rarity" && target.rarity === q.rarity) match = true;
+                  if (q.type === "capture_species" && target.sp === q.species) match = true;
+                }
+                if (q.type === "kill_count") match = true;
+                
                 if (match) {
                   const newProg = nextMainQuest.progress + 1;
                   nextMainQuest = { ...nextMainQuest, progress: newProg };
                   if (newProg >= q.target) {
+                    const r = q.reward;
+                    const bonusItems: Record<string, number> = { ...itemsWithBalls };
+                    if (r.items) {
+                      Object.entries(r.items).forEach(([k, v]) => {
+                        bonusItems[k] = (bonusItems[k] ?? 0) + v;
+                      });
+                    }
+                    const shardGain = r.redshards ?? 0;
+                    const trainerXpGain = r.trainerXp ?? 0;
+                    const trainerLvGain = r.trainerLevels ?? 0;
+
                     queueMicrotask(() => {
-                      pushChat(`🌟 MAIN QUEST: Objetivo "${q.title}" concluído! Colete sua recompensa perto do chat.`, "cap");
+                      pushChat(`🌟 MAIN QUEST: Objetivo "${q.title}" concluído! Recompensa concedida automaticamente.`, "cap");
                       playBonus();
                     });
+
+                    // Aplica recompensas da quest
+                    const questApplied = applyTrainerXp(applied.state, trainerXpGain, trainerLvGain);
+                    if (questApplied.leveledTo != null) {
+                      const finalLv = questApplied.leveledTo;
+                      queueMicrotask(() => {
+                        pushChat(`🎓 TREINADOR subiu para o nível ${finalLv}!`, "lv");
+                        pushFxAt(trainerPos.x, trainerPos.y - 130, `TREINADOR LV ${finalLv}!`, "capture");
+                      });
+                    }
+
+                    return {
+                      ...questApplied.state,
+                      pending: { ...s.pending, gold: 0, crystals: 0, redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + redShardGain + shardGain) },
+                      bank: { ...s.bank, gold: s.bank.gold + gold + s.pending.gold },
+                      totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
+                      grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
+                      tasks: nt2,
+                      items: bonusItems,
+                      caughtSpecies: newCaught,
+                      seenSpecies: newSeen,
+                      collection: newCollection,
+                      mainQuest: { ...nextMainQuest, progress: newProg, completed: true },
+                    };
                   }
                 }
               }
@@ -5397,6 +5517,41 @@ function IdlePage() {
     }, 1000);
     return () => clearInterval(iv);
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ==== Main Quest Timer: Reset a cada 1 hora ====
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const nowT = Date.now();
+      setIdle((s) => {
+        const mq = s.mainQuest;
+        if (!mq) return s;
+        if (mq.expiresAt && nowT >= mq.expiresAt) {
+          // Reset: próxima quest aleatória ou sequencial
+          const nextId = (mq.currentQuestId % QUEST_DATA.length) + 1;
+          pushChat(`⏳ Tempo esgotado! Uma nova Main Quest foi atribuída.`, "info");
+          return {
+            ...s,
+            mainQuest: {
+              currentQuestId: nextId,
+              progress: 0,
+              completed: false,
+              minimized: mq.minimized ?? false,
+              expiresAt: nowT + 3600000
+            }
+          };
+        }
+        // Inicializa expiração se não houver
+        if (!mq.expiresAt) {
+          return {
+            ...s,
+            mainQuest: { ...mq, expiresAt: nowT + 3600000 }
+          };
+        }
+        return s;
+      });
+    }, 5000);
+    return () => clearInterval(iv);
+  }, []);
 
 
 
@@ -6045,37 +6200,30 @@ function IdlePage() {
   // Só permite spawn de espécies com GIF disponível.
   const hasGif = (sp: Species) => !!GIF[sp];
   const ARENA_SPAWN_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = ([
-    // Comuns (frequentes)
-    { sp: "caterpie" as Species,   w: 14 },
-    { sp: "weedle" as Species,     w: 14 },
-    { sp: "pidgey" as Species,     w: 12 },
-    { sp: "rattata_f" as Species,  w: 12 },
-    { sp: "oddish" as Species,     w: 10 },
-    { sp: "bellsprout" as Species, w: 10 },
-    { sp: "metapod" as Species,    w: 6 },
-    { sp: "kakuna" as Species,     w: 6 },
-    // Incomuns
-    { sp: "sandshrew" as Species,  w: 7, forcedRarity: "uncommon" },
-    { sp: "mankey" as Species,     w: 7, forcedRarity: "uncommon" },
-    { sp: "venonat" as Species,    w: 2, forcedRarity: "uncommon" },
-    { sp: "paras" as Species,      w: 7, forcedRarity: "uncommon" },
-    { sp: "poliwag" as Species,    w: 7, forcedRarity: "uncommon" },
-    { sp: "nidoran_f" as Species,  w: 6, forcedRarity: "uncommon" },
-    { sp: "pidgeotto" as Species,  w: 4, forcedRarity: "uncommon" },
-    { sp: "raticate_f" as Species, w: 4, forcedRarity: "uncommon" },
-    // Raros ★ (mais fortes)
-    { sp: "bulbasaur" as Species,  w: 3, forcedRarity: "rare" },
-    { sp: "growlithe" as Species,  w: 3, forcedRarity: "rare" },
-    { sp: "vulpix" as Species,     w: 3, forcedRarity: "rare" },
-    { sp: "abra" as Species,       w: 3, forcedRarity: "rare" },
-    { sp: "clefairy" as Species,   w: 3, forcedRarity: "rare" },
-    { sp: "cubone" as Species,     w: 3, forcedRarity: "rare" },
-    { sp: "magnemite" as Species,  w: 3, forcedRarity: "rare" },
-    { sp: "gloom" as Species,      w: 2, forcedRarity: "rare" },
-    { sp: "parasect" as Species,   w: 2, forcedRarity: "rare" },
-    // (Épico só é liberado quando o líder chega ao nível 50 — em outros mapas)
-    // Raridades superiores (Lendário/Mítico) não aparecem na Arena/Vale Verdejante.
+    // Comuns (frequentes - 75% da tabela)
+    { sp: "caterpie" as Species,   w: 25 },
+    { sp: "weedle" as Species,     w: 25 },
+    { sp: "pidgey" as Species,     w: 20 },
+    { sp: "rattata_f" as Species,  w: 20 },
+    { sp: "oddish" as Species,     w: 15 },
+    { sp: "bellsprout" as Species, w: 15 },
+    { sp: "metapod" as Species,    w: 10 },
+    { sp: "kakuna" as Species,     w: 10 },
+    // Incomuns (20% da tabela)
+    { sp: "sandshrew" as Species,  w: 10, forcedRarity: "uncommon" },
+    { sp: "mankey" as Species,     w: 10, forcedRarity: "uncommon" },
+    { sp: "venonat" as Species,    w: 5,  forcedRarity: "uncommon" },
+    { sp: "paras" as Species,      w: 8,  forcedRarity: "uncommon" },
+    { sp: "poliwag" as Species,    w: 8,  forcedRarity: "uncommon" },
+    // Raros ★ (5% da tabela)
+    { sp: "bulbasaur" as Species,  w: 2, forcedRarity: "rare" },
+    { sp: "growlithe" as Species,  w: 2, forcedRarity: "rare" },
+    { sp: "vulpix" as Species,     w: 2, forcedRarity: "rare" },
+    { sp: "abra" as Species,       w: 1, forcedRarity: "rare" },
+    { sp: "clefairy" as Species,   w: 1, forcedRarity: "rare" },
+    // (Épico só acima do Lv 50 em outros mapas)
   ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
+
 
 
   function pickArenaSpawn(): { sp: Species; forcedRarity?: Rarity } {
@@ -6254,6 +6402,7 @@ function IdlePage() {
         } else if (idle.currentMap === "grass_oddish") {
           // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
           // Captura usa as MESMAS taxas globais do servidor.
+
           const shinyRoll = Math.random();
           if (shinyRoll < 0.12) {
             pool = ["oddish_shiny"] as Species[];
@@ -9803,7 +9952,7 @@ function IdlePage() {
 
         {/* Profile & Team HUD (Top-Left) */}
         <div style={{
-          position: 'fixed', left: '20px', top: '80px',
+          position: 'fixed', left: '20px', top: '150px',
           display: 'flex', flexDirection: 'column', gap: '10px',
           zIndex: 1002, pointerEvents: 'none'
         }}>
@@ -10178,7 +10327,7 @@ function IdlePage() {
                   <div style={{ color: '#fff', fontSize: '12px', fontWeight: 700, marginBottom: 4 }}>{q.title}</div>
                   <div style={{ color: '#b8a8c8', fontSize: '10px', lineHeight: 1.3, marginBottom: 10 }}>{q.description}</div>
                   
-                  <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden', marginBottom: 12 }}>
+                  <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden', marginBottom: 6 }}>
                     <div style={{ 
                       width: `${Math.min(100, (mq.progress / q.target) * 100)}%`, 
                       height: '100%', 
@@ -10186,6 +10335,21 @@ function IdlePage() {
                       boxShadow: done ? '0 0 8px #5ec26a' : 'none'
                     }} />
                   </div>
+
+                  {(() => {
+                    const timeRemaining = mq.expiresAt ? Math.max(0, mq.expiresAt - now) : 0;
+                    const hh = Math.floor(timeRemaining / 3600000);
+                    const mm = Math.floor((timeRemaining % 3600000) / 60000);
+                    const ss = Math.floor((timeRemaining % 60000) / 1000);
+                    return (
+                      <div style={{ 
+                        fontSize: '9px', fontWeight: 900, color: timeRemaining < 300000 ? '#ff5252' : '#8a7a9c',
+                        marginBottom: 10, textAlign: 'right', fontVariantNumeric: 'tabular-nums'
+                      }}>
+                        RESET EM: {String(hh).padStart(2, '0')}:{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}
+                      </div>
+                    );
+                  })()}
 
                   {done ? (
                     <button onClick={claim} style={{
@@ -10204,10 +10368,12 @@ function IdlePage() {
                           <span style={{ color: '#ff5c5c' }}>{q.reward.redshards} 🔻</span>
                         )}
                       </div>
-                      {(q.reward.trainerXp || q.reward.teamXp) && (
+                      {(q.reward.trainerXp || q.reward.teamXp || q.reward.trainerLevels) && (
                         <div style={{ display: 'flex', gap: 6, fontSize: '9px', fontWeight: 700 }}>
                            {q.reward.trainerXp && <span style={{ color: '#f5cf6b' }}>+{q.reward.trainerXp} XP TR</span>}
                            {q.reward.teamXp && <span style={{ color: '#5ec26a' }}>+{q.reward.teamXp} XP TEAM</span>}
+                           {q.reward.trainerLevels && <span style={{ color: '#f5cf6b' }}>+{q.reward.trainerLevels} LV TR</span>}
+
                         </div>
                       )}
                     </div>
@@ -10340,7 +10506,7 @@ function IdlePage() {
           {/* HUD do Target (Inimigo Selecionado) */}
           {targetPet && (
             <div style={{
-              position: 'fixed', left: '50%', top: '85px', transform: 'translateX(-50%)',
+              position: 'fixed', left: '50%', top: '150px', transform: 'translateX(-50%)',
               width: '320px', background: 'rgba(11, 5, 20, 0.9)', backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255, 82, 82, 0.4)', borderRadius: '16px',
               padding: '12px', display: 'flex', alignItems: 'center', gap: '15px',
@@ -10375,6 +10541,60 @@ function IdlePage() {
                 color: '#fff', fontSize: '12px', fontWeight: 900, cursor: 'pointer',
                 display: 'grid', placeItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
               }}>×</button>
+            </div>
+          )}
+
+          {/* MAIN QUEST HUD - Minimizable & Positioned near chat */}
+          {idle.mainQuest && !idle.mainQuest.completed && (
+            <div style={{
+              position: 'absolute',
+              bottom: 400,
+              right: 20,
+              width: idle.mainQuest.minimized ? '50px' : '200px',
+              background: 'rgba(11, 5, 16, 0.9)',
+              border: '2px solid #a78bfa',
+              borderRadius: '12px',
+              padding: idle.mainQuest.minimized ? '8px' : '12px',
+              zIndex: 99998,
+              boxShadow: '0 4px 15px rgba(167, 139, 250, 0.4)',
+              transition: 'all 0.3s ease-in-out',
+              pointerEvents: 'auto',
+              cursor: 'default'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: idle.mainQuest.minimized ? 0 : '8px' }}>
+                <span style={{ color: '#a78bfa', fontSize: '13px', fontWeight: 900, display: idle.mainQuest.minimized ? 'none' : 'block' }}>MAIN QUEST</span>
+                <button
+                  onClick={() => setIdle(s => ({ ...s, mainQuest: { ...s.mainQuest!, minimized: !s.mainQuest?.minimized } }))}
+                  style={{
+                    background: 'none', border: 'none', color: '#c8b8d0', cursor: 'pointer', fontSize: '12px',
+                    width: '24px', height: '24px', display: 'grid', placeItems: 'center'
+                  }}
+                >
+                  {idle.mainQuest.minimized ? '➕' : '➖'}
+                </button>
+              </div>
+
+              {!idle.mainQuest.minimized && (() => {
+                const q = QUEST_DATA.find(x => x.id === idle.mainQuest?.currentQuestId);
+                if (!q) return null;
+                const timeLeft = idle.mainQuest.expiresAt ? Math.max(0, idle.mainQuest.expiresAt - now) : 0;
+                return (
+                  <>
+                    <div style={{ color: '#fff', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>{q.title}</div>
+                    <div style={{ color: '#b8a8c8', fontSize: '10px', marginBottom: '8px', fontStyle: 'italic' }}>{q.description}</div>
+                    <div style={{ position: 'relative', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden', marginBottom: '4px' }}>
+                      <div style={{
+                        width: `${(idle.mainQuest.progress / q.target) * 100}%`,
+                        height: '100%', background: '#a78bfa', transition: 'width 0.3s ease-out'
+                      }} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#a78bfa', fontWeight: 800 }}>
+                      <span>{idle.mainQuest.progress} / {q.target}</span>
+                      <span>{fmtMS(timeLeft)}</span>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
 
@@ -15908,12 +16128,14 @@ function MarketScreen({
     stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
     stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
     stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
+    fragmento_ultraball: "Fragmento de Ultra Ball",
   };
   const ICONS: Record<string, string> = {
     pokeball: "⚪", greatball: "🔴", ultraball: "🟡",
     chest_amulet: "🎗", potion: "🧪",
     stone_grass: "🌿", stone_fire: "🔥", stone_water: "💧",
     stone_electric: "⚡", stone_dark: "🌑", stone_dragon: "🐉",
+    fragmento_ultraball: "🟡",
   };
   const CUR_LABEL: Record<string, string> = { gold: "ouro", crystal: "💎 cristais", safira: "💚 safiras" };
   const CUR_COLOR: Record<string, string> = { gold: "#ff9d3d", crystal: "#6bd4ff", safira: "#7dffbe" };
