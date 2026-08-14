@@ -13062,11 +13062,7 @@ function TabOverlay({
       const countHab = Math.floor((e.level / 10) * mult) + baseFrags;
       const countDef = Math.floor((e.level / 10) * mult) + baseFrags;
 
-      onFragmentCollection(e.uid, {
-        prisma: e.gain,
-        hab: countHab,
-        def: countDef
-      });
+      onFragmentCollection(e.uid);
     });
     setBulkSel(new Set());
     setBulkMode(false);
