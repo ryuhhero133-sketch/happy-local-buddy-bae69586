@@ -9895,7 +9895,6 @@ function IdlePage() {
           )}
         </div>
       </div>
-      
       <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         {restingUntil !== null && restingStart !== null && (() => {
 
@@ -10056,7 +10055,7 @@ function IdlePage() {
             const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
             const on = ab.enabled;
             return (
-              <React.Fragment key="auto-battle-hud">
+              <>
                 {/* Buffs Ativos HUD */}
                 <div style={{
                   position: "fixed", top: 80, left: "50%", transform: "translateX(-50%)",
@@ -10127,7 +10126,7 @@ function IdlePage() {
                     >⚙</button>
                   </div>
                 </div>
-              </React.Fragment>
+              </>
             );
           })()}
 
