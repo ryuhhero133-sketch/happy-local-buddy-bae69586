@@ -13884,11 +13884,12 @@ function TabOverlay({
                             position: "relative", overflow: "visible", // mudado para visible para a aura aparecer
                           }}>
 
-                            {src && <img src={src} alt="" style={{ 
-                              width: 110, height: 110, // Aumentado para preencher melhor o slot
-                              imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
-                              transformOrigin: 'center'
-                            }} />}
+                             {src && <img src={src} alt="" style={{ 
+                               width: 130, height: 130, // Aumentado para preencher melhor o slot (era 110)
+                               imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
+                               transform: `scale(${spriteScale * 1.5})`, // Adicionado escala extra
+                               transformOrigin: 'center'
+                             }} />}
                             {/* Slot number top-left */}
                             <div style={{
                               position: "absolute", top: 2, left: 4,
