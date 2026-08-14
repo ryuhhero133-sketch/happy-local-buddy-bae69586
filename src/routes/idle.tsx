@@ -3065,9 +3065,6 @@ function IdlePage() {
   };
 
   const [trainerPos, setTrainerPos] = useState({ x: WORLD_W / 2, y: WORLD_H / 2 });
-  const trainerPosRef = useRef(trainerPos);
-  useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
-
   const [walkStep, setWalkStep] = useState(0);
   const [walkDir, setWalkDir] = useState<Dir>("right");
   const walkDirRef = useRef<Dir>("right");
