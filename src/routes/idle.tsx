@@ -12721,6 +12721,54 @@ function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, res
   );
 }
 
+function ActiveBuffsHUD({ buffs }: { buffs: any }) {
+  if (!buffs) return null;
+  const now = Date.now();
+  const active = [];
+  if (buffs.expMultUntil && now < buffs.expMultUntil) 
+    active.push({ id: 'exp', label: 'EXP', icon: '✨', color: '#6bd4ff', end: buffs.expMultUntil });
+  if (buffs.goldMultUntil && now < buffs.goldMultUntil) 
+    active.push({ id: 'gold', label: 'VIP', icon: '💰', color: '#ffd94d', end: buffs.goldMultUntil });
+  if (buffs.teamOrbUntil && now < buffs.teamOrbUntil)
+    active.push({ id: 'team', label: 'TIME', icon: '👥', color: '#c084fc', end: buffs.teamOrbUntil });
+  if (buffs.orbUntil && now < buffs.orbUntil)
+    active.push({ id: 'orb', label: 'ORB', icon: '🔮', color: '#a7d8ff', end: buffs.orbUntil });
+
+  if (active.length === 0) return null;
+
+  const fmt = (ms: number) => {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(s / 60), r = s % 60;
+    return `${m}:${String(r).padStart(2, "0")}`;
+  };
+
+  return (
+    <div style={{ display: 'flex', gap: 6, pointerEvents: 'auto' }}>
+      {active.map(b => (
+        <div key={b.id} style={{
+          background: 'rgba(11,5,16,0.9)',
+          border: `1px solid ${b.color}66`,
+          borderRadius: 8,
+          padding: '4px 10px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 1,
+          boxShadow: `0 2px 10px rgba(0,0,0,0.5), 0 0 5px ${b.color}22`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 900, color: b.color }}>
+            <span>{b.icon}</span>
+            <span style={{ letterSpacing: 1 }}>{b.label}</span>
+          </div>
+          <div style={{ fontSize: 9, color: '#fff', opacity: 0.8, fontFamily: 'monospace', fontWeight: 700 }}>
+            {fmt(b.end - now)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ProgressRow({ icon, label, value, target }: { icon: string; label: string; value: number; target: number }) {
   const pct = Math.min(100, (value / target) * 100);
   return (
@@ -13089,7 +13137,11 @@ function TabOverlay({
       const countHab = Math.floor((e.level / 10) * mult) + baseFrags;
       const countDef = Math.floor((e.level / 10) * mult) + baseFrags;
 
-      onFragmentCollection(e.uid);
+      onFragmentCollection(e.uid, {
+        prisma: e.gain,
+        hab: countHab,
+        def: countDef
+      });
     });
     setBulkSel(new Set());
     setBulkMode(false);
