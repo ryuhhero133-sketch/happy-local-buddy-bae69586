@@ -8135,8 +8135,6 @@ function IdlePage() {
             );
           })()}
 
-          {/* Painel da Equipe (Removido - Duplicado com a trainer-team-panel no lado esquerdo) */}
-        </div>
 
 
 
