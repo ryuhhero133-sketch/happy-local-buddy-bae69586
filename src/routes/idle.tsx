@@ -8971,7 +8971,7 @@ function IdlePage() {
                   )}
 
                   {/* Element Floating Icon (for drops) */}
-                  {(["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"].some(s => e.drops?.includes(s))) && (
+                  {(["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"].some(s => (e as any).drops?.includes(s))) && (
                     <div className="stone-float-indicator" style={{
                       position: "absolute", top: -15, right: -5,
                       width: 18, height: 18, borderRadius: "50%",
@@ -8981,11 +8981,11 @@ function IdlePage() {
                       fontSize: 10, animation: "floatstone 2s ease-in-out infinite",
                       zIndex: 10, pointerEvents: "none"
                     }}>
-                      {e.drops?.includes("stone_grass") ? "🌿" : 
-                       e.drops?.includes("stone_fire") ? "🔥" :
-                       e.drops?.includes("stone_water") ? "💧" :
-                       e.drops?.includes("stone_electric") ? "⚡" :
-                       e.drops?.includes("stone_dark") ? "🌑" : "🐉"}
+                      {(e as any).drops?.includes("stone_grass") ? "🌿" : 
+                       (e as any).drops?.includes("stone_fire") ? "🔥" :
+                       (e as any).drops?.includes("stone_water") ? "💧" :
+                       (e as any).drops?.includes("stone_electric") ? "⚡" :
+                       (e as any).drops?.includes("stone_dark") ? "🌑" : "🐉"}
                     </div>
                   )}
 
