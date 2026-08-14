@@ -5102,12 +5102,13 @@ function IdlePage() {
                 let match = false;
                 if (q.type === "capture_rarity" && target.rarity === q.rarity) match = true;
                 if (q.type === "capture_species" && target.sp === q.species) match = true;
+                if (q.type === "kill_count") match = true;
                 if (match) {
                   const newProg = nextMainQuest.progress + 1;
                   nextMainQuest = { ...nextMainQuest, progress: newProg };
                   if (newProg >= q.target) {
                     queueMicrotask(() => {
-                      pushChat(`🌟 MAIN QUEST: Objetivo "${q.title}" concluído! Colete sua recompensa perto do chat.`, "cap");
+                      pushChat(`🌟 MAIN QUEST: Objetivo "${q.title}" concluído! Recompensa concedida automaticamente.`, "cap");
                       playBonus();
                     });
                   }
