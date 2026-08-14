@@ -1506,9 +1506,9 @@ function trainerXpToNext(lv: number): number {
   return 150 + lv * 80;
 }
 // Aplica ganho de XP ao treinador e resolve level-ups em cadeia
-function applyTrainerXp(s: IdleState, gained: number): { state: IdleState; leveledTo: number | null } {
+function applyTrainerXp(s: IdleState, gained: number, levels: number = 0): { state: IdleState; leveledTo: number | null } {
   const startLv = s.trainerLevel ?? 1;
-  let lv = startLv;
+  let lv = startLv + levels;
   let xp = (s.trainerXp ?? 0) + Math.max(0, Math.floor(gained));
   while (lv < 10000 && xp >= trainerXpToNext(lv)) { xp -= trainerXpToNext(lv); lv += 1; }
   return {
@@ -4374,7 +4374,7 @@ function IdlePage() {
         if (alive.length === 0) return spawnEnemies();
         
         // Acha o mais próximo do treinador (priorizando comuns e incomuns se possível)
-        let target: EnemyInstance | null = null;
+        let target: PetInstance | null = null;
         let bestD = Infinity;
 
         // Tenta achar um comum/incomum primeiro se houver muitos monstros
@@ -5052,7 +5052,7 @@ function IdlePage() {
             const rarityTrainerMult: Record<Rarity, number> = {
               common: 1, uncommon: 1.2, rare: 1.5, epic: 2, legendary: 3, mythic: 4.5, mythic_shiny: 6,
             };
-            const rMult = rarityTrainerMult[target.rarity] ?? 1;
+            const rMult = (rarityTrainerMult as any)[target.rarity] ?? 1;
             // Escala por diferença de nível: cada nv acima do inimigo reduz 8% (mín 10%).
             const trLv = s.trainerLevel ?? 1;
             const lvDiff = trLv - target.level;
@@ -5133,11 +5133,18 @@ function IdlePage() {
                       playBonus();
                     });
 
-                    const finalTrainerXp = (applied.state.trainerXp ?? 0) + trainerXpGain;
-                    const finalTrainerLv = (applied.state.trainerLevel ?? 1) + trainerLvGain;
+                    // Aplica recompensas da quest
+                    const questApplied = applyTrainerXp(applied.state, trainerXpGain, trainerLvGain);
+                    if (questApplied.leveledTo != null) {
+                      const finalLv = questApplied.leveledTo;
+                      queueMicrotask(() => {
+                        pushChat(`🎓 TREINADOR subiu para o nível ${finalLv}!`, "lv");
+                        pushFxAt(trainerPos.x, trainerPos.y - 130, `TREINADOR LV ${finalLv}!`, "capture");
+                      });
+                    }
 
                     return {
-                      ...applied.state,
+                      ...questApplied.state,
                       pending: { ...s.pending, gold: 0, crystals: 0, redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + redShardGain + shardGain) },
                       bank: { ...s.bank, gold: s.bank.gold + gold + s.pending.gold },
                       totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
@@ -5148,8 +5155,6 @@ function IdlePage() {
                       seenSpecies: newSeen,
                       collection: newCollection,
                       mainQuest: { ...nextMainQuest, progress: newProg, completed: true },
-                      trainerLevel: finalTrainerLv,
-                      trainerXp: finalTrainerXp
                     };
                   }
                 }
