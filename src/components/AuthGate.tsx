@@ -147,7 +147,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [kickedMessage, setKickedMessage] = useState<string | null>(null);
-  const [maintenance, setMaintenance] = useState(false); // Liberado para todos
+  const [maintenance, setMaintenance] = useState(false); // Liberado para todos (Override ativado)
 
   useEffect(() => {
     setMounted(true);
@@ -406,7 +406,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
         if (stop) return;
         
         if (maintenanceEnabled) {
-          setMaintenance(true);
+          // setMaintenance(true); // Desativado para liberar o jogo
+          setMaintenance(false);
         } else {
           setMaintenance(false);
         }
@@ -430,7 +431,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     session?.user?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
   // O modo de manutenção no banco de dados continua bloqueando jogadores normais,
   // mas o admin sempre passa independentemente do valor de 'maintenance'.
-  if (maintenance && !isAdmin) {
+  if (maintenance && !isAdmin && false) { // Override forçado para liberar o jogo
     return (
       <PanelShell title="SISTEMA EM MANUTENÇÃO">
         <div className="space-y-4 text-center">
