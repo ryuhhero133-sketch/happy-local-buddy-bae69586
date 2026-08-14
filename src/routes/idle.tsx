@@ -8194,7 +8194,7 @@ function IdlePage() {
         {typeof document !== "undefined" && createPortal(
         <div className="hud-right-column" style={{ 
           position: 'fixed', top: '75px', right: '20px', width: '250px',
-          display: "flex", flexDirection: "column", gap: 15, zIndex: 10005,
+          display: "flex", flexDirection: "column", gap: 15, zIndex: 100000,
           pointerEvents: 'none'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
@@ -10104,6 +10104,7 @@ function IdlePage() {
               position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
               zIndex: 99997,
+              pointerEvents: "auto",
             }}>
               {showAutoSettings && (
                 <div style={{
