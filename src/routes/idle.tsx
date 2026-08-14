@@ -4228,20 +4228,19 @@ function IdlePage() {
           pokemonFaceRef.current = nextFace;
           setPokemonFace(nextFace);
         }
+        const ww = WORLD_W, wh = WORLD_H;
+        const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
+        const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
         // AUTO: Desliza pelas paredes para nunca ficar travado enquanto caça
         let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
         if (collidesWithAny(nx, ny)) {
-          // Lógica de deslize (sliding) — se bater, tenta mover apenas no eixo que não colide
           if (!collidesWithAny(nx, tp.y)) {
             ny = tp.y;
           } else if (!collidesWithAny(tp.x, ny)) {
             nx = tp.x;
           } else {
-            // Se ambos colidirem, o treinador realmente está num canto. 
-            // Para não ficar parado, voltamos a permitir atravessar objetos temporariamente (ghost mode)
-            // ou apenas paramos o movimento se for muito raro.
-            // Decisão: Permitir atravessar levemente para garantir "NUNCA FICAR TRAVADO"
-            return { x: nx, y: ny }; 
+            // Se preso em canto, ignora colisão momentaneamente para não travar
+            return { x: nx, y: ny };
           }
         }
         return { x: nx, y: ny };
