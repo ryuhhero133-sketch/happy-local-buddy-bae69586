@@ -4398,29 +4398,7 @@ function IdlePage() {
         const mq = idle.mainQuest;
         const qDef = mq && !mq.completed ? QUEST_DATA.find(x => x.id === mq.currentQuestId) : null;
         
-        let pool = alive;
-        const autoFilters = idle.autoBattle?.targetRarities;
-        if (autoFilters && autoFilters.length > 0) {
-          pool = alive.filter(e => autoFilters.includes(e.rarity));
-        }
-
-        if (pool.length === 0) pool = alive;
-
-        if (qDef) {
-          if (qDef.type === "capture_rarity") {
-            const targets = pool.filter(e => e.rarity === qDef.rarity);
-            if (targets.length > 0) pool = targets;
-          } else if (qDef.type === "capture_species") {
-            const targets = pool.filter(e => e.sp === qDef.species);
-            if (targets.length > 0) pool = targets;
-          }
-        }
-        
-        // Se não achou alvos da quest e não tem filtro de raridade manual, prioriza comuns e incomuns
-        if (pool.length === alive.length && (!autoFilters || autoFilters.length === 0)) {
-          const lowRarity = alive.filter(e => e.rarity === "common" || e.rarity === "uncommon");
-          if (lowRarity.length > 0) pool = lowRarity;
-        }
+        const pool = alive;
 
         for (const e of pool) {
           const d = (e.x - trainerPosRef.current.x) ** 2 + (e.y - trainerPosRef.current.y) ** 2;
