@@ -4398,7 +4398,18 @@ function IdlePage() {
         const mq = idle.mainQuest;
         const qDef = mq && !mq.completed ? QUEST_DATA.find(x => x.id === mq.currentQuestId) : null;
         
-        const pool = alive;
+        let pool = alive;
+
+        // Se houver Main Quest ativa, prioriza os alvos dela
+        if (qDef) {
+          if (qDef.type === "capture_rarity") {
+            const targets = alive.filter(e => e.rarity === qDef.rarity);
+            if (targets.length > 0) pool = targets;
+          } else if (qDef.type === "capture_species") {
+            const targets = alive.filter(e => e.sp === qDef.species);
+            if (targets.length > 0) pool = targets;
+          }
+        }
 
         for (const e of pool) {
           const d = (e.x - trainerPosRef.current.x) ** 2 + (e.y - trainerPosRef.current.y) ** 2;
