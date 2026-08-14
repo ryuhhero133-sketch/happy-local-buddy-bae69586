@@ -5096,13 +5096,16 @@ function IdlePage() {
             }
             // Main Quest progress
             let nextMainQuest = s.mainQuest ?? { currentQuestId: 1, progress: 0, completed: false };
-            if (captured && !nextMainQuest.completed) {
+            if (!nextMainQuest.completed) {
               const q = QUEST_DATA.find(x => x.id === nextMainQuest.currentQuestId);
               if (q) {
                 let match = false;
-                if (q.type === "capture_rarity" && target.rarity === q.rarity) match = true;
-                if (q.type === "capture_species" && target.sp === q.species) match = true;
+                if (captured) {
+                  if (q.type === "capture_rarity" && target.rarity === q.rarity) match = true;
+                  if (q.type === "capture_species" && target.sp === q.species) match = true;
+                }
                 if (q.type === "kill_count") match = true;
+                
                 if (match) {
                   const newProg = nextMainQuest.progress + 1;
                   nextMainQuest = { ...nextMainQuest, progress: newProg };
