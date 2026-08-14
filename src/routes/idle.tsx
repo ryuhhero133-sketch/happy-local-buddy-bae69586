@@ -1195,7 +1195,7 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 10,
     type: "capture_rarity",
     rarity: "uncommon",
-    reward: { items: { ultraball: 10 }, trainerXp: 500, teamXp: 1000 }
+    reward: { items: { fragmento_ultraball: 5 }, trainerXp: 500, teamXp: 1000 }
   },
   {
     id: 2,
@@ -1213,7 +1213,7 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 5,
     type: "capture_rarity",
     rarity: "rare",
-    reward: { redshards: 100, trainerXp: 3000, teamXp: 6000 }
+    reward: { items: { fragmento_ultraball: 10 }, redshards: 100, trainerXp: 3000, teamXp: 6000 }
   },
   {
     id: 4,
@@ -1222,7 +1222,7 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 20,
     type: "capture_rarity",
     rarity: "common", 
-    reward: { trainerXp: 5000, teamXp: 15000 }
+    reward: { items: { fragmento_ultraball: 5 }, trainerXp: 5000, teamXp: 15000 }
   },
   {
     id: 5,
@@ -1231,7 +1231,7 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 3,
     type: "capture_rarity",
     rarity: "epic",
-    reward: { redshards: 250, trainerXp: 8000, teamXp: 20000 }
+    reward: { items: { fragmento_ultraball: 20 }, redshards: 250, trainerXp: 8000, teamXp: 20000 }
   },
   {
     id: 6,
@@ -1240,7 +1240,7 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 1,
     type: "capture_rarity",
     rarity: "legendary",
-    reward: { items: { egg_epic: 1 }, trainerXp: 20000, teamXp: 50000 }
+    reward: { items: { egg_epic: 1, fragmento_ultraball: 30 }, trainerXp: 20000, teamXp: 50000 }
   },
   {
     id: 7,
@@ -1249,7 +1249,7 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 1,
     type: "capture_species",
     species: "pikachu",
-    reward: { redshards: 500, trainerXp: 35000, teamXp: 100000 }
+    reward: { items: { fragmento_ultraball: 50 }, redshards: 500, trainerXp: 35000, teamXp: 100000 }
   },
   {
     id: 8,
@@ -1266,7 +1266,7 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 10,
     type: "capture_rarity",
     rarity: "rare",
-    reward: { trainerLevels: 2, teamXp: 1000000 }
+    reward: { trainerLevels: 2, teamXp: 1000000, items: { fragmento_ultraball: 20 } }
   },
   {
     id: 10,
@@ -1275,7 +1275,7 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 5,
     type: "capture_rarity",
     rarity: "epic",
-    reward: { items: { fragmento_ultraball: 15, egg_epic: 1 }, trainerLevels: 1, teamXp: 800000 }
+    reward: { items: { fragmento_ultraball: 100, egg_epic: 1 }, trainerLevels: 1, teamXp: 800000 }
   }
 ];
 
