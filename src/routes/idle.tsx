@@ -13547,7 +13547,7 @@ function TabOverlay({
                   })}
 
                   {/* Slots vazios */}
-                  {Array.from({ length: Math.max(0, 6 - team.length) }).map((_, k) => (
+                  {maximizeTeam && Array.from({ length: Math.max(0, 6 - team.length) }).map((_, k) => (
                     <div key={`empty-${k}`} style={{
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                       padding: 14, minHeight: 60,
