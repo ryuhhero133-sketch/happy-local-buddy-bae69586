@@ -1252,21 +1252,20 @@ const QUEST_DATA: MainQuestDef[] = [
   },
   {
     id: 8,
-    title: "Mestre Iniciante",
-    description: "Prove sua maestria capturando 50 pokémon comuns.",
-    target: 50,
-    type: "capture_rarity",
-    rarity: "common",
-    reward: { items: { fragmento_ultraball: 5 }, trainerXp: 15000, teamXp: 40000 }
+    title: "Mestre da Caça",
+    description: "Derrote 100 pokémon para ganhar 10 Ultra Balls e muita experiência.",
+    target: 100,
+    type: "kill_count",
+    reward: { items: { fragmento_ultraball: 10 }, trainerXp: 80000, teamXp: 200000 }
   },
   {
     id: 9,
     title: "Ascensão Rápida",
-    description: "Capture 10 pokémon raros para um salto de poder.",
+    description: "Capture 10 pokémon raros para um salto de poder (2 níveis garantidos).",
     target: 10,
     type: "capture_rarity",
     rarity: "rare",
-    reward: { trainerXp: 150000, teamXp: 300000 } // Recompensa massiva de XP
+    reward: { trainerXp: 500000, teamXp: 1000000 }
   },
   {
     id: 10,
@@ -1275,7 +1274,7 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 5,
     type: "capture_rarity",
     rarity: "epic",
-    reward: { items: { fragmento_ultraball: 15, egg_epic: 1 }, trainerXp: 100000, teamXp: 250000 }
+    reward: { items: { fragmento_ultraball: 15, egg_epic: 1 }, trainerXp: 300000, teamXp: 800000 }
   }
 ];
 
