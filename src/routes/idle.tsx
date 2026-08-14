@@ -9001,7 +9001,8 @@ function IdlePage() {
                        (e as any).drops?.includes("stone_fire") ? "🔥" :
                        (e as any).drops?.includes("stone_water") ? "💧" :
                        (e as any).drops?.includes("stone_electric") ? "⚡" :
-                       (e as any).drops?.includes("stone_dark") ? "🌑" : "🐉"}
+                       (e as any).drops?.includes("stone_dark") ? "🌑" :
+                       (e as any).drops?.includes("stone_dragon") ? "🐲" : ""}
                     </div>
                   )}
 
