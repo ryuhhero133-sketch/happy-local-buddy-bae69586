@@ -1114,7 +1114,27 @@ export const GYM_RARE_DROPS: Record<GymFloorId, Array<{ id: string; chance: numb
 };
 
 
+const RARITY_COLORS: Record<string, { c: string; aura: string }> = {
+  common: { c: "#94a3b8", aura: "" },
+  uncommon: { c: "#4ade80", aura: "0 0 10px rgba(74, 222, 128, 0.3)" },
+  rare: { c: "#60a5fa", aura: "0 0 15px rgba(96, 165, 250, 0.6), 0 0 30px rgba(96, 165, 250, 0.3)" },
+  epic: { c: "#c084fc", aura: "0 0 20px rgba(192, 132, 252, 0.7), 0 0 40px rgba(192, 132, 252, 0.4)" },
+  legendary: { c: "#f59e0b", aura: "0 0 25px rgba(245, 158, 11, 0.8), 0 0 50px rgba(245, 158, 11, 0.5)" },
+  mythic: { c: "#ef4444", aura: "0 0 30px rgba(239, 68, 68, 0.9), 0 0 60px rgba(239, 68, 68, 0.6)" },
+  mythic_shiny: { c: "#f472b6", aura: "0 0 35px rgba(244, 114, 182, 1), 0 0 70px rgba(244, 114, 182, 0.7)" },
+};
+
+export type Enemy = {
+  id: number; sp: Species; hp: number; maxHp: number; x: number; y: number;
+  face: "left" | "right"; aggressive: boolean; aggroR: number; elite: boolean;
+  level: number; rarity: Rarity; xpTitle: boolean; rider: boolean;
+  guardian: boolean; apex: boolean; eventLegendary: boolean;
+  disguise?: Species; revealed: boolean; menace: boolean; mtcBoss: boolean;
+  drops?: string[];
+};
+
 // 🔻 Evento Vale dos Fragmentos: abre 1 hora a cada 5 horas (ciclo global, igual pra todos).
+
 export const VALE_CYCLE_MS = 5 * 60 * 60 * 1000;
 export const VALE_OPEN_MS = 60 * 60 * 1000;
 export function valeEventStatus(now: number = Date.now()): { open: boolean; msUntilChange: number } {
