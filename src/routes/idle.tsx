@@ -1751,6 +1751,7 @@ function IdlePage() {
   const [profileOpen, setProfileOpen] = useState(true);
   const [teamPanelOpen, setTeamPanelOpen] = useState(true);
   const [maximizeTeam, setMaximizeTeam] = useState(false);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   // Manutenção Season: Desloga jogadores não-admins
   useEffect(() => {
