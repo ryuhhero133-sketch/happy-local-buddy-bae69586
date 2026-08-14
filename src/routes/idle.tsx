@@ -1254,7 +1254,7 @@ const QUEST_DATA: MainQuestDef[] = [
   {
     id: 8,
     title: "Mestre da Caça",
-    description: "Derrote 100 pokémon para ganhar 10 Ultra Balls e muita experiência.",
+    description: "Derrote 100 pokémon para ganhar 10 fragmentos de Ultra Ball e muita experiência.",
     target: 100,
     type: "kill_count",
     reward: { items: { fragmento_ultraball: 10 }, trainerXp: 80000, teamXp: 200000 }
