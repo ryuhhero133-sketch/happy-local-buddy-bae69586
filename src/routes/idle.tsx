@@ -4392,7 +4392,7 @@ function IdlePage() {
         const pool = lowRarity.length > 0 ? lowRarity : alive;
 
         for (const e of pool) {
-          const d = (e.x - trainerPos.x) ** 2 + (e.y - trainerPos.y) ** 2;
+          const d = (e.x - trainerPosRef.current.x) ** 2 + (e.y - trainerPosRef.current.y) ** 2;
           if (d < bestD) {
             bestD = d;
             target = e;
