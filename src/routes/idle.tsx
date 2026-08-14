@@ -1,4 +1,4 @@
-// VEJA OQ TQA ACONTECENDO E SE O PAINEL DE ADDM, JA ESTA OK, POARA PODER EDITAR OS TREINADOR, NIVEL ETC, NIVEL DE POKEMON. ETC - V23 - COLLAPSIBLE_HUDS
+// MODO AUYTO BATALHA ALGUMAS VEZES FICA ANDANDO PARA UM LUGAR TRAVADO DA PAREDE DO MAPA, E N ATAKA OS POKEMOINS PRECISA HAVALIAR OQUE SERIA ISSO E NOS PODER N PERMITIR QUE ISSO ACONTECA.
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -4154,7 +4154,7 @@ function IdlePage() {
         const lockedPortals = WORLD_PORTALS.filter((p) => p.from === idle.currentMap && (p.reqLevel ?? 0) > trLv);
         const nearLockedPortal = (x: number, y: number) =>
           lockedPortals.some((p) => Math.hypot(x - p.x, y - p.y) < 200);
-        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id) && !nearLockedPortal(e.x, e.y));
+        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
         // Líder pode atacar qualquer Pokémon do mapa — ganhos serão nerfados se muito acima.
         const alive = aliveAll;
         const enemyPool = alive.length > 0 ? alive : [];
@@ -4241,8 +4241,8 @@ function IdlePage() {
             stuckRef.current = { id: target.id, count: 1 };
             (stuckRef.current as any).lastDist = dist;
           }
-          // Detecta travamento muito mais rápido no auto: ~60 ticks (~7s) sem progresso
-          if (stuckRef.current.count > 60) {
+          // Detecta travamento muito mais rápido no auto: ~30 ticks (~3.5s) sem progresso real
+          if (stuckRef.current.count > 30) {
             blacklistRef.current.set(target.id, nowT + 12000);
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
@@ -4285,8 +4285,12 @@ function IdlePage() {
           } else if (!collidesWithAny(tp.x, ny)) {
             nx = tp.x;
           } else {
-            // Se preso em canto, ignora colisão momentaneamente para não travar
-            return { x: nx, y: ny };
+            // Se preso em canto ou obstrução total, tenta um pequeno desvio lateral aleatório
+            // em vez de simplesmente atravessar a colisão (que pode causar bugs visuais)
+            const jitter = 4;
+            const jx = clampX(tp.x + (Math.random() - 0.5) * jitter);
+            const jy = clampY(tp.y + (Math.random() - 0.5) * jitter);
+            return { x: jx, y: jy };
           }
         }
         return { x: nx, y: ny };
@@ -10506,7 +10510,7 @@ function IdlePage() {
           {/* HUD do Target (Inimigo Selecionado) */}
           {targetPet && (
             <div style={{
-              position: 'fixed', left: '50%', top: '150px', transform: 'translateX(-50%)',
+              position: 'fixed', left: '50%', top: '70px', transform: 'translateX(-50%)',
               width: '320px', background: 'rgba(11, 5, 20, 0.9)', backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255, 82, 82, 0.4)', borderRadius: '16px',
               padding: '12px', display: 'flex', alignItems: 'center', gap: '15px',
@@ -11186,14 +11190,14 @@ function IdlePage() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
                     <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🐾 COLEÇÃO ({storable.length})</div>
-                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "350px", overflowY: "auto" }}>
                       {storable.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Nenhum pokémon disponível (os do time não podem ser guardados).</div>
                         : storable.map((e) => <PokeRow key={e.uid} e={e} stored={false} />)}
                     </div>
                   </div>
                   <div>
                     <div style={{ color: "#e0cbff", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🏦 COFRE ETERNO ({pokeVault.length}/{POKE_VAULT_SLOTS})</div>
-                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "350px", overflowY: "auto" }}>
                       {pokeVault.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre eterno vazio.</div>
                         : pokeVault.map((e) => <PokeRow key={e.uid} e={e} stored />)}
                     </div>
@@ -11511,7 +11515,7 @@ function IdlePage() {
                         Você não tem Pokémon {pick.rarity.toUpperCase()} na coleção.
                       </div>
                     ) : (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "22vh", overflowY: "auto", padding: 4 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "180px", overflowY: "auto", padding: 4 }}>
                         {eligible.map((c) => {
                           const sel = worldTraderSel.has(c.uid);
                           const disabled = !sel && selCount >= pick.count;
@@ -11581,7 +11585,7 @@ function IdlePage() {
                       {fuelOfTab.length === 0 ? (
                         <div style={{ fontSize: 11, color: "#8a7a9c", padding: 8, textAlign: "center" }}>Nenhum {FUEL_TIERS[activeTab].label} disponível.</div>
                       ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "16vh", overflowY: "auto" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "140px", overflowY: "auto" }}>
                           {fuelOfTab.map((c) => {
                             const sel = worldTraderFuel.has(c.uid);
                             const disabled = !sel && fuelCount >= MAX_FUEL;
@@ -13732,7 +13736,9 @@ function TabOverlay({
                 border: "2.5px solid rgba(245, 207, 107, 0.3)",
                 borderRadius: 16,
                 boxShadow: "0 6px 22px rgba(0,0,0,0.4), inset 0 1px 0 rgba(245,207,107,0.1)",
-                position: "relative", overflow: "hidden",
+                position: "relative", 
+                overflow: "hidden",
+                zIndex: maximizeTeam ? 1000 : 1 // Garante que fique acima de outros HUDs quando maximizado
               }}>
 
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 20%, rgba(245,207,107,0.15), transparent 60%)", pointerEvents: "none" }} />
@@ -13769,7 +13775,15 @@ function TabOverlay({
 
 
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: maximizeTeam ? "repeat(auto-fit, minmax(280px, 1fr))" : "1fr", 
+                  gap: 8, 
+                  position: "relative",
+                  maxHeight: maximizeTeam ? "480px" : "auto", // Altura fixa quando maximizado para evitar cobrir a tela inteira
+                  overflowY: maximizeTeam ? "auto" : "visible",
+                  paddingRight: maximizeTeam ? "4px" : "0"
+                }}>
                   {team.map((p, i) => {
                     if (!maximizeTeam && i >= 3) return null;
                     const src = gifMap[p.species];
@@ -13857,7 +13871,9 @@ function TabOverlay({
                         }}
                         onDragEnd={() => setDraggedIdx(null)}
                         style={{
-                        display: "flex", alignItems: "stretch", gap: 12, padding: 12,
+                        display: "flex", alignItems: "stretch", gap: 12, padding: "10px 12px", // Reduzido padding vertical
+                        minHeight: 140, // Altura mínima controlada
+                        maxHeight: 180, // Altura máxima controlada
                         background: isLeader
                           ? "rgba(0,0,0,0.4)"
                           : "rgba(0,0,0,0.3)",
@@ -13884,11 +13900,12 @@ function TabOverlay({
                             position: "relative", overflow: "visible", // mudado para visible para a aura aparecer
                           }}>
 
-                            {src && <img src={src} alt="" width={70} height={70} style={{ 
-                              imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
-                              transform: `scale(${spriteScale * 1.3})`, // Reduzido de 1.8 para 1.3 para ficar proporcional
-                              transformOrigin: 'center'
-                            }} />}
+                             {src && <img src={src} alt="" style={{ 
+                               width: 130, height: 130, // Aumentado para preencher melhor o slot (era 110)
+                               imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
+                               transform: `scale(${spriteScale * 1.5})`, // Adicionado escala extra
+                               transformOrigin: 'center'
+                             }} />}
                             {/* Slot number top-left */}
                             <div style={{
                               position: "absolute", top: 2, left: 4,
@@ -14378,7 +14395,7 @@ function TabOverlay({
                 border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
                 boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
                 padding: 12, minHeight: 360,
-                maxHeight: 1000, overflowY: "auto"
+                maxHeight: 480, overflowY: "auto"
               }}>
 
                 {filtered.length === 0 ? (
@@ -14886,7 +14903,7 @@ function TabOverlay({
                        style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%", position: "relative", zIndex: 1 }}
                        title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
                      >
-                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
+                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 90, height: 90, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
                        <div style={{ fontSize: 11, marginTop: 2, color: "#fff", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                      </button>
 
@@ -15130,7 +15147,9 @@ function TabOverlay({
             boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
           }}>
 
-            <div style={{ fontSize: 40 }}>🧪</div>
+            <div style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(107, 212, 255, 0.15), transparent 70%)", borderRadius: 12 }}>
+              <img src={potionNewImg} alt="" width={60} height={60} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 8px rgba(107, 212, 255, 0.6))" }} />
+            </div>
             <div style={{ flex: 1, minWidth: 160 }}>
               <div style={{ fontWeight: 800, color: "#eadfe8" }}>Poção</div>
               <div style={{ fontSize: 11, color: "#b8a8c8" }}>Recupera {Math.round(POTION_HEAL_PCT * 100)}% do HP. Usada no auto quando ativado.</div>
@@ -15435,7 +15454,7 @@ function TabOverlay({
                       Você não tem Pokémon {orbPicker.rarity.toUpperCase()} na coleção.
                     </div>
                   ) : (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8, maxHeight: "400px", overflowY: "auto", padding: "4px" }}>
                       {eligible.map((c) => {
                         const sel = orbPickerSel.has(c.uid);
                         const disabled = !sel && selCount >= orbPicker.count;
@@ -15459,9 +15478,9 @@ function TabOverlay({
                             }}
                           >
                             {gifMap[c.species] ? (
-                              <img src={gifMap[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
+                              <img src={gifMap[c.species]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated" }} />
                             ) : (
-                              <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
+                              <div style={{ width: 64, height: 64, background: "#2a1638", borderRadius: 8 }} />
                             )}
                             <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
                             <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
