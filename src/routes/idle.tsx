@@ -3837,11 +3837,11 @@ function IdlePage() {
   // O usuário deseja o mapa inteiro na tela, sem o "vazio" verde em volta.
   const BASE_ZOOM = useMemo(() => {
     if (!viewSize.w || !viewSize.h) return 0.2;
-    // O usuário deseja que o slider possa diminuir até 65% (0.65).
-    // O preenchimento ideal da tela (fillScale) deve acontecer quando o slider está em 0.65.
+    // O usuário deseja que o slider possa diminuir até 35% (0.35).
+    // O preenchimento ideal da tela (fillScale) deve acontecer quando o slider está em 0.35.
     const fillScale = Math.max(viewSize.w / WORLD_W, viewSize.h / WORLD_H);
-    // Se o slider (zoom) estiver em 0.65, o resultado (effectiveZoom) deve ser fillScale.
-    return fillScale / 0.65;
+    // Se o slider (zoom) estiver em 0.35, o resultado (effectiveZoom) deve ser fillScale.
+    return fillScale / 0.35;
   }, [viewSize.w, viewSize.h, WORLD_W, WORLD_H]);
 
   const effectiveZoom = zoom * BASE_ZOOM;
