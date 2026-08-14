@@ -4077,13 +4077,22 @@ function IdlePage() {
         if (target.kind === "enemy") {
           const sr = stuckRef.current;
           if (sr.id === target.id) {
-            sr.count += 1;
+            // Se a distância NÃO DIMINUIU significativamente, incrementa o contador de stuck
+            const lastD = (sr as any).lastDist || Infinity;
+            if (dist >= lastD - 0.5) {
+              sr.count += 1;
+            } else {
+              // Se está se movendo em direção ao alvo, reduz o contador (evita blacklist em caminhadas longas)
+              sr.count = Math.max(0, sr.count - 2);
+            }
+            (sr as any).lastDist = dist;
           } else {
             stuckRef.current = { id: target.id, count: 1 };
+            (stuckRef.current as any).lastDist = dist;
           }
-          // ~150 ticks * 120ms = ~18s realmente travado sem progredir
-          if (stuckRef.current.count > 150) {
-            blacklistRef.current.set(target.id, nowT + 15000);
+          // ~250 ticks * 120ms = ~30s realmente travado
+          if (stuckRef.current.count > 250) {
+            blacklistRef.current.set(target.id, nowT + 10000);
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
             return tp;
