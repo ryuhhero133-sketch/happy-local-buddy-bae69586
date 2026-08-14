@@ -9708,9 +9708,10 @@ function IdlePage() {
             <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Pacotes</span>
           </div>
 
-          {/* Ranking */}
-          <div onClick={() => setRankOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
+          {/* Ranking (Bloqueado) */}
+          <div onClick={() => toast.info("O Ranking só abrirá no sábado na temporada Black Mitic! 🔒")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer', opacity: 0.6, position: 'relative' }}>
             <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🏆</div>
+            <div style={{ position: 'absolute', top: 0, right: 0, fontSize: '12px' }}>🔒</div>
             <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Ranking</span>
           </div>
 
@@ -9754,8 +9755,9 @@ function IdlePage() {
             <span style={{ fontSize: '24px' }}>📔</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>COLEÇÃO</span>
           </button>
-          <button onClick={() => { console.log('Dock: Mercado'); setTab("market"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'market' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'market' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
+          <button onClick={() => toast.info("O Mercado só abrirá no sábado na temporada Black Mitic! 🔒")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', opacity: 0.6, pointerEvents: 'auto', zIndex: 2001, position: 'relative' }}>
             <span style={{ fontSize: '24px' }}>⚖️</span>
+            <div style={{ position: 'absolute', top: -5, right: -5, fontSize: '12px' }}>🔒</div>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
           </button>
           <button onClick={() => { console.log('Dock: Loja'); setTab("loja"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'loja' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
