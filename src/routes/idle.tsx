@@ -5055,10 +5055,10 @@ function IdlePage() {
             // Traits não são mais anunciados no chat (só a captura em si).
             // === XP DO TREINADOR (separado do XP do pokémon) ===
             // Base: ~40% do xp do pokémon, escalado pelo nível do inimigo e raridade.
-            const rarityTrainerMult: Record<Rarity, number> = {
+            const rarityTrainerMult: Record<string, number> = {
               common: 1, uncommon: 1.2, rare: 1.5, epic: 2, legendary: 3, mythic: 4.5, mythic_shiny: 6,
             };
-            const rMult = (rarityTrainerMult as any)[target.rarity] ?? 1;
+            const rMult = rarityTrainerMult[target.rarity] ?? 1;
             // Escala por diferença de nível: cada nv acima do inimigo reduz 8% (mín 10%).
             const trLv = s.trainerLevel ?? 1;
             const lvDiff = trLv - target.level;
