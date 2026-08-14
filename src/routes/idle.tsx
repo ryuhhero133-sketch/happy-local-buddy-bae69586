@@ -12615,17 +12615,8 @@ function IdlePage() {
 
 
 
-      {/* HUD de Buffs Ativos — Posicionado abaixo do tempo para evitar sobreposições */}
-      <div style={{
-        position: 'fixed',
-        top: 60,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 10001,
-        pointerEvents: 'none'
-      }}>
-        <ActiveBuffsHUD buffs={idle.buffs} />
-      </div>
+      {/* Buffs Ativos HUD - Removido da sobreposição da tela principal conforme solicitado */}
+
 
       {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
       {pendingGate && createPortal(
