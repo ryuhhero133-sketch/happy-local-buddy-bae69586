@@ -6375,7 +6375,14 @@ function IdlePage() {
       // 🏷️ TÍTULO DE XP — a partir do Lv 5.000 de treinador, alguns selvagens
       // nascem com o título "XP" acima da cabeça e valem 2x de experiência.
       const xpTitle = (idle.trainerLevel ?? 1) >= 5000 && Math.random() < 0.12;
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, xpTitle, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss };
+      // 💎 DROP DE STONES ELEMENTAIS ALEATÓRIAS (Qualquer Pokémon pode dropar, chance baixa)
+      const STONES_LIST = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
+      const enemyDrops: string[] = [];
+      if (Math.random() < 0.05) { // 5% de chance base de drop de stone
+        enemyDrops.push(STONES_LIST[Math.floor(Math.random() * STONES_LIST.length)]);
+      }
+
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, xpTitle, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, drops: enemyDrops };
 
 
     }
@@ -8923,6 +8930,34 @@ function IdlePage() {
                         pointerEvents: "none", zIndex: -1,
                       }} />
                       {/* Anel de estrelas girando */}
+                    {/* Element Floating Icon (for drops) */}
+                    {(["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"].some(s => e.drops?.includes(s))) && (
+                      <div className="stone-float-indicator" style={{
+                        position: "absolute", top: -15, right: -5,
+                        width: 18, height: 18, borderRadius: "50%",
+                        background: "rgba(255,255,255,0.8)", border: "1.5px solid #fff",
+                        boxShadow: "0 0 10px rgba(255,255,255,0.8)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 10, animation: "floatstone 2s ease-in-out infinite",
+                        zIndex: 10, pointerEvents: "none"
+                      }}>
+                        {e.drops?.includes("stone_grass") ? "🌿" : 
+                         e.drops?.includes("stone_fire") ? "🔥" :
+                         e.drops?.includes("stone_water") ? "💧" :
+                         e.drops?.includes("stone_electric") ? "⚡" :
+                         e.drops?.includes("stone_dark") ? "🌑" : "🐉"}
+                      </div>
+                    )}
+
+                    {/* Aura de Raridade no Inimigo */}
+                    {RARITY_COLORS[e.rarity as string]?.aura && (
+                      <div style={{
+                        position: "absolute", inset: -10, borderRadius: "50%",
+                        boxShadow: `inset 0 0 20px ${RARITY_COLORS[e.rarity as string].c}66, ${RARITY_COLORS[e.rarity as string].aura}`,
+                        pointerEvents: "none", zIndex: -1,
+                        animation: "auraPulse 2s ease-in-out infinite"
+                      }} />
+                    )}
                     {/* Element Floating Icon (for drops) */}
                     {(["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"].some(s => e.drops?.includes(s))) && (
                       <div className="stone-float-indicator" style={{
