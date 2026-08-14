@@ -10043,20 +10043,21 @@ function IdlePage() {
             const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
             const on = ab.enabled;
             return (
-            {/* Buffs Ativos HUD */}
-            <div style={{
-              position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
-              display: "flex", gap: 8, zIndex: 1000000, pointerEvents: "none"
-            }}>
-              <ActiveBuffsHUD buffs={idle.buffs} />
-            </div>
+              <>
+                {/* Buffs Ativos HUD */}
+                <div style={{
+                  position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
+                  display: "flex", gap: 8, zIndex: 1000000, pointerEvents: "none"
+                }}>
+                  <ActiveBuffsHUD buffs={idle.buffs} />
+                </div>
 
-            <div style={{
-              position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-              zIndex: 99997,
-              pointerEvents: "auto",
-            }}>
+                <div style={{
+                  position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                  zIndex: 99997,
+                  pointerEvents: "auto",
+                }}>
               {showAutoSettings && (
                 <div style={{
                   background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
