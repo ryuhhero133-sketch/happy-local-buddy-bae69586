@@ -8285,7 +8285,7 @@ function IdlePage() {
               </div>
 
               <button 
-                onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(0.4, z - 0.1)); }}
+                onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(0.65, z - 0.1)); }}
                 style={{ ...zoomBtn, borderRadius: '50%', width: '32px', height: '32px', background: 'rgba(0,0,0,0.8)', border: '2px solid rgba(245,207,107,0.6)', boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
               >
                 <div style={{ width: '10px', height: '2px', background: '#f5cf6b' }} />
