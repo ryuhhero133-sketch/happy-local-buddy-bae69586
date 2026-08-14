@@ -10088,7 +10088,7 @@ function IdlePage() {
                         <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
                       </div>
                       <div style={{ display: "flex", gap: 4 }}>
-                        {(["auto", "pokeball", "greatball", "ultraball"] as const).map((b) => (
+                        {(["auto", "pokeball", "greatball", "ultraball", "masterball"] as const).map((b) => (
                           <button
                             key={b}
                             onClick={() => setAB({ preferredBall: b })}
@@ -10099,7 +10099,7 @@ function IdlePage() {
                               border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer"
                             }}
                           >
-                            {b === "auto" ? "MELHOR" : b === "pokeball" ? "COMUM" : b === "greatball" ? "GREAT" : "ULTRA"}
+                            {b === "auto" ? "MELHOR" : b === "pokeball" ? "COMUM" : b === "greatball" ? "GREAT" : b === "ultraball" ? "ULTRA" : "MASTER"}
                           </button>
                         ))}
                       </div>
