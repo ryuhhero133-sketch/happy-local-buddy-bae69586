@@ -3028,6 +3028,8 @@ function IdlePage() {
       };
       const nextTeam = (teamRef.current ?? []).map(resetPet);
       const nextBench = (benchRef.current ?? []).map(resetPet);
+      const nextPokeVault = (cur.pokeVault ?? []).map(resetPet);
+
 
       // 3) Treinador volta ao nível 1 — itens, ouro, cristais e cofre intactos
       const next: IdleState = {
@@ -3035,9 +3037,11 @@ function IdlePage() {
         trainerLevel: 1,
         trainerXp: 0,
         collection: [],
+        pokeVault: nextPokeVault,
         items: nextItems as typeof cur.items,
         currentMap: "arena",
         redeemedCodes: { ...(cur.redeemedCodes ?? {}), RESETPERSON: true },
+
       };
 
       setIdle(next);
@@ -10556,14 +10560,23 @@ function IdlePage() {
           pushChat(fee === 0 ? `🏦 ${e.species.replace(/_/g, " ")} guardado GRÁTIS (Black Mitic Plus).` : `🏦 ${e.species.replace(/_/g, " ")} guardado para sempre (−${fee.toLocaleString("pt-BR")} 🔻).`, "cap");
         };
         const withdrawPoke = (e: CollectionEntry) => {
+          // Reset de nível ao retirar do cofre para garantir a progressão da season
+          const resetPet = (p: PetInstance): PetInstance => {
+            const lv1 = { ...p, level: 1, xp: 0 } as PetInstance;
+            const max = calcIdleMaxHp(lv1);
+            return { ...lv1, hp: max, maxHp: max };
+          };
+          const leveledDown = resetPet(e as unknown as PetInstance) as unknown as CollectionEntry;
+
           setIdle((st) => ({
             ...st,
             pokeVault: (st.pokeVault ?? []).filter((c) => c.uid !== e.uid),
-            collection: [...(st.collection ?? []), e],
+            collection: [...(st.collection ?? []), leveledDown],
           }));
           playClick();
-          pushChat(`🏦 ${e.species.replace(/_/g, " ")} retirado do cofre.`, "cap");
+          pushChat(`🏦 ${e.species.replace(/_/g, " ")} retirado do cofre (Nível resetado p/ 1).`, "cap");
         };
+
         const PokeRow = ({ e, stored }: { e: CollectionEntry; stored: boolean }) => {
           const bmp = isBmpEntry(e);
           return (
@@ -10628,9 +10641,10 @@ function IdlePage() {
               </div>
               {vaultTab === "pokemon" && (
                 <div style={{ background: "rgba(160,102,255,0.12)", border: "1px solid rgba(160,102,255,0.4)", borderRadius: 8, padding: "7px 10px", marginBottom: 10, fontSize: 10.5, color: "#e0cbff", lineHeight: 1.5 }}>
-                  🛡 Pokémons guardados aqui são <b>preservados na 3ª Season</b> (não serão resetados).<br />
+                  🛡 Pokémons guardados aqui são <b>preservados</b>, porém seus <b>níveis serão resetados para 1</b> ao serem retirados.<br />
                   Taxa: <b>{POKE_VAULT_FEE_SHARDS.toLocaleString("pt-BR")} 🔻</b> por pokémon · <b>Black Mitic Plus é grátis</b> · vagas usadas: <b>{pokeVault.length}/{POKE_VAULT_SLOTS}</b>
                 </div>
+
               )}
               {vaultTab === "itens" ? (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
