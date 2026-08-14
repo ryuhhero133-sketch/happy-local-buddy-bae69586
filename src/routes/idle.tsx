@@ -1161,6 +1161,75 @@ export type CollectionEntry = { uid: string; species: Species; level: number; ra
 
 export const MAX_COLLECTION = 500;
 
+export type MainQuestState = {
+  currentQuestId: number;
+  progress: number;
+  completed: boolean;
+};
+
+export type MainQuestDef = {
+  id: number;
+  title: string;
+  description: string;
+  target: number;
+  type: "capture_rarity" | "capture_species";
+  rarity?: Rarity;
+  species?: Species;
+  reward: {
+    items?: Record<string, number>;
+    redshards?: number;
+  };
+};
+
+const QUEST_DATA: MainQuestDef[] = [
+  {
+    id: 1,
+    title: "Início da Jornada",
+    description: "Capture 10 Pokémon Incomuns para provar seu valor.",
+    target: 10,
+    type: "capture_rarity",
+    rarity: "uncommon",
+    reward: { items: { ultraball: 10 } }
+  },
+  {
+    id: 2,
+    title: "Caçador de Raridades",
+    description: "Capture 5 Pokémon Raros para o Laboratório.",
+    target: 5,
+    type: "capture_rarity",
+    rarity: "rare",
+    reward: { redshards: 50 }
+  },
+  {
+    id: 3,
+    title: "O Desafio Épico",
+    description: "Capture 3 Pokémon Épicos para mostrar sua força.",
+    target: 3,
+    type: "capture_rarity",
+    rarity: "epic",
+    reward: { redshards: 100 }
+  },
+  {
+    id: 4,
+    title: "Lenda em Foco",
+    description: "Capture 1 Pokémon Lendário para entrar para a história.",
+    target: 1,
+    type: "capture_rarity",
+    rarity: "legendary",
+    reward: { items: { egg_epic: 1 } }
+  },
+  {
+    id: 5,
+    title: "O Favorito",
+    description: "Capture 1 Pikachu para completar a coleção real.",
+    target: 1,
+    type: "capture_species",
+    species: "pikachu",
+    reward: { redshards: 200 }
+  }
+];
+
+
 const GOVERNANTE_PLUS_POOL: readonly Species[] = [
   "mewtwo", "mew", "groudon", "lugia", "ho_oh",
   "moltres", "zapdos", "articuno", "raikou", "suicune",
@@ -1371,6 +1440,7 @@ function freshIdle(): IdleState {
     unlockedSkins: ["default"],
     redeemedCodes: {},
     vault: {},
+    mainQuest: { currentQuestId: 1, progress: 0, completed: false },
   };
 }
 function saveIdle(s: IdleState) {
@@ -4949,6 +5019,27 @@ function IdlePage() {
                 try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
               });
             }
+            // Main Quest progress
+            let nextMainQuest = s.mainQuest ?? { currentQuestId: 1, progress: 0, completed: false };
+            if (captured && !nextMainQuest.completed) {
+              const q = QUEST_DATA.find(x => x.id === nextMainQuest.currentQuestId);
+              if (q) {
+                let match = false;
+                if (q.type === "capture_rarity" && target.rarity === q.rarity) match = true;
+                if (q.type === "capture_species" && target.sp === q.species) match = true;
+                if (match) {
+                  const newProg = nextMainQuest.progress + 1;
+                  nextMainQuest = { ...nextMainQuest, progress: newProg };
+                  if (newProg >= q.target) {
+                    queueMicrotask(() => {
+                      pushChat(`🌟 MAIN QUEST: Objetivo "${q.title}" concluído! Colete sua recompensa perto do chat.`, "cap");
+                      playBonus();
+                    });
+                  }
+                }
+              }
+            }
+
             return {
               ...applied.state,
               pending: { ...s.pending, gold: 0, crystals: 0, redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + redShardGain) },
@@ -4960,6 +5051,7 @@ function IdlePage() {
               caughtSpecies: newCaught,
               seenSpecies: newSeen,
               collection: newCollection,
+              mainQuest: nextMainQuest,
             };
           });
         }
@@ -9884,6 +9976,91 @@ function IdlePage() {
 
 
 
+
+        {/* Main Quest HUD */}
+        {(() => {
+          const mq = idle.mainQuest ?? { currentQuestId: 1, progress: 0, completed: false };
+          if (mq.completed) return null;
+          const q = QUEST_DATA.find(x => x.id === mq.currentQuestId);
+          if (!q) return null;
+          const done = mq.progress >= q.target;
+          
+          const claim = () => {
+            if (!done) return;
+            playClick();
+            setIdle(s => {
+              const nextItems = { ...(s.items ?? {}) };
+              if (q.reward.items) {
+                for (const [iid, qty] of Object.entries(q.reward.items)) {
+                  nextItems[iid] = (nextItems[iid] ?? 0) + qty;
+                }
+              }
+              const nextRedShards = (s.items?.fragmento_vermelho ?? 0) + (q.reward.redshards ?? 0);
+              nextItems.fragmento_vermelho = nextRedShards;
+              
+              const nextId = mq.currentQuestId + 1;
+              const hasNext = QUEST_DATA.some(x => x.id === nextId);
+              
+              pushChat(`🎁 Recompensa coletada!`, "cap");
+              
+              return {
+                ...s,
+                items: nextItems as any,
+                mainQuest: {
+                  currentQuestId: nextId,
+                  progress: 0,
+                  completed: !hasNext
+                }
+              };
+            });
+          };
+
+          return (
+            <div className="main-quest-panel" style={{
+              position: 'absolute', bottom: '310px', left: '20px',
+              width: '280px',
+              background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(12px)',
+              borderRadius: '12px', border: done ? '2px solid #f5cf6b' : '1px solid rgba(201,184,255,0.3)',
+              padding: '12px', pointerEvents: 'auto',
+              boxShadow: done ? '0 0 20px rgba(245,207,107,0.3)' : '0 4px 12px rgba(0,0,0,0.5)',
+              animation: done ? 'pulse 2s infinite' : 'none'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ color: '#f5cf6b', fontSize: '11px', fontWeight: 900, letterSpacing: 1.5 }}>MAIN QUEST</span>
+                <span style={{ color: done ? '#5ec26a' : '#8a7a9c', fontSize: '10px', fontWeight: 800 }}>{mq.progress}/{q.target}</span>
+              </div>
+              <div style={{ color: '#fff', fontSize: '12px', fontWeight: 700, marginBottom: 4 }}>{q.title}</div>
+              <div style={{ color: '#b8a8c8', fontSize: '10px', lineHeight: 1.3, marginBottom: 10 }}>{q.description}</div>
+              
+              <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden', marginBottom: 12 }}>
+                <div style={{ 
+                  width: `${Math.min(100, (mq.progress / q.target) * 100)}%`, 
+                  height: '100%', 
+                  background: done ? '#5ec26a' : '#c9b8ff',
+                  boxShadow: done ? '0 0 8px #5ec26a' : 'none'
+                }} />
+              </div>
+
+              {done ? (
+                <button onClick={claim} style={{
+                  width: '100%', padding: '8px', background: 'linear-gradient(180deg, #f5cf6b, #b8862a)',
+                  color: '#0b0510', border: 'none', borderRadius: '6px', fontWeight: 900, fontSize: '11px',
+                  cursor: 'pointer', letterSpacing: 1, boxShadow: '0 2px 0 rgba(0,0,0,0.2)'
+                }}>COLETAR RECOMPENSA</button>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '9px', color: '#8a7a9c', fontWeight: 700 }}>
+                  <span>RECOMPENSA:</span>
+                  {q.reward.items && Object.entries(q.reward.items).map(([id, qty]) => (
+                    <span key={id} style={{ color: '#c9b8ff' }}>{qty}x {id.replace(/_/g, ' ').toUpperCase()}</span>
+                  ))}
+                  {q.reward.redshards && (
+                    <span style={{ color: '#ff5c5c' }}>{q.reward.redshards} 🔻</span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         <div className="chat-floating-panel" style={{
           position: 'absolute', bottom: '100px', left: '20px',
