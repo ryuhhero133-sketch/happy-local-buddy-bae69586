@@ -13041,6 +13041,8 @@ function TabOverlay({
   };
   const openFragConfirm = (uids: string[]) => {
     const PRISMA_BY_RARITY: Record<string, number> = { common: 1, uncommon: 1, rare: 2, epic: 3, legendary: 5, mythic: 10, mythic_shiny: 20 };
+    const FRAG_HAB_BY_LEVEL: Record<string, number> = { common: 5, uncommon: 10, rare: 20, epic: 40, legendary: 80, mythic: 150, mythic_shiny: 300 };
+    const FRAG_DEF_BY_LEVEL: Record<string, number> = { common: 5, uncommon: 10, rare: 20, epic: 40, legendary: 80, mythic: 150, mythic_shiny: 300 };
     const entries = uids
       .map((uid) => collection.find((e) => e.uid === uid))
       .filter((e): e is CollectionEntry => !!e)
