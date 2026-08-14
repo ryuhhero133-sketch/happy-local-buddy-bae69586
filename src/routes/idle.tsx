@@ -16646,11 +16646,17 @@ function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) 
     </div>
   );
 }
-function ActiveBonuses({ leaderRarity, team, buffs }: {
+function ActiveBonuses({ leaderRarity, team, buffs, benchUids, onAnciaoInteraction, spriteScale, idle, setIdle }: {
   leaderRarity: Rarity;
   team: { rarity: Rarity }[];
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
+  benchUids: Set<string>;
+  onAnciaoInteraction: () => void;
+  spriteScale: number;
+  idle: IdleState;
+  setIdle: React.Dispatch<React.SetStateAction<IdleState>>;
 }) {
+
   const now = Date.now();
   const expActive = !!(buffs.expMultUntil && now < buffs.expMultUntil);
   const goldActive = !!(buffs.goldMultUntil && now < buffs.goldMultUntil);
