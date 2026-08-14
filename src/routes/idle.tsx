@@ -15800,52 +15800,6 @@ function TabOverlay({
             </div>
           </div>
 
-          <div style={{
-            background: "linear-gradient(160deg, #1c102a, #2a1a3a)",
-            border: "1px solid rgba(245, 207, 107, 0.4)", borderRadius: 12, padding: 16,
-            display: "flex", flexDirection: "column", gap: 10,
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>🎯 FILTRAR AUTO-BATALHA</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {(["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"] as Rarity[]).map((r) => {
-                const active = idle.autoBattle?.targetRarities?.includes(r) ?? false;
-                const rColors: Record<string, string> = {
-                  common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
-                  epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d"
-                };
-                const color = rColors[r] || "#fff";
-                return (
-                  <button
-                    key={r}
-                    onClick={() => {
-                      const current = idle.autoBattle?.targetRarities || [];
-                      const next = current.includes(r) ? current.filter(x => x !== r) : [...current, r];
-                      setIdle({ ...idle, autoBattle: { ...idle.autoBattle!, targetRarities: next } });
-                    }}
-                    style={{
-                      padding: "4px 8px", fontSize: 10, fontWeight: 900, borderRadius: 6, cursor: "pointer",
-                      background: active ? color : "rgba(0,0,0,0.3)",
-                      color: active ? "#0b0510" : color,
-                      border: `1px solid ${color}${active ? "ff" : "44"}`,
-                      transition: "all 0.2s"
-                    }}
-                  >
-                    {r.replace("_", " ").toUpperCase()}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => setIdle({ ...idle, autoBattle: { ...idle.autoBattle!, targetRarities: [] } })}
-                style={{
-                  padding: "4px 8px", fontSize: 10, fontWeight: 900, borderRadius: 6, cursor: "pointer",
-                  background: "rgba(255,255,255,0.05)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)"
-                }}
-              >TODOS</button>
-            </div>
-            <div style={{ fontSize: 10, color: "#8a7a9c", fontStyle: "italic" }}>
-              Se nenhum estiver selecionado, atacará todos os Pokémon.
-            </div>
-          </div>
 
           <div style={{
             background: "linear-gradient(160deg, #0f1f2e, #16324a)",
