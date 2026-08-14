@@ -1181,8 +1181,9 @@ export type MainQuestDef = {
   reward: {
     items?: Record<string, number>;
     redshards?: number;
-    trainerXp?: number; // 🌟 Bônus de XP para o Treinador
-    teamXp?: number;    // 🐾 Bônus de XP para os Pokémons
+    trainerXp?: number;
+    teamXp?: number;
+    trainerLevels?: number;
   };
 };
 
