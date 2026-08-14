@@ -15836,6 +15836,23 @@ function TabOverlay({
             </div>
           </div>
 
+          <div style={{
+            background: "linear-gradient(160deg, #1c102a, #2a1a3a)",
+            border: "1px solid rgba(245, 207, 107, 0.4)", borderRadius: 12, padding: 16,
+            display: "flex", flexDirection: "column", gap: 10,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>🎯 ESTRATÉGIA AUTO-BATALHA</div>
+            <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+              <input type="checkbox" checked={idle.autoBattle?.prioritizeQuest ?? false}
+                onChange={(e) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), prioritizeQuest: e.target.checked } }))}
+                style={{ width: 18, height: 18 }} />
+              <span style={{ color: "#eadfe8", fontWeight: 700 }}>Priorizar Alvos da Missão Principal</span>
+            </label>
+            <div style={{ fontSize: 10, color: "#8a7a9c", fontStyle: "italic" }}>
+              Se ativo, o treinador focará apenas nos Pokémon da quest atual. Se inativo, atacará qualquer um.
+            </div>
+          </div>
+
           <div style={{ fontSize: 11, color: "#8a7a9c" }}>
             Se a música não iniciar automaticamente, clique em qualquer lugar da tela — os navegadores exigem uma interação antes de tocar áudio.
           </div>
