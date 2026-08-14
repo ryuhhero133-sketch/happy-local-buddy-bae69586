@@ -10041,7 +10041,7 @@ function IdlePage() {
               border: '1px solid rgba(255, 82, 82, 0.4)', borderRadius: '16px',
               padding: '12px', display: 'flex', alignItems: 'center', gap: '15px',
               boxShadow: '0 0 30px rgba(255, 82, 82, 0.2)', pointerEvents: 'auto',
-              zIndex: 1002
+              zIndex: 10001
             }}>
               <div style={{ width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 82, 82, 0.1)', borderRadius: '12px' }}>
                 <img src={GIF[targetPet.sp]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
@@ -10103,7 +10103,7 @@ function IdlePage() {
             <div style={{
               position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-              zIndex: 10000,
+              zIndex: 9997,
             }}>
               {showAutoSettings && (
                 <div style={{
