@@ -7337,6 +7337,7 @@ function IdlePage() {
   );
 
   return (
+    <>
     <div className="game-root-container" style={{
       height: "100vh",
       background: "#000",
@@ -12456,7 +12457,7 @@ function IdlePage() {
       {isAdminOpen && (
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />
       )}
-    </div>
+    </>
   );
 }
 
