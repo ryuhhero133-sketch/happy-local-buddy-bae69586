@@ -15365,7 +15365,10 @@ function TabOverlay({
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d0c0e0", padding: "3px 0" }}>
                     <span>✦ Orb EXP <span style={{ color: "#8a80a8" }}>({fmtTime(buffs!.orbUntil! - nowMs)})</span></span>
                     <span style={{ color: "#c084fc", fontWeight: 700 }}>+{orbPct}%</span>
-                  </div>
+            </div>
+            <div style={{ marginTop: 20 }}>
+              <ActiveBuffsHUD buffs={buffs} />
+            </div>
                 )}
                 {honeyRareActive ? (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#fff0c8", padding: "3px 0" }}>
