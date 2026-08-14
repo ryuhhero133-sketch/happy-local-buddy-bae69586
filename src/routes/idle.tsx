@@ -11186,7 +11186,7 @@ function IdlePage() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
                     <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🐾 COLEÇÃO ({storable.length})</div>
-                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "350px", overflowY: "auto" }}>
                       {storable.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Nenhum pokémon disponível (os do time não podem ser guardados).</div>
                         : storable.map((e) => <PokeRow key={e.uid} e={e} stored={false} />)}
                     </div>
