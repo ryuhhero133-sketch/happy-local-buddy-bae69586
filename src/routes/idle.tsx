@@ -13016,7 +13016,7 @@ function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, res
   );
 }
 
-function ActiveBuffsHUD({ buffs }: { buffs: any }) {
+export function ActiveBuffsHUD({ buffs }: { buffs: any }) {
   if (!buffs) return null;
   const now = Date.now();
   const active = [];
