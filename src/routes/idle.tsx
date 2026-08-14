@@ -4505,24 +4505,27 @@ function IdlePage() {
           xpAccumRef.current.map = idle.currentMap;
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
+          
+          // 💎 DROP DE STONES ELEMENTAIS ALEATÓRIAS (Qualquer Pokémon pode dropar, chance baixa)
+          const STONES = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
+          if (Math.random() < 0.05) { // 5% de chance base de drop de stone em qualquer mob
+            drops.push(STONES[Math.floor(Math.random() * STONES.length)]);
+          }
+
           const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
           if (isOddishMap) {
             // 🌿 EVENTO ODISSÉIA ODDISH — SÓ dropa Stones Elementais.
-            // Épico / mítico / mítico shiny / lendário são os únicos que dropam.
             const isValuable = target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
             if (isValuable) {
-              const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
-              // Drop nerfado: ~25% chance de 1 stone random
+              // Drop nerfado: ~25% chance de 1 stone random (acumula com a chance base acima)
               if (Math.random() < 0.25) {
                 const first = STONES[Math.floor(Math.random() * STONES.length)];
                 drops.push(first);
-                // ~8% de chance de vir uma SEGUNDA stone de elemento DIFERENTE
                 if (Math.random() < 0.08) {
                   const rest = STONES.filter((s) => s !== first);
                   drops.push(rest[Math.floor(Math.random() * rest.length)]);
                 }
               }
-              // Míticos/shiny: 40% de chance de bônus de uma stone extra diferente (antes garantido)
               if ((target.rarity === "mythic" || target.rarity === "mythic_shiny") && Math.random() < 0.40) {
                 const already = new Set(drops);
                 const rest = STONES.filter((s) => !already.has(s));
@@ -4534,7 +4537,6 @@ function IdlePage() {
               if (it.id === "pokeball") continue;
               if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
             }
-            // Ultra Ball: raro+, 30% padrão. Mapas Terry/n2/n3 têm chance elevada e Great Ball extra.
             const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
             const cm = idle.currentMap;
             const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
@@ -13110,14 +13112,14 @@ function TabOverlay({
 
 
           {(() => {
-            const RARITY_COLORS: Record<string, { c: string; label: string }> = {
+            const RARITY_COLORS: Record<string, { c: string; label: string; aura?: string }> = {
               common:       { c: "#c8b8d0", label: "COMUM" },
               uncommon:     { c: "#7ef2a2", label: "INCOMUM" },
-              rare:         { c: "#6bd4ff", label: "RARO" },
-              epic:         { c: "#c084fc", label: "ÉPICO" },
-              legendary:    { c: "#f5cf6b", label: "LENDÁRIO" },
-              mythic:       { c: "#ff6b3d", label: "MÍTICO" },
-              mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦" },
+              rare:         { c: "#6bd4ff", label: "RARO", aura: "0 0 15px rgba(107, 212, 255, 0.6)" },
+              epic:         { c: "#c084fc", label: "ÉPICO", aura: "0 0 20px rgba(192, 132, 252, 0.7)" },
+              legendary:    { c: "#f5cf6b", label: "LENDÁRIO", aura: "0 0 25px rgba(245, 207, 107, 0.8)" },
+              mythic:       { c: "#ff6b3d", label: "MÍTICO", aura: "0 0 30px rgba(255, 107, 61, 0.9)" },
+              mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦", aura: "0 0 35px rgba(255, 151, 225, 1)" },
             };
             return (
               <div style={{
@@ -13247,9 +13249,9 @@ function TabOverlay({
                             width: 82, height: 82, borderRadius: 14,
                             background: "rgba(0,0,0,0.4)",
                             border: "1.5px solid rgba(245, 207, 107, 0.2)",
-                            boxShadow: `inset 0 0 14px ${rc}22, 0 3px 10px rgba(0,0,0,0.5)`,
+                            boxShadow: `inset 0 0 14px ${rc}22, 0 3px 10px rgba(0,0,0,0.5), ${rarityInfo.aura || ""}`,
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            position: "relative", overflow: "hidden",
+                            position: "relative", overflow: "visible", // mudado para visible para a aura aparecer
                           }}>
 
                             {src && <img src={src} alt="" width={70} height={70} style={{ 
