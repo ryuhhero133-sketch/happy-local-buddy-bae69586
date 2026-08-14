@@ -4000,11 +4000,18 @@ function IdlePage() {
           const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
           const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
           let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
+          // Modo MANUAL: Desliza pelas paredes para não travar
           if (collidesWithAny(nx, ny)) {
-            nx = clampX(tp.x + stepX);
-            if (collidesWithAny(nx, tp.y)) nx = tp.x;
-            ny = clampY(tp.y + stepY);
-            if (collidesWithAny(nx, ny)) ny = tp.y;
+            // Tenta andar só em X
+            if (!collidesWithAny(nx, tp.y)) {
+              ny = tp.y;
+            } else {
+              // Tenta andar só em Y
+              nx = tp.x;
+              if (collidesWithAny(tp.x, ny)) {
+                ny = tp.y;
+              }
+            }
           }
           return { x: nx, y: ny };
         });
@@ -4188,9 +4195,9 @@ function IdlePage() {
             stuckRef.current = { id: target.id, count: 1 };
             (stuckRef.current as any).lastDist = dist;
           }
-          // ~250 ticks * 120ms = ~30s realmente travado
-          if (stuckRef.current.count > 250) {
-            blacklistRef.current.set(target.id, nowT + 10000);
+          // Detecta travamento muito mais rápido no auto: ~60 ticks (~7s) sem progresso
+          if (stuckRef.current.count > 60) {
+            blacklistRef.current.set(target.id, nowT + 12000);
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
             return tp;
@@ -4221,12 +4228,22 @@ function IdlePage() {
           pokemonFaceRef.current = nextFace;
           setPokemonFace(nextFace);
         }
-        // AUTO: sem colisão — anda em linha reta atravessando obstáculos
-        const ww = WORLD_W;
-        const wh = WORLD_H;
+        const ww = WORLD_W, wh = WORLD_H;
         const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
         const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
-        return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
+        // AUTO: Desliza pelas paredes para nunca ficar travado enquanto caça
+        let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
+        if (collidesWithAny(nx, ny)) {
+          if (!collidesWithAny(nx, tp.y)) {
+            ny = tp.y;
+          } else if (!collidesWithAny(tp.x, ny)) {
+            nx = tp.x;
+          } else {
+            // Se preso em canto, ignora colisão momentaneamente para não travar
+            return { x: nx, y: ny };
+          }
+        }
+        return { x: nx, y: ny };
       });
 
 
@@ -4287,7 +4304,7 @@ function IdlePage() {
         }
         return [...prev, ne];
       });
-    }, 2000 + Math.floor(Math.random() * 1500)); // 2-3.5s entre spawns (rápido, evita mapa vazio)
+    }, 800 + Math.floor(Math.random() * 800)); // Spawn muito mais rápido (0.8s - 1.6s) para manter o mapa vivo
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
