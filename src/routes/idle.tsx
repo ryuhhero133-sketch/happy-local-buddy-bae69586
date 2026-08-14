@@ -4185,7 +4185,7 @@ function IdlePage() {
         // Se estiver longe (fora do ATTACK_RANGE), o auto-battle deve se mover até lá.
         if (dist > ATTACK_RANGE && dist < 800) {
           // Apenas define o movimento, mas não o ID de ataque ainda
-          walkTargetRef.current = { x: target.x, y: target.y };
+          walkTargetRef.current = { x: target.x, y: target.y, label: "Perseguindo " + target.sp };
           setAttackTargetId(null);
           setTargetPet(target);
           return prev;
