@@ -13735,7 +13735,7 @@ function TabOverlay({
           }}>✦ MEW ✦</div>
           <div style={{ position: "relative" }}>
           <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
-          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} />
+          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} benchUids={benchUids} onAnciaoInteraction={onAnciaoInteraction} spriteScale={spriteScale} idle={idle} setIdle={setIdle} />
           <SpeciesLore species={leader.species} rarity={leader.rarity} />
 
 
