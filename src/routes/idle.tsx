@@ -9897,9 +9897,7 @@ function IdlePage() {
 
 
       </div>
-
-      {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
-      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
+    </div>
         {restingUntil !== null && restingStart !== null && (() => {
 
 
@@ -12567,7 +12565,6 @@ function IdlePage() {
       {isAdminOpen && (
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />
       )}
-      </div>
     </div>
   );
 }
