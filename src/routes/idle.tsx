@@ -15463,7 +15463,7 @@ function TabOverlay({
                             {gifMap[c.species] ? (
                               <img src={gifMap[c.species]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated" }} />
                             ) : (
-                              <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
+                              <div style={{ width: 64, height: 64, background: "#2a1638", borderRadius: 8 }} />
                             )}
                             <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
                             <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
