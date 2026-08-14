@@ -307,18 +307,20 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [kicked] = useState(false);
 
 
-  // Quando logado: garante profile, decide se precisa criar treinador,
-  // pré-carrega save da nuvem.
-  // Bootstrap apenas quando o USER ID muda. O Supabase emite TOKEN_REFRESHED
-  // ao trocar de aba / voltar do minimizado, criando um novo objeto session
-  // — sem esse guard, o efeito re-executava, mostrava o splash e re-hidratava
-  // o save da nuvem por cima do estado atual (parecia um "refresh").
+  // Bootstrap apenas quando o USER ID muda.
   const bootstrappedUidRef = useRef<string | null>(null);
   const currentUid = session?.user?.id ?? null;
   useEffect(() => {
-    if (!currentUid) { bootstrappedUidRef.current = null; return; }
+    // Se não há UID, limpa o ref para permitir bootstrap futuro e sai
+    if (!currentUid) { 
+      bootstrappedUidRef.current = null; 
+      return; 
+    }
+    // Não faz bootstrap em modo de recuperação
     if (recoveryMode) return;
+    // Se já fizemos bootstrap para este UID, ignora (evita loops por tokens renovados)
     if (bootstrappedUidRef.current === currentUid) return;
+    
     bootstrappedUidRef.current = currentUid;
     let cancelled = false;
     (async () => {
