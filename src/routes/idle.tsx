@@ -4374,7 +4374,7 @@ function IdlePage() {
         if (alive.length === 0) return spawnEnemies();
         
         // Acha o mais próximo do treinador (priorizando comuns e incomuns se possível)
-        let target: PetInstance | null = null;
+        let target: Enemy | null = null;
         let bestD = Infinity;
 
         // Tenta achar um comum/incomum primeiro se houver muitos monstros
