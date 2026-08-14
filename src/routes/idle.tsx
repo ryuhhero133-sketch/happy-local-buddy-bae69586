@@ -13732,7 +13732,9 @@ function TabOverlay({
                 border: "2.5px solid rgba(245, 207, 107, 0.3)",
                 borderRadius: 16,
                 boxShadow: "0 6px 22px rgba(0,0,0,0.4), inset 0 1px 0 rgba(245,207,107,0.1)",
-                position: "relative", overflow: "hidden",
+                position: "relative", 
+                overflow: "hidden",
+                zIndex: maximizeTeam ? 1000 : 1 // Garante que fique acima de outros HUDs quando maximizado
               }}>
 
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 20%, rgba(245,207,107,0.15), transparent 60%)", pointerEvents: "none" }} />
