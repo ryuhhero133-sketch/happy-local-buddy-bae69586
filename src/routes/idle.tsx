@@ -13054,7 +13054,20 @@ function TabOverlay({
   };
   const confirmFrag = () => {
     if (!fragConfirm) return;
-    fragConfirm.entries.forEach((e) => onFragmentCollection(e.uid));
+    fragConfirm.entries.forEach((e) => {
+      // Cálculo de fragmentos de habilidade/defesa baseado no nível e raridade
+      const baseFrags = 1;
+      const rarityMult: Record<string, number> = { common: 1, uncommon: 2, rare: 4, epic: 8, legendary: 16, mythic: 32, mythic_shiny: 64 };
+      const mult = rarityMult[e.rarity] ?? 1;
+      const countHab = Math.floor((e.level / 10) * mult) + baseFrags;
+      const countDef = Math.floor((e.level / 10) * mult) + baseFrags;
+
+      onFragmentCollection(e.uid, {
+        prisma: e.gain,
+        hab: countHab,
+        def: countDef
+      });
+    });
     setBulkSel(new Set());
     setBulkMode(false);
     setFragConfirm(null);
