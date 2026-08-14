@@ -9102,10 +9102,15 @@ function IdlePage() {
                   src={c.opened ? chestOpenImg : chestClosedImg}
                   alt=""
                   className={c.opened ? "chest-pop" : ""}
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    if (!c.opened) openChest(c.id);
+                  }}
                   style={{
                     width: "100%", height: "100%",
                     imageRendering: "pixelated",
                     filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
+                    cursor: c.opened ? "default" : "pointer",
                   }}
                 />
               </div>
