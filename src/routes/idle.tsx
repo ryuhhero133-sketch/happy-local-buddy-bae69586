@@ -7548,7 +7548,7 @@ function IdlePage() {
         <div
           onClick={() => setOddishNoStone(null)}
           style={{
-            position: "fixed", inset: 0, zIndex: 10000,
+            position: "fixed", inset: 0, zIndex: 1000000,
             display: "grid", placeItems: "center",
             background: "radial-gradient(circle at 50% 45%, rgba(30,90,40,0.75) 0%, rgba(6,20,10,0.92) 70%)",
             backdropFilter: "blur(8px)",
@@ -7641,7 +7641,7 @@ function IdlePage() {
         <div
           onClick={() => setOddishRankOpen(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 10000,
+            position: "fixed", inset: 0, zIndex: 1000000,
             display: "grid", placeItems: "center",
             background: "radial-gradient(circle at 50% 45%, rgba(20,60,30,0.9) 0%, rgba(4,14,8,0.96) 70%)",
             backdropFilter: "blur(6px)",
@@ -7750,7 +7750,7 @@ function IdlePage() {
         <div
           onClick={() => setGrassOddishSplash(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 9999,
+            position: "fixed", inset: 0, zIndex: 999999,
             display: "grid", placeItems: "center",
             background: "radial-gradient(circle at 50% 45%, rgba(30,90,40,0.85) 0%, rgba(6,20,10,0.94) 70%)",
             backdropFilter: "blur(6px)",
@@ -10041,7 +10041,7 @@ function IdlePage() {
               border: '1px solid rgba(255, 82, 82, 0.4)', borderRadius: '16px',
               padding: '12px', display: 'flex', alignItems: 'center', gap: '15px',
               boxShadow: '0 0 30px rgba(255, 82, 82, 0.2)', pointerEvents: 'auto',
-              zIndex: 10001
+              zIndex: 100001
             }}>
               <div style={{ width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 82, 82, 0.1)', borderRadius: '12px' }}>
                 <img src={GIF[targetPet.sp]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
@@ -10103,7 +10103,7 @@ function IdlePage() {
             <div style={{
               position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-              zIndex: 9997,
+              zIndex: 99997,
             }}>
               {showAutoSettings && (
                 <div style={{
@@ -10747,7 +10747,7 @@ function IdlePage() {
           </div>
         );
         return createPortal(
-          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: "min(760px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #241a12 0%, #0e0906 100%)", border: "3px solid #f5cf6b", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(245,207,107,0.35)" }}>
 
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
