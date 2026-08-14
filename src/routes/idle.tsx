@@ -10059,7 +10059,7 @@ function IdlePage() {
             </div>
           ) : (() => {
             const ab = idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
-            const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
+            const setAB = (patch: Partial<Omit<typeof ab, 'preferredBall'> & { preferredBall: typeof ab['preferredBall'] | 'masterball' }>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } as any }));
             const on = ab.enabled;
             return (
               <>
