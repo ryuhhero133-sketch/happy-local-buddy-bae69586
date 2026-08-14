@@ -3065,6 +3065,11 @@ function IdlePage() {
   };
 
   const [trainerPos, setTrainerPos] = useState({ x: WORLD_W / 2, y: WORLD_H / 2 });
+  const trainerPosRef = useRef(trainerPos);
+  useEffect(() => {
+    trainerPosRef.current = trainerPos;
+  }, [trainerPos]);
+
   const [walkStep, setWalkStep] = useState(0);
   const [walkDir, setWalkDir] = useState<Dir>("right");
   const walkDirRef = useRef<Dir>("right");
@@ -3072,7 +3077,9 @@ function IdlePage() {
   const pokemonFaceRef = useRef<"left" | "right">("right");
   const [moving, setMoving] = useState(true);
   const movingRef = useRef(true);
-  useEffect(() => { movingRef.current = moving; }, [moving]);
+  useEffect(() => {
+    movingRef.current = moving;
+  }, [moving]);
 
   // Alvo de deslocamento automático (clicar em "Ir ao Lar", "Ir ao Lab", "Ir Floresta")
   const walkTargetRef = useRef<{ x: number; y: number; label: string; onArrive?: () => void; resumeAuto?: boolean } | null>(null);
@@ -4073,10 +4080,10 @@ function IdlePage() {
             setWalkingTo(null);
             wt.onArrive?.();
             if (resume) setAuto(true);
-            if (moving) setMoving(false);
+            if (movingRef.current) setMoving(false);
             return tp;
           }
-          if (!moving) setMoving(true);
+          if (!movingRef.current) setMoving(true);
           const speed = 7 * (1 + honeyBonusNow());
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
@@ -4097,7 +4104,7 @@ function IdlePage() {
         return;
       }
 
-      if (!autoRef.current) { if (moving) setMoving(false); return; }
+      if (!autoRef.current) { if (movingRef.current) setMoving(false); return; }
       // Time inviável: se todos estão desmaiados (HP=0) → vai ao Lar curar (5s).
       // Se time está vazio mas há pokémon prontos na Coleção → não trava, só
       // pausa o auto e avisa pra escolher outro. Sem energia é resolvido
@@ -4117,7 +4124,7 @@ function IdlePage() {
             };
             setWalkingTo("Lar");
           }
-          if (moving) setMoving(false);
+          if (movingRef.current) setMoving(false);
           return;
         }
         if (noTeam) {
@@ -4126,7 +4133,7 @@ function IdlePage() {
             setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
             pushChat(`🎒 Sem Pokémon no time. Abra a Coleção e escolha outro para batalhar.`, "info");
           }
-          if (moving) setMoving(false);
+          if (movingRef.current) setMoving(false);
           return;
         }
       }
