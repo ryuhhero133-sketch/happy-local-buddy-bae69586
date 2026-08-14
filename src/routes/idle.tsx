@@ -4442,6 +4442,12 @@ function IdlePage() {
           setPokemonFace(attackFace);
         }
 
+        // Se estiver em auto-battle e o target morreu ou sumiu, tenta achar outro imediatamente
+        if (target.hp <= 0) {
+          return prev;
+        }
+
+
         // Posição atual do pokémon líder (trilha suave)
         const dir = walkDirRef.current;
         void dir;
