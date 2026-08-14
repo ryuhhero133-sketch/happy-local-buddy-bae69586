@@ -3414,7 +3414,7 @@ function IdlePage() {
 
 
 
-  const [zoom, setZoom] = useState(1.0);
+  const [zoom, setZoom] = useState(0.65);
   // ===== Ranking Global =====
   type RankRow = {
     id: string;
@@ -3669,12 +3669,11 @@ function IdlePage() {
   // O usuário deseja o mapa inteiro na tela, sem o "vazio" verde em volta.
   const BASE_ZOOM = useMemo(() => {
     if (!viewSize.w || !viewSize.h) return 0.2;
-    // O usuário deseja que com 35% de zoom (0.35) o mapa fique completo na tela.
-    // Calculamos o zoom base de forma que o zoom efetivo (zoom * BASE_ZOOM) resulte no preenchimento ideal.
+    // O usuário deseja que o slider possa diminuir até 65% (0.65).
+    // O preenchimento ideal da tela (fillScale) deve acontecer quando o slider está em 0.65.
     const fillScale = Math.max(viewSize.w / WORLD_W, viewSize.h / WORLD_H);
-    // Se o slider (zoom) estiver em 0.35, queremos que o resultado seja fillScale.
-    // O usuário relatou que 0.35 é o ponto onde ele quer ver o mapa completo.
-    return fillScale / 0.35;
+    // Se o slider (zoom) estiver em 0.65, o resultado (effectiveZoom) deve ser fillScale.
+    return fillScale / 0.65;
   }, [viewSize.w, viewSize.h, WORLD_W, WORLD_H]);
 
   const effectiveZoom = zoom * BASE_ZOOM;
