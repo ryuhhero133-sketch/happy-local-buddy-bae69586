@@ -8169,34 +8169,36 @@ function IdlePage() {
             </div>
             
             {/* Botão do Ancião Glacial unificado aqui */}
-            <div style={{ marginTop: 8 }}>
-              <button
-                onClick={handleAnciaoInteraction}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "linear-gradient(180deg, #15803d, #064e3b)",
-                  border: "1px solid #4ade80",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontSize: 11,
-                  fontWeight: 900,
-                  letterSpacing: 1,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)",
-                  pointerEvents: "auto",
-                  transition: "all 0.2s"
-                }}
-                onMouseOver={(e) => e.currentTarget.style.filter = "brightness(1.2)"}
-                onMouseOut={(e) => e.currentTarget.style.filter = "brightness(1)"}
-              >
-                ❄️ ANCIÃO GLACIAL
-              </button>
-            </div>
+            {!idle.redeemedCodes?.RESETPERSON && (
+              <div style={{ marginTop: 8 }}>
+                <button
+                  onClick={handleAnciaoInteraction}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    background: "linear-gradient(180deg, #15803d, #064e3b)",
+                    border: "1px solid #4ade80",
+                    borderRadius: 8,
+                    color: "#fff",
+                    fontSize: 11,
+                    fontWeight: 900,
+                    letterSpacing: 1,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)",
+                    pointerEvents: "auto",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.filter = "brightness(1.2)"}
+                  onMouseOut={(e) => e.currentTarget.style.filter = "brightness(1)"}
+                >
+                  ❄️ ANCIÃO GLACIAL
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -10762,7 +10764,7 @@ function IdlePage() {
           </div>
         );
         return createPortal(
-          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 3000000, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: "min(760px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #241a12 0%, #0e0906 100%)", border: "3px solid #f5cf6b", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(245,207,107,0.35)" }}>
 
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
