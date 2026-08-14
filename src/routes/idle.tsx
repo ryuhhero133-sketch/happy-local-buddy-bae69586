@@ -965,7 +965,7 @@ type IdleState = {
   bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro); teamOrb = distribui EXP para todo o time por 1h
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
-  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number; targetRarities?: Rarity[] };
+  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number; targetRarities?: Rarity[]; prioritizeQuest?: boolean };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
