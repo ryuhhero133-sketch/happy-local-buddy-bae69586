@@ -13081,7 +13081,7 @@ function TabOverlay({
         prisma: e.gain,
         hab: countHab,
         def: countDef
-      });
+      } as any);
     });
     setBulkSel(new Set());
     setBulkMode(false);
