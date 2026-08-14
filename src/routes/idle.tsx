@@ -4304,7 +4304,7 @@ function IdlePage() {
         }
         return [...prev, ne];
       });
-    }, 2000 + Math.floor(Math.random() * 1500)); // 2-3.5s entre spawns (rápido, evita mapa vazio)
+    }, 800 + Math.floor(Math.random() * 800)); // Spawn muito mais rápido (0.8s - 1.6s) para manter o mapa vivo
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
