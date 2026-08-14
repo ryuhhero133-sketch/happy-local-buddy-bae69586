@@ -1220,7 +1220,7 @@ const QUEST_DATA: MainQuestDef[] = [
     description: "Capture 20 Pokémon de qualquer raridade para ganhar XP extra.",
     target: 20,
     type: "capture_rarity",
-    rarity: "common", // fallback, logic handles any capture if we wanted, but let's keep it specific
+    rarity: "common", 
     reward: { trainerXp: 5000, teamXp: 15000 }
   },
   {
@@ -1249,6 +1249,33 @@ const QUEST_DATA: MainQuestDef[] = [
     type: "capture_species",
     species: "pikachu",
     reward: { redshards: 500, trainerXp: 35000, teamXp: 100000 }
+  },
+  {
+    id: 8,
+    title: "Mestre Iniciante",
+    description: "Prove sua maestria capturando 50 pokémon comuns.",
+    target: 50,
+    type: "capture_rarity",
+    rarity: "common",
+    reward: { items: { fragmento_ultraball: 5 }, trainerXp: 15000, teamXp: 40000 }
+  },
+  {
+    id: 9,
+    title: "Ascensão Rápida",
+    description: "Capture 10 pokémon raros para um salto de poder.",
+    target: 10,
+    type: "capture_rarity",
+    rarity: "rare",
+    reward: { trainerXp: 150000, teamXp: 300000 } // Recompensa massiva de XP
+  },
+  {
+    id: 10,
+    title: "Relíquia Suprema",
+    description: "Capture 5 pokémon épicos para forjar tecnologia ultra.",
+    target: 5,
+    type: "capture_rarity",
+    rarity: "epic",
+    reward: { items: { fragmento_ultraball: 15, egg_epic: 1 }, trainerXp: 100000, teamXp: 250000 }
   }
 ];
 
