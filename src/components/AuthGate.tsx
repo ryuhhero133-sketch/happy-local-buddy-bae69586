@@ -342,49 +342,57 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setBootstrapping(true);
       const uid = currentUid;
       try {
-        const username = await withTimeout(ensureProfile(uid), 8000, "perfil");
+        log("bootstrap: starting for", uid);
+        
+        // 1. Garante perfil (username) com timeout resiliente
+        const username = await withTimeout(ensureProfile(uid), 10000, "perfil");
         if (cancelled) return;
 
-        if (username) { // Simplificado: aceita qualquer verdade (mesmo que vazio, se o ensureProfile falhar silencioso)
-          try {
-            await withTimeout(preloadCloudSave(uid), 15000, "save da nuvem");
-          } catch (e) {
-            warn("preloadCloudSave timeout — seguindo com cache local", e);
-          }
-          if (cancelled) return;
-          setIdentity(writeIdentity(uid, username, session?.user?.email));
-          setNeedsChar(false);
-          // last_login best-effort
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          void (supabase as any)
-            .from("profiles")
-            .update({ last_login: new Date().toISOString() })
-            .eq("id", uid)
-            .then(({ error }: { error: unknown }) => {
-              if (error) warn("update last_login falhou", error);
-            });
-        } else {
-          log("usuário sem username — exibindo CreateCharacterScreen");
-          setIdentity(null);
-          setNeedsChar(true);
+        // 2. Pré-carrega save da nuvem. Se falhar ou timeout, não bloqueia.
+        try {
+          await withTimeout(preloadCloudSave(uid), 15000, "save da nuvem");
+        } catch (e) {
+          warn("preloadCloudSave timeout/fail — non-blocking", e);
         }
+        if (cancelled) return;
+
+        // 3. Define identidade. Se não tem username mas ensureProfile não jogou erro, assume fallback.
+        const finalName = username || session?.user?.email?.split('@')[0] || "Treinador";
+        setIdentity(writeIdentity(uid, finalName, session?.user?.email));
+        
+        // Só precisa de tela de criação se NUNCA escolheu username (e queremos forçar isso)
+        // Se ensureProfile retornou null, ele ainda não escolheu.
+        setNeedsChar(!username);
+        
+        // last_login best-effort
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        void (supabase as any)
+          .from("profiles")
+          .update({ last_login: new Date().toISOString() })
+          .eq("id", uid)
+          .then(({ error }: { error: unknown }) => {
+            if (error) warn("update last_login falhou", error);
+          });
       } catch (e) {
-        warn("bootstrap falhou", e);
-        // Se já existe identidade local dessa MESMA conta, entra com ela em vez
-        // de mandar o jogador pra criação de personagem (perigo de duplicar).
+        warn("bootstrap critical fail, falling back to local identity", e);
         const local = loadIdentity();
         if (local && local.id === uid) {
-          log("bootstrap com fallback local", local.name);
+          log("bootstrap fallback local", local.name);
           setIdentity(local);
           setNeedsChar(false);
         } else {
-          setIdentity(null);
+          // Se falhou tudo e não tem local, deixa entrar com nome genérico
+          // para não ficar preso no splash/login loop.
+          const fallbackName = session?.user?.email?.split('@')[0] || "Treinador";
+          setIdentity(writeIdentity(uid, fallbackName, session?.user?.email));
           setNeedsChar(true);
         }
       } finally {
-        if (!cancelled) setBootstrapping(false);
+        if (!cancelled) {
+          setBootstrapping(false);
+          log("bootstrap complete for", uid);
+        }
       }
-
     })();
     return () => {
       cancelled = true;
