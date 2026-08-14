@@ -13857,7 +13857,9 @@ function TabOverlay({
                         }}
                         onDragEnd={() => setDraggedIdx(null)}
                         style={{
-                        display: "flex", alignItems: "stretch", gap: 12, padding: 12,
+                        display: "flex", alignItems: "stretch", gap: 12, padding: "10px 12px", // Reduzido padding vertical
+                        minHeight: 140, // Altura mínima controlada
+                        maxHeight: 180, // Altura máxima controlada
                         background: isLeader
                           ? "rgba(0,0,0,0.4)"
                           : "rgba(0,0,0,0.3)",
