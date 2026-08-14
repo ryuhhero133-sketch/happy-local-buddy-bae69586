@@ -15130,7 +15130,9 @@ function TabOverlay({
             boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
           }}>
 
-            <div style={{ fontSize: 40 }}>🧪</div>
+            <div style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(107, 212, 255, 0.15), transparent 70%)", borderRadius: 12 }}>
+              <img src={potionNewImg} alt="" width={60} height={60} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 8px rgba(107, 212, 255, 0.6))" }} />
+            </div>
             <div style={{ flex: 1, minWidth: 160 }}>
               <div style={{ fontWeight: 800, color: "#eadfe8" }}>Poção</div>
               <div style={{ fontSize: 11, color: "#b8a8c8" }}>Recupera {Math.round(POTION_HEAL_PCT * 100)}% do HP. Usada no auto quando ativado.</div>
