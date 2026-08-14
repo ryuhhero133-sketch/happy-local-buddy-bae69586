@@ -1166,6 +1166,7 @@ export type MainQuestState = {
   currentQuestId: number;
   progress: number;
   completed: boolean;
+  minimized?: boolean; // 📉 Adicionado: opção de minimizar HUD
 };
 
 export type MainQuestDef = {
@@ -1179,6 +1180,8 @@ export type MainQuestDef = {
   reward: {
     items?: Record<string, number>;
     redshards?: number;
+    trainerXp?: number; // 🌟 Bônus de XP para o Treinador
+    teamXp?: number;    // 🐾 Bônus de XP para os Pokémons
   };
 };
 
@@ -1190,43 +1193,61 @@ const QUEST_DATA: MainQuestDef[] = [
     target: 10,
     type: "capture_rarity",
     rarity: "uncommon",
-    reward: { items: { ultraball: 10 } }
+    reward: { items: { ultraball: 10 }, trainerXp: 500, teamXp: 1000 }
   },
   {
     id: 2,
+    title: "Treinamento Árduo",
+    description: "Capture 15 Pokémon Comuns para treinar seu foco.",
+    target: 15,
+    type: "capture_rarity",
+    rarity: "common",
+    reward: { redshards: 50, trainerXp: 1500, teamXp: 3000 }
+  },
+  {
+    id: 3,
     title: "Caçador de Raridades",
     description: "Capture 5 Pokémon Raros para o Laboratório.",
     target: 5,
     type: "capture_rarity",
     rarity: "rare",
-    reward: { redshards: 50 }
+    reward: { redshards: 100, trainerXp: 3000, teamXp: 6000 }
   },
   {
-    id: 3,
+    id: 4,
+    title: "Desafio Elemental",
+    description: "Capture 20 Pokémon de qualquer raridade para ganhar XP extra.",
+    target: 20,
+    type: "capture_rarity",
+    rarity: "common", // fallback, logic handles any capture if we wanted, but let's keep it specific
+    reward: { trainerXp: 5000, teamXp: 15000 }
+  },
+  {
+    id: 5,
     title: "O Desafio Épico",
     description: "Capture 3 Pokémon Épicos para mostrar sua força.",
     target: 3,
     type: "capture_rarity",
     rarity: "epic",
-    reward: { redshards: 100 }
+    reward: { redshards: 250, trainerXp: 8000, teamXp: 20000 }
   },
   {
-    id: 4,
+    id: 6,
     title: "Lenda em Foco",
     description: "Capture 1 Pokémon Lendário para entrar para a história.",
     target: 1,
     type: "capture_rarity",
     rarity: "legendary",
-    reward: { items: { egg_epic: 1 } }
+    reward: { items: { egg_epic: 1 }, trainerXp: 20000, teamXp: 50000 }
   },
   {
-    id: 5,
+    id: 7,
     title: "O Favorito",
     description: "Capture 1 Pikachu para completar a coleção real.",
     target: 1,
     type: "capture_species",
     species: "pikachu",
-    reward: { redshards: 200 }
+    reward: { redshards: 500, trainerXp: 35000, teamXp: 100000 }
   }
 ];
 
@@ -9982,12 +10003,21 @@ function IdlePage() {
 
         {/* Main Quest HUD */}
         {(() => {
-          const mq = idle.mainQuest ?? { currentQuestId: 1, progress: 0, completed: false };
+          const mq = idle.mainQuest ?? { currentQuestId: 1, progress: 0, completed: false, minimized: false };
           if (mq.completed) return null;
           const q = QUEST_DATA.find(x => x.id === mq.currentQuestId);
           if (!q) return null;
           const done = mq.progress >= q.target;
+          const isMinimized = mq.minimized;
           
+          const toggleMinimized = () => {
+            playClick();
+            setIdle(s => ({
+              ...s,
+              mainQuest: { ...(s.mainQuest || mq), minimized: !isMinimized }
+            }));
+          };
+
           const claim = () => {
             if (!done) return;
             playClick();
@@ -10001,65 +10031,112 @@ function IdlePage() {
               const nextRedShards = (s.items?.fragmento_vermelho ?? 0) + (q.reward.redshards ?? 0);
               nextItems.fragmento_vermelho = nextRedShards;
               
+              // Aplicar XP de recompensa
+              let nextTrainerXp = (s.trainerXp ?? 0) + (q.reward.trainerXp ?? 0);
+              let nextTrainerLevel = s.trainerLevel ?? 1;
+              while (nextTrainerLevel < 10000 && nextTrainerXp >= trainerXpToNext(nextTrainerLevel)) {
+                nextTrainerXp -= trainerXpToNext(nextTrainerLevel);
+                nextTrainerLevel++;
+              }
+
               const nextId = mq.currentQuestId + 1;
               const hasNext = QUEST_DATA.some(x => x.id === nextId);
               
-              pushChat(`🎁 Recompensa coletada!`, "cap");
+              pushChat(`🎁 Recompensa da Quest "${q.title}" coletada!`, "cap");
+              if (q.reward.trainerXp) pushFxAt(trainerPos.x, trainerPos.y - 120, `+${q.reward.trainerXp} XP TREINADOR`, "xp");
               
               return {
                 ...s,
                 items: nextItems as any,
+                trainerXp: nextTrainerXp,
+                trainerLevel: nextTrainerLevel,
                 mainQuest: {
                   currentQuestId: nextId,
                   progress: 0,
-                  completed: !hasNext
+                  completed: !hasNext,
+                  minimized: false
                 }
               };
             });
+
+            // Dar XP para o time
+            if (q.reward.teamXp) {
+              setTeam(tm => tm.map(p => {
+                let lv = p.level;
+                let xp = (p.xp ?? 0) + (q.reward.teamXp ?? 0);
+                while (lv < 10000 && xp >= 100 + lv * 20) {
+                  xp -= 100 + lv * 20;
+                  lv++;
+                }
+                return { ...p, level: lv, xp };
+              }));
+            }
           };
 
           return (
             <div className="main-quest-panel" style={{
-              position: 'absolute', bottom: '310px', left: '20px',
+              position: 'absolute', bottom: '340px', left: '20px', // Aumentado de 310px para 340px para não sobrepor equipe
               width: '280px',
               background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(12px)',
               borderRadius: '12px', border: done ? '2px solid #f5cf6b' : '1px solid rgba(201,184,255,0.3)',
               padding: '12px', pointerEvents: 'auto',
               boxShadow: done ? '0 0 20px rgba(245,207,107,0.3)' : '0 4px 12px rgba(0,0,0,0.5)',
-              animation: done ? 'pulse 2s infinite' : 'none'
+              animation: done ? 'pulse 2s infinite' : 'none',
+              transition: 'all 0.3s'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ color: '#f5cf6b', fontSize: '11px', fontWeight: 900, letterSpacing: 1.5 }}>MAIN QUEST</span>
-                <span style={{ color: done ? '#5ec26a' : '#8a7a9c', fontSize: '10px', fontWeight: 800 }}>{mq.progress}/{q.target}</span>
-              </div>
-              <div style={{ color: '#fff', fontSize: '12px', fontWeight: 700, marginBottom: 4 }}>{q.title}</div>
-              <div style={{ color: '#b8a8c8', fontSize: '10px', lineHeight: 1.3, marginBottom: 10 }}>{q.description}</div>
-              
-              <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden', marginBottom: 12 }}>
-                <div style={{ 
-                  width: `${Math.min(100, (mq.progress / q.target) * 100)}%`, 
-                  height: '100%', 
-                  background: done ? '#5ec26a' : '#c9b8ff',
-                  boxShadow: done ? '0 0 8px #5ec26a' : 'none'
-                }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMinimized ? 0 : 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                   <span style={{ color: '#f5cf6b', fontSize: '11px', fontWeight: 900, letterSpacing: 1.5 }}>MAIN QUEST</span>
+                   {done && <span style={{ fontSize: '10px', animation: 'bounce 1s infinite' }}>🎁</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                   {!isMinimized && <span style={{ color: done ? '#5ec26a' : '#8a7a9c', fontSize: '10px', fontWeight: 800 }}>{mq.progress}/{q.target}</span>}
+                   <button onClick={toggleMinimized} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '12px', opacity: 0.7 }}>
+                     {isMinimized ? '▲' : '▼'}
+                   </button>
+                </div>
               </div>
 
-              {done ? (
-                <button onClick={claim} style={{
-                  width: '100%', padding: '8px', background: 'linear-gradient(180deg, #f5cf6b, #b8862a)',
-                  color: '#0b0510', border: 'none', borderRadius: '6px', fontWeight: 900, fontSize: '11px',
-                  cursor: 'pointer', letterSpacing: 1, boxShadow: '0 2px 0 rgba(0,0,0,0.2)'
-                }}>COLETAR RECOMPENSA</button>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '9px', color: '#8a7a9c', fontWeight: 700 }}>
-                  <span>RECOMPENSA:</span>
-                  {q.reward.items && Object.entries(q.reward.items).map(([id, qty]) => (
-                    <span key={id} style={{ color: '#c9b8ff' }}>{qty}x {id.replace(/_/g, ' ').toUpperCase()}</span>
-                  ))}
-                  {q.reward.redshards && (
-                    <span style={{ color: '#ff5c5c' }}>{q.reward.redshards} 🔻</span>
+              {!isMinimized && (
+                <>
+                  <div style={{ color: '#fff', fontSize: '12px', fontWeight: 700, marginBottom: 4 }}>{q.title}</div>
+                  <div style={{ color: '#b8a8c8', fontSize: '10px', lineHeight: 1.3, marginBottom: 10 }}>{q.description}</div>
+                  
+                  <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden', marginBottom: 12 }}>
+                    <div style={{ 
+                      width: `${Math.min(100, (mq.progress / q.target) * 100)}%`, 
+                      height: '100%', 
+                      background: done ? '#5ec26a' : '#c9b8ff',
+                      boxShadow: done ? '0 0 8px #5ec26a' : 'none'
+                    }} />
+                  </div>
+
+                  {done ? (
+                    <button onClick={claim} style={{
+                      width: '100%', padding: '8px', background: 'linear-gradient(180deg, #f5cf6b, #b8862a)',
+                      color: '#0b0510', border: 'none', borderRadius: '6px', fontWeight: 900, fontSize: '11px',
+                      cursor: 'pointer', letterSpacing: 1, boxShadow: '0 2px 0 rgba(0,0,0,0.2)'
+                    }}>COLETAR RECOMPENSA</button>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '9px', color: '#8a7a9c', fontWeight: 700 }}>
+                        <span>RECOMPENSA:</span>
+                        {q.reward.items && Object.entries(q.reward.items).map(([id, qty]) => (
+                          <span key={id} style={{ color: '#c9b8ff' }}>{qty}x {id.replace(/_/g, ' ').toUpperCase()}</span>
+                        ))}
+                        {q.reward.redshards && (
+                          <span style={{ color: '#ff5c5c' }}>{q.reward.redshards} 🔻</span>
+                        )}
+                      </div>
+                      {(q.reward.trainerXp || q.reward.teamXp) && (
+                        <div style={{ display: 'flex', gap: 6, fontSize: '9px', fontWeight: 700 }}>
+                           {q.reward.trainerXp && <span style={{ color: '#f5cf6b' }}>+{q.reward.trainerXp} XP TR</span>}
+                           {q.reward.teamXp && <span style={{ color: '#5ec26a' }}>+{q.reward.teamXp} XP TEAM</span>}
+                        </div>
+                      )}
+                    </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           );
