@@ -10072,9 +10072,9 @@ function IdlePage() {
                 }}>
                   <TrainerProfileHUD 
                     identity={identity} 
-                    trainerLevel={idle.trainerLevel} 
-                    trainerXp={idle.trainerXp}
-                    xpNext={trainerXpToNext(idle.trainerLevel)}
+                    trainerLevel={idle.trainerLevel ?? 1} 
+                    trainerXp={idle.trainerXp ?? 0}
+                    xpNext={trainerXpToNext(idle.trainerLevel ?? 1)}
                     onOpenAdmin={() => setIsAdminOpen(true)}
                   />
                   <TeamPanelHUD 
