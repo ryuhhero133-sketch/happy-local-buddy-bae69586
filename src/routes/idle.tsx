@@ -4400,8 +4400,8 @@ function IdlePage() {
         
         let pool = alive;
 
-        // Se houver Main Quest ativa, prioriza os alvos dela
-        if (qDef) {
+        // Se houver Main Quest ativa e prioridade ligada, prioriza os alvos dela
+        if (qDef && idle.autoBattle?.prioritizeQuest) {
           if (qDef.type === "capture_rarity") {
             const targets = alive.filter(e => e.rarity === qDef.rarity);
             if (targets.length > 0) pool = targets;
