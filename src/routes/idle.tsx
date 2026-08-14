@@ -4388,13 +4388,30 @@ function IdlePage() {
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
         
-        // Acha o mais próximo do treinador (priorizando comuns e incomuns se possível)
+        // Acha o mais próximo do treinador (priorizando o objetivo da Main Quest se existir)
         let target: Enemy | null = null;
         let bestD = Infinity;
 
-        // Tenta achar um comum/incomum primeiro se houver muitos monstros
-        const lowRarity = alive.filter(e => e.rarity === "common" || e.rarity === "uncommon");
-        const pool = lowRarity.length > 0 ? lowRarity : alive;
+        // Se houver Main Quest ativa, prioriza os alvos dela
+        const mq = idle.mainQuest;
+        const qDef = mq && !mq.completed ? QUEST_DATA.find(x => x.id === mq.currentQuestId) : null;
+        
+        let pool = alive;
+        if (qDef) {
+          if (qDef.type === "capture_rarity") {
+            const targets = alive.filter(e => e.rarity === qDef.rarity);
+            if (targets.length > 0) pool = targets;
+          } else if (qDef.type === "capture_species") {
+            const targets = alive.filter(e => e.sp === qDef.species);
+            if (targets.length > 0) pool = targets;
+          }
+        }
+        
+        // Se não achou alvos da quest, prioriza comuns e incomuns se houver muitos monstros
+        if (pool.length === alive.length) {
+          const lowRarity = alive.filter(e => e.rarity === "common" || e.rarity === "uncommon");
+          if (lowRarity.length > 0) pool = lowRarity;
+        }
 
         for (const e of pool) {
           const d = (e.x - trainerPosRef.current.x) ** 2 + (e.y - trainerPosRef.current.y) ** 2;
@@ -4405,6 +4422,7 @@ function IdlePage() {
         }
 
         if (!target) return prev;
+
         const dist = Math.sqrt(bestD);
         
         // Auto-battle: se não tem target ou o target atual sumiu/morreu, persegue o mais próximo
