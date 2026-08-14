@@ -1751,6 +1751,7 @@ function IdlePage() {
   const [profileOpen, setProfileOpen] = useState(true);
   const [teamPanelOpen, setTeamPanelOpen] = useState(true);
   const [maximizeTeam, setMaximizeTeam] = useState(false);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   // Manutenção Season: Desloga jogadores não-admins
   useEffect(() => {
@@ -9874,22 +9875,37 @@ function IdlePage() {
                   const petHp = i === 0 ? leaderHp : (p.hp ?? petMax);
                   const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
                   return (
-                    <div key={p.uid} onClick={() => setStatsCardPet(p)} style={{
-                      background: i === 0 ? 'rgba(201, 184, 255, 0.15)' : 'rgba(0,0,0,0.2)',
-                      border: `1px solid ${i === 0 ? 'rgba(201, 184, 255, 0.4)' : 'rgba(255,255,255,0.05)'}`,
-                      borderRadius: '8px', padding: '6px 8px',
-                      display: 'flex', alignItems: 'center', gap: '8px',
-                      cursor: 'pointer', position: 'relative'
-                    }}>
-                      <div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div 
+                      key={p.uid} 
+                      onClick={() => setStatsCardPet(p)} 
+                      draggable 
+                      onDragStart={() => setDraggedIdx(i)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        if (draggedIdx === null || draggedIdx === i) return;
+                        const nextTeam = [...team];
+                        const [moved] = nextTeam.splice(draggedIdx, 1);
+                        nextTeam.splice(i, 0, moved);
+                        setTeam(nextTeam);
+                        setDraggedIdx(null);
+                      }}
+                      style={{
+                        background: i === 0 ? 'rgba(201, 184, 255, 0.15)' : 'rgba(0,0,0,0.2)',
+                        border: `1px solid ${i === 0 ? 'rgba(201, 184, 255, 0.4)' : 'rgba(255,255,255,0.05)'}`,
+                        borderRadius: '8px', padding: '6px 8px',
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        cursor: 'grab', position: 'relative'
+                      }}
+                    >
+                      <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <img src={GIF[p.species]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '9px', color: '#fff', fontWeight: 800 }}>{p.species.toUpperCase()}</span>
-                          <span style={{ fontSize: '8px', color: '#c9b8ff' }}>Lv.{p.level}</span>
+                          <span style={{ fontSize: '10px', color: '#fff', fontWeight: 800 }}>{p.species.toUpperCase()}</span>
+                          <span style={{ fontSize: '9px', color: '#c9b8ff' }}>Lv.{p.level}</span>
                         </div>
-                        <div style={{ height: '3px', background: 'rgba(0,0,0,0.4)', borderRadius: '2px', overflow: 'hidden', marginTop: '2px' }}>
+                        <div style={{ height: '4px', background: 'rgba(0,0,0,0.4)', borderRadius: '2px', overflow: 'hidden', marginTop: '2px' }}>
                           <div style={{ width: `${hpPct}%`, height: '100%', background: hpPct > 50 ? '#5ec26a' : hpPct > 20 ? '#f5cf6b' : '#ff5252' }} />
                         </div>
                       </div>
