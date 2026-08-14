@@ -12569,6 +12569,8 @@ function IdlePage() {
     </div>
   );
 }
+  );
+}
 
 
 
