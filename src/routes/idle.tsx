@@ -3687,9 +3687,8 @@ function IdlePage() {
   // Fator de escala inverso para manter as sprites (treinador/pokemons) no tamanho padrão
   // Independentemente do zoom aplicado ao mapa.
   const spriteScale = useMemo(() => {
-    // 0.45 era o tamanho aproximado que as sprites tinham antes das mudanças de zoom
-    // Nós normalizamos pelo effectiveZoom para que elas não fiquem "enormes" ou "minúsculas".
-    return 0.45 / effectiveZoom;
+    // Reduzido de 0.45 para 0.35 para diminuir o tamanho geral das entidades no mapa
+    return 0.35 / effectiveZoom;
   }, [effectiveZoom]);
 
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
@@ -8026,7 +8025,7 @@ function IdlePage() {
 
                 {/* Medalhão circular do avatar */}
                 <div style={{
-                  width: 52, height: 52, flexShrink: 0,
+                  width: 44, height: 44, flexShrink: 0,
                   borderRadius: "50%",
                   background: `conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)`,
                   padding: 2,
@@ -8046,7 +8045,7 @@ function IdlePage() {
                       alt=""
                       style={{ 
                         width: "100%", height: "100%", objectFit: "cover",
-                        transform: `scale(${spriteScale * 2.2})`, // Compensa o scale global
+                        transform: `scale(${spriteScale * 1.8})`, // Reduzido de 2.2 para 1.8
                         transformOrigin: 'center'
                       }}
                     />
@@ -8996,7 +8995,7 @@ function IdlePage() {
               const face = e.face ?? "left";
               const sx = face === "left" ? 1 : -1;
               const scale = (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
-              const size = Math.round(115 * scale);
+              const size = Math.round(90 * scale);
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
               const rarityAura: Record<Rarity, string> = {
                 common: "rgba(200,200,200,0.55)",
@@ -9253,7 +9252,7 @@ function IdlePage() {
             {chests.map((c) => (
               <div key={`chest-${c.id}`} style={{
                 position: "absolute", left: c.x, top: c.y,
-                      width: 125, height: 125,
+                      width: 90, height: 90,
                 transform: "translate(-50%, -50%)",
                 zIndex: Math.round(c.y),
                 pointerEvents: "none",
@@ -9284,7 +9283,7 @@ function IdlePage() {
             <div style={{
               position: "absolute",
               left: renderTrainerX, top: renderTrainerY,
-              width: 115, height: 115,
+              width: 85, height: 85,
               transform: "translate(-50%, -50%)",
               filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
               zIndex: Math.round(trainerPos.y),
@@ -12730,7 +12729,7 @@ function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, res
           <img src={src} alt="" style={{ 
             width: "82%", imageRendering: "pixelated", 
             filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.8))",
-            transform: `scale(${spriteScale * 2.2})`, // Compensa o scale global
+            transform: `scale(${spriteScale * 1.8})`, // Reduzido de 2.2 para 1.8
             transformOrigin: 'center'
           }} />
           {resting && <span style={{ position: "absolute", top: -2, right: -2, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
@@ -13385,7 +13384,7 @@ function TabOverlay({
 
                             {src && <img src={src} alt="" width={70} height={70} style={{ 
                               imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
-                              transform: `scale(${spriteScale * 2.2})`, // Compensa o scale global
+                              transform: `scale(${spriteScale * 1.8})`, // Reduzido de 2.2 para 1.8
                               transformOrigin: 'center'
                             }} />}
                             {/* Slot number top-left */}
