@@ -4822,7 +4822,8 @@ function IdlePage() {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
-                 const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
+                const rarityMult = target.rarity === "mythic" || target.rarity === "mythic_shiny" ? 0.01 : target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
+
                 const gymCapMult = GYM_FLOOR_BY_ID[idle.currentMap]?.captureMult ?? 1;
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult * gymCapMult;
               }
@@ -5934,7 +5935,9 @@ function IdlePage() {
     { sp: "gloom" as Species,      w: 2, forcedRarity: "rare" },
     { sp: "parasect" as Species,   w: 2, forcedRarity: "rare" },
     // (Épico só é liberado quando o líder chega ao nível 50 — em outros mapas)
+    // Raridades superiores (Lendário/Mítico) não aparecem na Arena/Vale Verdejante.
   ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
+
 
   function pickArenaSpawn(): { sp: Species; forcedRarity?: Rarity } {
     const total = ARENA_SPAWN_TABLE.reduce((s, e) => s + e.w, 0);
@@ -13929,7 +13932,7 @@ function TabOverlay({
                           <div style={{ display: "flex", gap: 4, width: "100%" }}>
                             <button
                               onClick={() => {
-                                const bulk = id === "book_atk" || id === "book_def" || id === "potion";
+                                const bulk = id === "book_atk" || id === "book_def" || id === "potion" || id === "safira_verde" || id.startsWith("stone_");
                                 if (bulk && n > 1) {
                                   const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
                                   if (raw == null) return;
