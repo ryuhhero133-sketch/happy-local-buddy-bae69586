@@ -12311,18 +12311,6 @@ function IdlePage() {
         <ActiveBuffsHUD buffs={idle.buffs} />
       </div>
 
-      {/* HUD de Buffs Ativos — Posicionado abaixo do tempo para evitar sobreposições */}
-      <div style={{
-        position: 'fixed',
-        top: 60,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 10001,
-        pointerEvents: 'none'
-      }}>
-        <ActiveBuffsHUD buffs={idle.buffs} />
-      </div>
-
       {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
       {pendingGate && createPortal(
         <div onClick={() => setPendingGate(null)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}>
