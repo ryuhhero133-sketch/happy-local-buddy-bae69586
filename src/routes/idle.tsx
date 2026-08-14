@@ -4239,9 +4239,9 @@ function IdlePage() {
             stuckRef.current = { id: target.id, count: 1 };
             (stuckRef.current as any).lastDist = dist;
           }
-          // Detecta travamento no auto: se ficar 45 ticks (~3.5s) sem progresso real, busca outro.
-          if (stuckRef.current.count > 45) {
-            blacklistRef.current.set(target.id, nowT + 12000); // Blacklist por 12s para garantir que procure outros
+          // Detecta travamento no auto: se ficar 35 ticks (~2.2s) sem progresso real, busca outro.
+          if (stuckRef.current.count > 35) {
+            blacklistRef.current.set(target.id, nowT + 15000); // Blacklist por 15s para garantir que procure outros
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
             // Ao destravar, tenta um pulo aleatório maior para sair de quinas
@@ -4288,7 +4288,7 @@ function IdlePage() {
           } else {
             // Se preso em canto ou obstrução total, tenta um pequeno desvio lateral aleatório
             // em vez de simplesmente atravessar a colisão (que pode causar bugs visuais)
-            const jitter = 4;
+            const jitter = 12; // Aumentado de 4 para 12 para escapar melhor de quinas
             const jx = clampX(tp.x + (Math.random() - 0.5) * jitter);
             const jy = clampY(tp.y + (Math.random() - 0.5) * jitter);
             return { x: jx, y: jy };
