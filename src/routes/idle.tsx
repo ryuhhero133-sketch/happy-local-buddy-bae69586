@@ -10678,8 +10678,6 @@ function IdlePage() {
               idle={idle}
               setIdle={setIdle}
 
-              idle={idle}
-              setIdle={setIdle}
 
               collection={collectionForDisplay}
               craftPoints={idle.craftPoints ?? 0}
