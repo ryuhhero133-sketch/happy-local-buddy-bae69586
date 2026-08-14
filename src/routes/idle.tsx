@@ -8570,12 +8570,20 @@ function IdlePage() {
                     alt={b.label}
                     width={b.w}
                     height={b.h}
+                    onClick={() => {
+                      playClick();
+                      if (b.key === "lab") setVaultOpen(true);
+                      else if (b.key === "gym") setGymOpen(true);
+                      else if (b.key === "azul") setAzulPickerOpen(true);
+                      else restAtHome("lar");
+                    }}
                     style={{
                       display: "block",
                       width: b.w,
                       height: b.h,
                       imageRendering: "pixelated",
                       userSelect: "none",
+                      cursor: "pointer",
                       // Tinge o telhado de azul para a Casa Azul
                       filter: b.key === "azul"
                         ? "hue-rotate(180deg) saturate(1.4) brightness(1.05)"
