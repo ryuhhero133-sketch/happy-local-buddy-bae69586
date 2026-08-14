@@ -1611,18 +1611,20 @@ function IdlePage() {
   const [anciaoForced, setAnciaoForced] = useState(false);
   const anciaoForcedRef = useRef(false);
   useEffect(() => { anciaoForcedRef.current = anciaoForced && anciaoOpen; }, [anciaoForced, anciaoOpen]);
+  
   // ❄️ Primeiro login: se o jogador nunca passou pelo Ancião, o diálogo dispara
   // automaticamente e ele não consegue sair da tela antes de falar com o NPC.
   const anciaoAutoDone = useRef(false);
   useEffect(() => {
     if (anciaoAutoDone.current) return;
-    if (idle.redeemedCodes?.RESETPERSON) return; // já passou — nunca repete
+    if (idle.redeemedCodes?.RESETPERSON) return; 
+    
     anciaoAutoDone.current = true;
     setTab("batalha");
     setIdle((prev) => ({ ...prev, currentMap: "santuario_glacial" }));
     setAnciaoForced(true);
     setAnciaoOpen(true);
-  }, [idle.redeemedCodes?.RESETPERSON]);
+  }, [idle.redeemedCodes?.RESETPERSON, idle.currentMap]);
   const [now, setNow] = useState(() => Date.now());
 
   // Manutenção Season: Desloga jogadores não-admins
@@ -4159,27 +4161,38 @@ function IdlePage() {
         return; 
       }
       if (!autoBattleRef.current?.enabled) { 
-        setAttackTargetId((c) => c !== null ? null : c);
+        setAttackTargetId(null);
         setTargetPet(null);
         return; 
       }
 
       if (Date.now() < paralyzedUntilRef.current) return;
       setEnemies((prev) => {
-        if (prev.length === 0) return spawnEnemies();
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
-        // acha o mais próximo do treinador
+        
+        // Acha o mais próximo do treinador
         let target = alive[0];
         let bestD = Infinity;
         for (const e of alive) {
           const d = (e.x - trainerPos.x) ** 2 + (e.y - trainerPos.y) ** 2;
           if (d < bestD) { bestD = d; target = e; }
         }
-        // só entra em combate se estiver perto (raio do ataque)
-        if (Math.sqrt(bestD) > ATTACK_RANGE) {
-          // Alvo fora de alcance: limpa target para não ficar preso mostrando HUD
-          setAttackTargetId((cur) => (cur !== null ? null : cur));
+
+        const dist = Math.sqrt(bestD);
+        
+        // Auto-battle: se não tem target ou o target atual sumiu/morreu, persegue o mais próximo
+        // Se estiver longe (fora do ATTACK_RANGE), o auto-battle deve se mover até lá.
+        if (dist > ATTACK_RANGE && dist < 800) {
+          // Apenas define o movimento, mas não o ID de ataque ainda
+          walkTargetRef.current = { x: target.x, y: target.y };
+          setAttackTargetId(null);
+          setTargetPet(target);
+          return prev;
+        }
+
+        if (dist > 800) {
+          setAttackTargetId(null);
           setTargetPet(null);
           return prev;
         }
