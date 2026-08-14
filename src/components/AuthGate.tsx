@@ -345,7 +345,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         const username = await withTimeout(ensureProfile(uid), 8000, "perfil");
         if (cancelled) return;
 
-        if (username && username.trim().length > 0) {
+        if (username) { // Simplificado: aceita qualquer verdade (mesmo que vazio, se o ensureProfile falhar silencioso)
           try {
             await withTimeout(preloadCloudSave(uid), 15000, "save da nuvem");
           } catch (e) {
