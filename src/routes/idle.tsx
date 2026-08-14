@@ -9088,7 +9088,8 @@ function IdlePage() {
                       width: 90, height: 90,
                 transform: "translate(-50%, -50%)",
                 zIndex: Math.round(c.y),
-                pointerEvents: "none",
+                pointerEvents: "auto",
+                cursor: "pointer",
               }}>
                 {!c.opened && (
                   <div className="chest-idle" style={{
