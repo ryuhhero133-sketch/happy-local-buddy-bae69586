@@ -1611,18 +1611,20 @@ function IdlePage() {
   const [anciaoForced, setAnciaoForced] = useState(false);
   const anciaoForcedRef = useRef(false);
   useEffect(() => { anciaoForcedRef.current = anciaoForced && anciaoOpen; }, [anciaoForced, anciaoOpen]);
+  
   // ❄️ Primeiro login: se o jogador nunca passou pelo Ancião, o diálogo dispara
   // automaticamente e ele não consegue sair da tela antes de falar com o NPC.
   const anciaoAutoDone = useRef(false);
   useEffect(() => {
     if (anciaoAutoDone.current) return;
-    if (idle.redeemedCodes?.RESETPERSON) return; // já passou — nunca repete
+    if (idle.redeemedCodes?.RESETPERSON) return; 
+    
     anciaoAutoDone.current = true;
     setTab("batalha");
     setIdle((prev) => ({ ...prev, currentMap: "santuario_glacial" }));
     setAnciaoForced(true);
     setAnciaoOpen(true);
-  }, [idle.redeemedCodes?.RESETPERSON]);
+  }, [idle.redeemedCodes?.RESETPERSON, idle.currentMap]);
   const [now, setNow] = useState(() => Date.now());
 
   // Manutenção Season: Desloga jogadores não-admins
@@ -3480,8 +3482,8 @@ function IdlePage() {
       // Ranked desativado temporariamente
       if (k === "r") { e.preventDefault(); return; }
 
-      if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
-      if (k === "c") { e.preventDefault(); collect(); return; }
+      if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); playClick(); return; }
+      if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); playClick(); return; }
       // Admin shortcut: Shift + A (Only for authorized admin UUIDs)
       if (e.shiftKey && k === "a") {
         const adminUuids = [
@@ -3532,8 +3534,8 @@ function IdlePage() {
   }, []);
 
   const [rankRefreshTick, setRankRefreshTick] = useState(0);
-  const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking congelado, sem atualizar direto
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v8_frozen_2h_${mode}`;
+  const RANK_CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3h — ranking global atualiza apenas a cada 3 horas
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v8_frozen_3h_${mode}`;
 
   useEffect(() => {
     if (!rankOpen) return;
@@ -4159,27 +4161,38 @@ function IdlePage() {
         return; 
       }
       if (!autoBattleRef.current?.enabled) { 
-        setAttackTargetId((c) => c !== null ? null : c);
+        setAttackTargetId(null);
         setTargetPet(null);
         return; 
       }
 
       if (Date.now() < paralyzedUntilRef.current) return;
       setEnemies((prev) => {
-        if (prev.length === 0) return spawnEnemies();
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
-        // acha o mais próximo do treinador
+        
+        // Acha o mais próximo do treinador
         let target = alive[0];
         let bestD = Infinity;
         for (const e of alive) {
           const d = (e.x - trainerPos.x) ** 2 + (e.y - trainerPos.y) ** 2;
           if (d < bestD) { bestD = d; target = e; }
         }
-        // só entra em combate se estiver perto (raio do ataque)
-        if (Math.sqrt(bestD) > ATTACK_RANGE) {
-          // Alvo fora de alcance: limpa target para não ficar preso mostrando HUD
-          setAttackTargetId((cur) => (cur !== null ? null : cur));
+
+        const dist = Math.sqrt(bestD);
+        
+        // Auto-battle: se não tem target ou o target atual sumiu/morreu, persegue o mais próximo
+        // Se estiver longe (fora do ATTACK_RANGE), o auto-battle deve se mover até lá.
+        if (dist > ATTACK_RANGE && dist < 800) {
+          // Apenas define o movimento, mas não o ID de ataque ainda
+          walkTargetRef.current = { x: target.x, y: target.y, label: "Perseguindo " + target.sp };
+          setAttackTargetId(null);
+          setTargetPet(target);
+          return prev;
+        }
+
+        if (dist > 800) {
+          setAttackTargetId(null);
           setTargetPet(null);
           return prev;
         }
@@ -7548,7 +7561,7 @@ function IdlePage() {
         <div
           onClick={() => setOddishNoStone(null)}
           style={{
-            position: "fixed", inset: 0, zIndex: 10000,
+            position: "fixed", inset: 0, zIndex: 1000000,
             display: "grid", placeItems: "center",
             background: "radial-gradient(circle at 50% 45%, rgba(30,90,40,0.75) 0%, rgba(6,20,10,0.92) 70%)",
             backdropFilter: "blur(8px)",
@@ -7641,7 +7654,7 @@ function IdlePage() {
         <div
           onClick={() => setOddishRankOpen(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 10000,
+            position: "fixed", inset: 0, zIndex: 1000000,
             display: "grid", placeItems: "center",
             background: "radial-gradient(circle at 50% 45%, rgba(20,60,30,0.9) 0%, rgba(4,14,8,0.96) 70%)",
             backdropFilter: "blur(6px)",
@@ -7750,7 +7763,7 @@ function IdlePage() {
         <div
           onClick={() => setGrassOddishSplash(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 9999,
+            position: "fixed", inset: 0, zIndex: 999999,
             display: "grid", placeItems: "center",
             background: "radial-gradient(circle at 50% 45%, rgba(30,90,40,0.85) 0%, rgba(6,20,10,0.94) 70%)",
             backdropFilter: "blur(6px)",
@@ -8194,7 +8207,7 @@ function IdlePage() {
         {typeof document !== "undefined" && createPortal(
         <div className="hud-right-column" style={{ 
           position: 'fixed', top: '75px', right: '20px', width: '250px',
-          display: "flex", flexDirection: "column", gap: 15, zIndex: 10005,
+          display: "flex", flexDirection: "column", gap: 15, zIndex: 100000,
           pointerEvents: 'none'
         }}>
           {/* Refactored Radar HUD as requested - Style based on image-32.png */}
@@ -8945,7 +8958,7 @@ function IdlePage() {
 
 
             {/* ❄️ NPC Ancião Glacial — visível apenas no Santuário Glacial */}
-            {idle.currentMap === "santuario_glacial" && (() => {
+            {idle.currentMap === "santuario_glacial" && !idle.redeemedCodes?.RESETPERSON && (() => {
               const npcX = WORLD_W / 2, npcY = WORLD_H / 2 - 40;
               return (
                 <div
@@ -10041,7 +10054,7 @@ function IdlePage() {
               border: '1px solid rgba(255, 82, 82, 0.4)', borderRadius: '16px',
               padding: '12px', display: 'flex', alignItems: 'center', gap: '15px',
               boxShadow: '0 0 30px rgba(255, 82, 82, 0.2)', pointerEvents: 'auto',
-              zIndex: 1002
+              zIndex: 100001
             }}>
               <div style={{ width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 82, 82, 0.1)', borderRadius: '12px' }}>
                 <img src={GIF[targetPet.sp]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
@@ -10103,13 +10116,15 @@ function IdlePage() {
             <div style={{
               position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-              zIndex: 10000,
+              zIndex: 99997,
+              pointerEvents: "auto",
             }}>
               {showAutoSettings && (
                 <div style={{
                   background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
                   borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
                   minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
+                  pointerEvents: "auto",
                 }}>
                   <div style={{ fontWeight: 800, color: "#f5cf6b", fontSize: 12, letterSpacing: 1 }}>⚙ CONFIGURAR AUTO</div>
                   <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -10123,7 +10138,7 @@ function IdlePage() {
                         const label = p === "auto" ? "Auto" : p === "pokeball" ? "Poké" : p === "greatball" ? "Great" : "Ultra";
                         const sel = ab.preferredBall === p;
                         return (
-                          <button key={p} onClick={() => setAB({ preferredBall: p })} disabled={!ab.useBall} style={{
+                          <button key={p} onClick={(e) => { e.stopPropagation(); setAB({ preferredBall: p }); }} disabled={!ab.useBall} style={{
                             background: sel ? "#f5cf6b" : "rgba(255,255,255,0.06)",
                             color: sel ? "#0b0510" : "#eadfe8", border: "1px solid rgba(245,207,107,0.4)",
                             borderRadius: 6, padding: "4px 8px", fontSize: 10, fontWeight: 700,
@@ -10220,7 +10235,7 @@ function IdlePage() {
                 {/* Botão de Auto-Ataque e Info Compacta */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <button
-                    onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
+                    onClick={(e) => { e.stopPropagation(); setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
                     title={on ? "Auto-batalha ATIVA" : "Auto-batalha desativada"}
                     style={{
                       background: on ? "rgba(94,194,106,0.15)" : "rgba(255,255,255,0.03)",
@@ -10639,7 +10654,7 @@ function IdlePage() {
 
 
       {identity && (
-        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
+        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 10002, display: "flex", flexDirection: "column", gap: 2 }}>
           <span>{identity.name}</span>
           <span style={{ fontFamily: "monospace", color: "#c9b8ff", fontSize: 9 }}>
             🌐 IP: {idle.hideIp ? "•••.•••.•••.•••" : (myIp ?? "detectando...")}
@@ -10747,7 +10762,7 @@ function IdlePage() {
           </div>
         );
         return createPortal(
-          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: "min(760px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #241a12 0%, #0e0906 100%)", border: "3px solid #f5cf6b", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(245,207,107,0.35)" }}>
 
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -11305,7 +11320,7 @@ function IdlePage() {
             <div style={{ fontSize: 12, color: "#c8b8d0", letterSpacing: 2, fontWeight: 900, marginBottom: 8 }}>
               {orbAnim.phase === "spinning" ? "⚗️  INCUBANDO..." : orbAnim.phase === "success" ? (orbAnim.lucky ? "🌟  SORTE!" : "✨  SUCESSO!") : "💥  FALHOU!"}
             </div>
-            <div style={{ position: "relative", height: 240, display: "grid", placeItems: "center" }}>
+            <div style={{ position: 'relative', height: 240, display: 'grid', placeItems: 'center', zIndex: 1 }}>
               {/* base incubadora */}
               <img
                 src={orbIncubatorImg}
@@ -11343,6 +11358,7 @@ function IdlePage() {
                     position: "absolute", bottom: 30, imageRendering: "pixelated",
                     filter: `drop-shadow(0 0 20px ${orbAnim.color})`,
                     animation: "orb-drop .6s ease-out both, orb-pulse 2s ease-in-out infinite .6s",
+                    zIndex: 2,
                   }}
                 />
               )}
@@ -11413,7 +11429,7 @@ function IdlePage() {
         onClick={() => { setCodeOpen(true); setCodeMsg(null); }}
         title="Resgatar código"
         style={{
-          position: "fixed", bottom: 12, right: 12, zIndex: 100,
+          position: "fixed", bottom: 12, right: 12, zIndex: 10002,
           background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
           border: "1px solid #f5cf6b", color: "#f5cf6b",
           borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 800,
@@ -13165,7 +13181,7 @@ function TabOverlay({
       flexDirection: "column",
       pointerEvents: "auto",
       overflow: "hidden",
-      zIndex: 20000,
+      zIndex: 200000,
       border: "1px solid rgba(201, 184, 255, 0.3)",
       borderRadius: "20px",
       boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(201, 184, 255, 0.1)"
@@ -14907,7 +14923,7 @@ function TabOverlay({
             return (
               <div
                 onClick={() => setOrbPicker(null)}
-                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 10000, display: "grid", placeItems: "center", padding: 16 }}
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 9999999, display: "grid", placeItems: "center", padding: 16 }}
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
