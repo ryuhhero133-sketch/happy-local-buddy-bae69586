@@ -35,6 +35,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
+import { ActiveBuffsHUD, TrainerProfileHUD, TeamPanelHUD } from "@/components/GameHUDs";
 
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
@@ -4269,7 +4270,7 @@ function IdlePage() {
           pushFxAt(target.x, target.y - 34, isCrit ? `CRIT ${dmg}!` : `${dmg}`, isCrit ? "crit" : "myDmg");
           // Efeito visual de skill ao atacar o inimigo
           const myElement = elementOf(leader.species) || "normal";
-          pushFxAt(target.x, target.y - 20, `skill_${myElement}`, "");
+          pushFxAt(target.x, target.y - 20, `skill_${myElement}` as FxKind, "myDmg");
         }, 180);
 
 
@@ -9030,7 +9031,7 @@ function IdlePage() {
                       animation: "fxpop 0.5s forwards"
                     }}>
                       <img 
-                        src={ELEMENT_FX_IMG[attackAnim.element as ElementType] || fxSlashImg} 
+                        src={ELEMENT_FX_IMG[attackAnim.element as keyof typeof ELEMENT_FX_IMG] || fxSlashImg} 
                         alt="" 
                         style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 0 10px rgba(255,255,255,0.9))" }} 
                       />
@@ -10066,6 +10067,25 @@ function IdlePage() {
                 </div>
 
                 <div style={{
+                  position: "fixed", top: 10, left: 10, zIndex: 1000000, pointerEvents: "none",
+                  display: "flex", flexDirection: "column", gap: 8
+                }}>
+                  <TrainerProfileHUD 
+                    identity={identity} 
+                    trainerLevel={idle.trainerLevel} 
+                    trainerXp={idle.trainerXp}
+                    xpNext={trainerXpToNext(idle.trainerLevel)}
+                    onOpenAdmin={() => setIsAdminOpen(true)}
+                  />
+                  <TeamPanelHUD 
+                    team={team} 
+                    leaderHp={leaderHp} 
+                    calcIdleMaxHp={calcIdleMaxHp}
+                    onOpenPokemon={() => setTab("pokemon")}
+                  />
+                </div>
+
+                <div style={{
                   position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                   zIndex: 99997,
@@ -10084,7 +10104,7 @@ function IdlePage() {
                         <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
                       </div>
                       <div style={{ display: "flex", gap: 4 }}>
-                        {(["auto", "poke", "great", "ultra"] as const).map((b) => (
+                        {(["auto", "pokeball", "greatball", "ultraball"] as const).map((b) => (
                           <button
                             key={b}
                             onClick={() => setAB({ preferredBall: b })}
@@ -10095,7 +10115,7 @@ function IdlePage() {
                               border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer"
                             }}
                           >
-                            {b === "auto" ? "MELHOR" : b === "poke" ? "COMUM" : b === "great" ? "GREAT" : "ULTRA"}
+                            {b === "auto" ? "MELHOR" : b === "pokeball" ? "COMUM" : b === "greatball" ? "GREAT" : "ULTRA"}
                           </button>
                         ))}
                       </div>
