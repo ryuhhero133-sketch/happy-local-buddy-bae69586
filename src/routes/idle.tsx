@@ -1195,6 +1195,8 @@ const ITEM_COLORS: Record<string, string> = {
   revive: "#ff5b8a", berry: "#4a7bff", key: "#f5cf6b",
   book_atk: "#ff5252", book_def: "#4a7bff", book_exp: "#5ec26a",
   book_exp_big: "#8bffb0", book_exp_max: "#ffd94d", book_vip: "#ffb347",
+  stone_grass: "#5ec26a", stone_fire: "#ff5252", stone_water: "#4a7bff",
+  stone_electric: "#f5cf6b", stone_dark: "#a855f7", stone_dragon: "#ff8b3d",
 };
 const ITEM_IMG: Record<string, string> = {
   potion: potionNewImg,
@@ -1211,6 +1213,9 @@ const ITEM_IMG: Record<string, string> = {
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
   cristal_fragmentado: assetUrlFromJson(iconFragmentCrystal),
   fragmento_vermelho: redShardImg,
+  stone_grass: "/items/stone-grass.png", stone_fire: "/items/stone-fire.png", 
+  stone_water: "/items/stone-water.png", stone_electric: "/items/stone-electric.png",
+  stone_dark: "/items/stone-dark.png", stone_dragon: "/items/stone-dragon.png",
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
