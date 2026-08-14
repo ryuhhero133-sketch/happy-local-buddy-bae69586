@@ -6409,6 +6409,7 @@ function IdlePage() {
         } else if (idle.currentMap === "grass_oddish") {
           // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
           // Captura usa as MESMAS taxas globais do servidor.
+
           const shinyRoll = Math.random();
           if (shinyRoll < 0.12) {
             pool = ["oddish_shiny"] as Species[];
