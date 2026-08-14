@@ -4154,7 +4154,7 @@ function IdlePage() {
         const lockedPortals = WORLD_PORTALS.filter((p) => p.from === idle.currentMap && (p.reqLevel ?? 0) > trLv);
         const nearLockedPortal = (x: number, y: number) =>
           lockedPortals.some((p) => Math.hypot(x - p.x, y - p.y) < 200);
-        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id) && !nearLockedPortal(e.x, e.y));
+        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
         // Líder pode atacar qualquer Pokémon do mapa — ganhos serão nerfados se muito acima.
         const alive = aliveAll;
         const enemyPool = alive.length > 0 ? alive : [];
