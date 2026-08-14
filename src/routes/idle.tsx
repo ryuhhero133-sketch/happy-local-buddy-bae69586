@@ -9783,81 +9783,115 @@ function IdlePage() {
           </div>
         </div>
 
-        {/* Painel do Treinador e Time (Lado Esquerdo) */}
-        <div className="trainer-team-panel" style={{
+        {/* Profile & Team HUD (Top-Left) */}
+        <div style={{
           position: 'fixed', left: '20px', top: '80px',
-          display: 'flex', flexDirection: 'column', gap: '12px',
-          pointerEvents: 'auto', zIndex: 1002
+          display: 'flex', flexDirection: 'column', gap: '10px',
+          zIndex: 1002, pointerEvents: 'none'
         }}>
-          {/* Card do Treinador */}
+          {/* Treinador HUD */}
           <div style={{
-            background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(201, 184, 255, 0.3)', borderRadius: '16px',
-            padding: '12px 15px', display: 'flex', alignItems: 'center', gap: '15px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)', width: '220px'
+            background: 'rgba(11, 5, 20, 0.85)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(201, 184, 255, 0.3)',
+            borderRadius: '16px', padding: '10px 14px',
+            width: '220px', pointerEvents: 'auto',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            transition: 'all 0.3s'
           }}>
-            <div style={{
-              width: 48, height: 48, borderRadius: '12px', overflow: 'hidden',
-              background: 'rgba(201, 184, 255, 0.1)', border: '1px solid rgba(201, 184, 255, 0.2)',
-              flexShrink: 0
-            }}>
-              <div style={{
-                width: '100%', height: '100%',
-                backgroundImage: `url(${skinUrl ?? trainerSheet})`,
-                backgroundSize: '400% 400%',
-                backgroundPosition: '0 0',
-                imageRendering: 'pixelated'
-              }} />
+            <div onClick={() => setProfileOpen(!profileOpen)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: 32, height: 32, background: 'rgba(201, 184, 255, 0.2)', borderRadius: 8, display: 'grid', placeItems: 'center', fontSize: 16 }}>👤</div>
+                <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900 }}>{identity?.name || 'TREINADOR'}</span>
+              </div>
+              <span style={{ color: '#c9b8ff', fontSize: '12px', opacity: 0.8 }}>{profileOpen ? '▼' : '▲'}</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-              <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {identity?.name || 'Treinador'}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span style={{ color: '#c9b8ff', fontSize: '11px', fontWeight: 800 }}>Nv. {idle.trainerLevel || 1}</span>
-                <div style={{ flex: 1, height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden' }}>
+
+            {profileOpen && (
+              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#c9b8ff', fontSize: '11px', fontWeight: 800 }}>Nv. {idle.trainerLevel || 1}</span>
+                  <span style={{ color: '#8a7a9c', fontSize: '9px' }}>XP: {idle.trainerXp}/{150 + (idle.trainerLevel || 1) * 80}</span>
+                </div>
+                <div style={{ height: '5px', background: 'rgba(0,0,0,0.3)', borderRadius: '3px', overflow: 'hidden' }}>
                   <div style={{ 
                     width: `${((idle.trainerXp || 0) / (150 + (idle.trainerLevel || 1) * 80)) * 100}%`, 
-                    height: '100%', background: '#6bd4ff' 
+                    height: '100%', background: 'linear-gradient(90deg, #6bd4ff, #c9b8ff)' 
                   }} />
                 </div>
+                {identity?.isAdmin && (
+                  <button onClick={() => setIsAdminOpen(true)} style={{
+                    background: 'rgba(201, 184, 255, 0.1)', border: '1px solid rgba(201, 184, 255, 0.2)',
+                    borderRadius: 6, color: '#c9b8ff', fontSize: 9, padding: '4px', cursor: 'pointer',
+                    fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5
+                  }}>Painel Admin</button>
+                )}
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Lista da Equipe */}
+          {/* Equipe HUD */}
           <div style={{
-            display: 'flex', flexDirection: 'column', gap: '6px'
+            background: 'rgba(11, 5, 20, 0.85)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(201, 184, 255, 0.3)',
+            borderRadius: '16px', padding: '10px 14px',
+            width: '220px', pointerEvents: 'auto',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            transition: 'all 0.3s'
           }}>
-            {team.map((p, i) => {
-              const petMax = calcIdleMaxHp(p);
-              const petHp = i === 0 ? leaderHp : (p.hp ?? petMax);
-              const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
-              return (
-                <div key={p.uid} onClick={() => setStatsCardPet(p)} style={{
-                  background: i === 0 ? 'rgba(201, 184, 255, 0.2)' : 'rgba(11, 5, 20, 0.7)',
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${i === 0 ? '#c9b8ff' : 'rgba(201, 184, 255, 0.2)'}`,
-                  borderRadius: '10px', padding: '6px 10px',
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  cursor: 'pointer', transition: 'transform 0.2s',
-                  boxShadow: i === 0 ? '0 0 15px rgba(201, 184, 255, 0.2)' : 'none'
-                }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateX(5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateX(0)'}>
-                  <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <img src={GIF[p.species]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '10px', color: '#fff', fontWeight: 800 }}>{p.species.replace(/_/g, ' ').toUpperCase()}</span>
-                      <span style={{ fontSize: '9px', color: '#c9b8ff' }}>Lv.{p.level}</span>
+            <div onClick={() => setTeamPanelOpen(!teamPanelOpen)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontWeight: 900, color: '#c9b8ff', fontSize: '10px', letterSpacing: 1 }}>SUA EQUIPE</span>
+                <span style={{ fontSize: '10px', color: '#8a7a9c' }}>{team.length}/6</span>
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                {teamPanelOpen && (
+                   <button 
+                     onClick={(e) => { e.stopPropagation(); setMaximizeTeam(!maximizeTeam); }}
+                     style={{ background: 'rgba(201, 184, 255, 0.1)', border: 'none', borderRadius: 4, padding: '2px 4px', color: '#c9b8ff', fontSize: 8, fontWeight: 900, cursor: 'pointer' }}
+                   >
+                     {maximizeTeam ? "REDUZIR" : "MAXIMIZAR"}
+                   </button>
+                )}
+                <span style={{ color: '#c9b8ff', fontSize: '12px', opacity: 0.8 }}>{teamPanelOpen ? '▼' : '▲'}</span>
+              </div>
+            </div>
+
+            {teamPanelOpen && (
+              <div style={{
+                display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px'
+              }}>
+                {team.map((p, i) => {
+                  if (!maximizeTeam && i >= 3) return null;
+                  const petMax = calcIdleMaxHp(p);
+                  const petHp = i === 0 ? leaderHp : (p.hp ?? petMax);
+                  const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
+                  return (
+                    <div key={p.uid} onClick={() => setStatsCardPet(p)} style={{
+                      background: i === 0 ? 'rgba(201, 184, 255, 0.15)' : 'rgba(0,0,0,0.2)',
+                      border: `1px solid ${i === 0 ? 'rgba(201, 184, 255, 0.4)' : 'rgba(255,255,255,0.05)'}`,
+                      borderRadius: '8px', padding: '6px 8px',
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      cursor: 'pointer', position: 'relative'
+                    }}>
+                      <div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={GIF[p.species]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '9px', color: '#fff', fontWeight: 800 }}>{p.species.toUpperCase()}</span>
+                          <span style={{ fontSize: '8px', color: '#c9b8ff' }}>Lv.{p.level}</span>
+                        </div>
+                        <div style={{ height: '3px', background: 'rgba(0,0,0,0.4)', borderRadius: '2px', overflow: 'hidden', marginTop: '2px' }}>
+                          <div style={{ width: `${hpPct}%`, height: '100%', background: hpPct > 50 ? '#5ec26a' : hpPct > 20 ? '#f5cf6b' : '#ff5252' }} />
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ height: '3px', background: 'rgba(0,0,0,0.4)', borderRadius: '2px', overflow: 'hidden', marginTop: '2px' }}>
-                      <div style={{ width: `${hpPct}%`, height: '100%', background: hpPct > 50 ? '#5ec26a' : hpPct > 20 ? '#f5cf6b' : '#ff5252' }} />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
