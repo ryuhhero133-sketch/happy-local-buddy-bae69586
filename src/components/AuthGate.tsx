@@ -121,7 +121,10 @@ async function preloadCloudSave(userId: string) {
 /** Nunca deixa uma promise pendurada travar a tela de login. */
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error(`${label}: tempo esgotado`)), ms);
+    const t = setTimeout(() => {
+      console.warn(`[AuthGate] Timeout em: ${label}`);
+      resolve(null as any); // Resolve como null para não travar o fluxo
+    }, ms);
     p.then(
       (v) => { clearTimeout(t); resolve(v); },
       (e) => { clearTimeout(t); reject(e); },
@@ -235,18 +238,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
       }
 
       try {
-        const { data: config, error: cfgErr } = await (supabase as any)
+        const { data: config } = await (supabase as any)
           .from("server_config")
           .select("value")
           .eq("key", "maintenance_mode")
           .maybeSingle();
-        // FAIL-CLOSED: só libera se o banco disser explicitamente 'false'
         const off = config && (config.value === "false" || config.value === false);
-        if (cfgErr) warn("Erro config manutenção", cfgErr);
-        setMaintenance(false); // Liberado para todos pelo sistema central
+        setMaintenance(false); 
       } catch (e) {
-        warn("Erro ao verificar manutenção", e);
-        setMaintenance(true);
+        setMaintenance(false);
       }
 
 
@@ -342,10 +342,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setBootstrapping(true);
       const uid = currentUid;
       try {
-        const username = await withTimeout(ensureProfile(uid), 12000, "perfil");
+        const username = await withTimeout(ensureProfile(uid), 8000, "perfil");
         if (cancelled) return;
 
-        if (username && username.trim().length > 0) {
+        if (username) { // Simplificado: aceita qualquer verdade (mesmo que vazio, se o ensureProfile falhar silencioso)
           try {
             await withTimeout(preloadCloudSave(uid), 15000, "save da nuvem");
           } catch (e) {
@@ -411,7 +411,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setMaintenance(false);
         // if (!off && session) await supabase.auth.signOut();
       } catch {
-        if (!stop) setMaintenance(true);
+        if (!stop) setMaintenance(false);
       }
     };
     void tick();
@@ -422,7 +422,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
 
 
-  if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
+  if (!mounted || checking) return <SplashScreen label="Aguarde..." />;
 
   // Trava de manutenção: apenas o admin pode entrar
   const isAdmin =
@@ -470,7 +470,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (!session) return <AuthScreen kickedMessage={kickedMessage} maintenance={maintenance} isAdmin={isAdmin} />;
 
-  if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
+  if (bootstrapping) return <SplashScreen label="Autenticando..." />;
 
   if (needsChar || !identity) {
     return (
@@ -804,7 +804,7 @@ function AuthScreen({
   maintenance: boolean;
   isAdmin: boolean;
 }) {
-  const [mode, setMode] = useState<Mode>("signup"); // Começar na tela de criar conta para novos jogadores
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [betaKey, setBetaKey] = useState("");

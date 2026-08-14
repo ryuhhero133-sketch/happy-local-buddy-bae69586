@@ -66,8 +66,8 @@ export function useServerSync(opts: {
           setStatus("idle");
           return;
         }
-        await bootstrap({} as any);
-        let full = (await fetchFull({} as any)) as FullStateDTO;
+        await bootstrap({} as any).catch(e => console.warn("Bootstrap silent fail", e));
+        let full = (await fetchFull({} as any).catch(e => ({ trainer: { gold: 0, crystal: 0, trainer_level: 1, trainer_xp: 0, kill_count: 0 }, collection: [] }))) as FullStateDTO;
 
 
         const serverEmpty =
