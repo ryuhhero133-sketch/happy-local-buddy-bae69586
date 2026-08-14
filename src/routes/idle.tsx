@@ -11511,7 +11511,7 @@ function IdlePage() {
                         Você não tem Pokémon {pick.rarity.toUpperCase()} na coleção.
                       </div>
                     ) : (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "22vh", overflowY: "auto", padding: 4 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "180px", overflowY: "auto", padding: 4 }}>
                         {eligible.map((c) => {
                           const sel = worldTraderSel.has(c.uid);
                           const disabled = !sel && selCount >= pick.count;
