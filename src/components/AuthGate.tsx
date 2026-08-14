@@ -246,7 +246,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setMaintenance(false); // Liberado para todos pelo sistema central
       } catch (e) {
         warn("Erro ao verificar manutenção", e);
-        setMaintenance(true);
+        setMaintenance(false); // Liberado em caso de erro de conexão também
       }
 
 
@@ -411,7 +411,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setMaintenance(false);
         // if (!off && session) await supabase.auth.signOut();
       } catch {
-        if (!stop) setMaintenance(true);
+        if (!stop) setMaintenance(false);
       }
     };
     void tick();
@@ -422,7 +422,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
 
 
-  if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
+  if (!mounted || checking) return <SplashScreen label="Aguarde..." />;
 
   // Trava de manutenção: apenas o admin pode entrar
   const isAdmin =
@@ -470,7 +470,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (!session) return <AuthScreen kickedMessage={kickedMessage} maintenance={maintenance} isAdmin={isAdmin} />;
 
-  if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
+  if (bootstrapping) return <SplashScreen label="Autenticando..." />;
 
   if (needsChar || !identity) {
     return (
@@ -804,7 +804,7 @@ function AuthScreen({
   maintenance: boolean;
   isAdmin: boolean;
 }) {
-  const [mode, setMode] = useState<Mode>("signup"); // Começar na tela de criar conta para novos jogadores
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [betaKey, setBetaKey] = useState("");
