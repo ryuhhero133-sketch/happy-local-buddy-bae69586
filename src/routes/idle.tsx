@@ -15437,7 +15437,7 @@ function TabOverlay({
                       Você não tem Pokémon {orbPicker.rarity.toUpperCase()} na coleção.
                     </div>
                   ) : (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8, maxHeight: "400px", overflowY: "auto", padding: "4px" }}>
                       {eligible.map((c) => {
                         const sel = orbPickerSel.has(c.uid);
                         const disabled = !sel && selCount >= orbPicker.count;
