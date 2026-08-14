@@ -10066,24 +10066,6 @@ function IdlePage() {
                   <ActiveBuffsHUD buffs={idle.buffs} />
                 </div>
 
-                <div style={{
-                  position: "fixed", top: 10, left: 10, zIndex: 1000000, pointerEvents: "none",
-                  display: "flex", flexDirection: "column", gap: 8
-                }}>
-                  <TrainerProfileHUD 
-                    identity={identity} 
-                    trainerLevel={idle.trainerLevel ?? 1} 
-                    trainerXp={idle.trainerXp ?? 0}
-                    xpNext={trainerXpToNext(idle.trainerLevel ?? 1)}
-                    onOpenAdmin={() => setIsAdminOpen(true)}
-                  />
-                  <TeamPanelHUD 
-                    team={team} 
-                    leaderHp={leaderHp} 
-                    calcIdleMaxHp={calcIdleMaxHp}
-                    onOpenPokemon={() => setTab("pokemon")}
-                  />
-                </div>
 
                 <div style={{
                   position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
