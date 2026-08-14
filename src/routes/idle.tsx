@@ -4241,8 +4241,8 @@ function IdlePage() {
             stuckRef.current = { id: target.id, count: 1 };
             (stuckRef.current as any).lastDist = dist;
           }
-          // Detecta travamento muito mais rápido no auto: ~60 ticks (~7s) sem progresso
-          if (stuckRef.current.count > 60) {
+          // Detecta travamento muito mais rápido no auto: ~30 ticks (~3.5s) sem progresso real
+          if (stuckRef.current.count > 30) {
             blacklistRef.current.set(target.id, nowT + 12000);
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
