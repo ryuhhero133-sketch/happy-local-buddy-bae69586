@@ -1443,13 +1443,15 @@ const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
 };
 
 // Duração (segundos) que 100 de energia dura em auto-battle como líder.
+// Pokémons não cansam mais (dur = 0), mantendo consistência com Míticos.
 const ENERGY_ACTIVE_DURATION_S: Partial<Record<Rarity, number>> = {
-  common: 25 * 60,       // 25 min
-  uncommon: 35 * 60,     // 35 min
-  rare: 1 * 3600,        // 1 h
-  epic: 2 * 3600,        // 2 h
-  legendary: 5 * 3600,   // 5 h
-  mythic: 0, mythic_shiny: 0,
+  common: 0,
+  uncommon: 0,
+  rare: 0,
+  epic: 0,
+  legendary: 0,
+  mythic: 0,
+  mythic_shiny: 0,
 };
 function energyDrainPerSec(rarity: Rarity): number {
   const dur = ENERGY_ACTIVE_DURATION_S[rarity] ?? 5 * 60;
