@@ -14886,7 +14886,7 @@ function TabOverlay({
                        style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%", position: "relative", zIndex: 1 }}
                        title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
                      >
-                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
+                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 90, height: 90, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
                        <div style={{ fontSize: 11, marginTop: 2, color: "#fff", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                      </button>
 
