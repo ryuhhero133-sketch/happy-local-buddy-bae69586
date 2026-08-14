@@ -1629,6 +1629,7 @@ function petIsExhausted(pet: PetInstance, now: number = Date.now(), opts?: { act
   if (p.azulRestUntil && p.azulRestUntil > now) return true;
   return petCurrentEnergy(pet, now, opts) <= 0;
 }
+const MAIN_QUEST_RESET_MS = 60 * 60 * 1000;
 function fmtMS(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
   const m = Math.floor(s / 60), r = s % 60;
