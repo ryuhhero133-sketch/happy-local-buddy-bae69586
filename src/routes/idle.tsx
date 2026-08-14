@@ -10544,59 +10544,6 @@ function IdlePage() {
             </div>
           )}
 
-          {/* MAIN QUEST HUD - Minimizable & Positioned near chat */}
-          {idle.mainQuest && !idle.mainQuest.completed && (
-            <div style={{
-              position: 'absolute',
-              bottom: 400,
-              right: 20,
-              width: idle.mainQuest.minimized ? '50px' : '200px',
-              background: 'rgba(11, 5, 16, 0.9)',
-              border: '2px solid #a78bfa',
-              borderRadius: '12px',
-              padding: idle.mainQuest.minimized ? '8px' : '12px',
-              zIndex: 99998,
-              boxShadow: '0 4px 15px rgba(167, 139, 250, 0.4)',
-              transition: 'all 0.3s ease-in-out',
-              pointerEvents: 'auto',
-              cursor: 'default'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: idle.mainQuest.minimized ? 0 : '8px' }}>
-                <span style={{ color: '#a78bfa', fontSize: '13px', fontWeight: 900, display: idle.mainQuest.minimized ? 'none' : 'block' }}>MAIN QUEST</span>
-                <button
-                  onClick={() => setIdle(s => ({ ...s, mainQuest: { ...s.mainQuest!, minimized: !s.mainQuest?.minimized } }))}
-                  style={{
-                    background: 'none', border: 'none', color: '#c8b8d0', cursor: 'pointer', fontSize: '12px',
-                    width: '24px', height: '24px', display: 'grid', placeItems: 'center'
-                  }}
-                >
-                  {idle.mainQuest.minimized ? '➕' : '➖'}
-                </button>
-              </div>
-
-              {!idle.mainQuest.minimized && (() => {
-                const q = QUEST_DATA.find(x => x.id === idle.mainQuest?.currentQuestId);
-                if (!q) return null;
-                const timeLeft = idle.mainQuest.expiresAt ? Math.max(0, idle.mainQuest.expiresAt - now) : 0;
-                return (
-                  <>
-                    <div style={{ color: '#fff', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>{q.title}</div>
-                    <div style={{ color: '#b8a8c8', fontSize: '10px', marginBottom: '8px', fontStyle: 'italic' }}>{q.description}</div>
-                    <div style={{ position: 'relative', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden', marginBottom: '4px' }}>
-                      <div style={{
-                        width: `${(idle.mainQuest.progress / q.target) * 100}%`,
-                        height: '100%', background: '#a78bfa', transition: 'width 0.3s ease-out'
-                      }} />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#a78bfa', fontWeight: 800 }}>
-                      <span>{idle.mainQuest.progress} / {q.target}</span>
-                      <span>{fmtMS(timeLeft)}</span>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          )}
 
           {/* Faixa BATALHA AUTOMÁTICA / DESMAIADO */}
 
