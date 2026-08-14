@@ -13529,6 +13529,8 @@ function TabOverlay({
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
           safira_verde: "Safira Verde 💚",
+          frag_habilidade: "Fragmento de Habilidade 📖",
+          frag_defesa: "Fragmento de Defesa 🛡️",
           carta_governante: "Carta do Governante 👑",
           carta_incubadora: "Carta da Incubadora Lendária 🔮",
           carta_plus: "Carta Suprema Plus ✦",
