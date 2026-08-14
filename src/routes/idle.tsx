@@ -4373,14 +4373,20 @@ function IdlePage() {
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
         
-        // Acha o mais próximo do treinador
-        let target = alive[0];
+        // Acha o mais próximo do treinador (priorizando comuns e incomuns se possível)
+        let target: EnemyInstance | null = null;
         let bestD = Infinity;
-        for (const e of alive) {
+
+        // Tenta achar um comum/incomum primeiro se houver muitos monstros
+        const lowRarity = alive.filter(e => e.rarity === "common" || e.rarity === "uncommon");
+        const pool = lowRarity.length > 0 ? lowRarity : alive;
+
+        for (const e of pool) {
           const d = (e.x - trainerPos.x) ** 2 + (e.y - trainerPos.y) ** 2;
           if (d < bestD) { bestD = d; target = e; }
         }
 
+        if (!target) return prev;
         const dist = Math.sqrt(bestD);
         
         // Auto-battle: se não tem target ou o target atual sumiu/morreu, persegue o mais próximo
