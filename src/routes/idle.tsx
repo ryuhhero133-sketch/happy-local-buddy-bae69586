@@ -4000,11 +4000,18 @@ function IdlePage() {
           const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
           const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
           let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
+          // Modo MANUAL: Desliza pelas paredes para não travar
           if (collidesWithAny(nx, ny)) {
-            nx = clampX(tp.x + stepX);
-            if (collidesWithAny(nx, tp.y)) nx = tp.x;
-            ny = clampY(tp.y + stepY);
-            if (collidesWithAny(nx, ny)) ny = tp.y;
+            // Tenta andar só em X
+            if (!collidesWithAny(nx, tp.y)) {
+              ny = tp.y;
+            } else {
+              // Tenta andar só em Y
+              nx = tp.x;
+              if (collidesWithAny(tp.x, ny)) {
+                ny = tp.y;
+              }
+            }
           }
           return { x: nx, y: ny };
         });
