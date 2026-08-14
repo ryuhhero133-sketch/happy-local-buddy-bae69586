@@ -10506,7 +10506,7 @@ function IdlePage() {
           {/* HUD do Target (Inimigo Selecionado) */}
           {targetPet && (
             <div style={{
-              position: 'fixed', left: '50%', top: '150px', transform: 'translateX(-50%)',
+              position: 'fixed', left: '50%', top: '70px', transform: 'translateX(-50%)',
               width: '320px', background: 'rgba(11, 5, 20, 0.9)', backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255, 82, 82, 0.4)', borderRadius: '16px',
               padding: '12px', display: 'flex', alignItems: 'center', gap: '15px',
