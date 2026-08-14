@@ -6200,37 +6200,30 @@ function IdlePage() {
   // Só permite spawn de espécies com GIF disponível.
   const hasGif = (sp: Species) => !!GIF[sp];
   const ARENA_SPAWN_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = ([
-    // Comuns (frequentes)
-    { sp: "caterpie" as Species,   w: 14 },
-    { sp: "weedle" as Species,     w: 14 },
-    { sp: "pidgey" as Species,     w: 12 },
-    { sp: "rattata_f" as Species,  w: 12 },
-    { sp: "oddish" as Species,     w: 10 },
-    { sp: "bellsprout" as Species, w: 10 },
-    { sp: "metapod" as Species,    w: 6 },
-    { sp: "kakuna" as Species,     w: 6 },
-    // Incomuns
-    { sp: "sandshrew" as Species,  w: 7, forcedRarity: "uncommon" },
-    { sp: "mankey" as Species,     w: 7, forcedRarity: "uncommon" },
-    { sp: "venonat" as Species,    w: 2, forcedRarity: "uncommon" },
-    { sp: "paras" as Species,      w: 7, forcedRarity: "uncommon" },
-    { sp: "poliwag" as Species,    w: 7, forcedRarity: "uncommon" },
-    { sp: "nidoran_f" as Species,  w: 6, forcedRarity: "uncommon" },
-    { sp: "pidgeotto" as Species,  w: 4, forcedRarity: "uncommon" },
-    { sp: "raticate_f" as Species, w: 4, forcedRarity: "uncommon" },
-    // Raros ★ (mais fortes)
-    { sp: "bulbasaur" as Species,  w: 3, forcedRarity: "rare" },
-    { sp: "growlithe" as Species,  w: 3, forcedRarity: "rare" },
-    { sp: "vulpix" as Species,     w: 3, forcedRarity: "rare" },
-    { sp: "abra" as Species,       w: 3, forcedRarity: "rare" },
-    { sp: "clefairy" as Species,   w: 3, forcedRarity: "rare" },
-    { sp: "cubone" as Species,     w: 3, forcedRarity: "rare" },
-    { sp: "magnemite" as Species,  w: 3, forcedRarity: "rare" },
-    { sp: "gloom" as Species,      w: 2, forcedRarity: "rare" },
-    { sp: "parasect" as Species,   w: 2, forcedRarity: "rare" },
-    // (Épico só é liberado quando o líder chega ao nível 50 — em outros mapas)
-    // Raridades superiores (Lendário/Mítico) não aparecem na Arena/Vale Verdejante.
+    // Comuns (frequentes - 75% da tabela)
+    { sp: "caterpie" as Species,   w: 25 },
+    { sp: "weedle" as Species,     w: 25 },
+    { sp: "pidgey" as Species,     w: 20 },
+    { sp: "rattata_f" as Species,  w: 20 },
+    { sp: "oddish" as Species,     w: 15 },
+    { sp: "bellsprout" as Species, w: 15 },
+    { sp: "metapod" as Species,    w: 10 },
+    { sp: "kakuna" as Species,     w: 10 },
+    // Incomuns (20% da tabela)
+    { sp: "sandshrew" as Species,  w: 10, forcedRarity: "uncommon" },
+    { sp: "mankey" as Species,     w: 10, forcedRarity: "uncommon" },
+    { sp: "venonat" as Species,    w: 5,  forcedRarity: "uncommon" },
+    { sp: "paras" as Species,      w: 8,  forcedRarity: "uncommon" },
+    { sp: "poliwag" as Species,    w: 8,  forcedRarity: "uncommon" },
+    // Raros ★ (5% da tabela)
+    { sp: "bulbasaur" as Species,  w: 2, forcedRarity: "rare" },
+    { sp: "growlithe" as Species,  w: 2, forcedRarity: "rare" },
+    { sp: "vulpix" as Species,     w: 2, forcedRarity: "rare" },
+    { sp: "abra" as Species,       w: 1, forcedRarity: "rare" },
+    { sp: "clefairy" as Species,   w: 1, forcedRarity: "rare" },
+    // (Épico só acima do Lv 50 em outros mapas)
   ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
+
 
 
   function pickArenaSpawn(): { sp: Species; forcedRarity?: Rarity } {
