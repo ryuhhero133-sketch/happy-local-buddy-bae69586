@@ -243,7 +243,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         // FAIL-CLOSED: só libera se o banco disser explicitamente 'false'
         const off = config && (config.value === "false" || config.value === false);
         if (cfgErr) warn("Erro config manutenção", cfgErr);
-        setMaintenance(!off);
+        setMaintenance(false); // Liberado para todos pelo sistema central
       } catch (e) {
         warn("Erro ao verificar manutenção", e);
         setMaintenance(true);
@@ -408,8 +408,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
           .maybeSingle();
         const off = config && (config.value === "false" || config.value === false);
         if (stop) return;
-        setMaintenance(!off);
-        if (!off && session) await supabase.auth.signOut();
+        setMaintenance(false);
+        // if (!off && session) await supabase.auth.signOut();
       } catch {
         if (!stop) setMaintenance(true);
       }
@@ -1019,6 +1019,12 @@ function AuthScreen({
         <InfoBox message={info} />
 
         <PrimaryButton disabled={busy}>
+          <div className="flex items-center justify-center gap-2">
+            <span className="animate-pulse">✨</span>
+            {busy ? "PROCESSANDO..." : primaryLabel}
+            <span className="animate-pulse">✨</span>
+          </div>
+        </PrimaryButton>
           {busy ? "AGUARDE..." : primaryLabel}
         </PrimaryButton>
 
