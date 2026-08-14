@@ -4424,13 +4424,9 @@ function IdlePage() {
         }
 
         setTimeout(() => {
-          setEnemyAttackAnim({
-            id: attackAnimIdRef.current++,
-            fromX: target.x, fromY: target.y,
-            toX: followerAtX, toY: followerAtY,
-            ts: Date.now(),
-            element: elementOf(target.sp),
-          });
+          // Efeito visual de skill quando o inimigo ataca o jogador
+          const enemyElement = elementOf(target.sp) || "normal";
+          pushFxAt(followerAtX, followerAtY - 20, `skill_${enemyElement}` as FxKind, "enemyDmg");
           pushFxAt(followerAtX, followerAtY - 34, `-${eDmg}`, "enemyDmg");
         }, 480);
         setLeaderHp((h) => {
