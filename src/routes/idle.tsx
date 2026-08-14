@@ -8871,8 +8871,8 @@ function IdlePage() {
               const dead = e.hp <= 0;
               const face = e.face ?? "left";
               const sx = face === "left" ? 1 : -1;
-              const scale = (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
-              const size = Math.round(90 * scale);
+              const scale = 1;
+              const size = 90;
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
               const rarityAura: Record<Rarity, string> = {
                 common: "rgba(200,200,200,0.55)",
