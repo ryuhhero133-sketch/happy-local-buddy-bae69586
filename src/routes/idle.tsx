@@ -4277,6 +4277,19 @@ function IdlePage() {
         const honeyDef = honeyBonusNow();
         let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
 
+        // Animação de ataque do inimigo (Skill Elementar no jogador)
+        const enemyAnimId = attackAnimIdRef.current++;
+        setEnemyAttackAnim({ 
+          id: enemyAnimId, 
+          fromX: target.x, 
+          fromY: target.y, 
+          toX: followerAtX, 
+          toY: followerAtY, 
+          ts: Date.now(), 
+          element: elementOf(target.sp) 
+        });
+        setTimeout(() => setEnemyAttackAnim((a) => (a && a.id === enemyAnimId ? null : a)), 420);
+
         // ==== Efeitos por mapa (Terry / n2 / n3) ====
         const mapNow = idle.currentMap;
         if (mapNow === "terry" && Math.random() < 0.28) {
