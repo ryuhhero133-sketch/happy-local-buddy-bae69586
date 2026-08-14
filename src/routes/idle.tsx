@@ -4621,26 +4621,20 @@ function IdlePage() {
           };
           // 🔻 No Vale dos Fragmentos Vermelhos qualquer pokémon dropa de 5 a 20 fragmentos.
           const gymFloorDrop = GYM_FLOOR_BY_ID[idle.currentMap];
-          const redShardGain = gymFloorDrop
+          
+          // Chance de drop de Red Shards: 10% base em qualquer mapa, 100% no Vale dos Fragmentos ou Ginásio.
+          const redShardChance = (gymFloorDrop || idle.currentMap === "vale_fragmentos") ? 1.0 : 0.10;
+          const redShardGain = (gymFloorDrop
             ? gymFloorDrop.shards[0] + Math.floor(Math.random() * (gymFloorDrop.shards[1] - gymFloorDrop.shards[0] + 1))
             : idle.currentMap === "vale_fragmentos"
             ? 5 + Math.floor(Math.random() * 16)
-            : (RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1);
-          // 🏰 Drops raros do Ginásio Medieval — itens especiais com taxas muito baixas.
-          if (gymFloorDrop) {
-            const bossBonus = (target.apex || target.eventLegendary) ? 3 : 1;
-            for (const d of GYM_RARE_DROPS[gymFloorDrop.id]) {
-              if (Math.random() < d.chance * (1 + totalBonus) * honeyMult * bossBonus) {
-                drops.push(d.id);
-                if (d.id === "cristal_negro" || d.id === "nucleo_arcano" || d.id === "orb_suprema") {
-                  pushChat(`✦ DROP LENDÁRIO DO GINÁSIO: ${GYM_DROP_LABELS[d.id] ?? d.id}!`, "cap");
-                }
-              }
-            }
+            : (RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1)) * (Math.random() < redShardChance ? 1 : 0);
+
+          if (redShardGain > 0) {
+            flyRedShards(target.x, target.y - 20, redShardGain);
+            pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
+            setSessionRedShards(s => s + redShardGain);
           }
-          flyRedShards(target.x, target.y - 20, redShardGain);
-          pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
-          setSessionRedShards(s => s + redShardGain);
 
 
           // XP para o líder + drena energia. Se ORB DE TIME estiver ativo, TODOS ganham EXP.
