@@ -10388,13 +10388,8 @@ function IdlePage() {
             const on = ab.enabled;
             return (
               <>
-                {/* Buffs Ativos HUD */}
-                <div style={{
-                  position: "fixed", top: 80, left: "50%", transform: "translateX(-50%)",
-                  display: "flex", gap: 8, zIndex: 1000000, pointerEvents: "none"
-                }}>
-                  <ActiveBuffsHUD buffs={idle.buffs} />
-                </div>
+                {/* Buffs Ativos HUD - Removido da sobreposição da tela principal conforme solicitado */}
+
 
 
                 <div style={{
