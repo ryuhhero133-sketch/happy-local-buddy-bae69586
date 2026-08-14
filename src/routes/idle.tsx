@@ -13776,7 +13776,7 @@ function TabOverlay({
                   gridTemplateColumns: maximizeTeam ? "repeat(auto-fit, minmax(280px, 1fr))" : "1fr", 
                   gap: 8, 
                   position: "relative",
-                  maxHeight: maximizeTeam ? "calc(100vh - 400px)" : "auto", // Ajustado para dar espaço ao chat e quests
+                  maxHeight: maximizeTeam ? "480px" : "auto", // Altura fixa quando maximizado para evitar cobrir a tela inteira
                   overflowY: maximizeTeam ? "auto" : "visible",
                   paddingRight: maximizeTeam ? "4px" : "0"
                 }}>
