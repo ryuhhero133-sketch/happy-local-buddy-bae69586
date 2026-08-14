@@ -16020,12 +16020,14 @@ function MarketScreen({
     stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
     stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
     stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
+    fragmento_ultraball: "Fragmento de Ultra Ball",
   };
   const ICONS: Record<string, string> = {
     pokeball: "⚪", greatball: "🔴", ultraball: "🟡",
     chest_amulet: "🎗", potion: "🧪",
     stone_grass: "🌿", stone_fire: "🔥", stone_water: "💧",
     stone_electric: "⚡", stone_dark: "🌑", stone_dragon: "🐉",
+    fragmento_ultraball: "🟡",
   };
   const CUR_LABEL: Record<string, string> = { gold: "ouro", crystal: "💎 cristais", safira: "💚 safiras" };
   const CUR_COLOR: Record<string, string> = { gold: "#ff9d3d", crystal: "#6bd4ff", safira: "#7dffbe" };
