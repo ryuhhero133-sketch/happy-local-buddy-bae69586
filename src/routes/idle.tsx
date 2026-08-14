@@ -4154,11 +4154,7 @@ function IdlePage() {
         const lockedPortals = WORLD_PORTALS.filter((p) => p.from === idle.currentMap && (p.reqLevel ?? 0) > trLv);
         const nearLockedPortal = (x: number, y: number) =>
           lockedPortals.some((p) => Math.hypot(x - p.x, y - p.y) < 200);
-        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
-        const autoFilters = idle.autoBattle?.targetRarities;
-        const alive = (autoFilters && autoFilters.length > 0)
-          ? aliveAll.filter((e) => autoFilters.includes(e.rarity))
-          : aliveAll;
+        const alive = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
         const enemyPool = alive.length > 0 ? alive : [];
 
 
