@@ -13096,6 +13096,8 @@ function TabOverlay({
     entries: Array<{ uid: string; species: Species; level: number; rarity: Rarity; gain: number }>;
     totalGain: number;
   }>(null);
+  const [maximizeTeam, setMaximizeTeam] = useState(false);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const teamUidSet = useMemo(() => new Set(team.map((p) => p.uid)), [team]);
   const toggleBulk = (uid: string) => {
     setBulkSel((prev) => {
@@ -13248,13 +13250,25 @@ function TabOverlay({
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 20%, rgba(245,207,107,0.15), transparent 60%)", pointerEvents: "none" }} />
                 {/* Header do time */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, position: "relative" }}>
-                  <div>
-                    <div style={{ color: "#f5cf6b", fontSize: 18, fontWeight: 900, letterSpacing: 2, textShadow: "0 2px 0 #0b0510, 0 0 10px rgba(245,207,107,0.6)" }}>
-                      ⚔ SEU TIME ⚔
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div>
+                      <div style={{ color: "#f5cf6b", fontSize: 18, fontWeight: 900, letterSpacing: 2, textShadow: "0 2px 0 #0b0510, 0 0 10px rgba(245,207,107,0.6)" }}>
+                        ⚔ SEU TIME ⚔
+                      </div>
+                      <div style={{ color: "#b8a8c8", fontSize: 10, marginTop: 2, letterSpacing: 1 }}>
+                        Arraste para reordenar — o Líder é o #1
+                      </div>
                     </div>
-                    <div style={{ color: "#b8a8c8", fontSize: 10, marginTop: 2, letterSpacing: 1 }}>
-                      Ordene por prioridade — o Líder é o #1
-                    </div>
+                    <button
+                      onClick={() => setMaximizeTeam(!maximizeTeam)}
+                      style={{
+                        background: "rgba(245,207,107,0.1)", border: "1px solid rgba(245,207,107,0.3)",
+                        borderRadius: 6, color: "#f5cf6b", padding: "2px 6px", fontSize: 10, fontWeight: 900,
+                        cursor: "pointer", display: "flex", alignItems: "center", gap: 4, height: 24, marginTop: -10
+                      }}
+                    >
+                      {maximizeTeam ? "❐ REDUZIR" : "❏ MAXIMIZAR"}
+                    </button>
                   </div>
                   <div style={{
                     background: "rgba(245,207,107,0.15)", border: "1px solid rgba(245,207,107,0.4)",
@@ -13269,6 +13283,7 @@ function TabOverlay({
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
                   {team.map((p, i) => {
+                    if (!maximizeTeam && i >= 3) return null;
                     const src = gifMap[p.species];
                     const isLeader = i === 0;
                     const rarityInfo = RARITY_COLORS[p.rarity] ?? RARITY_COLORS.common;
@@ -13340,7 +13355,20 @@ function TabOverlay({
                       </div>
                     );
                     return (
-                      <div key={p.uid} style={{
+                      <div key={p.uid} 
+                        draggable
+                        onDragStart={() => setDraggedIdx(i)}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          if (draggedIdx === null || draggedIdx === i) return;
+                          const next = [...team];
+                          const [item] = next.splice(draggedIdx, 1);
+                          next.splice(i, 0, item);
+                          onReorderTeam(next);
+                          setDraggedIdx(i);
+                        }}
+                        onDragEnd={() => setDraggedIdx(null)}
+                        style={{
                         display: "flex", alignItems: "stretch", gap: 12, padding: 12,
                         background: isLeader
                           ? "rgba(0,0,0,0.4)"
@@ -13350,6 +13378,8 @@ function TabOverlay({
                         boxShadow: isLeader
                           ? "0 6px 18px rgba(0,0,0,0.5), inset 0 0 16px rgba(245,207,107,0.05)"
                           : "0 3px 10px rgba(0,0,0,0.5)",
+                        opacity: draggedIdx === i ? 0.5 : 1,
+                        cursor: "grab",
                         position: "relative", overflow: "hidden",
                       }}>
                         {/* sparkle overlay */}
