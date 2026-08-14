@@ -1510,7 +1510,10 @@ function applyTrainerXp(s: IdleState, gained: number, levels: number = 0): { sta
   const startLv = s.trainerLevel ?? 1;
   let lv = startLv + levels;
   let xp = (s.trainerXp ?? 0) + Math.max(0, Math.floor(gained));
-  while (lv < 10000 && xp >= trainerXpToNext(lv)) { xp -= trainerXpToNext(lv); lv += 1; }
+  while (lv < 10000 && xp >= trainerXpToNext(lv)) {
+    xp -= trainerXpToNext(lv);
+    lv += 1;
+  }
   return {
     state: { ...s, trainerLevel: lv, trainerXp: xp },
     leveledTo: lv > startLv ? lv : null,
@@ -4383,7 +4386,10 @@ function IdlePage() {
 
         for (const e of pool) {
           const d = (e.x - trainerPos.x) ** 2 + (e.y - trainerPos.y) ** 2;
-          if (d < bestD) { bestD = d; target = e; }
+          if (d < bestD) {
+            bestD = d;
+            target = e;
+          }
         }
 
         if (!target) return prev;
