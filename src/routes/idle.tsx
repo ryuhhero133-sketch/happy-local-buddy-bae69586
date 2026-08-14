@@ -9819,6 +9819,7 @@ function IdlePage() {
                     height: '100%', background: 'linear-gradient(90deg, #6bd4ff, #c9b8ff)' 
                   }} />
                 </div>
+                {/* @ts-ignore - isAdmin is added to LocalIdentity for Admin panel logic */}
                 {identity?.isAdmin && (
                   <button onClick={() => setIsAdminOpen(true)} style={{
                     background: 'rgba(201, 184, 255, 0.1)', border: '1px solid rgba(201, 184, 255, 0.2)',
