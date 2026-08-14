@@ -5286,30 +5286,6 @@ function IdlePage() {
     });
     // Fix: Targeted properties to avoid deep-equal re-renders
   }, [team.length, restingBench.length]);
-  // Main Quest Timer / Expiration
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setIdle((s) => {
-        if (!s.mainQuest || s.mainQuest.completed) return s;
-        const now = Date.now();
-        if (s.mainQuest.expiresAt && now > s.mainQuest.expiresAt) {
-          // Expired! Pick a new quest
-          let nextId = (s.mainQuest.currentQuestId % QUEST_DATA.length) + 1;
-          return {
-            ...s,
-            mainQuest: {
-              currentQuestId: nextId,
-              progress: 0,
-              completed: false,
-              expiresAt: now + MAIN_QUEST_RESET_MS
-            }
-          };
-        }
-        return s;
-      });
-    }, 10000); // Check every 10s
-    return () => clearInterval(iv);
-  }, []);
 
   useEffect(() => {
     const iv = setInterval(() => {
