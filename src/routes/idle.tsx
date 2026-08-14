@@ -8557,7 +8557,8 @@ function IdlePage() {
                     top: b.y - b.h + 8,
                     width: b.w, height: b.h,
                     zIndex: Math.round(b.y),
-                    pointerEvents: "none",
+                    pointerEvents: "auto",
+                    cursor: "pointer",
                     filter: active
                       ? `drop-shadow(0 0 14px ${b.color}) drop-shadow(0 4px 4px rgba(0,0,0,0.55))`
                       : "drop-shadow(0 4px 4px rgba(0,0,0,0.55))",
@@ -8569,12 +8570,20 @@ function IdlePage() {
                     alt={b.label}
                     width={b.w}
                     height={b.h}
+                    onClick={() => {
+                      playClick();
+                      if (b.key === "lab") setVaultOpen(true);
+                      else if (b.key === "gym") setGymOpen(true);
+                      else if (b.key === "azul") setAzulPickerOpen(true);
+                      else restAtHome("lar");
+                    }}
                     style={{
                       display: "block",
                       width: b.w,
                       height: b.h,
                       imageRendering: "pixelated",
                       userSelect: "none",
+                      cursor: "pointer",
                       // Tinge o telhado de azul para a Casa Azul
                       filter: b.key === "azul"
                         ? "hue-rotate(180deg) saturate(1.4) brightness(1.05)"
@@ -9079,7 +9088,8 @@ function IdlePage() {
                       width: 90, height: 90,
                 transform: "translate(-50%, -50%)",
                 zIndex: Math.round(c.y),
-                pointerEvents: "none",
+                pointerEvents: "auto",
+                cursor: "pointer",
               }}>
                 {!c.opened && (
                   <div className="chest-idle" style={{
@@ -9092,10 +9102,21 @@ function IdlePage() {
                   src={c.opened ? chestOpenImg : chestClosedImg}
                   alt=""
                   className={c.opened ? "chest-pop" : ""}
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    if (c.opened) return;
+                    // Ao clicar no baú, move o treinador até ele. 
+                    // O sistema de proximidade existente (linha 6984) abrirá o baú ao chegar perto.
+                    walkTargetRef.current = { x: c.x, y: c.y, label: "baú", resumeAuto: autoRef.current };
+                    setWalkingTo("baú");
+                    setAuto(false);
+                    playClick();
+                  }}
                   style={{
                     width: "100%", height: "100%",
                     imageRendering: "pixelated",
                     filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
+                    cursor: c.opened ? "default" : "pointer",
                   }}
                 />
               </div>
@@ -9841,6 +9862,7 @@ function IdlePage() {
                 </div>
                 <button
                   onClick={() => {
+                    playClick();
                     if (nearBuilding === "lab") { setVaultOpen(true); setNearBuilding(null); }
                     else if (nearBuilding === "gym") { setGymOpen(true); setNearBuilding(null); }
                     else if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
@@ -9851,6 +9873,7 @@ function IdlePage() {
                     color: "#0b0510", border: "none", borderRadius: 6,
                     padding: "8px 14px", fontWeight: 900, fontSize: 12,
                     letterSpacing: 1, cursor: "pointer",
+                    pointerEvents: "auto",
                   }}
                 >{bAction}</button>
               </div>
