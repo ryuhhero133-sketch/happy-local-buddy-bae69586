@@ -60,23 +60,44 @@ export function useServerSync(opts: {
       setStatus("syncing");
       try {
         const { supabase } = await import("@/integrations/supabase/client");
-        const { data: sess } = await supabase.auth.getSession();
+        // getSession com timeout para evitar travamento em rede instável
+        const { data: sess } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise<{ data: { session: null } }>(r => setTimeout(() => r({ data: { session: null } }), 8000))
+        ]);
+
         if (!sess.session) {
-          // Sem sessão (modo local/offline): não chama server functions protegidas.
-          setStatus("idle");
+          console.warn("[useServerSync] no session, proceeding in local mode");
+          setStatus("ready"); // Mudar para ready permite que o jogo inicie localmente
+          readyRef.current = true;
           return;
         }
-        await bootstrap({} as any).catch(e => console.warn("Bootstrap silent fail", e));
-        let full = (await fetchFull({} as any).catch(e => ({ trainer: { gold: 0, crystal: 0, trainer_level: 1, trainer_xp: 0, kill_count: 0 }, collection: [] }))) as FullStateDTO;
 
+        // Server functions com timeout silencioso
+        await Promise.race([
+          bootstrap({} as any),
+          new Promise(r => setTimeout(r, 8000))
+        ]).catch(e => console.warn("Bootstrap silent fail", e));
+
+        let full = (await Promise.race([
+          fetchFull({} as any),
+          new Promise(r => setTimeout(r, 10000))
+        ]).catch(e => {
+          console.warn("fetchFull fail/timeout", e);
+          return null;
+        })) as FullStateDTO | null;
+
+        if (!full) {
+          full = { trainer: { gold: 0, crystal: 0, trainer_level: 1, trainer_xp: 0, kill_count: 0 }, collection: [] } as any;
+        }
 
         const serverEmpty =
-          full.trainer.gold === 0 &&
-          full.trainer.crystal === 0 &&
-          full.trainer.trainer_level <= 1 &&
-          full.trainer.trainer_xp === 0 &&
-          full.trainer.kill_count === 0 &&
-          full.collection.length === 0;
+          full!.trainer.gold === 0 &&
+          full!.trainer.crystal === 0 &&
+          full!.trainer.trainer_level <= 1 &&
+          full!.trainer.trainer_xp === 0 &&
+          full!.trainer.kill_count === 0 &&
+          full!.collection.length === 0;
 
         if (serverEmpty) {
           const snap = buildRef.current();
@@ -84,20 +105,22 @@ export function useServerSync(opts: {
             snap.gold > 0 || snap.crystal > 0 || snap.trainer_level > 1 ||
             snap.trainer_xp > 0 || snap.collection.length > 0;
           if (hasLocal) {
-            await pushInit({ data: snap } as any);
-            full = (await fetchFull({} as any)) as FullStateDTO;
+            await pushInit({ data: snap } as any).catch(e => console.warn("pushInit fail", e));
+            const fresh = await fetchFull({} as any).catch(() => null);
+            if (fresh) full = fresh as FullStateDTO;
           }
         }
 
         if (cancelled) return;
-        opts.onHydrate(full);
+        opts.onHydrate(full!);
         readyRef.current = true;
         setStatus("ready");
       } catch (e: any) {
         if (cancelled) return;
-        console.error("[useServerSync] falhou:", e);
-        setError(e?.message ?? String(e));
-        setStatus("error");
+        console.error("[useServerSync] critical fail, entering fail-safe mode:", e);
+        // Fail-safe: permite o jogo rodar localmente se a sincronização falhar criticamente
+        readyRef.current = true;
+        setStatus("ready");
       }
     })();
 
