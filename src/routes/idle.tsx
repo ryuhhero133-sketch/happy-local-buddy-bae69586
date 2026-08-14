@@ -13354,6 +13354,8 @@ function TabOverlay({
     totalGain: number;
   }>(null);
   const [maximizeTeam, setMaximizeTeam] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(true);
+  const [teamPanelOpen, setTeamPanelOpen] = useState(true);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const teamUidSet = useMemo(() => new Set(team.map((p) => p.uid)), [team]);
   const toggleBulk = (uid: string) => {
