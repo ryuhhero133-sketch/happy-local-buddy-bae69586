@@ -4285,8 +4285,12 @@ function IdlePage() {
           } else if (!collidesWithAny(tp.x, ny)) {
             nx = tp.x;
           } else {
-            // Se preso em canto, ignora colisão momentaneamente para não travar
-            return { x: nx, y: ny };
+            // Se preso em canto ou obstrução total, tenta um pequeno desvio lateral aleatório
+            // em vez de simplesmente atravessar a colisão (que pode causar bugs visuais)
+            const jitter = 4;
+            const jx = clampX(tp.x + (Math.random() - 0.5) * jitter);
+            const jy = clampY(tp.y + (Math.random() - 0.5) * jitter);
+            return { x: jx, y: jy };
           }
         }
         return { x: nx, y: ny };
