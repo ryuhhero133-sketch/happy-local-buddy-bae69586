@@ -978,6 +978,7 @@ type IdleState = {
   pokeVault?: CollectionEntry[];   // 🏦 Banco Medieval — pokémons armazenados PARA SEMPRE (preservados na 3ª Season)
   valeReturnMap?: IdleMapId;       // mapa de origem antes de entrar no Vale dos Fragmentos
   hideIp?: boolean;                // 🔒 privacidade: oculta o IP na tela (continua registrado no servidor)
+  mainQuest?: MainQuestState;      // 🌟 sistema de Main Quest
 };
 
 // 🔻 Fragmento Vermelho — teto de acumulação na COLETA (igual ao ouro, sem travar em 5)
@@ -1166,6 +1167,69 @@ export type MainQuestState = {
   progress: number;
   completed: boolean;
 };
+
+export type MainQuestDef = {
+  id: number;
+  title: string;
+  description: string;
+  target: number;
+  type: "capture_rarity" | "capture_species";
+  rarity?: Rarity;
+  species?: Species;
+  reward: {
+    items?: Record<string, number>;
+    redshards?: number;
+  };
+};
+
+const QUEST_DATA: MainQuestDef[] = [
+  {
+    id: 1,
+    title: "Início da Jornada",
+    description: "Capture 10 Pokémon Incomuns para provar seu valor.",
+    target: 10,
+    type: "capture_rarity",
+    rarity: "uncommon",
+    reward: { items: { ultraball: 10 } }
+  },
+  {
+    id: 2,
+    title: "Caçador de Raridades",
+    description: "Capture 5 Pokémon Raros para o Laboratório.",
+    target: 5,
+    type: "capture_rarity",
+    rarity: "rare",
+    reward: { redshards: 50 }
+  },
+  {
+    id: 3,
+    title: "O Desafio Épico",
+    description: "Capture 3 Pokémon Épicos para mostrar sua força.",
+    target: 3,
+    type: "capture_rarity",
+    rarity: "epic",
+    reward: { redshards: 100 }
+  },
+  {
+    id: 4,
+    title: "Lenda em Foco",
+    description: "Capture 1 Pokémon Lendário para entrar para a história.",
+    target: 1,
+    type: "capture_rarity",
+    rarity: "legendary",
+    reward: { items: { egg_epic: 1 } }
+  },
+  {
+    id: 5,
+    title: "O Favorito",
+    description: "Capture 1 Pikachu para completar a coleção real.",
+    target: 1,
+    type: "capture_species",
+    species: "pikachu",
+    reward: { redshards: 200 }
+  }
+];
+
 
 export type MainQuestDef = {
   id: number;
