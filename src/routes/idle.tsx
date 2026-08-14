@@ -4218,7 +4218,7 @@ function IdlePage() {
         
         // Auto-battle: se não tem target ou o target atual sumiu/morreu, persegue o mais próximo
         // Se estiver longe (fora do ATTACK_RANGE), o auto-battle deve se mover até lá.
-        if (dist > ATTACK_RANGE && dist < 800) {
+        if (dist > ATTACK_RANGE && dist < 1200) {
           // Apenas define o movimento, mas não o ID de ataque ainda
           walkTargetRef.current = { x: target.x, y: target.y, label: "Perseguindo " + target.sp };
           setAttackTargetId(null);
@@ -4226,7 +4226,7 @@ function IdlePage() {
           return prev;
         }
 
-        if (dist > 800) {
+        if (dist > 1200) {
           setAttackTargetId(null);
           setTargetPet(null);
           return prev;
