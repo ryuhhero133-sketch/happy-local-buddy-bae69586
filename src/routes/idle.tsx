@@ -9104,7 +9104,13 @@ function IdlePage() {
                   className={c.opened ? "chest-pop" : ""}
                   onClick={(ev) => {
                     ev.stopPropagation();
-                    if (!c.opened) openChest(c.id);
+                    if (c.opened) return;
+                    // Ao clicar no baú, move o treinador até ele. 
+                    // O sistema de proximidade existente (linha 6984) abrirá o baú ao chegar perto.
+                    walkTargetRef.current = { x: c.x, y: c.y, label: "baú", resumeAuto: autoRef.current };
+                    setWalkingTo("baú");
+                    setAuto(false);
+                    playClick();
                   }}
                   style={{
                     width: "100%", height: "100%",
