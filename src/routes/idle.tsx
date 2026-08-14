@@ -15383,6 +15383,9 @@ function TabOverlay({
                   <span style={{ color: "#f5cf6b" }}>Total EXP</span>
                   <span style={{ color: "#ffd94d" }}>+{totalExpPct}%</span>
                 </div>
+                <div style={{ marginTop: 14, paddingTop: 10, borderTop: "1px solid rgba(245,207,107,0.2)" }}>
+                  <ActiveBuffsHUD buffs={buffs} />
+                </div>
               </div>
             )}
             <div style={{ color: "#b8a8c8", fontSize: 12, lineHeight: 1.5 }}>
