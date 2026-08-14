@@ -11193,7 +11193,7 @@ function IdlePage() {
                   </div>
                   <div>
                     <div style={{ color: "#e0cbff", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🏦 COFRE ETERNO ({pokeVault.length}/{POKE_VAULT_SLOTS})</div>
-                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "350px", overflowY: "auto" }}>
                       {pokeVault.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre eterno vazio.</div>
                         : pokeVault.map((e) => <PokeRow key={e.uid} e={e} stored />)}
                     </div>
