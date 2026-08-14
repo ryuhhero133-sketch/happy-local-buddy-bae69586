@@ -3065,12 +3065,18 @@ function IdlePage() {
   };
 
   const [trainerPos, setTrainerPos] = useState({ x: WORLD_W / 2, y: WORLD_H / 2 });
+  const trainerPosRef = useRef(trainerPos);
+  useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
+
   const [walkStep, setWalkStep] = useState(0);
   const [walkDir, setWalkDir] = useState<Dir>("right");
   const walkDirRef = useRef<Dir>("right");
   const [pokemonFace, setPokemonFace] = useState<"left" | "right">("right");
   const pokemonFaceRef = useRef<"left" | "right">("right");
   const [moving, setMoving] = useState(true);
+  const movingRef = useRef(true);
+  useEffect(() => { movingRef.current = moving; }, [moving]);
+
   // Alvo de deslocamento automático (clicar em "Ir ao Lar", "Ir ao Lab", "Ir Floresta")
   const walkTargetRef = useRef<{ x: number; y: number; label: string; onArrive?: () => void; resumeAuto?: boolean } | null>(null);
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
