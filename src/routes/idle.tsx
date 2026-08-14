@@ -1199,85 +1199,84 @@ const QUEST_DATA: MainQuestDef[] = [
   },
   {
     id: 2,
-    title: "Treinamento Árduo",
-    description: "Capture 15 Pokémon Comuns para treinar seu foco.",
-    target: 15,
-    type: "capture_rarity",
-    rarity: "common",
-    reward: { redshards: 50, trainerXp: 1500, teamXp: 3000 }
+    title: "Mestre da Caça",
+    description: "Derrote 100 Pokémon para ganhar Fragmentos de Ultra Ball.",
+    target: 100,
+    type: "kill_count",
+    reward: { items: { fragmento_ultraball: 25 }, trainerXp: 2000, teamXp: 5000 }
   },
   {
     id: 3,
-    title: "Caçador de Raridades",
-    description: "Capture 5 Pokémon Raros para o Laboratório.",
+    title: "Pesquisador Raro",
+    description: "Capture 5 Pokémon Raros para ganhar um Ovo Épico.",
     target: 5,
     type: "capture_rarity",
     rarity: "rare",
-    reward: { items: { fragmento_ultraball: 10 }, redshards: 100, trainerXp: 3000, teamXp: 6000 }
+    reward: { items: { egg_epic: 1, fragmento_ultraball: 10 }, trainerXp: 5000, teamXp: 10000 }
   },
   {
     id: 4,
-    title: "Desafio Elemental",
-    description: "Capture 20 Pokémon de qualquer raridade para ganhar XP extra.",
-    target: 20,
-    type: "capture_rarity",
-    rarity: "common", 
-    reward: { items: { fragmento_ultraball: 5 }, trainerXp: 5000, teamXp: 15000 }
-  },
-  {
-    id: 5,
-    title: "O Desafio Épico",
-    description: "Capture 3 Pokémon Épicos para mostrar sua força.",
-    target: 3,
-    type: "capture_rarity",
-    rarity: "epic",
-    reward: { items: { fragmento_ultraball: 20 }, redshards: 250, trainerXp: 8000, teamXp: 20000 }
-  },
-  {
-    id: 6,
-    title: "Lenda em Foco",
-    description: "Capture 1 Pokémon Lendário para entrar para a história.",
-    target: 1,
-    type: "capture_rarity",
-    rarity: "legendary",
-    reward: { items: { egg_epic: 1, fragmento_ultraball: 30 }, trainerXp: 20000, teamXp: 50000 }
-  },
-  {
-    id: 7,
-    title: "O Favorito",
-    description: "Capture 1 Pikachu para completar a coleção real.",
+    title: "Caçador de Lendas",
+    description: "Capture 1 Pikachu para ganhar 1 Nível de Treinador.",
     target: 1,
     type: "capture_species",
     species: "pikachu",
-    reward: { items: { fragmento_ultraball: 50 }, redshards: 500, trainerXp: 35000, teamXp: 100000 }
+    reward: { items: { fragmento_ultraball: 50 }, trainerLevels: 1, teamXp: 25000 }
+  },
+  {
+    id: 5,
+    title: "Elite Trainer",
+    description: "Capture 2 Pokémon Épicos para o Ancião Glacial.",
+    target: 2,
+    type: "capture_rarity",
+    rarity: "epic",
+    reward: { items: { fragmento_ultraball: 100, fragmento_vermelho: 5000 }, trainerXp: 15000, teamXp: 50000 }
+  },
+  {
+    id: 6,
+    title: "Massacre do Vale",
+    description: "Derrote 500 Pokémon em qualquer mapa.",
+    target: 500,
+    type: "kill_count",
+    reward: { items: { fragmento_ultraball: 150, egg_epic: 2 }, trainerLevels: 1, redshards: 10000 }
+  },
+  {
+    id: 7,
+    title: "Captura Perfeita",
+    description: "Capture 20 Pokémon Incomuns seguidos.",
+    target: 20,
+    type: "capture_rarity",
+    rarity: "uncommon",
+    reward: { items: { fragmento_ultraball: 200 }, trainerLevels: 2, teamXp: 100000 }
   },
   {
     id: 8,
-    title: "Mestre da Caça",
-    description: "Derrote 100 pokémon para ganhar 10 fragmentos de Ultra Ball e muita experiência.",
-    target: 100,
+    title: "Veterano Arcano",
+    description: "Derrote 1000 Pokémon para desbloquear bônus.",
+    target: 1000,
     type: "kill_count",
-    reward: { items: { fragmento_ultraball: 10 }, trainerXp: 80000, teamXp: 200000 }
+    reward: { items: { fragmento_ultraball: 500, fragmento_vermelho: 20000 }, trainerLevels: 3, teamXp: 250000 }
   },
   {
     id: 9,
     title: "Ascensão Rápida",
-    description: "Capture 10 pokémon raros para um salto de poder (2 níveis garantidos).",
+    description: "Capture 10 Pokémon Raros.",
     target: 10,
     type: "capture_rarity",
     rarity: "rare",
-    reward: { trainerLevels: 2, teamXp: 1000000, items: { fragmento_ultraball: 20 } }
+    reward: { items: { egg_epic: 3, fragmento_ultraball: 300 }, trainerLevels: 2, teamXp: 150000 }
   },
   {
     id: 10,
     title: "Relíquia Suprema",
-    description: "Capture 5 pokémon épicos para forjar tecnologia ultra.",
+    description: "Capture 5 Pokémon Épicos para a glória eterna.",
     target: 5,
     type: "capture_rarity",
     rarity: "epic",
-    reward: { items: { fragmento_ultraball: 100, egg_epic: 1 }, trainerLevels: 1, teamXp: 800000 }
+    reward: { items: { fragmento_ultraball: 1000, egg_epic: 1 }, trainerLevels: 5, redshards: 50000 }
   }
 ];
+
 
 
 
