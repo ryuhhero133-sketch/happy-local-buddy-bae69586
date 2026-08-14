@@ -13486,6 +13486,8 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
+  idle, setIdle,
+
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
   onAnciaoInteraction, spriteScale
 }: {
@@ -13508,6 +13510,9 @@ function TabOverlay({
   onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
   spriteScale: number;
+  idle: IdleState;
+  setIdle: React.Dispatch<React.SetStateAction<IdleState>>;
+
   buffs: any;
   onBuyBall: any;
   onBuyUltraBundle: any;
