@@ -8557,7 +8557,8 @@ function IdlePage() {
                     top: b.y - b.h + 8,
                     width: b.w, height: b.h,
                     zIndex: Math.round(b.y),
-                    pointerEvents: "none",
+                    pointerEvents: "auto",
+                    cursor: "pointer",
                     filter: active
                       ? `drop-shadow(0 0 14px ${b.color}) drop-shadow(0 4px 4px rgba(0,0,0,0.55))`
                       : "drop-shadow(0 4px 4px rgba(0,0,0,0.55))",
