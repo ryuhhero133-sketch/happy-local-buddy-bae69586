@@ -35,7 +35,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
-import { ActiveBuffsHUD, TrainerProfileHUD, TeamPanelHUD } from "@/components/GameHUDs";
+import { TrainerProfileHUD, TeamPanelHUD } from "@/components/GameHUDs";
 
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
@@ -13141,7 +13141,7 @@ function TabOverlay({
         prisma: e.gain,
         hab: countHab,
         def: countDef
-      });
+      } as any);
     });
     setBulkSel(new Set());
     setBulkMode(false);
