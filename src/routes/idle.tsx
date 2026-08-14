@@ -965,7 +965,7 @@ type IdleState = {
   bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro); teamOrb = distribui EXP para todo o time por 1h
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
-  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number; targetRarities?: Rarity[] };
+  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number; targetRarities?: Rarity[]; prioritizeQuest?: boolean };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
@@ -4241,7 +4241,7 @@ function IdlePage() {
           }
           // Detecta travamento muito mais rápido no auto: ~30 ticks (~3.5s) sem progresso real
           if (stuckRef.current.count > 45) {
-            blacklistRef.current.set(target.id, nowT + 12000);
+            blacklistRef.current.set(target.id, nowT + 8000);
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
             return tp;
@@ -4400,8 +4400,8 @@ function IdlePage() {
         
         let pool = alive;
 
-        // Se houver Main Quest ativa, prioriza os alvos dela
-        if (qDef) {
+        // Se houver Main Quest ativa e prioridade ligada, prioriza os alvos dela
+        if (qDef && idle.autoBattle?.prioritizeQuest) {
           if (qDef.type === "capture_rarity") {
             const targets = alive.filter(e => e.rarity === qDef.rarity);
             if (targets.length > 0) pool = targets;
@@ -15833,6 +15833,23 @@ function TabOverlay({
             </div>
             <div style={{ fontSize: 11, color: "#8a7a9c" }}>
               Cada poção custa {POTION_PRICE} ouro na Loja e recupera {Math.round(POTION_HEAL_PCT * 100)}% de HP.
+            </div>
+          </div>
+
+          <div style={{
+            background: "linear-gradient(160deg, #1c102a, #2a1a3a)",
+            border: "1px solid rgba(245, 207, 107, 0.4)", borderRadius: 12, padding: 16,
+            display: "flex", flexDirection: "column", gap: 10,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>🎯 ESTRATÉGIA AUTO-BATALHA</div>
+            <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+              <input type="checkbox" checked={idle.autoBattle?.prioritizeQuest ?? false}
+                onChange={(e) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), prioritizeQuest: e.target.checked } }))}
+                style={{ width: 18, height: 18 }} />
+              <span style={{ color: "#eadfe8", fontWeight: 700 }}>Priorizar Alvos da Missão Principal</span>
+            </label>
+            <div style={{ fontSize: 10, color: "#8a7a9c", fontStyle: "italic" }}>
+              Se ativo, o treinador focará apenas nos Pokémon da quest atual. Se inativo, atacará qualquer um.
             </div>
           </div>
 
