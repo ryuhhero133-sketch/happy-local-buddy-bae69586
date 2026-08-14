@@ -13869,7 +13869,6 @@ function TabOverlay({
                                 color: "#000", border: "1px solid #fff4d0",
                                 borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
                                 boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-
                               }}
                             >{isEgg ? "CHOCAR" : "USAR"}</button>
                             {sellPrice > 0 && !id.startsWith("stone_") && (
@@ -13882,7 +13881,6 @@ function TabOverlay({
                                   color: "#fff", border: "1px solid rgba(255,255,255,0.2)",
                                   borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
                                   boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-
                                 }}
                               >💰{sellPrice}</button>
                             )}
@@ -13890,25 +13888,24 @@ function TabOverlay({
                             {id.startsWith("stone_") && (
                               <button
                                 onClick={() => {
-                                  const maxBatches = Math.floor(n / 250);
+                                  const maxBatches = Math.floor(n / 1000);
                                   if (maxBatches <= 0) return;
-                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
+                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n1000 stones = 8 💚 Safiras`, String(maxBatches));
                                   if (raw == null) return;
                                   const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
-                                  onSellItem(id, b * 250, "safira");
+                                  onSellItem(id, b * 1000, "safira");
                                 }}
-                                title="Vender por Safira Verde (250 stones = 2 safiras)"
-                                disabled={n < 250}
+                                title="Vender por Safira Verde (1000 stones = 8 safiras)"
+                                disabled={n < 1000}
                                 style={{
                                   padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                  background: n < 1000 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
                                   color: "#0b2540", border: "1.5px solid #065f46",
-                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
-                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
+                                  borderRadius: 6, cursor: n < 1000 ? "not-allowed" : "pointer",
+                                  boxShadow: "0 2px 0 #065f46", opacity: n < 1000 ? 0.5 : 1,
                                 }}
                               >💚</button>
                             )}
-
                           </div>
                           {(() => {
                             const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
