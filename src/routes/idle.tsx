@@ -1748,6 +1748,9 @@ function IdlePage() {
     setAnciaoOpen(true);
   }, [idle.redeemedCodes?.RESETPERSON, idle.currentMap]);
   const [now, setNow] = useState(() => Date.now());
+  const [profileOpen, setProfileOpen] = useState(true);
+  const [teamPanelOpen, setTeamPanelOpen] = useState(true);
+  const [maximizeTeam, setMaximizeTeam] = useState(false);
 
   // Manutenção Season: Desloga jogadores não-admins
   useEffect(() => {
