@@ -5111,10 +5111,40 @@ function IdlePage() {
                   const newProg = nextMainQuest.progress + 1;
                   nextMainQuest = { ...nextMainQuest, progress: newProg };
                   if (newProg >= q.target) {
+                    const r = q.reward;
+                    const bonusItems: Record<string, number> = { ...itemsWithBalls };
+                    if (r.items) {
+                      Object.entries(r.items).forEach(([k, v]) => {
+                        bonusItems[k] = (bonusItems[k] ?? 0) + v;
+                      });
+                    }
+                    const shardGain = r.redshards ?? 0;
+                    const trainerXpGain = r.trainerXp ?? 0;
+                    const trainerLvGain = r.trainerLevels ?? 0;
+
                     queueMicrotask(() => {
                       pushChat(`🌟 MAIN QUEST: Objetivo "${q.title}" concluído! Recompensa concedida automaticamente.`, "cap");
                       playBonus();
                     });
+
+                    const finalTrainerXp = (applied.state.trainerXp ?? 0) + trainerXpGain;
+                    const finalTrainerLv = (applied.state.trainerLevel ?? 1) + trainerLvGain;
+
+                    return {
+                      ...applied.state,
+                      pending: { ...s.pending, gold: 0, crystals: 0, redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + redShardGain + shardGain) },
+                      bank: { ...s.bank, gold: s.bank.gold + gold + s.pending.gold },
+                      totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
+                      grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
+                      tasks: nt2,
+                      items: bonusItems,
+                      caughtSpecies: newCaught,
+                      seenSpecies: newSeen,
+                      collection: newCollection,
+                      mainQuest: { ...nextMainQuest, progress: newProg, completed: true },
+                      trainerLevel: finalTrainerLv,
+                      trainerXp: finalTrainerXp
+                    };
                   }
                 }
               }
