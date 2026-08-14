@@ -11140,16 +11140,40 @@ function IdlePage() {
             </div>
           );
         })(), document.body)}
+        {/* ═══ 🕰 BUFFS ATIVOS (Incensos / Orbs) ═══ */}
+        <div style={{
+          position: "fixed", top: 10, left: "50%", transform: "translateX(-50%)",
+          display: "flex", gap: 10, zIndex: 10005, pointerEvents: "none"
+        }}>
+          {(() => {
+            const now = Date.now();
+            const activeBuffs = [
+              { id: "exp", until: idle.buffs.expMultUntil, icon: "✨", label: "EXP", color: "#6bd4ff" },
+              { id: "gold", until: idle.buffs.goldMultUntil, icon: "🪙", label: "OURO", color: "#f5cf6b" },
+              { id: "honey", until: Math.max(idle.buffs.honeyUntil ?? 0, idle.buffs.honeyRareUntil ?? 0), icon: "🍯", label: "MEL", color: "#ffd94d" },
+              { id: "orb", until: idle.buffs.orbUntil, icon: "🔮", label: "ORB", color: "#c084fc" },
+              { id: "team", until: idle.buffs.teamOrbUntil, icon: "👥", label: "TIME", color: "#7ef2a2" },
+            ].filter(b => b.until && b.until > now);
 
+            if (activeBuffs.length === 0) return null;
 
-
-
-
-
-
-
-
-
+            return activeBuffs.map(b => (
+              <div key={b.id} style={{
+                background: "rgba(0,0,0,0.7)", border: `1px solid ${b.color}`, borderRadius: 12,
+                padding: "4px 10px", display: "flex", alignItems: "center", gap: 6,
+                boxShadow: `0 0 10px ${b.color}44`, backdropFilter: "blur(4px)", pointerEvents: "auto"
+              }}>
+                <span style={{ fontSize: 14 }}>{b.icon}</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  <span style={{ fontSize: 8, fontWeight: 900, color: b.color, letterSpacing: 1 }}>{b.label}</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "monospace" }}>
+                    {fmtOddishMs(b.until! - now)}
+                  </span>
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
 
       {/* Incubadora — animação de sucesso/falha */}
       {orbAnim && (
@@ -13037,7 +13061,7 @@ function TabOverlay({
       flexDirection: "column",
       pointerEvents: "auto",
       overflow: "hidden",
-      zIndex: 200000,
+      zIndex: 2000000,
       border: "1px solid rgba(201, 184, 255, 0.3)",
       borderRadius: "20px",
       boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(201, 184, 255, 0.1)"
