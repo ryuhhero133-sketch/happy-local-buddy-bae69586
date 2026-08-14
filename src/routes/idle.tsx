@@ -10298,7 +10298,7 @@ function IdlePage() {
                   <div style={{ color: '#fff', fontSize: '12px', fontWeight: 700, marginBottom: 4 }}>{q.title}</div>
                   <div style={{ color: '#b8a8c8', fontSize: '10px', lineHeight: 1.3, marginBottom: 10 }}>{q.description}</div>
                   
-                  <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden', marginBottom: 12 }}>
+                  <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden', marginBottom: 6 }}>
                     <div style={{ 
                       width: `${Math.min(100, (mq.progress / q.target) * 100)}%`, 
                       height: '100%', 
@@ -10306,6 +10306,21 @@ function IdlePage() {
                       boxShadow: done ? '0 0 8px #5ec26a' : 'none'
                     }} />
                   </div>
+
+                  {(() => {
+                    const timeRemaining = mq.expiresAt ? Math.max(0, mq.expiresAt - now) : 0;
+                    const hh = Math.floor(timeRemaining / 3600000);
+                    const mm = Math.floor((timeRemaining % 3600000) / 60000);
+                    const ss = Math.floor((timeRemaining % 60000) / 1000);
+                    return (
+                      <div style={{ 
+                        fontSize: '9px', fontWeight: 900, color: timeRemaining < 300000 ? '#ff5252' : '#8a7a9c',
+                        marginBottom: 10, textAlign: 'right', fontVariantNumeric: 'tabular-nums'
+                      }}>
+                        RESET EM: {String(hh).padStart(2, '0')}:{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}
+                      </div>
+                    );
+                  })()}
 
                   {done ? (
                     <button onClick={claim} style={{
@@ -10324,10 +10339,12 @@ function IdlePage() {
                           <span style={{ color: '#ff5c5c' }}>{q.reward.redshards} 🔻</span>
                         )}
                       </div>
-                      {(q.reward.trainerXp || q.reward.teamXp) && (
+                      {(q.reward.trainerXp || q.reward.teamXp || q.reward.trainerLevels) && (
                         <div style={{ display: 'flex', gap: 6, fontSize: '9px', fontWeight: 700 }}>
                            {q.reward.trainerXp && <span style={{ color: '#f5cf6b' }}>+{q.reward.trainerXp} XP TR</span>}
                            {q.reward.teamXp && <span style={{ color: '#5ec26a' }}>+{q.reward.teamXp} XP TEAM</span>}
+                           {q.reward.trainerLevels && <span style={{ color: '#f5cf6b' }}>+{q.reward.trainerLevels} LV TR</span>}
+
                         </div>
                       )}
                     </div>
