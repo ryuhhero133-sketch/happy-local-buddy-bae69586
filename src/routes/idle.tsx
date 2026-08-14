@@ -14001,8 +14001,8 @@ function TabOverlay({
                           </div>
                           {(() => {
                             const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
-                              book_atk: { to: "frag_habilidade", cost: 1000, trainerLv: 50, label: "Frag Habilidade" },
-                              book_def: { to: "frag_defesa", cost: 1000, trainerLv: 50, label: "Frag Defesa" },
+                              book_atk: { to: "frag_habilidade", cost: 1000, trainerLv: 50, label: "Frag Hab." },
+                              book_def: { to: "frag_defesa", cost: 1000, trainerLv: 50, label: "Frag Def." },
                               book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
                               book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
                               book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
