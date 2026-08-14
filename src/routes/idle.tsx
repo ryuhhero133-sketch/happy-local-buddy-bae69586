@@ -9819,14 +9819,19 @@ function IdlePage() {
                     height: '100%', background: 'linear-gradient(90deg, #6bd4ff, #c9b8ff)' 
                   }} />
                 </div>
-                {/* @ts-ignore - isAdmin is added to LocalIdentity for Admin panel logic */}
-                {identity?.isAdmin && (
-                  <button onClick={() => setIsAdminOpen(true)} style={{
-                    background: 'rgba(201, 184, 255, 0.1)', border: '1px solid rgba(201, 184, 255, 0.2)',
-                    borderRadius: 6, color: '#c9b8ff', fontSize: 9, padding: '4px', cursor: 'pointer',
-                    fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5
-                  }}>Painel Admin</button>
-                )}
+                {(() => {
+                  const email = identity?.email?.trim().toLowerCase();
+                  const isAdmin = email === "lordryuhhhuyuyghh@gmail.com" || 
+                                  identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
+                  if (!isAdmin) return null;
+                  return (
+                    <button onClick={() => setIsAdminOpen(true)} style={{
+                      background: 'rgba(201, 184, 255, 0.1)', border: '1px solid rgba(201, 184, 255, 0.2)',
+                      borderRadius: 6, color: '#c9b8ff', fontSize: 9, padding: '4px', cursor: 'pointer',
+                      fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5
+                    }}>Painel Admin</button>
+                  );
+                })()}
               </div>
             )}
           </div>
