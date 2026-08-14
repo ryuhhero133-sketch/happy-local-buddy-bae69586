@@ -4525,7 +4525,7 @@ function IdlePage() {
           const mythEventXpMult = idle.currentMap === "evento_myth" ? 6 : 1;
           const grassOddishXpMult = idle.currentMap === "grass_oddish" ? 3 : 1;
           const xpTitleMult = target.xpTitle ? 2 : 1; // 🏷️ título XP dobra a experiência
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * xpTitleMult);
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.12 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * xpTitleMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
