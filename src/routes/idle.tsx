@@ -4268,8 +4268,11 @@ function IdlePage() {
         // Dano do meu pokémon → aparece EM CIMA DO INIMIGO (com pequeno delay = impacto do lunge)
         setTimeout(() => {
           pushFxAt(target.x, target.y - 34, isCrit ? `CRIT ${dmg}!` : `${dmg}`, isCrit ? "crit" : "myDmg");
+          // Efeito visual de skill ao atacar o inimigo
+          const myElement = elementOf(leader.species) || "normal";
+          pushFxAt(target.x, target.y - 20, `skill_${myElement}`, "");
         }, 180);
-        // (dano rotineiro não vai para o chat — apenas floating text)
+
 
         // Contra-ataque do inimigo: dano no meu pokémon (reduzido pelo buff de def)
         const eBase = SPECIES_BASE[target.sp];
