@@ -1175,7 +1175,7 @@ export type MainQuestDef = {
   title: string;
   description: string;
   target: number;
-  type: "capture_rarity" | "capture_species";
+  type: "capture_rarity" | "capture_species" | "kill_count";
   rarity?: Rarity;
   species?: Species;
   reward: {
