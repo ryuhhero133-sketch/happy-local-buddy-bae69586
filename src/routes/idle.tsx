@@ -4154,11 +4154,7 @@ function IdlePage() {
         const lockedPortals = WORLD_PORTALS.filter((p) => p.from === idle.currentMap && (p.reqLevel ?? 0) > trLv);
         const nearLockedPortal = (x: number, y: number) =>
           lockedPortals.some((p) => Math.hypot(x - p.x, y - p.y) < 200);
-        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
-        const autoFilters = idle.autoBattle?.targetRarities;
-        const alive = (autoFilters && autoFilters.length > 0)
-          ? aliveAll.filter((e) => autoFilters.includes(e.rarity))
-          : aliveAll;
+        const alive = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
         const enemyPool = alive.length > 0 ? alive : [];
 
 
@@ -4244,7 +4240,7 @@ function IdlePage() {
             (stuckRef.current as any).lastDist = dist;
           }
           // Detecta travamento muito mais rápido no auto: ~30 ticks (~3.5s) sem progresso real
-          if (stuckRef.current.count > 30) {
+          if (stuckRef.current.count > 45) {
             blacklistRef.current.set(target.id, nowT + 12000);
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
@@ -4261,7 +4257,7 @@ function IdlePage() {
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 6 * distBoost * (1 + honeyBonusNow());
+        const speed = 7 * distBoost * (1 + honeyBonusNow());
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -4403,27 +4399,16 @@ function IdlePage() {
         const qDef = mq && !mq.completed ? QUEST_DATA.find(x => x.id === mq.currentQuestId) : null;
         
         let pool = alive;
-        const autoFilters = idle.autoBattle?.targetRarities;
-        if (autoFilters && autoFilters.length > 0) {
-          pool = alive.filter(e => autoFilters.includes(e.rarity));
-        }
 
-        if (pool.length === 0) pool = alive;
-
+        // Se houver Main Quest ativa, prioriza os alvos dela
         if (qDef) {
           if (qDef.type === "capture_rarity") {
-            const targets = pool.filter(e => e.rarity === qDef.rarity);
+            const targets = alive.filter(e => e.rarity === qDef.rarity);
             if (targets.length > 0) pool = targets;
           } else if (qDef.type === "capture_species") {
-            const targets = pool.filter(e => e.sp === qDef.species);
+            const targets = alive.filter(e => e.sp === qDef.species);
             if (targets.length > 0) pool = targets;
           }
-        }
-        
-        // Se não achou alvos da quest e não tem filtro de raridade manual, prioriza comuns e incomuns
-        if (pool.length === alive.length && (!autoFilters || autoFilters.length === 0)) {
-          const lowRarity = alive.filter(e => e.rarity === "common" || e.rarity === "uncommon");
-          if (lowRarity.length > 0) pool = lowRarity;
         }
 
         for (const e of pool) {
@@ -15826,52 +15811,6 @@ function TabOverlay({
             </div>
           </div>
 
-          <div style={{
-            background: "linear-gradient(160deg, #1c102a, #2a1a3a)",
-            border: "1px solid rgba(245, 207, 107, 0.4)", borderRadius: 12, padding: 16,
-            display: "flex", flexDirection: "column", gap: 10,
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>🎯 FILTRAR AUTO-BATALHA</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {(["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"] as Rarity[]).map((r) => {
-                const active = idle.autoBattle?.targetRarities?.includes(r) ?? false;
-                const rColors: Record<string, string> = {
-                  common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
-                  epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d"
-                };
-                const color = rColors[r] || "#fff";
-                return (
-                  <button
-                    key={r}
-                    onClick={() => {
-                      const current = idle.autoBattle?.targetRarities || [];
-                      const next = current.includes(r) ? current.filter(x => x !== r) : [...current, r];
-                      setIdle({ ...idle, autoBattle: { ...idle.autoBattle!, targetRarities: next } });
-                    }}
-                    style={{
-                      padding: "4px 8px", fontSize: 10, fontWeight: 900, borderRadius: 6, cursor: "pointer",
-                      background: active ? color : "rgba(0,0,0,0.3)",
-                      color: active ? "#0b0510" : color,
-                      border: `1px solid ${color}${active ? "ff" : "44"}`,
-                      transition: "all 0.2s"
-                    }}
-                  >
-                    {r.replace("_", " ").toUpperCase()}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => setIdle({ ...idle, autoBattle: { ...idle.autoBattle!, targetRarities: [] } })}
-                style={{
-                  padding: "4px 8px", fontSize: 10, fontWeight: 900, borderRadius: 6, cursor: "pointer",
-                  background: "rgba(255,255,255,0.05)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)"
-                }}
-              >TODOS</button>
-            </div>
-            <div style={{ fontSize: 10, color: "#8a7a9c", fontStyle: "italic" }}>
-              Se nenhum estiver selecionado, atacará todos os Pokémon.
-            </div>
-          </div>
 
           <div style={{
             background: "linear-gradient(160deg, #0f1f2e, #16324a)",
