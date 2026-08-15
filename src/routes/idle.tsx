@@ -3048,6 +3048,10 @@ function IdlePage() {
                 ],
                 continente_4_b: [
                   { key: "c4b-back", target: "continente_4", x: 60, y: 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#94a3b8" },
+                  { key: "c4b-to-c", target: "continente_4_c", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: 100, arriveY: 100, color: "#ffffff" },
+                ],
+                continente_4_c: [
+                  { key: "c4c-back", target: "continente_4_b", x: 60, y: 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#94a3b8" },
                 ],
 
               };
