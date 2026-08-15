@@ -579,8 +579,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
   continente_4: { name: "Continente 4 - A", diff: "SECRETO", bg: mapContinente4Img, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
-  continente_4_b: { name: "Continente 4 - B", diff: "SECRETO", bg: assetUrlFromJson(mapContinente4AssetV5), rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
-  continente_4_c: { name: "Continente 4 - C", diff: "SECRETO", bg: assetUrlFromJson(mapContinente4AssetC), rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
+  continente_4_b: { name: "Continente 4 - B", diff: "SECRETO", bg: (mapContinente4AssetV5 as any).url, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
+  continente_4_c: { name: "Continente 4 - C", diff: "SECRETO", bg: (mapContinente4AssetC as any).url, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
 
 
 };
