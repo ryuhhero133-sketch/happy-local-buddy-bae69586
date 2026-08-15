@@ -12986,7 +12986,7 @@ function IdlePage() {
         const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "continente_4", x: 50, y: 50 },
         ];
-        const bg = worldTab === 4 ? mapValeDouradoImg : (worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset));
+        const bg = worldTab === 4 ? mapValeDouradoImg : (worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : (worldTab === 3 ? governanteHallMapAsset : worldMapGlobeAsset)));
         const PINS = worldTab === 4 ? WORLD_PINS_C4 : (worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1));
 
 
@@ -13062,7 +13062,7 @@ function IdlePage() {
               
               <div style={{ 
                 width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", 
-                background: `#000 url(${typeof bg === 'string' ? bg : bg.url}) center/cover no-repeat`, 
+                background: `#000 url(${typeof bg === 'string' ? bg : (bg as any).url}) center/cover no-repeat`, 
                 position: "relative", border: "2px solid rgba(245,207,107,0.3)" 
               }}>
                 {PINS.map(pin => {
