@@ -12996,7 +12996,7 @@ function IdlePage() {
         const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "continente_4", x: 50, y: 50 },
         ];
-        const bg = worldTab === 4 ? assetUrlFromJson(mapContinente4Asset) : (worldTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : (worldTab === 2 ? assetUrlFromJson(worldMapContinent2Asset) : (worldTab === 3 ? assetUrlFromJson(governanteHallMapAsset) : assetUrlFromJson(worldMapGlobeAsset))));
+        const bg = worldTab === 4 ? (mapContinente4Asset as any).url : (worldTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : (worldTab === 2 ? assetUrlFromJson(worldMapContinent2Asset) : (worldTab === 3 ? assetUrlFromJson(governanteHallMapAsset) : assetUrlFromJson(worldMapGlobeAsset))));
         const PINS = worldTab === 4 ? WORLD_PINS_C4 : (worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1));
 
 
