@@ -6348,6 +6348,14 @@ function IdlePage() {
             "charizard", "charizard_shiny", "blaziken", "magmortar", "arcanine", "moltres",
             "dragonite", "dragonite_shiny", "dragonair", "gyarados",
             "tyranitar", "infernape", "krookodile", "machamp", "nidoking", "nidoking_shiny",
+          ] as Species[];
+          mapLvRange = [700, 1200];
+        }
+        if (idle.currentMap === "continente_4") {
+          pool = ["charizard_shiny", "dragonite_shiny", "gengar", "mewtwo", "rayquaza", "darkrai", "dialga", "deoxys", "groudon"] as Species[];
+          mapLvRange = [1000, 5000];
+        }
+
             "rapidash", "rapidash_shiny", "skarmory", "ho_oh", "groudon",
             "ursaring", "hariyama", "primeape",
           ] as Species[];
