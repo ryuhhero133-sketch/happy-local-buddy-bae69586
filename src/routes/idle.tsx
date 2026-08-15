@@ -1,4 +1,4 @@
-// ADICIONADO MAPA PARTE C AO CONTINENTE 4 SEM REMOVER OS ANTERIORES.
+// ADICIONADO MAPA PARTE C AO CONTINENTE 4 COM CORREÇÃO DE ASSET JSON.
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
