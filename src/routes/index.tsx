@@ -1,4 +1,4 @@
-// gerar mapa novo do zero
+// GERAR UMA IMG DE MAPA
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
