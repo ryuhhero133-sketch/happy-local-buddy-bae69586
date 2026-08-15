@@ -3028,6 +3028,10 @@ function IdlePage() {
                 vale_verdejante: [
                   { key: "vv-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
+                continente_4: [
+                  { key: "c4-back", target: "arena", x: 60, y: 60, arriveX: 300, arriveY: 300, color: "#94a3b8" },
+                ],
+
               };
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
