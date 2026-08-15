@@ -1,4 +1,4 @@
-// MODO AUYTO BATALHA ALGUMAS VEZES FICA ANDANDO PARA UM LUGAR TRAVADO DA PAREDE DO MAPA, E N ATAKA OS POKEMOINS PRECISA HAVALIAR OQUE SERIA ISSO E NOS PODER N PERMITIR QUE ISSO ACONTECA.
+// me envie anexado o mapa do NINHO DE MARIBONDO
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
