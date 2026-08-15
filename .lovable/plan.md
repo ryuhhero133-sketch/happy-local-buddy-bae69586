@@ -1,29 +1,22 @@
-# Plan - Main Quest System
+# Plano de Correção e Melhoria do Continente 4
 
-Implement a "Main Quest" system displayed near the chat HUD, featuring rarity/species capture requirements and tiered rewards (Ultra Balls, Red Shards, Epic Eggs).
+O objetivo deste plano é garantir que os 3 mapas do Continente 4 (Parte A, B e C) estejam com as imagens corretas fornecidas pelo usuário e que todos sejam acessíveis diretamente através do Mapa Mundi após a inserção do PIN (333).
 
-## Technical Details
+## Alterações Técnicas
 
-- **Quest Definition**: Create a `QUEST_DATA` structure in `src/routes/idle.tsx` defining sequential quests.
-- **State Management**: Add `mainQuest` to `IdleState` in `src/routes/idle.tsx` to track `currentQuestId` and `progress`.
-- **UI Component**: Create `MainQuestHUD` in `src/routes/idle.tsx` to display the current objective near the chat panel.
-- **Logic Integration**: 
-    - Update progress in the capture logic (around `setIdle` in `setEnemies` callback).
-    - Implement a "Claim Reward" mechanism that grants items/shards and advances to the next quest.
-- **Initial Quests**:
-    - Quest 1: "Capture 10 Uncommon Pokémon" -> Reward: 10 Ultra Balls.
-    - Quest 2: "Capture 5 Rare Pokémon" -> Reward: 50 Red Shards.
-    - Quest 3: "Capture 3 Epic Pokémon" -> Reward: 100 Red Shards.
-    - Quest 4: "Capture 1 Legendary Pokémon" -> Reward: 1 Epic Egg.
-    - Quest 5: "Capture a specific species (e.g., Pikachu)" -> Reward: 200 Red Shards.
+### 1. Atualização de Assets
+- Atualizar `src/assets/continent-4-map-v6.png.asset.json` com o link da imagem `mnmnmn.png`.
+- Atualizar `src/assets/continent-4-map-v7.png.asset.json` com o link da imagem `mnmn.png`.
+- Garantir que `src/assets/continent-4-map-part-c.png.asset.json` esteja com o link correto de `sdfggdf.png` (já verificado).
 
-## Proposed Changes
+### 2. Interface do Mapa Mundi (src/routes/idle.tsx)
+- Adicionar a Parte C (`continente_4_c`) à lista de pins do Continente 4 no Mapa Mundi.
+- Modificar a lógica de clique nos pins do Continente 4 para permitir o acesso direto a qualquer uma das partes (A, B ou C) após a validação do PIN.
 
-### `src/routes/idle.tsx`
+### 3. Sistema de Portais (src/routes/idle.tsx)
+- Verificar e ajustar as coordenadas dos portais entre as partes para garantir fluidez no movimento manual.
 
-- Add `Quest` types and `QUEST_DATA`.
-- Update `IdleState` and `freshIdle` to include `mainQuest`.
-- Modify the capture logic to increment `mainQuest.progress` if the requirements match.
-- Add the `MainQuestHUD` component and render it above or near the chat panel.
-- Implement `claimMainQuestReward` function.
-- Update `src/routes/index.tsx` to remove the request text as it's being implemented.
+## Detalhes para o Usuário
+- As imagens das Partes A e B foram atualizadas conforme os novos anexos.
+- O Mapa Mundi agora mostra a Parte C, permitindo viajar direto para lá.
+- O PIN 333 continua sendo necessário para abrir os mapas secretos.
