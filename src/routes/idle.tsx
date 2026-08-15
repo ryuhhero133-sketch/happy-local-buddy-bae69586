@@ -1,4 +1,4 @@
-// kd oo quarto continent com o mapa que eu mandei
+// EU N VEJO O 4° CONTINENT COM A SENHA QUE PEDIR crie isso certo
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -502,7 +502,7 @@ type IdleMapId =
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
   | "absol_start" | "governante_hall"
   // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
-  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante";
+  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante" | "continente_4";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -570,6 +570,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
+  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapValeDouradoImg, rate: 25.0, minLevel: 1000, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(255,255,255,0.05)", zoomOverride: 0.35 },
+
 
 };
 
@@ -592,6 +594,20 @@ const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
     { key: `${c.to}->${c.from}`, from: c.to, to: c.from, x: 200, y: 1660, arriveX: 1700, arriveY: 260, color: "#94a3b8", label: `↩ ${fromName}` },
   ];
 });
+
+const PORTAL_SECRET_4: WorldPortalDef = {
+  key: "arena->continente_4",
+  from: "arena",
+  to: "continente_4",
+  x: 250,
+  y: 250,
+  arriveX: 1000,
+  arriveY: 1000,
+  color: "#ffffff",
+  label: "Continente 4",
+  reqLevel: 1,
+};
+
 
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
@@ -1781,6 +1797,10 @@ function IdlePage() {
     setAnciaoForced(true);
     setAnciaoOpen(true);
   }, [idle.redeemedCodes?.RESETPERSON, idle.currentMap]);
+
+  const [mapPasswordInput, setMapPasswordInput] = useState<{ portal: WorldPortalDef } | null>(null);
+  const [pinValue, setPinValue] = useState("");
+
   const [now, setNow] = useState(() => Date.now());
   const [profileOpen, setProfileOpen] = useState(true);
   const [teamPanelOpen, setTeamPanelOpen] = useState(true);
@@ -3008,6 +3028,10 @@ function IdlePage() {
                 vale_verdejante: [
                   { key: "vv-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
+                continente_4: [
+                  { key: "c4-back", target: "arena", x: 60, y: 60, arriveX: 300, arriveY: 300, color: "#94a3b8" },
+                ],
+
               };
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -3967,6 +3991,11 @@ function IdlePage() {
   const overCapMsgRef = useRef<number>(0);
 
   const enterWorldPortal = (p: WorldPortalDef) => {
+    if (p.to === "continente_4") {
+      setMapPasswordInput({ portal: p });
+      setPinValue("");
+      return;
+    }
     const lv = idle.trainerLevel ?? 1;
     if (p.reqLevel && lv < p.reqLevel) {
       const now = Date.now();
@@ -3986,6 +4015,7 @@ function IdlePage() {
       return;
     }
     setIdle((s) => ({ ...s, currentMap: p.to, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - TELEPORT_COST) } }));
+
     setTrainerPos({ x: p.arriveX, y: p.arriveY });
     walkTargetRef.current = null;
     setWalkingTo(null);
@@ -6318,10 +6348,12 @@ function IdlePage() {
             "charizard", "charizard_shiny", "blaziken", "magmortar", "arcanine", "moltres",
             "dragonite", "dragonite_shiny", "dragonair", "gyarados",
             "tyranitar", "infernape", "krookodile", "machamp", "nidoking", "nidoking_shiny",
-            "rapidash", "rapidash_shiny", "skarmory", "ho_oh", "groudon",
-            "ursaring", "hariyama", "primeape",
           ] as Species[];
           mapLvRange = [700, 1200];
+        }
+        if (idle.currentMap === "continente_4") {
+          pool = ["charizard_shiny", "dragonite_shiny", "gengar", "mewtwo", "rayquaza", "darkrai", "dialga", "deoxys", "groudon"] as Species[];
+          mapLvRange = [1000, 5000];
         }
         // ═══ CADEIA ABISSAL — Lv 1000-3000 ═══
         if (idle.currentMap === "abismo_gelo") {
@@ -8974,7 +9006,17 @@ function IdlePage() {
             {/* Portais no mundo — pontos de viagem visíveis */}
             {(() => {
               const lv = idle.trainerLevel ?? 1;
-              return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => {
+              const currentPortals = WORLD_PORTALS.filter(p => p.from === idle.currentMap);
+              if (idle.currentMap === "arena") currentPortals.push(PORTAL_SECRET_4);
+              if (idle.currentMap === "continente_4") {
+                currentPortals.push({
+                  key: "continente_4->arena", from: "continente_4", to: "arena",
+                  x: 200, y: 1660, arriveX: 300, arriveY: 300, color: "#94a3b8", label: "↩ Vale Verdejante"
+                });
+              }
+
+              return currentPortals.map((p) => {
+
                 const locked = !!(p.reqLevel && lv < p.reqLevel);
                 return (
                   <div
@@ -11216,7 +11258,61 @@ function IdlePage() {
       })()}
 
 
+      {/* ═══ 🔐 SENHA DO MAPA ═══ */}
+      {mapPasswordInput && createPortal(
+        <div onClick={() => setMapPasswordInput(null)} style={{ position: "fixed", inset: 0, zIndex: 4000000, background: "rgba(0,0,0,0.92)", display: "grid", placeItems: "center" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(160deg, #1a1a2e 0%, #0f0f1a 100%)", border: "2px solid #f5cf6b", borderRadius: 20, padding: 30, textAlign: "center", boxShadow: "0 0 50px rgba(245,207,107,0.3)" }}>
+            <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 18, marginBottom: 15, letterSpacing: 2 }}>ACESSO RESTRITO</div>
+            <div style={{ color: "#c8b8d0", fontSize: 12, marginBottom: 20 }}>Digite a senha de 3 dígitos para entrar no {IDLE_MAPS[mapPasswordInput.portal.to].name}</div>
+            
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 25 }}>
+              {[0, 1, 2].map(i => (
+                <div key={i} style={{ width: 45, height: 60, background: "rgba(0,0,0,0.5)", border: "2px solid #f5cf6b", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 900, color: "#fff" }}>
+                  {pinValue[i] || ""}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, maxWidth: 200, margin: "0 auto" }}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, "C", 0, "OK"].map(btn => (
+                <button
+                  key={btn.toString()}
+                  onClick={() => {
+                    playClick();
+                    if (btn === "C") setPinValue("");
+                    else if (btn === "OK") {
+                      if (pinValue === "333") {
+                        const p = mapPasswordInput.portal;
+                        setIdle((s) => ({ ...s, currentMap: p.to }));
+                        setTrainerPos({ x: p.arriveX, y: p.arriveY });
+                        setAttackTargetId(null);
+                        setEnemies([]);
+                        clearBattleScene();
+                        pushChat(`🔓 Senha correta! Bem-vindo ao ${IDLE_MAPS[p.to].name}.`, "cap");
+                        setMapPasswordInput(null);
+                      } else {
+                        pushChat("❌ Senha incorreta!", "info");
+                        setPinValue("");
+                      }
+                    } else if (pinValue.length < 3) {
+                      setPinValue(v => v + btn);
+                    }
+                  }}
+                  style={{
+                    background: btn === "OK" ? "#5ec26a" : btn === "C" ? "#ff5c5c" : "rgba(255,255,255,0.05)",
+                    color: "#fff", border: "1px solid rgba(245,207,107,0.3)", borderRadius: 8,
+                    padding: "12px 0", fontSize: 16, fontWeight: 900, cursor: "pointer"
+                  }}
+                >{btn}</button>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* ═══ 🏰 GINÁSIO MEDIEVAL — endgame: 3 andares + portal do Vale ═══ */}
+
       {gymOpen && (() => {
         const shards = idle.items?.fragmento_vermelho ?? 0;
         const st = valeEventStatus();
