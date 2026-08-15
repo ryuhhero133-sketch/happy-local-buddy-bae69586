@@ -1,4 +1,4 @@
-// MAPA DO CONTINENTE 4 ATUALIZADO COM NOVA REFERÊNCIA FINAL
+// COLOQE O SEGUNDO MAPA NO CONTINENT 4. MESMA SENHA OK
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
