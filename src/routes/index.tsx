@@ -1,4 +1,4 @@
-// GERAR UMA IMG DE MAPA
+// MAPA DO CONTINENTE 4 ATUALIZADO CONFORME REFERÊNCIA
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
