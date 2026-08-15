@@ -13018,8 +13018,9 @@ function IdlePage() {
           { id: "evento_myth", x: 80, y: 40 }, { id: "absol_start", x: 15, y: 80 }, { id: "governante_hall", x: 85, y: 85 },
         ];
         const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number }> = [
-          { id: "continente_4", x: 40, y: 50 },
-          { id: "continente_4_b", x: 60, y: 50 },
+          { id: "continente_4", x: 30, y: 50 },
+          { id: "continente_4_b", x: 50, y: 50 },
+          { id: "continente_4_c", x: 70, y: 50 },
         ];
         const bg = worldTab === 4 ? (mapContinente4Asset as any).url : (worldTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : (worldTab === 2 ? assetUrlFromJson(worldMapContinent2Asset) : (worldTab === 3 ? assetUrlFromJson(governanteHallMapAsset) : assetUrlFromJson(worldMapGlobeAsset))));
         const PINS = worldTab === 4 ? WORLD_PINS_C4 : (worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1));
@@ -13108,8 +13109,8 @@ function IdlePage() {
                     <div 
                       key={pin.id} 
                       onClick={() => { 
-                        if (pin.id === "continente_4" || pin.id === "continente_4_b") {
-                          setMapPasswordInput({ portal: { ...PORTAL_SECRET_4, to: pin.id } });
+                        if (pin.id.startsWith("continente_4")) {
+                          setMapPasswordInput({ portal: { ...PORTAL_SECRET_4, to: pin.id as IdleMapId } });
                           setPinValue("");
                         } else {
                           if (locked) return; 
