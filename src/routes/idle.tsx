@@ -84,6 +84,7 @@ import mapValeDouradoImg from "@/assets/map-vale-verdejante-ice.png";
 import mapSnowValleyAsset from "@/assets/map-snow-valley.png.asset.json";
 const mapSnowValleyImg = assetUrlFromJson(mapSnowValleyAsset);
 import mapContinente4Asset from "@/assets/continent-4-map-v6.png.asset.json";
+import mapContinente4AssetV5 from "@/assets/continent-4-map-v5.png.asset.json";
 const mapContinente4Img = (mapContinente4Asset as any).url;
 import mapTerraHornetJson from "@/assets/map-terra-hornet.jpg.asset.json";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
@@ -507,7 +508,7 @@ type IdleMapId =
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
   | "absol_start" | "governante_hall"
   // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
-  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante" | "continente_4";
+  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante" | "continente_4" | "continente_4_b";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -576,7 +577,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
-  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapContinente4Img, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
+  continente_4: { name: "Continente 4 - A", diff: "SECRETO", bg: mapContinente4Img, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
+  continente_4_b: { name: "Continente 4 - B", diff: "SECRETO", bg: assetUrlFromJson(mapContinente4AssetV5), rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
 
 
 };
@@ -3038,6 +3040,10 @@ function IdlePage() {
                 ],
                 continente_4: [
                   { key: "c4-back", target: "arena", x: 60, y: 60, arriveX: 300, arriveY: 300, color: "#94a3b8" },
+                  { key: "c4-to-b", target: "continente_4_b", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: 100, arriveY: 100, color: "#f5cf6b" },
+                ],
+                continente_4_b: [
+                  { key: "c4b-back", target: "continente_4", x: 60, y: 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#94a3b8" },
                 ],
 
               };
@@ -6812,7 +6818,7 @@ function IdlePage() {
       })() }
     : rawMap;
   const visibleBuildings = BUILDINGS;
-  const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#000000";
+  const viewportBg = (idle.currentMap === "caverna" || idle.currentMap === "continente_4" || idle.currentMap === "continente_4_b") ? "#1f2028" : "#000000";
 
   const collect = () => {
     setIdle((s) => {
@@ -12994,7 +13000,8 @@ function IdlePage() {
           { id: "evento_myth", x: 80, y: 40 }, { id: "absol_start", x: 15, y: 80 }, { id: "governante_hall", x: 85, y: 85 },
         ];
         const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number }> = [
-          { id: "continente_4", x: 50, y: 50 },
+          { id: "continente_4", x: 40, y: 50 },
+          { id: "continente_4_b", x: 60, y: 50 },
         ];
         const bg = worldTab === 4 ? (mapContinente4Asset as any).url : (worldTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : (worldTab === 2 ? assetUrlFromJson(worldMapContinent2Asset) : (worldTab === 3 ? assetUrlFromJson(governanteHallMapAsset) : assetUrlFromJson(worldMapGlobeAsset))));
         const PINS = worldTab === 4 ? WORLD_PINS_C4 : (worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1));
@@ -13083,7 +13090,7 @@ function IdlePage() {
                     <div 
                       key={pin.id} 
                       onClick={() => { 
-                        if (pin.id === "continente_4") {
+                        if (pin.id === "continente_4" || pin.id === "continente_4_b") {
                           setMapPasswordInput({ portal: { ...PORTAL_SECRET_4, to: pin.id } });
                           setPinValue("");
                         } else {
