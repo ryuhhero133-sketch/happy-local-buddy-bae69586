@@ -507,7 +507,8 @@ type IdleMapId =
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
-  element: string; stars?: number; overlay?: string;
+  element: string; stars?: number; overlay?: string; x?: number; y?: number;
+
   cycle?: { cycleMs: number; openMs: number };
   entryCrystals?: number;
   /** Mapa de RAID: níveis exibidos não indicam progressão de treinador, e sim faixa dos chefes/encontros. */
