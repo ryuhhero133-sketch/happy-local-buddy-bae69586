@@ -502,7 +502,7 @@ type IdleMapId =
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
   | "absol_start" | "governante_hall"
   // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
-  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante";
+  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante" | "continente_4";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -11282,7 +11282,7 @@ function IdlePage() {
                         setAttackTargetId(null);
                         setEnemies([]);
                         clearBattleScene();
-                        pushChat(`🔓 Senha correta! Bem-vindo ao ${IDLE_MAPS[p.to].name}.`, "success");
+                        pushChat(`🔓 Senha correta! Bem-vindo ao ${IDLE_MAPS[p.to].name}.`, "cap");
                         setMapPasswordInput(null);
                       } else {
                         pushChat("❌ Senha incorreta!", "info");
