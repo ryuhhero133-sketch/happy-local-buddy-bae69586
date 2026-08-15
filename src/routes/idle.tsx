@@ -1,4 +1,4 @@
-// EU N VEJO O 4° CONTINENT COM A SENHA QUE PEDIR crie isso certo
+// ain n consigo ver o 4 continent no mapa mundi
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -570,7 +570,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
-  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapValeDouradoImg, rate: 25.0, minLevel: 1000, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(255,255,255,0.05)", zoomOverride: 0.35 },
+  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapValeDouradoImg, rate: 25.0, minLevel: 1000, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(255,255,255,0.05)", zoomOverride: 0.35, x: 250, y: 350 },
 
 
 };
