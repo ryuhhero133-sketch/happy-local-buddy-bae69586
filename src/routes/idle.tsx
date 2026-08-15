@@ -602,8 +602,6 @@ const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
   return [
     { key: `${c.from}->${c.to}`, from: c.from, to: c.to, x: 1720, y: 260, arriveX: 220, arriveY: 1660, color: c.color, label: toName, reqLevel: c.req },
     { key: `${c.to}->${c.from}`, from: c.to, to: c.from, x: 200, y: 1660, arriveX: 1700, arriveY: 260, color: "#94a3b8", label: `↩ ${fromName}` },
-    { key: "c4b-to-c", from: "continente_4_b", to: "continente_4_c", x: 1800, y: 200, arriveX: 200, arriveY: 1800, color: "#ffffff", label: "Parte C" },
-    { key: "c4c-back", from: "continente_4_c", to: "continente_4_b", x: 100, y: 1800, arriveX: 1700, arriveY: 300, color: "#94a3b8", label: "↩ Parte B" },
   ];
 });
 
