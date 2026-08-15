@@ -85,6 +85,7 @@ import mapSnowValleyAsset from "@/assets/map-snow-valley.png.asset.json";
 const mapSnowValleyImg = assetUrlFromJson(mapSnowValleyAsset);
 import mapContinente4Asset from "@/assets/continent-4-map-v6.png.asset.json";
 import mapContinente4AssetV5 from "@/assets/continent-4-map-v7.png.asset.json";
+import mapContinente4AssetC from "@/assets/continent-4-map-part-c.png.asset.json";
 const mapContinente4Img = (mapContinente4Asset as any).url;
 import mapTerraHornetJson from "@/assets/map-terra-hornet.jpg.asset.json";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
@@ -508,7 +509,7 @@ type IdleMapId =
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
   | "absol_start" | "governante_hall"
   // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
-  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante" | "continente_4" | "continente_4_b";
+  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante" | "continente_4" | "continente_4_b" | "continente_4_c";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -579,6 +580,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
   continente_4: { name: "Continente 4 - A", diff: "SECRETO", bg: mapContinente4Img, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
   continente_4_b: { name: "Continente 4 - B", diff: "SECRETO", bg: assetUrlFromJson(mapContinente4AssetV5), rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
+  continente_4_c: { name: "Continente 4 - C", diff: "SECRETO", bg: assetUrlFromJson(mapContinente4AssetC), rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
 
 
 };
@@ -600,6 +602,8 @@ const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
   return [
     { key: `${c.from}->${c.to}`, from: c.from, to: c.to, x: 1720, y: 260, arriveX: 220, arriveY: 1660, color: c.color, label: toName, reqLevel: c.req },
     { key: `${c.to}->${c.from}`, from: c.to, to: c.from, x: 200, y: 1660, arriveX: 1700, arriveY: 260, color: "#94a3b8", label: `↩ ${fromName}` },
+    { key: "c4b-to-c", from: "continente_4_b", to: "continente_4_c", x: 1800, y: 200, arriveX: 200, arriveY: 1800, color: "#ffffff", label: "Parte C" },
+    { key: "c4c-back", from: "continente_4_c", to: "continente_4_b", x: 100, y: 1800, arriveX: 1700, arriveY: 300, color: "#94a3b8", label: "↩ Parte B" },
   ];
 });
 
