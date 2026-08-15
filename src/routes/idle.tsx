@@ -1840,7 +1840,7 @@ function IdlePage() {
   }, [identity, navigate]);
 
   const [targetPet, setTargetPet] = useState<Enemy | null>(null);
-  const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
+
 
 
   const handleSeasonResetRitual = async () => {
@@ -3114,7 +3114,7 @@ function IdlePage() {
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
-  const [worldTab, setWorldTab] = useState<1 | 2 | 3>(1);
+  const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
   const [pendingGate, setPendingGate] = useState<null | { target: string; gate: any; fromBig: boolean }>(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
@@ -13038,6 +13038,16 @@ function IdlePage() {
                       fontWeight: 900, cursor: "pointer" 
                     }}
                   >CONT. 3</button>
+                  <button 
+                    onClick={() => setWorldTab(4)} 
+                    style={{ 
+                      background: worldTab === 4 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
+                      border: "1px solid #f5cf6b", 
+                      color: worldTab === 4 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >CONT. 4</button>
+
 
                   <button 
                     onClick={() => setWorldMapOpen(false)} 
@@ -13052,7 +13062,7 @@ function IdlePage() {
               
               <div style={{ 
                 width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", 
-                background: `#000 url(${assetUrlFromJson(bg)}) center/cover no-repeat`, 
+                background: `#000 url(${typeof bg === 'string' ? bg : bg.url}) center/cover no-repeat`, 
                 position: "relative", border: "2px solid rgba(245,207,107,0.3)" 
               }}>
                 {PINS.map(pin => {
