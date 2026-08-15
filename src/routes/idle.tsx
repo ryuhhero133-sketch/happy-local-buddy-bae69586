@@ -6355,12 +6355,6 @@ function IdlePage() {
           pool = ["charizard_shiny", "dragonite_shiny", "gengar", "mewtwo", "rayquaza", "darkrai", "dialga", "deoxys", "groudon"] as Species[];
           mapLvRange = [1000, 5000];
         }
-
-            "rapidash", "rapidash_shiny", "skarmory", "ho_oh", "groudon",
-            "ursaring", "hariyama", "primeape",
-          ] as Species[];
-          mapLvRange = [700, 1200];
-        }
         // ═══ CADEIA ABISSAL — Lv 1000-3000 ═══
         if (idle.currentMap === "abismo_gelo") {
           pool = ["lapras", "lapras_shiny", "articuno", "dragonair", "dragonite", "dragonite_shiny", "gyarados", "skarmory", "tyranitar", "machamp", "ursaring"] as Species[];
