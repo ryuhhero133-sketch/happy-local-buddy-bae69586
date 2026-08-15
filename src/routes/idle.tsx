@@ -1,4 +1,4 @@
-// MAPA DO CONTINENTE 4 — 2D PIXEL ART ATUALIZADO
+// MAPA DO CONTINENTE 4 — 2D PIXEL ART ATUALIZADO — TEMA GÉLIDO GAMEBOY
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
