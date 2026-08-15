@@ -1,3 +1,4 @@
+// GERAR IMAGEM DE UM NOVO MAPA PARA O CONTINENT 4
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
