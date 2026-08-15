@@ -1,4 +1,4 @@
-// EU N VEJO O 4° CONTINENT COM A SENHA QUE PEDIR crie isso certo
+// ain n consigo ver o 4 continent no mapa mundi
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -507,7 +507,8 @@ type IdleMapId =
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
-  element: string; stars?: number; overlay?: string;
+  element: string; stars?: number; overlay?: string; x?: number; y?: number;
+
   cycle?: { cycleMs: number; openMs: number };
   entryCrystals?: number;
   /** Mapa de RAID: níveis exibidos não indicam progressão de treinador, e sim faixa dos chefes/encontros. */
@@ -570,7 +571,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
-  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapValeDouradoImg, rate: 25.0, minLevel: 1000, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(255,255,255,0.05)", zoomOverride: 0.35 },
+  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapValeDouradoImg, rate: 25.0, minLevel: 1000, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(255,255,255,0.05)", zoomOverride: 0.35, x: 250, y: 350 },
 
 
 };
@@ -12978,9 +12979,11 @@ function IdlePage() {
         const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "cadeia_ab", x: 20, y: 30 }, { id: "cadeia_ab1", x: 40, y: 50 }, { id: "cadeia_f1", x: 60, y: 70 },
           { id: "evento_myth", x: 80, y: 40 }, { id: "absol_start", x: 15, y: 80 }, { id: "governante_hall", x: 85, y: 85 },
+          { id: "continente_4", x: 50, y: 50 },
         ];
         const bg = worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
         const PINS = worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1);
+
         const hasGov = (idle.items?.carta_governante ?? 0) > 0;
         return (
           <div 
