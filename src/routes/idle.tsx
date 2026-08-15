@@ -9034,6 +9034,18 @@ function IdlePage() {
                   x: 200, y: 1660, arriveX: 300, arriveY: 300, color: "#94a3b8", label: "↩ Vale Verdejante"
                 });
               }
+              if (idle.currentMap === "continente_4_b") {
+                currentPortals.push({
+                  key: "c4b-to-c", from: "continente_4_b", to: "continente_4_c",
+                  x: 1800, y: 1800, arriveX: 200, arriveY: 200, color: "#ffffff", label: "Parte C"
+                });
+              }
+              if (idle.currentMap === "continente_4_c") {
+                currentPortals.push({
+                  key: "c4c-back", from: "continente_4_c", to: "continente_4_b",
+                  x: 200, y: 200, arriveX: 1800, arriveY: 1800, color: "#94a3b8", label: "↩ Parte B"
+                });
+              }
 
               return currentPortals.map((p) => {
 
