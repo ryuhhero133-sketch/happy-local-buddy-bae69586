@@ -1,4 +1,4 @@
-// MAPA DO CONTINENTE 4 ATUALIZADO CONFORME REFERÊNCIA FINAL
+// ADICIONADO MAPA PARTE C AO CONTINENTE 4 SEM REMOVER OS ANTERIORES.
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
