@@ -572,7 +572,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
-  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapValeDouradoImg, rate: 25.0, minLevel: 1000, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(255,255,255,0.05)", zoomOverride: 0.35, x: 250, y: 350 },
+  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapValeDouradoImg, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(255,255,255,0.05)", zoomOverride: 0.35, x: 250, y: 350 },
 
 
 };
@@ -12986,7 +12986,7 @@ function IdlePage() {
         const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "continente_4", x: 50, y: 50 },
         ];
-        const bg = worldTab === 4 ? mapValeDouradoImg : (worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : (worldTab === 3 ? governanteHallMapAsset : worldMapGlobeAsset)));
+        const bg = worldTab === 4 ? mapValeDouradoImg : (worldTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : (worldTab === 2 ? assetUrlFromJson(worldMapContinent2Asset) : (worldTab === 3 ? assetUrlFromJson(governanteHallMapAsset) : assetUrlFromJson(worldMapGlobeAsset))));
         const PINS = worldTab === 4 ? WORLD_PINS_C4 : (worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1));
 
 
@@ -13073,8 +13073,13 @@ function IdlePage() {
                     <div 
                       key={pin.id} 
                       onClick={() => { 
-                        if (locked) return; 
-                        setIdle(s => ({ ...s, currentMap: pin.id })); 
+                        if (pin.id === "continente_4") {
+                          setMapPasswordInput({ portal: { ...PORTAL_SECRET_4, to: pin.id } });
+                          setPinValue("");
+                        } else {
+                          if (locked) return; 
+                          setIdle(s => ({ ...s, currentMap: pin.id })); 
+                        }
                         setWorldMapOpen(false); 
                       }}
                       style={{ 
