@@ -1841,6 +1841,8 @@ function IdlePage() {
 
   const [targetPet, setTargetPet] = useState<Enemy | null>(null);
 
+
+
   const handleSeasonResetRitual = async () => {
 
     // O diálogo do Ancião já é a confirmação — executa o ritual direto.
@@ -3112,7 +3114,7 @@ function IdlePage() {
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
-  const [worldTab, setWorldTab] = useState<1 | 2 | 3>(1);
+  const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
   const [pendingGate, setPendingGate] = useState<null | { target: string; gate: any; fromBig: boolean }>(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
@@ -12980,10 +12982,13 @@ function IdlePage() {
         const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "cadeia_ab", x: 20, y: 30 }, { id: "cadeia_ab1", x: 40, y: 50 }, { id: "cadeia_f1", x: 60, y: 70 },
           { id: "evento_myth", x: 80, y: 40 }, { id: "absol_start", x: 15, y: 80 }, { id: "governante_hall", x: 85, y: 85 },
+        ];
+        const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "continente_4", x: 50, y: 50 },
         ];
-        const bg = worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
-        const PINS = worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1);
+        const bg = worldTab === 4 ? mapValeDouradoImg : (worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset));
+        const PINS = worldTab === 4 ? WORLD_PINS_C4 : (worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1));
+
 
         const hasGov = (idle.items?.carta_governante ?? 0) > 0;
         return (
@@ -13007,13 +13012,43 @@ function IdlePage() {
                 <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🌏 MAPA MUNDI — CONT. {worldTab}</h2>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button 
-                    onClick={() => setWorldTab(t => t === 3 ? 1 : (t + 1) as 1|2|3)} 
+                    onClick={() => setWorldTab(1)} 
                     style={{ 
-                      background: "linear-gradient(135deg, #f5cf6b, #d9a441)", border: "none", 
-                      color: "#160a20", borderRadius: 8, padding: "6px 12px", 
+                      background: worldTab === 1 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
+                      border: "1px solid #f5cf6b", 
+                      color: worldTab === 1 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
                       fontWeight: 900, cursor: "pointer" 
                     }}
-                  >TROCAR CONTINENTE</button>
+                  >CONT. 1</button>
+                  <button 
+                    onClick={() => setWorldTab(2)} 
+                    style={{ 
+                      background: worldTab === 2 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
+                      border: "1px solid #f5cf6b", 
+                      color: worldTab === 2 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >CONT. 2</button>
+                  <button 
+                    onClick={() => setWorldTab(3)} 
+                    style={{ 
+                      background: worldTab === 3 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
+                      border: "1px solid #f5cf6b", 
+                      color: worldTab === 3 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >CONT. 3</button>
+                  <button 
+                    onClick={() => setWorldTab(4)} 
+                    style={{ 
+                      background: worldTab === 4 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
+                      border: "1px solid #f5cf6b", 
+                      color: worldTab === 4 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >CONT. 4</button>
+
+
                   <button 
                     onClick={() => setWorldMapOpen(false)} 
                     style={{ 
@@ -13027,7 +13062,7 @@ function IdlePage() {
               
               <div style={{ 
                 width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", 
-                background: `#000 url(${assetUrlFromJson(bg)}) center/cover no-repeat`, 
+                background: `#000 url(${typeof bg === 'string' ? bg : bg.url}) center/cover no-repeat`, 
                 position: "relative", border: "2px solid rgba(245,207,107,0.3)" 
               }}>
                 {PINS.map(pin => {
