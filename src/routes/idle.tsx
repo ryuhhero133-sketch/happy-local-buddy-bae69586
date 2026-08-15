@@ -1840,6 +1840,8 @@ function IdlePage() {
   }, [identity, navigate]);
 
   const [targetPet, setTargetPet] = useState<Enemy | null>(null);
+  const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
+
 
   const handleSeasonResetRitual = async () => {
 
