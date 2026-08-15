@@ -10170,7 +10170,6 @@ function IdlePage() {
             <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>⚙️</div>
             <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Config.</span>
           </div>
-          </div>
 
           {/* Radar Zoom Controls */}
           <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "center", marginTop: "10px" }}>
