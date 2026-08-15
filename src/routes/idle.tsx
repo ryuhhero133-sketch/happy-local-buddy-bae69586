@@ -1,4 +1,4 @@
-// MAPA DO CONTINENTE 4 — 2D PIXEL ART ATUALIZADO — TEMA GÉLIDO GAMEBOY
+// MAPA DO CONTINENTE 4 ATUALIZADO CONFORME REFERÊNCIA FINAL
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -576,7 +576,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
-  continente_4: { name: "Continente 4 (Gélido)", diff: "SECRETO", bg: mapContinente4Img, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Ice", stars: 10, overlay: "rgba(180, 220, 255, 0.3)", zoomOverride: 1.0, x: 2000, y: 2000 },
+  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapContinente4Img, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
 
 
 };
