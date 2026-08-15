@@ -573,7 +573,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
-  continente_4: { name: "Continente 4", diff: "SECRETO", bg: assetUrlFromJson(mapContinente4Asset), rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(255,255,255,0.05)", zoomOverride: 1.0, x: 640, y: 400 },
+  continente_4: { name: "Continente 4", diff: "SECRETO", bg: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop", rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(255,255,255,0.05)", zoomOverride: 0.5, x: 1000, y: 1000 },
 
 
 };
@@ -10169,6 +10169,12 @@ function IdlePage() {
           <div onClick={() => setTab("melhorias")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer', opacity: 0.8 }}>
             <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>⚙️</div>
             <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Config.</span>
+          </div>
+
+          {/* Radar Zoom Controls */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "center", marginTop: "10px" }}>
+            <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} style={zoomBtn}>+</button>
+            <button onClick={() => setZoom(z => Math.max(0.1, z - 0.1))} style={zoomBtn}>−</button>
           </div>
         </div>
 
