@@ -1,4 +1,4 @@
-// kd oo quarto continent com o mapa que eu mandei
+// EU N VEJO O 4° CONTINENT COM A SENHA QUE PEDIR crie isso certo
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
