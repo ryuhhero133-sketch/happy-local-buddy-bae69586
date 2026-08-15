@@ -3040,10 +3040,10 @@ function IdlePage() {
                 ],
                 continente_4: [
                   { key: "c4-back", target: "arena", x: 60, y: 60, arriveX: 300, arriveY: 300, color: "#94a3b8" },
-                  { key: "c4-to-b", target: "continente_4_b", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: 100, arriveY: 100, color: "#f5cf6b", label: "Parte B" },
+                  { key: "c4-to-b", target: "continente_4_b", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: 100, arriveY: 100, color: "#f5cf6b" },
                 ],
                 continente_4_b: [
-                  { key: "c4b-back", target: "continente_4", x: 60, y: 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#94a3b8", label: "Parte A" },
+                  { key: "c4b-back", target: "continente_4", x: 60, y: 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#94a3b8" },
                 ],
 
               };
