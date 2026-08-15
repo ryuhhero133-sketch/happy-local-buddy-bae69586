@@ -12980,10 +12980,13 @@ function IdlePage() {
         const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "cadeia_ab", x: 20, y: 30 }, { id: "cadeia_ab1", x: 40, y: 50 }, { id: "cadeia_f1", x: 60, y: 70 },
           { id: "evento_myth", x: 80, y: 40 }, { id: "absol_start", x: 15, y: 80 }, { id: "governante_hall", x: 85, y: 85 },
+        ];
+        const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number }> = [
           { id: "continente_4", x: 50, y: 50 },
         ];
-        const bg = worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
-        const PINS = worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1);
+        const bg = worldTab === 4 ? mapValeDouradoImg : (worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset));
+        const PINS = worldTab === 4 ? WORLD_PINS_C4 : (worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1));
+
 
         const hasGov = (idle.items?.carta_governante ?? 0) > 0;
         return (
