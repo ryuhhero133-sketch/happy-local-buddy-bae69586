@@ -1,4 +1,4 @@
-// eu kero ese mapa ... e com neve
+// MAPA DO CONTINENTE 4 ATUALIZADO COM NOVA REFERÊNCIA FINAL
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
