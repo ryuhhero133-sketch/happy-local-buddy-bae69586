@@ -13007,13 +13007,33 @@ function IdlePage() {
                 <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🌏 MAPA MUNDI — CONT. {worldTab}</h2>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button 
-                    onClick={() => setWorldTab(t => t === 3 ? 1 : (t + 1) as 1|2|3)} 
+                    onClick={() => setWorldTab(1)} 
                     style={{ 
-                      background: "linear-gradient(135deg, #f5cf6b, #d9a441)", border: "none", 
-                      color: "#160a20", borderRadius: 8, padding: "6px 12px", 
+                      background: worldTab === 1 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
+                      border: "1px solid #f5cf6b", 
+                      color: worldTab === 1 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
                       fontWeight: 900, cursor: "pointer" 
                     }}
-                  >TROCAR CONTINENTE</button>
+                  >CONT. 1</button>
+                  <button 
+                    onClick={() => setWorldTab(2)} 
+                    style={{ 
+                      background: worldTab === 2 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
+                      border: "1px solid #f5cf6b", 
+                      color: worldTab === 2 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >CONT. 2</button>
+                  <button 
+                    onClick={() => setWorldTab(3)} 
+                    style={{ 
+                      background: worldTab === 3 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
+                      border: "1px solid #f5cf6b", 
+                      color: worldTab === 3 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      fontWeight: 900, cursor: "pointer" 
+                    }}
+                  >CONT. 3</button>
+
                   <button 
                     onClick={() => setWorldMapOpen(false)} 
                     style={{ 
