@@ -13062,7 +13062,7 @@ function IdlePage() {
               
               <div style={{ 
                 width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", 
-                background: `#000 url(${typeof bg === 'string' ? bg : bg.url}) center/cover no-repeat`, 
+                background: `#000 url(${typeof bg === 'string' ? bg : (bg as any).url}) center/cover no-repeat`, 
                 position: "relative", border: "2px solid rgba(245,207,107,0.3)" 
               }}>
                 {PINS.map(pin => {
