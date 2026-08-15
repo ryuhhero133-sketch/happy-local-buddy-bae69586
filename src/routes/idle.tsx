@@ -10171,13 +10171,13 @@ function IdlePage() {
             <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Config.</span>
           </div>
           </div>
-10174: 
-10175:           {/* Radar Zoom Controls */}
-10176:           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center', marginTop: '10px' }}>
-10177:             <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} style={zoomBtn}>+</button>
-10178:             <button onClick={() => setZoom(z => Math.max(0.1, z - 0.1))} style={zoomBtn}>−</button>
-10179:           </div>
-10180:         </div>
+
+          {/* Radar Zoom Controls */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "center", marginTop: "10px" }}>
+            <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} style={zoomBtn}>+</button>
+            <button onClick={() => setZoom(z => Math.max(0.1, z - 0.1))} style={zoomBtn}>−</button>
+          </div>
+        </div>
 
 
         {/* Dock Inferior Moderna */}
