@@ -87,9 +87,9 @@ import mapContinente4Asset from "@/assets/continent-4-map-v6.png.asset.json";
 import mapContinente4AssetV5 from "@/assets/continent-4-map-v7.png.asset.json";
 import mapContinente4AssetC from "@/assets/continent-4-map-part-c.png.asset.json";
 
-const mapContinente4Img = mapContinente4Asset.url;
-const mapContinente4BImg = mapContinente4AssetV5.url;
-const mapContinente4CImg = mapContinente4AssetC.url;
+const mapContinente4Img = assetUrlFromJson(mapContinente4Asset);
+const mapContinente4BImg = assetUrlFromJson(mapContinente4AssetV5);
+const mapContinente4CImg = assetUrlFromJson(mapContinente4AssetC);
 import mapTerraHornetJson from "@/assets/map-terra-hornet.jpg.asset.json";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
 import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
