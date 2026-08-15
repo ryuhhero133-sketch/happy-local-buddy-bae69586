@@ -576,7 +576,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
-  continente_4: { name: "Continente 4 (Gélido)", diff: "SECRETO", bg: mapSnowValleyImg, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Gelo", stars: 10, overlay: "rgba(160, 200, 255, 0.6)", zoomOverride: 0.8, x: 2000, y: 2000 },
+  continente_4: { name: "Continente 4 (Gélido)", diff: "SECRETO", bg: mapSnowValleyImg, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Gelo", stars: 10, overlay: "rgba(160, 200, 255, 0.4)", zoomOverride: 1.0, x: 2000, y: 2000 },
 
 
 };
