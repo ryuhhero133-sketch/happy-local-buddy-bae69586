@@ -81,8 +81,8 @@ import houseBankImg from "@/assets/house-bank.png";
 import houseGymImg from "@/assets/house-gym.png";
 import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
 import mapValeDouradoImg from "@/assets/map-vale-verdejante-ice.png";
-import mapContinente4Asset from "@/assets/map-floresta-secreta.png.asset.json";
-const mapContinente4Img = assetUrlFromJson(mapContinente4Asset);
+import mapSnowValleyAsset from "@/assets/map-snow-valley.png.asset.json";
+const mapSnowValleyImg = assetUrlFromJson(mapSnowValleyAsset);
 import mapTerraHornetJson from "@/assets/map-terra-hornet.jpg.asset.json";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
 import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
@@ -574,7 +574,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
   caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
   vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
-  continente_4: { name: "Continente 4", diff: "SECRETO", bg: mapContinente4Img, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Desconhecido", stars: 10, overlay: "rgba(100, 200, 100, 0.2)", zoomOverride: 0.8, x: 2000, y: 2000 },
+  continente_4: { name: "Continente 4 (Gélido)", diff: "SECRETO", bg: mapSnowValleyImg, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Gelo", stars: 10, overlay: "rgba(200, 230, 255, 0.45)", zoomOverride: 0.8, x: 2000, y: 2000 },
 
 
 };
