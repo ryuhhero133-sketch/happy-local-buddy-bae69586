@@ -1,4 +1,4 @@
-// me explica oq vc fez
+// crie um CONTINENT 4 , ONDE PARA ENTRA PRECISA POR UMA SENHA DE DIGITOS .. A SENHA SERA 333 .. NGM PODE SABER, AO ACERTAR O CODG, ELE ABRE. EU KRO ESSE MAPA LA, E EU KEROO ESSE MAPA BEM AJSTADO PARA PODRMOS VER ELE INTEIRO. OK ..PODER SE MOVER APOS LIBERAR O MAPA LA. PRECISA DEIXAR ALGO BEM BONITO.
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
