@@ -6812,7 +6812,7 @@ function IdlePage() {
       })() }
     : rawMap;
   const visibleBuildings = BUILDINGS;
-  const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#1a3d1a";
+  const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#000000";
 
   const collect = () => {
     setIdle((s) => {

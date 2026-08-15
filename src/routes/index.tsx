@@ -1,4 +1,4 @@
-// COLOQE O SEGUNDO MAPA NO CONTINENT 4. MESMA SENHA OK
+// EM VEZ DE APARECER O FUNDO VERDE, QD EU DIMINBUIR O ZOMM, DEXER O FUNDO PRETO OK
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
