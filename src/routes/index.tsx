@@ -1,4 +1,4 @@
-// todos mapa tela pteta veja oq houve
+// analise os erros do jogo,m e porque alguns mapá a tela preta e oturospokemons sunimiu
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
