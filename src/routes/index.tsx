@@ -1,4 +1,4 @@
-// analisa ai o mapa mundi e todos contnt, tela preta
+// todos mapa tela pteta veja oq houve
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
