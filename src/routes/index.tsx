@@ -1,4 +1,4 @@
-// MAPAS DO CONTINENTE 4 ATUALIZADOS PARA USAR ASSETS DIRETOS SEM EXPIRAÇÃO.
+// analisa ai o mapa mundi e todos contnt, tela preta
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
