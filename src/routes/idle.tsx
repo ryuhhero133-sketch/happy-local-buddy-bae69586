@@ -87,7 +87,7 @@ import mapContinente4Asset from "@/assets/continent-4-map-v6.png.asset.json";
 import mapContinente4AssetV5 from "@/assets/continent-4-map-v7.png.asset.json";
 import mapContinente4AssetC from "@/assets/continent-4-map-part-c.png.asset.json";
 
-const mapContinente4Img = "https://dxlutyeqirjgnjhsqorv.supabase.co/storage/v1/object/sign/lovafluxo-attachments/attachments/2a2c5e39-1dd1-42ae-a2e4-a7de649b45a5/2026/08/16/5f59cad9-1f8a-4514-bd85-1200a5c4c411-image.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MjFhOGEzNC03OWFhLTQ0ODEtOTI5NC02ZjljNTlhOTA0YzYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsb3ZhZmx1eG8tYXR0YWNobWVudHMvYXR0YWNobWVudHMvMmEyYzVlMzktMWRkMS00MmFlLWEyZTQtYTdkZTY0OWI0NWE1LzIwMjYvMDgvMTYvNWY1OWNhZDktMWY4YS00NTE0LWJkODUtMTIwMGE1YzRjNDExLWltYWdlLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODY4NDM1OTIsImV4cCI6MTc4Njg0NDQ5Mn0.FbJ_YIcl7hBcfxV0wlZnU4Mj7qZMxW0V-pmI8GmPtek";
+const mapContinente4Img = assetUrlFromJson(mapContinente4Asset);
 const mapContinente4BImg = assetUrlFromJson(mapContinente4AssetV5);
 const mapContinente4CImg = assetUrlFromJson(mapContinente4AssetC);
 import mapTerraHornetJson from "@/assets/map-terra-hornet.jpg.asset.json";
