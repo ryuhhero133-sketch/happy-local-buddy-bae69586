@@ -1,4 +1,4 @@
-// ME EXPLICA COMO RESOLVO ISSO
+// MAPAS DO CONTINENTE 4 ATUALIZADOS PARA USAR ASSETS DIRETOS SEM EXPIRAÇÃO.
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
