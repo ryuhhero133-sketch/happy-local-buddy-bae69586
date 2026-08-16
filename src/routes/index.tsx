@@ -1,4 +1,4 @@
-// ADICIONADO O MAPA PARTE C AO CONTINENTE 4 COM ACESSO VIA PORTAL NA PARTE B.
+// ME EXPLICA COMO RESOLVO ISSO
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
