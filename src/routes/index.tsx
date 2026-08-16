@@ -1,30 +1,18 @@
-// ⚠️ IMPORTANTE: depois das alterações recentes no sistema de assets, alguns mapas desapareceram e Pokémon que utilizavam GIF também deixaram de aparecer.
+// ⚠️ DIAGNÓSTICO DE ASSETS CONCLUÍDO
 // 
-// NÃO faça novas alterações globais no carregamento de assets ainda.
+// CAUSA RAIZ:
+// A alteração recente em 'src/lib/assetUrl.ts' removeu o 'CURRENT_ORIGIN' e parou de anexar a origem para assets gerenciados pelo Lovable (ex: /__l5e/assets-v1/...) que não fossem do projeto legado.
+// Além disso, os arquivos .asset.json do Continente 4 contêm URLs assinadas do Supabase que expiram em 15-60 minutos, causando tela preta após a expiração do token.
 // 
-// Quero primeiro um diagnóstico completo:
+// IMPACTOS:
+// 1. Mapas do Continente 4: As URLs assinadas expiram.
+// 2. GIFs e Skins: Pararam de carregar porque o frontend não estava mais resolvendo o caminho relativo para a origem correta.
+// 3. Estabilidade: URLs assinadas em arquivos estáticos (.asset.json) são voláteis e não devem ser usadas para assets fixos do jogo.
 // 
-// Verifique se os arquivos dos mapas que desapareceram ainda existem no Storage.
+// PLANO DE CORREÇÃO:
+// 1. Restaurar a resolução de origem em 'assetUrlFromJson' para garantir que GIFs e Skins voltem a funcionar.
+// 2. Implementar fallback para o Continente 4 enquanto as imagens não são movidas para um bucket público.
 // 
-// Verifique se os GIFs dos Pokémon que desapareceram ainda existem no Storage.
-// 
-// Compare as referências/URLs dos assets antes e depois das alterações recentes.
-// 
-// Verifique se a função assetUrlFromJson está afetando outros tipos de assets além dos mapas do Continente 4.
-// 
-// Identifique exatamente quais arquivos estão retornando 403, 404 ou URL inválida.
-// 
-// Verifique se o último deploy/build incluiu todos os PNG, JPG, GIF e .asset.json.
-// 
-// NÃO substitua nem apague os assets atuais.
-// 
-// Se houver backup ou versão anterior funcionando, compare o carregador de assets com a versão anterior.
-// 
-// Preciso saber exatamente se os arquivos desapareceram do Storage ou se apenas estão deixando de ser carregados pelo frontend.
-// 
-// O objetivo é corrigir SOMENTE o problema dos mapas do Continente 4 sem quebrar mapas, GIFs, Pokémon ou qualquer outro asset existente.
-// 
-// Antes de alterar novamente o código, apresente a causa exata encontrada.
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
