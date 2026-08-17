@@ -1820,35 +1820,41 @@ function IdlePage() {
   const [maximizeTeam, setMaximizeTeam] = useState(false);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
-  // Manutenção Season: Desloga jogadores não-admins
+  // Manutenção Season: só derruba quando o servidor responder EXPLICITAMENTE "true".
+  // (Antes, qualquer falha de rede/leitura vazia caía no "!config" e deslogava TODOS
+  // os jogadores a cada 60s — era a causa real das desconexões em massa.)
   useEffect(() => {
+    if (!identity) return;
+    let stop = false;
     const checkMaintenance = async () => {
       const email = identity?.email?.trim().toLowerCase();
-      const isAdmin = email === "lordryuhhhuyuyghh@gmail.com" || 
+      const isAdmin = email === "lordryuhhhuyuyghh@gmail.com" ||
                       identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-      
+
       if (isAdmin) return;
 
       try {
-        const { data: config } = await (supabase as any)
+        const { data: config, error } = await (supabase as any)
           .from("server_config")
           .select("value")
           .eq("key", "maintenance_mode")
           .maybeSingle();
-        
-        // Ativamos por padrão se falhar ou se for explicitamente 'true'
-        if (config?.value === "true" || config?.value === true || !config) {
+
+        if (stop || error || !config) return; // fail-open: nunca desloga por erro/ausência
+        const v = config.value;
+        if (v === true || v === "true") {
           signOutRubyM();
           navigate({ to: "/" });
         }
       } catch (e) {
-        console.warn("Erro ao checar manutenção", e);
+        console.warn("Erro ao checar manutenção (ignorado)", e);
       }
     };
     checkMaintenance();
     const iv = setInterval(checkMaintenance, 60000);
-    return () => clearInterval(iv);
+    return () => { stop = true; clearInterval(iv); };
   }, [identity, navigate]);
+
 
   const [targetPet, setTargetPet] = useState<Enemy | null>(null);
 
