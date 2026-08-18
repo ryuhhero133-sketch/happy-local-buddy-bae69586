@@ -15184,7 +15184,6 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-      {tab === "market" && (
         <MarketScreen
           items={items}
           bank={bank}
