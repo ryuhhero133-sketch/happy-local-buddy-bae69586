@@ -10317,7 +10317,7 @@ function IdlePage() {
 
         </div>
       </div>
-    </div>
+
 
 
     {(tab !== "batalha" && tab !== "inicio") && (
