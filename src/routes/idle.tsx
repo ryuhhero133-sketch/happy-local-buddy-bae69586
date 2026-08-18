@@ -9866,7 +9866,7 @@ function IdlePage() {
               onClaimMarketPayout={claimMarketPayout}
               isVip={isVip()}
               pokemonMarketNode={
-                <div style={{ position: "absolute", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fca5a5", textAlign: "center", padding: 40, border: "2px solid #ef4444" }}><div><h2 style={{ fontSize: 32 }}>🔒 MERCADO BLOQUEADO</h2><p>O mercado global está em manutenção e foi desativado.</p></div></div><PokemonMarketPanel
+                <div
                   identity={identity}
                   collection={idle.collection ?? []}
                   gold={idle.bank.gold}
