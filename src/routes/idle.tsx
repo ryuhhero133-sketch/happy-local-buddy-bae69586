@@ -10948,9 +10948,8 @@ function IdlePage() {
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
-             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
-            // Carteira bloqueada temporariamente
-            // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
+            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
+            { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b" },
           ] as const).map((t) => {
 
             const active = tab === t.id;
