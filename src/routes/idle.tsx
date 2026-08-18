@@ -932,10 +932,10 @@ type IdleState = {
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
-  trainerStats?: { atk: number; def: number; hp: number; spe: number; crit: number; elemental?: Record<string, number> }; // Melhorias permanentes via Safiras
+  trainerStats?: { atk: number; def: number; hp: number; spe: number; crit: number; elemental: Record<string, number> }; // Melhorias permanentes via Safiras
   // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
 ...
-        const tStats: { atk: number; def: number; hp: number; spe: number; crit: number; elemental?: Record<string, number> } = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0, elemental: {} };
+        const tStats: { atk: number; def: number; hp: number; spe: number; crit: number; elemental: Record<string, number> } = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0, elemental: {} };
 
         const redDiamonds = items.crystal_red || 0;
         const totalBooks = (items.book_atk || 0) + (items.book_def || 0) + (items.book_exp || 0);
@@ -948,7 +948,8 @@ type IdleState = {
           if (typeof playClick === 'function') playClick();
           setIdle(prev => {
             const currentStats = prev.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0, elemental: {} };
-            const nextStats = { ...currentStats };
+            const nextStats = { ...currentStats } as any;
+
             // Ensure elemental is initialized
             if (!nextStats.elemental) nextStats.elemental = {};
 
@@ -991,11 +992,12 @@ type IdleState = {
         ];
 
         const elementalStats = [
-          { key: "fire", label: "FOGO", val: Number(tStats.elemental?.fire || 0), icon: "🔥", color: "#ff8c00", desc: "Reduz dano de fogo e aumenta dano contra grama.", bonus: "+2% Res" },
-          { key: "water", label: "ÁGUA", val: Number(tStats.elemental?.water || 0), icon: "💧", color: "#00bfff", desc: "Reduz dano de água e aumenta dano contra fogo.", bonus: "+2% Res" },
-          { key: "grass", label: "GRAMA", val: Number(tStats.elemental?.grass || 0), icon: "🌿", color: "#32cd32", desc: "Reduz dano de grama e aumenta dano contra água.", bonus: "+2% Res" },
-          { key: "electric", label: "RAIO", val: Number(tStats.elemental?.electric || 0), icon: "⚡", color: "#ffff00", desc: "Reduz dano elétrico e aumenta dano contra água.", bonus: "+2% Res" },
-          { key: "dark", label: "DARK", val: Number(tStats.elemental?.dark || 0), icon: "🌑", color: "#707070", desc: "Aumenta resistência a maldições e ataques noturnos.", bonus: "+2% Res" },
+          { key: "fire", label: "FOGO", val: Number(tStats.elemental.fire || 0), icon: "🔥", color: "#ff8c00", desc: "Reduz dano de fogo e aumenta dano contra grama.", bonus: "+2% Res" },
+          { key: "water", label: "ÁGUA", val: Number(tStats.elemental.water || 0), icon: "💧", color: "#00bfff", desc: "Reduz dano de água e aumenta dano contra fogo.", bonus: "+2% Res" },
+          { key: "grass", label: "GRAMA", val: Number(tStats.elemental.grass || 0), icon: "🌿", color: "#32cd32", desc: "Reduz dano de grama e aumenta dano contra água.", bonus: "+2% Res" },
+          { key: "electric", label: "RAIO", val: Number(tStats.elemental.electric || 0), icon: "⚡", color: "#ffff00", desc: "Reduz dano elétrico e aumenta dano contra água.", bonus: "+2% Res" },
+          { key: "dark", label: "DARK", val: Number(tStats.elemental.dark || 0), icon: "🌑", color: "#707070", desc: "Aumenta resistência a maldições e ataques noturnos.", bonus: "+2% Res" },
+
         ];
 
 
