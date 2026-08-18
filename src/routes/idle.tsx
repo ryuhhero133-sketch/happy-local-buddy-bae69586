@@ -5546,9 +5546,7 @@ function IdlePage() {
       const col = s.collection ?? [];
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
-      const frozen = !!s.redeemedCodes?.RANKED_RUBY_KEY_CRAFT;
-      const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
-      const gain = frozen ? 0 : baseGain;
+      const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
       const isEvent = entry.event === "oddish_odyssey";
       const safiraGain = isEvent ? (entry.species === "oddish_shiny" ? 20 : (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1)) : 0;
       // 🌿 Craft de Oddish/Oddish Shiny devolve Stone Verdejante (varia por raridade)
@@ -7358,46 +7356,8 @@ function IdlePage() {
           </div>
         </div>
       )}
-      {/* ❄️ Overlay de Congelamento — ativo quando a Chave Ruby do Ranked CRAFT foi coletada. */}
-      {idle.redeemedCodes?.RANKED_RUBY_KEY_CRAFT && (
-        <>
-          <style>{`
-            @keyframes rm-ice-drift { 0%{background-position:0 0,0 0} 100%{background-position:600px 400px,-500px 350px} }
-            @keyframes rm-ice-pulse { 0%,100%{opacity:.55} 50%{opacity:.85} }
-            @keyframes rm-ice-shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
-          `}</style>
-          <div style={{
-            position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9998,
-            background: `
-              radial-gradient(1200px 800px at 50% 50%, rgba(180,230,255,0.0) 0%, rgba(120,200,255,0.18) 55%, rgba(60,140,220,0.32) 100%),
-              repeating-linear-gradient(45deg, rgba(200,240,255,0.06) 0 3px, transparent 3px 12px),
-              repeating-linear-gradient(-45deg, rgba(160,220,255,0.05) 0 2px, transparent 2px 10px)
-            `,
-            backgroundSize: "auto, 24px 24px, 20px 20px",
-            animation: "rm-ice-drift 40s linear infinite, rm-ice-pulse 4s ease-in-out infinite",
-            boxShadow: "inset 0 0 220px 60px rgba(120,200,255,0.35), inset 0 0 60px 20px rgba(200,240,255,0.5)",
-            mixBlendMode: "screen",
-          }} />
-          {/* Bordas de cristal */}
-          <div style={{
-            position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9999,
-            border: "6px solid transparent",
-            borderImage: "linear-gradient(135deg, rgba(200,240,255,0.9), rgba(90,170,230,0.5), rgba(200,240,255,0.9)) 1",
-            boxShadow: "inset 0 0 40px rgba(180,230,255,0.6)",
-          }} />
-          {/* Badge congelado */}
-          <div style={{
-            position: "fixed", top: 8, left: "50%", transform: "translateX(-50%)", zIndex: 10000,
-            padding: "5px 14px", borderRadius: 999,
-            background: "linear-gradient(90deg, rgba(30,80,140,0.85), rgba(120,200,255,0.85), rgba(30,80,140,0.85))",
-            border: "1px solid rgba(200,240,255,0.75)",
-            color: "#e8f7ff", fontWeight: 900, fontSize: 11, letterSpacing: 1.2,
-            textShadow: "0 0 8px rgba(200,240,255,0.9)",
-            boxShadow: "0 0 18px rgba(120,200,255,0.7)",
-            pointerEvents: "none",
-          }}>❄ RANKED CRAFT CONGELADO — PONTOS BLOQUEADOS ❄</div>
-        </>
-      )}
+      {/* ❄️ Overlay de Congelamento REMOVIDO */}
+
 
       {(() => {
         const cornerOrn = (pos: "tl"|"tr"|"bl"|"br"): React.CSSProperties => ({
@@ -14584,7 +14544,7 @@ function TabOverlay({
 
 
       {tab === "loja" && (
-        <div>
+        <div style={{ paddingBottom: 60 }}>
           <div style={{
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -14798,6 +14758,59 @@ function TabOverlay({
                       background: `${e.color}dd`, opacity: 0.6, borderRadius: 2, transform: "rotate(-8deg)",
                     }} />
                     <div style={{
+                      position: "absolute", bottom: 12, right: 12, width: 6, height: 6,
+                      background: "#fff", opacity: 0.4, borderRadius: "50%",
+                    }} />
+                  </div>
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>{e.name}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{e.desc}</div>
+                  <div style={{ fontSize: 12, color: e.currency === "gold" ? "#f4c430" : "#c084fc", fontWeight: 700 }}>
+                    {e.currency === "gold" ? `● ${e.price} ouro` : `💎 ${e.price} cristais`}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <button
+                    onClick={() => onBuyEgg(e)}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800, fontSize: 12,
+                      background: canBuy ? e.color : "#3a2a4a", color: canBuy ? "#0b0510" : "#6a5a7c",
+                      border: "none", borderRadius: 6, cursor: canBuy ? "pointer" : "not-allowed",
+                    }}
+                  >{canBuy ? "COMPRAR OVO" : e.currency === "gold" ? "SEM OURO" : "SEM CRISTAIS"}</button>
+                </div>
+              );
+            })}
+          </div>
+
+          <h3 style={{ color: "#6bd4ff", fontSize: 15, margin: "6px 0 10px" }}>Amuletos</h3>
+          <div style={{
+            background: "linear-gradient(160deg, #0f1f2e 0%, #16324a 100%)",
+            border: "1px solid #6bd4ff55", borderRadius: 12, padding: 14, marginBottom: 20,
+            display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+          }}>
+            <img src={chestAmuletImg} alt="" width={64} height={64} style={{ imageRendering: "pixelated" }} />
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div style={{ fontWeight: 800, color: "#eadfe8" }}>Amuleto do Caçador de Tesouros</div>
+              <div style={{ fontSize: 11, color: "#b8a8c8" }}>Dobra as recompensas de ouro e cristais ao abrir baús no mapa.</div>
+              <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● 250.000 ouro</div>
+              <div style={{ fontSize: 11, color: "#8a7a9c" }}>Status: {chestAmuletOwned ? "Adquirido ✅" : "Não possuído ❌"}</div>
+            </div>
+            <button
+              onClick={() => onBuyChestAmulet()}
+              disabled={chestAmuletOwned > 0 || bank.gold < 250000}
+              style={{
+                minWidth: 140, padding: "10px 14px", fontWeight: 800, fontSize: 12,
+                background: (chestAmuletOwned === 0 && bank.gold >= 250000) ? "#6bd4ff" : "#3a2a4a",
+                color: (chestAmuletOwned === 0 && bank.gold >= 250000) ? "#0b0510" : "#6a5a7c",
+                border: "none", borderRadius: 6, cursor: (chestAmuletOwned === 0 && bank.gold >= 250000) ? "pointer" : "not-allowed",
+              }}
+            >
+              {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
+            </button>
+          </div>
+        </div>
+      )}
+
                       position: "absolute", top: 40, left: 8, right: 14, height: 3,
                       background: `${e.color}dd`, opacity: 0.5, borderRadius: 2, transform: "rotate(6deg)",
                     }} />
@@ -15174,7 +15187,6 @@ function TabOverlay({
 
       {tab === "market" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {pokemonMarketNode}
           <MarketScreen
             items={items}
             bank={bank}
@@ -15189,6 +15201,7 @@ function TabOverlay({
           />
         </div>
       )}
+
 
 
 
