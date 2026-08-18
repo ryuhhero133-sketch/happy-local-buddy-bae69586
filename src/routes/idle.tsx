@@ -2267,7 +2267,7 @@ function IdlePage() {
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
-  const [worldTab, setWorldTab] = useState<1 | 2 | 3>(1);
+  const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
   const [pendingGate, setPendingGate] = useState<null | { target: string; gate: any; fromBig: boolean }>(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
@@ -10386,11 +10386,26 @@ function IdlePage() {
                     const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
                       { id: "continent3_map1" as IdleMapId, x: 25, y: 35 },
                       { id: "continent3_map2" as IdleMapId, x: 65, y: 55 },
+                      { id: "fosso_cristal" as IdleMapId, x: 40, y: 25 },
+                      { id: "vale_ruby" as IdleMapId, x: 60, y: 25 },
+                      { id: "ilha_safira" as IdleMapId, x: 50, y: 75 },
                     ];
                     const activeTab = worldTab;
-                    const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3;
-                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : activeTab === 2 ? worldMapContinent2Url : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop";
-                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : "🌋 NOVAS FRONTEIRAS · CONTINENTE III";
+                    const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type?: "crystal" | "ruby" | "safira" }> = [
+                      { id: "mapa_c4_1" as IdleMapId, x: 20, y: 20, type: "crystal" },
+                      { id: "mapa_c4_2" as IdleMapId, x: 30, y: 20, type: "crystal" },
+                      { id: "mapa_c4_3" as IdleMapId, x: 25, y: 35, type: "crystal" },
+                      { id: "mapa_c4_4" as IdleMapId, x: 50, y: 40, type: "ruby" },
+                      { id: "mapa_c4_5" as IdleMapId, x: 60, y: 40, type: "ruby" },
+                      { id: "mapa_c4_6" as IdleMapId, x: 55, y: 55, type: "ruby" },
+                      { id: "mapa_c4_7" as IdleMapId, x: 80, y: 70, type: "safira" },
+                      { id: "mapa_c4_8" as IdleMapId, x: 90, y: 70, type: "safira" },
+                      { id: "mapa_c4_9" as IdleMapId, x: 85, y: 85, type: "safira" },
+                      { id: "mapa_c4_10" as IdleMapId, x: 75, y: 78, type: "safira" },
+                    ];
+                    const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
+                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : "https://images.unsplash.com/photo-1614728263952-84ea206f99b6?q=80&w=1536&h=1024&auto=format&fit=crop";
+                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
                     return (
@@ -10434,6 +10449,7 @@ function IdlePage() {
                               { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
                               { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
                               { id: 3 as const, label: "🌋 Continente III", sub: "Novas Fronteiras (Bônus)" },
+                              { id: 4 as const, label: "🌌 Continente IV", sub: "Profundezas Abissais (Em Breve)" },
                             ]).map((t) => {
                               const active = worldTab === t.id;
                               const locked = t.id === 2 && !hasGovCard;
@@ -10463,16 +10479,62 @@ function IdlePage() {
                             })}
                           </div>
                           <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: `2px solid ${activeTab === 2 ? "#a06de0" : "#7a5a20"}`, boxShadow: activeTab === 2 ? "inset 0 0 60px rgba(120,60,180,0.6)" : "inset 0 0 40px rgba(0,0,0,0.6)" }}>
-                            <img
-                              src={bgUrl}
-                              alt={tabTitle}
-                              loading="lazy"
-                              width={1536}
-                              height={1024}
-                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                            />
-                            {WORLD_PINS.map((pin) => {
-                              const m = IDLE_MAPS[pin.id];
+                                {activeTab === 4 && (
+                                  <div style={{ position: "absolute", bottom: 20, left: 20, display: "flex", alignItems: "center", gap: 12, background: "rgba(11,5,16,0.9)", border: "2px solid #f5cf6b", borderRadius: 12, padding: "10px 16px", boxShadow: "0 0 30px rgba(0,0,0,0.8)", zIndex: 10 }}>
+                                    <div style={{ width: 48, height: 48, background: `url(${npcOakSprite}) center/contain no-repeat`, filter: "drop-shadow(0 0 8px #f5cf6b)" }} />
+                                    <div style={{ display: "flex", flexDirection: "column" }}>
+                                      <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 13 }}>CARVALHO ABISSAL</div>
+                                      <div style={{ color: "#fff", fontSize: 11, maxWidth: 300, lineHeight: 1.4 }}>
+                                        "Treinador, este continente ainda está envolto em névoas abissais... 10 novas áreas foram detectadas, mas o acesso está selado por enquanto."
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                {bgUrl && (
+                                  <img
+                                    src={bgUrl}
+                                    alt={tabTitle}
+                                    loading="lazy"
+                                    width={1536}
+                                    height={1024}
+                                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                  />
+                                )}
+                            {WORLD_PINS.map((pin: any) => {
+                              const m = IDLE_MAPS[pin.id as keyof typeof IDLE_MAPS];
+                              if (activeTab === 4) {
+                                const obsidianColor = "#1a0f26";
+                                const glowColor = pin.type === "crystal" ? "#00f2ff" : pin.type === "ruby" ? "#ff2a2a" : "#4a9eff";
+                                const label = pin.type === "crystal" ? "ÁREA DE CRISTAL" : pin.type === "ruby" ? "ÁREA DE RUBY" : "ÁREA DE SAFIRA";
+                                
+                                return (
+                                  <div key={pin.id} style={{ position: "absolute", left: `${pin.x}%`, top: `${pin.y}%`, transform: "translate(-50%,-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                    <div 
+                                      className="obsidian-point"
+                                      style={{
+                                        width: 24, height: 24, background: obsidianColor, border: `2px solid ${glowColor}`, borderRadius: "4px",
+                                        transform: "rotate(45deg)", boxShadow: `0 0 15px ${glowColor}, inset 0 0 8px rgba(0,0,0,0.8)`,
+                                        display: "flex", alignItems: "center", justifyContent: "center"
+                                      }}
+                                    >
+                                      <div style={{ width: 8, height: 8, background: glowColor, borderRadius: "50%", boxShadow: `0 0 10px ${glowColor}` }} />
+                                    </div>
+                                    <div style={{ 
+                                      background: "rgba(0,0,0,0.8)", border: `1px solid ${glowColor}`, borderRadius: 4, 
+                                      padding: "2px 6px", fontSize: 9, fontWeight: 900, color: glowColor, whiteSpace: "nowrap",
+                                      textShadow: `0 0 4px ${glowColor}`
+                                    }}>
+                                      🔒 {label}
+                                    </div>
+                                    {/* Linha de liberação (decorativa) */}
+                                    <div style={{
+                                      position: "absolute", width: 40, height: 2, background: `linear-gradient(90deg, ${glowColor}, transparent)`,
+                                      left: 20, top: 12, transformOrigin: "left center", opacity: 0.4
+                                    }} />
+                                  </div>
+                                );
+                              }
+
                               if (!m) return null;
                               const ok = true; // Ignora requisito de nível conforme pedido do usuário
                               const current = idle.currentMap === pin.id;
