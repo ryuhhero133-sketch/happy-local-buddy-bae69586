@@ -10099,6 +10099,13 @@ function IdlePage() {
                 gelius2: [
                   { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
+                continent3_map1: [
+                  { key: "c3m1-back", target: "nucleo_primordial", x: 60, y: WORLD_H / 2, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#f0abfc" },
+                  { key: "c3m1-next", target: "continent3_map2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#b45adc" },
+                ],
+                continent3_map2: [
+                  { key: "c3m2-back", target: "continent3_map1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#ff5f2d" },
+                ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
