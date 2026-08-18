@@ -4768,12 +4768,12 @@ function IdlePage() {
         randomSummary = Object.entries(rollCount)
           .map(([k, v]) => `+${v} ${statLabel[k]}`);
         const updated = { ...l, ascensionStats: asc };
-        return [{ ...updated, hp: calcIdleMaxHp(updated) }, ...tm.slice(1)];
+        return [{ ...updated, hp: calcIdleMaxHp(updated, idleRef.current.trainerStats) }, ...tm.slice(1)];
       });
       // cura ao subir de nível — chamada após setTeam, mas leaderHp é reset pelo maxHp novo
       setTimeout(() => {
         const cur = team[0];
-        if (cur) setLeaderHp(calcIdleMaxHp({ ...cur, level: lv, ascensionStats: { ...(cur.ascensionStats ?? {}) } }));
+        if (cur) setLeaderHp(calcIdleMaxHp({ ...cur, level: lv, ascensionStats: { ...(cur.ascensionStats ?? {}) } }, idleRef.current.trainerStats));
       }, 0);
       pushFxAt(trainerPos.x, trainerPos.y - 70, `LV ${lv}!`, "xp");
       pushFxAt(trainerPos.x, trainerPos.y - 100, `✨ BÔNUS +${statLabel[bonusStat]}`, "gold");
@@ -4993,7 +4993,7 @@ function IdlePage() {
           tries++;
         } while (collidesWithAny(x, y) && tries < 20);
         const petA = makePet(pick.sp, pick.level);
-        const hp = Math.floor(calcIdleMaxHp(petA) * 5);
+        const hp = Math.floor(calcIdleMaxHp(petA, idleRef.current.trainerStats) * 5);
         return [
           ...prev,
           { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left",
@@ -6878,7 +6878,7 @@ function IdlePage() {
       if (tm.some((x) => x.uid === uid)) return tm.map((x) => x.uid === uid ? refreshed : x);
       if (tm.length >= 6) return tm;
       const next = [...tm, refreshed];
-      if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
+      if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed, idleRef.current.trainerStats));
       return next;
     });
     pushChat(`⚡ ${pet.species.toUpperCase()} descansou instantaneamente (-${AZUL_REST_COST}💎)`, "info");
@@ -6938,7 +6938,7 @@ function IdlePage() {
         if (tm.some((x) => x.uid === uid)) return tm;
         if (tm.length >= 6) return tm;
         const next = [...tm, refreshed];
-        if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
+        if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed, idleRef.current.trainerStats));
         return next;
       });
       pushChat(`⚡ ${refreshed.species.toUpperCase()} voltou ao time com energia cheia!`, "cap");
