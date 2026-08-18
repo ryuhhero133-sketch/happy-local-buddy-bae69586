@@ -14291,7 +14291,9 @@ function TabOverlay({
                   epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
                 };
                 const rColor = rarityColor[entry.rarity] ?? "#8b6a30";
-                const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
+                const frozen = !!s.redeemedCodes?.RANKED_RUBY_KEY_CRAFT;
+      const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
+      const gain = frozen ? 0 : baseGain;
                 const locked = lockedSet.has(entry.uid);
                  const traits = entry.traits ?? [];
                  const fragDisabled = inTeam || locked;
