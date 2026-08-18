@@ -14930,6 +14930,7 @@ function TabOverlay({
           </div>
 
           {orbPicker && (() => {
+            const op = orbPicker;
             // Exclui Pokémon do time e travados — evita "não consome / orb infinito"
             // quando o jogador tenta trocar um Pokémon que está em uso.
             const eligible = collection.filter((c) =>
