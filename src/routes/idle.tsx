@@ -10375,10 +10375,14 @@ function IdlePage() {
                       { id: "absol_start" as IdleMapId, x: 18, y: 45 },
                       { id: "governante_hall" as IdleMapId, x: 52, y: 55 },
                     ];
+                    const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
+                      { id: "continent3_map1" as IdleMapId, x: 25, y: 35 },
+                      { id: "continent3_map2" as IdleMapId, x: 65, y: 55 },
+                    ];
                     const activeTab = worldTab;
-                    const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : WORLD_PINS_C2;
-                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : worldMapContinent2Url;
-                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : "👑 TEMPLO DO GOVERNANTE · CONTINENTE II";
+                    const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3;
+                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : activeTab === 2 ? worldMapContinent2Url : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop";
+                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : "🌋 NOVAS FRONTEIRAS · CONTINENTE III";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
                     return (
