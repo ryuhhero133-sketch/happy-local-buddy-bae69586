@@ -1143,8 +1143,10 @@ function applyTrainerXp(s: IdleState, gained: number): { state: IdleState; level
 }
 
 const IDLE_HP_MULT = 6;
-function calcIdleMaxHp(pet: PetInstance) {
-  return calcMaxHp(pet) * IDLE_HP_MULT;
+function calcIdleMaxHp(pet: PetInstance, trainerStats?: { hp: number }) {
+  const baseHp = calcMaxHp(pet) * IDLE_HP_MULT;
+  const trainerBonus = (trainerStats?.hp ?? 0) * 50; // Cada safira de HP dá 50 de vida
+  return baseHp + trainerBonus;
 }
 
 function highLevelEnemyHpMult(enemyLevel: number, leaderLevel: number) {
