@@ -10467,7 +10467,7 @@ function IdlePage() {
                             {WORLD_PINS.map((pin) => {
                               const m = IDLE_MAPS[pin.id];
                               if (!m) return null;
-                              const ok = trainerLv >= m.minLevel;
+                              const ok = true; // Ignora requisito de nível conforme pedido do usuário
                               const current = idle.currentMap === pin.id;
                               return (
                                 <button
