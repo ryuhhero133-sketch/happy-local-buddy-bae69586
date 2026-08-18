@@ -1,4 +1,6 @@
-import { PetInstance } from "../types/game";
+import { PetInstance } from "../lib/game-logic";
+
+export interface PetInstanceLocal extends PetInstance {}
 
 export const SHOP_BOOKS = [
   { id: "exp_mult", name: "Livro de Experiência", price: 100, desc: "Aumenta o XP ganho em 50% por 1 hora.", currency: "crystals" as const },
