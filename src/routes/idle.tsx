@@ -1295,7 +1295,7 @@ function getMultiplayerSessionId(baseId: string) {
 }
 
 // ============ Route ============
-export const Route = createFileRoute("/idle")({
+export const Route = createFileRoute("/idle")({ // ADMIN_LOCKS_V2
   head: () => ({
     meta: [
       { title: "Modo Idle — Ruby M" },
