@@ -10421,6 +10421,7 @@ function IdlePage() {
                             {([
                               { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
                               { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
+                              { id: 3 as const, label: "🌋 Continente III", sub: "Novas Fronteiras (Bônus)" },
                             ]).map((t) => {
                               const active = worldTab === t.id;
                               const locked = t.id === 2 && !hasGovCard;
