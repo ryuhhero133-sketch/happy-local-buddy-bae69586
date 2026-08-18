@@ -1785,15 +1785,15 @@ function IdlePage() {
       if (idx >= 0) {
         const arr = [...tm];
         const [p] = arr.splice(idx, 1);
-        setLeaderHp(calcIdleMaxHp(p));
+        setLeaderHp(calcIdleMaxHp(p, idle.trainerStats));
         return [p, ...arr];
       }
       if (tm.length >= 6) {
         const arr = tm.slice(0, 4);
-        setLeaderHp(calcIdleMaxHp(newPet));
+        setLeaderHp(calcIdleMaxHp(newPet, idle.trainerStats));
         return [newPet, ...arr];
       }
-      setLeaderHp(calcIdleMaxHp(newPet));
+      setLeaderHp(calcIdleMaxHp(newPet, idle.trainerStats));
       return [newPet, ...tm];
     });
     setTab("batalha");
@@ -9838,7 +9838,7 @@ function IdlePage() {
               onClose={() => setTab("batalha")}
               leader={team[0]}
               team={team}
-              onReorderTeam={(nt) => { setTeam(nt); if (nt[0]) setLeaderHp(calcIdleMaxHp(nt[0])); }}
+              onReorderTeam={(nt) => { setTeam(nt); if (nt[0]) setLeaderHp(calcIdleMaxHp(nt[0], idle.trainerStats)); }}
               leaderHp={leaderHp}
               items={idle.items}
               caughtSpecies={idle.caughtSpecies}
