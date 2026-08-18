@@ -3374,7 +3374,7 @@ function IdlePage() {
   const [rankLoading, setRankLoading] = useState(false);
   const [rankMode, setRankMode] = useState<RankMode>("trainer");
 
-  // Hotkeys: M = mapa mundi, R = ranking, B = mochila, C = coleção. ESC fecha mapa/rank.
+  // Hotkeys: M = mapa mundi, B = mochila, C = coleção. Ranking permanece bloqueado.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -3387,7 +3387,7 @@ function IdlePage() {
       }
       const k = e.key.toLowerCase();
       if (k === "m") { e.preventDefault(); setWorldMapOpen((v) => !v); return; }
-      if (k === "r") { e.preventDefault(); setRankOpen((v) => !v); return; }
+      if (k === "r") { e.preventDefault(); pushChat("🏆 Ranked temporariamente bloqueado.", "info"); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
     };
@@ -7860,7 +7860,7 @@ function IdlePage() {
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
-              onClick={() => { playClick(); setRankOpen(true); }}
+              onClick={() => { playClick(); pushChat("🏆 Ranked temporariamente bloqueado.", "info"); }}
               style={{
                 ...zoomBtn,
                 padding: 0,
@@ -7870,8 +7870,10 @@ function IdlePage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                opacity: 0.45,
+                cursor: "not-allowed",
               }}
-              title="Ranking — Top 20 níveis"
+              title="Ranked bloqueado"
             >
               <img
                 src={assetUrlFromJson(trophyIconAsset)}
@@ -10946,7 +10948,7 @@ function IdlePage() {
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
-            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d" },
+             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
             // Carteira bloqueada temporariamente
             // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
           ] as const).map((t) => {
@@ -10961,7 +10963,7 @@ function IdlePage() {
                 onClick={() => {
                   if (isDisabled) {
                     playClick();
-                    pushChat("🛒 Marketplace em breve — ainda não habilitado.", "info");
+                     pushChat("🛒 Mercado temporariamente bloqueado.", "info");
                     return;
                   }
                   playClick();
@@ -13193,7 +13195,7 @@ function TabOverlay({
     tab === "pokedex"   ? "POKÉDEX" :
     tab === "loja"      ? "LOJA" :
     tab === "wallet"    ? "CARTEIRA" :
-    tab === "market"    ? "MERCADO" :
+    tab === "market"    ? "MERCADO BLOQUEADO" :
 
     tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
@@ -15175,18 +15177,13 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-        <MarketScreen
-          items={items}
-          bank={bank}
-          identity={identity}
-          isVip={isVip}
-          onList={onListMarket}
-          onBuy={onBuyMarket}
-          onCancel={onCancelMarket}
-          onClaimPayout={onClaimMarketPayout}
-          onNpcSell={onSellItem}
-          npcPrices={marketSellPrices}
-        />
+        <div style={{ minHeight: 320, display: "grid", placeItems: "center", textAlign: "center", padding: 24 }}>
+          <div>
+            <div style={{ fontSize: 54, filter: "grayscale(1)", opacity: 0.7 }}>🔒</div>
+            <div style={{ marginTop: 12, color: "#f5cf6b", fontSize: 20, fontWeight: 900 }}>MERCADO BLOQUEADO</div>
+            <div style={{ marginTop: 8, color: "#c8b8d0", fontSize: 13 }}>Este sistema está temporariamente indisponível.</div>
+          </div>
+        </div>
       )}
 
 
