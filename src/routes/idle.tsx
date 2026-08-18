@@ -5546,9 +5546,7 @@ function IdlePage() {
       const col = s.collection ?? [];
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
-      const frozen = !!s.redeemedCodes?.RANKED_RUBY_KEY_CRAFT;
-      const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
-      const gain = frozen ? 0 : baseGain;
+      const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
       const isEvent = entry.event === "oddish_odyssey";
       const safiraGain = isEvent ? (entry.species === "oddish_shiny" ? 20 : (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1)) : 0;
       // 🌿 Craft de Oddish/Oddish Shiny devolve Stone Verdejante (varia por raridade)
@@ -13193,9 +13191,9 @@ function TabOverlay({
     tab === "pokedex"   ? "POKÉDEX" :
     tab === "loja"      ? "LOJA BLOQUEADA" :
     tab === "wallet"    ? "CARTEIRA" :
-    tab === "market"    ? "MERCADO BLOQUEADO" :
+    tab === "loja"      ? "LOJA" :
 
-    tab === "melhorias" ? "MELHORIAS" :
+    tab === "market"    ? "MERCADO" :
     tab === "config"    ? "CONFIGURAÇÕES" :
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
@@ -14545,14 +14543,6 @@ function TabOverlay({
 
 
 
-      {tab === "loja" && (
-        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
-          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
-          <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
-          <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
-        </div>
-      )}
-      {false && tab === "loja" && (
         <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -14816,7 +14806,7 @@ function TabOverlay({
               {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
             </button>
           </div>
-        </>
+        </div>
       )}
 
                       position: "absolute", top: 40, left: 8, right: 14, height: 3,
@@ -15202,12 +15192,6 @@ function TabOverlay({
       )}
       {false && tab === "market" && (
         <>
-          <MarketScreen
-            items={items}
-            bank={bank}
-            identity={identity}
-            isVip={isVip}
-            onList={onListMarket}
             onBuy={onBuyMarket}
             onCancel={onCancelMarket}
             onClaimPayout={onClaimMarketPayout}
