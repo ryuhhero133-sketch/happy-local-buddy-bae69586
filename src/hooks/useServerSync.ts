@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
 import {
   bootstrapGameState,
   getFullGameState,
@@ -53,12 +54,29 @@ export function useServerSync(opts: {
 
   useEffect(() => {
     if (ran.current) return;
-    ran.current = true;
     let cancelled = false;
 
     (async () => {
       setStatus("syncing");
       try {
+        // Wait for session to be established via supabase.auth.onAuthStateChange in AuthGate
+        let session = null;
+        let attempts = 0;
+        while (!session && attempts < 20) {
+          const { data } = await supabase.auth.getSession();
+          session = data.session;
+          if (session) break;
+          await new Promise(r => setTimeout(r, 200));
+          attempts++;
+        }
+
+        if (!session) {
+          throw new Error("Sessão não encontrada. Por favor, faça login novamente.");
+        }
+
+        if (cancelled) return;
+        ran.current = true; // Only mark as ran if we found a session
+
         await bootstrap({} as any);
         let full = (await fetchFull({} as any)) as FullStateDTO;
 

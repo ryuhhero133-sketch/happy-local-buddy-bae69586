@@ -124,15 +124,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     if (typeof window !== "undefined") {
       try {
-        if (localStorage.getItem(GUEST_KEY) === "1") {
-          const gid = loadIdentity();
-          if (gid) {
-            setIdentity(gid);
-            setIsGuest(true);
-            setChecking(false);
-            return;
-          }
-        }
+        // Force removal of guest mode if it exists
+        localStorage.removeItem(GUEST_KEY);
       } catch { /* ignore */ }
       if (
         window.location.hash.includes("type=recovery") ||
@@ -258,8 +251,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
 
-  // Guest mode: skip Supabase entirely
-  if (isGuest && identity) return <>{children}</>;
 
   if (recoveryMode) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
