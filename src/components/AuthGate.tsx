@@ -251,8 +251,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
 
-  // Guest mode: skip Supabase entirely
-  if (isGuest && identity) return <>{children}</>;
 
   if (recoveryMode) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
