@@ -65,6 +65,8 @@ import houseLarImg from "@/assets/house-lar.png";
 import houseLabImg from "@/assets/house-lab.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
+import npcAbyssWitch from "@/assets/npc-abyss-witch.png";
+import continent4Bg from "@/assets/continent4-abyss.jpg";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
