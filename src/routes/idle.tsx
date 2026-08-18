@@ -10925,8 +10925,10 @@ function IdlePage() {
               onUpgradeBook={upgradeBook}
             />
           )}
+        </div>
+      </div>
+    </div>
 
-          {/* ===== MODAIS E PORTALS ===== */}
 
 
 
