@@ -499,9 +499,9 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   abismo_sombra: { name: "Abismo Sombrio",     diff: "APOCALIP.", bg: mapPantanoFogoUrl, rate: 20.0, minLevel: 2200, maxLevel: 2700, element: "Sombra",   stars: 10, entryCrystals: 2200, overlay: "rgba(40,20,60,0.65)" },
   abismo_dragao: { name: "Abismo do Dragão",   diff: "ABSOLUTO",  bg: mapPantanoFogoUrl, rate: 22.0, minLevel: 2500, maxLevel: 3000, element: "Dragão",   stars: 10, entryCrystals: 3000, overlay: "rgba(255,150,40,0.55)" },
   // ═══ CADEIA ESTENDIDA — continuação após Abismo do Dragão (3000→6000) ═══
-  cadeia_ab:  { name: "Fenda Estelar",          diff: "TRANSC.",   bg: mapCadeiaAbUrl,  rate: 26.0, minLevel: 3000, maxLevel: 3500, element: "Estelar", stars: 10, entryCrystals: 4000 },
-  cadeia_ab1: { name: "Cripta Etérea",          diff: "TRANSC.+",  bg: mapCadeiaAb1Url, rate: 30.0, minLevel: 3500, maxLevel: 5000, element: "Etéreo",  stars: 10, entryCrystals: 6000 },
-  cadeia_f1:  { name: "Chamas do Fim",          diff: "COSMICO",   bg: mapCadeiaF1Url,  rate: 34.0, minLevel: 4000, maxLevel: 6000, element: "Fogo/Cosmico", stars: 10, entryCrystals: 8000 },
+  cadeia_ab:  { name: "Fenda Estelar",          diff: "TRANSC.",   bg: mapCadeiaAbUrl,  rate: 26.0, minLevel: 1, maxLevel: 3500, element: "Estelar", stars: 10, entryCrystals: 4000 },
+  cadeia_ab1: { name: "Cripta Etérea",          diff: "TRANSC.+",  bg: mapCadeiaAb1Url, rate: 30.0, minLevel: 1, maxLevel: 5000, element: "Etéreo",  stars: 10, entryCrystals: 6000 },
+  cadeia_f1:  { name: "Chamas do Fim",          diff: "COSMICO",   bg: mapCadeiaF1Url,  rate: 34.0, minLevel: 1, maxLevel: 6000, element: "Fogo/Cosmico", stars: 10, entryCrystals: 8000 },
   // ═══ EVENTO MÍTICO SHINY — abre 5min a cada 1h ═══
   evento_myth: { name: "Domínio Mítico Shiny",  diff: "EVENTO",    bg: mapMythshinyEventUrl, rate: 40.0, minLevel: 1, maxLevel: 9999, element: "Todos", stars: 10 },
   praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
@@ -530,20 +530,20 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   grass_oddish: { name: "🌿 Grass Oddish", diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta", stars: 6, overlay: "rgba(120,255,140,0.18)" },
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
-  continent3_map1:  { name: "Fosso de Magma",                    diff: "MÍTICO++", bg: assetUrlFromJson(continent3Map1Asset),      rate: 45.0, minLevel: 6000, maxLevel: 8000, element: "Fogo/Lava",    stars: 10 },
-  continent3_map2:  { name: "Pântano de Safira",                 diff: "DIVINO",   bg: assetUrlFromJson(continent3Map2Asset),      rate: 55.0, minLevel: 8000, maxLevel: 10000, element: "Veneno/Planta", stars: 10 },
+  continent3_map1:  { name: "Fosso de Magma",                    diff: "MÍTICO++", bg: assetUrlFromJson(continent3Map1Asset),      rate: 45.0, minLevel: 1, maxLevel: 8000, element: "Fogo/Lava",    stars: 10 },
+  continent3_map2:  { name: "Pântano de Safira",                 diff: "DIVINO",   bg: assetUrlFromJson(continent3Map2Asset),      rate: 55.0, minLevel: 1, maxLevel: 10000, element: "Veneno/Planta", stars: 10 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
 // Cadeia endgame — portais visíveis em todos os mapas, mas exigem nível de treinador para atravessar
 const ENDGAME_CHAIN: Array<{ from: IdleMapId; to: IdleMapId; req: number; color: string }> = [
-  { from: "terra",             to: "vale_rochas",       req: 40,  color: "#c9a76a" },
-  { from: "vale_rochas",       to: "vale_planta",       req: 110, color: "#4ade80" },
-  { from: "vale_planta",       to: "vale_gelo",         req: 180, color: "#7dd3fc" },
-  { from: "vale_gelo",         to: "vale_veneno",       req: 250, color: "#c084fc" },
-  { from: "vale_veneno",       to: "vale_fogo",         req: 320, color: "#fb923c" },
-  { from: "vale_fogo",         to: "vulcao_ativo",      req: 390, color: "#ef4444" },
-  { from: "vulcao_ativo",      to: "nucleo_primordial", req: 460, color: "#f0abfc" },
+  { from: "terra",             to: "vale_rochas",       req: 1, color: "#c9a76a" },
+  { from: "vale_rochas",       to: "vale_planta",       req: 1, color: "#4ade80" },
+  { from: "vale_planta",       to: "vale_gelo",         req: 1, color: "#7dd3fc" },
+  { from: "vale_gelo",         to: "vale_veneno",       req: 1, color: "#c084fc" },
+  { from: "vale_veneno",       to: "vale_fogo",         req: 1, color: "#fb923c" },
+  { from: "vale_fogo",         to: "vulcao_ativo",      req: 1, color: "#ef4444" },
+  { from: "vulcao_ativo",      to: "nucleo_primordial", req: 1, color: "#f0abfc" },
 ];
 const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
   const toName = IDLE_MAPS[c.to].name;
