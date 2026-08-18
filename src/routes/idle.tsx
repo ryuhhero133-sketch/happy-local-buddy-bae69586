@@ -15114,86 +15114,146 @@ function TabOverlay({
           pushChat(`✨ Upgrade de Habilidade: ${String(key).toUpperCase()} aumentado! (-10 Livros consumidos)`, "info");
         };
 
+        const stats = [
+          { key: "atk", label: "ATK", val: tStats.atk, icon: "⚔️", color: "#ff5252" },
+          { key: "def", label: "DEF", val: tStats.def, icon: "🛡️", color: "#4a7bff" },
+          { key: "hp", label: "HP", val: tStats.hp, icon: "❤️", color: "#ff4d4d" },
+          { key: "spe", label: "SPD", val: tStats.spe, icon: "👟", color: "#f5cf6b" },
+          { key: "crit", label: "CRT", val: tStats.crit, icon: "🎯", color: "#c084fc" },
+        ];
+
+        // Componente simples para o gráfico de teia (Radar Chart) em SVG
+        const RadarChart = () => {
+          const centerX = 60;
+          const centerY = 60;
+          const radius = 50;
+          const points = stats.map((s, i) => {
+            const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
+            // Normaliza o valor para o gráfico (escala logarítmica leve para não sumir com valores baixos)
+            const normalized = Math.min(1, (s.val + 2) / 50); 
+            const x = centerX + radius * normalized * Math.cos(angle);
+            const y = centerY + radius * normalized * Math.sin(angle);
+            return `${x},${y}`;
+          }).join(" ");
+
+          const gridLevels = [0.2, 0.4, 0.6, 0.8, 1.0];
+
+          return (
+            <svg width="120" height="120" viewBox="0 0 120 120" style={{ filter: "drop-shadow(0 0 8px rgba(245,207,107,0.2))" }}>
+              {/* Grids hexagonais/pentagonais */}
+              {gridLevels.map((level, idx) => {
+                const p = stats.map((_, i) => {
+                  const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
+                  return `${centerX + radius * level * Math.cos(angle)},${centerY + radius * level * Math.sin(angle)}`;
+                }).join(" ");
+                return <polygon key={idx} points={p} fill="none" stroke="rgba(138,122,156,0.2)" strokeWidth="1" />;
+              })}
+              {/* Eixos */}
+              {stats.map((_, i) => {
+                const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
+                return <line key={i} x1={centerX} y1={centerY} x2={centerX + radius * Math.cos(angle)} y2={centerY + radius * Math.sin(angle)} stroke="rgba(138,122,156,0.3)" strokeDasharray="2,2" />;
+              })}
+              {/* Área preenchida dos status */}
+              <polygon points={points} fill="rgba(245,207,107,0.3)" stroke="#f5cf6b" strokeWidth="2" strokeLinejoin="round" />
+            </svg>
+          );
+        };
+
         return (
           <div style={{ color: "#eadfe8" }}>
             <div style={{ marginBottom: 20 }}>
-              <h3 style={{ color: "#f5cf6b", fontSize: 16, marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
-                🌳 Árvore de Habilidades <span style={{ fontSize: 11, fontWeight: 500, color: "#8a7a9c" }}>· Sacrifique 10 Livros por Upgrade</span>
-              </h3>
-              <div style={{ fontSize: 11, color: "#8a7a9c", marginBottom: 12 }}>Queime Livros de Ataque, Defesa ou EXP para fortalecer seu Treinador permanentemente.</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <h3 style={{ color: "#f5cf6b", fontSize: 16, marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+                    🌳 Árvore de Habilidades <span style={{ fontSize: 11, fontWeight: 500, color: "#8a7a9c" }}>· Sacrifício de Livros</span>
+                  </h3>
+                  <div style={{ fontSize: 11, color: "#8a7a9c", lineHeight: 1.4 }}>
+                    Consuma 10 Livros para elevar permanentemente sua anatomia de combate.<br/>
+                    Livros Disponíveis: <strong style={{ color: totalBooks >= 10 ? "#7ef27a" : "#ff5252" }}>{totalBooks}</strong>
+                  </div>
+                </div>
+                {/* Gráfico de Anatomia */}
+                <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 12, border: "1px solid rgba(245,207,107,0.15)", padding: 8, textAlign: "center" }}>
+                   <div style={{ fontSize: 9, color: "#f5cf6b", fontWeight: 900, marginBottom: 4, letterSpacing: 1 }}>GRÁFICO DE ANATOMIA</div>
+                   <RadarChart />
+                </div>
+              </div>
+
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {[
-                  { key: "atk", label: "Ataque Total", icon: "⚔️", color: "#ff5252" },
-                  { key: "def", label: "Defesa Total", icon: "🛡️", color: "#4a7bff" },
-                  { key: "hp", label: "HP Máximo", icon: "❤️", color: "#ff4d4d" },
-                  { key: "spe", label: "Velocidade", icon: "👟", color: "#f5cf6b" },
-                  { key: "crit", label: "Ataque Crítico", icon: "🎯", color: "#c084fc" },
-                ].map((s) => (
+                {stats.map((s) => (
                   <div key={s.key} style={{ 
                     background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 12, padding: 12,
                     display: "flex", justifyContent: "space-between", alignItems: "center"
                   }}>
                     <div>
-                      <div style={{ fontSize: 11, color: "#8a7a9c", fontWeight: 700 }}>{s.icon} {s.label}</div>
-                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color }}>+{tStats[s.key as keyof typeof tStats]}</div>
+                      <div style={{ fontSize: 10, color: "#8a7a9c", fontWeight: 700, letterSpacing: 1 }}>{s.icon} {s.label}</div>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color }}>+{s.val}</div>
                     </div>
                     <button 
-                      onClick={() => upgradeStat(s.key as keyof typeof tStats)}
+                      onClick={() => upgradeStat(s.key as any)}
                       disabled={totalBooks < 10}
                       style={{
                         background: totalBooks >= 10 ? "linear-gradient(180deg, #3a2e58, #1c0f2e)" : "#120a1c",
                         border: `1px solid ${totalBooks >= 10 ? s.color : "#3a2e58"}`,
                         color: totalBooks >= 10 ? "#fff" : "#5a4e78",
                         padding: "6px 10px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: totalBooks >= 10 ? "pointer" : "not-allowed",
-                        boxShadow: totalBooks >= 10 ? `0 0 10px ${s.color}33` : "none"
+                        boxShadow: totalBooks >= 10 ? `0 0 10px ${s.color}33` : "none",
+                        transition: "all 0.2s"
                       }}
-                    >MELHORAR</button>
+                    >UPGRADE</button>
                   </div>
                 ))}
               </div>
             </div>
 
-            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus Temporários (Livros)</h3>
+            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12, display: "flex", justifyContent: "space-between" }}>
+              <span>Bônus Temporários</span>
+              <span style={{ fontSize: 10, color: "#8a7a9c" }}>ORBS & LIVROS</span>
+            </h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
               <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((buffs?.atk ?? 0) * 100)}%`} color="#ff5252" />
               <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
-              <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
+              <BuffCell img={bookExpImg} label="EXP" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
             
             {(bookActive || orbActive || honeyActive || honeyRareActive) && (
               <div style={{ background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 8, padding: 10, marginBottom: 14 }}>
-                <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Composição EXP:</div>
+                <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", justifyContent: "space-between" }}>
+                  <span>ATIVOS:</span>
+                  <span style={{ color: "#ffd94d" }}>TOTAL EXP: +{totalExpPct}%</span>
+                </div>
                 {bookActive && (
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d0c0e0", padding: "3px 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#d0c0e0", padding: "2px 0" }}>
                     <span>📖 Livro EXP <span style={{ color: "#8a80a8" }}>({fmtTime(buffs!.expMultUntil! - nowMs)})</span></span>
                     <span style={{ color: "#5ec26a", fontWeight: 700 }}>+{bookPct}%</span>
                   </div>
                 )}
                 {orbActive && (
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d0c0e0", padding: "3px 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#d0c0e0", padding: "2px 0" }}>
                     <span>✦ Orb EXP <span style={{ color: "#8a80a8" }}>({fmtTime(buffs!.orbUntil! - nowMs)})</span></span>
                     <span style={{ color: "#c084fc", fontWeight: 700 }}>+{orbPct}%</span>
                   </div>
                 )}
                 {honeyRareActive ? (
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#fff0c8", padding: "3px 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#fff0c8", padding: "2px 0" }}>
                     <span>✨🍯 Incenso Raro <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyRareUntil! - nowMs)})</span></span>
-                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+20% drop/xp/def/vel</span>
+                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+20% GERAL</span>
                   </div>
                 ) : honeyActive && (
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#ffe9a8", padding: "3px 0" }}>
-                    <span>🍯 Incenso de Mel <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyUntil! - nowMs)})</span></span>
-                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+10% drop/xp/def/vel</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#ffe9a8", padding: "2px 0" }}>
+                    <span>🍯 Incenso Mel <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyUntil! - nowMs)})</span></span>
+                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+10% GERAL</span>
                   </div>
                 )}
-                <div style={{ borderTop: "1px solid #3a2e58", marginTop: 6, paddingTop: 6, display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
-                  <span style={{ color: "#f5cf6b" }}>Total EXP</span>
-                  <span style={{ color: "#ffd94d" }}>+{totalExpPct}%</span>
-                </div>
               </div>
             )}
-            <div style={{ color: "#b8a8c8", fontSize: 11, lineHeight: 1.5, background: "rgba(0,0,0,0.2)", padding: 8, borderRadius: 8 }}>
-              Upgrades da <strong>Árvore de Habilidades</strong> são <strong style={{ color: "#f5cf6b" }}>permanentes</strong>. Queimar livros aqui aumenta seus atributos base.
+            
+            <div style={{ background: "linear-gradient(90deg, #1a0f26, transparent)", borderLeft: "3px solid #f5cf6b", padding: "10px 12px", borderRadius: "0 8px 8px 0" }}>
+              <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 900, marginBottom: 2 }}>ESTATÍSTICAS DA CONTA</div>
+              <div style={{ fontSize: 11, color: "#8a7a9c", lineHeight: 1.5 }}>
+                Status de treinador são <strong style={{ color: "#f5cf6b" }}>multiplicativos</strong> e afetam todo o seu time. 
+                O gráfico de anatomia representa o equilíbrio do seu crescimento.
+              </div>
             </div>
           </div>
         );
