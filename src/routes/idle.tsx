@@ -10316,8 +10316,11 @@ function IdlePage() {
           </button>
 
         </div>
+      </div>
+    </div>
 
-        {(tab !== "batalha" && tab !== "inicio") && (
+    {(tab !== "batalha" && tab !== "inicio") && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000000, pointerEvents: 'auto' }}>
           <TabOverlay
             tab={tab}
             onClose={() => setTab("batalha")}
@@ -10333,7 +10336,6 @@ function IdlePage() {
             collection={idle.collection || []}
             idle={idle}
             setIdle={setIdle}
-
             craftPoints={idle.items?.cristal_fragmentado || 0}
             onFragmentCollection={fragmentCollection}
             gifMap={GIF}
@@ -10379,7 +10381,8 @@ function IdlePage() {
             pokemonMarketNode={undefined}
             benchUids={new Set()}
           />
-        )}
+        </div>
+      )}
 
 
 
@@ -10571,6 +10574,7 @@ function IdlePage() {
       </div>
       <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         {restingUntil !== null && restingStart !== null && (() => {
+
 
 
 
@@ -10802,126 +10806,6 @@ function IdlePage() {
           })()}
 
 
-          {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
-          {tab !== "batalha" && (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 2000000, pointerEvents: 'auto' }}>
-            <TabOverlay
-              spriteScale={spriteScale}
-              tab={tab}
-              onClose={() => setTab("batalha")}
-              onAnciaoInteraction={handleAnciaoInteraction}
-              leader={team[0]}
-              team={team}
-              onReorderTeam={(nt) => { setTeam(nt); if (nt[0]) setLeaderHp(calcIdleMaxHp(nt[0])); }}
-              leaderHp={leaderHp}
-              items={idle.items}
-              caughtSpecies={idle.caughtSpecies}
-              seenSpecies={idle.seenSpecies}
-              totals={idle.totals}
-              idle={idle}
-              setIdle={setIdle}
-
-
-              collection={collectionForDisplay}
-              craftPoints={idle.craftPoints ?? 0}
-              onFragmentCollection={fragmentCollection}
-              gifMap={GIF}
-              onPickTeam={(entry) => onPickTeamFromColecao(entry)}
-              onUseItem={useItem}
-              bank={idle.bank}
-              buffs={idle.buffs}
-              onBuyBall={buyBall}
-              onBuyUltraBundle={buyUltraBundle}
-              onBuyTeleportScroll={buyTeleportScroll}
-              onBuyBook={buyBook}
-              orbTrades={ORB_TRADES}
-              onTradeOrb={tradeForOrb}
-              benchUids={new Set(restingBench.map(p => p.uid))}
-              onBuyPotion={buyPotion}
-              onBuyEgg={buyEgg}
-              shopEggs={SHOP_EGGS}
-
-              onBuyChestAmulet={buyChestAmulet}
-              chestAmuletOwned={idle.items?.chest_amulet ?? 0}
-              autoHeal={idle.autoHeal}
-              setAutoHeal={(next: { enabled: boolean; threshold: number }) => setIdle((s) => ({ ...s, autoHeal: next }))}
-              audioSettings={audioSettings}
-              setAudioSettings={setAudioSettings}
-              tasks={idle.tasks}
-              onClaimTask={claimTask}
-              onOpenColecaoDetail={(uid: string) => setColecaoDetailUid(uid)}
-              onExchange={exchange}
-              onSellItem={sellItem}
-              marketSellPrices={MARKET_SELL_PRICE}
-              identity={identity}
-              onListMarket={listMarketItem}
-              onBuyMarket={buyMarketListing}
-              onCancelMarket={cancelMarketListing}
-              onClaimMarketPayout={claimMarketPayout}
-              isVip={isVip()}
-              pokemonMarketNode={
-                <PokemonMarketPanel
-                  identity={identity}
-                  collection={idle.collection ?? []}
-                  gold={idle.bank.gold}
-                  crystals={idle.bank.crystals}
-                  safiras={idle.items?.safira_verde ?? 0}
-                  isVip={isVip()}
-                  gifOf={(sp) => GIF[sp]}
-                  onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
-                  onReturned={(entry) => setIdle((s) => {
-                    const col = s.collection ?? [];
-                    if (col.some(c => c.uid === entry.uid)) return s;
-                    return { ...s, collection: [...col, entry] };
-                  })}
-                  onSpend={(cur, amount) => setIdle((s) => ({
-                    ...s,
-                    bank: cur === "gold"
-                      ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
-                      : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
-                  }))}
-                  onEarn={(cur, amount) => setIdle((s) => ({
-                    ...s,
-                    bank: cur === "gold"
-                      ? { ...s.bank, gold: s.bank.gold + amount }
-                      : { ...s.bank, crystals: s.bank.crystals + amount },
-                  }))}
-                  onSpendSafira={(amount) => {
-                    const cur = idle.items?.safira_verde ?? 0;
-                    if (cur < amount) return false;
-                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
-                    return true;
-                  }}
-                  onEarnSafira={(amount) => {
-                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
-                  }}
-                  pushChat={pushChat}
-                />
-              }
-              skinId={skinId}
-              setSkinId={setSkinId}
-              unlockedSkins={idle.unlockedSkins ?? ["default"]}
-              skinTickets={idle.items?.skin_ticket ?? 0}
-              onUnlockSkin={(sid: string) => {
-                setIdle((s) => {
-                  const tickets = s.items?.skin_ticket ?? 0;
-                  const unlocked = new Set(s.unlockedSkins ?? ["default"]);
-                  if (unlocked.has(sid)) return s;
-                  if (tickets <= 0) return s;
-                  unlocked.add(sid);
-                  return {
-                    ...s,
-                    items: { ...s.items, skin_ticket: tickets - 1 },
-                    unlockedSkins: Array.from(unlocked),
-                  };
-                });
-                setSkinId(sid);
-                pushChat(`✦ Skin premium desbloqueada! Você consumiu 1 Ticket de Skin.`, "cap");
-              }}
-              trainerLevel={idle.trainerLevel ?? 1}
-              onUpgradeBook={upgradeBook}
-            />
-          )}
 
 
 
@@ -13235,6 +13119,7 @@ function IdlePage() {
     </>
   );
 }
+
 
 
 
