@@ -1328,14 +1328,16 @@ function IdlePage() {
   useEffect(() => {
     if (!levelToast) return;
     const t = setTimeout(() => setLevelToast(null), 5000);
-    return () => clearTimeout(t);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearTimeout(t);
   }, [levelToast]);
   // ⚡ ZAPDOS EVENT — anúncio no topo, aparece só nos mapas da Odisséia + Caverna Sombria
   const [zapdosAnnounce, setZapdosAnnounce] = useState<{ ts: number } | null>(null);
   useEffect(() => {
     if (!zapdosAnnounce) return;
     const t = setTimeout(() => setZapdosAnnounce(null), 8000);
-    return () => clearTimeout(t);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearTimeout(t);
   }, [zapdosAnnounce]);
   // alvo atual (para virar o pokémon) — id do inimigo que estamos atacando
   const [attackTargetId, setAttackTargetId] = useState<number | null>(null);
@@ -1429,7 +1431,8 @@ function IdlePage() {
         return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
       }));
     }, 3000);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, []);
 
   // ===== Mythic Roamers podem FUGIR (some do mapa) — muito raros =====
@@ -1473,7 +1476,8 @@ function IdlePage() {
         return next;
       });
     }, 20000);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, []);
 
   const serverSync = useServerSync({
@@ -1626,7 +1630,8 @@ function IdlePage() {
         if (!cancelled) setCloudBlobReady(true);
       }
     })();
-    return () => { cancelled = true; };
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => { cancelled = true; };
   }, []);
 
   // Autosave do BLOB completo — debounced (1.5s) sempre que idle/team/bench mudam.
@@ -1652,7 +1657,8 @@ function IdlePage() {
       if (document.visibilityState === "hidden") flush();
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => {
       window.removeEventListener("beforeunload", flush);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
@@ -1712,7 +1718,8 @@ function IdlePage() {
   const [, forceHiveTick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => forceHiveTick((n) => (n + 1) % 1_000_000), 1000);
-    return () => clearInterval(t);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(t);
   }, []);
   // ===== Escolha do inicial (declarada cedo p/ gatear loops do jogo) =====
   const [starterChosen, setStarterChosen] = useState<boolean>(() => {
@@ -1765,7 +1772,8 @@ function IdlePage() {
     let raf: number;
     const loop = () => { setAnimTick((n) => n + 1); raf = requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => cancelAnimationFrame(raf);
   }, [attackAnim, enemyAttackAnim, captureAnim]);
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
@@ -1798,7 +1806,8 @@ function IdlePage() {
   const [energyTick, setEnergyTick] = useState(0);
   useEffect(() => {
     const iv = setInterval(() => setEnergyTick((n) => n + 1), 1000);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, []);
   // Dreno de energia em tempo real do LÍDER enquanto auto-battle está ativo.
   // Escala por raridade: comum ~5min, uncommon ~8min, raro ~15min, épico ~25min,
@@ -1820,7 +1829,8 @@ function IdlePage() {
         return [updated, ...tm.slice(1)];
       });
     }, 1000);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, []);
   // Fecha a caverna: expulsa o treinador quando o ciclo terminar
   useEffect(() => {
@@ -1901,7 +1911,8 @@ function IdlePage() {
         xpAccumRef.current = { xp: 0, gold: 0, kills: 0, map: "" };
       }
     }, 30000);
-    return () => clearInterval(id);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1933,7 +1944,8 @@ function IdlePage() {
     };
     window.addEventListener("pointerdown", start);
     window.addEventListener("keydown", start);
-    return () => {
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => {
       window.removeEventListener("pointerdown", start);
       window.removeEventListener("keydown", start);
       a.pause(); a.src = "";
@@ -2010,7 +2022,8 @@ function IdlePage() {
     const warn = setInterval(() => {
       pushChat("⚠ Criaturas MUITO PODEROSAS foram avistadas por perto... fique alerta!", "info");
     }, 30 * 60 * 1000);
-    return () => { cancelled = true; clearTimeout(timer); clearInterval(warn); };
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => { cancelled = true; clearTimeout(timer); clearInterval(warn); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2114,7 +2127,8 @@ function IdlePage() {
     };
     check();
     const iv = setInterval(check, 10_000);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, []);
 
   // Chat global (cooldown 10 min por jogador)
@@ -2161,12 +2175,14 @@ function IdlePage() {
     if (idle.currentMap !== "grass_oddish") return;
     setGrassOddishSplash(true);
     const t = setTimeout(() => setGrassOddishSplash(false), 4200);
-    return () => clearTimeout(t);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearTimeout(t);
   }, [idle.currentMap]);
   useEffect(() => {
     if (chatCooldownUntil <= Date.now()) return;
     const iv = setInterval(() => setChatTick((n) => n + 1), 1000);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [chatCooldownUntil]);
 
   // WASD
@@ -2187,7 +2203,8 @@ function IdlePage() {
     const ku = (e: KeyboardEvent) => { keysRef.current.delete(e.key.toLowerCase()); };
     window.addEventListener("keydown", kd);
     window.addEventListener("keyup", ku);
-    return () => { window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); };
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => { window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); };
   }, []);
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
@@ -2204,7 +2221,8 @@ function IdlePage() {
     });
     ro.observe(el);
     setViewSize({ w: el.clientWidth, h: el.clientHeight });
-    return () => ro.disconnect();
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => ro.disconnect();
   }, []);
 
   // ---- Obstáculos com colisão (posições determinísticas) ----
@@ -2291,7 +2309,8 @@ function IdlePage() {
       if (tab !== "batalha") { setTab("batalha"); return; }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => window.removeEventListener("keydown", onKey);
   }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
 
 
@@ -2323,7 +2342,8 @@ function IdlePage() {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => window.removeEventListener("keydown", onKey);
   }, []);
 
 
@@ -3102,7 +3122,8 @@ function IdlePage() {
 
   useEffect(() => {
     const iv = setInterval(() => setWalkStep((s) => (moving ? (s + 1) % 4 : 0)), 180);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [moving]);
 
   // ===== Follower (pokémon líder) segue o treinador com trilha suave =====
@@ -3180,7 +3201,8 @@ function IdlePage() {
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => cancelAnimationFrame(raf);
   }, []);
 
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
@@ -3264,7 +3286,8 @@ function IdlePage() {
       const cutoff = Date.now() - 20_000;
       setRemotePlayers((prev) => prev.filter((p) => p.ts >= cutoff));
     }, 4_000);
-    return () => {
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => {
       clearInterval(dbIv);
       clearInterval(prune);
       void gameDb.from("players").delete().eq("id", meId);
@@ -3348,7 +3371,8 @@ function IdlePage() {
     ch.subscribe();
 
     captureChanRef.current = ch;
-    return () => {
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => {
       captureChanRef.current = null;
       void supabase.removeChannel(ch);
     };
@@ -3392,7 +3416,8 @@ function IdlePage() {
       if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => window.removeEventListener("keydown", onKey);
   }, [worldMapOpen, rankOpen]);
 
   const RANK_CACHE_TTL_MS = 60 * 1000; // 1 minuto — mostra o nível atual da galera
@@ -3478,7 +3503,8 @@ function IdlePage() {
       }
       finally { if (!cancelled) setRankLoading(false); }
     })();
-    return () => { cancelled = true; };
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => { cancelled = true; };
   }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.craftPoints, idle.collection, team]);
 
   useEffect(() => {
@@ -3488,14 +3514,16 @@ function IdlePage() {
       const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
       void recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
     }, 4500);
-    return () => clearTimeout(t);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearTimeout(t);
   }, [idle.trainerLevel, idle.craftPoints, idle.collection]);
   // Ranking do evento Grass Oddish: envia o total de capturas com debounce.
   useEffect(() => {
     const total = idle.grassOddishCaptured ?? 0;
     if (total <= 0) return;
     const t = setTimeout(() => { void submitOddishCaptures(total, identity?.name); }, 3500);
-    return () => clearTimeout(t);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearTimeout(t);
   }, [idle.grassOddishCaptured, identity?.name]);
   // Recarrega o top do ranking do evento quando o modal abrir.
   useEffect(() => {
@@ -3512,7 +3540,8 @@ function IdlePage() {
         if (!cancelled) setOddishRankLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   const viewW = viewSize.w / zoom;
   const viewH = viewSize.h / zoom;
@@ -3597,7 +3626,8 @@ function IdlePage() {
     const onHide = () => { if (document.visibilityState === "hidden") persist(); };
     window.addEventListener("beforeunload", persist);
     document.addEventListener("visibilitychange", onHide);
-    return () => {
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => {
       clearInterval(iv);
       window.removeEventListener("beforeunload", persist);
       document.removeEventListener("visibilitychange", onHide);
@@ -3912,7 +3942,8 @@ function IdlePage() {
         return changed ? next : prev;
       });
     }, 60);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [enemies, moving, obstacles, chests]);
 
   // ---- Top-up lento de inimigos (spawn escalonado, mantém o jogador atento) ----
@@ -3939,7 +3970,8 @@ function IdlePage() {
         return [...prev, ne];
       });
     }, 2000 + Math.floor(Math.random() * 1500)); // 2-3.5s entre spawns (rápido, evita mapa vazio)
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
 
@@ -4675,7 +4707,8 @@ function IdlePage() {
         return { ...ns, tasks: nt };
       });
     }, 900);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [team, trainerPos, leaderHp]);
 
   // Portais NÃO entram mais automaticamente ao caminhar por cima —
@@ -4717,7 +4750,8 @@ function IdlePage() {
       const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
       saveNow({ ...save, party: [...team, ...restingBench] });
     }, 15_000);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [team, restingBench]);
 
   // Detecta level up e dispara aura + fx
@@ -4856,7 +4890,8 @@ function IdlePage() {
     };
     const firstTo = setTimeout(trigger, 45_000);
     const iv = setInterval(trigger, LEGEND_INTERVAL_MS);
-    return () => { clearTimeout(firstTo); clearInterval(iv); };
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => { clearTimeout(firstTo); clearInterval(iv); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // (Clima gerenciado pelo ciclo global de neve — não sobrescrever aqui)
@@ -4889,7 +4924,8 @@ function IdlePage() {
       setEnemies([]);
       pushChat(`⌛ Você excedeu 3h em ${IDLE_MAPS[cm].name}. Retornado para Terras de Terry.`, "cap");
     }, 3 * 60 * 60 * 1000);
-    return () => { clearTimeout(warn1); clearTimeout(kick); };
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => { clearTimeout(warn1); clearTimeout(kick); };
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const geliusReturnMapRef = useRef<IdleMapId | null>(null);
@@ -4910,7 +4946,8 @@ function IdlePage() {
         pushChat(`❄ Domínio Mítico Shiny fechou — teleportado de volta para ${IDLE_MAPS[ret].name}.`, "info");
       }
     }, 1000);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ==== EVENTO GELIUS — tick 1s: troca fase aos 5min, expulsa aos 10min ====
@@ -4939,7 +4976,8 @@ function IdlePage() {
         playBonus();
       }
     }, 1000);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -4955,7 +4993,8 @@ function IdlePage() {
       const fx = followerStateRef.current;
       pushFxAt(fx.x, fx.y - 30, `☠ -${tick}`, "enemyDmg");
     }, 1500);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [team]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ==== EVENTO PÁSSAROS LENDÁRIOS: Moltres / Zapdos / Articuno a cada 2h ====
@@ -4997,7 +5036,8 @@ function IdlePage() {
     const firstSpawn = setTimeout(spawnBird, BIRD_INTERVAL_MS);
     const ivWarn = setInterval(warn, BIRD_INTERVAL_MS);
     const ivSpawn = setInterval(spawnBird, BIRD_INTERVAL_MS);
-    return () => { clearTimeout(firstWarn); clearTimeout(firstSpawn); clearInterval(ivWarn); clearInterval(ivSpawn); };
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => { clearTimeout(firstWarn); clearTimeout(firstSpawn); clearInterval(ivWarn); clearInterval(ivSpawn); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -6690,7 +6730,8 @@ function IdlePage() {
         return [...remaining, ...news];
       });
     }, 10 * 60 * 1000);
-    return () => { clearInterval(iv); };
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => { clearInterval(iv); };
   }, [chestTarget]); // eslint-disable-line
 
 
@@ -6764,7 +6805,8 @@ function IdlePage() {
         }));
       }
     }, 300);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [trainerPos.x, trainerPos.y, idle.items]); // eslint-disable-line
 
   // ---- Detecta proximidade dos prédios (Lab / Lar) ----
@@ -6961,7 +7003,8 @@ function IdlePage() {
       pushChat(msg, "cap");
       pushFxAt(trainerPos.x, trainerPos.y - 60, fullRecovery ? "+HP / +⚡" : "+HP", "gold");
     }, Math.max(0, remaining));
-    return () => clearTimeout(t);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearTimeout(t);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
   // Tick de UI para atualizar barra de progresso do descanso
   const [restNowTick, setRestNowTick] = useState(0);
@@ -6972,7 +7015,8 @@ function IdlePage() {
       // FX flutuantes de cura sobre o treinador
       pushFxAt(trainerPos.x + (Math.random() * 40 - 20), trainerPos.y - 20 - Math.random() * 30, "💚", "gold");
     }, 700);
-    return () => clearInterval(iv);
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return () => clearInterval(iv);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -6991,6 +7035,7 @@ function IdlePage() {
       .filter((id): id is number => id !== null)
   );
 
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{
       height: "100vh",
@@ -7263,7 +7308,8 @@ function IdlePage() {
                   : pos === 5
                   ? "linear-gradient(90deg, rgba(201,182,255,0.20), rgba(201,182,255,0.04))"
                   : "transparent";
-                return (
+                const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                   <div key={r.user_id} style={{
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "6px 10px",
@@ -7528,7 +7574,8 @@ function IdlePage() {
             const name = (identity?.name || "Treinador").slice(0, 14);
             const vip = isVip();
             const accent = vip ? "#ffd66b" : "#c9b8ff";
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
               <div style={{
                 position: "relative",
                 padding: "7px 9px 7px 7px",
@@ -7691,7 +7738,8 @@ function IdlePage() {
                     return "system";
                   };
                   const filtered = chat.filter((m) => chatFilter === "all" ? true : classify(m) === chatFilter);
-                  return (
+                  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                     <>
                       {[...filtered].reverse().map((m) => {
                         const color =
@@ -7708,7 +7756,8 @@ function IdlePage() {
                           m.kind === "lv" ? "⬆" :
                           m.kind === "hit" ? "✖" :
                           m.kind === "dmg" ? "⚔" : "•";
-                        return (
+                        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                           <div key={m.id} style={{ color, textShadow: "1px 1px 0 #000", fontWeight: m.kind === "chest" ? 800 : 400 }}>
                             <span style={{ opacity: 0.7, marginRight: 4 }}>{prefix}</span>{m.text}
                           </div>
@@ -7730,7 +7779,8 @@ function IdlePage() {
                   { k: "captures", l: "Capturas" },
                 ] as const).map((t) => {
                   const active = chatFilter === t.k;
-                  return (
+                  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                     <button
                       key={t.k}
                       onClick={() => setChatFilter(t.k)}
@@ -7767,7 +7817,8 @@ function IdlePage() {
                   setChatInput("");
                   setChatCooldownUntil(Date.now() + 10 * 60 * 1000);
                 };
-                return (
+                const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                   <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
                     <input
                       value={chatInput}
@@ -7850,7 +7901,8 @@ function IdlePage() {
                 }
                 return best;
               })();
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <>
                   <button onClick={() => { playClick(); setZoom(ZOOM_LEVELS[Math.min(ZOOM_LEVELS.length - 1, curIdx + 1)]); }} style={zoomBtn}>+</button>
                   <div style={{ ...zoomBtn, cursor: "default", fontSize: 10 }}>{Math.round(zoom * 100)}%</div>
@@ -7896,7 +7948,8 @@ function IdlePage() {
               const entriesLeft = 3 - getGeliusEntries();
               const inEvent = idle.currentMap === "gelius1" || idle.currentMap === "gelius2";
               const canEnter = !inEvent && entriesLeft > 0;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <button
                   onClick={() => {
                     if (inEvent) { pushChat(`🐧 Evento Gelius — ${gi.phase === "phase1" ? "Onda 1" : "Onda 2"} · ${timeStr}`, "info"); return; }
@@ -7948,7 +8001,8 @@ function IdlePage() {
               const secs = Math.floor((mi.msUntilChange % 60000) / 1000);
               const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
               const inEvent = idle.currentMap === "evento_myth";
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <button
                   onClick={() => {
                     if (inEvent) { pushChat(`❄ Evento Mítico Shiny — ${timeStr} restante`, "info"); return; }
@@ -8048,7 +8102,8 @@ function IdlePage() {
                 });
               }
               if (buffs.length === 0) return null;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <>
                   <style>{`
                     @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
@@ -8241,7 +8296,8 @@ function IdlePage() {
               const cocoonKey = `terra:${Math.round(o.x)}:${Math.round(o.y)}`;
               const beedrillCount = (idle.collection ?? []).filter((c) => c.species === "beedrill").length;
               const canUse = beedrillCount > 0;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <button
                   key={`cocoon-btn-${o.id}`}
                   onClick={(e) => {
@@ -8328,7 +8384,8 @@ function IdlePage() {
                       { k: "craft", label: "⚒️ Pontos de Craft" },
                     ] as { k: RankMode; label: string }[]).map((t) => {
                       const active = rankMode === t.k;
-                      return (
+                      const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                         <button
                           key={t.k}
                           onClick={() => setRankMode(t.k)}
@@ -8392,7 +8449,8 @@ function IdlePage() {
                            };
 
 
-                          return (
+                          const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                             <div key={r.id} style={{
                               display: "grid",
                               gridTemplateColumns: "48px 1fr auto",
@@ -8513,7 +8571,8 @@ function IdlePage() {
               };
 
               const [picker, setPicker] = [] as unknown as [number | null, (v: number | null) => void]; // placeholder: usa state controlado abaixo
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div
                   onClick={(e) => e.stopPropagation()}
                   style={{
@@ -8543,7 +8602,8 @@ function IdlePage() {
                     {Array.from({ length: HIVE_SLOTS_PER_COCOON }).map((_, i) => {
                       const slot = slots[i] ?? null;
                       if (!slot) {
-                        return (
+                        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                           <div key={`hslot-${i}`} style={{ border: "1px dashed rgba(255,214,80,0.4)", borderRadius: 8, padding: 8, background: "rgba(0,0,0,0.25)" }}>
                             <div style={{ fontSize: 11, opacity: 0.75, marginBottom: 6 }}>Slot {i + 1} — vazio</div>
                             {availableBeedrills.length === 0 ? (
@@ -8577,7 +8637,8 @@ function IdlePage() {
                       const ss = String(Math.floor((remainMs % 60000) / 1000)).padStart(2, "0");
                       const ready = pct >= 1;
                       const rare = isRareTierPokemon(entry?.rarity);
-                      return (
+                      const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                         <div key={`hslot-${i}`} style={{ border: `1px solid ${rare ? "#ff97e1" : "rgba(255,214,80,0.6)"}`, borderRadius: 8, padding: 8, background: "rgba(0,0,0,0.35)" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                             <img src={beedrillGif} alt="Beedrill" style={{ width: 34, height: 34, imageRendering: "pixelated" }} />
@@ -8626,7 +8687,8 @@ function IdlePage() {
             {/* Prédios do mundo — Laboratório e Lar (SVG estilizado) */}
             {visibleBuildings.map((b) => {
               const active = nearBuilding === b.key;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div
                   key={`bld-${b.key}`}
                   style={{
@@ -8682,7 +8744,8 @@ function IdlePage() {
               const lv = idle.trainerLevel ?? 1;
               return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => {
                 const locked = !!(p.reqLevel && lv < p.reqLevel);
-                return (
+                const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                   <div
                     key={p.key}
                     onClick={() => {
@@ -8762,7 +8825,8 @@ function IdlePage() {
             {/* 🧙 NPC Trocador — presente em todos os mapas, canto acessível */}
             {(() => {
               const npcX = 260, npcY = 260;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div
                   onClick={() => { playClick(); setWorldTraderOpen(true); }}
                   title="Trocador — Troque Pokémon da coleção por Orbs de XP"
@@ -8803,7 +8867,8 @@ function IdlePage() {
             {/* 👑 NPC Governante — visível apenas no Salão do Governante */}
             {idle.currentMap === "governante_hall" && (() => {
               const npcX = WORLD_W / 2, npcY = WORLD_H / 2 - 40;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div
                   onClick={() => { playClick(); setGovernanteOpen(true); }}
                   title="Governante — Entregue Cartas da Incubadora para receber Black Mitic Plus Egg"
@@ -8887,7 +8952,8 @@ function IdlePage() {
                 : e.rarity === "legendary" ? "#f5cf6b"
                 : e.rarity === "epic" ? "#c084fc"
                 : "#6bd4ff";
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={e.id}
                   onClick={(ev) => { ev.stopPropagation(); if (!dead) throwBallAt(e.id); }}
                   title="Clique para lançar Pokébola"
@@ -9175,7 +9241,8 @@ function IdlePage() {
               const arcY = Math.sin(dt * Math.PI) * 60;
               const x = captureAnim.fromX + (captureAnim.toX - captureAnim.fromX) * dt;
               const y = captureAnim.fromY + (captureAnim.toY - captureAnim.fromY) * dt - arcY;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div style={{
                   position: "absolute", left: x, top: y,
                   width: 26, height: 26,
@@ -9193,7 +9260,8 @@ function IdlePage() {
             {/* Outros jogadores no mesmo mapa */}
             {visibleMapPlayers.map((rp) => {
               const rpLeaderSrc = rp.leaderSp ? GIF[rp.leaderSp] : undefined;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={rp.id} style={{
                   position: "absolute",
                   left: rp.x, top: rp.y,
@@ -9296,7 +9364,8 @@ function IdlePage() {
               }
               const leaderX = renderFollowerX + lungeX;
               const leaderY = renderFollowerY + lungeY;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div style={{
                   position: "absolute",
                   left: leaderX, top: leaderY,
@@ -9406,7 +9475,8 @@ function IdlePage() {
               const scale = 0.6 + dt * 0.9;
               const size = attackAnim.crit ? 96 : 68;
               const glow = ELEMENT_FX_GLOW[attackAnim.element];
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={attackAnim.id} style={{
                   position: "absolute",
                   left: attackAnim.toX, top: attackAnim.toY,
@@ -9429,7 +9499,8 @@ function IdlePage() {
               const opacity = (dt < 0.5 ? dt / 0.5 : 1 - (dt - 0.5) / 0.5) * 0.85;
               const scale = 0.55 + dt * 0.75;
               const glow = ELEMENT_FX_GLOW[enemyAttackAnim.element];
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={enemyAttackAnim.id} style={{
                   position: "absolute",
                   left: enemyAttackAnim.toX, top: enemyAttackAnim.toY,
@@ -9459,7 +9530,8 @@ function IdlePage() {
                 "#e0f5a0";
               const isDmg = f.kind === "myDmg" || f.kind === "enemyDmg";
               const isCrit = f.kind === "crit";
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={f.id} className="fxpop" style={{
                   position: "absolute",
                   left: f.x, top: f.y,
@@ -9562,7 +9634,8 @@ function IdlePage() {
             const ss = Math.floor((remaining % 60000) / 1000).toString().padStart(2, "0");
             const accent = restingKind === "azul" ? "#4a9eff" : "#5ec26a";
             const label = restingKind === "azul" ? "Descansando na Casa Azul" : "Descansando no Lar";
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
               <>
                 <div style={{
                   position: "absolute", top: 10, right: 10, zIndex: 12,
@@ -9600,7 +9673,8 @@ function IdlePage() {
                 ? "Restaura energia em 5 min"
                 : "Descansar (leva 1 hora)";
             const bAction = nearBuilding === "lab" ? "RESETAR" : "DESCANSAR";
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
               <div style={{
                 position: "absolute", bottom: 78, left: "50%", transform: "translateX(-50%)",
                 background: "rgba(11,5,16,0.95)",
@@ -9656,7 +9730,8 @@ function IdlePage() {
             const ab = idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
             const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
             const on = ab.enabled;
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
             <div style={{
               position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
@@ -9678,7 +9753,8 @@ function IdlePage() {
                       {(["auto","pokeball","greatball","ultraball"] as const).map((p) => {
                         const label = p === "auto" ? "Auto" : p === "pokeball" ? "Poké" : p === "greatball" ? "Great" : "Ultra";
                         const sel = ab.preferredBall === p;
-                        return (
+                        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                           <button key={p} onClick={() => setAB({ preferredBall: p })} disabled={!ab.useBall} style={{
                             background: sel ? "#f5cf6b" : "rgba(255,255,255,0.06)",
                             color: sel ? "#0b0510" : "#eadfe8", border: "1px solid rgba(245,207,107,0.4)",
@@ -9737,7 +9813,8 @@ function IdlePage() {
                   { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
                 ]).map((b) => {
                   const sel = ab.preferredBall === b.id;
-                  return (
+                  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                     <button
                       key={b.id}
                       onClick={() => setAB({ preferredBall: b.id, useBall: true })}
@@ -10167,7 +10244,8 @@ function IdlePage() {
                     const targetMap = IDLE_MAPS[g.target];
                     const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                     const label = unlocked ? targetMap.name : `${targetMap.name} (Lv ${targetMap.minLevel})`;
-                    return (
+                    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                       <button
                         key={g.key}
                         onClick={interactive ? () => { setPendingGate({ target: g.target, gate: g, fromBig: big }); } : undefined}
@@ -10239,7 +10317,8 @@ function IdlePage() {
                 </div>
               );
 
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <>
                   <div style={{ position: "relative" }}>
                     {renderMap(true, false)}
@@ -10320,7 +10399,8 @@ function IdlePage() {
                           🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
                             const tm = IDLE_MAPS[g.target];
                             const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
-                            return (
+                            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                               <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
                                 ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
                               </span>
@@ -10366,7 +10446,8 @@ function IdlePage() {
                     const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : "👑 TEMPLO DO GOVERNANTE · CONTINENTE II";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
-                    return (
+                    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                       <div
                         onClick={() => setWorldMapOpen(false)}
                         style={{
@@ -10409,7 +10490,8 @@ function IdlePage() {
                             ]).map((t) => {
                               const active = worldTab === t.id;
                               const locked = t.id === 2 && !hasGovCard;
-                              return (
+                              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                                 <button
                                   key={t.id}
                                   onClick={() => { if (locked) return; playClick(); setWorldTab(t.id); }}
@@ -10448,7 +10530,8 @@ function IdlePage() {
                               if (!m) return null;
                               const ok = trainerLv >= m.minLevel;
                               const current = idle.currentMap === pin.id;
-                              return (
+                              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                                 <button
                                   key={pin.id}
                                   title={m.raid ? `${m.name} · RAID (chefes Lv variados)` : `${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}`}
@@ -10527,7 +10610,8 @@ function IdlePage() {
                     const goldOk = idle.bank.gold >= gold;
                     const canGo = lvOk && crystalOk;
                     const close = () => setPendingGate(null);
-                    return (
+                    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                       <div
                         onClick={close}
                         style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.82)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}
@@ -10813,7 +10897,8 @@ function IdlePage() {
               const timerTxt = active
                 ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
                 : "Um novo evento está sendo preparado.";
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <>
                   <div style={{
                     fontSize: 11, fontWeight: 900, color: "#ffd6ec",
@@ -10955,7 +11040,8 @@ function IdlePage() {
             const showActive = active;
             const color = t.color;
             const isDisabled = (t as { disabled?: boolean }).disabled === true;
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
               <button
                 key={t.id}
                 onClick={() => {
@@ -11303,7 +11389,8 @@ function IdlePage() {
         const collection = idle.collection ?? [];
         const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
         const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div
             onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
             style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
@@ -11347,7 +11434,8 @@ function IdlePage() {
                       const reqOwned = t.requires ? (idle.items[t.requires.itemId] ?? 0) : 0;
                       const canTrade = available >= t.count && reqOk;
                       const owned = idle.items[t.orbId] ?? 0;
-                      return (
+                      const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                         <div key={`${t.orbId}-${t.rarity}`} style={{
                           background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                           border: `2px solid ${t.color}66`, borderRadius: 14, padding: 14,
@@ -11414,7 +11502,8 @@ function IdlePage() {
                 // ~50% da sorte vai para "orb evolui" e 50% para "+tempo" (se houver upgrade); senão tudo vai pra tempo
                 const upgradeChance = pick.upgradeTo ? lucky * 0.5 : 0;
                 const timeChance = pick.upgradeTo ? lucky * 0.5 : lucky;
-                return (
+                const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                   <div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <div style={{ fontWeight: 900, color: pick.color, fontSize: 14 }}>
@@ -11467,7 +11556,8 @@ function IdlePage() {
                         {eligible.map((c) => {
                           const sel = worldTraderSel.has(c.uid);
                           const disabled = !sel && selCount >= pick.count;
-                          return (
+                          const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                             <button
                               key={c.uid}
                               disabled={disabled}
@@ -11516,7 +11606,8 @@ function IdlePage() {
                             const tier = FUEL_TIERS[r];
                             const active = activeTab === r;
                             const count = fuelPool.filter((x) => x.rarity === r).length;
-                            return (
+                            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                               <button key={r} onClick={() => setWorldTraderFuelTab(r)}
                                 style={{
                                   fontSize: 10, fontWeight: 900, padding: "3px 8px", borderRadius: 6, cursor: "pointer",
@@ -11537,7 +11628,8 @@ function IdlePage() {
                             const sel = worldTraderFuel.has(c.uid);
                             const disabled = !sel && fuelCount >= MAX_FUEL;
                             const tierColor = FUEL_TIERS[c.rarity as FuelRarity].color;
-                            return (
+                            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                               <button
                                 key={c.uid}
                                 disabled={disabled}
@@ -11676,7 +11768,8 @@ function IdlePage() {
                     const angle = (i / 6) * Math.PI * 2;
                     const dx = Math.cos(angle) * 80;
                     const dy = Math.sin(angle) * 80;
-                    return (
+                    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                       <div key={i} style={{
                         position: "absolute", width: 8, height: 8, borderRadius: 999,
                         background: "#e94b3c",
@@ -11862,7 +11955,8 @@ function IdlePage() {
           setBmpSwapSourceUid(null);
           setBmpSwapTarget(null);
         };
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div
             onClick={() => setBmpSwapOpen(false)}
             style={{
@@ -11910,7 +12004,8 @@ function IdlePage() {
                     {bmpEntries.map((e) => {
                       const src = GIF[e.species];
                       const sel = e.uid === bmpSwapSourceUid;
-                      return (
+                      const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                         <button
                           key={e.uid}
                           onClick={() => { setBmpSwapSourceUid(e.uid); setBmpSwapMsg(null); }}
@@ -11948,7 +12043,8 @@ function IdlePage() {
                   {BMP_SWAP_POOL.map((sp) => {
                     const src = GIF[sp];
                     const sel = sp === bmpSwapTarget;
-                    return (
+                    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                       <button
                         key={sp}
                         onClick={() => { setBmpSwapTarget(sp); setBmpSwapMsg(null); }}
@@ -12027,7 +12123,8 @@ function IdlePage() {
         };
         const c = rarityColorMap[eggOpenResult.rarity] ?? "#f5cf6b";
         const label = rarityLabelMap[eggOpenResult.rarity] ?? eggOpenResult.rarity;
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div
             onClick={() => setEggOpenResult(null)}
             style={{
@@ -12146,7 +12243,8 @@ function IdlePage() {
         const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
         const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
         const src = GIF[pet.species];
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div onClick={() => setPetDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(180deg,#1a1030,#0e0818)", border: "2px solid #f5cf6b", borderRadius: 12, padding: 18, minWidth: 300, maxWidth: 380, color: "#eadfe8" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -12212,7 +12310,8 @@ function IdlePage() {
         const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
         const party = save.party ?? team;
         const now = Date.now();
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div onClick={() => { setAzulPickerOpen(false); setAzulPreselectUid(null); }} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(180deg,#0a1830,#0e0818)", border: "2px solid #4a9eff", borderRadius: 12, padding: 18, width: 380, maxHeight: "80vh", overflow: "auto", color: "#eadfe8" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -12231,7 +12330,8 @@ function IdlePage() {
                   const src = GIF[p.species];
                   const canPick = !infinite && !resting && energy < ENERGY_MAX && idle.bank.crystals >= AZUL_REST_COST;
                   const label = infinite ? "MÍTICO (não cansa)" : resting ? `Descansando (${fmtMS(((p as PetEnergyExt).azulRestUntil!) - now)})` : `${energy}/100`;
-                  return (
+                  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                     <div key={p.uid} style={{ display: "flex", gap: 8, alignItems: "center", background: p.uid === azulPreselectUid ? "#12305a" : "#0a1830", border: `1px solid ${p.uid === azulPreselectUid ? "#7fc4ff" : "#4a9eff33"}`, padding: 8, borderRadius: 8, boxShadow: p.uid === azulPreselectUid ? "0 0 12px #4a9eff55" : undefined }}>
                       <div style={{ width: 44, height: 44, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", overflow: "hidden" }}>
                         {src ? <img src={src} alt="" style={{ width: "90%", imageRendering: "pixelated" }} /> : <span>❓</span>}
@@ -12246,7 +12346,8 @@ function IdlePage() {
                         const canPickNow = canPick;
                         const enabled = resting ? canSpeed : canPickNow;
                         const label = resting ? `Adiantar (${AZUL_REST_COST}💎)` : `Deixar (${AZUL_REST_COST}💎)`;
-                        return (
+                        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                           <button
                             disabled={!enabled}
                             onClick={() => resting ? speedUpAzulRest(p.uid) : restPetInAzul(p.uid)}
@@ -12285,7 +12386,8 @@ function IdlePage() {
         const src = GIF[sp];
         const lore = SPECIES_LORE[sp] ?? RARITY_LORE[base.rarity] ?? "Um Pokémon único, com história ainda por contar.";
         const isCurrent = team[0]?.uid === entry.uid;
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div onClick={() => setColecaoDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{
               background: "linear-gradient(180deg, #fff8e5 0%, #f5e6c8 100%)",
@@ -12401,7 +12503,8 @@ function IdlePage() {
         };
         const rColor = rarityColorMap[tgt.rarity] ?? "#c8c8c8";
         const gif = GIF[tgt.sp];
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div key={tgt.id} style={{
             position: "fixed", top: 72, left: "50%", transform: "translateX(-50%)",
             zIndex: 9997, pointerEvents: "none",
@@ -12741,6 +12844,7 @@ function IdlePage() {
 
 // ============ Componentes visuais ============
 function Panel({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{
       background: "#1a0f26",
@@ -12766,7 +12870,8 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
   const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
   if (!src) {
-    return (
+    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
       <div onClick={onClick} style={{ display: "flex", gap: 8, alignItems: "center", background: "#2a1a3a", padding: 6, borderRadius: 6, cursor: onClick ? "pointer" : undefined }}>
         <div style={{ width: 48, height: 48, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 20 }}>❓</div>
         <div style={{ flex: 1, fontSize: 12 }}>
@@ -12790,6 +12895,7 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
     const n = parseInt(h.replace("#", ""), 16);
     return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
   };
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
       display: "flex", gap: 8, alignItems: "center",
@@ -12908,6 +13014,7 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
 
 function ProgressRow({ icon, label, value, target }: { icon: string; label: string; value: number; target: number }) {
   const pct = Math.min(100, (value / target) * 100);
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{ marginBottom: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
@@ -12923,6 +13030,7 @@ function ProgressRow({ icon, label, value, target }: { icon: string; label: stri
 
 // HUD topo — chip elegante para moeda/cristal
 function HudChip({ color, label, icon }: { color: string; label: string; icon: string }) {
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 4,
@@ -12936,6 +13044,7 @@ function HudChip({ color, label, icon }: { color: string; label: string; icon: s
   );
 }
 function HudBall({ img, count, color }: { img: string; count: number; color: string }) {
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 3,
@@ -12964,6 +13073,7 @@ function pillStyle(color: string): React.CSSProperties {
 
 // ── HUD superior: nicho clássico para OURO / CRISTAIS
 function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React.ReactNode; value: string; title: string }) {
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div title={title} style={{
       display: "inline-flex", alignItems: "center", gap: 6,
@@ -12986,6 +13096,7 @@ function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React
 // ── HUD superior: slot elegante para cada Pokébola
 function BallSlot({ img, count, tint }: { img: string; count: number; tint: string }) {
   const empty = count <= 0;
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{
       position: "relative",
@@ -13086,6 +13197,7 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
   const clamp = (v: number) => Math.max(1, Math.min(Math.max(1, max), Math.floor(v || 1)));
   const q = clamp(qty);
   const ok = canBuyFn(q);
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "center" }}>
@@ -13187,18 +13299,18 @@ function TabOverlay({
 }) {
 
   const title =
-    tab === "pokemon"   ? "MEU POKÉMON" :
-    tab === "mochila"   ? "MOCHILA" :
-    tab === "colecao"   ? "COLEÇÃO" :
-    tab === "pokedex"   ? "POKÉDEX" :
-    tab === "loja"      ? "LOJA BLOQUEADA" :
-    tab === "wallet"    ? "CARTEIRA" :
-    tab === "market"    ? "MERCADO BLOQUEADO" :
+    effectiveTab === "pokemon"   ? "MEU POKÉMON" :
+    effectiveTab === "mochila"   ? "MOCHILA" :
+    effectiveTab === "colecao"   ? "COLEÇÃO" :
+    effectiveTab === "pokedex"   ? "POKÉDEX" :
+    effectiveTab === "loja"      ? "LOJA BLOQUEADA" :
+    effectiveTab === "wallet"    ? "CARTEIRA" :
+    effectiveTab === "market"    ? "MERCADO BLOQUEADO" :
 
-    tab === "melhorias" ? "MELHORIAS" :
-    tab === "config"    ? "CONFIGURAÇÕES" :
-    tab === "tarefas"   ? "TAREFAS" :
-    tab === "inicio"    ? "INÍCIO" : "";
+    effectiveTab === "melhorias" ? "MELHORIAS" :
+    effectiveTab === "config"    ? "CONFIGURAÇÕES" :
+    effectiveTab === "tarefas"   ? "TAREFAS" :
+    effectiveTab === "inicio"    ? "INÍCIO" : "";
   const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
   const [itemDetail, setItemDetail] = useState<string | null>(null);
   const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; rarity: Rarity; count: number; color: string; label: string }>(null);
@@ -13257,6 +13369,7 @@ function TabOverlay({
     setBulkMode(false);
     setFragConfirm(null);
   };
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{
       position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
@@ -13270,7 +13383,7 @@ function TabOverlay({
         </button>
       </div>
 
-      {tab === "pokemon" && leader && (
+      {effectiveTab === "pokemon" && leader && (
         <div style={{
           position: "relative",
           padding: "14px 12px 18px",
@@ -13307,7 +13420,8 @@ function TabOverlay({
               mythic:       { c: "#ff6b3d", label: "MÍTICO" },
               mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦" },
             };
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
               <div style={{
                 marginTop: 18,
                 padding: "14px 16px",
@@ -13378,7 +13492,8 @@ function TabOverlay({
                         spd: <><circle cx="12" cy="12" r="8" stroke={col} strokeWidth="2" fill={col+"33"}/><path d="M12 4 Q16 12 12 20 Q8 12 12 4" stroke={col} strokeWidth="1.5" fill={col+"77"}/></>,
                         spe: <><path d="M13 3 L4 14 H11 L9 21 L20 10 H13 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
                       };
-                      return (
+                      const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                         <svg viewBox="0 0 24 24" width="18" height="18" style={{ filter: `drop-shadow(0 0 3px ${col}aa)` }}>
                           {paths[kind]}
                         </svg>
@@ -13409,7 +13524,8 @@ function TabOverlay({
                         </div>
                       </div>
                     );
-                    return (
+                    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                       <div key={p.uid} style={{
                         display: "flex", alignItems: "stretch", gap: 12, padding: 12,
                         background: isLeader
@@ -13597,7 +13713,7 @@ function TabOverlay({
 
 
 
-      {tab === "tarefas" && (
+      {effectiveTab === "tarefas" && (
         <div>
           <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 12 }}>
             Complete as tarefas para ganhar <img src={crystalGreenImg} alt="" style={{ width: 12, verticalAlign: "middle" }} /> cristais.
@@ -13644,7 +13760,7 @@ function TabOverlay({
         </div>
       )}
 
-      {tab === "mochila" && (() => {
+      {effectiveTab === "mochila" && (() => {
         const NAMES: Record<string, string> = {
           potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
           book_atk: "Livro Ataque", book_def: "Livro Defesa", book_exp: "Livro EXP",
@@ -13755,7 +13871,8 @@ function TabOverlay({
           panel: "#1e1030",
         };
 
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div style={{
             background: `
               radial-gradient(circle at 50% 30%, rgba(168,85,247,0.28), transparent 55%),
@@ -13828,7 +13945,8 @@ function TabOverlay({
                 {CATS.map((c) => {
                   const active = mochilaCat === c.id;
                   const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
-                  return (
+                  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                     <button
                       key={c.id}
                       onClick={() => setMochilaCat(c.id)}
@@ -13905,7 +14023,8 @@ function TabOverlay({
                       const img = ITEM_IMG[id];
                       const Icon = ITEM_ICONS[id] ?? Sparkles;
                       const sellPrice = marketSellPrices[id] ?? 0;
-                      return (
+                      const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                         <div key={id} style={{
                           background: `linear-gradient(180deg, ${P.panel} 0%, ${P.bg1} 100%)`,
                           border: `2px solid ${P.goldDark}`, borderRadius: 10, padding: 8,
@@ -14032,7 +14151,8 @@ function TabOverlay({
                               : !okQty
                                 ? `Precisa de ${rule.cost}× (você tem ${n})`
                                 : `Forjar ${rule.label} usando ${rule.cost}×`;
-                            return (
+                            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                               <button
                                 onClick={() => onUpgradeBook(id)}
                                 disabled={!enabled}
@@ -14077,7 +14197,8 @@ function TabOverlay({
               const desc = ITEM_DESC[id] ?? "Item do universo IdleMon. Ainda sem descrição detalhada.";
               const count = items[id] ?? 0;
               const sellPrice = marketSellPrices[id] ?? 0;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div onClick={() => setItemDetail(null)} style={{
                   position: "fixed", inset: 0, zIndex: 9999,
                   background: "rgba(4,4,10,0.72)", backdropFilter: "blur(6px)",
@@ -14155,7 +14276,7 @@ function TabOverlay({
       })()}
 
 
-      {tab === "colecao" && (
+      {effectiveTab === "colecao" && (
         <div style={{
           background: "linear-gradient(180deg, #f5e6c8 0%, #e8d4a8 100%)",
           border: "3px solid #b8862a",
@@ -14278,7 +14399,8 @@ function TabOverlay({
             if (filtered.length === 0) {
               return <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
               {filtered.map((entry, i) => {
                 const sp = entry.species;
@@ -14302,7 +14424,8 @@ function TabOverlay({
                  const isBMP = !!entry.event && entry.event.startsWith("black_mitic");
                  const isBrilhant = !!entry.event && entry.event.includes("brilhant");
                  const bmpAccent = isBrilhant ? "#ff97e1" : "#a066ff";
-                 return (
+                 const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                    <div
                      key={entry.uid}
                      onClick={() => {
@@ -14485,7 +14608,7 @@ function TabOverlay({
 
 
 
-      {tab === "pokedex" && (
+      {effectiveTab === "pokedex" && (
         <div style={{
           background: "linear-gradient(180deg, #2a0510, #1a0510)",
           border: "2px solid #e11d48",
@@ -14520,7 +14643,8 @@ function TabOverlay({
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: 10 }}>
               {seenSpecies.map((sp, i) => {
                 const caught = caughtSpecies.includes(sp);
-                return (
+                const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                   <div key={sp} style={{
                     background: "linear-gradient(180deg, #3a0a1a, #1a0510)",
                     border: `2px solid ${caught ? "#ffd94d" : "#e11d48"}`,
@@ -14547,14 +14671,14 @@ function TabOverlay({
 
 
 
-      {false && tab === "loja" && (
+      {tab === "loja" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
         </div>
       )}
-      {false && tab === "loja" && (
+      {false && effectiveTab === "loja" && (
         <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -14572,7 +14696,8 @@ function TabOverlay({
             const activeUntil = buffs.teamOrbUntil ?? 0;
             const isActive = activeUntil > Date.now();
             const color = ITEM_COLORS[bk.id] ?? "#ff97e1";
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
               <div style={{ marginBottom: 20 }}>
                 <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>✦ Destaque da Loja — Orb de Time</h3>
                 <div style={{
@@ -14651,7 +14776,8 @@ function TabOverlay({
               const owned = items[b.id] ?? 0;
               const canBuy = bank.gold >= b.price;
               const color = ITEM_COLORS[b.id] ?? "#f5cf6b";
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={b.id} style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${color}55`, borderRadius: 12, padding: 14,
@@ -14685,7 +14811,8 @@ function TabOverlay({
               const owned = items.ultraball ?? 0;
               const canBuy = bank.crystals >= COST;
               const color = "#c084fc";
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
@@ -14715,7 +14842,8 @@ function TabOverlay({
               const owned = items.scroll_teleport ?? 0;
               const canBuy = bank.crystals >= COST;
               const color = "#8ec5ff";
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div style={{
                   background: "linear-gradient(160deg, #0f1a2e 0%, #142238 100%)",
                   border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
@@ -14749,7 +14877,8 @@ function TabOverlay({
             {shopEggs.map((e) => {
               const owned = items[e.id] ?? 0;
               const canBuy = e.currency === "gold" ? bank.gold >= e.price : bank.crystals >= e.price;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={e.id} style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${e.color}77`, borderRadius: 12, padding: 14,
@@ -14855,7 +14984,8 @@ function TabOverlay({
               const useGold = bk.currency === "gold";
               const canBuy = useGold ? bank.gold >= bk.price : bank.crystals >= bk.price;
               const color = ITEM_COLORS[bk.id] ?? "#c084fc";
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={bk.id} style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${color}55`, borderRadius: 12, padding: 14,
@@ -14903,7 +15033,8 @@ function TabOverlay({
               const reqOwned = t.requires ? (items[t.requires.itemId] ?? 0) : 0;
               const canTrade = available >= t.count && reqOk;
               const owned = items[t.orbId] ?? 0;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={`${t.orbId}-${t.rarity}`} style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${t.color}55`, borderRadius: 12, padding: 14,
@@ -14950,7 +15081,8 @@ function TabOverlay({
             );
             const selCount = orbPickerSel.size;
             const canConfirm = selCount === orbPicker.count;
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
               <div
                 onClick={() => setOrbPicker(null)}
                 style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 10000, display: "grid", placeItems: "center", padding: 16 }}
@@ -14982,7 +15114,8 @@ function TabOverlay({
                       {eligible.map((c) => {
                         const sel = orbPickerSel.has(c.uid);
                         const disabled = !sel && selCount >= orbPicker.count;
-                        return (
+                        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                           <button
                             key={c.uid}
                             disabled={disabled}
@@ -15052,7 +15185,7 @@ function TabOverlay({
       )}
 
 
-      {tab === "melhorias" && (() => {
+      {effectiveTab === "melhorias" && (() => {
         const nowMs = Date.now();
         const bookActive = !!(buffs?.expMultUntil && nowMs < buffs.expMultUntil);
         const orbActive = !!(buffs?.orbUntil && nowMs < buffs.orbUntil);
@@ -15067,7 +15200,8 @@ function TabOverlay({
           const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
           return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${r}s` : `${r}s`;
         };
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div>
             <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
@@ -15115,7 +15249,7 @@ function TabOverlay({
       })()}
 
 
-      {tab === "inicio" && (
+      {effectiveTab === "inicio" && (
         <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6 }}>
           <p style={{ marginTop: 0 }}>Bem-vindo ao <strong style={{ color: "#f5cf6b" }}>Modo Idle</strong>!</p>
           <ul style={{ paddingLeft: 20 }}>
@@ -15137,7 +15271,8 @@ function TabOverlay({
               const active = s.id === skinId;
               const unlocked = unlockedSkins.includes(s.id);
               const canUnlock = !unlocked && skinTickets > 0;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <button
                   key={s.id}
                   onClick={() => {
@@ -15191,18 +15326,18 @@ function TabOverlay({
         </div>
       )}
 
-      {tab === "wallet" && (
+      {effectiveTab === "wallet" && (
         <WalletScreen bank={bank} onExchange={onExchange} />
       )}
 
-      {false && tab === "market" && (
+      {tab === "market" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
         </div>
       )}
-      {false && tab === "market" && (
+      {false && effectiveTab === "market" && (
         <>
           <MarketScreen
             items={items}
@@ -15222,7 +15357,7 @@ function TabOverlay({
 
 
 
-      {tab === "config" && (
+      {effectiveTab === "config" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 520 }}>
           <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.5 }}>
             Ajuste os sons e a música do jogo. A música toca em loop de fundo enquanto você joga.
@@ -15307,7 +15442,8 @@ function TabOverlay({
         };
         const list = fragConfirm.entries;
         const isBulk = list.length > 1;
-        return (
+        const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
           <div
             onClick={() => setFragConfirm(null)}
             style={{ position: "fixed", inset: 0, zIndex: 10001, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(6px)", display: "grid", placeItems: "center", padding: 16 }}
@@ -15362,7 +15498,8 @@ function TabOverlay({
                 }}>
                   {list.map((e) => {
                     const rc = rarityColor[e.rarity] ?? "#8b6a30";
-                    return (
+                    const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                       <div key={e.uid} style={{
                         background: "linear-gradient(180deg, rgba(30,15,50,0.85), rgba(11,5,16,0.9))",
                         border: `2px solid ${rc}88`,
@@ -15444,6 +15581,7 @@ function TabOverlay({
 }
 
 function BuffCell({ img, label, value, color }: { img: string; label: string; value: string; color: string }) {
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{
       background: "#1a0f26", border: `1px solid ${color}55`, borderRadius: 10,
@@ -15463,6 +15601,7 @@ function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: nu
 
   const buyCost = buyAmt * 1000;
   const sellGain = sellAmt * 800;
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, maxWidth: 780 }}>
       <div style={{
@@ -15598,6 +15737,7 @@ function MarketScreen({
   const others = listings.filter((l) => l.seller_id !== (identity?.id ?? ""));
 
 
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{ maxWidth: 900 }}>
       <div style={{ background: "linear-gradient(180deg,#3d2b0f,#241503)", border: "2px solid #ff9d3d66", borderRadius: 12, padding: 16, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -15636,7 +15776,8 @@ function MarketScreen({
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10, marginBottom: 16 }}>
                 {soldPayouts.map((l) => {
                   const cur = l.currency ?? "gold";
-                  return (
+                  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                     <div key={l.id} style={{ background: "linear-gradient(180deg,#2a1f08,#150e02)", border: "1px solid #ffd94d88", borderRadius: 10, padding: 12 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         {STONE_CHEST[l.item_id] ? (
@@ -15699,7 +15840,8 @@ function MarketScreen({
                 const cur = l.currency ?? "gold";
                 const bal = cur === "gold" ? bank.gold : cur === "crystal" ? bank.crystals : (items.safira_verde ?? 0);
                 const canBuy = bal >= l.price;
-                return (
+                const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                   <div key={l.id} style={{ background: "#1a0f26", border: "1px solid #ff9d3d66", borderRadius: 10, padding: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       {STONE_CHEST[l.item_id] ? (
@@ -15781,7 +15923,8 @@ function MarketScreen({
             const belowMin = isStoneId(selItem) && stoneQty < STONE_PACK_SIZE;
             const noStock = (items[selItem] ?? 0) < stoneQty;
             const disabled = !isVip || belowMin || noStock;
-            return (
+            const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
               <button disabled={disabled}
                 onClick={async () => { const ok = await onList(selItem, stoneQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
                 style={{ width: "100%", background: disabled ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer" }}>
@@ -15802,7 +15945,8 @@ function MarketScreen({
               const have = items[id] ?? 0;
               const price = npcPrices[id];
               const disabled = have <= 0;
-              return (
+              const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
+  return (
                 <div key={id} style={{ background: "#1a0f26", border: `1px solid ${disabled ? "#3a2a4a" : "#ff9d3d66"}`, borderRadius: 10, padding: 12, opacity: disabled ? 0.55 : 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                     <div style={{ fontSize: 22 }}>{ICONS[id] ?? "📦"}</div>
@@ -15853,6 +15997,7 @@ function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: n
   };
   const rColor = rarityColor[pet.rarity] ?? "#f5cf6b";
 
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{
       position: "relative",
@@ -15957,6 +16102,7 @@ function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: n
   );
 }
 function StatBar({ label, value, max, pct, color }: { label: string; value: number; max: number; pct: number; color: string }) {
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 2 }}>
@@ -15975,6 +16121,7 @@ function StatBar({ label, value, max, pct, color }: { label: string; value: numb
   );
 }
 function StatCell({ label, value }: { label: string; value: number }) {
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{
       background: "linear-gradient(180deg, #1a0f26, #0b0510)",
@@ -16015,6 +16162,7 @@ const RARITY_LORE: Partial<Record<Rarity, string>> = {
 };
 function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) {
   const lore = SPECIES_LORE[species] ?? RARITY_LORE[rarity] ?? "Um Pokémon único, com história ainda por contar.";
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{
       marginTop: 14,
@@ -16075,6 +16223,7 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     r, pct: Math.round((teamSynergyMap[r] ?? 0) * 100),
     active: synergyRarity === r,
   }));
+  const effectiveTab = (effectiveTab === "loja" || effectiveTab === "market") ? "LOCKED_TAB" : tab;
   return (
     <div style={{
       marginTop: 14,
