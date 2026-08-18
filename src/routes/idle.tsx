@@ -157,6 +157,8 @@ import mapOddish2Asset from "@/assets/map-oddish-2.png.asset.json";
 import mapOddish3Url from "@/assets/map-oddish3.png";
 import absolStartMapAsset from "@/assets/absol-start-map.png.asset.json";
 import governanteHallMapAsset from "@/assets/governante-hall-map.png.asset.json";
+import continent3Map1Asset from "@/assets/maps/map-continent3-1.png.asset.json";
+import continent3Map2Asset from "@/assets/maps/map-continent3-2.png.asset.json";
 import npcGovernanteAsset from "@/assets/npc-governante.png.asset.json";
 import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
 import oddishEventGifAsset from "@/assets/oddish-event.gif.asset.json";
@@ -469,7 +471,9 @@ type IdleMapId =
   // Evento Grass Oddish — mapa exclusivo, entrada custa 20 Stone Verdejante
   | "grass_oddish"
   // Continente do Governante — acesso via Carta do Governante
-  | "absol_start" | "governante_hall";
+  | "absol_start" | "governante_hall"
+  // Terceiro Continente — Bônus
+  | "continent3_map1" | "continent3_map2";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -526,6 +530,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   grass_oddish: { name: "🌿 Grass Oddish", diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta", stars: 6, overlay: "rgba(120,255,140,0.18)" },
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
+  continent3_map1:  { name: "Fosso de Magma",                    diff: "MÍTICO++", bg: assetUrlFromJson(continent3Map1Asset),      rate: 45.0, minLevel: 6000, maxLevel: 8000, element: "Fogo/Lava",    stars: 10 },
+  continent3_map2:  { name: "Pântano de Safira",                 diff: "DIVINO",   bg: assetUrlFromJson(continent3Map2Asset),      rate: 55.0, minLevel: 8000, maxLevel: 10000, element: "Veneno/Planta", stars: 10 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -2259,7 +2265,7 @@ function IdlePage() {
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
-  const [worldTab, setWorldTab] = useState<1 | 2>(1);
+  const [worldTab, setWorldTab] = useState<1 | 2 | 3>(1);
   const [pendingGate, setPendingGate] = useState<null | { target: string; gate: any; fromBig: boolean }>(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
@@ -10093,6 +10099,13 @@ function IdlePage() {
                 gelius2: [
                   { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
+                continent3_map1: [
+                  { key: "c3m1-back", target: "nucleo_primordial", x: 60, y: WORLD_H / 2, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#f0abfc" },
+                  { key: "c3m1-next", target: "continent3_map2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#b45adc" },
+                ],
+                continent3_map2: [
+                  { key: "c3m2-back", target: "continent3_map1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#ff5f2d" },
+                ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
@@ -10362,10 +10375,14 @@ function IdlePage() {
                       { id: "absol_start" as IdleMapId, x: 18, y: 45 },
                       { id: "governante_hall" as IdleMapId, x: 52, y: 55 },
                     ];
+                    const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
+                      { id: "continent3_map1" as IdleMapId, x: 25, y: 35 },
+                      { id: "continent3_map2" as IdleMapId, x: 65, y: 55 },
+                    ];
                     const activeTab = worldTab;
-                    const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : WORLD_PINS_C2;
-                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : worldMapContinent2Url;
-                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : "👑 TEMPLO DO GOVERNANTE · CONTINENTE II";
+                    const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3;
+                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : activeTab === 2 ? worldMapContinent2Url : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop";
+                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : "🌋 NOVAS FRONTEIRAS · CONTINENTE III";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
                     return (
@@ -10408,6 +10425,7 @@ function IdlePage() {
                             {([
                               { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
                               { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
+                              { id: 3 as const, label: "🌋 Continente III", sub: "Novas Fronteiras (Bônus)" },
                             ]).map((t) => {
                               const active = worldTab === t.id;
                               const locked = t.id === 2 && !hasGovCard;
