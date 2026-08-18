@@ -15115,11 +15115,11 @@ function TabOverlay({
         };
 
         const stats = [
-          { key: "atk", label: "ATK", val: tStats.atk, icon: "⚔️", color: "#ff5252" },
-          { key: "def", label: "DEF", val: tStats.def, icon: "🛡️", color: "#4a7bff" },
-          { key: "hp", label: "HP", val: tStats.hp, icon: "❤️", color: "#ff4d4d" },
-          { key: "spe", label: "SPD", val: tStats.spe, icon: "👟", color: "#f5cf6b" },
-          { key: "crit", label: "CRT", val: tStats.crit, icon: "🎯", color: "#c084fc" },
+          { key: "atk", label: "ATK", val: tStats.atk, icon: "⚔️", color: "#ff5252", desc: "Aumenta o dano base do treinador em +12 por ponto.", bonus: "+12 Dano" },
+          { key: "def", label: "DEF", val: tStats.def, icon: "🛡️", color: "#4a7bff", desc: "Reduz o dano recebido de inimigos em -8 por ponto.", bonus: "-8 Dano" },
+          { key: "hp", label: "HP", val: tStats.hp, icon: "❤️", color: "#ff4d4d", desc: "Aumenta o HP máximo do treinador em +50 por ponto.", bonus: "+50 HP" },
+          { key: "spe", label: "SPD", val: tStats.spe, icon: "👟", color: "#f5cf6b", desc: "Aumenta a velocidade de movimento no mapa em +5% por ponto.", bonus: "+5%" },
+          { key: "crit", label: "CRT", val: tStats.crit, icon: "🎯", color: "#c084fc", desc: "Aumenta a chance de crítico em +1% (máx 85%).", bonus: "+1%" },
         ];
 
         // Gráfico Estelar de Anatomia
@@ -15209,7 +15209,10 @@ function TabOverlay({
                     
                     <div>
                       <div style={{ fontSize: 10, color: "#8a7a9c", fontWeight: 700, letterSpacing: 1 }}>{s.icon} {s.label}</div>
-                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color, textShadow: `0 0 10px ${s.color}44` }}>+{s.val}</div>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color, textShadow: `0 0 10px ${s.color}44` }}>
+                        +{s.val} <span style={{ fontSize: 9, opacity: 0.8, color: "#fff", fontWeight: 500 }}>({s.bonus})</span>
+                      </div>
+                      <div style={{ fontSize: 8, color: "#6a5a7c", marginTop: 2, maxWidth: 100, lineHeight: 1.1 }}>{s.desc}</div>
                     </div>
                     <button 
                       onClick={() => upgradeStat(s.key as any)}
