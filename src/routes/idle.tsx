@@ -14567,7 +14567,7 @@ function TabOverlay({
         </div>
       )}
 
-      {false && tab === "loja" && (
+      {tab === "loja" && (
         <div>
           {(() => {
             const bk = SHOP_BOOKS.find((x) => x.id === "orb_team")!;
