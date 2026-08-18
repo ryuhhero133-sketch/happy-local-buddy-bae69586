@@ -10,19 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IdleRouteImport } from './routes/idle'
-import { Route as HexchampionsRouteImport } from './routes/hexchampions'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as IdleFixRouteImport } from './routes/idle.fix'
-import { Route as ApiPublicPurgeUserRouteImport } from './routes/api/public/purge-user'
 
 const IdleRoute = IdleRouteImport.update({
   id: '/idle',
   path: '/idle',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HexchampionsRoute = HexchampionsRouteImport.update({
-  id: '/hexchampions',
-  path: '/hexchampions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -30,63 +22,31 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IdleFixRoute = IdleFixRouteImport.update({
-  id: '/fix',
-  path: '/fix',
-  getParentRoute: () => IdleRoute,
-} as any)
-const ApiPublicPurgeUserRoute = ApiPublicPurgeUserRouteImport.update({
-  id: '/api/public/purge-user',
-  path: '/api/public/purge-user',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/hexchampions': typeof HexchampionsRoute
-  '/idle': typeof IdleRouteWithChildren
-  '/idle/fix': typeof IdleFixRoute
-  '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
+  '/idle': typeof IdleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/hexchampions': typeof HexchampionsRoute
-  '/idle': typeof IdleRouteWithChildren
-  '/idle/fix': typeof IdleFixRoute
-  '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
+  '/idle': typeof IdleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/hexchampions': typeof HexchampionsRoute
-  '/idle': typeof IdleRouteWithChildren
-  '/idle/fix': typeof IdleFixRoute
-  '/api/public/purge-user': typeof ApiPublicPurgeUserRoute
+  '/idle': typeof IdleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/hexchampions'
-    | '/idle'
-    | '/idle/fix'
-    | '/api/public/purge-user'
+  fullPaths: '/' | '/idle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/hexchampions' | '/idle' | '/idle/fix' | '/api/public/purge-user'
-  id:
-    | '__root__'
-    | '/'
-    | '/hexchampions'
-    | '/idle'
-    | '/idle/fix'
-    | '/api/public/purge-user'
+  to: '/' | '/idle'
+  id: '__root__' | '/' | '/idle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  HexchampionsRoute: typeof HexchampionsRoute
-  IdleRoute: typeof IdleRouteWithChildren
-  ApiPublicPurgeUserRoute: typeof ApiPublicPurgeUserRoute
+  IdleRoute: typeof IdleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -98,13 +58,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IdleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/hexchampions': {
-      id: '/hexchampions'
-      path: '/hexchampions'
-      fullPath: '/hexchampions'
-      preLoaderRoute: typeof HexchampionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -112,38 +65,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/idle/fix': {
-      id: '/idle/fix'
-      path: '/fix'
-      fullPath: '/idle/fix'
-      preLoaderRoute: typeof IdleFixRouteImport
-      parentRoute: typeof IdleRoute
-    }
-    '/api/public/purge-user': {
-      id: '/api/public/purge-user'
-      path: '/api/public/purge-user'
-      fullPath: '/api/public/purge-user'
-      preLoaderRoute: typeof ApiPublicPurgeUserRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
-interface IdleRouteChildren {
-  IdleFixRoute: typeof IdleFixRoute
-}
-
-const IdleRouteChildren: IdleRouteChildren = {
-  IdleFixRoute: IdleFixRoute,
-}
-
-const IdleRouteWithChildren = IdleRoute._addFileChildren(IdleRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  HexchampionsRoute: HexchampionsRoute,
-  IdleRoute: IdleRouteWithChildren,
-  ApiPublicPurgeUserRoute: ApiPublicPurgeUserRoute,
+  IdleRoute: IdleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

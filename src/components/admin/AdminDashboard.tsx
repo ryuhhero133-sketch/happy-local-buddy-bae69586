@@ -1,7 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { loadIdentity } from "@/components/AuthGate";
 import {
   getConfig,
   saveConfig,
@@ -32,12 +29,11 @@ type TabId =
   | "events"
   | "reports"
   | "logs"
-  | "config"
-  | "online_players";
+  | "config";
 
 const TABS: { id: TabId; label: string; icon: string; group: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: "◆", group: "Visão" },
-  { id: "online_players", label: "Jogadores Online", icon: "◉", group: "Visão" },
+  { id: "players", label: "Players Online", icon: "◉", group: "Visão" },
   { id: "gifts", label: "Enviar Presente", icon: "✉", group: "Visão" },
   { id: "pokemon", label: "Pokémon Manager", icon: "♦", group: "Conteúdo" },
   { id: "spawn", label: "Spawn Manager", icon: "✦", group: "Conteúdo" },
@@ -63,7 +59,6 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [config, setConfig] = useState<AdminConfig>(() => getConfig());
   const [query, setQuery] = useState("");
   const [navOpen, setNavOpen] = useState(false);
-  const identity = useMemo(() => loadIdentity(), []);
 
   useEffect(() => {
     saveConfig(config);
@@ -151,9 +146,6 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     </>
   );
 
-  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6" || identity?.email === "lordryuhhhuyuyghh@gmail.com";
-  if (!isAdminUuid) return null;
-
   return (
     <div className="fixed inset-0 z-[9999] flex bg-slate-950/95 backdrop-blur-xl text-slate-100 font-sans animate-in fade-in duration-200">
       {/* Particles */}
@@ -220,12 +212,10 @@ function TabBody({
   switch (tab) {
     case "dashboard":
       return <DashboardTab />;
-    case "online_players":
-      return <OnlinePlayersTab />;
+    case "players":
+      return <PlayersTab />;
     case "gifts":
       return <GiftsTab />;
-    case "reports":
-      return <ReportsTab />;
     case "pokemon":
       return <PokemonTab />;
     case "spawn":
@@ -358,218 +348,16 @@ function DashboardTab() {
   );
 }
 
-function OnlinePlayersTab() {
-  const [players, setPlayers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [inspectingUser, setInspectingUser] = useState<string | null>(null);
-  const [inventory, setInventory] = useState<any>(null);
-  const [ipLogs, setIpLogs] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(`
-          id,
-          username,
-          last_login,
-          account_status,
-          lock_until,
-          ranked_leaderboard:ranked_scores (
-            trainer_level,
-            total_kills
-          )
-        `)
-        .order("last_login", { ascending: false });
-      
-      if (error) throw error;
-      setPlayers(data || []);
-    } catch (e) {
-      console.error("Load players failed", e);
-      toast.error("Falha ao carregar lista de jogadores");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { refresh(); }, []);
-
-  const filteredPlayers = useMemo(() => {
-    if (!searchQuery) return players;
-    return players.filter(p => 
-      (p.username || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.id.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [players, searchQuery]);
-
-  const inspectPlayer = async (id: string) => {
-    setInspectingUser(id);
-    setInventory(null);
-    setIpLogs([]);
-    try {
-      const [invRes, ballsRes, ipRes] = await Promise.all([
-        supabase.from("inventory").select("*").eq("user_id", id),
-        supabase.from("pokeballs").select("*").eq("user_id", id),
-        supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10)
-      ]);
-      setInventory({
-        items: invRes.data || [],
-        balls: ballsRes.data || []
-      });
-      setIpLogs(ipRes.data || []);
-    } catch (e) {
-      console.error("Inspect failed", e);
-    }
-  };
-
-  const updateStatus = async (id: string, status: string) => {
-    if (!confirm(`Alterar status para ${status.toUpperCase()}?`)) return;
-    try {
-      const { error } = await (supabase.from("profiles") as any).update({ account_status: status }).eq("id", id);
-      if (error) throw error;
-      toast.success(`Status atualizado para ${status}`);
-      refresh();
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  const unlockUser = async (id: string) => {
-    try {
-      const { error } = await (supabase.from("profiles") as any).update({ lock_until: null }).eq("id", id);
-      if (error) throw error;
-      toast.success("Acesso liberado para este jogador");
-      refresh();
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
+function PlayersTab() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-4 mb-4">
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            placeholder="Buscar por nome ou ID..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-fuchsia-500"
-          />
-        </div>
-        <button onClick={refresh} className="bg-slate-800 hover:bg-slate-700 text-xs px-4 py-2 rounded-lg transition">
-          ATUALIZAR LISTA ({players.length})
-        </button>
+    <Card title="Jogadores online" action={<span className="text-xs text-slate-400">Atualização em tempo real requer backend</span>}>
+      <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6 text-center text-sm text-slate-400">
+        Lista de jogadores aparecerá aqui quando o sync multiplayer estiver ativo.
+        <div className="mt-3 text-xs text-slate-500">Você é o único admin local no momento.</div>
       </div>
-
-      <Card title="Gestão Global de Jogadores">
-        <div className="rounded-lg border border-slate-800 bg-slate-950/60 overflow-hidden overflow-x-auto">
-          <table className="w-full text-[10px]">
-            <thead className="bg-slate-900/80 text-slate-500">
-              <tr>
-                <th className="text-left px-3 py-2">Jogador</th>
-                <th className="text-left px-3 py-2">Status</th>
-                <th className="text-left px-3 py-2">Nível</th>
-                <th className="text-left px-3 py-2">Visto em</th>
-                <th className="text-right px-3 py-2">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/50">
-              {filteredPlayers.map((p) => {
-                const isLocked = p.lock_until && new Date(p.lock_until) > new Date();
-                return (
-                  <tr key={p.id} className={`hover:bg-white/5 ${inspectingUser === p.id ? "bg-fuchsia-500/5" : ""}`}>
-                    <td className="px-3 py-2">
-                      <div className="text-amber-100 font-bold">{p.username || "Sem nome"}</div>
-                      <div className="text-[8px] text-slate-600 truncate max-w-[120px]">{p.id}</div>
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-col gap-1">
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold text-center ${
-                          p.account_status === 'banned' ? 'bg-rose-500/20 text-rose-400' :
-                          p.account_status === 'analysis' ? 'bg-amber-500/20 text-amber-400' :
-                          'bg-emerald-500/20 text-emerald-400'
-                        }`}>
-                          {(p.account_status || 'active').toUpperCase()}
-                        </span>
-                        {isLocked && (
-                          <span className="bg-fuchsia-500/20 text-fuchsia-300 text-[7px] px-1 rounded text-center">MANUTENÇÃO</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-fuchsia-300">
-                      Lv {p.ranked_leaderboard?.[0]?.trainer_level || 1}
-                    </td>
-                    <td className="px-3 py-2 text-slate-500 italic">
-                      {p.last_login ? new Date(p.last_login).toLocaleString() : "Nunca"}
-                    </td>
-                    <td className="px-3 py-2 text-right space-x-1">
-                      <div className="flex flex-wrap justify-end gap-1">
-                        <button onClick={() => inspectPlayer(p.id)} className="px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">VER</button>
-                        {isLocked && (
-                          <button onClick={() => unlockUser(p.id)} className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20">LIBERAR</button>
-                        )}
-                        <button onClick={() => updateStatus(p.id, 'analysis')} className="px-2 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20">ANALISAR</button>
-                        <button onClick={() => updateStatus(p.id, 'banned')} className="px-2 py-1 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20">BANIR</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filteredPlayers.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-3 py-10 text-center text-slate-500 italic">Nenhum jogador encontrado.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {inspectingUser && (
-        <div className="grid md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2">
-          <Card title="Inventário Detalhado">
-            {!inventory ? <div className="text-xs text-slate-500">Carregando...</div> : (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  {inventory.balls.map((b: any) => (
-                    <div key={b.ball_type} className="bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between text-[10px]">
-                      <span className="text-slate-400">{b.ball_type}</span>
-                      <span className="text-amber-200 font-bold">x{b.qty}</span>
-                    </div>
-                  ))}
-                  {inventory.items.map((i: any) => (
-                    <div key={i.item_id} className="bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between text-[10px]">
-                      <span className="text-slate-400">{i.item_id}</span>
-                      <span className="text-emerald-400 font-bold">x{i.qty}</span>
-                    </div>
-                  ))}
-                </div>
-                {inventory.balls.length === 0 && inventory.items.length === 0 && (
-                  <div className="text-xs text-slate-500 italic">Mochila vazia.</div>
-                )}
-              </div>
-            )}
-          </Card>
-          <Card title="Histórico de Conexões (IPs)">
-            <div className="space-y-2">
-              {ipLogs.map((log, i) => (
-                <div key={i} className="text-[10px] bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between">
-                  <span className="text-amber-100 font-mono">{log.ip_address}</span>
-                  <span className="text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
-                </div>
-              ))}
-              {ipLogs.length === 0 && <div className="text-xs text-slate-500">Nenhum log de IP encontrado.</div>}
-            </div>
-          </Card>
-        </div>
-      )}
-    </div>
+    </Card>
   );
 }
-
 
 function PokemonTab() {
   // Read species dynamically from save / try to import registry
@@ -954,7 +742,7 @@ function PlaceholderTab({ tabLabel }: { tabLabel: string }) {
 }
 
 function GiftsTab() {
-  const [targetQuery, setTargetQuery] = useState("");
+  const [username, setUsername] = useState("");
   const [kind, setKind] = useState<"gold" | "crystal" | "ruby" | "item" | "ball">("gold");
   const [itemId, setItemId] = useState("");
   const [qty, setQty] = useState(100);
@@ -965,41 +753,20 @@ function GiftsTab() {
   const needsItem = kind === "item" || kind === "ball";
 
   const submit = async () => {
-    if (!targetQuery.trim()) {
-      setMsg({ kind: "err", text: "Informe o Username, Email ou ID do jogador." });
-      return;
-    }
     setMsg(null);
     setBusy(true);
     try {
-      // Resolvemos o ID primeiro se for email ou UUID
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetQuery.trim());
-      const isEmail = targetQuery.includes("@");
-      
-      let finalUsername = targetQuery.trim();
-
-      if (isUuid || isEmail) {
-        const { data: p } = await supabase
-          .from("profiles")
-          .select("username")
-          .or(`id.eq.${targetQuery.trim()},username.eq.${targetQuery.trim()}`)
-          .maybeSingle();
-        
-        if (p && (p as any).username) finalUsername = (p as any).username;
-      }
-
       const { sendGift } = await import("@/lib/adminGifts");
       const res = await sendGift({
-        username: finalUsername,
+        username,
         kind,
         itemId: needsItem ? itemId : undefined,
         qty,
         note,
-        sender: "Administração",
+        sender: "Ryuuu",
       });
-
       if (res.ok) {
-        setMsg({ kind: "ok", text: `✦ Presente enviado para "${finalUsername}". Será recebido no próximo login.` });
+        setMsg({ kind: "ok", text: `✦ Presente enviado para "${username}". Será recebido no próximo login.` });
         setQty(100);
         setNote("");
       } else {
@@ -1012,281 +779,85 @@ function GiftsTab() {
     }
   };
 
-  const PRESETS = [
-    { id: "potion", label: "Potion", kind: "item" },
-    { id: "super_potion", label: "Super Potion", kind: "item" },
-    { id: "revive", label: "Revive", kind: "item" },
-    { id: "rare_candy", label: "Rare Candy", kind: "item" },
-    { id: "event_box", label: "Caixa Premium", kind: "item" },
-    { id: "ultraball", label: "Ultra Ball", kind: "ball" },
-    { id: "masterball", label: "Master Ball", kind: "ball" },
-  ];
-
   return (
     <div className="grid lg:grid-cols-2 gap-5">
-      <Card title="Enviar Presente (Username / Email / ID)">
-        <div className="space-y-4 text-xs">
+      <Card title="Enviar presente a qualquer jogador">
+        <div className="space-y-3 text-xs">
           <label className="block space-y-1">
-            <span className="text-slate-400">Destinatário (Username, ID ou Email)</span>
+            <span className="text-slate-400">Username do jogador (case-insensitive)</span>
             <input
-              value={targetQuery}
-              onChange={(e) => setTargetQuery(e.target.value)}
-              placeholder="Ex: player123 ou 61b4d001..."
-              className="w-full rounded border border-slate-800 bg-slate-950 px-2.5 py-2 text-amber-100 focus:border-fuchsia-500 outline-none"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="ex: ryu"
+              className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-amber-100"
             />
           </label>
-
-          <div className="grid grid-cols-2 gap-3">
+          <label className="block space-y-1">
+            <span className="text-slate-400">Tipo</span>
+            <select
+              value={kind}
+              onChange={(e) => setKind(e.target.value as typeof kind)}
+              className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-slate-200"
+            >
+              <option value="gold">Gold</option>
+              <option value="crystal">Crystal</option>
+              <option value="ruby">Ruby</option>
+              <option value="item">Item (inventário)</option>
+              <option value="ball">Pokébola</option>
+            </select>
+          </label>
+          {needsItem && (
             <label className="block space-y-1">
-              <span className="text-slate-400">Tipo de Recurso</span>
-              <select
-                value={kind}
-                onChange={(e) => setKind(e.target.value as any)}
-                className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-2 text-slate-200"
-              >
-                <option value="gold">Gold</option>
-                <option value="crystal">Crystal</option>
-                <option value="ruby">Ruby</option>
-                <option value="item">Item</option>
-                <option value="ball">Pokébola</option>
-              </select>
-            </label>
-            <label className="block space-y-1">
-              <span className="text-slate-400">Quantidade</span>
+              <span className="text-slate-400">
+                ID do item {kind === "ball" ? "(pokeball, greatball, fastball, ultraball, safariball, masterball)" : "(ex: potion, revive, incense, rare-candy, fruta_morango, event_box)"}
+              </span>
               <input
-                type="number"
-                min={1}
-                value={qty}
-                onChange={(e) => setQty(Number(e.target.value))}
-                className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-2 text-amber-100"
+                value={itemId}
+                onChange={(e) => setItemId(e.target.value)}
+                placeholder={kind === "ball" ? "pokeball" : "potion"}
+                className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-amber-100"
               />
             </label>
-          </div>
-
-          {needsItem && (
-            <div className="space-y-3">
-              <label className="block space-y-1">
-                <span className="text-slate-400">ID do Item</span>
-                <input
-                  value={itemId}
-                  onChange={(e) => setItemId(e.target.value)}
-                  placeholder="Ex: potion, ultraball..."
-                  className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-2 text-amber-100"
-                />
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {PRESETS.filter(p => kind === "item" ? p.kind === "item" : p.kind === "ball").map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => setItemId(p.id)}
-                    className={`px-2 py-1 rounded border text-[9px] transition ${itemId === p.id ? "bg-fuchsia-500/20 border-fuchsia-500 text-fuchsia-300" : "bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300"}`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-            </div>
           )}
-
           <label className="block space-y-1">
-            <span className="text-slate-400">Nota Personalizada</span>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Ex: Presente da staff pelo evento de reset!"
-              rows={2}
-              className="w-full rounded border border-slate-800 bg-slate-950 px-2.5 py-2 text-slate-200 resize-none"
+            <span className="text-slate-400">Quantidade</span>
+            <input
+              type="number"
+              min={1}
+              value={qty}
+              onChange={(e) => setQty(Number(e.target.value))}
+              className="w-32 rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-amber-100"
             />
           </label>
-
+          <label className="block space-y-1">
+            <span className="text-slate-400">Nota (opcional)</span>
+            <input
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Mensagem ao jogador"
+              className="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1.5 text-slate-200"
+            />
+          </label>
           <button
             disabled={busy}
             onClick={submit}
-            className="w-full rounded-lg bg-gradient-to-r from-fuchsia-600 to-amber-600 py-2.5 font-bold text-white shadow-lg shadow-fuchsia-900/20 hover:scale-[1.02] active:scale-95 transition disabled:opacity-50"
+            className="rounded-md bg-gradient-to-b from-fuchsia-500 to-fuchsia-700 px-4 py-2 text-white disabled:opacity-50"
           >
-            {busy ? "PROCESSANDO..." : "ENVIAR PRESENTE AGORA"}
+            {busy ? "Enviando..." : "Enviar presente"}
           </button>
-
           {msg && (
-            <div className={`p-2 rounded border text-center font-medium ${msg.kind === "ok" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-rose-500/10 border-rose-500/30 text-rose-400"}`}>
-              {msg.text}
-            </div>
+            <div className={msg.kind === "ok" ? "text-emerald-300" : "text-rose-300"}>{msg.text}</div>
           )}
         </div>
       </Card>
-      
-      <Card title="Histórico de Envios">
-        <p className="text-[10px] text-slate-500 mb-4 italic">
-          Os presentes são entregues instantaneamente se o jogador estiver online ou no próximo login.
-        </p>
-        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-           <GiftHistoryList />
-        </div>
+      <Card title="Como funciona">
+        <ul className="text-xs text-slate-400 space-y-2 list-disc pl-4">
+          <li>O presente é gravado em <code className="text-amber-200">admin_gifts</code> no Supabase.</li>
+          <li>Quando o jogador entra no jogo, o cliente reclama os gifts pendentes pelo username/user_id e aplica no save local.</li>
+          <li>Itens e pokébolas enviadas viram <strong>bound</strong> (não vendáveis).</li>
+          <li>Requer a tabela <code className="text-amber-200">admin_gifts</code> criada — veja SUPABASE_SETUP.md.</li>
+        </ul>
       </Card>
-    </div>
-  );
-}
-
-function GiftHistoryList() {
-  const [history, setHistory] = useState<any[]>([]);
-  useEffect(() => {
-    supabase.from("admin_gifts").select("*").order("created_at", { ascending: false }).limit(20)
-      .then(({ data }) => setHistory(data || []));
-  }, []);
-
-  if (history.length === 0) return <div className="text-center py-10 text-slate-600 text-[10px]">Nenhum envio recente.</div>;
-
-  return (
-    <div className="space-y-2">
-      {history.map(g => (
-        <div key={g.id} className="bg-slate-900/40 border border-slate-800 rounded-lg p-2 flex justify-between items-start gap-2">
-          <div className="min-w-0">
-            <div className="text-amber-100 font-bold truncate text-[10px]">{g.recipient_username}</div>
-            <div className="text-[9px] text-slate-400">
-              {g.kind === "item" || g.kind === "ball" ? `${g.item_id} x${g.qty}` : `${g.kind} x${g.qty}`}
-            </div>
-          </div>
-          <div className="text-right">
-             <div className={`text-[8px] font-bold px-1 rounded ${g.claimed_at ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"}`}>
-               {g.claimed_at ? "RECEBIDO" : "PENDENTE"}
-             </div>
-             <div className="text-[7px] text-slate-600 mt-1">{new Date(g.created_at).toLocaleDateString()}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ReportsTab() {
-  const [data, setData] = useState<{ id: string; user_id: string; username: string; kind: string; detail: any; created_at: string }[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState<"save_delta" | "ip" | "all">("save_delta");
-  const [searchName, setSearchName] = useState("");
-
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const { data: res, error } = await supabase
-        .from("audit_events" as any)
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
-      
-      if (error) throw error;
-      setData((res as any) || []);
-    } catch (e) {
-      console.error("Audit load failed", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { refresh(); }, []);
-
-  const filtered = data.filter(d => {
-    const matchesTab = filter === "all" ? true : d.kind === filter;
-    const matchesSearch = searchName ? (d.username || "").toLowerCase().includes(searchName.toLowerCase()) : true;
-    return matchesTab && matchesSearch;
-  });
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-wrap gap-2">
-          {(["save_delta", "ip", "all"] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1 rounded-md text-[10px] uppercase font-bold transition ${filter === f ? "bg-fuchsia-500 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
-            >
-              {f.replace("_", " ")}
-            </button>
-          ))}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-            placeholder="Buscar jogador..."
-            className="px-3 py-1 bg-slate-900 border border-slate-700 rounded-md text-[10px] text-amber-100 placeholder:text-slate-600 outline-none focus:border-fuchsia-500/50"
-          />
-          <button 
-            onClick={refresh} 
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-bold text-cyan-400 hover:bg-cyan-500/20 disabled:opacity-50"
-          >
-            {loading ? "CARREGANDO..." : "🔄 ATUALIZAR"}
-          </button>
-        </div>
-      </div>
-
-      <Card title="Relatório de Auditoria (Últimos 100 eventos)">
-        <div className="rounded-lg border border-slate-800 bg-slate-950/60 max-h-[65vh] overflow-y-auto">
-          <table className="w-full text-[10px]">
-            <thead className="bg-slate-900/80 text-slate-500 sticky top-0">
-              <tr>
-                <th className="text-left px-3 py-2">Data</th>
-                <th className="text-left px-3 py-2">Jogador</th>
-                <th className="text-left px-3 py-2">Tipo</th>
-                <th className="text-left px-3 py-2">Detalhes (Delta)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/50">
-              {filtered.map((d) => {
-                const isSuspect = d.kind === "save_delta" && (
-                  (d.detail.level_to - d.detail.level_from) > 10 || 
-                  (d.detail.gold_to - d.detail.gold_from) > 1000000
-                );
-                return (
-                  <tr key={d.id} className={`${isSuspect ? "bg-rose-500/5" : ""} hover:bg-white/5`}>
-                    <td className="px-3 py-2 text-slate-500 font-mono">
-                      {new Date(d.created_at).toLocaleString()}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="text-amber-200 font-bold">{d.username || "Desconhecido"}</div>
-                      <div className="text-[9px] text-slate-600 truncate max-w-[80px]">{d.user_id}</div>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                        d.kind === "save_delta" ? "bg-blue-500/10 text-blue-400" : "bg-amber-500/10 text-amber-400"
-                      }`}>
-                        {d.kind}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-slate-400 leading-tight">
-                      {d.kind === "save_delta" ? (
-                        <div className="space-y-0.5">
-                          <div>LV: <span className="text-slate-300">{d.detail.level_from}</span> → <span className={d.detail.level_to > d.detail.level_from + 5 ? "text-rose-400 font-bold" : "text-emerald-400"}>{d.detail.level_to}</span></div>
-                          <div>GOLD: <span className="text-slate-300">{d.detail.gold_from?.toLocaleString()}</span> → <span className="text-emerald-400">{d.detail.gold_to?.toLocaleString()}</span></div>
-                        </div>
-                      ) : (
-                        <pre className="text-[9px] truncate max-w-[200px]">{JSON.stringify(d.detail)}</pre>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length === 0 && !loading && (
-                <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-600">Nenhum registro suspeito encontrado.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-      
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 text-xs text-rose-300/80">
-          <p className="font-bold mb-1">🛡️ Análise de Segurança:</p>
-          <p>A brecha de edição direta foi fechada com o trigger <code className="text-rose-200">enforce_game_save_caps</code>. Saltos de nível acima de 5 por save são automaticamente barrados e registrados aqui como "save_delta".</p>
-        </div>
-        <div className="p-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 text-xs text-cyan-300/80">
-          <p className="font-bold mb-1">🔍 Investigação por Jogador:</p>
-          <p>Use a busca acima para filtrar os logs de um jogador específico. Você pode cruzar os deltas de nível com os registros de IP para identificar padrões de exploração ou multi-contas.</p>
-        </div>
-      </div>
     </div>
   );
 }

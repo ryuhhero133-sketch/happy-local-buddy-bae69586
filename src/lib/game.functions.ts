@@ -117,7 +117,6 @@ const KillSchema = z.object({
   rarity: z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]),
   map_id: z.string().min(1).max(32),
   leader_level: z.number().int().min(1).max(10000),
-  security_hash: z.string().optional(), // Hash para validação de integridade cliente-servidor
 });
 
 export const reportKill = createServerFn({ method: "POST" })
@@ -130,7 +129,6 @@ export const reportKill = createServerFn({ method: "POST" })
       RARITY_REWARDS, MAP_LEVEL_CAP, levelGapMultiplier,
       ULTRA_BALL_DROP_CHANCE, xpForTrainerLevel,
       KILL_MILESTONE, KILL_MILESTONE_REWARD_BALLS,
-      SPECIES_BASE,
     } = await import("./game.balance.server");
 
     // Anti-flood: máx 6 kills/segundo.
@@ -143,37 +141,11 @@ export const reportKill = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "rate_limit" };
     }
 
-    // Validação de espécie: a espécie existe no registro do servidor?
-    const speciesInfo = SPECIES_BASE[data.species];
-    if (!speciesInfo) {
-      return { ok: false as const, reason: "invalid_species" };
-    }
-
-    // Validação de raridade: a raridade enviada condiz com a espécie?
-    if (speciesInfo.rarity !== data.rarity && data.rarity !== "mythic_shiny") {
-      return { ok: false as const, reason: "rarity_mismatch" };
-    }
-
     const base = RARITY_REWARDS[data.rarity];
     const cap = MAP_LEVEL_CAP[data.map_id];
-    
-    // Validação de nível do mapa: o pokémon pode ter esse nível nesse mapa?
-    if (cap && data.target_level > cap.max + 50) { 
-       return { ok: false as const, reason: "target_level_impossible_for_map" };
-    }
-
-    const { data: state, error: stateErr } = await supabase.from("trainer_state")
-      .select("*").eq("user_id", userId).maybeSingle();
-    if (stateErr || !state) return { ok: false as const, reason: "no_state" };
-
-    // Validação de nível do líder: o cliente mentiu sobre o nível dele?
-    if (Math.abs(state.trainer_level - data.leader_level) > 2 && state.trainer_level > 1) {
-       return { ok: false as const, reason: "trainer_level_mismatch" };
-    }
-
     const levelMult = 1 + data.target_level * 0.03;
-    const gapMult = levelGapMultiplier(state.trainer_level, data.target_level);
-    const mapPenalty = cap && state.trainer_level > cap.max ? 0.2 : 1.0;
+    const gapMult = levelGapMultiplier(data.leader_level, data.target_level);
+    const mapPenalty = cap && data.leader_level > cap.max ? 0.2 : 1.0;
 
     const gold = Math.max(0, Math.floor(base.gold * levelMult * gapMult * mapPenalty));
     const xp   = Math.max(0, Math.floor(base.xp   * levelMult * gapMult * mapPenalty));
@@ -199,6 +171,10 @@ export const reportKill = createServerFn({ method: "POST" })
         { onConflict: "user_id,ball_type" },
       );
     }
+
+    const { data: state } = await supabase.from("trainer_state")
+      .select("*").eq("user_id", userId).maybeSingle();
+    if (!state) return { ok: false as const, reason: "no_state" };
 
     let newGold = Number(state.gold) + gold;
     let newXp = Number(state.trainer_xp) + xp;
@@ -261,7 +237,6 @@ const CaptureSchema = z.object({
   target_level: z.number().int().min(1).max(10000),
   rarity: z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]),
   ball_type: z.enum(["pokeball","greatball","ultraball","masterball"]),
-  map_id: z.string().optional(),
 });
 
 export const attemptCapture = createServerFn({ method: "POST" })
@@ -270,13 +245,7 @@ export const attemptCapture = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const userId = context.userId;
-    const { CAPTURE_RATES, SPECIES_BASE } = await import("./game.balance.server");
-
-    // Validação básica de espécie e raridade
-    const speciesInfo = SPECIES_BASE[data.species];
-    if (!speciesInfo || (speciesInfo.rarity !== data.rarity && data.rarity !== "mythic_shiny")) {
-      return { ok: false as const, reason: "invalid_capture_data" };
-    }
+    const { CAPTURE_RATES } = await import("./game.balance.server");
 
     const { data: ball } = await supabase
       .from("pokeballs").select("qty").eq("user_id", userId).eq("ball_type", data.ball_type).maybeSingle();
@@ -415,66 +384,30 @@ export const setActiveMap = createServerFn({ method: "POST" })
 // Só age se o trainer_state ainda estiver zerado (evita sobrescrever server-side legítimo).
 
 const RarityEnum = z.enum(["common","uncommon","rare","epic","legendary","mythic","mythic_shiny"]);
-// Clampa em vez de rejeitar: valores acima do teto são cortados (nunca derrubam o boot do jogo).
-const clampInt = (max: number, def = 0) =>
-  z.preprocess((v) => {
-    const n = Math.floor(Number(v));
-    if (!Number.isFinite(n)) return def;
-    return Math.min(Math.max(n, 0), max);
-  }, z.number().int().min(0).max(max));
-
 const PushInitialSchema = z.object({
-  gold: clampInt(100_000_000), // Aumentado para 100M (conforme limite de 50M solicitado anteriormente)
-  crystal: clampInt(1_000_000), // Aumentado para 1M
-  ruby: clampInt(100_000).optional().default(0),
-  trainer_level: z.preprocess((v) => {
-    const n = Math.floor(Number(v));
-    if (!Number.isFinite(n) || n < 1) return 1;
-    return Math.min(n, 10000); // Aumentado para 10k conforme solicitado
-  }, z.number().int().min(1).max(10000)),
-  trainer_xp: z.number().int().min(0), // XP não precisa de teto rígido no validador
-  kill_count: z.number().int().min(0).optional().default(0),
-  pokeballs: z.record(z.string(), clampInt(500)).default({}),
+  gold: z.number().int().min(0).max(50_000_000),
+  crystal: z.number().int().min(0).max(1_000_000),
+  ruby: z.number().int().min(0).max(1_000_000).optional().default(0),
+  trainer_level: z.number().int().min(1).max(10000),
+  trainer_xp: z.number().int().min(0).max(1_000_000_000),
+  kill_count: z.number().int().min(0).max(1_000_000).optional().default(0),
+  pokeballs: z.record(z.string(), z.number().int().min(0).max(9999)),
   collection: z.array(z.object({
     id: z.string().uuid().optional(),
     species: z.string().min(1).max(64),
-    level: z.preprocess((v) => {
-      const n = Math.floor(Number(v));
-      if (!Number.isFinite(n) || n < 1) return 1;
-      return Math.min(n, 10000); // Aumentado para 10k para Pokémons também
-    }, z.number().int().min(1).max(10000)),
-    xp: clampInt(10_000_000).optional().default(0),
+    level: z.number().int().min(1).max(10000),
+    xp: z.number().int().min(0).max(1_000_000_000).optional().default(0),
     rarity: RarityEnum,
     team_slot: z.number().int().min(0).max(4).nullable().optional(),
-  })).max(200).default([]),
+  })).max(2000),
 });
 
 export const pushInitialState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
-    const parsed = PushInitialSchema.safeParse(data);
-    // Payload irrecuperável: envia um snapshot vazio em vez de estourar erro no cliente.
-    if (!parsed.success) {
-      return PushInitialSchema.parse({
-        gold: 0, crystal: 0, trainer_level: 1, trainer_xp: 0,
-        pokeballs: {}, collection: [],
-      });
-    }
-    return parsed.data;
-  })
-
+  .inputValidator((data: unknown) => PushInitialSchema.parse(data))
   .handler(async ({ data, context }): Promise<{ ok: boolean; applied: boolean; reason?: string }> => {
     const supabase = context.supabase as any;
     const userId = context.userId;
-    const { SPECIES_BASE } = await import("./game.balance.server");
-
-    // Validação server-side da coleção recebida
-    for (const p of data.collection) {
-      const spec = SPECIES_BASE[p.species];
-      if (!spec || (spec.rarity !== p.rarity && p.rarity !== "mythic_shiny") || p.level < spec.minLv) {
-        return { ok: false, applied: false, reason: `invalid_pokemon_in_push: ${p.species}` };
-      }
-    }
 
     // Existe estado? Se sim e já tem progresso, ignora (server é canônico).
     const { data: cur } = await supabase.from("trainer_state")

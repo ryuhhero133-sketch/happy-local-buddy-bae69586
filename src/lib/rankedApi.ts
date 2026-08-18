@@ -95,8 +95,7 @@ function normalizeRankedRow(row: RankedRow): RankedRow {
     ...row,
     trainer_level: trainerLevel,
     craft_points: craftPoints,
-    // Ranking principal é SOMENTE nível do treinador. Cristal Prisma usa busca própria.
-    score: trainerLevel * 100,
+    score: trainerLevel * 100 + craftPoints,
     updated_at: row.updated_at || new Date().toISOString(),
   };
 }
@@ -124,13 +123,13 @@ function mergeRankedRows(...sources: RankedRow[][]): RankedRow[] {
         trainer_level: trainerLevel,
         craft_points: craftPoints,
         guild_name: newer ? incoming.guild_name : existing.guild_name,
-        score: trainerLevel * 100,
+        score: trainerLevel * 100 + craftPoints,
         updated_at: newer ? incoming.updated_at : existing.updated_at,
       });
     }
   }
   return [...byUser.values()]
-    .sort((a, b) => b.trainer_level - a.trainer_level || rowTime(a) - rowTime(b));
+    .sort((a, b) => b.score - a.score || rowTime(a) - rowTime(b));
 }
 
 function mapLegacyRankedRows(rows: LegacyRankedScore[], inferFromScore = false): RankedRow[] {
@@ -142,7 +141,7 @@ function mapLegacyRankedRows(rows: LegacyRankedScore[], inferFromScore = false):
       1,
     )));
     const craftPoints = Math.max(0, safeInt(r.pokedex_count ?? r.craft_points ?? 0, 0));
-    const score = trainerLevel * 100;
+    const score = trainerLevel * 100 + craftPoints;
     return {
       user_id: r.user_id,
       username: r.username || "Treinador",
@@ -166,7 +165,7 @@ function mapPlayersRows(rows: PlayerRankRow[]): RankedRow[] {
       trainer_level: trainerLevel,
       craft_points: craftPoints,
       guild_name: r.guild_name ?? null,
-      score: trainerLevel * 100,
+      score: trainerLevel * 100 + craftPoints,
       updated_at: r.updated_at || new Date().toISOString(),
     };
   });
@@ -236,19 +235,59 @@ async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
   }
 }
 
-/**
- * Solicita ao servidor que atualize o score da temporada.
- *
- * SEGURANÇA: o cliente NÃO grava mais nada em `ranked_scores` /
- * `ranked_leaderboard`. Ele apenas pede a atualização; a RPC
- * `record_ranked_score` recalcula nível e pontos a partir do save
- * autoritativo no servidor (`game_saves`) e ignora qualquer valor enviado
- * pelo navegador. Os parâmetros abaixo são meras dicas e são clampados/
- * descartados no servidor.
- */
+/** Envia/atualiza score do jogador na temporada corrente. */
 export async function recordRankedScore(level: number, craftPoints: number, guildName?: string | null) {
   const trainerLevel = Math.max(1, Math.min(10000, Math.floor(level || 1)));
   const craft = Math.max(0, Math.floor(craftPoints || 0));
+
+  const upsertDirectBackup = async () => {
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth?.user;
+    if (!user) return;
+    const username = (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string;
+
+    // Tabela legacy/publica usada pelo ranking global. Mantém nível REAL atual.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const legacy = await (supabase as any).from("ranked_scores").upsert({
+      user_id: user.id,
+      username,
+      trainer_level: trainerLevel,
+      pokedex_count: craft,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+    if (legacy.error) {
+      // Compatibilidade com setup antigo que só tinha score/season.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fallback = await (supabase as any).from("ranked_scores").upsert({
+        user_id: user.id,
+        username,
+        score: trainerLevel * 100 + craft,
+        season: 1,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id,season" });
+      if (fallback.error) console.warn("[ranked] score upsert:", fallback.error.message);
+    }
+
+    // Backup direto também na tabela de temporada, para não depender só da RPC.
+    try {
+      const season = await fetchCurrentSeason();
+      if (!season) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from("ranked_leaderboard").upsert({
+        season_id: season.id,
+        user_id: user.id,
+        username,
+        trainer_level: trainerLevel,
+        craft_points: craft,
+        guild_name: guildName ?? null,
+        score: trainerLevel * 100 + craft,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "season_id,user_id" });
+      if (error) console.warn("[ranked] leaderboard backup:", error.message);
+    } catch (e) {
+      console.warn("[ranked] leaderboard backup exc:", e);
+    }
+  };
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -257,12 +296,21 @@ export async function recordRankedScore(level: number, craftPoints: number, guil
       _craft_points: craft,
       _guild_name: guildName ?? null,
     });
-    if (error) console.warn("[ranked] record:", error.message);
+    if (!error) {
+      await upsertDirectBackup();
+      return;
+    }
+    console.warn("[ranked] record:", error.message);
   } catch (e) {
     console.warn("[ranked] record exc:", e);
   }
-}
 
+  try {
+    await upsertDirectBackup();
+  } catch (e) {
+    console.warn("[ranked] legacy record exc:", e);
+  }
+}
 
 /** Busca a temporada corrente (com ends_at para countdown). */
 export async function fetchCurrentSeason(): Promise<RankedSeason | null> {
@@ -314,61 +362,6 @@ export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
   const online = await fetchPlayersFallback(limit);
   const merged = mergeRankedRows(rows, legacy, online);
   return merged.length ? merged.slice(0, limit) : online;
-}
-
-/** Top N do Cristal Prisma: RPC global (todos os jogadores) com fallback na tabela. */
-export async function fetchTopPrismaRanked(limit = 30): Promise<RankedRow[]> {
-  try {
-    // Fonte principal: função global que também lê o Prisma real dos saves.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rpc = await (supabase as any).rpc("top_prisma_ranked", { _limit: limit });
-    if (!rpc.error && Array.isArray(rpc.data) && rpc.data.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (rpc.data as any[]).map((r) => {
-        const prisma = Math.max(0, safeInt(r.prisma ?? 0, 0));
-        return {
-          user_id: String(r.user_id),
-          username: r.username || "Treinador",
-          trainer_level: Math.max(1, Math.min(10000, safeInt(r.trainer_level ?? 1, 1))),
-          craft_points: prisma,
-          guild_name: null,
-          score: prisma,
-          updated_at: r.updated_at || new Date().toISOString(),
-        } satisfies RankedRow;
-      }).filter((r) => r.craft_points > 0).slice(0, limit);
-    }
-    if (rpc.error) console.warn("[ranked prisma] rpc:", rpc.error.message);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
-      .from("ranked_scores")
-      .select("user_id, username, trainer_level, pokedex_count, updated_at")
-      .order("pokedex_count", { ascending: false })
-      .order("updated_at", { ascending: true })
-      .limit(limit);
-
-    if (error) {
-      console.warn("[ranked prisma] scores:", error.message);
-      return [];
-    }
-
-    return ((data ?? []) as LegacyRankedScore[]).map((r) => {
-      const trainerLevel = Math.max(1, Math.min(10000, safeInt(r.trainer_level ?? 1, 1)));
-      const prisma = Math.max(0, safeInt(r.pokedex_count ?? 0, 0));
-      return {
-        user_id: r.user_id,
-        username: r.username || "Treinador",
-        trainer_level: trainerLevel,
-        craft_points: prisma,
-        guild_name: null,
-        score: prisma,
-        updated_at: r.updated_at || new Date().toISOString(),
-      };
-    }).filter((r) => r.craft_points > 0);
-  } catch (e) {
-    console.warn("[ranked prisma] scores exc:", e);
-    return [];
-  }
 }
 
 // ============================================================

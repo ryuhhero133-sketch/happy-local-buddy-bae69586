@@ -59,16 +59,8 @@ export function useServerSync(opts: {
     (async () => {
       setStatus("syncing");
       try {
-        const { supabase } = await import("@/integrations/supabase/client");
-        const { data: sess } = await supabase.auth.getSession();
-        if (!sess.session) {
-          // Sem sessão (modo local/offline): não chama server functions protegidas.
-          setStatus("idle");
-          return;
-        }
         await bootstrap({} as any);
         let full = (await fetchFull({} as any)) as FullStateDTO;
-
 
         const serverEmpty =
           full.trainer.gold === 0 &&

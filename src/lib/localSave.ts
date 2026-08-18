@@ -11,7 +11,6 @@
 // Each backup is a JSON envelope: { savedAt: number, data: <SaveState> }.
 
 import { toast } from "sonner";
-import { obfuscate, deobfuscate } from "./utils";
 
 export const SAVE_KEY = "rubym.save.v2";
 const BACKUP_KEYS = ["rubym.save.bak.1", "rubym.save.bak.2", "rubym.save.bak.3"] as const;
@@ -26,7 +25,7 @@ let initialized = false;
 
 function safeParse<T>(raw: string | null): T | null {
   if (!raw) return null;
-  return deobfuscate(raw) as T;
+  try { return JSON.parse(raw) as T; } catch { return null; }
 }
 
 function rotateBackups(serialized: string) {
@@ -36,8 +35,8 @@ function rotateBackups(serialized: string) {
     const b2 = localStorage.getItem(BACKUP_KEYS[1]);
     if (b2) localStorage.setItem(BACKUP_KEYS[2], b2);
     if (b1) localStorage.setItem(BACKUP_KEYS[1], b1);
-    const env: Envelope<unknown> = { savedAt: Date.now(), data: deobfuscate(serialized) };
-    localStorage.setItem(BACKUP_KEYS[0], obfuscate(env));
+    const env: Envelope<unknown> = { savedAt: Date.now(), data: JSON.parse(serialized) };
+    localStorage.setItem(BACKUP_KEYS[0], JSON.stringify(env));
   } catch { /* ignore */ }
 }
 
@@ -53,7 +52,7 @@ export function loadLatestValid<T = unknown>(): T | null {
     const env = safeParse<Envelope<T>>(localStorage.getItem(k));
     if (env?.data) {
       console.warn(`[localSave] restored from backup ${k}`);
-      try { localStorage.setItem(SAVE_KEY, obfuscate(env.data)); } catch { /* ignore */ }
+      try { localStorage.setItem(SAVE_KEY, JSON.stringify(env.data)); } catch { /* ignore */ }
       return env.data;
     }
   }
@@ -63,7 +62,7 @@ export function loadLatestValid<T = unknown>(): T | null {
 function flush() {
   if (typeof window === "undefined" || pending == null) return;
   try {
-    const serialized = obfuscate(pending);
+    const serialized = JSON.stringify(pending);
     if (serialized === lastSerialized) { pending = null; return; }
     localStorage.setItem(SAVE_KEY, serialized);
     rotateBackups(serialized);
@@ -116,8 +115,8 @@ export function importSave(json: string): boolean {
   if (typeof window === "undefined") return false;
   try {
     const parsed = JSON.parse(json);
-    localStorage.setItem(SAVE_KEY, obfuscate(parsed));
-    rotateBackups(obfuscate(parsed));
+    localStorage.setItem(SAVE_KEY, JSON.stringify(parsed));
+    rotateBackups(JSON.stringify(parsed));
     return true;
   } catch { return false; }
 }

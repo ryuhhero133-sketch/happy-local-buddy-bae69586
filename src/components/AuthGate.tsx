@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
-import { obfuscate, deobfuscate } from "@/lib/utils";
 import type { Session } from "@supabase/supabase-js";
 const loginBgAsset = { url: "/login-bg.png" };
 
@@ -12,7 +11,6 @@ export const SESSION_TOKEN_KEY = "rubym.sessionToken.v1";
 export type LocalIdentity = {
   id: string;
   name: string;
-  email?: string;
   secretKey: string;
   createdAt: number;
 };
@@ -33,7 +31,7 @@ export function loadIdentity(): LocalIdentity | null {
   try {
     const raw = localStorage.getItem(IDENTITY_KEY);
     if (!raw) return null;
-    const id = deobfuscate(raw) as LocalIdentity;
+    const id = JSON.parse(raw) as LocalIdentity;
     if (!id?.name || !id?.id) return null;
     return id;
   } catch {
@@ -41,10 +39,10 @@ export function loadIdentity(): LocalIdentity | null {
   }
 }
 
-function writeIdentity(id: string, name: string, email?: string) {
-  const identity: LocalIdentity = { id, name, email, secretKey: "", createdAt: Date.now() };
+function writeIdentity(id: string, name: string) {
+  const identity: LocalIdentity = { id, name, secretKey: "", createdAt: Date.now() };
   try {
-    localStorage.setItem(IDENTITY_KEY, obfuscate(identity));
+    localStorage.setItem(IDENTITY_KEY, JSON.stringify(identity));
   } catch {
     /* ignore */
   }
@@ -85,12 +83,12 @@ async function preloadCloudSave(userId: string) {
     log("preloadCloudSave start", userId);
     const cloud = await fetchCloudSave(userId);
     if (isCloudBlob(cloud)) {
-      if (cloud.idle) localStorage.setItem(IDLE_KEY, obfuscate(cloud.idle));
+      if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
       const party = Array.isArray(cloud.party)
         ? cloud.party
         : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
       if (party.length > 0) {
-        localStorage.setItem(SAVE_KEY, obfuscate({ party }));
+        localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
         // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
         // não pode reabrir o modal de starter em outro navegador/F5.
         try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
@@ -107,19 +105,7 @@ async function preloadCloudSave(userId: string) {
   }
 }
 
-/** Nunca deixa uma promise pendurada travar a tela de login. */
-function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error(`${label}: tempo esgotado`)), ms);
-    p.then(
-      (v) => { clearTimeout(t); resolve(v); },
-      (e) => { clearTimeout(t); reject(e); },
-    );
-  });
-}
-
 type Mode = "login" | "signup" | "reset";
-
 
 /* ───────────────────────────── AUTH GATE ───────────────────────────── */
 
@@ -132,7 +118,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [bootstrapping, setBootstrapping] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
-  const [kickedMessage, setKickedMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -172,66 +157,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
       } catch { /* ignore */ }
     };
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
       log("authStateChange", event, sess?.user?.id);
-      
-      // Bloqueio de Manutenção e Restrição de Admin
-      if (sess?.user?.id) {
-        const isAdmin = sess.user.email === "lordryuhhhuyuyghh@gmail.com";
-        
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data: profile } = await (supabase as any)
-            .from("profiles")
-            .select("account_status, lock_until")
-            .eq("id", sess.user.id)
-            .maybeSingle();
-
-          // Se não for o admin, aplica as travas
-          if (!isAdmin) {
-            if (profile?.lock_until && new Date(profile.lock_until) > new Date()) {
-              const diff = new Date(profile.lock_until).getTime() - Date.now();
-              const hours = Math.ceil(diff / (1000 * 60 * 60));
-              warn(`Conta bloqueada por mais ${hours} horas`);
-              await supabase.auth.signOut();
-              setKickedMessage(`Servidor em manutenção. Tente novamente em ${hours} horas.`);
-              return;
-            }
-
-            if (profile?.account_status === "banned") {
-              await supabase.auth.signOut();
-              setKickedMessage("Esta conta foi banida permanentemente.");
-              return;
-            }
-
-            // Bloqueio geral para não-admins durante o reset
-            await supabase.auth.signOut();
-            setKickedMessage("Acesso restrito: Servidor em manutenção geral.");
-            return;
-          }
-        } catch (e) {
-          warn("Erro ao verificar status da conta", e);
-        }
-      }
-
-      // Se a sessão sumiu (ex: deletada via SQL), forçamos o estado local para deslogado
-      if (!sess && session) {
-        log("Sessão invalidada pelo servidor — forçando logout");
-        setSession(null);
-        setIdentity(null);
-        setNeedsChar(false);
-        wipeLocalGameData();
-        localStorage.removeItem(CURRENT_UID_KEY);
-        localStorage.removeItem(IDENTITY_KEY);
-      } else {
-        setSession(sess);
-      }
-
+      setSession(sess);
       if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
       if (event === "SIGNED_IN" && sess?.user?.id) {
         try {
           const prev = localStorage.getItem(CURRENT_UID_KEY);
           if (prev && prev !== sess.user.id) {
+            // Conta diferente — limpa o save local da conta anterior
             wipeLocalGameData();
           }
           localStorage.setItem(CURRENT_UID_KEY, sess.user.id);
@@ -242,41 +176,22 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setNeedsChar(false);
         try {
           localStorage.removeItem(IDENTITY_KEY);
+          // Logout real: limpa dados locais para evitar vazamento entre contas.
           wipeLocalGameData();
           localStorage.removeItem(CURRENT_UID_KEY);
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
     });
 
     // Em F5 não desloga: a sessão ativa é necessária para reidratar/salvar no Supabase
     // antes de qualquer cache local ser usado. Logout manual continua limpando tudo.
-    // getSession() pode travar (lock do Supabase entre abas / rede ruim) e deixar
-    // o jogador preso no "Conectando ao servidor..." — por isso tem timeout.
-    let settled = false;
-    const finishInitial = (sess: Session | null) => {
-      if (settled) return;
-      settled = true;
-      setSession(sess);
+    supabase.auth.getSession().then(({ data }) => {
+      log("initial session", data.session?.user?.id ?? null);
+      setSession(data.session);
       setChecking(false);
-    };
-    const initialTimer = setTimeout(() => {
-      if (!settled) {
-        warn("getSession() demorou demais — liberando tela de login");
-        finishInitial(null);
-      }
-    }, 8000);
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
-        log("initial session", data.session?.user?.id ?? null);
-        finishInitial(data.session);
-      })
-      .catch((e) => {
-        warn("getSession falhou", e);
-        finishInitial(null);
-      })
-      .finally(() => clearTimeout(initialTimer));
-
+    });
 
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -305,17 +220,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setBootstrapping(true);
       const uid = currentUid;
       try {
-        const username = await withTimeout(ensureProfile(uid), 12000, "perfil");
+        const username = await ensureProfile(uid);
         if (cancelled) return;
 
         if (username && username.trim().length > 0) {
-          try {
-            await withTimeout(preloadCloudSave(uid), 15000, "save da nuvem");
-          } catch (e) {
-            warn("preloadCloudSave timeout — seguindo com cache local", e);
-          }
+          await preloadCloudSave(uid);
           if (cancelled) return;
-          setIdentity(writeIdentity(uid, username, session?.user?.email));
+          setIdentity(writeIdentity(uid, username));
           setNeedsChar(false);
           // last_login best-effort
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -333,21 +244,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
         }
       } catch (e) {
         warn("bootstrap falhou", e);
-        // Se já existe identidade local dessa MESMA conta, entra com ela em vez
-        // de mandar o jogador pra criação de personagem (perigo de duplicar).
-        const local = loadIdentity();
-        if (local && local.id === uid) {
-          log("bootstrap com fallback local", local.name);
-          setIdentity(local);
-          setNeedsChar(false);
-        } else {
-          setIdentity(null);
-          setNeedsChar(true);
-        }
+        setIdentity(null);
+        setNeedsChar(true);
       } finally {
         if (!cancelled) setBootstrapping(false);
       }
-
     })();
     return () => {
       cancelled = true;
@@ -364,7 +265,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
   }
 
-  if (!session) return <AuthScreen kickedMessage={kickedMessage} />;
+  if (!session) return <AuthScreen kickedMessage={kicked ? "Sua conta foi conectada em outro dispositivo. Você foi desconectado." : null} />;
 
   if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
 
@@ -374,7 +275,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         userId={session.user.id}
         defaultName={session.user.email?.split("@")[0] ?? ""}
         onCreated={(name) => {
-          setIdentity(writeIdentity(session.user.id, name, session.user.email));
+          setIdentity(writeIdentity(session.user.id, name));
           setNeedsChar(false);
         }}
       />
@@ -732,11 +633,10 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
     try {
       if (mode === "login") {
         log("signIn", email);
-        const { error, data } = await withTimeout(
-          supabase.auth.signInWithPassword({ email: email.trim(), password }),
-          15000,
-          "login",
-        );
+        const { error, data } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
         if (error) throw error;
         log("signIn ok", data.user?.id);
       } else if (mode === "signup") {
