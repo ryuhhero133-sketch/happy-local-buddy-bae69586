@@ -3868,7 +3868,8 @@ function IdlePage() {
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 6 * distBoost * (1 + honeyBonusNow());
+        const trainerSpeBonus = (idle.trainerStats?.spe ?? 0) * 0.05; // +5% por safira
+        const speed = 6 * distBoost * (1 + honeyBonusNow() + trainerSpeBonus);
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
