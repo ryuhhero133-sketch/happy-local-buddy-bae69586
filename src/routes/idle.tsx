@@ -15115,6 +15115,7 @@ function TabOverlay({
               globalStats: { ...stats, [key]: curLv + 1 }
             };
           });
+
           pushChat(`✨ Evoluiu ${String(key).toUpperCase()} para Nível ${curLv + 1}!`, "cap");
         };
 
