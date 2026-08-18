@@ -12807,7 +12807,8 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
       </div>
     );
   }
-  const maxHp = calcIdleMaxHp(pet, idle.trainerStats);
+  const s = loadIdle();
+  const maxHp = calcIdleMaxHp(pet, s.trainerStats);
   const hp = pet.hp ?? maxHp;
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
   const ePct = Math.max(0, Math.min(100, energy));
@@ -15987,7 +15988,8 @@ function MarketScreen({
 function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: number; src: string | undefined }) {
 
   const base = SPECIES_BASE[pet.species];
-  const maxHp = calcIdleMaxHp(pet, idle.trainerStats);
+  const s = loadIdle();
+  const maxHp = calcIdleMaxHp(pet, s.trainerStats);
   const hpPct = Math.max(0, (currentHp / maxHp) * 100);
   const xpNeeded = 100 + pet.level * 20;
   const xp = pet.xp ?? 0;
