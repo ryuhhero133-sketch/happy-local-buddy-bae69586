@@ -30,6 +30,8 @@ import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
+import trainerBodyAsset from "@/assets/trainer_body_anatomy.png.asset.json";
+
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
 import chestOpenImg from "@/assets/icons/chest-open.png";
@@ -15126,7 +15128,7 @@ function TabOverlay({
         const AnatomiaChart = () => {
           const centerX = 80;
           const centerY = 80;
-          const radius = 65;
+          const radius = 60;
           
           const points = stats.map((s, i) => {
             const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
@@ -15139,35 +15141,54 @@ function TabOverlay({
           const polygonPoints = points.map(p => `${p.x},${p.y}`).join(" ");
 
           return (
-            <svg width="160" height="160" viewBox="0 0 160 160" style={{ filter: "drop-shadow(0 0 12px rgba(245,207,107,0.3))" }}>
-              <defs>
-                <radialGradient id="starGradient" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#f5cf6b" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#f5cf6b" stopOpacity="0.1" />
-                </radialGradient>
-              </defs>
-              {/* Grids Estelares */}
-              {[0.2, 0.4, 0.6, 0.8, 1.0].map((level, idx) => (
-                <polygon 
-                  key={idx} 
-                  points={stats.map((_, i) => {
-                    const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
-                    return `${centerX + radius * level * Math.cos(angle)},${centerY + radius * level * Math.sin(angle)}`;
-                  }).join(" ")} 
-                  fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="0.5" 
-                />
-              ))}
-              {/* Eixos com brilho */}
-              {points.map((p, i) => (
-                <line key={i} x1={centerX} y1={centerY} x2={centerX + radius * Math.cos(p.angle)} y2={centerY + radius * Math.sin(p.angle)} stroke="rgba(245,207,107,0.2)" strokeDasharray="1,2" />
-              ))}
-              {/* Área de Anatomia */}
-              <polygon points={polygonPoints} fill="url(#starGradient)" stroke="#f5cf6b" strokeWidth="2" strokeLinejoin="round" />
-              {/* Pontos de destaque */}
-              {points.map((p, i) => (
-                <circle key={i} cx={p.x} cy={p.y} r="3" fill="#fff" stroke={p.color} strokeWidth="1" />
-              ))}
-            </svg>
+            <div style={{ position: "relative", width: 160, height: 160 }}>
+              {/* Imagem de Fundo (Inspiração) */}
+              <img 
+                src={trainerBodyAsset.url} 
+                alt="Corpo" 
+                style={{ 
+                  position: "absolute", 
+                  top: "50%", 
+                  left: "50%", 
+                  transform: "translate(-50%, -50%)", 
+                  width: "90%", 
+                  height: "90%", 
+                  opacity: 0.25,
+                  objectFit: "contain",
+                  filter: "brightness(0.5) contrast(1.2) drop-shadow(0 0 5px rgba(245,207,107,0.3))"
+                }} 
+              />
+              
+              <svg width="160" height="160" viewBox="0 0 160 160" style={{ position: "absolute", top: 0, left: 0, filter: "drop-shadow(0 0 12px rgba(245,207,107,0.3))" }}>
+                <defs>
+                  <radialGradient id="starGradient" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#f5cf6b" stopOpacity="0.6" />
+                    <stop offset="100%" stopColor="#f5cf6b" stopOpacity="0.1" />
+                  </radialGradient>
+                </defs>
+                {/* Grids Estelares */}
+                {[0.2, 0.4, 0.6, 0.8, 1.0].map((level, idx) => (
+                  <polygon 
+                    key={idx} 
+                    points={stats.map((_, i) => {
+                      const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
+                      return `${centerX + radius * level * Math.cos(angle)},${centerY + radius * level * Math.sin(angle)}`;
+                    }).join(" ")} 
+                    fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="0.5" 
+                  />
+                ))}
+                {/* Linhas indicadoras do corpo */}
+                {points.map((p, i) => (
+                  <line key={`line-${i}`} x1={centerX} y1={centerY} x2={p.x} y2={p.y} stroke={p.color} strokeWidth="1" strokeDasharray="2,2" opacity="0.4" />
+                ))}
+                {/* Área de Anatomia */}
+                <polygon points={polygonPoints} fill="url(#starGradient)" stroke="#f5cf6b" strokeWidth="2" strokeLinejoin="round" />
+                {/* Pontos de destaque */}
+                {points.map((p, i) => (
+                  <circle key={i} cx={p.x} cy={p.y} r="3" fill="#fff" stroke={p.color} strokeWidth="1" />
+                ))}
+              </svg>
+            </div>
           );
         };
 
@@ -15276,11 +15297,21 @@ function TabOverlay({
             )}
             
             <div style={{ background: "linear-gradient(90deg, #1a0f26, transparent)", borderLeft: "3px solid #f5cf6b", padding: "10px 12px", borderRadius: "0 8px 8px 0" }}>
-              <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 900, marginBottom: 2 }}>ESTATÍSTICAS DA CONTA</div>
-              <div style={{ fontSize: 11, color: "#8a7a9c", lineHeight: 1.5 }}>
-                Status de treinador são <strong style={{ color: "#f5cf6b" }}>multiplicativos</strong> e afetam todo o seu time. 
-                O gráfico de anatomia representa o equilíbrio do seu crescimento.
+              <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 900, marginBottom: 8, display: "flex", justifyContent: "space-between" }}>
+                <span>SINERGIA DE TIME</span>
+                <span style={{ color: "#7ef27a" }}>BONUS ELEMENTAL ATIVO</span>
               </div>
+              <div style={{ fontSize: 11, color: "#8a7a9c", lineHeight: 1.5 }}>
+                <div style={{ marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
+                    <div style={{ width: "85%", height: "100%", background: "linear-gradient(90deg, #ff5252, #ff4d4d)" }} />
+                  </div>
+                  <span style={{ color: "#ff4d4d", fontWeight: 700 }}>VIDA TOTAL: 85%</span>
+                </div>
+                Status de treinador são <strong style={{ color: "#f5cf6b" }}>multiplicativos</strong> e afetam todo o seu time. 
+                Cada upgrade na anatomia aumenta o poder bruto dos seus Pokémon.
+              </div>
+
             </div>
           </div>
         );
