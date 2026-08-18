@@ -7821,7 +7821,7 @@ function IdlePage() {
         <div style={{ background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px" }}>
           <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px" }}>MAPA ATUAL</div>
           <div style={{ fontSize: "14px", fontWeight: 800, color: "#fff" }}>{map.name}</div>
-          <div style={{ fontSize: "11px", color: "#8a7a9c" }}>Lv. {map.minLv}-{map.maxLv}</div>
+          <div style={{ fontSize: "11px", color: "#8a7a9c" }}>Lv. {map.minLevel}-{map.maxLevel}</div>
         </div>
         
         <div style={{ background: "#1a0f26", border: "1px solid rgba(126, 242, 122, 0.3)", borderRadius: "12px", padding: "12px" }}>
