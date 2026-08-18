@@ -9856,6 +9856,10 @@ function IdlePage() {
               onBuyPotion={buyPotion}
               onBuyEgg={buyEgg}
               shopEggs={SHOP_EGGS}
+              idle={idle}
+              setIdle={setIdle}
+              pushChat={pushChat}
+
 
               onBuyChestAmulet={buyChestAmulet}
               chestAmuletOwned={idle.items?.chest_amulet ?? 0}
@@ -13206,11 +13210,12 @@ function TabOverlay({
   onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[], rarity?: Rarity) => void;
   pokemonMarketNode?: React.ReactNode;
   benchUids: Set<string>;
-  idle: TrainerState;
-  setIdle: React.Dispatch<React.SetStateAction<TrainerState>>;
-  pushChat: (msg: string, tone?: ChatTone) => void;
+  idle: any;
+  setIdle: React.Dispatch<React.SetStateAction<any>>;
+  pushChat: (msg: string, tone?: any) => void;
 
 }) {
+
 
   const title =
     tab === "pokemon"   ? "MEU POKÉMON" :
@@ -15099,7 +15104,7 @@ function TabOverlay({
           }
 
 
-          setIdle(s => {
+          setIdle((s: any) => {
             const nextItems = { ...s.items };
             stones.forEach(st => nextItems[st] = (nextItems[st] ?? 0) - stoneCost);
             nextItems.book_atk = (nextItems.book_atk ?? 0) - bookCost;
@@ -15165,9 +15170,10 @@ function TabOverlay({
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((((idle.buffs?.atk ?? 0) ?? 0) + ((stats.attack ?? 0) * 0.05)) * 100)}%`} color="#ff5252" />
-              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((((idle.buffs?.def ?? 0) ?? 0) + ((stats.resistance ?? 0) * 0.03)) * 100)}%`} color="#4a7bff" />
+              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((((idle.buffs?.atk ?? 0)) + ((stats.attack ?? 0) * 0.05)) * 100)}%`} color="#ff5252" />
+              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((((idle.buffs?.def ?? 0)) + ((stats.resistance ?? 0) * 0.03)) * 100)}%`} color="#4a7bff" />
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
+
             </div>
           </div>
         );
@@ -16178,8 +16184,9 @@ function ActiveBonuses({ leaderRarity, team, buffs, idle }: {
   leaderRarity: Rarity;
   team: { rarity: Rarity }[];
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
-  idle: IdleState;
+  idle: any;
 }) {
+
   const now = Date.now();
   const expActive = !!(buffs.expMultUntil && now < buffs.expMultUntil);
   const goldActive = !!(buffs.goldMultUntil && now < buffs.goldMultUntil);
