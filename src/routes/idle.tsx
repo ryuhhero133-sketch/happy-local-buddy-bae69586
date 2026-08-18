@@ -2270,6 +2270,7 @@ function IdlePage() {
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
   const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
+  const [c4Pin, setC4Pin] = useState<string | null>(null);
   const [pendingGate, setPendingGate] = useState<null | { target: string; gate: any; fromBig: boolean }>(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
