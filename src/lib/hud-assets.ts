@@ -9,13 +9,13 @@ import navMarket from "@/assets/icons/nav-market.png.asset.json";
 import collectIcon from "@/assets/icons/collect-icon.png.asset.json";
 
 export const HUD_ASSETS = {
-  navInicio,
-  navPokemon,
-  navMochila,
-  navMelhorias,
-  navColecao,
-  navLoja,
-  navWallet,
-  navMarket,
-  collectIcon
+  navInicio: { url: "/src/assets/icons/nav-inicio.png" },
+  navPokemon: { url: "/src/assets/icons/nav-pokemon.png" },
+  navMochila: { url: "/src/assets/icons/nav-mochila.png" },
+  navMelhorias: { url: "/src/assets/icons/nav-melhorias.png" },
+  navColecao: { url: "/src/assets/icons/nav-colecao.png" },
+  navLoja: { url: "/src/assets/icons/nav-loja.png" },
+  navWallet: { url: "/src/assets/icons/nav-wallet.png" },
+  navMarket: { url: "/src/assets/icons/nav-market.png" },
+  collectIcon: { url: "/src/assets/icons/collect-icon.png" }
 };
