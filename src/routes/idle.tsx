@@ -10923,11 +10923,10 @@ function IdlePage() {
               trainerLevel={idle.trainerLevel ?? 1}
               onUpgradeBook={upgradeBook}
             />
-            </div>
           )}
-        </div>
-      </div>
-    </div>
+
+          {/* ===== MODAIS E PORTALS ===== */}
+
 
 
       <style>{`
