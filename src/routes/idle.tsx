@@ -1259,6 +1259,7 @@ type IdleState = {
 
 
 
+
       {tab === "inicio" && (
         <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6 }}>
           <p style={{ marginTop: 0 }}>Bem-vindo ao <strong style={{ color: "#f5cf6b" }}>Modo Idle</strong>!</p>
