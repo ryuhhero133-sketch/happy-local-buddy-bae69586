@@ -15172,7 +15172,14 @@ function TabOverlay({
       )}
 
       {tab === "wallet" && (
-        <WalletScreen bank={bank} onExchange={onExchange} />
+        <WalletScreen 
+          bank={bank} 
+          items={items}
+          collection={collection}
+          gifMap={gifMap}
+          onOpenColecaoDetail={onOpenColecaoDetail}
+          onExchange={onExchange} 
+        />
       )}
 
       {tab === "market" && (
@@ -15423,16 +15430,40 @@ function BuffCell({ img, label, value, color }: { img: string; label: string; va
 }
 
 // ============ BANCO MEDIEVAL (câmbio e resgate) ============
-function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: number }; onExchange: (dir: "g2c" | "c2g", amount: number) => void }) {
+function WalletScreen({
+  bank,
+  items,
+  collection,
+  gifMap,
+  onOpenColecaoDetail,
+  onExchange
+}: {
+  bank: { gold: number; crystals: number };
+  items: Record<string, number>;
+  collection: CollectionEntry[];
+  gifMap: Partial<Record<Species, string>>;
+  onOpenColecaoDetail: (uid: string) => void;
+  onExchange: (dir: "g2c" | "c2g", amount: number) => void;
+}) {
   const [buyAmt, setBuyAmt] = useState(1);
   const [sellAmt, setSellAmt] = useState(1);
+  const [activeView, setActiveView] = useState<"cambio" | "itens" | "pokemon">("cambio");
 
   const buyCost = buyAmt * 1000;
   const sellGain = sellAmt * 800;
+
+  const ITEM_NAMES: Record<string, string> = {
+    potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
+    stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥", stone_water: "Stone Aquática 💧",
+    stone_electric: "Stone Elétrica ⚡", stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
+    egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico",
+    black_mitic_egg: "Black Mitic Egg ✦", premium_box: "Caixa Premium ✦"
+  };
+
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, maxWidth: 780 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 780 }}>
+      {/* Header do Banco */}
       <div style={{
-        gridColumn: "1 / -1",
         position: "relative",
         borderRadius: 14,
         overflow: "hidden",
@@ -15441,7 +15472,7 @@ function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: nu
         backgroundImage: `url(${walletHero})`,
         backgroundSize: "cover",
         backgroundPosition: "center 30%",
-        minHeight: 190,
+        minHeight: 160,
       }}>
         <div style={{
           position: "absolute", inset: 0,
@@ -15449,73 +15480,107 @@ function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: nu
         }} />
         <div style={{ position: "relative", padding: "16px 18px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 10 }}>
           <div>
-            <div style={{ color: "#ffe58a", fontWeight: 900, fontSize: 20, letterSpacing: 2, textShadow: "2px 2px 0 #000, 0 0 12px #f5cf6b66" }}>✦ BANCO MEDIEVAL</div>
-            <div style={{ color: "#dcc8e0", fontSize: 12, marginTop: 3, textShadow: "1px 1px 0 #000" }}>Central de recursos: Converta moedas e retire o que foi guardado nos cofres do reino.</div>
+            <div style={{ color: "#ffe58a", fontWeight: 900, fontSize: 22, letterSpacing: 2, textShadow: "2px 2px 0 #000, 0 0 12px #f5cf6b66" }}>✦ BANCO MEDIEVAL</div>
+            <div style={{ color: "#dcc8e0", fontSize: 12, marginTop: 3, textShadow: "1px 1px 0 #000" }}>Gerencie seus bens e visualize suas reservas no cofre real.</div>
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #f5cf6b88", borderRadius: 8, padding: "6px 12px", color: "#f5cf6b", fontWeight: 800, boxShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>💰 {bank.gold.toLocaleString()}</div>
-            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #8fd0ff88", borderRadius: 8, padding: "6px 12px", color: "#8fd0ff", fontWeight: 800, boxShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>💎 {bank.crystals.toLocaleString()}</div>
+            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #f5cf6b88", borderRadius: 8, padding: "6px 12px", color: "#f5cf6b", fontWeight: 800 }}>💰 {bank.gold.toLocaleString()}</div>
+            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #8fd0ff88", borderRadius: 8, padding: "6px 12px", color: "#8fd0ff", fontWeight: 800 }}>💎 {bank.crystals.toLocaleString()}</div>
           </div>
         </div>
       </div>
-      
-      {/* Câmbio */}
-      <div style={{ background: "#1a0f26", border: "1px solid #8fd0ff55", borderRadius: 10, padding: 14 }}>
-        <div style={{ color: "#8fd0ff", fontWeight: 800, marginBottom: 6 }}>Comprar 💎 com Ouro</div>
-        <div style={{ color: "#c8b8d0", fontSize: 12, marginBottom: 10 }}>1 💎 = 1000 ouro</div>
-        <input type="number" min={1} value={buyAmt} onChange={(e) => setBuyAmt(Math.max(1, parseInt(e.target.value) || 1))}
-          style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #8fd0ff55", borderRadius: 6, padding: 8, fontSize: 14 }} />
-        <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Custo: <b style={{ color: "#f5cf6b" }}>{buyCost.toLocaleString()} ouro</b></div>
-        <button disabled={bank.gold < buyCost} onClick={() => onExchange("g2c", buyAmt)}
-          style={{ width: "100%", background: bank.gold < buyCost ? "#333" : "linear-gradient(180deg,#4a9eff,#1e3a5f)", color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: bank.gold < buyCost ? "not-allowed" : "pointer" }}>
-          Converter {buyAmt} 💎
-        </button>
+
+      {/* Navegação Interna */}
+      <div style={{ display: "flex", gap: 8 }}>
+        {(["cambio", "itens", "pokemon"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setActiveView(v)}
+            style={{
+              flex: 1, padding: "10px", borderRadius: 8, border: "1px solid #f5cf6b44",
+              background: activeView === v ? "linear-gradient(180deg, #f5cf6b, #b8862a)" : "#1a0f26",
+              color: activeView === v ? "#0e0818" : "#f5cf6b",
+              fontWeight: 900, cursor: "pointer", fontSize: 12, transition: "0.2s"
+            }}
+          >
+            {v === "cambio" ? "🪙 CÂMBIO" : v === "itens" ? "🎒 ITENS GUARDADOS" : "🐉 POKÉMON NO COFRE"}
+          </button>
+        ))}
       </div>
 
-      <div style={{ background: "#1a0f26", border: "1px solid #f5cf6b55", borderRadius: 10, padding: 14 }}>
-        <div style={{ color: "#f5cf6b", fontWeight: 800, marginBottom: 6 }}>Vender 💎 por Ouro</div>
-        <div style={{ color: "#c8b8d0", fontSize: 12, marginBottom: 10 }}>1 💎 = 800 ouro</div>
-        <input type="number" min={1} value={sellAmt} onChange={(e) => setSellAmt(Math.max(1, parseInt(e.target.value) || 1))}
-          style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #f5cf6b55", borderRadius: 6, padding: 8, fontSize: 14 }} />
-        <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Você recebe: <b style={{ color: "#f5cf6b" }}>{sellGain.toLocaleString()} ouro</b></div>
-        <button disabled={bank.crystals < sellAmt} onClick={() => onExchange("c2g", sellAmt)}
-          style={{ width: "100%", background: bank.crystals < sellAmt ? "#333" : "linear-gradient(180deg,#f5cf6b,#8b6a30)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: bank.crystals < sellAmt ? "not-allowed" : "pointer" }}>
-          Converter {sellAmt} 💰
-        </button>
+      <div style={{ background: "rgba(14,8,24,0.4)", borderRadius: 12, padding: 2, minHeight: 300 }}>
+        {activeView === "cambio" && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, padding: 12 }}>
+            <div style={{ background: "#1a0f26", border: "1px solid #8fd0ff55", borderRadius: 10, padding: 14 }}>
+              <div style={{ color: "#8fd0ff", fontWeight: 800, marginBottom: 6 }}>Comprar 💎</div>
+              <input type="number" min={1} value={buyAmt} onChange={(e) => setBuyAmt(Math.max(1, parseInt(e.target.value) || 1))}
+                style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #8fd0ff55", borderRadius: 6, padding: 8 }} />
+              <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Custo: <b style={{ color: "#f5cf6b" }}>{(buyAmt * 1000).toLocaleString()} ouro</b></div>
+              <button disabled={bank.gold < buyAmt * 1000} onClick={() => onExchange("g2c", buyAmt)}
+                style={{ width: "100%", background: bank.gold < buyAmt * 1000 ? "#333" : "linear-gradient(180deg,#4a9eff,#1e3a5f)", color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: "pointer" }}>
+                Converter
+              </button>
+            </div>
+            <div style={{ background: "#1a0f26", border: "1px solid #f5cf6b55", borderRadius: 10, padding: 14 }}>
+              <div style={{ color: "#f5cf6b", fontWeight: 800, marginBottom: 6 }}>Vender 💎</div>
+              <input type="number" min={1} value={sellAmt} onChange={(e) => setSellAmt(Math.max(1, parseInt(e.target.value) || 1))}
+                style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #f5cf6b55", borderRadius: 6, padding: 8 }} />
+              <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Recebe: <b style={{ color: "#f5cf6b" }}>{(sellAmt * 800).toLocaleString()} ouro</b></div>
+              <button disabled={bank.crystals < sellAmt} onClick={() => onExchange("c2g", sellAmt)}
+                style={{ width: "100%", background: bank.crystals < sellAmt ? "#333" : "linear-gradient(180deg,#f5cf6b,#8b6a30)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: "pointer" }}>
+                Converter
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeView === "itens" && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, padding: 12, maxHeight: 400, overflowY: "auto" }}>
+            {Object.entries(items).filter(([_, qty]) => qty > 0).map(([id, qty]) => (
+              <div key={id} style={{ background: "#1a0f26", border: "1px solid #f5cf6b33", borderRadius: 8, padding: 10, textAlign: "center" }}>
+                <div style={{ fontSize: 24 }}>📦</div>
+                <div style={{ fontSize: 10, color: "#f5cf6b", fontWeight: 800, marginTop: 4 }}>{ITEM_NAMES[id] || id.toUpperCase()}</div>
+                <div style={{ fontSize: 12, color: "#fff", fontWeight: 900 }}>×{qty.toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeView === "pokemon" && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 10, padding: 12, maxHeight: 400, overflowY: "auto" }}>
+            {collection.map((entry) => (
+              <div 
+                key={entry.uid} 
+                onClick={() => onOpenColecaoDetail(entry.uid)}
+                style={{ background: "#1a0f26", border: "1px solid #8fd0ff33", borderRadius: 8, padding: 8, textAlign: "center", cursor: "pointer" }}
+              >
+                {gifMap[entry.species] && <img src={gifMap[entry.species]} alt="" style={{ width: 48, height: 48, imageRendering: "pixelated" }} />}
+                <div style={{ fontSize: 9, color: "#8fd0ff", fontWeight: 800 }}>{entry.species.replace(/_/g, " ").toUpperCase()}</div>
+                <div style={{ fontSize: 10, color: "#fff" }}>Nv. {entry.level}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Seção de Resgate (Mock/Visual para o usuário pegar seus recursos) */}
-      <div style={{ 
-        gridColumn: "1 / -1", 
-        marginTop: 10,
+      <div style={{
         background: "linear-gradient(160deg, #2a1a0a, #3d2b0f)",
-        border: "1px solid #ff9d3d88",
-        borderRadius: 12,
-        padding: 16,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 16
+        border: "1px solid #ff9d3d88", borderRadius: 12, padding: 16,
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16
       }}>
         <div style={{ flex: 1 }}>
-          <div style={{ color: "#ff9d3d", fontWeight: 900, fontSize: 14, letterSpacing: 1 }}>🏛️ COFRE DE RESGATE</div>
-          <div style={{ color: "#c8a878", fontSize: 11, marginTop: 4 }}>Retire recursos acumulados de temporadas anteriores ou depósitos de segurança.</div>
+          <div style={{ color: "#ff9d3d", fontWeight: 900, fontSize: 14 }}>🏛️ COFRE DE RESGATE</div>
+          <div style={{ color: "#c8a878", fontSize: 11 }}>Sincronize seus bens preciosos com o cofre do reino.</div>
         </div>
-        <button 
-          onClick={() => {
-            // Apenas feedback visual já que o sistema está integrado ao bank.gold/crystals que sincroniza
-            window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Banco Medieval", body: "Recursos sincronizados com sua carteira!", tone: "info" } }));
-          }}
-          style={{
-            padding: "10px 20px", background: "linear-gradient(180deg, #ff9d3d, #c67100)",
-            color: "#fff", border: "none", borderRadius: 8, fontWeight: 900, cursor: "pointer",
-            boxShadow: "0 4px 12px rgba(255,157,61,0.3)"
-          }}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Banco Medieval", body: "Recursos sincronizados!", tone: "success" } }))}
+          style={{ padding: "10px 20px", background: "linear-gradient(180deg, #ff9d3d, #c67100)", color: "#fff", border: "none", borderRadius: 8, fontWeight: 900, cursor: "pointer" }}
         >RESGATAR TUDO</button>
       </div>
     </div>
   );
 }
+
 
 // ============ MERCADO P2P (jogador vs jogador) ============
 type MarketListing = {
