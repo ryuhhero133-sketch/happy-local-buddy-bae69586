@@ -14544,9 +14544,9 @@ function TabOverlay({
 
 
       {tab === "loja" && (
-        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
-      {tab === "loja" && (
         <div style={{ paddingBottom: 60 }}>
+            display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
+            background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
             alignItems: "center", justifyContent: "space-around", fontWeight: 800,
           }}>
@@ -14806,7 +14806,8 @@ function TabOverlay({
             >
               {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
             </button>
-          </div>
+        </div>
+      )}
         </>
       )}
 
@@ -15185,12 +15186,7 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
-          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
-          <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
-          <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
-        </div>
-      )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {false && tab === "market" && (
         <>
           <MarketScreen
@@ -15209,7 +15205,8 @@ function TabOverlay({
       )}
 
 
-
+        </div>
+      )}
 
       {tab === "config" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 520 }}>
