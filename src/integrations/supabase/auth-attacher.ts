@@ -8,6 +8,13 @@ export const attachSupabaseAuth = createMiddleware({ type: 'function' }).client(
   async ({ next }) => {
     const { data } = await supabase.auth.getSession()
     const token = data.session?.access_token
+    
+    // In production, session might take a moment to be available in storage
+    // if a redirect or quick mount just happened.
+    if (!token) {
+      console.warn("[attachSupabaseAuth] Token not found in current session");
+    }
+
     return next({
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })

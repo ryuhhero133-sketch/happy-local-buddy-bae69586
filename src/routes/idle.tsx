@@ -1578,17 +1578,30 @@ function IdlePage() {
     let cancelled = false;
     (async () => {
       try {
-        const { data: sess } = await supabase.auth.getSession();
-        const uid = sess.session?.user?.id;
+        // Wait for session
+        let session = null;
+        let attempts = 0;
+        while (!session && attempts < 20) {
+          const { data } = await supabase.auth.getSession();
+          session = data.session;
+          if (session) break;
+          await new Promise(r => setTimeout(r, 200));
+          attempts++;
+        }
+
+        const uid = session?.user?.id;
         if (!uid) return;
+        
         const blob = (await fetchCloudSave(uid)) as
           | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
           | null;
         if (cancelled || !blob) return;
+        
+        cloudBlobHydratedRef.current = true;
+        
         if (blob.idle) {
           setIdle((prev) => {
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
-            // Sanitiza
             if (!IDLE_MAPS[merged.currentMap]) merged.currentMap = "arena";
             const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
             if (!uskins.includes("default")) uskins.unshift("default");
@@ -1607,7 +1620,6 @@ function IdlePage() {
         } else if (Array.isArray(blob.party) && blob.party.length > 5) {
           setRestingBench(blob.party.slice(5));
         }
-        cloudBlobHydratedRef.current = true;
       } catch (e) {
         console.warn("[cloudBlob] hydrate failed", e);
       } finally {
