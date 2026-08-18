@@ -15122,39 +15122,51 @@ function TabOverlay({
           { key: "crit", label: "CRT", val: tStats.crit, icon: "🎯", color: "#c084fc" },
         ];
 
-        // Componente simples para o gráfico de teia (Radar Chart) em SVG
-        const RadarChart = () => {
-          const centerX = 60;
-          const centerY = 60;
-          const radius = 50;
+        // Gráfico Estelar de Anatomia
+        const AnatomiaChart = () => {
+          const centerX = 80;
+          const centerY = 80;
+          const radius = 65;
+          
           const points = stats.map((s, i) => {
             const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
-            // Normaliza o valor para o gráfico (escala logarítmica leve para não sumir com valores baixos)
-            const normalized = Math.min(1, (s.val + 2) / 50); 
+            const normalized = 0.3 + (Math.min(1, (s.val) / 50) * 0.7); 
             const x = centerX + radius * normalized * Math.cos(angle);
             const y = centerY + radius * normalized * Math.sin(angle);
-            return `${x},${y}`;
-          }).join(" ");
+            return { x, y, label: s.label, color: s.color, angle };
+          });
 
-          const gridLevels = [0.2, 0.4, 0.6, 0.8, 1.0];
+          const polygonPoints = points.map(p => `${p.x},${p.y}`).join(" ");
 
           return (
-            <svg width="120" height="120" viewBox="0 0 120 120" style={{ filter: "drop-shadow(0 0 8px rgba(245,207,107,0.2))" }}>
-              {/* Grids hexagonais/pentagonais */}
-              {gridLevels.map((level, idx) => {
-                const p = stats.map((_, i) => {
-                  const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
-                  return `${centerX + radius * level * Math.cos(angle)},${centerY + radius * level * Math.sin(angle)}`;
-                }).join(" ");
-                return <polygon key={idx} points={p} fill="none" stroke="rgba(138,122,156,0.2)" strokeWidth="1" />;
-              })}
-              {/* Eixos */}
-              {stats.map((_, i) => {
-                const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
-                return <line key={i} x1={centerX} y1={centerY} x2={centerX + radius * Math.cos(angle)} y2={centerY + radius * Math.sin(angle)} stroke="rgba(138,122,156,0.3)" strokeDasharray="2,2" />;
-              })}
-              {/* Área preenchida dos status */}
-              <polygon points={points} fill="rgba(245,207,107,0.3)" stroke="#f5cf6b" strokeWidth="2" strokeLinejoin="round" />
+            <svg width="160" height="160" viewBox="0 0 160 160" style={{ filter: "drop-shadow(0 0 12px rgba(245,207,107,0.3))" }}>
+              <defs>
+                <radialGradient id="starGradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#f5cf6b" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#f5cf6b" stopOpacity="0.1" />
+                </radialGradient>
+              </defs>
+              {/* Grids Estelares */}
+              {[0.2, 0.4, 0.6, 0.8, 1.0].map((level, idx) => (
+                <polygon 
+                  key={idx} 
+                  points={stats.map((_, i) => {
+                    const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
+                    return `${centerX + radius * level * Math.cos(angle)},${centerY + radius * level * Math.sin(angle)}`;
+                  }).join(" ")} 
+                  fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="0.5" 
+                />
+              ))}
+              {/* Eixos com brilho */}
+              {points.map((p, i) => (
+                <line key={i} x1={centerX} y1={centerY} x2={centerX + radius * Math.cos(p.angle)} y2={centerY + radius * Math.sin(p.angle)} stroke="rgba(245,207,107,0.2)" strokeDasharray="1,2" />
+              ))}
+              {/* Área de Anatomia */}
+              <polygon points={polygonPoints} fill="url(#starGradient)" stroke="#f5cf6b" strokeWidth="2" strokeLinejoin="round" />
+              {/* Pontos de destaque */}
+              {points.map((p, i) => (
+                <circle key={i} cx={p.x} cy={p.y} r="3" fill="#fff" stroke={p.color} strokeWidth="1" />
+              ))}
             </svg>
           );
         };
