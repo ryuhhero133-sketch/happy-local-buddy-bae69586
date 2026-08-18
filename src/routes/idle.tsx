@@ -10,6 +10,7 @@ import { obfuscate, deobfuscate } from "@/lib/utils";
 
 
 
+import { HUD_ASSETS } from "@/lib/hud-assets";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -7704,12 +7705,41 @@ function IdlePage() {
     <>
     <div className="game-root-container" style={{
       height: "100vh",
-      background: "#000",
+      background: "#0b0510",
       color: "#f3e5c5",
-      fontFamily: "'Trebuchet MS', system-ui, sans-serif",
+      fontFamily: "\'Trebuchet MS\', system-ui, sans-serif",
       overflow: "hidden",
-      position: "relative"
+      position: "relative",
+      display: "grid",
+      gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
+      gap: "8px",
+      padding: "8px"
+    <div className="game-root-container" style={{
+      height: "100vh", background: "#0b0510", color: "#f3e5c5", fontFamily: "\'Trebuchet MS\', system-ui, sans-serif", overflow: "hidden", position: "relative", display: "grid", gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)", gap: "8px", padding: "8px"
     }}>
+      <div className="hud-left-column" style={{ display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden", zIndex: 10 }}>
+        <TrainerProfileHUD 
+          identity={identity} 
+          trainerLevel={idle.trainerLevel} 
+          trainerXp={idle.trainerXp} 
+          xpNext={xpNext(idle.trainerLevel)} 
+          onOpenAdmin={() => setIsAdminOpen(true)}
+        />
+        <TeamPanelHUD 
+          team={team} 
+          leaderHp={leaderHp} 
+          calcIdleMaxHp={calcIdleMaxHp} 
+          onOpenPokemon={(p: any) => setPokemonStatsOpen(p)}
+        />
+        <div style={{ flex: 1, background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px", letterSpacing: "1px" }}>REGISTRO DE BATALHA</div>
+          <div className="battle-log" style={{ flex: 1, overflowY: "auto", fontSize: "11px", color: "#dcc8e0", display: "flex", flexDirection: "column", gap: "4px" }}>
+             {chat.slice(-20).map((m: any, i: number) => (
+               <div key={i} style={{ borderLeft: "2px solid rgba(255,255,255,0.1)", paddingLeft: "6px" }}>{m.text}</div>
+             ))}
+          </div>
+        </div>
+      </div>
       <div
         className="legacy-world-viewport"
         ref={viewportRef}
@@ -7732,10 +7762,7 @@ function IdlePage() {
           overflow: 'hidden',
           background: viewportBg,
           cursor: 'crosshair',
-          zIndex: 0,
-          pointerEvents: 'auto',
-        }}
-      >
+          zIndex: 0, pointerEvents: "auto" }}>
         <div 
           className="legacy-world-layer"
           style={{
