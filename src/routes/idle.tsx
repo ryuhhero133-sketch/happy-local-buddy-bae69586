@@ -14547,14 +14547,14 @@ function TabOverlay({
 
 
 
-      {tab === "_loja_locked" && (
+      {false && tab === "loja" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
         </div>
       )}
-      {false && tab === "_loja_locked" && (
+      {false && tab === "loja" && (
         <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -14818,7 +14818,7 @@ function TabOverlay({
               {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
             </button>
           </div>
-        </>
+        </div>
       )}
 
                       position: "absolute", top: 40, left: 8, right: 14, height: 3,
@@ -15195,14 +15195,14 @@ function TabOverlay({
         <WalletScreen bank={bank} onExchange={onExchange} />
       )}
 
-      {tab === "_market_locked" && (
+      {false && tab === "market" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
         </div>
       )}
-      {false && tab === "_market_locked" && (
+      {false && tab === "market" && (
         <>
           <MarketScreen
             items={items}
@@ -15216,7 +15216,7 @@ function TabOverlay({
             onNpcSell={onSellItem}
             npcPrices={marketSellPrices}
           />
-        </>
+        </div>
       )}
 
 
@@ -15731,7 +15731,7 @@ function MarketScreen({
 
             </div>
           )}
-        </>
+        </div>
       )}
 
       {mode === "create" && (
@@ -15826,7 +15826,7 @@ function MarketScreen({
               );
             })}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
