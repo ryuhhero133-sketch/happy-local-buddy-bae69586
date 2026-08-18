@@ -10570,8 +10570,6 @@ function IdlePage() {
           )}
         </div>
       </div>
-    </div>
-  </div>
       <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         {restingUntil !== null && restingStart !== null && (() => {
 
@@ -13116,6 +13114,7 @@ function IdlePage() {
       {isAdminOpen && (
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />
       )}
+    </div>
     </>
   );
 }
