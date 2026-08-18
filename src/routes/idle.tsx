@@ -1,10 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ProfessorOakGuide } from "@/components/ProfessorOakGuide";
+import { ProfessorOakGuide, type GuideTopic } from "@/components/ProfessorOakGuide";
 import { assetUrlFromJson } from "@/lib/assetUrl";
 import trainerBodyAsset from "@/assets/trainer_body_anatomy.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
 import { Toaster } from "sonner";
+
+export type Species = string;
+export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "mythic_shiny";
+export type CollectionEntry = {
+  uid: string;
+  species: Species;
+  level: number;
+  xp?: number;
+  rarity: Rarity;
+  traits?: string[];
+  capturedAt: number;
+};
 
 export const Route = createFileRoute("/idle")({
   component: IdleGame,
@@ -13,11 +25,16 @@ export const Route = createFileRoute("/idle")({
 function IdleGame() {
   const [tab, setTab] = useState("inicio");
   const [activeModals, setActiveModals] = useState<string[]>([]);
+  const [guideTopic, setGuideTopic] = useState<GuideTopic | null>("welcome");
 
   // ESC key listener for closing modals
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        if (guideTopic) {
+          setGuideTopic(null);
+          return;
+        }
         setActiveModals(prev => {
           if (prev.length === 0) return prev;
           return prev.slice(0, -1);
@@ -26,7 +43,7 @@ function IdleGame() {
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, []);
+  }, [guideTopic]);
 
   return (
     <AuthGate>
@@ -59,7 +76,12 @@ function IdleGame() {
               <h1 style={{ color: '#f5cf6b', marginBottom: 20 }}>Ruby M - Idle</h1>
               <p>O jogo está sendo restaurado. Clique nas abas para navegar.</p>
               <div style={{ marginTop: 20 }}>
-                <ProfessorOakGuide />
+                <button 
+                  onClick={() => setGuideTopic("welcome")}
+                  style={{ background: '#f5cf6b', color: '#000', border: 'none', padding: '10px 20px', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  Falar com Prof. Oak
+                </button>
               </div>
             </div>
           )}
@@ -110,6 +132,10 @@ function IdleGame() {
             </div>
           )}
         </main>
+
+        {guideTopic && (
+          <ProfessorOakGuide topic={guideTopic} onClose={() => setGuideTopic(null)} />
+        )}
 
         <Toaster theme="dark" position="top-center" />
       </div>
