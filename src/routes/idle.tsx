@@ -14808,7 +14808,8 @@ function TabOverlay({
               {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
             </button>
           </div>
-        </>
+        </div>
+          </div>
       )}
 
                       position: "absolute", top: 40, left: 8, right: 14, height: 3,
@@ -15200,7 +15201,7 @@ function TabOverlay({
             onNpcSell={onSellItem}
             npcPrices={marketSellPrices}
           />
-        </>
+        </div>
       )}
 
 
