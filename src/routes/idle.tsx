@@ -7715,7 +7715,7 @@ function IdlePage() {
                       {filtered.length === 0 && (
                         <div style={{ color: "#6a5a7c", fontStyle: "italic" }}>Nenhum evento neste filtro...</div>
                       )}
-                    </>
+                    </div>
                   );
                 })()}
               </div>
@@ -7853,7 +7853,7 @@ function IdlePage() {
                   <button onClick={() => { playClick(); setZoom(ZOOM_LEVELS[Math.min(ZOOM_LEVELS.length - 1, curIdx + 1)]); }} style={zoomBtn}>+</button>
                   <div style={{ ...zoomBtn, cursor: "default", fontSize: 10 }}>{Math.round(zoom * 100)}%</div>
                   <button onClick={() => { playClick(); setZoom(ZOOM_LEVELS[Math.max(0, curIdx - 1)]); }} style={zoomBtn}>−</button>
-                </>
+                </div>
               );
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
@@ -8113,7 +8113,7 @@ function IdlePage() {
                       </span>
                     </div>
                   ))}
-                </>
+                </div>
               );
             })()}
           </div>
@@ -8143,7 +8143,7 @@ function IdlePage() {
                     }} />
                   ))}
                   <div className="wx-flash" />
-                </>
+                </div>
               )}
               {weather === "snow" && (
                 <>
@@ -8159,7 +8159,7 @@ function IdlePage() {
                       ["--drift" as string]: `${s.drift}px`,
                     } as React.CSSProperties} />
                   ))}
-                </>
+                </div>
               )}
               <div style={{
                 position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)",
@@ -8919,7 +8919,7 @@ function IdlePage() {
                         animation: "spin 8s linear infinite",
                         pointerEvents: "none", zIndex: -1,
                       }} />
-                    </>
+                    </div>
                   )}
                   {e.menace && (
                     <>
@@ -8950,7 +8950,7 @@ function IdlePage() {
                           animation: "pulse 1.2s ease-in-out infinite",
                         }}>✦</div>
                       ))}
-                    </>
+                    </div>
                   )}
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
                   {e.sp === "raichu" && !camouflaged && (
@@ -9266,7 +9266,7 @@ function IdlePage() {
                   fontSize: 24, pointerEvents: "none",
                   animation: "chest-pop 900ms ease-in-out infinite",
                 }}>💤💚</div>
-              </>
+              </div>
             )}
 
             {/* Pokémon do jogador segue o treinador */}
@@ -9323,7 +9323,7 @@ function IdlePage() {
                           animationDuration: `${s.d}s`,
                         } as React.CSSProperties} />
                       ))}
-                    </>
+                    </div>
                   )}
                   {auraOn && (
                     <>
@@ -9344,7 +9344,7 @@ function IdlePage() {
                           ["--i" as string]: i,
                         } as React.CSSProperties} />
                       ))}
-                    </>
+                    </div>
                   )}
                   {SPRITE_SHEET[leaderSp] ? (
                     <div style={{
@@ -9579,7 +9579,7 @@ function IdlePage() {
                     <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, ${accent}, #a7f3a0)`, transition: "width 200ms" }} />
                   </div>
                 </div>
-              </>
+              </div>
             );
           })()}
           {/* tick invisível pra forçar rerender enquanto descansa */}
@@ -10608,7 +10608,7 @@ function IdlePage() {
                       </div>
                     );
                   })()}
-                </>
+                </div>
               );
             })()}
           </Panel>
@@ -10834,7 +10834,7 @@ function IdlePage() {
                     boxShadow: isOpen ? "0 0 12px rgba(138,255,176,0.85)" : "0 0 8px rgba(255,138,198,0.6)",
                     animation: isOpen ? "pulse 1s infinite" : undefined,
                   }}>{label}</span>
-                </>
+                </div>
               );
             })()}
             </div>
@@ -11392,7 +11392,7 @@ function IdlePage() {
                       );
                     })}
                   </div>
-                </>
+                </div>
               )}
 
               {worldTraderPick && (() => {
@@ -11442,7 +11442,7 @@ function IdlePage() {
                           <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
                             <div style={{ width: `${upgradeChance * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff9adf, #ffd94d)" }} />
                           </div>
-                        </>
+                        </div>
                       )}
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
                         <span>⏱️ +TEMPO extra (+1~2h)</span>
@@ -11683,7 +11683,7 @@ function IdlePage() {
                       } as React.CSSProperties} />
                     );
                   })}
-                </>
+                </div>
               )}
             </div>
             <div style={{ marginTop: 10, minHeight: 40 }}>
@@ -11698,7 +11698,7 @@ function IdlePage() {
                   ) : orbAnim.lucky ? (
                     <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! Orb evoluiu de raridade!</div>
                   ) : null}
-                </>
+                </div>
               )}
               {orbAnim.phase === "fail" && (
                 <div style={{ fontSize: 12, color: "#e28a8a" }}>A instabilidade dispersou a energia. Pokémon perdidos.</div>
@@ -11977,9 +11977,9 @@ function IdlePage() {
               {/* Confirmação */}
               <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                 <div style={{ fontSize: 11, color: "#c8a8e8" }}>
-                  {source ? <>Fonte: <b style={{ color: "#ffd166" }}>{source.species.toUpperCase()}</b></> : "Selecione um BMP acima."}
+                  {source ? <>Fonte: <b style={{ color: "#ffd166" }}>{source.species.toUpperCase()}</b></div> : "Selecione um BMP acima."}
                   {" · "}
-                  {bmpSwapTarget ? <>Destino: <b style={{ color: "#ffd166" }}>{bmpSwapTarget.toString().toUpperCase()}</b></> : "Escolha a espécie destino."}
+                  {bmpSwapTarget ? <>Destino: <b style={{ color: "#ffd166" }}>{bmpSwapTarget.toString().toUpperCase()}</b></div> : "Escolha a espécie destino."}
                 </div>
                 <button
                   disabled={!canConfirm}
@@ -13189,11 +13189,11 @@ function TabOverlay({
     tab === "mochila"   ? "MOCHILA" :
     tab === "colecao"   ? "COLEÇÃO" :
     tab === "pokedex"   ? "POKÉDEX" :
-    tab === "loja"      ? "LOJA" :
+    tab === "loja"      ? "LOJA BLOQUEADA" :
     tab === "wallet"    ? "CARTEIRA" :
-    tab === "market"    ? "MERCADO" :
+    tab === "loja"      ? "LOJA" :
 
-    tab === "melhorias" ? "MELHORIAS" :
+    tab === "market"    ? "MERCADO" :
     tab === "config"    ? "CONFIGURAÇÕES" :
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
@@ -13370,11 +13370,11 @@ function TabOverlay({
                     const maxStat = Math.max(stats.atk, stats.def, stats.spa, stats.spd, stats.spe, 1);
                     const StatIcon = ({ kind, col }: { kind: string; col: string }) => {
                       const paths: Record<string, any> = {
-                        atk: <><path d="M4 20 L14 10 M12 8 L20 4 L18 12 L10 10 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><circle cx="5" cy="19" r="1.5" fill={col}/></>,
-                        def: <><path d="M12 3 L20 6 V12 C20 17 16 20 12 21 C8 20 4 17 4 12 V6 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><path d="M9 12 L11 14 L15 10" stroke={col} strokeWidth="2" fill="none" strokeLinecap="round"/></>,
-                        spa: <><path d="M12 3 L14 10 L21 12 L14 14 L12 21 L10 14 L3 12 L10 10 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
-                        spd: <><circle cx="12" cy="12" r="8" stroke={col} strokeWidth="2" fill={col+"33"}/><path d="M12 4 Q16 12 12 20 Q8 12 12 4" stroke={col} strokeWidth="1.5" fill={col+"77"}/></>,
-                        spe: <><path d="M13 3 L4 14 H11 L9 21 L20 10 H13 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
+                        atk: <><path d="M4 20 L14 10 M12 8 L20 4 L18 12 L10 10 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><circle cx="5" cy="19" r="1.5" fill={col}/></div>,
+                        def: <><path d="M12 3 L20 6 V12 C20 17 16 20 12 21 C8 20 4 17 4 12 V6 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><path d="M9 12 L11 14 L15 10" stroke={col} strokeWidth="2" fill="none" strokeLinecap="round"/></div>,
+                        spa: <><path d="M12 3 L14 10 L21 12 L14 14 L12 21 L10 14 L3 12 L10 10 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></div>,
+                        spd: <><circle cx="12" cy="12" r="8" stroke={col} strokeWidth="2" fill={col+"33"}/><path d="M12 4 Q16 12 12 20 Q8 12 12 4" stroke={col} strokeWidth="1.5" fill={col+"77"}/></div>,
+                        spe: <><path d="M13 3 L4 14 H11 L9 21 L20 10 H13 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></div>,
                       };
                       return (
                         <svg viewBox="0 0 24 24" width="18" height="18" style={{ filter: `drop-shadow(0 0 3px ${col}aa)` }}>
@@ -14467,7 +14467,7 @@ function TabOverlay({
                             />
                           </span>
                           <span style={{ fontSize: 13 }}>+{gain}</span>
-                        </>
+                        </div>
                       )}
                     </button>
                   </div>
@@ -14543,9 +14543,7 @@ function TabOverlay({
 
 
 
-      {tab === "loja" && (
-        <div style={{ paddingBottom: 60 }}>
-          <div style={{
+        <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -15185,7 +15183,8 @@ function TabOverlay({
         <WalletScreen bank={bank} onExchange={onExchange} />
       )}
 
-      {tab === "market" && (
+      )}
+      {tab === "market" {false && tab === "market" && ({false && tab === "market" && ( (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <MarketScreen
             items={items}
@@ -15640,7 +15639,7 @@ function MarketScreen({
                   );
                 })}
               </div>
-            </>
+            </div>
           )}
           {mine.length > 0 && (
             <>
@@ -15671,7 +15670,7 @@ function MarketScreen({
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           )}
           <div style={{ color: "#ff9d3d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>À VENDA ({others.length})</div>
           {others.length === 0 ? (
@@ -15714,7 +15713,7 @@ function MarketScreen({
 
             </div>
           )}
-        </>
+        </div>
       )}
 
       {mode === "create" && (
@@ -15809,7 +15808,7 @@ function MarketScreen({
               );
             })}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -16253,7 +16252,7 @@ function GovernanteDialog(props: {
                     }}
                   >✦ RECEBER {canGive} OVO{canGive > 1 ? "S" : ""}</button>
                 )}
-              </>
+              </div>
             ) : (
               <button
                 onClick={onClose}
