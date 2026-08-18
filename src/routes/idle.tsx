@@ -2133,6 +2133,7 @@ function IdlePage() {
   const [oddishNoStone, setOddishNoStone] = useState<{ have: number; need: number } | null>(null);
   const [oddishConfirm, setOddishConfirm] = useState<{ have: number; need: number } | null>(null);
   const [oddishRankOpen, setOddishRankOpen] = useState<boolean>(false);
+  const [worldTab, setWorldTab] = useState<1 | 2 | 3>(1);
   const [oddishRankRows, setOddishRankRows] = useState<OddishRankRow[]>([]);
   const [oddishRankLoading, setOddishRankLoading] = useState<boolean>(false);
   const enterGrassOddish = () => {
