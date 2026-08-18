@@ -5,9 +5,8 @@ import { assetUrlFromJson } from "@/lib/assetUrl";
 import trainerBodyAsset from "@/assets/trainer_body_anatomy.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
 import { Toaster } from "sonner";
+import { type Species, type Rarity } from "@/game/systems";
 
-export type Species = string;
-export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "mythic_shiny";
 export type CollectionEntry = {
   uid: string;
   species: Species;
@@ -16,6 +15,7 @@ export type CollectionEntry = {
   rarity: Rarity;
   traits?: string[];
   capturedAt: number;
+  statBoost?: number;
 };
 
 export const Route = createFileRoute("/idle")({
