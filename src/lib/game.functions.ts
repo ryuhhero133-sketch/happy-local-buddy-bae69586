@@ -6,6 +6,7 @@
 // Os types.ts do Supabase são regenerados só quando o schema muda.
 
 import { createServerFn } from "@tanstack/react-start";
+import { syncClientState_handler } from "./game.functions.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
