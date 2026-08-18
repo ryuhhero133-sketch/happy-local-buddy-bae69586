@@ -14547,14 +14547,14 @@ function TabOverlay({
 
 
 
-      {tab === "loja_locked" && (
+      {tab === "loja_inactive" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
         </div>
       )}
-      {false && tab === "loja_locked" && (
+      {false && tab === "loja" && (
         <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -15195,14 +15195,14 @@ function TabOverlay({
         <WalletScreen bank={bank} onExchange={onExchange} />
       )}
 
-      {tab === "market_locked" && (
+      {tab === "market_inactive" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
         </div>
       )}
-      {false && tab === "market_locked" && (
+      {false && tab === "market" && (
         <>
           <MarketScreen
             items={items}
