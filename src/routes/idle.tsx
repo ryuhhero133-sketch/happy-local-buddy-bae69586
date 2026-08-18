@@ -13145,6 +13145,8 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
+  idle, setIdle, pushChat
+
 
 }: {
   tab: string;
@@ -13204,7 +13206,9 @@ function TabOverlay({
   onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[], rarity?: Rarity) => void;
   pokemonMarketNode?: React.ReactNode;
   benchUids: Set<string>;
-
+  idle: TrainerState;
+  setIdle: React.Dispatch<React.SetStateAction<TrainerState>>;
+  pushChat: (msg: string, tone?: ChatTone) => void;
 
 }) {
 
@@ -13315,7 +13319,7 @@ function TabOverlay({
           }}>✦ MEW ✦</div>
           <div style={{ position: "relative" }}>
           <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
-          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} />
+          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} idle={idle} />
           <SpeciesLore species={leader.species} rarity={leader.rarity} />
 
 
@@ -15091,6 +15095,8 @@ function TabOverlay({
 
           if (!hasStones || !hasBooks) {
             pushChat(`Recursos insuficientes! Requer ${stoneCost}x de cada Stone e ${bookCost}x Livros ATK/DEF.`, "info");
+            return;
+          }
             return;
           }
 
