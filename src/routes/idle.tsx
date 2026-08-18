@@ -941,10 +941,11 @@ type IdleState = {
 };
 
 
+  {tab === "melhorias" && (() => {
+    const tStats: { atk: number; def: number; hp: number; spe: number; crit: number; elemental: Record<string, number> } = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0, elemental: {} };
+    const redDiamonds = items.crystal_red || 0;
+    const totalBooks = (items.book_atk || 0) + (items.book_def || 0) + (items.book_exp || 0);
 
-  const tStats: { atk: number; def: number; hp: number; spe: number; crit: number; elemental: Record<string, number> } = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0, elemental: {} };
-  const redDiamonds = items.crystal_red || 0;
-  const totalBooks = (items.book_atk || 0) + (items.book_def || 0) + (items.book_exp || 0);
 
 
         const upgradeStat = (key: string, isElemental = false) => {
@@ -1100,7 +1101,6 @@ type IdleState = {
                    <div style={{ fontSize: 8, color: "#f5cf6b", fontWeight: 900, marginTop: 4, letterSpacing: 2, opacity: 0.8 }}>ANATOMIA ESTELAR</div>
                    <AnatomiaChart />
 
-                   <AnatomiaChart />
                 </div>
               </div>
 
@@ -1245,6 +1245,7 @@ type IdleState = {
           </div>
         );
       })()}
+
 
 
 
