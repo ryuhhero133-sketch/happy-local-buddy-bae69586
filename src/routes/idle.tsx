@@ -10580,6 +10580,7 @@ function IdlePage() {
 
 
 
+
             const totalDur = Math.max(1, restingUntil - restingStart);
             const elapsed = Math.min(totalDur, Math.max(0, Date.now() - restingStart));
             const remaining = Math.max(0, restingUntil - Date.now());
