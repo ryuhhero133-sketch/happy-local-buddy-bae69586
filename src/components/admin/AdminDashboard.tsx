@@ -1,11 +1,7 @@
-// PAINEL DE ADDM OK - V35 - ABSOLUTE_SERVER_AUTHORITY - SECURITY_VERIFIED_V35
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { loadIdentity } from "@/components/AuthGate";
-import { useServerFn } from "@tanstack/react-start";
-import { updatePlayerStatsAdmin } from "@/lib/admin-actions.functions";
-import { getAdminDiagnostics } from "@/lib/diagnostics.functions";
 import {
   getConfig,
   saveConfig,
@@ -41,7 +37,6 @@ type TabId =
 
 const TABS: { id: TabId; label: string; icon: string; group: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: "◆", group: "Visão" },
-  { id: "players", label: "Gerenciar Contas", icon: "👥", group: "Visão" },
   { id: "online_players", label: "Jogadores Online", icon: "◉", group: "Visão" },
   { id: "gifts", label: "Enviar Presente", icon: "✉", group: "Visão" },
   { id: "pokemon", label: "Pokémon Manager", icon: "♦", group: "Conteúdo" },
@@ -68,7 +63,6 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [config, setConfig] = useState<AdminConfig>(() => getConfig());
   const [query, setQuery] = useState("");
   const [navOpen, setNavOpen] = useState(false);
-  const [targetQuery, setTargetQuery] = useState(""); // Shared state for Gifts tab
   const identity = useMemo(() => loadIdentity(), []);
 
   useEffect(() => {
@@ -92,14 +86,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     return Array.from(m.entries());
   }, [filteredTabs]);
 
-  const pickTab = (id: TabId) => { 
-    setTab(id); 
-    setNavOpen(false); 
-    if (id !== "online_players" && id !== "players") {
-      // Clear inspecting state when leaving players tab if desired, 
-      // but let's keep it for now as the user wants to "manage".
-    }
-  };
+  const pickTab = (id: TabId) => { setTab(id); setNavOpen(false); };
 
   const sidebar = (
     <>
@@ -107,7 +94,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
         <div className="grid h-8 w-8 place-items-center rounded-md bg-gradient-to-br from-fuchsia-500 to-amber-500 text-slate-950 font-black">★</div>
         <div className="flex-1 min-w-0">
           <div className="text-[10px] uppercase tracking-[0.18em] text-fuchsia-400/80">Ruby M</div>
-          <div className="text-sm font-bold text-slate-100 leading-none mt-0.5">Painel de ADDM OK</div>
+          <div className="text-sm font-bold text-slate-100 leading-none mt-0.5">Admin Console</div>
         </div>
         <button onClick={() => setNavOpen(false)} className="md:hidden text-slate-400 hover:text-slate-100 text-xl leading-none">×</button>
       </div>
@@ -164,7 +151,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     </>
   );
 
-  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6" || identity?.email === "lordryuhhhuyuyghh@gmail.com" || localStorage.getItem("rubym_admin") === "true";
+  const isAdminUuid = identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6" || identity?.email === "lordryuhhhuyuyghh@gmail.com";
   if (!isAdminUuid) return null;
 
   return (
@@ -211,14 +198,7 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
           </div>
         </header>
         <div className="px-3 md:px-6 py-4 md:py-6">
-          <TabBody 
-            tab={tab} 
-            setTab={setTab}
-            config={config} 
-            setConfig={setConfig} 
-            targetQuery={targetQuery}
-            setTargetQuery={setTargetQuery}
-          />
+          <TabBody tab={tab} config={config} setConfig={setConfig} />
         </div>
       </main>
     </div>
@@ -230,37 +210,20 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
 // ---------------- Tab body router ----------------
 function TabBody({
   tab,
-  setTab,
   config,
   setConfig,
-  targetQuery,
-  setTargetQuery,
 }: {
   tab: TabId;
-  setTab: (t: TabId) => void;
   config: AdminConfig;
   setConfig: (c: AdminConfig) => void;
-  targetQuery: string;
-  setTargetQuery: (s: string) => void;
 }) {
   switch (tab) {
     case "dashboard":
       return <DashboardTab />;
     case "online_players":
-    case "players":
-      return (
-        <OnlinePlayersTab 
-          setTab={setTab} 
-          setTargetQuery={setTargetQuery} 
-        />
-      );
+      return <OnlinePlayersTab />;
     case "gifts":
-      return (
-        <GiftsTab 
-          targetQuery={targetQuery} 
-          setTargetQuery={setTargetQuery} 
-        />
-      );
+      return <GiftsTab />;
     case "reports":
       return <ReportsTab />;
     case "pokemon":
@@ -366,9 +329,6 @@ function DashboardTab() {
   const logs = getLogs();
   return (
     <div className="space-y-6">
-      <Card title="Diagnóstico do Servidor">
-        <ServerDiagnostics />
-      </Card>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat label="Gold" value={save?.gold ?? 0} />
         <Stat label="Cristais" value={save?.crystal ?? 0} accent="text-cyan-300" />
@@ -383,107 +343,58 @@ function DashboardTab() {
           <Stat label="Uptime" value="LIVE" accent="text-emerald-300" />
         </div>
       </Card>
+      <Card title="Atividade recente">
+        <ul className="divide-y divide-slate-800 text-xs">
+          {logs.slice(0, 8).map((l, i) => (
+            <li key={i} className="flex items-center justify-between py-2">
+              <span className="text-slate-300">{l.action}</span>
+              <span className="text-slate-500">{new Date(l.ts).toLocaleTimeString()}</span>
+            </li>
+          ))}
+          {logs.length === 0 && <li className="py-4 text-center text-slate-500">Sem atividade registrada.</li>}
+        </ul>
+      </Card>
     </div>
-
   );
 }
 
-function OnlinePlayersTab({ 
-  setTab, 
-  setTargetQuery 
-}: { 
-  setTab: (t: TabId) => void; 
-  setTargetQuery: (s: string) => void; 
-}) {
-  const identity = useMemo(() => loadIdentity(), []);
+function OnlinePlayersTab() {
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [inspectingUser, setInspectingUser] = useState<string | null>(null);
   const [inventory, setInventory] = useState<any>(null);
   const [ipLogs, setIpLogs] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [editLevel, setEditLevel] = useState<number | null>(null);
-  const [editXp, setEditXp] = useState<number | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
     try {
-      const { data: profiles, error: profilesError } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, last_login, account_status, lock_until, trainer_level, ruby, gold, crystal, kill_count")
-        .order("username", { ascending: true });
+        .select(`
+          id,
+          username,
+          last_login,
+          account_status,
+          lock_until,
+          ranked_leaderboard:ranked_scores (
+            trainer_level,
+            total_kills
+          )
+        `)
+        .order("last_login", { ascending: false });
       
-      if (profilesError) {
-        console.warn("Retrying profile fetch without status columns...", profilesError);
-        const { data: basicProfiles, error: basicError } = await supabase
-          .from("profiles")
-          .select("id, username, last_login")
-          .order("last_login", { ascending: false });
-        
-        if (basicError) throw basicError;
-        
-        const enriched = await Promise.all((basicProfiles || []).map(async (p: any) => {
-          const { data: ts } = await (supabase.from("trainer_state" as any) as any).select("trainer_level").eq("user_id", p.id).maybeSingle();
-          const { data: rs } = await supabase.from("ranked_scores").select("trainer_level").eq("user_id", p.id).maybeSingle();
-          
-          return {
-            id: p.id,
-            username: p.username,
-            last_login: p.last_login,
-            account_status: 'active',
-            lock_until: null,
-            trainer_level: (ts as any)?.trainer_level || (rs as any)?.trainer_level || 1,
-            ruby: 0,
-            gold: 0,
-            crystal: 0,
-            kill_count: 0
-          };
-        }));
-        setPlayers(enriched);
-        return;
-      }
-      // V35: Sincronização Absoluta com o Banco.
-      // Prioridade: trainer_state > ranked_scores > game_saves (snapshot) > profile
-      const enrichedPlayers = await Promise.all((profiles || []).map(async (p: any) => {
-        const [gsRes, tsRes, rsRes] = await Promise.all([
-          (supabase.from("game_saves") as any).select("data").eq("user_id", p.id).maybeSingle(),
-          (supabase.from("trainer_state" as any) as any).select("trainer_level, gold, crystal, ruby, kill_count, trainer_xp").eq("user_id", p.id).maybeSingle(),
-          supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", p.id).maybeSingle()
-        ]);
-
-        const gs = gsRes.data as any;
-        const ts = tsRes.data as any;
-        const rs = rsRes.data as any;
-        
-        const idleState = gs?.data?.idle;
-        const cloudLevel = idleState?.level || idleState?.trainerLevel;
-        const cloudXp = idleState?.xp || idleState?.trainerXp;
-        
-        // V35: A lógica de nível real deve ser infalível.
-        const finalLevel = ts?.trainer_level || rs?.trainer_level || cloudLevel || p.trainer_level || 1;
-
-        return {
-          ...p,
-          trainer_level: finalLevel,
-          trainer_xp: ts?.trainer_xp || cloudXp || 0,
-          gold: ts?.gold ?? p.gold ?? 0,
-          crystal: ts?.crystal ?? p.crystal ?? 0,
-          ruby: ts?.ruby ?? p.ruby ?? 0,
-          kill_count: ts?.kill_count ?? rs?.total_kills ?? p.kill_count ?? 0
-        };
-      }));
-
-      setPlayers(enrichedPlayers);
-    } catch (e: any) {
+      if (error) throw error;
+      setPlayers(data || []);
+    } catch (e) {
       console.error("Load players failed", e);
-      toast.error(`Falha ao carregar lista de jogadores: ${e.message || 'Erro desconhecido'}`);
+      toast.error("Falha ao carregar lista de jogadores");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { refresh(); }, [searchQuery]);
+  useEffect(() => { refresh(); }, []);
 
   const filteredPlayers = useMemo(() => {
     if (!searchQuery) return players;
@@ -494,200 +405,24 @@ function OnlinePlayersTab({
   }, [players, searchQuery]);
 
   const inspectPlayer = async (id: string) => {
-    if (inspectingUser === id) {
-      setInspectingUser(null);
-      return;
-    }
-    
     setInspectingUser(id);
-    setLoading(true); 
     setInventory(null);
     setIpLogs([]);
-    setEditLevel(null);
-    setEditXp(null);
-    
     try {
-      const [invRes, ballsRes, ipRes, pokeRes, profilesRes, giftsRes, rankedRes, stateRes, gameSaveRes] = await Promise.all([
+      const [invRes, ballsRes, ipRes] = await Promise.all([
         supabase.from("inventory").select("*").eq("user_id", id),
         supabase.from("pokeballs").select("*").eq("user_id", id),
-        supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10),
-        supabase.from("pokemon_collection").select("*").eq("user_id", id).order("captured_at", { ascending: false }),
-        supabase.from("profiles").select("gold, crystal, ruby, vault, poke_vault, trainer_level").eq("id", id).maybeSingle(),
-        supabase.from("admin_gifts").select("*").eq("recipient_user_id", id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("ranked_scores").select("trainer_level, total_kills").eq("user_id", id).maybeSingle(),
-        supabase.from("trainer_state" as any).select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count").eq("user_id", id).maybeSingle(),
-        supabase.from("game_saves").select("data").eq("user_id", id).maybeSingle()
+        supabase.from("ip_logs" as any).select("*").eq("user_id", id).order("created_at", { ascending: false }).limit(10)
       ]);
-      
-      const profileData = profilesRes.data as any;
-      const stateData = stateRes.data as any;
-      const rankedData = rankedRes.data as any;
-      const cloudData = (gameSaveRes.data as any)?.data as any;
-
-      const trainerData: any = {
-        gold: stateData?.gold ?? profileData?.gold ?? 0,
-        crystal: stateData?.crystal ?? profileData?.crystal ?? 0,
-        ruby: stateData?.ruby ?? profileData?.ruby ?? 0,
-        kill_count: stateData?.kill_count ?? rankedData?.total_kills ?? 0,
-        trainer_level: cloudData?.idle?.trainerLevel ?? stateData?.trainer_level ?? rankedData?.trainer_level ?? profileData?.trainer_level ?? 1,
-        trainer_xp: cloudData?.idle?.trainerXp ?? stateData?.trainer_xp ?? 0,
-        total_kills: rankedData?.total_kills ?? stateData?.kill_count ?? 0,
-        vault: cloudData?.vault ?? profileData?.vault ?? null,
-        pokeVault: cloudData?.pokeVault ?? profileData?.poke_vault ?? profileData?.pokeVault ?? null,
-        party: cloudData?.party || [],
-      };
-      
       setInventory({
         items: invRes.data || [],
-        balls: ballsRes.data || [],
-        pokemon: pokeRes.data || [],
-        trainer: trainerData,
-        gifts: giftsRes.data || []
+        balls: ballsRes.data || []
       });
-      
-      setEditLevel(trainerData.trainer_level || 1);
-      setEditXp(trainerData.trainer_xp || 0);
-
-
       setIpLogs(ipRes.data || []);
-      
-      setTimeout(() => {
-        document.getElementById('player-inspection-panel')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-      
     } catch (e) {
       console.error("Inspect failed", e);
-      toast.error("Erro ao carregar detalhes do jogador.");
-    } finally {
-      setLoading(false);
     }
   };
-
-  const saveTrainerStats = async () => {
-    if (!inspectingUser || editLevel === null || editXp === null) return;
-    setLoading(true);
-    try {
-      toast.info("Sincronizando dados com o servidor...");
-
-      // 1. Buscamos o estado atual
-      const { data: gameSave, error: fetchErr } = await (supabase.from("game_saves") as any)
-        .select("data")
-        .eq("user_id", inspectingUser)
-        .maybeSingle();
-      
-      if (fetchErr) throw fetchErr;
-
-      let snapshot: any = gameSave?.data;
-      if (!snapshot || typeof snapshot !== 'object') {
-        snapshot = {
-          idle: { level: editLevel, xp: editXp, version: 100000 },
-          team: [],
-          restingBench: [],
-          inventory: {},
-          pokeballs: { pokeball: 5 },
-          savedAt: Date.now()
-        };
-      } else {
-        if (!snapshot.idle) snapshot.idle = {};
-        snapshot.idle.level = editLevel;
-        snapshot.idle.xp = editXp;
-        snapshot.idle.trainerLevel = editLevel;
-        snapshot.idle.trainerXp = editXp;
-        // Pulo massivo na versão (V18 SUPREME logic)
-        snapshot.idle.version = (snapshot.idle.version || 0) + 100000;
-        snapshot.savedAt = Date.now() + 120000; // 2 minutos no futuro
-        snapshot.lastModifiedBy = "admin_v18_supreme_authority";
-        snapshot.adminUpdate = true;
-      }
-
-      const username = players.find(p => p.id === inspectingUser)?.username || "Treinador";
-      const lockUntil = new Date(Date.now() + 20000).toISOString();
-      
-      // V24 - Refatorado para usar Server Functions (TanStack Start)
-      // O erro de "configuração incompleta" ocorria porque variáveis de ambiente de servidor
-      // não são acessíveis diretamente no código do componente (cliente).
-      // Agora, delegamos toda a autoridade de bypass de RLS para a Server Function.
-      
-      // V42 - Migrado para Bridge da Edge Function
-      const { updatePlayerStatsAdmin: adminEdgeUpdate } = await import('@/lib/admin-edge-client');
-
-      // V53 - Invocação direta da Edge Function (JWT do admin anexado pelo SDK)
-      await adminEdgeUpdate({
-        targetUserId: inspectingUser,
-        type: 'trainer',
-        level: editLevel,
-        xp: editXp,
-        snapshot: snapshot,
-        username: username,
-        craftPoints: inventory?.trainer?.craft_points || 0,
-        guildName: inventory?.trainer?.guild_name || null
-      });
-
-      // Operação concluída com sucesso via Server Function
-      console.log("[Admin] Update successful via Server Function");
-
-      // 2.1 LIMPEZA DE CACHE LOCAL (FORÇADA E AGRESSIVA)
-      if (inspectingUser === identity?.id) {
-        localStorage.setItem("rubym_admin_force_sync", "true");
-        localStorage.setItem("rubym_last_admin_ver", String(snapshot.idle.version));
-        
-        // Limpeza profunda
-        const keysToClear = [
-          "rubym.idle.v1", "rubym.save.v2", "rubym.cloud.preloaded.v1",
-          "rubym.local.backup.v1", "rubym.cloud.pending.v1", "rubym.cloud.log.v1",
-          "rubym.battle.v1", "rubym.starter.chosen"
-        ];
-        keysToClear.forEach(k => localStorage.removeItem(k));
-        
-        setTimeout(() => localStorage.removeItem("rubym_admin_force_sync"), 45000);
-      }
-
-      // 3. Feedback visual e dispatch de evento
-      if (inspectingUser === identity?.id) {
-        try {
-          const { obfuscate } = await import("@/lib/utils");
-          localStorage.setItem("rubym.idle.v1", obfuscate(snapshot.idle));
-          localStorage.setItem("rubym.save.v2", obfuscate(snapshot));
-          
-          window.dispatchEvent(new CustomEvent("rubym:sync_stats", { 
-            detail: { level: editLevel, xp: editXp, snapshot } 
-          }));
-        } catch (e) { console.warn("Local sync failed", e); }
-      }
-
-      toast.success("Nível e XP atualizados com sucesso!");
-      toast.info("As alterações foram gravadas diretamente no Banco de Dados.");
-      
-      setInspectingUser(null);
-      refresh();
-    } catch (e: any) {
-      console.error("Admin save failed", e);
-      toast.error("Erro ao salvar: " + e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-
-
-
-  const savePokemonLevel = async (id: string, level: number) => {
-    try {
-      const { updatePlayerStatsAdmin: adminEdgeUpdate } = await import('@/lib/admin-edge-client');
-      await adminEdgeUpdate({
-        targetPokemonId: id,
-        type: 'pokemon',
-        level: level
-      });
-
-      toast.success("Nível do Pokémon atualizado!");
-      if (inspectingUser) inspectPlayer(inspectingUser);
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
 
   const updateStatus = async (id: string, status: string) => {
     if (!confirm(`Alterar status para ${status.toUpperCase()}?`)) return;
@@ -712,22 +447,6 @@ function OnlinePlayersTab({
     }
   };
 
-  const deletePlayer = async (id: string) => {
-    if (!confirm("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL. Deletar permanentemente todos os dados deste jogador?")) return;
-    try {
-      // In a real scenario, this would delete from profiles which cascades, 
-      // but since profiles is linked to auth.users, we might need a dedicated RPC if RLS is strict
-      const { error } = await supabase.from("profiles").delete().eq("id", id);
-      if (error) throw error;
-      toast.success("Conta deletada com sucesso.");
-      setInspectingUser(null);
-      refresh();
-    } catch (e: any) {
-      toast.error(`Erro ao deletar: ${e.message}`);
-    }
-  };
-
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-4 mb-4">
@@ -740,8 +459,8 @@ function OnlinePlayersTab({
             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-fuchsia-500"
           />
         </div>
-        <button onClick={refresh} className="bg-slate-800 hover:bg-slate-700 text-xs px-4 py-2 rounded-lg transition whitespace-nowrap">
-          LISTAR TODOS ({players.length})
+        <button onClick={refresh} className="bg-slate-800 hover:bg-slate-700 text-xs px-4 py-2 rounded-lg transition">
+          ATUALIZAR LISTA ({players.length})
         </button>
       </div>
 
@@ -754,7 +473,7 @@ function OnlinePlayersTab({
                 <th className="text-left px-3 py-2">Status</th>
                 <th className="text-left px-3 py-2">Nível</th>
                 <th className="text-left px-3 py-2">Visto em</th>
-                <th className="text-right px-3 py-2">Gerenciar</th>
+                <th className="text-right px-3 py-2">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
@@ -762,8 +481,8 @@ function OnlinePlayersTab({
                 const isLocked = p.lock_until && new Date(p.lock_until) > new Date();
                 return (
                   <tr key={p.id} className={`hover:bg-white/5 ${inspectingUser === p.id ? "bg-fuchsia-500/5" : ""}`}>
-                    <td className="px-3 py-2 cursor-pointer group" onClick={() => inspectPlayer(p.id)}>
-                      <div className="text-amber-100 font-bold group-hover:text-fuchsia-400 transition-colors">{p.username || "Sem nome"}</div>
+                    <td className="px-3 py-2">
+                      <div className="text-amber-100 font-bold">{p.username || "Sem nome"}</div>
                       <div className="text-[8px] text-slate-600 truncate max-w-[120px]">{p.id}</div>
                     </td>
                     <td className="px-3 py-2">
@@ -781,10 +500,7 @@ function OnlinePlayersTab({
                       </div>
                     </td>
                     <td className="px-3 py-2 text-fuchsia-300">
-                      Lv {p.trainer_level || 1}
-                      {p.trainer_level >= 10000 && (
-                        <span className="ml-1 text-[8px] bg-rose-500 text-white px-1 rounded animate-pulse">SUSPECT</span>
-                      )}
+                      Lv {p.ranked_leaderboard?.[0]?.trainer_level || 1}
                     </td>
                     <td className="px-3 py-2 text-slate-500 italic">
                       {p.last_login ? new Date(p.last_login).toLocaleString() : "Nunca"}
@@ -813,287 +529,47 @@ function OnlinePlayersTab({
       </Card>
 
       {inspectingUser && (
-        <div id="player-inspection-panel" className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in slide-in-from-bottom-2 scroll-mt-20">
-          <Card title="Modificar Treinador">
-            {!inventory?.trainer && !loading ? (
-              <div className="text-xs text-slate-500 italic">Nenhum dado de treinador disponível.</div>
-            ) : loading || !inventory?.trainer ? (
-              <div className="text-xs text-slate-500 italic animate-pulse">Carregando dados...</div>
-            ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] text-slate-500 uppercase">Nível do Treinador</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={editLevel || 0}
-                      onChange={(e) => setEditLevel(Number(e.target.value))}
-                      className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-amber-100"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <label className="text-[10px] text-slate-500 uppercase">Status Global</label>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800">
-                      <div className="text-[8px] text-slate-500 uppercase">Kills Totais</div>
-                      <div className="text-xs font-bold text-amber-100">{(inventory?.trainer as any)?.total_kills || 0}</div>
+        <div className="grid md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2">
+          <Card title="Inventário Detalhado">
+            {!inventory ? <div className="text-xs text-slate-500">Carregando...</div> : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {inventory.balls.map((b: any) => (
+                    <div key={b.ball_type} className="bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between text-[10px]">
+                      <span className="text-slate-400">{b.ball_type}</span>
+                      <span className="text-amber-200 font-bold">x{b.qty}</span>
                     </div>
-                  </div>
+                  ))}
+                  {inventory.items.map((i: any) => (
+                    <div key={i.item_id} className="bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between text-[10px]">
+                      <span className="text-slate-400">{i.item_id}</span>
+                      <span className="text-emerald-400 font-bold">x{i.qty}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] text-slate-500 uppercase">Experiência (XP)</label>
-                  <input
-                    type="number"
-                    value={editXp || 0}
-                    onChange={(e) => setEditXp(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-amber-100"
-                  />
-                </div>
-                <button
-                  disabled={loading}
-                  onClick={saveTrainerStats}
-                  className="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold py-2 rounded shadow-lg shadow-fuchsia-900/20 transition disabled:opacity-50"
-                >
-                  {loading ? "PROCESSANDO..." : "SALVAR ALTERAÇÕES"}
-                </button>
+                {inventory.balls.length === 0 && inventory.items.length === 0 && (
+                  <div className="text-xs text-slate-500 italic">Mochila vazia.</div>
+                )}
               </div>
             )}
           </Card>
-
-          <CollectionTab inventory={inventory} savePokemonLevel={savePokemonLevel} />
-
-          <div className="space-y-4">
-            <Card title="Inventário & Moedas">
-              {!inventory ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800">
-                      <div className="text-[8px] text-slate-500 uppercase">Ouro</div>
-                      <div className="text-xs font-bold text-amber-100">{Number(inventory.trainer?.gold || 0).toLocaleString()}</div>
-                    </div>
-                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800">
-                      <div className="text-[8px] text-slate-500 uppercase">Cristal</div>
-                      <div className="text-xs font-bold text-cyan-400">{Number(inventory.trainer?.crystal || 0).toLocaleString()}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
-                    {inventory.balls.map((b: any) => (
-                      <div key={b.ball_type} className="bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between text-[9px]">
-                        <span className="text-slate-400">{b.ball_type}</span>
-                        <span className="text-amber-200 font-bold">x{b.qty}</span>
-                      </div>
-                    ))}
-                    {inventory.items.map((i: any) => (
-                      <div key={i.item_id} className="bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between items-center text-[9px]">
-                        <span className="text-slate-400">{i.item_id}</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-emerald-400 font-bold">x{i.qty}</span>
-                          <button 
-                            onClick={async () => {
-                              if (!confirm(`Remover todos os ${i.item_id}?`)) return;
-                              try {
-                                const { error } = await supabase.from("inventory").delete().eq("user_id", inspectingUser).eq("item_id", i.item_id);
-                                if (error) throw error;
-                                toast.success("Item removido!");
-                                inspectPlayer(inspectingUser!);
-                              } catch (e: any) { toast.error(e.message); }
-                            }}
-                            className="text-rose-500 hover:text-rose-400 font-bold text-xs leading-none"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {inventory.balls.length === 0 && inventory.items.length === 0 && (
-                    <div className="text-xs text-slate-500 italic">Mochila vazia.</div>
-                  )}
-                  
-                  <button 
-                    onClick={() => {
-                      setTab("gifts");
-                      setTargetQuery(players.find(p => p.id === inspectingUser)?.username || inspectingUser || "");
-                    }}
-                    className="w-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-[10px] py-1.5 rounded hover:bg-emerald-600/30 transition"
-                  >
-                    + ADICIONAR ITENS / MOEDAS
-                  </button>
+          <Card title="Histórico de Conexões (IPs)">
+            <div className="space-y-2">
+              {ipLogs.map((log, i) => (
+                <div key={i} className="text-[10px] bg-slate-900/50 p-2 rounded border border-slate-800 flex justify-between">
+                  <span className="text-amber-100 font-mono">{log.ip_address}</span>
+                  <span className="text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
                 </div>
-              )}
-            </Card>
-
-            <Card title="Banco Medieval (Vault)">
-              {!inventory?.trainer ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="text-[9px] uppercase tracking-wider text-slate-500">Itens no Banco</div>
-                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800 text-[10px] text-slate-300 max-h-[100px] overflow-y-auto">
-                      {inventory.trainer.vault ? (
-                        <div className="space-y-1">
-                          {Object.entries(inventory.trainer.vault as Record<string, number>).map(([id, qty]) => (
-                            <div key={id} className="flex justify-between border-b border-slate-800/50 pb-1">
-                              <span className="text-slate-400">{id}</span>
-                              <span className="text-amber-200 font-bold">x{qty}</span>
-                            </div>
-                          ))}
-                        </div>
-                        ) : (
-                          <div className="text-[9px] text-slate-600 italic">Vazio no banco</div>
-                        )}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="text-[9px] uppercase tracking-wider text-slate-500">Pokémons no Banco</div>
-                    <div className="bg-slate-900/60 p-2 rounded border border-slate-800 text-[10px] text-slate-300 max-h-[100px] overflow-y-auto">
-                      {inventory.trainer.pokeVault ? (
-                        <div className="space-y-1">
-                          {(inventory.trainer.pokeVault as any[]).map((p: any, i: number) => (
-                            <div key={i} className="flex justify-between border-b border-slate-800/50 pb-1">
-                              <span className="text-slate-400">{p.species}</span>
-                              <span className="text-amber-200 font-bold">Lv.{p.level}</span>
-                            </div>
-                          ))}
-                        </div>
-                        ) : (
-                          <div className="text-[9px] text-slate-600 italic">Nenhum Pokémon no banco</div>
-                        )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card>
-
-            <Card title="Histórico de Presentes">
-              {!inventory?.gifts ? <div className="text-xs text-slate-500 italic">Carregando...</div> : (
-                <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
-                  {inventory.gifts.map((g: any) => (
-                    <div key={g.id} className="text-[8px] bg-slate-900/50 p-1.5 rounded border border-slate-800">
-                      <div className="flex justify-between font-bold text-amber-100">
-                        <span>{g.kind.toUpperCase()}{g.item_id ? ` (${g.item_id})` : ""}</span>
-                        <span>x{g.qty}</span>
-                      </div>
-                      <div className="flex justify-between text-slate-500 mt-1">
-                        <span>{new Date(g.created_at).toLocaleDateString()}</span>
-                        <span className={g.claimed_at ? "text-emerald-500" : "text-amber-500"}>
-                          {g.claimed_at ? "RECEBIDO" : "PENDENTE"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  {inventory.gifts.length === 0 && <div className="text-xs text-slate-500 italic text-center">Nenhum presente enviado.</div>}
-                </div>
-              )}
-            </Card>
-
-
-            <Card title="Conexões (IPs)">
-              <div className="space-y-2 max-h-[100px] overflow-y-auto pr-1 custom-scrollbar">
-                {ipLogs.map((log, i) => (
-                  <div key={i} className="text-[9px] bg-slate-900/50 p-1.5 rounded border border-slate-800 flex justify-between">
-                    <span className="text-amber-100 font-mono">{log.ip_address}</span>
-                    <span className="text-[8px] text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
-                  </div>
-                ))}
-                {ipLogs.length === 0 && <div className="text-xs text-slate-500 italic">Nenhum IP.</div>}
-              </div>
-            </Card>
-
-            <Card title="Zona de Perigo">
-              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg space-y-3">
-                <p className="text-[9px] text-rose-300">Ações administrativas críticas para a conta do usuário.</p>
-                <button
-                  onClick={() => deletePlayer(inspectingUser)}
-                  className="w-full bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold py-2 rounded shadow-lg shadow-rose-900/20 transition"
-                >
-                  DELETAR CONTA PERMANENTEMENTE
-                </button>
-              </div>
-            </Card>
-          </div>
+              ))}
+              {ipLogs.length === 0 && <div className="text-xs text-slate-500">Nenhum log de IP encontrado.</div>}
+            </div>
+          </Card>
         </div>
       )}
-
-
     </div>
   );
 }
 
-
-
-
-function CollectionTab({ inventory, savePokemonLevel }: { inventory: any; savePokemonLevel: (id: string, lv: number) => void }) {
-  if (!inventory) return <div className="p-10 text-center text-slate-500 italic">Carregando coleção...</div>;
-
-  return (
-    <Card title="Coleção & Time do jogador">
-      <div className="space-y-6">
-        {/* Team Section */}
-        <div>
-          <h3 className="text-[10px] uppercase tracking-widest text-fuchsia-400/80 mb-2">Equipe Atual (Nuvem)</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {(inventory.trainer.party || []).map((p: any, i: number) => (
-              <PokemonAdminCard key={i} p={p} onSaveLevel={savePokemonLevel} isTeam />
-            ))}
-            {(!inventory.trainer.party || inventory.trainer.party.length === 0) && (
-              <div className="col-span-full py-4 text-center text-slate-500 border border-dashed border-slate-800 rounded-lg">
-                Nenhum pokémon na equipe ativa.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Collection Section */}
-        <div>
-          <h3 className="text-[10px] uppercase tracking-widest text-amber-400/80 mb-2">Coleção Geral (Database)</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {inventory.pokemon.map((p: any) => (
-              <PokemonAdminCard key={p.id} p={p} onSaveLevel={savePokemonLevel} />
-            ))}
-            {inventory.pokemon.length === 0 && (
-              <div className="col-span-full py-4 text-center text-slate-500">Coleção vazia.</div>
-            )}
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function PokemonAdminCard({ p, onSaveLevel, isTeam }: { p: any; onSaveLevel: (id: string, lv: number) => void; isTeam?: boolean }) {
-  const [lv, setLv] = useState(p.level);
-  return (
-    <div className={`rounded-lg border p-3 ${isTeam ? 'border-fuchsia-500/30 bg-fuchsia-500/5' : 'border-slate-800 bg-slate-950/40'}`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="font-bold text-amber-100">{p.species}</span>
-        <span className={`text-[9px] px-1 rounded ${p.rarity === 'mythic' ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'bg-slate-800 text-slate-400'}`}>
-          {p.rarity?.toUpperCase() || 'NORMAL'}
-        </span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] text-slate-500">LV:</span>
-        <input 
-          type="number" 
-          value={lv} 
-          onChange={(e) => setLv(Number(e.target.value))}
-          className="w-16 rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-xs text-amber-100"
-        />
-        <button 
-          onClick={() => onSaveLevel(p.id || `${p.species}-${p.rarity}`, lv)}
-          className="rounded bg-fuchsia-600 px-2 py-0.5 text-[10px] text-white hover:bg-fuchsia-500"
-        >
-          OK
-        </button>
-      </div>
-      {isTeam && <div className="mt-1 text-[8px] text-fuchsia-400/60 font-mono italic">Sync Nuvem</div>}
-    </div>
-  );
-}
 
 function PokemonTab() {
   // Read species dynamically from save / try to import registry
@@ -1477,13 +953,8 @@ function PlaceholderTab({ tabLabel }: { tabLabel: string }) {
   );
 }
 
-function GiftsTab({ 
-  targetQuery, 
-  setTargetQuery 
-}: { 
-  targetQuery: string; 
-  setTargetQuery: (s: string) => void; 
-}) {
+function GiftsTab() {
+  const [targetQuery, setTargetQuery] = useState("");
   const [kind, setKind] = useState<"gold" | "crystal" | "ruby" | "item" | "ball">("gold");
   const [itemId, setItemId] = useState("");
   const [qty, setQty] = useState(100);
@@ -1816,62 +1287,6 @@ function ReportsTab() {
           <p>Use a busca acima para filtrar os logs de um jogador específico. Você pode cruzar os deltas de nível com os registros de IP para identificar padrões de exploração ou multi-contas.</p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ServerDiagnostics() {
-  const getDiagnostics = useServerFn(getAdminDiagnostics);
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-
-  const runDiagnostics = async () => {
-    setLoading(true);
-    try {
-      const result = await getDiagnostics();
-      setData(result);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    runDiagnostics();
-  }, []);
-
-  if (loading) return <div className="text-xs text-slate-500">Carregando diagnóstico...</div>;
-  if (!data) return <div className="text-xs text-red-400">Falha ao carregar diagnóstico.</div>;
-
-  return (
-    <div className="space-y-2 text-[10px] font-monospace">
-      <div className="flex justify-between border-b border-slate-800 pb-1">
-        <span className="text-slate-400">RUNTIME:</span>
-        <span className={data.RUNTIME.includes("Edge") ? "text-emerald-400" : "text-amber-400"}>{data.RUNTIME}</span>
-      </div>
-      <div className="flex justify-between border-b border-slate-800 pb-1">
-        <span className="text-slate-400">ADMIN_SB_KEY:</span>
-        <span className={data.ADMIN_SB_KEY === "CONFIGURED" ? "text-emerald-400" : "text-red-400"}>{data.ADMIN_SB_KEY}</span>
-      </div>
-      <div className="flex justify-between border-b border-slate-800 pb-1">
-        <span className="text-slate-400">SUPABASE_URL:</span>
-        <span className={data.SUPABASE_URL === "CONFIGURED" ? "text-emerald-400" : "text-red-400"}>{data.SUPABASE_URL}</span>
-      </div>
-      <div className="flex justify-between border-b border-slate-800 pb-1">
-        <span className="text-slate-400">HAS_PROCESS_ENV:</span>
-        <span className={data.HAS_PROCESS_ENV ? "text-emerald-400" : "text-slate-500"}>{data.HAS_PROCESS_ENV ? "YES" : "NO"}</span>
-      </div>
-      <div className="flex justify-between border-b border-slate-800 pb-1">
-        <span className="text-slate-400">HAS_GLOBAL_KEY:</span>
-        <span className={data.HAS_GLOBAL_KEY ? "text-emerald-400" : "text-slate-500"}>{data.HAS_GLOBAL_KEY ? "YES" : "NO"}</span>
-      </div>
-      <button 
-        onClick={runDiagnostics}
-        className="mt-2 w-full rounded border border-slate-700 bg-slate-800 py-1 text-[9px] hover:bg-slate-700"
-      >
-        ATUALIZAR DIAGNÓSTICO
-      </button>
     </div>
   );
 }

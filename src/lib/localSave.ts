@@ -26,9 +26,7 @@ let initialized = false;
 
 function safeParse<T>(raw: string | null): T | null {
   if (!raw) return null;
-    const data = deobfuscate(raw);
-    if (!data || typeof data !== 'object') return null;
-    return data as T;
+  return deobfuscate(raw) as T;
 }
 
 function rotateBackups(serialized: string) {

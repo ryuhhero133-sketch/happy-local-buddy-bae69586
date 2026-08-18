@@ -29,42 +29,18 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-/**
- * Pega as variáveis de ambiente de forma segura no runtime do Worker.
- * No Cloudflare Worker com TanStack Start (Nitro), tentamos acessar via global ou process.
- */
-function getRuntimeEnv(): Record<string, string | undefined> {
-  const env: Record<string, any> = {};
-
-  // 1. Tentar process.env (Node/Bun/Preview e Nitro Polyfill)
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      Object.assign(env, process.env);
-    }
-  } catch (e) {}
-
-  // 2. Tentar globalThis (Cloudflare Workers bindings são injetados aqui se não houver context)
-  const g = globalThis as any;
-  if (g.ADMIN_SB_KEY) env.ADMIN_SB_KEY = g.ADMIN_SB_KEY;
-  if (g.SUPABASE_URL) env.SUPABASE_URL = g.SUPABASE_URL;
-  if (g.SUPABASE_SERVICE_ROLE_KEY) env.SUPABASE_SERVICE_ROLE_KEY = g.SUPABASE_SERVICE_ROLE_KEY;
-
-  return env;
-}
-
 function createSupabaseAdminClient() {
-  const env = getRuntimeEnv();
-  
-  const SUPABASE_URL = env.SUPABASE_URL || env.VITE_SUPABASE_URL || "https://kgrspvqhpgiuxvkcxgcp.supabase.co";
-  const ADMIN_SB_KEY = env.ADMIN_SB_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
-  const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || ADMIN_SB_KEY;
+  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_SB_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    const missing = [];
-    if (!SUPABASE_URL) missing.push('SUPABASE_URL');
-    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('ADMIN_SB_KEY/SERVICE_ROLE');
-    
-    throw new Error(`Erro de Configuração no Servidor: ${missing.join(', ')} ausente no runtime do Worker. Verifique as Secrets no painel Lovable.`);
+    const missing = [
+      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
+        ...(!SUPABASE_SERVICE_ROLE_KEY ? ['SUPABASE_ADMIN_KEY'] : []),
+    ];
+    const message = `Configuração do Supabase incompleta no servidor: ${missing.join(', ')}.`;
+    console.error(`[Supabase] ${message}`);
+    throw new Error(message);
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -79,10 +55,15 @@ function createSupabaseAdminClient() {
   });
 }
 
-// SECURITY: O cliente é instanciado via Proxy para garantir o carregamento sob demanda
+let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
+
+// Server-side Supabase client with service role - bypasses RLS
+// SECURITY: Only use this for trusted server-side operations, never expose to client code
+// Load inside server handlers: const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+// Top-level import is safe only in other .server.ts modules - route files and *.functions.ts ship to the client bundle.
 export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {
   get(_, prop, receiver) {
-    const client = createSupabaseAdminClient();
-    return Reflect.get(client, prop, receiver);
+    if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
+    return Reflect.get(_supabaseAdmin, prop, receiver);
   },
 });

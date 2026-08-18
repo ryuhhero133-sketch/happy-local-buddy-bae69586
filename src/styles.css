@@ -10,19 +10,16 @@
 /* HUD Superior */
 .modern-top-bar {
   position: fixed;
-  top: 0;
+  top: 10px;
   left: 0;
   right: 0;
-  height: 55px;
+  height: 60px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-  z-index: 1001;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  pointer-events: auto;
+  z-index: 1000;
+  pointer-events: none;
 }
 
 .trainer-card-compact {
@@ -247,30 +244,7 @@
 
 /* Game Viewport */
 .game-viewport-container {
-  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
 }
-
-
-/* Ocultar elementos do Lovable */
-a[href*="lovable.dev"], 
-iframe[src*="lovable.dev"],
-div[style*="Edit with Lovable"],
-.lovable-badge {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  z-index: -9999 !important;
-}
-
-@keyframes floatstone {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-@keyframes auraPulse {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.1); opacity: 0.9; }
-}
-

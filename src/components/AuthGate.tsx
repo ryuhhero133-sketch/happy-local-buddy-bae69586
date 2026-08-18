@@ -85,18 +85,7 @@ async function preloadCloudSave(userId: string) {
     log("preloadCloudSave start", userId);
     const cloud = await fetchCloudSave(userId);
     if (isCloudBlob(cloud)) {
-      // Prioridade absoluta: Se vier da nuvem, limpa o cache local primeiro
-      localStorage.removeItem(IDLE_KEY);
-      localStorage.removeItem(SAVE_KEY);
-      
-      if (cloud.idle) {
-        // V17: Se o save da nuvem veio Lv1 mas com versão alta, algo está muito errado no banco.
-        // O motor vai aceitar, mas avisamos no log.
-        if ((cloud.idle as any).version >= 10000 && (cloud.idle as any).level === 1) {
-          warn("Cloud save has high version but Level 1. Possible data corruption on server.");
-        }
-        localStorage.setItem(IDLE_KEY, obfuscate(cloud.idle));
-      }
+      if (cloud.idle) localStorage.setItem(IDLE_KEY, obfuscate(cloud.idle));
       const party = Array.isArray(cloud.party)
         ? cloud.party
         : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
@@ -121,10 +110,7 @@ async function preloadCloudSave(userId: string) {
 /** Nunca deixa uma promise pendurada travar a tela de login. */
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const t = setTimeout(() => {
-      console.warn(`[AuthGate] Timeout em: ${label}`);
-      resolve(null as any); // Resolve como null para não travar o fluxo
-    }, ms);
+    const t = setTimeout(() => reject(new Error(`${label}: tempo esgotado`)), ms);
     p.then(
       (v) => { clearTimeout(t); resolve(v); },
       (e) => { clearTimeout(t); reject(e); },
@@ -147,7 +133,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [kickedMessage, setKickedMessage] = useState<string | null>(null);
-  const [maintenance, setMaintenance] = useState(false); // Liberado para todos (Override ativado)
 
   useEffect(() => {
     setMounted(true);
@@ -189,37 +174,61 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
       log("authStateChange", event, sess?.user?.id);
-
-      if (event === "SIGNED_OUT") {
-        setIdentity(null);
-        setNeedsChar(false);
-        setSession(null);
+      
+      // Bloqueio de Manutenção e Restrição de Admin
+      if (sess?.user?.id) {
+        const isAdmin = sess.user.email === "lordryuhhhuyuyghh@gmail.com";
+        
         try {
-          localStorage.removeItem(IDENTITY_KEY);
-          wipeLocalGameData();
-          localStorage.removeItem(CURRENT_UID_KEY);
-        } catch { /* ignore */ }
-        return;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: profile } = await (supabase as any)
+            .from("profiles")
+            .select("account_status, lock_until")
+            .eq("id", sess.user.id)
+            .maybeSingle();
+
+          // Se não for o admin, aplica as travas
+          if (!isAdmin) {
+            if (profile?.lock_until && new Date(profile.lock_until) > new Date()) {
+              const diff = new Date(profile.lock_until).getTime() - Date.now();
+              const hours = Math.ceil(diff / (1000 * 60 * 60));
+              warn(`Conta bloqueada por mais ${hours} horas`);
+              await supabase.auth.signOut();
+              setKickedMessage(`Servidor em manutenção. Tente novamente em ${hours} horas.`);
+              return;
+            }
+
+            if (profile?.account_status === "banned") {
+              await supabase.auth.signOut();
+              setKickedMessage("Esta conta foi banida permanentemente.");
+              return;
+            }
+
+            // Bloqueio geral para não-admins durante o reset
+            await supabase.auth.signOut();
+            setKickedMessage("Acesso restrito: Servidor em manutenção geral.");
+            return;
+          }
+        } catch (e) {
+          warn("Erro ao verificar status da conta", e);
+        }
       }
 
       // Se a sessão sumiu (ex: deletada via SQL), forçamos o estado local para deslogado
-      if (!sess) {
-        if (session) {
-          log("Sessão invalidada pelo servidor — forçando logout");
-          setSession(null);
-          setIdentity(null);
-          setNeedsChar(false);
-          wipeLocalGameData();
-          localStorage.removeItem(CURRENT_UID_KEY);
-          localStorage.removeItem(IDENTITY_KEY);
-        }
-        return;
+      if (!sess && session) {
+        log("Sessão invalidada pelo servidor — forçando logout");
+        setSession(null);
+        setIdentity(null);
+        setNeedsChar(false);
+        wipeLocalGameData();
+        localStorage.removeItem(CURRENT_UID_KEY);
+        localStorage.removeItem(IDENTITY_KEY);
+      } else {
+        setSession(sess);
       }
 
-      // IMPORTANTE: Atualiza a sessão IMEDIATAMENTE para evitar loops
-      setSession(sess);
-
-      if (event === "SIGNED_IN") {
+      if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
+      if (event === "SIGNED_IN" && sess?.user?.id) {
         try {
           const prev = localStorage.getItem(CURRENT_UID_KEY);
           if (prev && prev !== sess.user.id) {
@@ -228,44 +237,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
           localStorage.setItem(CURRENT_UID_KEY, sess.user.id);
         } catch { /* ignore */ }
       }
-
-      // Verifica status de manutenção e banimento no banco em background
-      // sem dar await para não bloquear a renderização inicial e causar loops
-      const checkStatus = async () => {
+      if (event === "SIGNED_OUT") {
+        setIdentity(null);
+        setNeedsChar(false);
         try {
-          const userId = sess.user.id;
-          const isAdmin = sess.user.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
-                          userId === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-          
-          if (!isAdmin) {
-            // Busca status
-            const { data: statusData } = await (supabase as any)
-              .from("profiles")
-              .select("account_status")
-              .eq("id", userId)
-              .maybeSingle();
-
-            const accountStatus = statusData?.account_status || 'active';
-
-            if (accountStatus === "banned") {
-              setKickedMessage("CONTA BANIDA.");
-              await supabase.auth.signOut();
-              return;
-            }
-            if (accountStatus === "analysis") {
-              setKickedMessage("CONTA EM ANÁLISE.");
-              await supabase.auth.signOut();
-              return;
-            }
-          }
-        } catch (e) {
-          warn("Erro verificação status", e);
-        }
-      };
-
-      void checkStatus();
-
-      if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
+          localStorage.removeItem(IDENTITY_KEY);
+          wipeLocalGameData();
+          localStorage.removeItem(CURRENT_UID_KEY);
+        } catch { /* ignore */ }
+      }
     });
 
     // Em F5 não desloga: a sessão ativa é necessária para reidratar/salvar no Supabase
@@ -307,160 +287,75 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [kicked] = useState(false);
 
 
-  // Bootstrap apenas quando o USER ID muda.
+  // Quando logado: garante profile, decide se precisa criar treinador,
+  // pré-carrega save da nuvem.
+  // Bootstrap apenas quando o USER ID muda. O Supabase emite TOKEN_REFRESHED
+  // ao trocar de aba / voltar do minimizado, criando um novo objeto session
+  // — sem esse guard, o efeito re-executava, mostrava o splash e re-hidratava
+  // o save da nuvem por cima do estado atual (parecia um "refresh").
   const bootstrappedUidRef = useRef<string | null>(null);
   const currentUid = session?.user?.id ?? null;
   useEffect(() => {
-    // Se não há UID, limpa o ref para permitir bootstrap futuro e sai
-    if (!currentUid) { 
-      bootstrappedUidRef.current = null; 
-      return; 
-    }
-    // Não faz bootstrap em modo de recuperação
+    if (!currentUid) { bootstrappedUidRef.current = null; return; }
     if (recoveryMode) return;
-    // Se já fizemos bootstrap para este UID, ignora (evita loops por tokens renovados)
     if (bootstrappedUidRef.current === currentUid) return;
-    
     bootstrappedUidRef.current = currentUid;
     let cancelled = false;
     (async () => {
       setBootstrapping(true);
       const uid = currentUid;
       try {
-        log("bootstrap: starting for", uid);
-        
-        // 1. Garante perfil (username) com timeout resiliente
-        const username = await withTimeout(ensureProfile(uid), 10000, "perfil");
+        const username = await withTimeout(ensureProfile(uid), 12000, "perfil");
         if (cancelled) return;
 
-        // 2. Pré-carrega save da nuvem. Se falhar ou timeout, não bloqueia.
-        try {
-          await withTimeout(preloadCloudSave(uid), 15000, "save da nuvem");
-        } catch (e) {
-          warn("preloadCloudSave timeout/fail — non-blocking", e);
+        if (username && username.trim().length > 0) {
+          try {
+            await withTimeout(preloadCloudSave(uid), 15000, "save da nuvem");
+          } catch (e) {
+            warn("preloadCloudSave timeout — seguindo com cache local", e);
+          }
+          if (cancelled) return;
+          setIdentity(writeIdentity(uid, username, session?.user?.email));
+          setNeedsChar(false);
+          // last_login best-effort
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          void (supabase as any)
+            .from("profiles")
+            .update({ last_login: new Date().toISOString() })
+            .eq("id", uid)
+            .then(({ error }: { error: unknown }) => {
+              if (error) warn("update last_login falhou", error);
+            });
+        } else {
+          log("usuário sem username — exibindo CreateCharacterScreen");
+          setIdentity(null);
+          setNeedsChar(true);
         }
-        if (cancelled) return;
-
-        // 3. Define identidade. Se não tem username mas ensureProfile não jogou erro, assume fallback.
-        const finalName = username || session?.user?.email?.split('@')[0] || "Treinador";
-        setIdentity(writeIdentity(uid, finalName, session?.user?.email));
-        
-        // Só precisa de tela de criação se NUNCA escolheu username (e queremos forçar isso)
-        // Se ensureProfile retornou null, ele ainda não escolheu.
-        setNeedsChar(!username);
-        
-        // last_login best-effort
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        void (supabase as any)
-          .from("profiles")
-          .update({ last_login: new Date().toISOString() })
-          .eq("id", uid)
-          .then(({ error }: { error: unknown }) => {
-            if (error) warn("update last_login falhou", error);
-          });
       } catch (e) {
-        warn("bootstrap critical fail, falling back to local identity", e);
+        warn("bootstrap falhou", e);
+        // Se já existe identidade local dessa MESMA conta, entra com ela em vez
+        // de mandar o jogador pra criação de personagem (perigo de duplicar).
         const local = loadIdentity();
         if (local && local.id === uid) {
-          log("bootstrap fallback local", local.name);
+          log("bootstrap com fallback local", local.name);
           setIdentity(local);
           setNeedsChar(false);
         } else {
-          // Se falhou tudo e não tem local, deixa entrar com nome genérico
-          // para não ficar preso no splash/login loop.
-          const fallbackName = session?.user?.email?.split('@')[0] || "Treinador";
-          setIdentity(writeIdentity(uid, fallbackName, session?.user?.email));
+          setIdentity(null);
           setNeedsChar(true);
         }
       } finally {
-        if (!cancelled) {
-          setBootstrapping(false);
-          log("bootstrap complete for", uid);
-        }
+        if (!cancelled) setBootstrapping(false);
       }
+
     })();
     return () => {
       cancelled = true;
     };
   }, [currentUid, recoveryMode]);
 
-  // Vigilância contínua da manutenção: derruba quem já estava logado
-  useEffect(() => {
-    const email = session?.user?.email?.trim().toLowerCase();
-    const admin =
-      email === "lordryuhhhuyuyghh@gmail.com" ||
-      session?.user?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-    if (admin) return;
-    if (!session) return; // Se não tem sessão, não precisa checar manutenção contínua
 
-    let stop = false;
-    const tick = async () => {
-      try {
-        const { data: config } = await (supabase as any)
-          .from("server_config")
-          .select("value")
-          .eq("key", "maintenance_mode")
-          .maybeSingle();
-        const maintenanceEnabled = config && (config.value === "true" || config.value === true);
-        
-        if (stop) return;
-        
-        if (maintenanceEnabled) {
-          // setMaintenance(true); // Desativado para liberar o jogo
-          setMaintenance(false);
-        } else {
-          setMaintenance(false);
-        }
-      } catch {
-        if (!stop) setMaintenance(false);
-      }
-    };
-    void tick();
-    const iv = setInterval(tick, 60000); // Aumentado para 60s para reduzir carga e chance de erro
-    return () => { stop = true; clearInterval(iv); };
-  }, [session]);
-
-
-
-
-  if (!mounted || checking) return <SplashScreen label="Aguarde..." />;
-
-  // Trava de manutenção: apenas o admin pode entrar
-  const isAdmin =
-    session?.user?.email?.trim().toLowerCase() === "lordryuhhhuyuyghh@gmail.com" ||
-    session?.user?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-  // O modo de manutenção no banco de dados continua bloqueando jogadores normais,
-  // mas o admin sempre passa independentemente do valor de 'maintenance'.
-  if (maintenance && !isAdmin && false) { // Override forçado para liberar o jogo
-    return (
-      <PanelShell title="SISTEMA EM MANUTENÇÃO">
-        <div className="space-y-4 text-center">
-          <div className="p-3 rounded border border-red-900/50 bg-red-950/30">
-            <p className="text-[12px] font-bold tracking-[1px] mb-2" style={{ color: "#fca5a5", textShadow: "0 0 8px rgba(239,68,68,0.5)" }}>
-              ⚠️ JOGO EM MANUTENÇÃO
-            </p>
-            <p className="text-[10px] leading-relaxed" style={{ color: "#fecaca" }}>
-              O jogo está sendo preparado para a nova temporada.
-            </p>
-          </div>
-          <div className="pt-2">
-            <PrimaryButton type="button" onClick={() => window.location.reload()}>
-              RECARREGAR
-            </PrimaryButton>
-          </div>
-          {session && (
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="text-[10px] tracking-[2px] underline opacity-70 hover:opacity-100 mt-2 block w-full"
-              style={{ color: "#fecaca" }}
-            >
-              SAIR DA CONTA
-            </button>
-          )}
-        </div>
-      </PanelShell>
-    );
-  }
+  if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
 
   // Guest mode: skip Supabase entirely
   if (isGuest && identity) return <>{children}</>;
@@ -469,9 +364,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
   }
 
-  if (!session) return <AuthScreen kickedMessage={kickedMessage} maintenance={maintenance} isAdmin={isAdmin} />;
+  if (!session) return <AuthScreen kickedMessage={kickedMessage} />;
 
-  if (bootstrapping) return <SplashScreen label="Autenticando..." />;
+  if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
 
   if (needsChar || !identity) {
     return (
@@ -678,7 +573,6 @@ function PanelShell({ children, title }: { children: ReactNode; title?: string }
             background: "linear-gradient(180deg, #fca5a5 0%, #b91c1c 45%, #450a0a 100%)",
             borderRadius: 10,
             boxShadow: "0 20px 60px rgba(0,0,0,0.85), 0 0 22px rgba(239,68,68,0.35)",
-            animation: "rubym-pulse-glow 4s ease-in-out infinite",
           }}
         >
           <div
@@ -743,18 +637,15 @@ function PrimaryButton({
   children,
   disabled,
   type = "submit",
-  onClick,
 }: {
   children: ReactNode;
   disabled?: boolean;
   type?: "submit" | "button";
-  onClick?: () => void;
 }) {
   return (
     <button
       type={type}
       disabled={disabled}
-      onClick={onClick}
       className="w-full py-2 rounded font-bold tracking-wider transition active:scale-95 disabled:opacity-50"
       style={{
         background: "linear-gradient(180deg, #dc2626, #7f1d1d)",
@@ -796,15 +687,7 @@ function InfoBox({ message }: { message: string | null }) {
 
 /* ───────────────────────────── Login / Signup / Reset ─────────────── */
 
-function AuthScreen({ 
-  kickedMessage,
-  maintenance,
-  isAdmin
-}: { 
-  kickedMessage?: string | null;
-  maintenance: boolean;
-  isAdmin: boolean;
-}) {
+function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -1020,11 +903,7 @@ function AuthScreen({
         <InfoBox message={info} />
 
         <PrimaryButton disabled={busy}>
-          <div className="flex items-center justify-center gap-2">
-            <span className="animate-pulse">✨</span>
-            {busy ? "PROCESSANDO..." : primaryLabel}
-            <span className="animate-pulse">✨</span>
-          </div>
+          {busy ? "AGUARDE..." : primaryLabel}
         </PrimaryButton>
 
         <div className="flex justify-between text-[10px] tracking-[2px]" style={{ color: "#fecaca" }}>
@@ -1047,40 +926,28 @@ function AuthScreen({
         </div>
 
         {mode === "login" && (
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                const pass = prompt("Digite a senha para Modo Convidado:");
-                if (pass !== "123") {
-                  alert("Senha incorreta.");
-                  return;
-                }
-                try {
-                  const name = (prompt("Nome do treinador (aparece no chat):", "Convidado") || "").trim().slice(0, 16);
-                  if (name.length < 2) return;
-                  const guest: LocalIdentity = {
-                    id: `guest-${crypto.randomUUID?.() ?? Date.now()}`,
-                    name,
-                    secretKey: "",
-                    createdAt: Date.now(),
-                  };
-                  localStorage.setItem(IDENTITY_KEY, JSON.stringify(guest));
-                  localStorage.setItem(GUEST_KEY, "1");
-                  window.location.reload();
-                } catch { /* ignore */ }
-              }}
-              className="w-full py-2 text-[11px] tracking-[2px] font-bold"
-              style={{ 
-                color: "#fde68a", 
-                background: "rgba(253, 230, 138, 0.1)",
-                border: "1px solid rgba(253, 230, 138, 0.3)",
-                borderRadius: "6px"
-              }}
-            >
-              MODO CONVIDADO
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                const name = (prompt("Nome do treinador (aparece no chat):", "Convidado") || "").trim().slice(0, 16);
+                if (name.length < 2) return;
+                const guest: LocalIdentity = {
+                  id: `guest-${crypto.randomUUID?.() ?? Date.now()}`,
+                  name,
+                  secretKey: "",
+                  createdAt: Date.now(),
+                };
+                localStorage.setItem(IDENTITY_KEY, JSON.stringify(guest));
+                localStorage.setItem(GUEST_KEY, "1");
+                window.location.reload();
+              } catch { /* ignore */ }
+            }}
+            className="w-full mt-2 py-2 text-[11px] tracking-[2px] underline"
+            style={{ color: "#fde68a" }}
+          >
+            MODO CONVIDADO
+          </button>
         )}
       </form>
     </PanelShell>

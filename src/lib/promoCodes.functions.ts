@@ -16,21 +16,6 @@ export const validatePromoCode = createServerFn({ method: "POST" })
     const reward = codes[code as keyof typeof codes];
     if (!reward) return { success: false, message: "Código inválido" };
 
-    // Segurança: Verifica se o código já foi usado globalmente
-    const { data: existing } = await supabaseAdmin
-      .from("code_redemptions")
-      .select("id")
-      .eq("code", code)
-      .maybeSingle();
-
-    if (existing) return { success: false, message: "Este código já foi resgatado." };
-
-    // Registra o resgate antes de entregar os itens (evita race condition)
-    await (supabaseAdmin as any).from("code_redemptions").insert({
-      code,
-      user_id: userId,
-      redeemed_at: new Date().toISOString()
-    });
-
+    // Aqui entraria a lógica de salvar no banco via supabaseAdmin
     return { success: true, reward };
   });

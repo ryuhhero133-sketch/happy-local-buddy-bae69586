@@ -472,13 +472,10 @@ export function rollRarity(species: Species): Rarity {
   const order: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"];
   const r = Math.random();
   let rolled: Rarity = "common";
-  // 🔒 Raridades enxutas — valiosos ficam quase impossíveis de aparecer
-  if (r < 0.0001) rolled = "mythic_shiny";      // 0.01% (quase impossível)
-  else if (r < 0.0001 + 0.0002) rolled = "mythic"; // 0.02% (raríssimo)
-  else if (r < 0.0001 + 0.0002 + 0.0007) rolled = "legendary"; // 0.07%
-  else if (r < 0.01) rolled = "epic";           // 1%
-  else if (r < 0.01 + 0.05) rolled = "rare";    // 5%
-  else if (r < 0.01 + 0.05 + 0.20) rolled = "uncommon"; // 20%
+  // 🔒 Raridades enxutas — valiosos ficam bem mais raros
+  if (r < 0.0005) rolled = "mythic";           // 0.05% (antes 0.2%)
+  else if (r < 0.0005 + 0.005) rolled = "epic"; // 0.5%  (antes 1.5%)
+  else if (r < 0.0005 + 0.005 + 0.03) rolled = "rare"; // 3% (antes 8%)
   else rolled = base;
   const idx = Math.max(order.indexOf(rolled), order.indexOf(base));
   return order[idx];

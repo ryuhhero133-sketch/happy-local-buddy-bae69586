@@ -1,16 +1,7 @@
-// ADICIONADO MAPA PARTE C AO CONTINENTE 4 COM CORREÇÃO DE ASSET JSON.
-
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-
-import { FlaskConical, Sparkles, ShieldCheck, X, Search, Settings, Map as MapIcon, Info, User, ShoppingBag, CreditCard, LayoutGrid, Heart, Star, Gift, Clock, Backpack, Store, Wallet, BookOpen, ChevronRight, ChevronDown, Plus, HelpCircle, Mail, Sword, Zap, Shield, TrendingUp, ArrowRight } from "lucide-react";
-import { obfuscate, deobfuscate } from "@/lib/utils";
-
-
-
-
-import { HUD_ASSETS } from "@/lib/hud-assets";
+import { FlaskConical, Sparkles, ShieldCheck } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -37,8 +28,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
-import { TrainerProfileHUD, TeamPanelHUD } from "@/components/GameHUDs";
-
+import { ProfessorOakGuide } from "@/components/ProfessorOakGuide";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
 
@@ -48,11 +38,6 @@ import ballPokeImg from "@/assets/items/icon-pokeball.png";
 import ballGreatImg from "@/assets/items/icon-greatball.png";
 import ballUltraImg from "@/assets/items/icon-ultraball.png";
 import potionNewImg from "@/assets/items/icon-potion.png";
-import buffOrbXpImg from "@/assets/buff-orb-xp.png";
-import buffIncenseHoneyImg from "@/assets/buff-incense-honey.png";
-import buffTeamOrbImg from "@/assets/buff-team-orb.png";
-import orb24hImg from "@/assets/orb-24h.png";
-import incense24hImg from "@/assets/incense-24h.png";
 import premiumBoxImg from "@/assets/items/icon-premium-box.png";
 import chestEmeraldImg from "@/assets/chest-emerald.png";
 import chestAmuletImg from "@/assets/items/icon-chest-amulet.png";
@@ -81,17 +66,6 @@ import houseLabImg from "@/assets/house-lab.png";
 import houseBankImg from "@/assets/house-bank.png";
 import houseGymImg from "@/assets/house-gym.png";
 import mapValeFragmentosImg from "@/assets/map-vale-fragmentos.jpg";
-import mapValeDouradoImg from "@/assets/map-vale-verdejante-ice.png";
-import mapSnowValleyAsset from "@/assets/map-snow-valley.png.asset.json";
-const mapSnowValleyImg = assetUrlFromJson(mapSnowValleyAsset);
-import mapContinente4Asset from "@/assets/continent-4-map-v6.png.asset.json";
-import mapContinente4AssetV5 from "@/assets/continent-4-map-v7.png.asset.json";
-import mapContinente4AssetC from "@/assets/continent-4-map-part-c.png.asset.json";
-
-const mapContinente4Img = assetUrlFromJson(mapContinente4Asset);
-const mapContinente4BImg = assetUrlFromJson(mapContinente4AssetV5);
-const mapContinente4CImg = assetUrlFromJson(mapContinente4AssetC);
-import mapTerraHornetJson from "@/assets/map-terra-hornet.jpg.asset.json";
 // 🏰 Ginásio Medieval — 3 andares endgame (arte enviada pelo dono do projeto)
 import mapGymCarmesimAsset from "@/assets/gym-carmesim.png.asset.json";
 import mapGymGeloSombraAsset from "@/assets/gym-gelo-sombra.png.asset.json";
@@ -100,12 +74,9 @@ import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 
-import npcAnciaoGlacialAsset from "@/assets/npc-anciao-glacial.png.asset.json";
-
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
-const mapTerraHornetImg = assetUrlFromJson(mapTerraHornetJson);
 import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
@@ -395,7 +366,7 @@ const IDLE_KEY = "rubym.idle.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
-const idleArenaUrl = mapValeDouradoImg;
+const idleArenaUrl = assetUrlFromJson(idleArenaAsset);
 
 const mapSnowUrl = assetUrlFromJson(mapSnowAsset);
 const mapDesertUrl = assetUrlFromJson(mapDesertAsset);
@@ -441,9 +412,9 @@ const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
 const orbXpSupremeUrl = assetUrlFromJson(orbXpSupremeAsset);
 const orbXpTeamUrl = assetUrlFromJson(orbXpTeamAsset);
 // Ícones "de buff" bonitos (HUD do treinador) — orb XP, incenso e orb de time
-const buffOrbXpUrl = buffOrbXpImg;
-const buffIncenseHoneyUrl = buffIncenseHoneyImg;
-const buffTeamOrbUrl = buffTeamOrbImg;
+const buffOrbXpUrl = (new URL("../assets/buff-orb-xp.png", import.meta.url)).href;
+const buffIncenseHoneyUrl = (new URL("../assets/buff-incense-honey.png", import.meta.url)).href;
+const buffTeamOrbUrl = (new URL("../assets/buff-team-orb.png", import.meta.url)).href;
 const npcTraderUrl = assetUrlFromJson(npcTraderAsset);
 const redLakeUrl = assetUrlFromJson(redLakeAsset);
 const volcanoUrl = assetUrlFromJson(volcanoAsset);
@@ -488,7 +459,6 @@ const worldMapContinent2Url = assetUrlFromJson(worldMapContinent2Asset);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const gameDb = supabase as any;
 
-const npcAnciaoGlacialUrl = assetUrlFromJson(npcAnciaoGlacialAsset);
 const potionIconUrl = assetUrlFromJson(potionIconAsset);
 const bgmUrl = assetUrlFromJson(bgmAsset);
 const sfxLevelUpUrl = assetUrlFromJson(sfxLevelUpAsset);
@@ -499,37 +469,38 @@ const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 type IdleMapId =
   | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "pantano_fogo" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   | "gelius1" | "gelius2"
-  // Cadeia endgame
+  // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
   | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
   | "vulcao_ativo" | "nucleo_primordial"
-  // Cadeia Abissal
+  // Cadeia Abissal — 5 mapas 1000-3000, recolores do Pântano em Chamas
   | "abismo_gelo" | "abismo_veneno" | "abismo_raio" | "abismo_sombra" | "abismo_dragao"
-  // Cadeia estendida
+  // Cadeia estendida — Lv 3000 até 6000, continuação natural do Abismo do Dragão
   | "cadeia_ab" | "cadeia_ab1" | "cadeia_f1"
+  // Evento Mítico Shiny — abre 5min a cada 1h
   | "evento_myth"
+  // Evento Oddish Odyssey — 24h aberto, 3 mapas conectados por portal
   | "oddish_o1" | "oddish_o2" | "oddish_o3"
+  // Evento Grass Oddish — mapa exclusivo, entrada custa 20 Stone Verdejante
   | "grass_oddish"
+  // Evento Vale dos Fragmentos Vermelhos — abre 1h a cada 5h, entrada pelo Ginásio Medieval
   | "vale_fragmentos"
+  // 🏰 Ginásio Medieval — 3 andares endgame (Carmesim → Gelo/Sombra → Arcano)
   | "gym_carmesim" | "gym_gelo_sombra" | "gym_arcano"
-  | "absol_start" | "governante_hall"
-  // ❄️ Santuário Glacial e Caminho Glacial (Season 3)
-  | "santuario_glacial" | "caminho_glacial" | "vale_dourado" | "vale_verdejante" | "continente_4" | "continente_4_b" | "continente_4_c";
+  // Continente do Governante — acesso via Carta do Governante
+  | "absol_start" | "governante_hall";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
   name: string; diff: string; bg: string; rate: number; minLevel: number; maxLevel?: number;
-  element: string; stars?: number; overlay?: string; x?: number; y?: number;
-
+  element: string; stars?: number; overlay?: string;
   cycle?: { cycleMs: number; openMs: number };
   entryCrystals?: number;
   /** Mapa de RAID: níveis exibidos não indicam progressão de treinador, e sim faixa dos chefes/encontros. */
   raid?: boolean;
-  /** Zoom base forçado para este mapa (0-1). */
-  zoomOverride?: number;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
-  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraHornetImg,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
+  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
   deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
   terry:    { name: "Terras de Terry",         diff: "Elite",     bg: mapTerryUrl,     rate: 3.2, minLevel: 200, maxLevel: 400, element: "Terra", stars: 4, entryCrystals: 8 },
   n2:       { name: "Planície de Terry",        diff: "Elite+",    bg: mapN2Url,        rate: 3.8, minLevel: 350, maxLevel: 550, element: "Terra", stars: 5, entryCrystals: 20 },
@@ -578,15 +549,6 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   gym_arcano:      { name: "🏰 Ginásio — Santuário Arcano", diff: "BLACK MYTHIC", bg: assetUrlFromJson(mapGymArcanoAsset), rate: 38.0, minLevel: 1, maxLevel: 9999, element: "Arcano",        stars: 10, overlay: "rgba(120,60,200,0.10)" },
   absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
-  santuario_glacial: { name: "Santuário Glacial", diff: "SEGURO", bg: mapSnowUrl, rate: 1.0, minLevel: 1, maxLevel: 9999, element: "Gelo", stars: 10, overlay: "rgba(200,230,255,0.3)" },
-  vale_dourado:      { name: "Vale Dourado", diff: "NOVA JORNADA", bg: mapValeDouradoImg, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Grama", stars: 1, overlay: "rgba(255,215,120,0.12)" },
-  caminho_glacial:   { name: "Caminho Glacial",   diff: "NOVA JORNADA", bg: mapSnowUrl, rate: 1.5, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.2)" },
-  vale_verdejante: { name: "Vale Verdejante (Glacial)", diff: "JORNADA", bg: mapTerraHornetImg, rate: 1.0, minLevel: 1, maxLevel: 50, element: "Gelo", stars: 1, overlay: "rgba(180,210,255,0.75)", zoomOverride: 0.35 },
-  continente_4: { name: "Continente 4 - A", diff: "SECRETO", bg: mapContinente4Img, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
-  continente_4_b: { name: "Continente 4 - B", diff: "SECRETO", bg: mapContinente4BImg, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
-  continente_4_c: { name: "Continente 4 - C", diff: "SECRETO", bg: mapContinente4CImg, rate: 25.0, minLevel: 1, maxLevel: 5000, element: "Misto", stars: 10, zoomOverride: 1.0, x: 2000, y: 2000 },
-
-
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -594,7 +556,7 @@ type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; 
 const ENDGAME_CHAIN: Array<{ from: IdleMapId; to: IdleMapId; req: number; color: string }> = [
   { from: "terra",             to: "vale_rochas",       req: 40,  color: "#c9a76a" },
   { from: "vale_rochas",       to: "vale_planta",       req: 110, color: "#4ade80" },
-  { from: "vale_planta",       to: "vale_gelo",         req: 180, color: "#c9b8ff" },
+  { from: "vale_planta",       to: "vale_gelo",         req: 180, color: "#7dd3fc" },
   { from: "vale_gelo",         to: "vale_veneno",       req: 250, color: "#c084fc" },
   { from: "vale_veneno",       to: "vale_fogo",         req: 320, color: "#fb923c" },
   { from: "vale_fogo",         to: "vulcao_ativo",      req: 390, color: "#ef4444" },
@@ -608,20 +570,6 @@ const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
     { key: `${c.to}->${c.from}`, from: c.to, to: c.from, x: 200, y: 1660, arriveX: 1700, arriveY: 260, color: "#94a3b8", label: `↩ ${fromName}` },
   ];
 });
-
-const PORTAL_SECRET_4: WorldPortalDef = {
-  key: "arena->continente_4",
-  from: "arena",
-  to: "continente_4",
-  x: 250,
-  y: 250,
-  arriveX: 1000,
-  arriveY: 1000,
-  color: "#ffffff",
-  label: "Continente 4",
-  reqLevel: 1,
-};
-
 
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
@@ -995,7 +943,7 @@ type IdleState = {
   bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro); teamOrb = distribui EXP para todo o time por 1h
   autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
-  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number; targetRarities?: Rarity[]; prioritizeQuest?: boolean };
+  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
@@ -1009,7 +957,6 @@ type IdleState = {
   pokeVault?: CollectionEntry[];   // 🏦 Banco Medieval — pokémons armazenados PARA SEMPRE (preservados na 3ª Season)
   valeReturnMap?: IdleMapId;       // mapa de origem antes de entrar no Vale dos Fragmentos
   hideIp?: boolean;                // 🔒 privacidade: oculta o IP na tela (continua registrado no servidor)
-  mainQuest?: MainQuestState;      // 🌟 sistema de Main Quest
 };
 
 // 🔻 Fragmento Vermelho — teto de acumulação na COLETA (igual ao ouro, sem travar em 5)
@@ -1147,27 +1094,7 @@ export const GYM_RARE_DROPS: Record<GymFloorId, Array<{ id: string; chance: numb
 };
 
 
-const RARITY_COLORS: Record<string, { c: string; aura: string }> = {
-  common: { c: "#94a3b8", aura: "" },
-  uncommon: { c: "#4ade80", aura: "0 0 10px rgba(74, 222, 128, 0.3)" },
-  rare: { c: "#60a5fa", aura: "0 0 15px rgba(96, 165, 250, 0.6), 0 0 30px rgba(96, 165, 250, 0.3)" },
-  epic: { c: "#c084fc", aura: "0 0 20px rgba(192, 132, 252, 0.7), 0 0 40px rgba(192, 132, 252, 0.4)" },
-  legendary: { c: "#f59e0b", aura: "0 0 25px rgba(245, 158, 11, 0.8), 0 0 50px rgba(245, 158, 11, 0.5)" },
-  mythic: { c: "#ef4444", aura: "0 0 30px rgba(239, 68, 68, 0.9), 0 0 60px rgba(239, 68, 68, 0.6)" },
-  mythic_shiny: { c: "#f472b6", aura: "0 0 35px rgba(244, 114, 182, 1), 0 0 70px rgba(244, 114, 182, 0.7)" },
-};
-
-export type Enemy = {
-  id: number; sp: Species; hp: number; maxHp: number; x: number; y: number;
-  face: "left" | "right"; aggressive: boolean; aggroR: number; elite: boolean;
-  level: number; rarity: Rarity; xpTitle: boolean; rider: boolean;
-  guardian: boolean; apex: boolean; eventLegendary: boolean;
-  disguise?: Species; revealed: boolean; menace: boolean; mtcBoss: boolean;
-  drops?: string[];
-};
-
 // 🔻 Evento Vale dos Fragmentos: abre 1 hora a cada 5 horas (ciclo global, igual pra todos).
-
 export const VALE_CYCLE_MS = 5 * 60 * 60 * 1000;
 export const VALE_OPEN_MS = 60 * 60 * 1000;
 export function valeEventStatus(now: number = Date.now()): { open: boolean; msUntilChange: number } {
@@ -1185,132 +1112,9 @@ export function redShardTravelCost(minLevel: number): number {
   return 0;
 }
 
-
-const WORLD_W = 2560;
-const WORLD_H = 2560;
-
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
 
 export const MAX_COLLECTION = 500;
-
-export type MainQuestState = {
-  currentQuestId: number;
-  progress: number;
-  completed: boolean;
-  minimized?: boolean;
-  expiresAt?: number;
-};
-
-export type MainQuestDef = {
-  id: number;
-  title: string;
-  description: string;
-  target: number;
-  type: "capture_rarity" | "capture_species" | "kill_count";
-  rarity?: Rarity;
-  species?: Species;
-  reward: {
-    items?: Record<string, number>;
-    redshards?: number;
-    trainerXp?: number;
-    teamXp?: number;
-    trainerLevels?: number;
-  };
-};
-
-const QUEST_DATA: MainQuestDef[] = [
-  {
-    id: 1,
-    title: "Início da Jornada",
-    description: "Capture 10 Pokémon Incomuns para provar seu valor.",
-    target: 10,
-    type: "capture_rarity",
-    rarity: "uncommon",
-    reward: { items: { fragmento_ultraball: 5 }, trainerXp: 500, teamXp: 1000 }
-  },
-  {
-    id: 2,
-    title: "Mestre da Caça",
-    description: "Derrote 100 Pokémon para ganhar Fragmentos de Ultra Ball.",
-    target: 100,
-    type: "kill_count",
-    reward: { items: { fragmento_ultraball: 25 }, trainerXp: 2000, teamXp: 5000 }
-  },
-  {
-    id: 3,
-    title: "Pesquisador Raro",
-    description: "Capture 5 Pokémon Raros para ganhar um Ovo Épico.",
-    target: 5,
-    type: "capture_rarity",
-    rarity: "rare",
-    reward: { items: { egg_epic: 1, fragmento_ultraball: 10 }, trainerXp: 5000, teamXp: 10000 }
-  },
-  {
-    id: 4,
-    title: "Caçador de Lendas",
-    description: "Capture 1 Pikachu para ganhar 1 Nível de Treinador.",
-    target: 1,
-    type: "capture_species",
-    species: "pikachu",
-    reward: { items: { fragmento_ultraball: 50 }, trainerLevels: 1, teamXp: 25000 }
-  },
-  {
-    id: 5,
-    title: "Elite Trainer",
-    description: "Capture 2 Pokémon Épicos para o Ancião Glacial.",
-    target: 2,
-    type: "capture_rarity",
-    rarity: "epic",
-    reward: { items: { fragmento_ultraball: 100, fragmento_vermelho: 5000 }, trainerXp: 15000, teamXp: 50000 }
-  },
-  {
-    id: 6,
-    title: "Massacre do Vale",
-    description: "Derrote 500 Pokémon em qualquer mapa.",
-    target: 500,
-    type: "kill_count",
-    reward: { items: { fragmento_ultraball: 150, egg_epic: 2 }, trainerLevels: 1, redshards: 10000 }
-  },
-  {
-    id: 7,
-    title: "Captura Perfeita",
-    description: "Capture 20 Pokémon Incomuns seguidos.",
-    target: 20,
-    type: "capture_rarity",
-    rarity: "uncommon",
-    reward: { items: { fragmento_ultraball: 200 }, trainerLevels: 2, teamXp: 100000 }
-  },
-  {
-    id: 8,
-    title: "Veterano Arcano",
-    description: "Derrote 1000 Pokémon para desbloquear bônus.",
-    target: 1000,
-    type: "kill_count",
-    reward: { items: { fragmento_ultraball: 500, fragmento_vermelho: 20000 }, trainerLevels: 3, teamXp: 250000 }
-  },
-  {
-    id: 9,
-    title: "Ascensão Rápida",
-    description: "Capture 10 Pokémon Raros.",
-    target: 10,
-    type: "capture_rarity",
-    rarity: "rare",
-    reward: { items: { egg_epic: 3, fragmento_ultraball: 300 }, trainerLevels: 2, teamXp: 150000 }
-  },
-  {
-    id: 10,
-    title: "Relíquia Suprema",
-    description: "Capture 5 Pokémon Épicos para a glória eterna.",
-    target: 5,
-    type: "capture_rarity",
-    rarity: "epic",
-    reward: { items: { fragmento_ultraball: 1000, egg_epic: 1 }, trainerLevels: 5, redshards: 50000 }
-  }
-];
-
-
-
-
 
 const GOVERNANTE_PLUS_POOL: readonly Species[] = [
   "mewtwo", "mew", "groudon", "lugia", "ho_oh",
@@ -1367,8 +1171,6 @@ const ITEM_COLORS: Record<string, string> = {
   revive: "#ff5b8a", berry: "#4a7bff", key: "#f5cf6b",
   book_atk: "#ff5252", book_def: "#4a7bff", book_exp: "#5ec26a",
   book_exp_big: "#8bffb0", book_exp_max: "#ffd94d", book_vip: "#ffb347",
-  stone_grass: "#5ec26a", stone_fire: "#ff5252", stone_water: "#4a7bff",
-  stone_electric: "#f5cf6b", stone_dark: "#a855f7", stone_dragon: "#ff8b3d",
 };
 const ITEM_IMG: Record<string, string> = {
   potion: potionNewImg,
@@ -1378,18 +1180,13 @@ const ITEM_IMG: Record<string, string> = {
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
   premium_box: premiumBoxImg,
-  egg_epic: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/rare-candy.png",
-  fragmento_ultraball: ballUltraImg,
   bau_esmeralda: chestEmeraldImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
-  orb_xp_supreme_24h: orb24hImg,
-  incenso_mel_raro_24h: incense24hImg,
+  orb_xp_supreme_24h: (new URL("../assets/orb-24h.png", import.meta.url)).href,
+  incenso_mel_raro_24h: (new URL("../assets/incense-24h.png", import.meta.url)).href,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
   cristal_fragmentado: assetUrlFromJson(iconFragmentCrystal),
   fragmento_vermelho: redShardImg,
-  stone_grass: "/items/stone-grass.png", stone_fire: "/items/stone-fire.png", 
-  stone_water: "/items/stone-water.png", stone_electric: "/items/stone-electric.png",
-  stone_dark: "/items/stone-dark.png", stone_dragon: "/items/stone-dragon.png",
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -1456,45 +1253,20 @@ function loadIdle(): IdleState {
   try {
     const raw = localStorage.getItem(IDLE_KEY);
     if (raw) {
-      let parsed;
-      try {
-        parsed = deobfuscate(raw);
-        if (!parsed || typeof parsed !== 'object') {
-          try {
-            parsed = JSON.parse(raw);
-          } catch {
-            console.warn("Falha ao recuperar dados (não é obfuscado nem JSON válido)");
-            return freshIdle();
-          }
-        }
-      } catch (e) {
-        console.error("Erro crítico ao carregar IDLE_KEY:", e);
-        return freshIdle();
-      }
-
-      // V17 HOTFIX: Se o estado local for de uma versão admin (+20000), 
-      // mas o treinador_level visual for 1, algo corrompeu. Resetamos para forçar cloud sync.
-      if (parsed.version >= 10000 && (parsed.level === 1 || parsed.trainerLevel === 1)) {
-        console.warn("[V17] Local state mismatch (Lv1 vs High Version). Wiping for clean cloud sync.");
-        localStorage.removeItem(IDLE_KEY);
-        localStorage.removeItem("rubym.save.v2");
-        return freshIdle();
-      }
-      
-      const s: IdleState = { ...freshIdle(), ...parsed };
+      const s: IdleState = { ...freshIdle(), ...JSON.parse(raw) };
       // Presente de boas-vindas (evento): 1x Caixa Premium
       const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
       if (!flags.giftPremiumBoxV1) {
         s.items = { ...(s.items ?? {}), premium_box: (s.items?.premium_box ?? 0) + 1 };
         (s as unknown as { flags: Record<string, boolean> }).flags = { ...flags, giftPremiumBoxV1: true };
       }
-      // Auto-Poção sempre ativada ao entrar no jogo
+      // Auto-Poção sempre ativada ao entrar no jogo (usuário pode desativar depois na sessão)
       s.autoHeal = { ...(s.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: true };
-      
+      // Garante lista de skins desbloqueadas (default sempre incluída)
       const uskins = Array.isArray(s.unlockedSkins) ? s.unlockedSkins.slice() : [];
       if (!uskins.includes("default")) uskins.unshift("default");
       s.unlockedSkins = uskins;
-      
+      // Sanitiza mapa removido (Pedreira Antiga)
       if (!IDLE_MAPS[s.currentMap]) s.currentMap = "arena";
       return s;
     }
@@ -1524,11 +1296,10 @@ function freshIdle(): IdleState {
     unlockedSkins: ["default"],
     redeemedCodes: {},
     vault: {},
-    mainQuest: { currentQuestId: 1, progress: 0, completed: false },
   };
 }
 function saveIdle(s: IdleState) {
-  try { localStorage.setItem(IDLE_KEY, obfuscate(s)); } catch { /* ignore */ }
+  try { localStorage.setItem(IDLE_KEY, JSON.stringify(s)); } catch { /* ignore */ }
 }
 
 // XP-para-o-próximo-nível do TREINADOR (curva um pouco mais dura que a do pokémon)
@@ -1536,14 +1307,11 @@ function trainerXpToNext(lv: number): number {
   return 150 + lv * 80;
 }
 // Aplica ganho de XP ao treinador e resolve level-ups em cadeia
-function applyTrainerXp(s: IdleState, gained: number, levels: number = 0): { state: IdleState; leveledTo: number | null } {
+function applyTrainerXp(s: IdleState, gained: number): { state: IdleState; leveledTo: number | null } {
   const startLv = s.trainerLevel ?? 1;
-  let lv = startLv + levels;
+  let lv = startLv;
   let xp = (s.trainerXp ?? 0) + Math.max(0, Math.floor(gained));
-  while (lv < 10000 && xp >= trainerXpToNext(lv)) {
-    xp -= trainerXpToNext(lv);
-    lv += 1;
-  }
+  while (lv < 10000 && xp >= trainerXpToNext(lv)) { xp -= trainerXpToNext(lv); lv += 1; }
   return {
     state: { ...s, trainerLevel: lv, trainerXp: xp },
     leveledTo: lv > startLv ? lv : null,
@@ -1600,15 +1368,13 @@ const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
 };
 
 // Duração (segundos) que 100 de energia dura em auto-battle como líder.
-// Pokémons não cansam mais (dur = 0), mantendo consistência com Míticos.
 const ENERGY_ACTIVE_DURATION_S: Partial<Record<Rarity, number>> = {
-  common: 0,
-  uncommon: 0,
-  rare: 0,
-  epic: 0,
-  legendary: 0,
-  mythic: 0,
-  mythic_shiny: 0,
+  common: 25 * 60,       // 25 min
+  uncommon: 35 * 60,     // 35 min
+  rare: 1 * 3600,        // 1 h
+  epic: 2 * 3600,        // 2 h
+  legendary: 5 * 3600,   // 5 h
+  mythic: 0, mythic_shiny: 0,
 };
 function energyDrainPerSec(rarity: Rarity): number {
   const dur = ENERGY_ACTIVE_DURATION_S[rarity] ?? 5 * 60;
@@ -1662,7 +1428,6 @@ function petIsExhausted(pet: PetInstance, now: number = Date.now(), opts?: { act
   if (p.azulRestUntil && p.azulRestUntil > now) return true;
   return petCurrentEnergy(pet, now, opts) <= 0;
 }
-const MAIN_QUEST_RESET_MS = 60 * 60 * 1000;
 function fmtMS(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
   const m = Math.floor(s / 60), r = s % 60;
@@ -1674,7 +1439,7 @@ function fmtMS(ms: number) {
 type SaveShape = { party?: PetInstance[] };
 function loadTeam(): PetInstance[] {
   const save = loadLatestValid<SaveShape>();
-  if (save && typeof save === 'object' && Array.isArray(save.party) && save.party.length > 0) {
+  if (save?.party && save.party.length > 0) {
     const leader = save.party[0];
     // upgrade forçado: se ainda for o antigo default (charizard lv15), troca por charmander lv1
     if (leader.species === "charizard" && leader.level === 15 && (leader.xp ?? 0) === 0) {
@@ -1731,15 +1496,14 @@ export const Route = createFileRoute("/idle")({
 function IdlePage() {
   const identity = loadIdentity();
   const navigate = useNavigate();
-  const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
   // Pokémon fora do time enquanto descansam na Casa Azul (voltam ao time cheios)
   const [restingBench, setRestingBench] = useState<PetInstance[]>([]);
   // HP atual do meu pokémon (o líder toma dano dos inimigos)
   const [leaderHp, setLeaderHp] = useState<number>(() => {
     const initTeam = loadTeam();
-    const l = Array.isArray(initTeam) ? initTeam[0] : null;
-    return l ? Math.max(Number(l.hp) || 0, calcIdleMaxHp(l)) : 0;
+    const l = initTeam[0];
+    return l ? Math.max(l.hp ?? 0, calcIdleMaxHp(l)) : 0;
   });
   const [leveledAt, setLeveledAt] = useState<number>(0);
   const [levelToast, setLevelToast] = useState<{ level: number; gains: string[]; bonus: string; ts: number } | null>(null);
@@ -1769,115 +1533,32 @@ function IdlePage() {
   const mapEnterAtRef = useRef<number>(Date.now());
 
   useEffect(() => { attackTargetIdRef.current = attackTargetId; }, [attackTargetId]);
+  // Ao trocar de líder (ou seu nível mudar muito), inimigos fora da faixa
+  // de nível são despawnados e novos são gerados para o novo líder.
   const leaderLvKeyRef = useRef<number>(team[0]?.level ?? 0);
   const leaderUidRef = useRef<string | undefined>(team[0]?.uid);
-
   useEffect(() => {
-    const leader = team[0];
-    if (!leader) return;
-    const lv = leader.level ?? 0;
-    const uid = leader.uid;
+    const lv = team[0]?.level ?? 0;
+    const uid = team[0]?.uid;
     const changed = uid !== leaderUidRef.current || Math.abs(lv - leaderLvKeyRef.current) >= 3;
     if (changed) {
       leaderLvKeyRef.current = lv;
       leaderUidRef.current = uid;
+      // Remove inimigos fora da faixa; se o mapa ficar vazio de válidos, respawna.
       setEnemies((prev) => {
         const kept = prev.filter((e) => {
           const el = e.level ?? lv;
           return el <= lv + 10 && el >= lv - 5;
         });
-        if (kept.length < 3) return spawnEnemies();
-        return kept;
+        setAttackTargetId(null);
+        blacklistRef.current.clear();
+        return kept.length >= 3 ? kept : spawnEnemies();
       });
     }
-  }, [team.length, team[0]?.uid, team[0]?.level, spawnEnemies, idle.currentMap]);
-
+  }, [team]);
+  const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [anciaoOpen, setAnciaoOpen] = useState(false);
-  const [anciaoForced, setAnciaoForced] = useState(false);
-  const anciaoForcedRef = useRef(false);
-  useEffect(() => { anciaoForcedRef.current = anciaoForced && anciaoOpen; }, [anciaoForced, anciaoOpen]);
-  
-  // ❄️ Primeiro login: se o jogador nunca passou pelo Ancião, o diálogo dispara
-  // automaticamente e ele não consegue sair da tela antes de falar com o NPC.
-  const anciaoAutoDone = useRef(false);
-  useEffect(() => {
-    if (anciaoAutoDone.current) return;
-    if (idle.redeemedCodes?.RESETPERSON) return; 
-    
-    anciaoAutoDone.current = true;
-    setTab("batalha");
-    setIdle((prev) => ({ ...prev, currentMap: "santuario_glacial" }));
-    setAnciaoForced(true);
-    setAnciaoOpen(true);
-  }, [idle.redeemedCodes?.RESETPERSON, idle.currentMap]);
-
-  const [mapPasswordInput, setMapPasswordInput] = useState<{ portal: WorldPortalDef } | null>(null);
-  const [pinValue, setPinValue] = useState("");
-
   const [now, setNow] = useState(() => Date.now());
-  const [profileOpen, setProfileOpen] = useState(true);
-  const [teamPanelOpen, setTeamPanelOpen] = useState(true);
-  const [maximizeTeam, setMaximizeTeam] = useState(false);
-  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
-
-  // Manutenção Season: só derruba quando o servidor responder EXPLICITAMENTE "true".
-  // (Antes, qualquer falha de rede/leitura vazia caía no "!config" e deslogava TODOS
-  // os jogadores a cada 60s — era a causa real das desconexões em massa.)
-  useEffect(() => {
-    if (!identity) return;
-    let stop = false;
-    const checkMaintenance = async () => {
-      const email = identity?.email?.trim().toLowerCase();
-      const isAdmin = email === "lordryuhhhuyuyghh@gmail.com" ||
-                      identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-
-      if (isAdmin) return;
-
-      try {
-        const { data: config, error } = await (supabase as any)
-          .from("server_config")
-          .select("value")
-          .eq("key", "maintenance_mode")
-          .maybeSingle();
-
-        if (stop || error || !config) return; // fail-open: nunca desloga por erro/ausência
-        const v = config.value;
-        if (v === true || v === "true") {
-          signOutRubyM();
-          navigate({ to: "/" });
-        }
-      } catch (e) {
-        console.warn("Erro ao checar manutenção (ignorado)", e);
-      }
-    };
-    checkMaintenance();
-    const iv = setInterval(checkMaintenance, 60000);
-    return () => { stop = true; clearInterval(iv); };
-  }, [identity, navigate]);
-
-
-  const [targetPet, setTargetPet] = useState<Enemy | null>(null);
-
-
-
-  const handleSeasonResetRitual = async () => {
-
-    // O diálogo do Ancião já é a confirmação — executa o ritual direto.
-    await handleSeasonReset(true);
-  };
-
-  const handleAnciaoInteraction = () => {
-    // Fecha qualquer menu aberto para o jogador ver o Santuário
-    setTab("batalha");
-    if (idle.currentMap === "santuario_glacial") {
-      setAnciaoOpen(true);
-      return;
-    }
-    setIdle((prev) => ({ ...prev, currentMap: "santuario_glacial" }));
-    pushChat("❄️ Viajando para o Santuário Glacial...", "info");
-    setTimeout(() => setAnciaoOpen(true), 350);
-  };
 
   // ============= Server sync (Supabase anti-cheat) =============
   const idleRef = useRef(idle);
@@ -1887,13 +1568,11 @@ function IdlePage() {
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
-    const col: CollectionEntry[] = idle.collection ?? [];
-    const active = [...team, ...restingBench];
-    const data: Record<string, CollectionEntry> = {};
-    for (const e of col) data[e.uid] = e;
-    for (const pet of active) {
-      const current = data[pet.uid];
-      data[pet.uid] = {
+    const byUid = new Map<string, CollectionEntry>();
+    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry);
+    for (const pet of [...team, ...restingBench]) {
+      const current = byUid.get(pet.uid);
+      byUid.set(pet.uid, {
         uid: pet.uid,
         species: pet.species,
         level: Math.max(current?.level ?? 1, pet.level ?? 1),
@@ -1902,9 +1581,9 @@ function IdlePage() {
         capturedAt: current?.capturedAt ?? Date.now(),
         traits: current?.traits ?? pet.traits ?? [],
         event: current?.event ?? pet.event,
-      };
+      });
     }
-    return Object.values(data);
+    return [...byUid.values()];
   }, [idle.collection, restingBench, team]);
   // UIDs intencionalmente consumidos (fragmentar/trocador) — impede reconciliação
   // de re-adicioná-los à coleção quando ainda estão em team/bench mid-cleanup.
@@ -2158,21 +1837,14 @@ function IdlePage() {
             : 0;
         const localAt = local?.savedAt ?? 0;
 
-        // O snapshot local só vence quando é comprovadamente MAIS NOVO.
-        // V18 SUPREME: A nuvem tem autoridade absoluta se for um update administrativo.
-        const cloudIsAdmin = result.status === "ok" && ((result.data as any)?.adminUpdate || (result.data as any)?.idle?.version >= 10000);
-        const forceSync = localStorage.getItem("rubym_admin_force_sync") === "true";
-        
-        if (!cloudIsAdmin && !forceSync && local && localAt > cloudAt) {
+        // O snapshot local só vence quando é comprovadamente MAIS NOVO
+        // (evita rollback quando a última gravação não chegou ao banco).
+        if (local && localAt > cloudAt) {
           applyBlob(local.snapshot);
           cloudBlobHydratedRef.current = true;
-          toast.success("💾 Progresso restaurado do backup local.", { duration: 4000 });
+          toast.success("💾 Progresso mais recente recuperado do backup local.", { duration: 6000 });
           void attemptPendingCloudSave();
           return;
-        }
-
-        if (forceSync) {
-           console.log("[V18] Force Sync Active: Ignoring local storage.");
         }
 
         if (result.status === "empty") {
@@ -2219,12 +1891,12 @@ function IdlePage() {
     savedAt: Date.now(),
   }), [restingBench]);
   useEffect(() => {
-    if (!cloudBlobReady || cloudSaveBlocked) return;
-    const blob = buildFullBlob();
-    scheduleCloudSync(blob);
+    if (!cloudBlobReady) return;
+    // Mesmo com a nuvem bloqueada, scheduleCloudSync grava uma fila local durável.
+    // Assim o jogador pode continuar jogando sem perder o progresso da sessão.
+    scheduleCloudSync(buildFullBlob());
     setCloudQueueTick((t) => t + 1);
-  }, [idle.currentMap, idle.bank.gold, idle.bank.crystals, team.length, team[0]?.level, restingBench.length, cloudBlobReady, cloudSaveBlocked]);
-
+  }, [idle, team, restingBench, buildFullBlob, cloudBlobReady, cloudSaveBlocked]);
 
   useEffect(() => {
     const id = setInterval(() => setCloudQueueTick((t) => t + 1), 5000);
@@ -2555,15 +2227,7 @@ function IdlePage() {
     if (typeof window === "undefined") return { music: true, sfx: true, musicVol: 0.20, sfxVol: 0.45 };
     try {
       const raw = localStorage.getItem("rubym.idle.audio");
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed === 'object') {
-            return { music: true, sfx: true, musicVol: 0.2, sfxVol: 0.45, ...parsed };
-          }
-        } catch (e) { console.error("Erro ao carregar audioSettings", e); }
-      }
-      return { music: true, sfx: true, musicVol: 0.2, sfxVol: 0.45 };
+      if (raw) return { music: true, sfx: true, musicVol: 0.20, sfxVol: 0.45, ...JSON.parse(raw) };
     } catch { /* ignore */ }
     return { music: true, sfx: true, musicVol: 0.20, sfxVol: 0.45 };
   });
@@ -2814,7 +2478,6 @@ function IdlePage() {
   const [oddishRankOpen, setOddishRankOpen] = useState<boolean>(false);
   const [oddishRankRows, setOddishRankRows] = useState<OddishRankRow[]>([]);
   const [oddishRankLoading, setOddishRankLoading] = useState<boolean>(false);
-  const [showRank, setShowRank] = useState(false);
   const enterGrassOddish = () => {
     if (!ODDISH_EVENT.enabled) {
       try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
@@ -2859,7 +2522,6 @@ function IdlePage() {
   const keysRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const kd = (e: KeyboardEvent) => {
-      if (anciaoForcedRef.current) return;
       const k = e.key.toLowerCase();
       if (["w", "a", "s", "d", "arrowup", "arrowleft", "arrowdown", "arrowright"].includes(k)) {
         // ao andar manualmente, marca o alvo atual como "evitado" por um tempo,
@@ -2877,9 +2539,9 @@ function IdlePage() {
     return () => { window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); };
   }, []);
 
-  // Mundo em pixels: aumentamos o tamanho base para garantir proporção em telas ultra-wide.
-  const WORLD_W = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado" || idle.currentMap === "arena" || idle.currentMap === "vale_verdejante" || idle.currentMap.startsWith("continente_4")) ? 3840 : 2560;
-  const WORLD_H = (idle.currentMap === "deserto_purpura" || idle.currentMap === "vale_dourado" || idle.currentMap === "arena" || idle.currentMap === "vale_verdejante" || idle.currentMap.startsWith("continente_4")) ? 3840 : 2560;
+  // ---- Mundo em pixels + câmera que segue o treinador ----
+  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
               type GateDef = {
                 key: string;
                 target: IdleMapId;
@@ -2891,7 +2553,6 @@ function IdlePage() {
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 arena: [
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
-                  { key: "to-verde", target: "vale_verdejante", x: 60, y: WORLD_H - 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#7ef27a" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
                   { key: "to-vale_rochas", target: "vale_rochas", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
@@ -2982,15 +2643,6 @@ function IdlePage() {
                 governante_hall: [
                   { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
                 ],
-                santuario_glacial: [
-                  { key: "sg-to-caminho", target: "caminho_glacial", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#c9b8ff" },
-                ],
-                vale_dourado: [
-                  { key: "vd-to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#f5cf6b" },
-                ],
-                caminho_glacial: [
-                  { key: "cg-to-santuario", target: "santuario_glacial", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#c0e8ff" },
-                ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
@@ -3042,26 +2694,11 @@ function IdlePage() {
                 ],
                 // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
                 gelius1: [
-                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c9b8ff" },
+                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7fd8ff" },
                 ],
                 gelius2: [
                   { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
-                vale_verdejante: [
-                  { key: "vv-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                continente_4: [
-                  { key: "c4-back", target: "arena", x: 60, y: 60, arriveX: 300, arriveY: 300, color: "#94a3b8" },
-                  { key: "c4-to-b", target: "continente_4_b", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: 100, arriveY: 100, color: "#f5cf6b" },
-                ],
-                continente_4_b: [
-                  { key: "c4b-back", target: "continente_4", x: 60, y: 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#94a3b8" },
-                  { key: "c4b-to-c", target: "continente_4_c", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: 100, arriveY: 100, color: "#ffffff" },
-                ],
-                continente_4_c: [
-                  { key: "c4c-back", target: "continente_4_b", x: 60, y: 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#94a3b8" },
-                ],
-
               };
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -3119,28 +2756,18 @@ function IdlePage() {
   };
 
   const [trainerPos, setTrainerPos] = useState({ x: WORLD_W / 2, y: WORLD_H / 2 });
-  const trainerPosRef = useRef(trainerPos);
-  useEffect(() => {
-    trainerPosRef.current = trainerPos;
-  }, [trainerPos]);
-
   const [walkStep, setWalkStep] = useState(0);
   const [walkDir, setWalkDir] = useState<Dir>("right");
   const walkDirRef = useRef<Dir>("right");
   const [pokemonFace, setPokemonFace] = useState<"left" | "right">("right");
   const pokemonFaceRef = useRef<"left" | "right">("right");
   const [moving, setMoving] = useState(true);
-  const movingRef = useRef(true);
-  useEffect(() => {
-    movingRef.current = moving;
-  }, [moving]);
-
   // Alvo de deslocamento automático (clicar em "Ir ao Lar", "Ir ao Lab", "Ir Floresta")
   const walkTargetRef = useRef<{ x: number; y: number; label: string; onArrive?: () => void; resumeAuto?: boolean } | null>(null);
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
-  const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
+  const [worldTab, setWorldTab] = useState<1 | 2 | 3>(1);
   const [pendingGate, setPendingGate] = useState<null | { target: string; gate: any; fromBig: boolean }>(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
@@ -3163,7 +2790,6 @@ function IdlePage() {
       if (cashShopOpen) { setCashShopOpen(false); return; }
       if (blackEggHudOpen) { setBlackEggHudOpen(false); return; }
       if (governanteOpen) { setGovernanteOpen(false); return; }
-      if (anciaoOpen) { if (!anciaoForcedRef.current) setAnciaoOpen(false); return; }
       if (bmpSwapOpen) { setBmpSwapOpen(false); return; }
       if (showAutoSettings) { setShowAutoSettings(false); return; }
       if (oddishNoStone) { setOddishNoStone(null); return; }
@@ -3174,7 +2800,7 @@ function IdlePage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, anciaoOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
+  }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
 
 
 
@@ -3227,94 +2853,6 @@ function IdlePage() {
       void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
     }
   };
-  const handleSeasonReset = async (skipConfirm = false) => {
-    try {
-      if (!skipConfirm && !window.confirm("ATENÇÃO: Este ritual irá resetar seu nível e de seus Pokémon para 1. Toda sua COLEÇÃO será convertida em Fragmentos Vermelhos. Itens, Cofre e Ouro serão mantidos. Deseja continuar?")) {
-        return;
-      }
-
-      const cur = idleRef.current;
-      if (cur.redeemedCodes?.RESETPERSON) {
-        toast.error("O Ritual da Nova Jornada já foi realizado nesta conta.");
-        return;
-      }
-
-      // 1) Coleção -> Fragmentos Vermelhos (1 por Pokémon guardado)
-      const colCount = Array.isArray(cur.collection) ? cur.collection.length : 0;
-      const nextItems: Record<string, number> = { ...(cur.items ?? {}) };
-      nextItems.fragmento_vermelho = (nextItems.fragmento_vermelho ?? 0) + colCount;
-
-      // 2) Time e reservas voltam ao nível 1 (espécie/raridade/traits preservados)
-      const resetPet = (p: PetInstance): PetInstance => {
-        const lv1 = { ...p, level: 1, xp: 0 } as PetInstance;
-        const max = calcIdleMaxHp(lv1);
-        return { ...lv1, hp: max, maxHp: max };
-      };
-      // Helper para resetar tipos de coleção (que não têm HP/Fome no objeto serializado)
-      const resetCollectionEntry = (e: CollectionEntry): CollectionEntry => {
-        return { ...e, level: 1, xp: 0 };
-      };
-
-      const nextTeam = (teamRef.current ?? []).map(resetPet);
-      const nextBench = (benchRef.current ?? []).map(resetPet);
-      const nextPokeVault = (cur.pokeVault ?? []).map(resetCollectionEntry);
-
-
-
-      // 3) Treinador volta ao nível 1 — itens, ouro, cristais e cofre intactos
-      const next: IdleState = {
-        ...cur,
-        trainerLevel: 1,
-        trainerXp: 0,
-        collection: [],
-        pokeVault: nextPokeVault,
-        items: nextItems as typeof cur.items,
-        currentMap: "arena",
-        redeemedCodes: { ...(cur.redeemedCodes ?? {}), RESETPERSON: true },
-
-      };
-
-      setIdle(next);
-      setTeam(nextTeam);
-      setRestingBench(nextBench);
-      idleRef.current = next;
-      teamRef.current = nextTeam;
-      benchRef.current = nextBench;
-      saveIdle(next);
-
-      // 4) Persistência na nuvem (blob completo) + tabelas normalizadas
-      const savedAt = Date.now();
-      const snapshot = { idle: next, team: nextTeam, restingBench: nextBench, savedAt };
-      writeLocalBackup(snapshot);
-      if (!identity?.id?.startsWith("guest-")) {
-        try { await pushCloudSaveNow(snapshot); } catch (e) { console.warn("[seasonReset] cloud push falhou", e); }
-        try {
-          const { data: sess } = await supabase.auth.getSession();
-          const uid = sess.session?.user?.id;
-          if (uid) {
-            await (supabase.from("trainer_state") as any)
-              .update({ trainer_level: 1, trainer_xp: 0, active_map: "arena" })
-              .eq("user_id", uid);
-            await (supabase.from("pokemon_collection") as any)
-              .update({ level: 1, xp: 0 })
-              .eq("user_id", uid);
-            await (supabase.from("ranked_scores") as any)
-              .update({ trainer_level: 1 })
-              .eq("user_id", uid);
-          }
-        } catch (e) {
-          console.warn("[seasonReset] sync de tabelas normalizadas falhou", e);
-        }
-      }
-
-      pushChat(`❄️ Nova Jornada iniciada! ${colCount} Pokémon da coleção viraram Fragmentos Vermelhos.`, "cap");
-      toast.success(`Nova Jornada iniciada! +${colCount} Fragmento(s) Vermelho(s).`);
-      setTimeout(() => window.location.reload(), 1800);
-    } catch (err: any) {
-      console.error("Season Reset Error:", err);
-      toast.error(err?.message || "Erro ao realizar reset de temporada.");
-    }
-  };
   const redeemCrystalCode = () => {
     const raw = normalizeCode(codeInput);
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
@@ -3342,16 +2880,7 @@ function IdlePage() {
       // Carta Lendária (Incubadora) + Carta do Governante
       CARTAGOVLEND1: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
       CARTAGOVLEND2: { items: { carta_incubadora: 1, carta_governante: 1 }, label: "1× Carta da Incubadora Lendária 🔮, 1× Carta do Governante 👑 e 30.000 Cristais" },
-      // ❄️ RESETPERSON: Ritual de Reset via Código (Fallback de Segurança)
-      RESETPERSON: { label: "Reset de Temporada: Nível 1 + Fragmentação da Coleção" },
     };
-
-    if (raw === "RESETPERSON") {
-      void handleSeasonReset();
-      setCodeMsg({ kind: "ok", text: "Ritual iniciado! Confirme no diálogo acima." });
-      setCodeOpen(false);
-      return;
-    }
 
     const reward = CODE_TABLE[raw];
     if (reward) {
@@ -3480,6 +3009,8 @@ function IdlePage() {
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
   type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number; skinUrl?: string; mapId?: IdleMapId };
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
+  const trainerPosRef = useRef(trainerPos);
+  useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
   const walkStepRef = useRef(walkStep);
   useEffect(() => { walkStepRef.current = walkStep; }, [walkStep]);
   const leaderSpRef = useRef<Species | undefined>(team[0]?.species);
@@ -3524,23 +3055,22 @@ function IdlePage() {
           .gte("updated_at", since);
         if (!data) return;
         setRemotePlayers((prev) => {
-          const byId: Record<string, RemotePlayer> = {};
-          prev.forEach(p => byId[p.id] = p);
+          const byId = new Map(prev.map((p) => [p.id, p]));
           for (const row of data as any[]) {
             if (!row?.id || row.id === meId) continue;
-            byId[row.id] = {
+            byId.set(row.id, {
               id: String(row.id),
               userId: String(row.id).split(":")[0] || String(row.id),
               name: String(row.name || "Treinador"),
               x: Number(row.x) || WORLD_W / 2,
               y: Number(row.y) || WORLD_H / 2,
               dir: (["down", "left", "right", "up"].includes(row.dir) ? row.dir : "down") as Dir,
-              step: byId[row.id]?.step ?? 0,
+              step: byId.get(row.id)?.step ?? 0,
               leaderSp: row.leader_species || undefined,
               ts: new Date(row.updated_at || Date.now()).getTime(),
-            };
+            });
           }
-          return Object.values(byId).filter((p) => p.id !== meId && Date.now() - p.ts < 20_000);
+          return Array.from(byId.values()).filter((p) => p.id !== meId && Date.now() - p.ts < 20_000);
         });
       } catch { /* ignore */ }
     };
@@ -3617,9 +3147,9 @@ function IdlePage() {
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   // Contador de pokébolas arremessadas em cada Mewtwo do evento (por id de spawn).
-  const mewtwoBallsRef = useRef(new Map<number, number>());
+  const mewtwoBallsRef = useRef<Map<number, number>>(new Map());
   // Contador de Ultra Balls arremessadas em bosses raros (Dragonite Shiny / Zapdos / Raichu Mítico).
-  const bossBallsRef = useRef(new Map<number, number>());
+  const bossBallsRef = useRef<Map<number, number>>(new Map());
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
   const RAICHU_MYTHIC_MIN_BALLS = 2000;
@@ -3648,7 +3178,7 @@ function IdlePage() {
 
 
 
-  const [zoom, setZoom] = useState(0.40);
+  const [zoom, setZoom] = useState(0.75);
   // ===== Ranking Global =====
   type RankRow = {
     id: string;
@@ -3713,9 +3243,8 @@ function IdlePage() {
 
       // Ranked desativado temporariamente
       if (k === "r") { e.preventDefault(); return; }
-
-      if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); playClick(); return; }
-      if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); playClick(); return; }
+      if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
+      if (k === "c") { e.preventDefault(); collect(); return; }
       // Admin shortcut: Shift + A (Only for authorized admin UUIDs)
       if (e.shiftKey && k === "a") {
         const adminUuids = [
@@ -3766,8 +3295,8 @@ function IdlePage() {
   }, []);
 
   const [rankRefreshTick, setRankRefreshTick] = useState(0);
-  const RANK_CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3h — ranking global atualiza apenas a cada 3 horas
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v8_frozen_3h_${mode}`;
+  const RANK_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h — ranking congelado, sem atualizar direto
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v8_frozen_2h_${mode}`;
 
   useEffect(() => {
     if (!rankOpen) return;
@@ -3899,40 +3428,18 @@ function IdlePage() {
     })();
     return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
-  // Zoom base dinâmico para garantir que o mapa preencha a tela.
-  // O usuário deseja o mapa inteiro na tela, sem o "vazio" verde em volta.
-  const BASE_ZOOM = useMemo(() => {
-    if (!viewSize.w || !viewSize.h) return 0.2;
-    // O usuário deseja que o slider possa diminuir até 35% (0.35).
-    // O preenchimento ideal da tela (fillScale) deve acontecer quando o slider está em 0.35.
-    const fillScale = Math.max(viewSize.w / WORLD_W, viewSize.h / WORLD_H);
-    // Se o slider (zoom) estiver em 0.35, o resultado (effectiveZoom) deve ser fillScale.
-    return fillScale / 0.35;
-  }, [viewSize.w, viewSize.h, WORLD_W, WORLD_H]);
-
-  const effectiveZoom = zoom * BASE_ZOOM;
-  const viewW = viewSize.w / effectiveZoom;
-  const viewH = viewSize.h / effectiveZoom;
-
-  // Centraliza a câmera no treinador, mas trava nas bordas do mapa.
-  const camX = viewW >= WORLD_W ? (WORLD_W - viewW) / 2 : Math.max(0, Math.min(WORLD_W - viewW, trainerPos.x - viewW / 2));
-  const camY = viewH >= WORLD_H ? (WORLD_H - viewH) / 2 : Math.max(0, Math.min(WORLD_H - viewH, trainerPos.y - viewH / 2));
-
-  // Fator de escala inverso para manter as sprites (treinador/pokemons) no tamanho padrão
-  // Independentemente do zoom aplicado ao mapa.
-  const spriteScale = useMemo(() => {
-    // Reduzido de 0.45 para 0.35 para diminuir o tamanho geral das entidades no mapa
-    return 0.35 / effectiveZoom;
-  }, [effectiveZoom]);
-
+  const viewW = viewSize.w / zoom;
+  const viewH = viewSize.h / zoom;
+  const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
+  const camY = Math.max(0, Math.min(Math.max(0, WORLD_H - viewH), trainerPos.y - viewH / 2));
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
-  const renderCamX = Math.round(camX * effectiveZoom) / effectiveZoom;
-  const renderCamY = Math.round(camY * effectiveZoom) / effectiveZoom;
-  camViewRef.current = { camX: renderCamX, camY: renderCamY, zoom: effectiveZoom };
-  const renderTrainerX = Math.round(trainerPos.x * effectiveZoom) / effectiveZoom;
-  const renderTrainerY = Math.round(trainerPos.y * effectiveZoom) / effectiveZoom;
-  const renderFollowerX = Math.round(followerState.x * effectiveZoom) / effectiveZoom;
-  const renderFollowerY = Math.round(followerState.y * effectiveZoom) / effectiveZoom;
+  const renderCamX = Math.round(camX * zoom) / zoom;
+  const renderCamY = Math.round(camY * zoom) / zoom;
+  camViewRef.current = { camX: renderCamX, camY: renderCamY, zoom };
+  const renderTrainerX = Math.round(trainerPos.x * zoom) / zoom;
+  const renderTrainerY = Math.round(trainerPos.y * zoom) / zoom;
+  const renderFollowerX = Math.round(followerState.x * zoom) / zoom;
+  const renderFollowerY = Math.round(followerState.y * zoom) / zoom;
 
   // ---- Offline catch-up (uma vez ao montar) ----
   useEffect(() => {
@@ -4016,16 +3523,11 @@ function IdlePage() {
 
   // ---- Movimento do treinador: caça o inimigo mais próximo ----
   const stuckRef = useRef<{ id: number; count: number }>({ id: 0, count: 0 });
-  const blacklistRef = useRef(new Map<number, number>()); // id -> expiresAt
+  const blacklistRef = useRef<Map<number, number>>(new Map()); // id -> expiresAt
   const wanderRef = useRef<{ x: number; y: number; until: number } | null>(null);
   const overCapMsgRef = useRef<number>(0);
 
   const enterWorldPortal = (p: WorldPortalDef) => {
-    if (p.to === "continente_4") {
-      setMapPasswordInput({ portal: p });
-      setPinValue("");
-      return;
-    }
     const lv = idle.trainerLevel ?? 1;
     if (p.reqLevel && lv < p.reqLevel) {
       const now = Date.now();
@@ -4045,7 +3547,6 @@ function IdlePage() {
       return;
     }
     setIdle((s) => ({ ...s, currentMap: p.to, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - TELEPORT_COST) } }));
-
     setTrainerPos({ x: p.arriveX, y: p.arriveY });
     walkTargetRef.current = null;
     setWalkingTo(null);
@@ -4066,10 +3567,7 @@ function IdlePage() {
   useEffect(() => {
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
-      if (restingRef.current) {
-        if (movingRef.current) setMoving(false);
-        return;
-      }
+      if (restingRef.current) { if (moving) setMoving(false); return; }
       // ---- Modo manual (WASD) — só se NÃO houver destino clicado ----
       if (!autoRef.current && !walkTargetRef.current) {
         const keys = keysRef.current;
@@ -4078,16 +3576,8 @@ function IdlePage() {
         if (keys.has("s") || keys.has("arrowdown")) dy += 1;
         if (keys.has("a") || keys.has("arrowleft")) dx -= 1;
         if (keys.has("d") || keys.has("arrowright")) dx += 1;
-
-        if (dx === 0 && dy === 0) {
-          if (movingRef.current) setMoving(false);
-          return;
-        }
-        // Quando o jogador move manualmente, desativa o auto-battle conforme solicitado.
-        if (autoBattleRef.current?.enabled) {
-          setIdle(s => ({ ...s, autoBattle: { ...s.autoBattle!, enabled: false } }));
-        }
-        if (!movingRef.current) setMoving(true);
+        if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
+        if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
         const speed = 7 * (1 + honeyBonusNow());
         const stepX = (dx / mag) * speed;
@@ -4101,23 +3591,14 @@ function IdlePage() {
           pokemonFaceRef.current = nextFace; setPokemonFace(nextFace);
         }
         setTrainerPos((tp) => {
-          const ww = WORLD_W;
-          const wh = WORLD_H;
-          const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
-          const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
+          const clampX = (v: number) => Math.max(20, Math.min(WORLD_W - 20, v));
+          const clampY = (v: number) => Math.max(20, Math.min(WORLD_H - 20, v));
           let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
-          // Modo MANUAL: Desliza pelas paredes para não travar
           if (collidesWithAny(nx, ny)) {
-            // Tenta andar só em X
-            if (!collidesWithAny(nx, tp.y)) {
-              ny = tp.y;
-            } else {
-              // Tenta andar só em Y
-              nx = tp.x;
-              if (collidesWithAny(tp.x, ny)) {
-                ny = tp.y;
-              }
-            }
+            nx = clampX(tp.x + stepX);
+            if (collidesWithAny(nx, tp.y)) nx = tp.x;
+            ny = clampY(tp.y + stepY);
+            if (collidesWithAny(nx, ny)) ny = tp.y;
           }
           return { x: nx, y: ny };
         });
@@ -4138,10 +3619,10 @@ function IdlePage() {
             setWalkingTo(null);
             wt.onArrive?.();
             if (resume) setAuto(true);
-            if (movingRef.current) setMoving(false);
+            if (moving) setMoving(false);
             return tp;
           }
-          if (!movingRef.current) setMoving(true);
+          if (!moving) setMoving(true);
           const speed = 7 * (1 + honeyBonusNow());
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
@@ -4153,16 +3634,14 @@ function IdlePage() {
           if (nextFace !== pokemonFaceRef.current) {
             pokemonFaceRef.current = nextFace; setPokemonFace(nextFace);
           }
-          const ww = WORLD_W;
-          const wh = WORLD_H;
-          const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
-          const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
+          const clampX = (v: number) => Math.max(20, Math.min(WORLD_W - 20, v));
+          const clampY = (v: number) => Math.max(20, Math.min(WORLD_H - 20, v));
           return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
         });
         return;
       }
 
-      if (!autoRef.current) { if (movingRef.current) setMoving(false); return; }
+      if (!autoRef.current) { if (moving) setMoving(false); return; }
       // Time inviável: se todos estão desmaiados (HP=0) → vai ao Lar curar (5s).
       // Se time está vazio mas há pokémon prontos na Coleção → não trava, só
       // pausa o auto e avisa pra escolher outro. Sem energia é resolvido
@@ -4182,7 +3661,7 @@ function IdlePage() {
             };
             setWalkingTo("Lar");
           }
-          if (movingRef.current) setMoving(false);
+          if (moving) setMoving(false);
           return;
         }
         if (noTeam) {
@@ -4191,7 +3670,7 @@ function IdlePage() {
             setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
             pushChat(`🎒 Sem Pokémon no time. Abra a Coleção e escolha outro para batalhar.`, "info");
           }
-          if (movingRef.current) setMoving(false);
+          if (moving) setMoving(false);
           return;
         }
       }
@@ -4214,7 +3693,9 @@ function IdlePage() {
         const lockedPortals = WORLD_PORTALS.filter((p) => p.from === idle.currentMap && (p.reqLevel ?? 0) > trLv);
         const nearLockedPortal = (x: number, y: number) =>
           lockedPortals.some((p) => Math.hypot(x - p.x, y - p.y) < 200);
-        const alive = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id));
+        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id) && !nearLockedPortal(e.x, e.y));
+        // Líder pode atacar qualquer Pokémon do mapa — ganhos serão nerfados se muito acima.
+        const alive = aliveAll;
         const enemyPool = alive.length > 0 ? alive : [];
 
 
@@ -4263,20 +3744,6 @@ function IdlePage() {
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
         const target = candidates[0];
-        // Leash logic: Removido conforme solicitado para que o treinador persiga o alvo
-        // independentemente da distância no mapa.
-        /*
-        if (target.kind === "enemy") {
-          const dSq = (target.x - tp.x) ** 2 + (target.y - tp.y) ** 2;
-          if (dSq > 1600 * 1600) {
-            setAttackTargetId(null);
-            setTargetPet(null);
-            if (moving) setMoving(false);
-            return tp;
-          }
-        }
-        */
-
         const dx = target.x - tp.x;
         const dy = target.y - tp.y;
         const dist = Math.hypot(dx, dy);
@@ -4286,28 +3753,16 @@ function IdlePage() {
         if (target.kind === "enemy") {
           const sr = stuckRef.current;
           if (sr.id === target.id) {
-            // Se a distância NÃO DIMINUIU significativamente, incrementa o contador de stuck
-            const lastD = (sr as any).lastDist || Infinity;
-            if (dist >= lastD - 0.5) {
-              sr.count += 1;
-            } else {
-              // Se está se movendo em direção ao alvo, reduz o contador (evita blacklist em caminhadas longas)
-              sr.count = Math.max(0, sr.count - 2);
-            }
-            (sr as any).lastDist = dist;
+            sr.count += 1;
           } else {
             stuckRef.current = { id: target.id, count: 1 };
-            (stuckRef.current as any).lastDist = dist;
           }
-          // Detecta travamento no auto: se ficar 35 ticks (~2.2s) sem progresso real, busca outro.
-          if (stuckRef.current.count > 35) {
-            blacklistRef.current.set(target.id, nowT + 15000); // Blacklist por 15s para garantir que procure outros
+          // ~150 ticks * 120ms = ~18s realmente travado sem progredir
+          if (stuckRef.current.count > 150) {
+            blacklistRef.current.set(target.id, nowT + 15000);
             stuckRef.current = { id: 0, count: 0 };
             if (moving) setMoving(false);
-            // Ao destravar, tenta um pulo aleatório maior para sair de quinas
-            const escapeX = Math.max(20, Math.min(WORLD_W - 20, tp.x + (Math.random() - 0.5) * 40));
-            const escapeY = Math.max(20, Math.min(WORLD_H - 20, tp.y + (Math.random() - 0.5) * 40));
-            return { x: escapeX, y: escapeY };
+            return tp;
           }
         } else {
           stuckRef.current = { id: 0, count: 0 };
@@ -4320,7 +3775,7 @@ function IdlePage() {
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 7 * distBoost * (1 + honeyBonusNow());
+        const speed = 6 * distBoost * (1 + honeyBonusNow());
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -4335,26 +3790,10 @@ function IdlePage() {
           pokemonFaceRef.current = nextFace;
           setPokemonFace(nextFace);
         }
-        const ww = WORLD_W, wh = WORLD_H;
-        const clampX = (v: number) => Math.max(20, Math.min(ww - 20, v));
-        const clampY = (v: number) => Math.max(20, Math.min(wh - 20, v));
-        // AUTO: Desliza pelas paredes para nunca ficar travado enquanto caça
-        let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
-        if (collidesWithAny(nx, ny)) {
-          if (!collidesWithAny(nx, tp.y)) {
-            ny = tp.y;
-          } else if (!collidesWithAny(tp.x, ny)) {
-            nx = tp.x;
-          } else {
-            // Se preso em canto ou obstrução total, tenta um pequeno desvio lateral aleatório
-            // em vez de simplesmente atravessar a colisão (que pode causar bugs visuais)
-            const jitter = 12; // Aumentado de 4 para 12 para escapar melhor de quinas
-            const jx = clampX(tp.x + (Math.random() - 0.5) * jitter);
-            const jy = clampY(tp.y + (Math.random() - 0.5) * jitter);
-            return { x: jx, y: jy };
-          }
-        }
-        return { x: nx, y: ny };
+        // AUTO: sem colisão — anda em linha reta atravessando obstáculos
+        const clampX = (v: number) => Math.max(20, Math.min(WORLD_W - 20, v));
+        const clampY = (v: number) => Math.max(20, Math.min(WORLD_H - 20, v));
+        return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
       });
 
 
@@ -4362,8 +3801,8 @@ function IdlePage() {
       setEnemies((prev) => {
         if (prev.length === 0) return prev;
         let changed = false;
-        const tx = trainerPosRef.current.x;
-        const ty = trainerPosRef.current.y;
+        const tx = trainerPos.x;
+        const ty = trainerPos.y;
         const next = prev.map((e) => {
           if (e.hp <= 0) return e;
           let ne = e;
@@ -4415,7 +3854,7 @@ function IdlePage() {
         }
         return [...prev, ne];
       });
-    }, 800 + Math.floor(Math.random() * 800)); // Spawn muito mais rápido (0.8s - 1.6s) para manter o mapa vivo
+    }, 2000 + Math.floor(Math.random() * 1500)); // 2-3.5s entre spawns (rápido, evita mapa vazio)
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
@@ -4431,85 +3870,37 @@ function IdlePage() {
       const leader = team[0];
       if (!leader) return;
       // Se o meu pokémon está desmaiado: não faz nada (precisa reviver)
-      if (leaderHp <= 0) { 
-        setAttackTargetId((c) => c !== null ? null : c);
-        setTargetPet(null);
-        return; 
-      }
+      if (leaderHp <= 0) { setAttackTargetId((c) => c !== null ? null : c); return; }
       // Líder sem energia (e nenhum reserva usável): não ataca nem farma
-      if (petIsExhausted(leader)) { 
-        setAttackTargetId((c) => c !== null ? null : c);
-        setTargetPet(null);
-        return; 
-      }
-      if (!autoBattleRef.current?.enabled) { 
-        setAttackTargetId(null);
-        setTargetPet(null);
-        return; 
-      }
+      if (petIsExhausted(leader)) { setAttackTargetId((c) => c !== null ? null : c); return; }
+      if (!autoBattleRef.current?.enabled) { setAttackTargetId((c) => c !== null ? null : c); return; }
 
       if (Date.now() < paralyzedUntilRef.current) return;
       setEnemies((prev) => {
+
+        if (prev.length === 0) return spawnEnemies();
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) return spawnEnemies();
-        
-        // Acha o mais próximo do treinador (priorizando o objetivo da Main Quest se existir)
-        let target: Enemy | null = null;
+        // acha o mais próximo do treinador
+        let target = alive[0];
         let bestD = Infinity;
-
-        // Se houver Main Quest ativa, prioriza os alvos dela
-        const mq = idle.mainQuest;
-        const qDef = mq && !mq.completed ? QUEST_DATA.find(x => x.id === mq.currentQuestId) : null;
-        
-        let pool = alive;
-
-        // Se houver Main Quest ativa e prioridade ligada, prioriza os alvos dela
-        if (qDef && idle.autoBattle?.prioritizeQuest) {
-          if (qDef.type === "capture_rarity") {
-            const targets = alive.filter(e => e.rarity === qDef.rarity);
-            if (targets.length > 0) pool = targets;
-          } else if (qDef.type === "capture_species") {
-            const targets = alive.filter(e => e.sp === qDef.species);
-            if (targets.length > 0) pool = targets;
-          }
+        for (const e of alive) {
+          const d = (e.x - trainerPos.x) ** 2 + (e.y - trainerPos.y) ** 2;
+          if (d < bestD) { bestD = d; target = e; }
         }
-
-        for (const e of pool) {
-          if (blacklistRef.current.has(e.id)) continue; // Ignora inimigos na blacklist (travados)
-          const d = (e.x - trainerPosRef.current.x) ** 2 + (e.y - trainerPosRef.current.y) ** 2;
-          if (d < bestD) {
-            bestD = d;
-            target = e;
-          }
-        }
-
-        if (!target) return prev;
-
-        const dist = Math.sqrt(bestD);
-        
-        // Auto-battle: se não tem target ou o target atual sumiu/morreu, persegue o mais próximo
-        // Revisado: persegue inimigos independentemente da distância no mapa (removido o cap de 1200px)
-        if (dist > ATTACK_RANGE) {
-          walkTargetRef.current = { x: target.x, y: target.y, label: "Perseguindo " + target.sp };
-          setAttackTargetId(null);
-          setTargetPet(target);
+        // só entra em combate se estiver perto (raio do ataque)
+        if (Math.sqrt(bestD) > ATTACK_RANGE) {
+          // Alvo fora de alcance: limpa target para não ficar preso mostrando HUD
+          setAttackTargetId((cur) => (cur !== null ? null : cur));
           return prev;
         }
         // marca alvo atual (para virar o pokémon na direção dele)
         setAttackTargetId(target.id);
-        setTargetPet(target);
-
-        const attackFace = target.x >= trainerPosRef.current.x ? "right" : "left";
+        const attackFace = target.x >= trainerPos.x ? "right" : "left";
         if (attackFace !== pokemonFaceRef.current) {
           pokemonFaceRef.current = attackFace;
           setPokemonFace(attackFace);
         }
-
-        // Se estiver em auto-battle e o target morreu ou sumiu, tenta achar outro imediatamente
-        if (target.hp <= 0) {
-          return prev;
-        }
-
 
         // Posição atual do pokémon líder (trilha suave)
         const dir = walkDirRef.current;
@@ -4538,30 +3929,14 @@ function IdlePage() {
         // Dano do meu pokémon → aparece EM CIMA DO INIMIGO (com pequeno delay = impacto do lunge)
         setTimeout(() => {
           pushFxAt(target.x, target.y - 34, isCrit ? `CRIT ${dmg}!` : `${dmg}`, isCrit ? "crit" : "myDmg");
-          // Efeito visual de skill ao atacar o inimigo
-          const myElement = elementOf(leader.species) || "normal";
-          pushFxAt(target.x, target.y - 20, `skill_${myElement}` as FxKind, "myDmg");
         }, 180);
-
+        // (dano rotineiro não vai para o chat — apenas floating text)
 
         // Contra-ataque do inimigo: dano no meu pokémon (reduzido pelo buff de def)
-        const eBase = (SPECIES_BASE as any)[target.sp];
+        const eBase = SPECIES_BASE[target.sp];
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyDef = honeyBonusNow();
         let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
-
-        // Animação de ataque do inimigo (Skill Elementar no jogador)
-        const enemyAnimId = attackAnimIdRef.current++;
-        setEnemyAttackAnim({ 
-          id: enemyAnimId, 
-          fromX: target.x, 
-          fromY: target.y, 
-          toX: followerAtX, 
-          toY: followerAtY, 
-          ts: Date.now(), 
-          element: elementOf(target.sp) 
-        });
-        setTimeout(() => setEnemyAttackAnim((a) => (a && a.id === enemyAnimId ? null : a)), 420);
 
         // ==== Efeitos por mapa (Terry / n2 / n3) ====
         const mapNow = idle.currentMap;
@@ -4689,9 +4064,13 @@ function IdlePage() {
         }
 
         setTimeout(() => {
-          // Efeito visual de skill quando o inimigo ataca o jogador
-          const enemyElement = elementOf(target.sp) || "normal";
-          pushFxAt(followerAtX, followerAtY - 20, `skill_${enemyElement}` as FxKind, "enemyDmg");
+          setEnemyAttackAnim({
+            id: attackAnimIdRef.current++,
+            fromX: target.x, fromY: target.y,
+            toX: followerAtX, toY: followerAtY,
+            ts: Date.now(),
+            element: elementOf(target.sp),
+          });
           pushFxAt(followerAtX, followerAtY - 34, `-${eDmg}`, "enemyDmg");
         }, 480);
         setLeaderHp((h) => {
@@ -4781,15 +4160,14 @@ function IdlePage() {
           const mythEventXpMult = idle.currentMap === "evento_myth" ? 6 : 1;
           const grassOddishXpMult = idle.currentMap === "grass_oddish" ? 3 : 1;
           const xpTitleMult = target.xpTitle ? 2 : 1; // 🏷️ título XP dobra a experiência
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.12 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * xpTitleMult);
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * xpTitleMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
             ? (2 + Math.floor(Math.random() * 4))
             : Math.floor(35 + Math.random() * 55);
           // Se o treinador passou do cap do mapa, ouro colapsa junto com o XP.
-          const mapDefKill = IDLE_MAPS[idle.currentMap];
-          const mapCapGold = mapDefKill?.maxLevel;
+          const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1);
           const gold = Math.max(1, Math.floor(baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
@@ -4813,27 +4191,24 @@ function IdlePage() {
           xpAccumRef.current.map = idle.currentMap;
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
-          
-          // 💎 DROP DE STONES ELEMENTAIS ALEATÓRIAS (Qualquer Pokémon pode dropar, chance baixa)
-          const STONES = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
-          if (Math.random() < 0.05) { // 5% de chance base de drop de stone em qualquer mob
-            drops.push(STONES[Math.floor(Math.random() * STONES.length)]);
-          }
-
           const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
           if (isOddishMap) {
             // 🌿 EVENTO ODISSÉIA ODDISH — SÓ dropa Stones Elementais.
+            // Épico / mítico / mítico shiny / lendário são os únicos que dropam.
             const isValuable = target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
             if (isValuable) {
-              // Drop nerfado: ~25% chance de 1 stone random (acumula com a chance base acima)
+              const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
+              // Drop nerfado: ~25% chance de 1 stone random
               if (Math.random() < 0.25) {
                 const first = STONES[Math.floor(Math.random() * STONES.length)];
                 drops.push(first);
+                // ~8% de chance de vir uma SEGUNDA stone de elemento DIFERENTE
                 if (Math.random() < 0.08) {
                   const rest = STONES.filter((s) => s !== first);
                   drops.push(rest[Math.floor(Math.random() * rest.length)]);
                 }
               }
+              // Míticos/shiny: 40% de chance de bônus de uma stone extra diferente (antes garantido)
               if ((target.rarity === "mythic" || target.rarity === "mythic_shiny") && Math.random() < 0.40) {
                 const already = new Set(drops);
                 const rest = STONES.filter((s) => !already.has(s));
@@ -4845,6 +4220,7 @@ function IdlePage() {
               if (it.id === "pokeball") continue;
               if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
             }
+            // Ultra Ball: raro+, 30% padrão. Mapas Terry/n2/n3 têm chance elevada e Great Ball extra.
             const ultraEligible = target.rarity === "rare" || target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
             const cm = idle.currentMap;
             const isTerryMap = cm === "terry" || cm === "n2" || cm === "n3";
@@ -4878,20 +4254,26 @@ function IdlePage() {
           };
           // 🔻 No Vale dos Fragmentos Vermelhos qualquer pokémon dropa de 5 a 20 fragmentos.
           const gymFloorDrop = GYM_FLOOR_BY_ID[idle.currentMap];
-          
-          // Chance de drop de Red Shards: 10% base em qualquer mapa, 100% no Vale dos Fragmentos ou Ginásio.
-          const redShardChance = (gymFloorDrop || idle.currentMap === "vale_fragmentos") ? 1.0 : 0.10;
-          const redShardGain = (gymFloorDrop
+          const redShardGain = gymFloorDrop
             ? gymFloorDrop.shards[0] + Math.floor(Math.random() * (gymFloorDrop.shards[1] - gymFloorDrop.shards[0] + 1))
             : idle.currentMap === "vale_fragmentos"
             ? 5 + Math.floor(Math.random() * 16)
-            : (RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1)) * (Math.random() < redShardChance ? 1 : 0);
-
-          if (redShardGain > 0) {
-            flyRedShards(target.x, target.y - 20, redShardGain);
-            pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
-            setSessionRedShards(s => s + redShardGain);
+            : (RED_SHARDS_BY_RARITY[target.rarity as string] ?? 1);
+          // 🏰 Drops raros do Ginásio Medieval — itens especiais com taxas muito baixas.
+          if (gymFloorDrop) {
+            const bossBonus = (target.apex || target.eventLegendary) ? 3 : 1;
+            for (const d of GYM_RARE_DROPS[gymFloorDrop.id]) {
+              if (Math.random() < d.chance * (1 + totalBonus) * honeyMult * bossBonus) {
+                drops.push(d.id);
+                if (d.id === "cristal_negro" || d.id === "nucleo_arcano" || d.id === "orb_suprema") {
+                  pushChat(`✦ DROP LENDÁRIO DO GINÁSIO: ${GYM_DROP_LABELS[d.id] ?? d.id}!`, "cap");
+                }
+              }
+            }
           }
+          flyRedShards(target.x, target.y - 20, redShardGain);
+          pushFxAt(target.x + 26, target.y - 26, `+${redShardGain} 🔻`, "gold");
+          setSessionRedShards(s => s + redShardGain);
 
 
           // XP para o líder + drena energia. Se ORB DE TIME estiver ativo, TODOS ganham EXP.
@@ -5079,10 +4461,7 @@ function IdlePage() {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
-                const rKey = target.rarity as string;
-                const rarityMult = (rKey === "mythic" || rKey === "mythic_shiny") ? 0.01 : target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
-
-
+                 const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
                 const gymCapMult = GYM_FLOOR_BY_ID[idle.currentMap]?.captureMult ?? 1;
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult * gymCapMult;
               }
@@ -5154,7 +4533,7 @@ function IdlePage() {
             // Traits não são mais anunciados no chat (só a captura em si).
             // === XP DO TREINADOR (separado do XP do pokémon) ===
             // Base: ~40% do xp do pokémon, escalado pelo nível do inimigo e raridade.
-            const rarityTrainerMult: Record<string, number> = {
+            const rarityTrainerMult: Record<Rarity, number> = {
               common: 1, uncommon: 1.2, rare: 1.5, epic: 2, legendary: 3, mythic: 4.5, mythic_shiny: 6,
             };
             const rMult = rarityTrainerMult[target.rarity] ?? 1;
@@ -5164,13 +4543,12 @@ function IdlePage() {
             const lvScale = lvDiff <= 0 ? 1 : Math.max(0.1, 1 - lvDiff * 0.08);
             // Penalidade extra: se o treinador ultrapassou o teto do mapa, XP colapsa
             // (força migrar de mapa). Vale Verdejante tem teto 30.
-            const mapDef = IDLE_MAPS[s.currentMap];
-            const mapCap = mapDef?.maxLevel ?? Infinity;
+            const mapCap = idle.currentMap === "arena" ? 30 : Infinity;
             const overCap = Math.max(0, trLv - mapCap);
             const capPenalty = overCap > 0 ? Math.max(0.05, 1 - overCap * 0.2) : 1;
             const finalScale = lvScale * capPenalty;
-            const mythEvKillMult = s.currentMap === "evento_myth" ? 6 : 1;
-            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? s.buffs.expMult : 0)) * 0.3 * mythEvKillMult * (target.xpTitle ? 2 : 1)));
+            const mythEvKillMult = idle.currentMap === "evento_myth" ? 6 : 1;
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult * (target.xpTitle ? 2 : 1)));
             const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3)) : 0;
             const totalTrainerXp = killTrainerXp + captureTrainerXp;
             const applied = applyTrainerXp(s, totalTrainerXp);
@@ -5207,70 +4585,9 @@ function IdlePage() {
                 try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
               });
             }
-            // Main Quest progress
-            let nextMainQuest = s.mainQuest ?? { currentQuestId: 1, progress: 0, completed: false };
-            if (!nextMainQuest.completed) {
-              const q = QUEST_DATA.find(x => x.id === nextMainQuest.currentQuestId);
-              if (q) {
-                let match = false;
-                if (captured) {
-                  if (q.type === "capture_rarity" && target.rarity === q.rarity) match = true;
-                  if (q.type === "capture_species" && target.sp === q.species) match = true;
-                }
-                if (q.type === "kill_count") match = true;
-                
-                if (match) {
-                  const newProg = nextMainQuest.progress + 1;
-                  nextMainQuest = { ...nextMainQuest, progress: newProg };
-                  if (newProg >= q.target) {
-                    const r = q.reward;
-                    const bonusItems: Record<string, number> = { ...itemsWithBalls };
-                    if (r.items) {
-                      Object.entries(r.items).forEach(([k, v]) => {
-                        bonusItems[k] = (bonusItems[k] ?? 0) + v;
-                      });
-                    }
-                    const shardGain = r.redshards ?? 0;
-                    const trainerXpGain = r.trainerXp ?? 0;
-                    const trainerLvGain = r.trainerLevels ?? 0;
-
-                    queueMicrotask(() => {
-                      pushChat(`🌟 MAIN QUEST: Objetivo "${q.title}" concluído! Recompensa concedida automaticamente.`, "cap");
-                      playBonus();
-                    });
-
-                    // Aplica recompensas da quest
-                    const questApplied = applyTrainerXp(applied.state, trainerXpGain, trainerLvGain);
-                    if (questApplied.leveledTo != null) {
-                      const finalLv = questApplied.leveledTo;
-                      queueMicrotask(() => {
-                        pushChat(`🎓 TREINADOR subiu para o nível ${finalLv}!`, "lv");
-                        pushFxAt(trainerPos.x, trainerPos.y - 130, `TREINADOR LV ${finalLv}!`, "capture");
-                      });
-                    }
-
-                    return {
-                      ...questApplied.state,
-                      pending: { ...s.pending, gold: 0, crystals: 0, redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + redShardGain + shardGain) },
-                      bank: { ...s.bank, gold: s.bank.gold + gold + s.pending.gold },
-                      totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
-                      grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
-                      tasks: nt2,
-                      items: bonusItems,
-                      caughtSpecies: newCaught,
-                      seenSpecies: newSeen,
-                      collection: newCollection,
-                      mainQuest: { ...nextMainQuest, progress: newProg, completed: true },
-                    };
-                  }
-                }
-              }
-            }
-
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: 0, crystals: 0, redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + redShardGain) },
-              bank: { ...s.bank, gold: s.bank.gold + gold + s.pending.gold },
+              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0), redshards: Math.min(RED_SHARD_PENDING_CAP, (s.pending.redshards ?? 0) + redShardGain) },
               totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
@@ -5278,7 +4595,6 @@ function IdlePage() {
               caughtSpecies: newCaught,
               seenSpecies: newSeen,
               collection: newCollection,
-              mainQuest: nextMainQuest,
             };
           });
         }
@@ -5295,15 +4611,11 @@ function IdlePage() {
           ...s,
           lastTickAt: Date.now(),
           pending: {
-            gold: 0,
+            gold: s.pending.gold + inc.g,
             rubies: s.pending.rubies + inc.r,
-            crystals: 0,
+            crystals: s.pending.crystals + inc.c,
             redshards: Math.min(RED_SHARD_PENDING_CAP, s.pending.redshards ?? 0),
           },
-          bank: {
-            ...s.bank,
-            gold: s.bank.gold + inc.g + s.pending.gold
-          }
         };
         const nt = ns.tasks.map((t) => t.id === "t2" && !t.done
           ? { ...t, progress: Math.min(t.target, Math.floor(ns.pending.gold + ns.totals.gold)), done: (ns.pending.gold + ns.totals.gold) >= t.target }
@@ -5325,8 +4637,7 @@ function IdlePage() {
     setIdle((s) => {
       const col = s.collection ?? [];
       const active = [...team, ...restingBench];
-      const byUid = new Map<string, PetInstance>();
-      for (const p of active) byUid.set(p.uid, p);
+      const byUid = new Map(active.map((p) => [p.uid, p]));
       let changed = false;
       const nextCol = col.map((e) => {
         const live = byUid.get(e.uid);
@@ -5339,16 +4650,15 @@ function IdlePage() {
       });
       const known = new Set(nextCol.map((e) => e.uid));
       const missing: CollectionEntry[] = [];
-      for (const p of active) {
+      for (const p of [...team, ...restingBench]) {
         if (known.has(p.uid)) continue;
-        if (consumedUidsRef.current.has(p.uid)) continue;
+        if (consumedUidsRef.current.has(p.uid)) continue; // consumido intencionalmente
         missing.push({ uid: p.uid, species: p.species, level: p.level, xp: p.xp ?? 0, rarity: p.rarity, capturedAt: Date.now() });
       }
       if (!changed && missing.length === 0) return s;
       return { ...s, collection: [...nextCol, ...missing] };
     });
-    // Fix: Targeted properties to avoid deep-equal re-renders
-  }, [team.length, restingBench.length]);
+  }, [team, restingBench]);
 
   useEffect(() => {
     const iv = setInterval(() => {
@@ -5579,41 +4889,6 @@ function IdlePage() {
     }, 1000);
     return () => clearInterval(iv);
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ==== Main Quest Timer: Reset a cada 1 hora ====
-  useEffect(() => {
-    const iv = setInterval(() => {
-      const nowT = Date.now();
-      setIdle((s) => {
-        const mq = s.mainQuest;
-        if (!mq) return s;
-        if (mq.expiresAt && nowT >= mq.expiresAt) {
-          // Reset: próxima quest aleatória ou sequencial
-          const nextId = (mq.currentQuestId % QUEST_DATA.length) + 1;
-          pushChat(`⏳ Tempo esgotado! Uma nova Main Quest foi atribuída.`, "info");
-          return {
-            ...s,
-            mainQuest: {
-              currentQuestId: nextId,
-              progress: 0,
-              completed: false,
-              minimized: mq.minimized ?? false,
-              expiresAt: nowT + 3600000
-            }
-          };
-        }
-        // Inicializa expiração se não houver
-        if (!mq.expiresAt) {
-          return {
-            ...s,
-            mainQuest: { ...mq, expiresAt: nowT + 3600000 }
-          };
-        }
-        return s;
-      });
-    }, 5000);
-    return () => clearInterval(iv);
-  }, []);
 
 
 
@@ -6262,31 +5537,36 @@ function IdlePage() {
   // Só permite spawn de espécies com GIF disponível.
   const hasGif = (sp: Species) => !!GIF[sp];
   const ARENA_SPAWN_TABLE: { sp: Species; w: number; forcedRarity?: Rarity }[] = ([
-    // Comuns (frequentes - 75% da tabela)
-    { sp: "caterpie" as Species,   w: 25 },
-    { sp: "weedle" as Species,     w: 25 },
-    { sp: "pidgey" as Species,     w: 20 },
-    { sp: "rattata_f" as Species,  w: 20 },
-    { sp: "oddish" as Species,     w: 15 },
-    { sp: "bellsprout" as Species, w: 15 },
-    { sp: "metapod" as Species,    w: 10 },
-    { sp: "kakuna" as Species,     w: 10 },
-    // Incomuns (20% da tabela)
-    { sp: "sandshrew" as Species,  w: 10, forcedRarity: "uncommon" },
-    { sp: "mankey" as Species,     w: 10, forcedRarity: "uncommon" },
-    { sp: "venonat" as Species,    w: 5,  forcedRarity: "uncommon" },
-    { sp: "paras" as Species,      w: 8,  forcedRarity: "uncommon" },
-    { sp: "poliwag" as Species,    w: 8,  forcedRarity: "uncommon" },
-    // Raros ★ (5% da tabela)
-    { sp: "bulbasaur" as Species,  w: 2, forcedRarity: "rare" },
-    { sp: "growlithe" as Species,  w: 2, forcedRarity: "rare" },
-    { sp: "vulpix" as Species,     w: 2, forcedRarity: "rare" },
-    { sp: "abra" as Species,       w: 1, forcedRarity: "rare" },
-    { sp: "clefairy" as Species,   w: 1, forcedRarity: "rare" },
-    // (Épico só acima do Lv 50 em outros mapas)
+    // Comuns (frequentes)
+    { sp: "caterpie" as Species,   w: 14 },
+    { sp: "weedle" as Species,     w: 14 },
+    { sp: "pidgey" as Species,     w: 12 },
+    { sp: "rattata_f" as Species,  w: 12 },
+    { sp: "oddish" as Species,     w: 10 },
+    { sp: "bellsprout" as Species, w: 10 },
+    { sp: "metapod" as Species,    w: 6 },
+    { sp: "kakuna" as Species,     w: 6 },
+    // Incomuns
+    { sp: "sandshrew" as Species,  w: 7, forcedRarity: "uncommon" },
+    { sp: "mankey" as Species,     w: 7, forcedRarity: "uncommon" },
+    { sp: "venonat" as Species,    w: 2, forcedRarity: "uncommon" },
+    { sp: "paras" as Species,      w: 7, forcedRarity: "uncommon" },
+    { sp: "poliwag" as Species,    w: 7, forcedRarity: "uncommon" },
+    { sp: "nidoran_f" as Species,  w: 6, forcedRarity: "uncommon" },
+    { sp: "pidgeotto" as Species,  w: 4, forcedRarity: "uncommon" },
+    { sp: "raticate_f" as Species, w: 4, forcedRarity: "uncommon" },
+    // Raros ★ (mais fortes)
+    { sp: "bulbasaur" as Species,  w: 3, forcedRarity: "rare" },
+    { sp: "growlithe" as Species,  w: 3, forcedRarity: "rare" },
+    { sp: "vulpix" as Species,     w: 3, forcedRarity: "rare" },
+    { sp: "abra" as Species,       w: 3, forcedRarity: "rare" },
+    { sp: "clefairy" as Species,   w: 3, forcedRarity: "rare" },
+    { sp: "cubone" as Species,     w: 3, forcedRarity: "rare" },
+    { sp: "magnemite" as Species,  w: 3, forcedRarity: "rare" },
+    { sp: "gloom" as Species,      w: 2, forcedRarity: "rare" },
+    { sp: "parasect" as Species,   w: 2, forcedRarity: "rare" },
+    // (Épico só é liberado quando o líder chega ao nível 50 — em outros mapas)
   ] as { sp: Species; w: number; forcedRarity?: Rarity }[]).filter((e) => hasGif(e.sp));
-
-
 
   function pickArenaSpawn(): { sp: Species; forcedRarity?: Rarity } {
     const total = ARENA_SPAWN_TABLE.reduce((s, e) => s + e.w, 0);
@@ -6378,12 +5658,10 @@ function IdlePage() {
             "charizard", "charizard_shiny", "blaziken", "magmortar", "arcanine", "moltres",
             "dragonite", "dragonite_shiny", "dragonair", "gyarados",
             "tyranitar", "infernape", "krookodile", "machamp", "nidoking", "nidoking_shiny",
+            "rapidash", "rapidash_shiny", "skarmory", "ho_oh", "groudon",
+            "ursaring", "hariyama", "primeape",
           ] as Species[];
           mapLvRange = [700, 1200];
-        }
-        if (idle.currentMap === "continente_4") {
-          pool = ["charizard_shiny", "dragonite_shiny", "gengar", "mewtwo", "rayquaza", "darkrai", "dialga", "deoxys", "groudon"] as Species[];
-          mapLvRange = [1000, 5000];
         }
         // ═══ CADEIA ABISSAL — Lv 1000-3000 ═══
         if (idle.currentMap === "abismo_gelo") {
@@ -6466,7 +5744,6 @@ function IdlePage() {
         } else if (idle.currentMap === "grass_oddish") {
           // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
           // Captura usa as MESMAS taxas globais do servidor.
-
           const shinyRoll = Math.random();
           if (shinyRoll < 0.12) {
             pool = ["oddish_shiny"] as Species[];
@@ -6775,14 +6052,7 @@ function IdlePage() {
       // 🏷️ TÍTULO DE XP — a partir do Lv 5.000 de treinador, alguns selvagens
       // nascem com o título "XP" acima da cabeça e valem 2x de experiência.
       const xpTitle = (idle.trainerLevel ?? 1) >= 5000 && Math.random() < 0.12;
-      // 💎 DROP DE STONES ELEMENTAIS ALEATÓRIAS (Qualquer Pokémon pode dropar, chance baixa)
-      const STONES_LIST = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
-      const enemyDrops: string[] = [];
-      if (Math.random() < 0.05) { // 5% de chance base de drop de stone
-        enemyDrops.push(STONES_LIST[Math.floor(Math.random() * STONES_LIST.length)]);
-      }
-
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, xpTitle, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, drops: enemyDrops } as any;
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, xpTitle, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss };
 
 
     }
@@ -6834,7 +6104,7 @@ function IdlePage() {
       })() }
     : rawMap;
   const visibleBuildings = BUILDINGS;
-  const viewportBg = (idle.currentMap === "caverna" || idle.currentMap === "continente_4" || idle.currentMap === "continente_4_b") ? "#1f2028" : "#000000";
+  const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#1a3d1a";
 
   const collect = () => {
     setIdle((s) => {
@@ -7084,9 +6354,9 @@ function IdlePage() {
     stone_grass: 10, stone_fire: 10, stone_water: 10,
     stone_electric: 10, stone_dark: 15, stone_dragon: 20,
   };
-  // Sell 1000 stones → 8 safiras (250:2 = 125:1 ratio kept, 1000 = 8)
-  const STONE_SAFIRA_BATCH = 1000;
-  const STONE_SAFIRA_PER_BATCH = 8;
+  // Sell 250 stones → 2 safiras
+  const STONE_SAFIRA_BATCH = 250;
+  const STONE_SAFIRA_PER_BATCH = 2;
 
 
   const sellItem = (id: string, qty = 1, currency: "gold" | "crystal" | "safira" = "gold") => {
@@ -7702,224 +6972,93 @@ function IdlePage() {
   );
 
   return (
-    <>
-    <div className="game-root-container" style={{
+    <div style={{
       height: "100vh",
       background: "#0b0510",
       color: "#f3e5c5",
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
-      position: "relative",
-      display: "grid",
-      gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
-      gap: "8px",
-      padding: "8px"
+      position: "relative"
     }}>
-      <div className="hud-left-column" style={{ display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden", zIndex: 10 }}>
-        <TrainerProfileHUD 
-          identity={identity} 
-          trainerLevel={idle.trainerLevel || 1} 
-          trainerXp={idle.trainerXp || 0} 
-          xpNext={trainerXpToNext(idle.trainerLevel || 1)} 
-          onOpenAdmin={() => setIsAdminOpen(true)}
-        />
-        <TeamPanelHUD 
-          team={team} 
-          leaderHp={leaderHp} 
-          calcIdleMaxHp={calcIdleMaxHp} 
-          onOpenPokemon={(p: any) => setStatsCardPet(p)}
-        />
-        <div style={{ flex: 1, background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px", letterSpacing: "1px" }}>REGISTRO DE BATALHA</div>
-          <div className="battle-log" style={{ flex: 1, overflowY: "auto", fontSize: "11px", color: "#dcc8e0", display: "flex", flexDirection: "column", gap: "4px" }}>
-             {chat.slice(-20).map((m: any, i: number) => (
-               <div key={i} style={{ borderLeft: "2px solid rgba(255,255,255,0.1)", paddingLeft: "6px" }}>{m.text}</div>
-             ))}
+      {/* HUD Superior Moderna */}
+      <div className="modern-top-bar" style={{ pointerEvents: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, display: 'flex', justifyContent: 'space-between', padding: '10px 20px' }}>
+        <div className="trainer-card-compact" style={{ pointerEvents: 'auto' }}>
+          <div className="trainer-avatar-glow">
+            <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${identity?.email || "guest"}&backgroundColor=b6e3f4`} alt="Avatar" />
           </div>
-        </div>
-      </div>
-      <div
-        className="legacy-world-viewport"
-        ref={viewportRef}
-        onClick={(e) => {
-          const t = e.target as HTMLElement;
-          if (t.closest && t.closest("button, a, input, select, textarea")) return;
-          const rect = viewportRef.current?.getBoundingClientRect();
-          if (!rect) return;
-          const sx = e.clientX - rect.left;
-          const sy = e.clientY - rect.top;
-          const wx = renderCamX + sx / effectiveZoom;
-          const wy = renderCamY + sy / effectiveZoom;
-          walkTargetRef.current = { x: wx, y: wy, label: "destino", resumeAuto: autoRef.current };
-          setWalkingTo("destino");
-          setAuto(false);
-        }}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          overflow: 'hidden',
-          background: viewportBg,
-          cursor: 'crosshair',
-          zIndex: 0, pointerEvents: "auto" }}>
-        <div 
-          className="legacy-world-layer"
-          style={{
-            position: "absolute",
-            left: 0, top: 0,
-            width: WORLD_W, height: WORLD_H,
-            transform: `translate3d(${-renderCamX * effectiveZoom}px, ${-renderCamY * effectiveZoom}px, 0) scale(${effectiveZoom})`,
-            transformOrigin: "0 0",
-            transition: "none",
-            backgroundColor: viewportBg,
-            overflow: "visible", 
-            contain: "layout style",
-            willChange: "transform",
-            backfaceVisibility: "hidden",
-            fontSize: `${1 / effectiveZoom}px`,
-          }}
-        >
-          {/* Fundo que preenche o mapa para evitar o "void" verde ou preto */}
-          <div style={{
-            position: "absolute",
-            inset: -20000,
-            backgroundColor: viewportBg, 
-            zIndex: -1
-          }} />
-          <img
-            src={map.bg}
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-            style={{ 
-              width: WORLD_W, 
-              height: WORLD_H, 
-              imageRendering: "pixelated",
-              position: "relative",
-              transform: "translateZ(0)",
-              backfaceVisibility: "hidden",
-              zIndex: 0,
-            }}
-          />
-          {obstacles.map((o) => (
-            <img key={`obs-${o.id}`} src={o.src} alt="" style={{
-              position: "absolute",
-              left: o.x - o.w / 2,
-              top: o.y - o.h + 8,
-              width: o.w, height: o.h,
-              opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
-              imageRendering: "pixelated",
-              pointerEvents: "none",
-              transition: "opacity 120ms linear",
-              zIndex: Math.round(o.y),
-              filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
-            }} />
-          ))}
-        </div>
-      </div>
-
-      <div className="hud-right-column" style={{ display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden", zIndex: 10 }}>
-        <div style={{ background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px" }}>
-          <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px" }}>MAPA ATUAL</div>
-          <div style={{ fontSize: "14px", fontWeight: 800, color: "#fff" }}>{map.name}</div>
-          <div style={{ fontSize: "11px", color: "#8a7a9c" }}>Lv. {map.minLevel}-{map.maxLevel}</div>
-        </div>
-        
-        <div style={{ background: "#1a0f26", border: "1px solid rgba(126, 242, 122, 0.3)", borderRadius: "12px", padding: "12px" }}>
-          <div style={{ fontSize: "10px", fontWeight: 900, color: "#7ef27a", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
-            <img src={HUD_ASSETS.collectIcon.url} width={16} height={16} style={{ imageRendering: "pixelated" }} /> COLETA
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
-            <span style={{ color: "#dcc8e0" }}>Ouro Farmado:</span>
-            <span style={{ color: "#f5cf6b", fontWeight: 800 }}>💰 {fmtK(idle.pending.gold)}</span>
+          <div className="trainer-info-minimal">
+            <div className="trainer-name-row">
+              <span className="trainer-name-text">{identity?.name || "Treinador"}</span>
+              <span className="trainer-lv-badge">Lv.{idle.trainerLevel || 1}</span>
+            </div>
+            <div className="stats-pill-group">
+              <div className="stat-pill-hp">
+                <div className="stat-pill-fill" style={{ width: "100%", background: "var(--hp-gradient)" }} />
+                <span className="stat-pill-label">HP 100%</span>
+              </div>
+              <div className="stat-pill-xp">
+                <div className="stat-pill-fill" style={{ width: `${Math.min(100, ((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%`, background: "var(--xp-gradient)" }} />
+                <span className="stat-pill-label">XP {Math.floor(((idle.trainerXp || 0) / ((idle.trainerLevel || 1) * 100)) * 100)}%</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div style={{ flex: 1, background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px", overflowY: "auto" }}>
-           <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px" }}>TAREFAS</div>
-           <div style={{ fontSize: "11px", color: "#dcc8e0" }}>Nenhuma missão ativa</div>
+        <div className="currency-pill-container" style={{ pointerEvents: 'auto', display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div className="currency-pill">
+            <span style={{ fontSize: '14px' }}>🪙</span>
+            <span>{idle.bank.gold.toLocaleString()}</span>
+          </div>
+          <div className="currency-pill">
+            <span style={{ fontSize: '14px' }}>💎</span>
+            <span>{idle.bank.crystals.toLocaleString()}</span>
+          </div>
+          <div className="currency-pill" title="Fragmento Vermelho">
+            <span style={{ fontSize: '14px' }}>🔻</span>
+            <span>{Math.floor(idle.items?.red_crystal_shard ?? 0)}</span>
+          </div>
         </div>
       </div>
 
-      <div className="modern-bottom-dock" style={{
-        position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
-        zIndex: 1000, display: "flex", gap: "12px", background: "rgba(26, 15, 38, 0.95)",
-        padding: "8px 20px", borderRadius: "20px", border: "2px solid #f5cf6b44",
-        boxShadow: "0 10px 40px rgba(0,0,0,0.8)"
-      }}>
-        {[
-          { id: "inicio", icon: HUD_ASSETS.navInicio.url, label: "INÍCIO", action: () => setTab("batalha") },
-          { id: "pokemon", icon: HUD_ASSETS.navPokemon.url, label: "POKÉMON", action: () => setTab("pokemon") },
-          { id: "mochila", icon: HUD_ASSETS.navMochila.url, label: "MOCHILA", action: () => setTab("mochila") },
-          { id: "melhorias", icon: HUD_ASSETS.navMelhorias.url, label: "MELHORIAS", action: () => setTab("melhorias") },
-          { id: "colecao", icon: HUD_ASSETS.navColecao.url, label: "COLEÇÃO", action: () => setTab("colecao") },
-          { id: "loja", icon: HUD_ASSETS.navLoja.url, label: "LOJA", action: () => setTab("loja") },
+      {/* Menu Lateral Direito */}
+      <div className="right-system-menu" style={{ position: 'fixed', right: '15px', top: '50%', transform: 'translateY(-50%)', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <button className="menu-icon-btn" onClick={() => setTab("mochila")} title="Mochila">
+          <span style={{ fontSize: '24px' }}>🎒</span>
+        </button>
+        <button className="menu-icon-btn" onClick={() => setTab("pokemon")} title="Equipe">
+          <span style={{ fontSize: '24px' }}>⚔️</span>
+        </button>
+        <button className="menu-icon-btn" onClick={() => setWorldMapOpen(true)} title="Mapa Mundi">
+          <span style={{ fontSize: '24px' }}>🗺️</span>
+        </button>
+        <button className="menu-icon-btn" onClick={() => setTab("loja")} title="Loja VIP">
+          <span style={{ fontSize: '24px' }}>💎</span>
+        </button>
+      </div>
 
-          { id: "wallet", icon: HUD_ASSETS.navWallet.url, label: "CÂMBIO", action: () => setTab("wallet") },
-          { id: "market", icon: HUD_ASSETS.navMarket.url, label: "MERCADO", action: () => setTab("market") },
-        ].map(item => (
-          <button key={item.id} onClick={item.action} style={{
-            background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column",
-            alignItems: "center", gap: "4px", minWidth: "60px", transition: "transform 0.2s"
-          }} className="dock-item">
-            <img src={item.icon} style={{ width: "34px", height: "34px", imageRendering: "pixelated" }} />
-            <span style={{ fontSize: "9px", fontWeight: 900, color: "#f3e5c5" }}>{item.label}</span>
+      {/* Dock Inferior */}
+      <div className="modern-bottom-dock" style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
+        <div className="dock-inner" style={{ display: 'flex', gap: '15px', padding: '8px 20px' }}>
+          <button className={`dock-item ${tab === 'batalha' ? 'active' : ''}`} onClick={() => setTab("batalha")}>
+            <span style={{ fontSize: '24px' }}>🔥</span>
+            <span>BATALHA</span>
           </button>
-        ))}
+          <button className={`dock-item ${tab === 'colecao' ? 'active' : ''}`} onClick={() => setTab("colecao")}>
+            <span style={{ fontSize: '24px' }}>📔</span>
+            <span>COLEÇÃO</span>
+          </button>
+          <button className={`dock-item ${tab === 'market' ? 'active' : ''}`} onClick={() => setTab("market")}>
+            <span style={{ fontSize: '24px' }}>⚖️</span>
+            <span>MERCADO</span>
+          </button>
+          <button className={`dock-item ${tab === 'melhorias' ? 'active' : ''}`} onClick={() => setTab("melhorias")}>
+            <span style={{ fontSize: '24px' }}>⚡</span>
+            <span>UPGRADES</span>
+          </button>
+        </div>
       </div>
 
-      <style>{`
-        .modern-floating-window {
-          background: rgba(11, 5, 20, 0.98) !important;
-          backdrop-filter: blur(16px) !important;
-          box-shadow: 0 0 60px rgba(0,0,0,0.85), inset 0 0 40px rgba(167, 139, 250, 0.05) !important;
-        }
-        .side-btn {
-          transition: transform 0.2s, background 0.2s, border-color 0.2s;
-        }
-        .side-btn:hover {
-          transform: scale(1.1);
-          background: rgba(201, 184, 255, 0.2) !important;
-          border-color: #fff !important;
-        }
-        .side-btn:active {
-          transform: scale(0.95);
-        }
-        .dock-item:hover {
-          transform: translateY(-5px);
-          opacity: 0.8;
-        }
-        .dock-item:active {
-          transform: translateY(0) scale(0.9);
-        }
-        .resource-item {
-          transition: transform 0.2s;
-        }
-        .resource-item:hover {
-          transform: translateY(-2px);
-        }
-        .modern-top-bar button:hover {
-          transform: rotate(15deg);
-        }
-        .top-cfg-btn:hover {
-          background: rgba(201,184,255,0.25) !important;
-          transform: rotate(90deg) scale(1.1);
-        }
-        .side-icon-bar button {
-          transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .side-icon-bar button:hover {
-          transform: translateX(-5px);
-          box-shadow: 0 0 15px rgba(201,184,255,0.4);
-        }
-        .chat-floating-panel:hover {
-           max-height: 400px !important;
-        }
-      `}</style>
-
-
-
-
-      
+      <div className="game-viewport-container" style={{ position: 'absolute', inset: 0, zIndex: 0 }}></div>
 
 
 
@@ -8054,7 +7193,7 @@ function IdlePage() {
         <div
           onClick={() => setOddishNoStone(null)}
           style={{
-            position: "fixed", inset: 0, zIndex: 1000000,
+            position: "fixed", inset: 0, zIndex: 10000,
             display: "grid", placeItems: "center",
             background: "radial-gradient(circle at 50% 45%, rgba(30,90,40,0.75) 0%, rgba(6,20,10,0.92) 70%)",
             backdropFilter: "blur(8px)",
@@ -8147,7 +7286,7 @@ function IdlePage() {
         <div
           onClick={() => setOddishRankOpen(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 1000000,
+            position: "fixed", inset: 0, zIndex: 10000,
             display: "grid", placeItems: "center",
             background: "radial-gradient(circle at 50% 45%, rgba(20,60,30,0.9) 0%, rgba(4,14,8,0.96) 70%)",
             backdropFilter: "blur(6px)",
@@ -8256,7 +7395,7 @@ function IdlePage() {
         <div
           onClick={() => setGrassOddishSplash(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 999999,
+            position: "fixed", inset: 0, zIndex: 9999,
             display: "grid", placeItems: "center",
             background: "radial-gradient(circle at 50% 45%, rgba(30,90,40,0.85) 0%, rgba(6,20,10,0.94) 70%)",
             backdropFilter: "blur(6px)",
@@ -8340,7 +7479,7 @@ function IdlePage() {
             textShadow: "0 0 8px rgba(200,240,255,0.9)",
             boxShadow: "0 0 18px rgba(120,200,255,0.7)",
             pointerEvents: "none",
-          }}>BLOK RANKED DO JOGO</div>
+          }}>❄ RANKED CRAFT CONGELADO — PONTOS BLOQUEADOS ❄</div>
         </>
       )}
 
@@ -8491,196 +7630,650 @@ function IdlePage() {
       )}
 
       <div className="idle-grid" style={{
-        position: 'relative',
+        display: "grid",
+        gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
+        gridTemplateRows: "1fr auto",
+        gap: 8, padding: 8,
         height: "100vh",
         overflow: "hidden",
       }}>
 
-        {/* ============ COLUNA ESQUERDA (TREINADOR) ============ */}
-        {/* Antigo Painel de Treinador (Removido) */}
 
 
-
-
-
-
-        {/* ============ COLUNA DIREITA ============ */}
-        {/* ============ COLUNA DIREITA (RADAR) ============ */}
-        {/* Portal para o body: o bloco pai fica dentro da camada do mundo (transform),
-            o que jogava o radar fora da tela. O portal isola o radar da câmera. */}
-        {typeof document !== "undefined" && createPortal(
-        <div className="hud-right-column" style={{ 
-          position: 'fixed', top: '75px', right: '20px', width: '250px',
-          display: "flex", flexDirection: "column", gap: 15, zIndex: 100000,
-          pointerEvents: 'none'
-        }}>
-          {/* Refactored Radar HUD as requested - Style based on image-32.png */}
-          {/* Refactored Radar HUD - Interactive Map & Player Marker */}
-          <div 
-            style={{
-            width: '200px', height: '200px', background: 'rgba(0, 0, 0, 0.5)',
-            border: '4px solid rgba(245, 207, 107, 0.8)', borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 35px rgba(0,0,0,0.9), inset 0 0 25px rgba(245,207,107,0.3)', 
-            overflow: 'hidden', position: 'relative', alignSelf: 'flex-end',
-            backdropFilter: 'blur(8px)', pointerEvents: 'auto'
-          }}>
-            {/* Dynamic Map Background - Moves with the player */}
-            <div style={{
-              position: 'absolute', 
-              width: '1200px', height: '1200px',
-              backgroundImage: `url(${IDLE_MAPS[idle.currentMap || 'vale_verdejante']?.bg || ''})`,
-              backgroundSize: '100% 100%',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'center',
-              filter: 'brightness(1.0) contrast(1.1)',
-              transition: 'transform 0.1s ease-out',
-              // Calculate correct transform for 1200px map image in 200px container
-              // trainerPos is 0 to WORLD_W/WORLD_H (2560)
-              // We need to map (trainerPos.x / WORLD_W) to the 1200px image range
-              transform: `translate(calc(-${(trainerPos.x / WORLD_W) * 100}% + 100px), calc(-${(trainerPos.y / WORLD_H) * 100}% + 100px)) scale(${zoom})`,
-              display: 'block', opacity: 1, visibility: 'visible', zIndex: 1,
-              left: '0', top: '0',
-            }} />
-
-            {/* Fixed Indicator of player position (always centered in radar) */}
-            <div style={{
-              position: 'absolute',
-              width: '12px', height: '12px',
-              background: '#f5cf6b', borderRadius: '50%',
-              boxShadow: '0 0 15px #f5cf6b, 0 0 5px #fff',
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 11,
-              border: '2px solid #000'
-            }} />
-
-            {/* Grid Overlay */}
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'linear-gradient(rgba(245,207,107,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(245,207,107,0.1) 1px, transparent 1px)',
-              backgroundSize: '20px 20px', pointerEvents: 'none', opacity: 0.3
-            }} />
-            
-            {/* Pulse effect following player (centered) */}
-            <div style={{
-              position: 'absolute', width: '30px', height: '30px', border: '2px solid rgba(245,207,107,0.6)',
-              borderRadius: '50%', zIndex: 9, animation: 'radarPulse 2s ease-out infinite',
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)'
-            }} />
-
-            {/* Glass Border Overlay for extra elegance */}
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: '50%',
-              border: '1px solid rgba(255,255,255,0.1)',
-              pointerEvents: 'none', zIndex: 12
-            }} />
-
-            {/* Integrated Zoom Controls - Positioned next to radar as in image-32.png */}
-            <div style={{
-              position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-              display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 20, alignItems: 'center'
-            }}>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(2.0, z + 0.1)); }}
-                style={{ ...zoomBtn, borderRadius: '50%', width: '32px', height: '32px', background: 'rgba(0,0,0,0.8)', border: '2px solid rgba(245,207,107,0.6)', boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
-              >
-                <Plus size={16} />
-              </button>
-              
+        {/* ============ COLUNA ESQUERDA ============ */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+          {(() => {
+            const trainerLv = idle.trainerLevel ?? 1;
+            const nextAt = trainerXpToNext(trainerLv);
+            const curXp = idle.trainerXp ?? 0;
+            const xpPct = Math.max(0, Math.min(100, (curXp / nextAt) * 100));
+            const name = (identity?.name || "Treinador").slice(0, 14);
+            const vip = isVip();
+            const accent = vip ? "#ffd66b" : "#c9b8ff";
+            return (
               <div style={{
-                background: 'rgba(0,0,0,0.7)', padding: '2px 6px', borderRadius: '10px',
-                border: '1px solid rgba(245,207,107,0.3)', color: '#f5cf6b',
-                fontSize: '10px', fontWeight: 900, textShadow: '0 1px 2px #000'
+                position: "relative",
+                padding: "7px 9px 7px 7px",
+                background:
+                  "linear-gradient(180deg, rgba(36,20,44,0.96) 0%, rgba(14,8,22,0.98) 100%)",
+                border: `1px solid ${accent}55`,
+                borderRadius: 10,
+                boxShadow:
+                  `0 3px 12px rgba(0,0,0,0.55), inset 0 1px 0 ${accent}33, 0 0 14px ${accent}18`,
+                display: "flex", alignItems: "center", gap: 9,
+                overflow: "hidden",
               }}>
-                {Math.round(effectiveZoom * 100)}%
-              </div>
+                {/* linha superior dourada muito fina */}
+                <span style={{
+                  position: "absolute", top: 0, left: 8, right: 8, height: 1,
+                  background: `linear-gradient(90deg, transparent, ${accent}bb, transparent)`,
+                }} />
 
-              <button 
-                onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(0.65, z - 0.1)); }}
-                style={{ ...zoomBtn, borderRadius: '50%', width: '32px', height: '32px', background: 'rgba(0,0,0,0.8)', border: '2px solid rgba(245,207,107,0.6)', boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
-              >
-                <div style={{ width: '10px', height: '2px', background: '#f5cf6b' }} />
-              </button>
-            </div>
-
-            <style>{`
-              @keyframes radarScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-              @keyframes radarPulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
-            `}</style>
-          </div>
-        </div>, document.body)}
-      </div>
-
-
-      {rankOpen && createPortal(
-        <div
-          onClick={() => setRankOpen(false)}
-          style={{
-            position: "fixed", inset: 0,
-            background: "radial-gradient(ellipse at center, rgba(30,15,50,0.85), rgba(0,0,0,0.92))",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 2147483647, padding: 16,
-            backdropFilter: "blur(6px)",
-            WebkitBackdropFilter: "blur(6px)",
-            fontFamily: "inherit",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "min(680px, 96vw)", maxHeight: "90vh", display: "flex", flexDirection: "column",
-              background:
-                "radial-gradient(ellipse at top, rgba(255,60,80,0.18), transparent 60%), linear-gradient(180deg, #140a24 0%, #1c1030 45%, #2a1642 100%)",
-              border: "2px solid transparent",
-              borderRadius: 18,
-              backgroundClip: "padding-box",
-              boxShadow:
-                "0 25px 80px rgba(0,0,0,0.9), 0 0 60px rgba(255,214,80,0.28), 0 0 40px rgba(255,60,80,0.25), inset 0 1px 0 rgba(255,255,255,0.08)",
-              color: "#ffe9a8",
-              overflow: "hidden",
-              position: "relative",
-            }}
-          >
-            <div style={{
-              position: "absolute", inset: 0, borderRadius: 18, pointerEvents: "none",
-              background: "linear-gradient(135deg, #ffd94d 0%, #ff2a4d 50%, #ffd94d 100%)",
-              padding: 2, WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
-              WebkitMaskComposite: "xor", maskComposite: "exclude",
-            }} />
-
-            <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "18px 20px",
-              background: "linear-gradient(180deg, rgba(255,214,80,0.22) 0%, rgba(255,60,80,0.12) 60%, rgba(0,0,0,0.15) 100%)",
-              borderBottom: "1px solid rgba(255,214,80,0.35)",
-              position: "relative",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <img
-                  src={assetUrlFromJson(rankMedalsRubyAsset)}
-                  alt=""
-                  width={56}
-                  height={56}
-                  style={{ filter: "drop-shadow(0 0 10px rgba(255,60,80,0.6)) drop-shadow(0 0 6px rgba(255,214,80,0.5))" }}
-                />
-                <div>
+                {/* Medalhão circular do avatar */}
+                <div style={{
+                  width: 52, height: 52, flexShrink: 0,
+                  borderRadius: "50%",
+                  background: `conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)`,
+                  padding: 2,
+                  boxShadow: `0 3px 8px rgba(0,0,0,0.65), 0 0 14px ${accent}55, inset 0 0 3px rgba(0,0,0,0.4)`,
+                  position: "relative",
+                }}>
                   <div style={{
-                    fontWeight: 900, fontSize: 20, letterSpacing: 1.2,
-                    background: "linear-gradient(90deg,#ffd94d,#ffb347,#ff5577,#ffd94d)",
-                    backgroundSize: "200% 100%",
-                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                    animation: "shimmerRank 4s linear infinite",
-                  }}>RANKING GLOBAL</div>
-                  <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
-                    🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
+                    width: "100%", height: "100%", borderRadius: "50%",
+                    background: "radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)",
+                    display: "grid", placeItems: "center", overflow: "hidden",
+                    border: "1.5px solid #0b0510",
+                    boxShadow: "inset 0 0 6px rgba(0,0,0,0.8)",
+                  }}>
+                    <img
+                      src={assetUrlFromJson(trainerAvatarAsset)}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
                   </div>
+                  {/* Selo de nível — pendurado no medalhão */}
+                  <div style={{
+                    position: "absolute", bottom: -4, right: -4,
+                    minWidth: 22, height: 20, padding: "0 5px",
+                    background: "linear-gradient(180deg, #ffe89a, #c48e2a 55%, #6b3d0a)",
+                    color: "#231407", fontWeight: 900, fontSize: 10.5,
+                    borderRadius: "50%", border: "2px solid #0b0510",
+                    display: "grid", placeItems: "center",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.35)",
+                    fontFamily: "'Cinzel', Georgia, serif", lineHeight: 1,
+                    letterSpacing: 0.2,
+                  }}>{trainerLv}</div>
                 </div>
 
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Nome + VIP */}
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 5,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {vip && (
+                      <span style={{
+                        fontSize: 8, fontWeight: 900, letterSpacing: 1,
+                        padding: "1px 5px", borderRadius: 3,
+                        background: "linear-gradient(180deg, #ffd66b, #b8862a)",
+                        color: "#231407", border: "1px solid rgba(0,0,0,0.4)",
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.5)", flexShrink: 0,
+                      }}>VIP</span>
+                    )}
+                    <span style={{
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      fontFamily: "'Cinzel', Georgia, serif",
+                      fontSize: 12.5, fontWeight: 900, letterSpacing: 0.5,
+                      color: "#f7ecf7",
+                      textShadow: "0 1px 0 #000",
+                    }}>{name}</span>
+                  </div>
+
+                  {/* Barra de XP fina */}
+                  <div style={{
+                    marginTop: 4, position: "relative",
+                    height: 5, background: "#0b0510", borderRadius: 3,
+                    border: "1px solid rgba(245,207,107,0.25)",
+                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)",
+                    overflow: "hidden",
+                  }}>
+                    <div style={{
+                      width: `${xpPct}%`, height: "100%",
+                      background: "linear-gradient(180deg, #ffe89a 0%, #ffd66b 50%, #b8862a 100%)",
+                      boxShadow: "0 0 5px rgba(245,207,107,0.6)",
+                      transition: "width 400ms",
+                    }} />
+                  </div>
+                  <div style={{
+                    marginTop: 2, fontSize: 8.5, letterSpacing: 0.4,
+                    color: "#a8a0b8", fontFamily: "monospace",
+                    display: "flex", justifyContent: "space-between",
+                  }}>
+                    <span>XP</span>
+                    <span style={{ color: "#e8d089" }}>{curXp} / {nextAt}</span>
+                  </div>
+
+                  {/* Pills de status */}
+                  <div style={{ display: "flex", gap: 3, marginTop: 4, flexWrap: "nowrap" }}>
+                    <span style={pillStyle("#ffd66b")}>🪙 {fmtK(idle.totals.gold)}</span>
+                    <span style={pillStyle("#ff97e1")}>★ {idle.totals.captured}</span>
+                    <span style={pillStyle("#8fd0ff")}>⚔ {team.length}/6</span>
+                  </div>
+                </div>
               </div>
+            );
+          })()}
+
+
+
+          <Panel title="SUA EQUIPE" accent="#c92a2a">
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+              <button
+                onClick={() => setTeamCollapsed((v) => !v)}
+                title={teamCollapsed ? "Expandir equipe" : "Minimizar (mostrar só líder)"}
+                style={{
+                  background: "#1a0f26", color: "#f5cf6b",
+                  border: "1px solid #c92a2a55", borderRadius: 4,
+                  padding: "2px 8px", fontSize: 10, fontWeight: 800, cursor: "pointer",
+                  letterSpacing: 1,
+                }}
+              >
+                {teamCollapsed ? "▼ EXPANDIR" : "▲ MINIMIZAR"}
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
+                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
+              ))}
+              {teamCollapsed && team.length > 1 && (
+                <div style={{ fontSize: 10, color: "#8a7a9c", textAlign: "center", fontStyle: "italic" }}>
+                  +{team.length - 1} no banco (minimizado)
+                </div>
+              )}
+              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
+            </div>
+          </Panel>
+
+
+
+          {/* Chat ocupa todo o espaço restante — sem rolagem externa */}
+          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+            <Panel title="REGISTRO DE BATALHA" accent="#1e3a5f">
+              <div style={{
+                height: 200, minHeight: 160, maxHeight: 240,
+                overflowY: "auto", display: "flex", flexDirection: "column-reverse",
+                gap: 4, fontSize: 11, lineHeight: 1.35,
+                background: "#0e0818", borderRadius: 6, padding: 6,
+                border: "1px solid rgba(107,212,255,0.15)",
+              }}>
+                {(() => {
+                  const classify = (m: typeof chat[number]): "system" | "world" | "captures" => {
+                    if (m.kind === "capture" || m.kind === "cap") return "captures";
+                    if (m.text.startsWith("💬") || m.text.startsWith("🌍")) return "world";
+                    return "system";
+                  };
+                  const filtered = chat.filter((m) => chatFilter === "all" ? true : classify(m) === chatFilter);
+                  return (
+                    <>
+                      {[...filtered].reverse().map((m) => {
+                        const color =
+                          m.kind === "chest" ? "#ffa64a" :
+                          m.kind === "capture" ? "#ff97e1" :
+                          m.kind === "cap" ? "#ffd94d" :
+                          m.kind === "lv" ? "#6bd4ff" :
+                          m.kind === "hit" ? "#ff6b6b" :
+                          m.kind === "dmg" ? "#f5cf6b" : "#c8b8d0";
+                        const prefix =
+                          m.kind === "chest" ? "🎁" :
+                          m.kind === "capture" ? "✦" :
+                          m.kind === "cap" ? "★" :
+                          m.kind === "lv" ? "⬆" :
+                          m.kind === "hit" ? "✖" :
+                          m.kind === "dmg" ? "⚔" : "•";
+                        return (
+                          <div key={m.id} style={{ color, textShadow: "1px 1px 0 #000", fontWeight: m.kind === "chest" ? 800 : 400 }}>
+                            <span style={{ opacity: 0.7, marginRight: 4 }}>{prefix}</span>{m.text}
+                          </div>
+                        );
+                      })}
+                      {filtered.length === 0 && (
+                        <div style={{ color: "#6a5a7c", fontStyle: "italic" }}>Nenhum evento neste filtro...</div>
+                      )}
+                    </>
+                  );
+            })()}
+          </div>
+
+              {/* Filtros do chat */}
+              <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+                {([
+                  { k: "all", l: "Tudo" },
+                  { k: "system", l: "Sistema" },
+                  { k: "world", l: "Mundo" },
+                  { k: "captures", l: "Capturas" },
+                ] as const).map((t) => {
+                  const active = chatFilter === t.k;
+                  return (
+                    <button
+                      key={t.k}
+                      onClick={() => setChatFilter(t.k)}
+                      style={{
+                        flex: 1,
+                        background: active ? "#1e3a5f" : "#0e0818",
+                        color: active ? "#fff" : "#8fa5c0",
+                        border: `1px solid ${active ? "#6bd4ff" : "rgba(107,212,255,0.2)"}`,
+                        borderRadius: 4, padding: "3px 4px", fontSize: 10, fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >{t.l}</button>
+                  );
+                })}
+              </div>
+              {/* Chat global de jogadores BLOQUEADO temporariamente */}
+              <div
+                style={{
+                  marginTop: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#1a0d0d",
+                  border: "1px solid rgba(255,107,107,0.35)",
+                  borderRadius: 6,
+                  padding: "7px 9px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#ffb3b3",
+                }}
+              >
+                🔒 Chat global desativado — apenas avisos do sistema.
+              </div>
+
+            </Panel>
+            
+            {/* HUD de Aviso Temporário (Bichinho Animado) */}
+            <div style={{ 
+              marginTop: 10,
+              background: "linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05))",
+              border: "2px solid #a855f7",
+              borderRadius: 12,
+              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              boxShadow: "0 4px 15px rgba(168, 85, 247, 0.25)",
+              animation: "chest-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+            }}>
+              <div style={{ width: 44, height: 44, position: "relative" }}>
+                <img 
+                  src={assetUrlFromJson(rioluAsset)} 
+                  alt="Riolu" 
+                  style={{ 
+                    width: "100%", 
+                    height: "100%", 
+                    imageRendering: "pixelated",
+                    animation: "autoIconPulse 1.5s ease-in-out infinite"
+                  }} 
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ 
+                  color: "#d8b4fe", 
+                  fontSize: 12, 
+                  fontWeight: 900, 
+                  letterSpacing: 1, 
+                  textShadow: "0 0 8px rgba(168, 85, 247, 0.8)" 
+                }}>
+                  📢 AVISO TEMPORADA
+                </div>
+                <div style={{ 
+                  color: "#fff", 
+                  fontSize: 10.5, 
+                  fontWeight: 700,
+                  marginTop: 2,
+                  lineHeight: 1.3
+                }}>
+                  VEM AI A 3° SEASON O SHOW ESTA PRA COMEÇAR. 🎪🌟
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+
+
+
+        {/* ============ CENTRO — ARENA (viewport com câmera) ============ */}
+        <div
+          ref={viewportRef}
+          onClick={(e) => {
+            const t = e.target as HTMLElement;
+            if (t.closest && t.closest("button, a, input, select, textarea")) return;
+            const rect = viewportRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            const sx = e.clientX - rect.left;
+            const sy = e.clientY - rect.top;
+            const wx = renderCamX + sx / zoom;
+            const wy = renderCamY + sy / zoom;
+            walkTargetRef.current = { x: wx, y: wy, label: "destino", resumeAuto: autoRef.current };
+            setWalkingTo("destino");
+            setAuto(false);
+          }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            overflow: "hidden",
+            background: viewportBg,
+            cursor: "crosshair",
+            zIndex: 1,
+          }}
+        >
+
+
+          {/* Os antigos botões de zoom/config/ranking foram removidos e integrados na nova HUD flutuante */}
+          {(() => {
+            const orbUntil = idle.buffs.orbUntil ?? 0;
+            const teamUntil = idle.buffs.teamOrbUntil ?? 0;
+            const rareUntil = idle.buffs.honeyRareUntil ?? 0;
+            const normalUntil = idle.buffs.honeyUntil ?? 0;
+            const now = Date.now();
+            const buffs: Array<{
+              key: string; img: string; label: string; timeMs: number;
+              ring: string; ringSoft: string; glow: string; textColor: string; bg: string;
+              subLabel?: string;
+            }> = [];
+            const fmtT = (ms: number) => {
+              const mins = Math.floor(ms / 60000);
+              const secs = Math.floor((ms % 60000) / 1000);
+              return mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+            };
+            if (orbUntil > now) {
+              const pct = Math.round((idle.buffs.orbMult ?? 0) * 100);
+              buffs.push({
+                key: "orb-xp", img: buffOrbXpUrl,
+                label: `Orb ativo: +${pct}% EXP · ${fmtT(orbUntil - now)}`,
+                timeMs: orbUntil - now,
+                ring: "#b48bff", ringSoft: "rgba(180,140,255,0.55)",
+                glow: "rgba(180,120,255,0.85)",
+                textColor: "#e6d5ff",
+                bg: "linear-gradient(180deg, rgba(38,20,70,0.95), rgba(18,8,40,0.9))",
+                subLabel: `+${pct}%`,
+              });
+            }
+            if (teamUntil > now) {
+              buffs.push({
+                key: "orb-team", img: buffTeamOrbUrl,
+                label: `Orb de Time ativo: todo o time ganha EXP · ${fmtT(teamUntil - now)}`,
+                timeMs: teamUntil - now,
+                ring: "#ff8ad6", ringSoft: "rgba(255,138,214,0.55)",
+                glow: "rgba(255,138,214,0.9)",
+                textColor: "#ffd5ee",
+                bg: "linear-gradient(180deg, rgba(70,20,55,0.95), rgba(40,8,30,0.9))",
+                subLabel: "TIME",
+              });
+            }
+            if (rareUntil > now || normalUntil > now) {
+              const isRare = rareUntil > now;
+              const until = isRare ? rareUntil : normalUntil;
+              const pct = isRare ? 20 : 10;
+              buffs.push({
+                key: "honey", img: buffIncenseHoneyUrl,
+                label: `Incenso ${isRare ? "Raro" : "de Mel"} ativo: +${pct}% drop/xp/def/velocidade · ${fmtT(until - now)}`,
+                timeMs: until - now,
+                ring: isRare ? "#ffd94d" : "#ffb84d",
+                ringSoft: `rgba(255,${isRare ? 217 : 184},77,0.55)`,
+                glow: `rgba(255,${isRare ? 217 : 184},77,0.9)`,
+                textColor: "#fff2c4",
+                bg: "linear-gradient(180deg, rgba(60,32,6,0.95), rgba(35,18,4,0.9))",
+                subLabel: `+${pct}%`,
+              });
+            }
+            if (buffs.length === 0) return null;
+            return (
+              <div style={{ position: "absolute", top: 12, right: 12, zIndex: 1001, display: "flex", flexDirection: "column", gap: 6 }}>
+                <style>{`
+                  @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
+                  @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                `}</style>
+                {buffs.map(b => (
+                  <div key={b.key} title={b.label} style={{ 
+                    position: "relative", width: 52, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, 
+                    padding: "6px 5px", background: b.bg, border: `2px solid ${b.ring}`, borderRadius: 12, 
+                    boxShadow: `0 4px 12px rgba(0,0,0,0.6), 0 0 16px ${b.glow}, inset 0 0 10px ${b.ringSoft}` 
+                  }}>
+                    <div style={{ position: "absolute", inset: -3, borderRadius: 14, pointerEvents: "none", background: `conic-gradient(from 0deg, transparent 0deg, ${b.ringSoft} 90deg, transparent 180deg, ${b.ringSoft} 270deg, transparent 360deg)`, opacity: 0.5, animation: "rmBuffSpin 6s linear infinite", WebkitMask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)", mask: "radial-gradient(circle, transparent 55%, #000 62%, #000 100%)" }} />
+                    <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", animation: "rmBuffPulse 1.8s ease-in-out infinite", filter: `drop-shadow(0 0 8px ${b.glow})` }}>
+                      <img src={b.img} alt={b.label} width={36} height={36} style={{ objectFit: "contain", display: "block" }} draggable={false} />
+                    </div>
+                    {b.subLabel && <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5, lineHeight: 1, color: b.textColor, textShadow: `0 0 4px ${b.glow}` }}>{b.subLabel}</span>}
+                    <span style={{ fontSize: 10, fontWeight: 800, lineHeight: 1, color: b.textColor, whiteSpace: "nowrap", textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>{fmtT(b.timeMs)}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+
+          </div>
+
+
+
+
+          {/* Clima estilo pixel-RPG */}
+          {weather !== "clear" && (
+            <div style={{
+              position: "absolute", inset: 0, zIndex: 40,
+              pointerEvents: "none", overflow: "hidden",
+              imageRendering: "pixelated",
+            }}>
+              {weather === "rain" && (
+                <>
+                  <div className="wx-rain-tint" />
+                  <div className="wx-mist" />
+                  {rainDrops.map((d, i) => (
+                    <span key={i} className="wx-drop" style={{
+                      left: `${d.left}%`,
+                      width: d.w,
+                      height: d.len,
+                      opacity: d.op,
+                      animationDelay: `-${d.delay}s`,
+                      animationDuration: `${d.dur}s`,
+                    }} />
+                  ))}
+                  <div className="wx-flash" />
+                </>
+              )}
+              {weather === "snow" && (
+                <>
+                  <div className="wx-snow-tint" />
+                  {snowFlakes.map((s, i) => (
+                    <span key={i} className="wx-flake" style={{
+                      left: `${s.left}%`,
+                      width: s.size,
+                      height: s.size,
+                      opacity: s.op,
+                      animationDelay: `-${s.delay}s`,
+                      animationDuration: `${s.dur}s`,
+                      ["--drift" as string]: `${s.drift}px`,
+                    } as React.CSSProperties} />
+                  ))}
+                </>
+              )}
+              <div style={{
+                position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)",
+                background: "rgba(11,5,16,0.75)",
+                border: `1px solid ${weather === "rain" ? "rgba(140,201,255,0.5)" : "rgba(230,243,255,0.55)"}`,
+                color: weather === "rain" ? "#bcdcff" : "#f2faff",
+                padding: "4px 12px", borderRadius: 4, fontSize: 11, fontWeight: 700,
+                letterSpacing: 0.5, imageRendering: "pixelated",
+                fontFamily: "'Press Start 2P', 'Trebuchet MS', monospace",
+                textShadow: "1px 1px 0 #000",
+              }}>
+                {weather === "rain" ? "CHUVA" : "NEVE"}
+              </div>
+            </div>
+          )}
+
+
+            {/* Contador de jogadores online removido a pedido do usuário */}
+
+
+
+
+          {/* MUNDO — camada em px que se move sob a câmera */}
+          <div style={{
+            position: "absolute",
+            left: 0, top: 0,
+            width: WORLD_W, height: WORLD_H,
+            transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
+            transformOrigin: "0 0",
+            transition: "none",
+            backgroundColor: viewportBg,
+            overflow: "hidden",
+            contain: "layout paint style",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
+          }}>
+
+            {/* Fundo do mapa em <img> e com renderização suave: evita artefatos verdes/quadrados no zoom baixo. */}
+            <img
+              src={map.bg}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "fill",
+                pointerEvents: "none",
+                userSelect: "none",
+                imageRendering: "auto",
+                transform: "translateZ(0)",
+                backfaceVisibility: "hidden",
+                zIndex: 0,
+              }}
+            />
+
+            {/* Obstáculos (árvores, pedras) — z-index pela BASE (y) para o treinador passar por trás */}
+            {obstacles.map((o) => (
+              <img key={`obs-${o.id}`} src={o.src} alt="" style={{
+                position: "absolute",
+                left: o.x - o.w / 2,
+                top: o.y - o.h + 8, // âncora na base
+                width: o.w, height: o.h,
+                opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
+                imageRendering: "pixelated",
+                pointerEvents: "none",
+                transition: "opacity 120ms linear",
+                zIndex: Math.round(o.y),
+                filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
+              }} />
+            ))}
+
+            {/* Clique nos casulos (Ninho de Marimbondo) — abre painel de Colmeia p/ posicionar Beedrills */}
+            {idle.currentMap === "terra" && obstacles.filter((o) => o.src === hornetCocoonUrl).map((o) => {
+              const cocoonKey = `terra:${Math.round(o.x)}:${Math.round(o.y)}`;
+              const beedrillCount = (idle.collection ?? []).filter((c) => c.species === "beedrill").length;
+              const canUse = beedrillCount > 0;
+              return (
+                <button
+                  key={`cocoon-btn-${o.id}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!canUse) {
+                      pushChat("🐝 Você precisa ter pelo menos 1 Beedrill na coleção para usar a colmeia!", "info");
+                      return;
+                    }
+                    setHoneyShop({ cocoonKey, x: o.x, y: o.y - o.h });
+                  }}
+                  title={canUse ? "Colmeia — posicionar Beedrills p/ produzir Incenso" : "Requer Beedrill na coleção"}
+                  style={{
+                    position: "absolute",
+                    left: o.x - o.w / 2,
+                    top: o.y - o.h + 8,
+                    width: o.w, height: o.h,
+                    background: "transparent",
+                    border: canUse ? "2px dashed rgba(255,214,80,0.85)" : "2px dashed rgba(255,255,255,0.25)",
+                    borderRadius: 12,
+                    cursor: canUse ? "pointer" : "not-allowed",
+                    zIndex: Math.round(o.y) + 1,
+                    padding: 0,
+                    boxShadow: canUse ? "0 0 12px rgba(255,214,80,0.55)" : "none",
+                    animation: canUse ? "lvglow 1.6s ease-in-out infinite" : "none",
+                  }}
+                />
+              );
+            })}
+
+            {/* Modal do Ranking Global */}
+            {rankOpen && createPortal(
+              <div
+                onClick={() => setRankOpen(false)}
+                style={{
+                  position: "fixed", inset: 0,
+                  background: "radial-gradient(ellipse at center, rgba(30,15,50,0.85), rgba(0,0,0,0.92))",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  zIndex: 2147483647, padding: 16,
+                  backdropFilter: "blur(6px)",
+                  WebkitBackdropFilter: "blur(6px)",
+                  fontFamily: "inherit",
+                }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: "min(680px, 96vw)", maxHeight: "90vh", display: "flex", flexDirection: "column",
+                    background:
+                      "radial-gradient(ellipse at top, rgba(255,60,80,0.18), transparent 60%), linear-gradient(180deg, #140a24 0%, #1c1030 45%, #2a1642 100%)",
+                    border: "2px solid transparent",
+                    borderRadius: 18,
+                    backgroundClip: "padding-box",
+                    boxShadow:
+                      "0 25px 80px rgba(0,0,0,0.9), 0 0 60px rgba(255,214,80,0.28), 0 0 40px rgba(255,60,80,0.25), inset 0 1px 0 rgba(255,255,255,0.08)",
+                    color: "#ffe9a8",
+                    overflow: "hidden",
+                    position: "relative",
+                  }}
+                >
+                  {/* Borda dupla ouro/ruby */}
+                  <div style={{
+                    position: "absolute", inset: 0, borderRadius: 18, pointerEvents: "none",
+                    background: "linear-gradient(135deg, #ffd94d 0%, #ff2a4d 50%, #ffd94d 100%)",
+                    padding: 2, WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                    WebkitMaskComposite: "xor", maskComposite: "exclude",
+                  }} />
+
+                  {/* Header */}
+                  <div style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    padding: "18px 20px",
+                    background: "linear-gradient(180deg, rgba(255,214,80,0.22) 0%, rgba(255,60,80,0.12) 60%, rgba(0,0,0,0.15) 100%)",
+                    borderBottom: "1px solid rgba(255,214,80,0.35)",
+                    position: "relative",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                      <img
+                        src={assetUrlFromJson(rankMedalsRubyAsset)}
+                        alt=""
+                        width={56}
+                        height={56}
+                        style={{ filter: "drop-shadow(0 0 10px rgba(255,60,80,0.6)) drop-shadow(0 0 6px rgba(255,214,80,0.5))" }}
+                      />
+                      <div>
+                        <div style={{
+                          fontWeight: 900, fontSize: 20, letterSpacing: 1.2,
+                          background: "linear-gradient(90deg,#ffd94d,#ffb347,#ff5577,#ffd94d)",
+                          backgroundSize: "200% 100%",
+                          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                          animation: "shimmerRank 4s linear infinite",
+                        }}>RANKING GLOBAL</div>
+                        <div style={{ fontSize: 10, opacity: 0.75, color: "#ffd8a0", letterSpacing: 0.5 }}>
+                          🏆 TOP 30 · {rankMode === "craft" ? "🔷 Cristal Prisma" : "🎓 Nível Treinador"} · dados ao vivo
+                        </div>
+                      </div>
+                    </div>
                     <div
                       title="O ranking global é congelado e atualiza a cada 2 horas"
                       style={{
@@ -8875,7 +8468,6 @@ function IdlePage() {
               document.body
             )}
 
-
             {/* Painel de Colmeia — posicionar Beedrills p/ produzir Incenso de Mel */}
             {honeyShop && (() => {
               const cocoonKey = honeyShop.cocoonKey;
@@ -9050,8 +8642,7 @@ function IdlePage() {
                     top: b.y - b.h + 8,
                     width: b.w, height: b.h,
                     zIndex: Math.round(b.y),
-                    pointerEvents: "auto",
-                    cursor: "pointer",
+                    pointerEvents: "none",
                     filter: active
                       ? `drop-shadow(0 0 14px ${b.color}) drop-shadow(0 4px 4px rgba(0,0,0,0.55))`
                       : "drop-shadow(0 4px 4px rgba(0,0,0,0.55))",
@@ -9063,20 +8654,12 @@ function IdlePage() {
                     alt={b.label}
                     width={b.w}
                     height={b.h}
-                    onClick={() => {
-                      playClick();
-                      if (b.key === "lab") setVaultOpen(true);
-                      else if (b.key === "gym") setGymOpen(true);
-                      else if (b.key === "azul") setAzulPickerOpen(true);
-                      else restAtHome("lar");
-                    }}
                     style={{
                       display: "block",
                       width: b.w,
                       height: b.h,
                       imageRendering: "pixelated",
                       userSelect: "none",
-                      cursor: "pointer",
                       // Tinge o telhado de azul para a Casa Azul
                       filter: b.key === "azul"
                         ? "hue-rotate(180deg) saturate(1.4) brightness(1.05)"
@@ -9104,29 +8687,7 @@ function IdlePage() {
             {/* Portais no mundo — pontos de viagem visíveis */}
             {(() => {
               const lv = idle.trainerLevel ?? 1;
-              const currentPortals = WORLD_PORTALS.filter(p => p.from === idle.currentMap);
-              if (idle.currentMap === "arena") currentPortals.push(PORTAL_SECRET_4);
-              if (idle.currentMap === "continente_4") {
-                currentPortals.push({
-                  key: "continente_4->arena", from: "continente_4", to: "arena",
-                  x: 200, y: 1660, arriveX: 300, arriveY: 300, color: "#94a3b8", label: "↩ Vale Verdejante"
-                });
-              }
-              if (idle.currentMap === "continente_4_b") {
-                currentPortals.push({
-                  key: "c4b-to-c", from: "continente_4_b", to: "continente_4_c",
-                  x: 1800, y: 1800, arriveX: 200, arriveY: 200, color: "#ffffff", label: "Parte C"
-                });
-              }
-              if (idle.currentMap === "continente_4_c") {
-                currentPortals.push({
-                  key: "c4c-back", from: "continente_4_c", to: "continente_4_b",
-                  x: 200, y: 200, arriveX: 1800, arriveY: 1800, color: "#94a3b8", label: "↩ Parte B"
-                });
-              }
-
-              return currentPortals.map((p) => {
-
+              return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => {
                 const locked = !!(p.reqLevel && lv < p.reqLevel);
                 return (
                   <div
@@ -9292,47 +8853,6 @@ function IdlePage() {
 
 
 
-            {/* ❄️ NPC Ancião Glacial — visível apenas no Santuário Glacial */}
-            {idle.currentMap === "santuario_glacial" && !idle.redeemedCodes?.RESETPERSON && (() => {
-              const npcX = WORLD_W / 2, npcY = WORLD_H / 2 - 40;
-              return (
-                <div
-                  onClick={() => { playClick(); setAnciaoOpen(true); }}
-                  title="Ancião Glacial — Ritual de Reset de Temporada"
-                  style={{
-                    position: "absolute",
-                    left: npcX - 60, top: npcY - 90,
-                    width: 230, height: 300,
-                    cursor: "pointer",
-                    zIndex: Math.round(npcY),
-                    display: "flex", flexDirection: "column", alignItems: "center",
-                    filter: "drop-shadow(0 6px 12px rgba(125,211,252,0.6))",
-                  }}
-                >
-                  <div style={{
-                    position: "absolute", top: -35, left: "50%", transform: "translateX(-50%)",
-                    background: "linear-gradient(180deg,#1e3a8a,#0f172a)",
-                    border: "1px solid #c9b8ff", color: "#c9b8ff",
-                    borderRadius: 999, padding: "3px 12px",
-                    fontSize: 11, fontWeight: 900, whiteSpace: "nowrap",
-                    boxShadow: "0 0 12px rgba(125,211,252,0.5)",
-                    animation: "pulse 1.6s ease-in-out infinite",
-                  }}>❄️ ANCIÃO GLACIAL</div>
-                  <img
-                    src={npcAnciaoGlacialUrl}
-                    alt="Ancião Glacial"
-                    width={230} height={300}
-                    style={{ width: 230, height: 300, imageRendering: "pixelated", objectFit: "contain" }}
-                  />
-                  <div style={{
-                    position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
-                    width: 100, height: 14, borderRadius: "50%",
-                    background: "radial-gradient(ellipse, rgba(125,211,252,0.6), transparent 70%)",
-                  }} />
-                </div>
-              );
-            })()}
-
             {/* Inimigos espalhados pelo mapa */}
             {enemies.map((e) => {
               const showSp: Species = (e.disguise && !e.revealed) ? e.disguise : e.sp;
@@ -9342,8 +8862,8 @@ function IdlePage() {
               const dead = e.hp <= 0;
               const face = e.face ?? "left";
               const sx = face === "left" ? 1 : -1;
-              const scale = 1;
-              const size = 90;
+              const scale = (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
+              const size = Math.round(46 * scale);
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
               const rarityAura: Record<Rarity, string> = {
                 common: "rgba(200,200,200,0.55)",
@@ -9420,6 +8940,7 @@ function IdlePage() {
                         animation: "pulse 1.6s ease-in-out infinite",
                         pointerEvents: "none", zIndex: -1,
                       }} />
+                      {/* Anel de estrelas girando */}
                       <div style={{
                         position: "absolute", inset: -46, borderRadius: "50%",
                         border: "2px solid rgba(180,120,255,0.55)",
@@ -9440,58 +8961,6 @@ function IdlePage() {
                       ))}
                     </>
                   )}
-
-                  {/* Element Floating Icon (for drops) */}
-                  {(["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"].some(s => (e as any).drops?.includes(s))) && (
-                    <div className="stone-float-indicator" style={{
-                      position: "absolute", top: -15, right: -5,
-                      width: 18, height: 18, borderRadius: "50%",
-                      background: "rgba(255,255,255,0.8)", border: "1.5px solid #fff",
-                      boxShadow: "0 0 10px rgba(255,255,255,0.8)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 10, animation: "floatstone 2s ease-in-out infinite",
-                      zIndex: 10, pointerEvents: "none"
-                    }}>
-                      {(e as any).drops?.includes("stone_grass") ? "🌿" : 
-                       (e as any).drops?.includes("stone_fire") ? "🔥" :
-                       (e as any).drops?.includes("stone_water") ? "💧" :
-                       (e as any).drops?.includes("stone_electric") ? "⚡" :
-                       (e as any).drops?.includes("stone_dark") ? "🌑" :
-                       (e as any).drops?.includes("stone_dragon") ? "🐲" : ""}
-                    </div>
-                  )}
-
-                  {/* Aura de Raridade no Inimigo */}
-                  {RARITY_COLORS[e.rarity as string]?.aura && (
-                    <div style={{
-                      position: "absolute", inset: -10, borderRadius: "50%",
-                      boxShadow: `inset 0 0 20px ${RARITY_COLORS[e.rarity as string].c}66, ${RARITY_COLORS[e.rarity as string].aura}`,
-                      pointerEvents: "none", zIndex: -1,
-                      animation: "auraPulse 2s ease-in-out infinite"
-                    }} />
-                  )}
-
-                  {/* Efeito de Ataque Elemental (Sprites) */}
-                  {attackAnim && attackAnim.toX === e.x && attackAnim.toY === e.y && (
-                    <div style={{
-                      position: "absolute",
-                      left: "50%",
-                      top: "50%",
-                      transform: "translate(-50%, -50%)",
-                      width: 140,
-                      height: 140,
-                      pointerEvents: "none",
-                      zIndex: 100,
-                      animation: "fxpop 0.5s forwards"
-                    }}>
-                      <img 
-                        src={ELEMENT_FX_IMG[attackAnim.element as keyof typeof ELEMENT_FX_IMG] || fxSlashImg} 
-                        alt="" 
-                        style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 0 10px rgba(255,255,255,0.9))" }} 
-                      />
-                    </div>
-                  )}
-
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
                   {e.sp === "raichu" && !camouflaged && (
                     <div style={{
@@ -9651,11 +9120,10 @@ function IdlePage() {
             {chests.map((c) => (
               <div key={`chest-${c.id}`} style={{
                 position: "absolute", left: c.x, top: c.y,
-                      width: 90, height: 90,
+                width: 56, height: 56,
                 transform: "translate(-50%, -50%)",
                 zIndex: Math.round(c.y),
-                pointerEvents: "auto",
-                cursor: "pointer",
+                pointerEvents: "none",
               }}>
                 {!c.opened && (
                   <div className="chest-idle" style={{
@@ -9668,21 +9136,10 @@ function IdlePage() {
                   src={c.opened ? chestOpenImg : chestClosedImg}
                   alt=""
                   className={c.opened ? "chest-pop" : ""}
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    if (c.opened) return;
-                    // Ao clicar no baú, move o treinador até ele. 
-                    // O sistema de proximidade existente (linha 6984) abrirá o baú ao chegar perto.
-                    walkTargetRef.current = { x: c.x, y: c.y, label: "baú", resumeAuto: autoRef.current };
-                    setWalkingTo("baú");
-                    setAuto(false);
-                    playClick();
-                  }}
                   style={{
                     width: "100%", height: "100%",
                     imageRendering: "pixelated",
                     filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
-                    cursor: c.opened ? "default" : "pointer",
                   }}
                 />
               </div>
@@ -9694,7 +9151,7 @@ function IdlePage() {
             <div style={{
               position: "absolute",
               left: renderTrainerX, top: renderTrainerY,
-              width: 85, height: 85,
+              width: 56, height: 56,
               transform: "translate(-50%, -50%)",
               filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
               zIndex: Math.round(trainerPos.y),
@@ -9765,7 +9222,7 @@ function IdlePage() {
                 <div key={rp.id} style={{
                   position: "absolute",
                   left: rp.x, top: rp.y,
-                  width: 80, height: 80,
+                  width: 56, height: 56,
                   transform: "translate(-50%, -50%)",
                   transition: "left 220ms linear, top 220ms linear",
                   filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
@@ -9870,7 +9327,7 @@ function IdlePage() {
                 <div style={{
                   position: "absolute",
                   left: leaderX, top: leaderY,
-                  width: 115, height: 115,
+                  width: 54, height: 54,
                   transform: "translate(-50%, -50%)",
                   transition: attackAnim ? "none" : undefined,
                   filter: `drop-shadow(0 3px 3px rgba(0,0,0,0.55)) ${fainted ? "grayscale(1) brightness(0.6)" : ""}`,
@@ -9932,7 +9389,7 @@ function IdlePage() {
                       style={{
                         width: "100%", imageRendering: "pixelated",
                         "--face-scale": faceScale,
-                        transform: `scaleX(${faceScale}) scale(1)`,
+                        transform: `scaleX(${faceScale})`,
                       } as React.CSSProperties} />
                   )}
 
@@ -10048,542 +9505,215 @@ function IdlePage() {
                 </div>
               );
             })}
-        </div>
-
-
-
-
-
-
-
-        <div className="modern-top-bar" style={{ 
-          position: 'fixed', top: 0, left: 0, right: 0, height: '65px',
-          background: 'linear-gradient(180deg, rgba(11, 5, 20, 0.95) 0%, rgba(11, 5, 20, 0.7) 100%)',
-          backdropFilter: 'blur(10px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 30px', borderBottom: '1px solid rgba(201,184,255,0.2)',
-          pointerEvents: 'auto',
-          zIndex: 1001,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
-        }}>
-          {/* Lado Esquerdo: Localização e Info */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: 40, height: 40, background: 'rgba(201,184,255,0.1)', borderRadius: '10px', display: 'grid', placeItems: 'center', border: '1px solid rgba(201,184,255,0.2)' }}>
-                <span style={{ fontSize: '20px' }}>📍</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ color: '#fff', fontSize: '15px', fontWeight: 900, letterSpacing: 0.5 }}>{map.name}</span>
-                <span style={{ color: '#c9b8ff', fontSize: '10px', opacity: 0.7, fontWeight: 700 }}>X: {Math.floor(trainerPos.x)} | Y: {Math.floor(trainerPos.y)}</span>
-              </div>
-            </div>
-            <div style={{ width: '1px', height: '30px', background: 'rgba(201,184,255,0.15)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(201,184,255,0.1)' }}>
-               <span style={{ fontSize: '14px' }}>🕒</span>
-               <span style={{ color: '#fff', fontSize: '12px', fontWeight: 800 }}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
           </div>
 
-          {/* Centro: Recursos */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <ResourceNiche tint="#ffd700" icon={<span style={{fontSize: '16px'}}>🪙</span>} value={idle.bank.gold.toLocaleString()} title="Ouro" />
-            <ResourceNiche tint="#00d2ff" icon={<span style={{fontSize: '16px'}}>💎</span>} value={idle.bank.crystals.toLocaleString()} title="Cristais" />
-            <ResourceNiche tint="#ff4b4b" icon={<span style={{fontSize: '16px'}}>🔻</span>} value={Math.floor(idle.items?.red_crystal_shard ?? 0).toLocaleString()} title="Fragmentos" />
-          </div>
-
-          {/* Lado Direito: Config */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-             <button onClick={() => setTab("melhorias")} style={{ 
-               background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.3)', 
-               color: '#c9b8ff', width: '38px', height: '38px', borderRadius: '50%',
-               cursor: 'pointer', fontSize: '18px', display: 'grid', placeItems: 'center',
-               transition: 'all 0.2s'
-             }} className="top-cfg-btn">⚙️</button>
-          </div>
-        </div>
-
-        {/* Profile & Team HUD (Top-Left) */}
-        <div style={{
-          position: 'fixed', left: '20px', top: '150px',
-          display: 'flex', flexDirection: 'column', gap: '10px',
-          zIndex: 1002, pointerEvents: 'none'
-        }}>
-          {/* Treinador HUD */}
-          <div style={{
-            background: 'rgba(11, 5, 20, 0.85)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(201, 184, 255, 0.3)',
-            borderRadius: '16px', padding: '10px 14px',
-            width: '220px', pointerEvents: 'auto',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            transition: 'all 0.3s'
-          }}>
-            <div onClick={() => setProfileOpen(!profileOpen)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: 32, height: 32, background: 'rgba(201, 184, 255, 0.2)', borderRadius: 8, display: 'grid', placeItems: 'center', fontSize: 16 }}>👤</div>
-                <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900 }}>{identity?.name || 'TREINADOR'}</span>
-              </div>
-              <span style={{ color: '#c9b8ff', fontSize: '12px', opacity: 0.8 }}>{profileOpen ? '▼' : '▲'}</span>
-            </div>
-
-            {profileOpen && (
-              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#c9b8ff', fontSize: '11px', fontWeight: 800 }}>Nv. {idle.trainerLevel || 1}</span>
-                  <span style={{ color: '#8a7a9c', fontSize: '9px' }}>XP: {idle.trainerXp}/{150 + (idle.trainerLevel || 1) * 80}</span>
-                </div>
-                <div style={{ height: '5px', background: 'rgba(0,0,0,0.3)', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ 
-                    width: `${((idle.trainerXp || 0) / (150 + (idle.trainerLevel || 1) * 80)) * 100}%`, 
-                    height: '100%', background: 'linear-gradient(90deg, #6bd4ff, #c9b8ff)' 
-                  }} />
-                </div>
-                {(() => {
-                  const email = identity?.email?.trim().toLowerCase();
-                  const isAdmin = email === "lordryuhhhuyuyghh@gmail.com" || 
-                                  identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6";
-                  if (!isAdmin) return null;
-                  return (
-                    <button onClick={() => setIsAdminOpen(true)} style={{
-                      background: 'rgba(201, 184, 255, 0.1)', border: '1px solid rgba(201, 184, 255, 0.2)',
-                      borderRadius: 6, color: '#c9b8ff', fontSize: 9, padding: '4px', cursor: 'pointer',
-                      fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5
-                    }}>Painel Admin</button>
-                  );
-                })()}
-              </div>
-            )}
-          </div>
-
-          {/* Equipe HUD */}
-          <div style={{
-            background: 'rgba(11, 5, 20, 0.85)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(201, 184, 255, 0.3)',
-            borderRadius: '16px', padding: '10px 14px',
-            width: '220px', pointerEvents: 'auto',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            transition: 'all 0.3s'
-          }}>
-            <div onClick={() => setTeamPanelOpen(!teamPanelOpen)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontWeight: 900, color: '#c9b8ff', fontSize: '10px', letterSpacing: 1 }}>SUA EQUIPE</span>
-                <span style={{ fontSize: '10px', color: '#8a7a9c' }}>{team.length}/6</span>
-              </div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                {teamPanelOpen && (
-                   <button 
-                     onClick={(e) => { e.stopPropagation(); setMaximizeTeam(!maximizeTeam); }}
-                     style={{ background: 'rgba(201, 184, 255, 0.1)', border: 'none', borderRadius: 4, padding: '2px 4px', color: '#c9b8ff', fontSize: 8, fontWeight: 900, cursor: 'pointer' }}
-                   >
-                     {maximizeTeam ? "REDUZIR" : "MAXIMIZAR"}
-                   </button>
-                )}
-                <span style={{ color: '#c9b8ff', fontSize: '12px', opacity: 0.8 }}>{teamPanelOpen ? '▼' : '▲'}</span>
-              </div>
-            </div>
-
-            {teamPanelOpen && (
-              <div style={{
-                display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px'
-              }}>
-                {team.map((p, i) => {
-                  if (!maximizeTeam && i >= 3) return null;
-                  const petMax = calcIdleMaxHp(p);
-                  const petHp = i === 0 ? leaderHp : (p.hp ?? petMax);
-                  const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
-                  return (
-                    <div 
-                      key={p.uid} 
-                      onClick={() => setStatsCardPet(p)} 
-                      draggable 
-                      onDragStart={() => setDraggedIdx(i)}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => {
-                        if (draggedIdx === null || draggedIdx === i) return;
-                        const nextTeam = [...team];
-                        const [moved] = nextTeam.splice(draggedIdx, 1);
-                        nextTeam.splice(i, 0, moved);
-                        setTeam(nextTeam);
-                        setDraggedIdx(null);
-                      }}
-                      style={{
-                        background: i === 0 ? 'rgba(201, 184, 255, 0.15)' : 'rgba(0,0,0,0.2)',
-                        border: `1px solid ${i === 0 ? 'rgba(201, 184, 255, 0.4)' : 'rgba(255,255,255,0.05)'}`,
-                        borderRadius: '8px', padding: '6px 8px',
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        cursor: 'grab', position: 'relative'
-                      }}
-                    >
-                      <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src={GIF[p.species]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '10px', color: '#fff', fontWeight: 800 }}>{p.species.toUpperCase()}</span>
-                          <span style={{ fontSize: '9px', color: '#c9b8ff' }}>Lv.{p.level}</span>
-                        </div>
-                        <div style={{ height: '4px', background: 'rgba(0,0,0,0.4)', borderRadius: '2px', overflow: 'hidden', marginTop: '2px' }}>
-                          <div style={{ width: `${hpPct}%`, height: '100%', background: hpPct > 50 ? '#5ec26a' : hpPct > 20 ? '#f5cf6b' : '#ff5252' }} />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-
-        {/* Menu Lateral Direito (MMO Style) */}
-        <div className="side-icon-bar" style={{
-          position: 'fixed', right: '15px', top: 'calc(180px + 100px)', transform: 'translateY(0)',
-          display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'auto',
-          zIndex: 1003,
-          background: 'rgba(11, 5, 20, 0.75)',
-          backdropFilter: 'blur(10px)',
-          padding: '12px 8px',
-          borderRadius: '24px',
-          border: '1px solid rgba(201, 184, 255, 0.3)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
-        }}>
-          {/* Pacotes (Cash Shop) */}
-          <div onClick={() => setCashShopOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🎁</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Pacotes</span>
-          </div>
-
-          {/* Ranking (Bloqueado) */}
-          <div onClick={() => toast.info("O Ranking só abrirá no sábado na temporada Black Mitic! 🔒")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer', opacity: 0.6, position: 'relative' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🏆</div>
-            <div style={{ position: 'absolute', top: 0, right: 0, fontSize: '12px' }}>🔒</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Ranking</span>
-          </div>
-
-          {/* Mundo (World Map) */}
-          <div onClick={() => setWorldMapOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🌍</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Mundo</span>
-          </div>
-
-          {/* Configurações (Small spacer then config) */}
-          <div style={{ height: '4px' }}></div>
-          <div onClick={() => setTab("melhorias")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer', opacity: 0.8 }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>⚙️</div>
-            <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Config.</span>
-          </div>
-
-          {/* Radar Zoom Controls */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "center", marginTop: "10px" }}>
-            <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} style={zoomBtn}>+</button>
-            <button onClick={() => setZoom(z => Math.max(0.1, z - 0.1))} style={zoomBtn}>−</button>
-          </div>
-        </div>
-
-
-        {/* Dock Inferior Moderna */}
-        <div className="bottom-dock-container" style={{
-          position: 'fixed', bottom: '15px', left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(15px)',
-          padding: '10px 35px', borderRadius: '50px', border: '1px solid #c9b8ff',
-          display: 'flex', gap: '30px', pointerEvents: 'auto', boxShadow: '0 0 30px rgba(201,184,255,0.2)',
-          zIndex: 9999
-        }}>
-
-          <button onClick={() => { console.log('Dock: Batalha'); setTab("batalha"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'batalha' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'batalha' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>⚔️</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>BATALHA</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Equipe'); setTab("pokemon"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'pokemon' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'pokemon' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>🛡️</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>EQUIPE</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Mochila'); setTab("mochila"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'mochila' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'mochila' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>🎒</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>MOCHILA</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Colecao'); setTab("colecao"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'colecao' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'colecao' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>📔</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>COLEÇÃO</span>
-          </button>
-          <button onClick={() => toast.info("O Mercado só abrirá no sábado na temporada Black Mitic! 🔒")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', opacity: 0.6, pointerEvents: 'auto', zIndex: 2001, position: 'relative' }}>
-            <span style={{ fontSize: '24px' }}>⚖️</span>
-            <div style={{ position: 'absolute', top: -5, right: -5, fontSize: '12px' }}>🔒</div>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>MERCADO</span>
-          </button>
-          <button onClick={() => { console.log('Dock: Loja'); setTab("loja"); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: tab === 'loja' ? '#c9b8ff' : '#fff', pointerEvents: 'auto', zIndex: 2001, textShadow: tab === 'loja' ? '0 0 10px rgba(201, 184, 255, 0.6)' : 'none' }}>
-            <span style={{ fontSize: '24px' }}>🏪</span>
-            <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
-          </button>
-        </div>
-
-
-
-
-    {(tab !== "batalha" && tab !== "inicio") && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 2000000, pointerEvents: 'auto' }}>
-          <TabOverlay
-            tab={tab}
-            onClose={() => setTab("batalha")}
-            onAnciaoInteraction={handleAnciaoInteraction}
-            leader={team[0]}
-            team={team}
-            onReorderTeam={setTeam}
-            leaderHp={leaderHp}
-            items={idle.items || {}}
-            caughtSpecies={idle.caughtSpecies || []}
-            seenSpecies={idle.seenSpecies || []}
-            totals={idle.totals || { gold: 0, captured: 0 }}
-            collection={idle.collection || []}
-            idle={idle}
-            setIdle={setIdle}
-            craftPoints={idle.items?.cristal_fragmentado || 0}
-            onFragmentCollection={fragmentCollection}
-            gifMap={GIF}
-            onPickTeam={onPickTeamFromColecao}
-            onUseItem={useItem}
-            spriteScale={spriteScale}
-            bank={idle.bank || { gold: 0, crystals: 0 }}
-            buffs={idle.buffs || { atk: 1, def: 1, expMult: 0 }}
-            onBuyBall={buyBall}
-            onBuyUltraBundle={buyUltraBundle}
-            onBuyTeleportScroll={buyTeleportScroll}
-            onBuyBook={buyBook}
-            onBuyPotion={buyPotion}
-            onBuyEgg={buyEgg}
-            shopEggs={SHOP_EGGS}
-            onBuyChestAmulet={buyChestAmulet}
-            chestAmuletOwned={idle.items?.chest_amulet || 0}
-            autoHeal={idle.autoHeal || { enabled: false, threshold: 0.5 }}
-            setAutoHeal={(next: { enabled: boolean; threshold: number }) => setIdle(s => ({ ...s, autoHeal: next }))}
-            audioSettings={audioSettings}
-            setAudioSettings={setAudioSettings}
-            tasks={idle.tasks || []}
-            onClaimTask={claimTask}
-            onOpenColecaoDetail={(uid: string) => setPetDetailUid(uid)}
-            onExchange={exchange}
-            onSellItem={sellItem}
-            marketSellPrices={MARKET_SELL_PRICE}
-            identity={identity}
-            onListMarket={async () => false}
-            onBuyMarket={async () => false}
-            onCancelMarket={async () => false}
-            onClaimMarketPayout={async () => false}
-            isVip={isVip()}
-            skinId={skinId}
-            setSkinId={setSkinId}
-            unlockedSkins={idle.unlockedSkins || []}
-            skinTickets={idle.items?.skin_ticket || 0}
-            onUnlockSkin={(id: string) => {}}
-            trainerLevel={idle.trainerLevel || 1}
-            onUpgradeBook={upgradeBook}
-            orbTrades={ORB_TRADES}
-            onTradeOrb={tradeForOrb}
-            pokemonMarketNode={undefined}
-            benchUids={new Set()}
-          />
-        </div>
-      )}
-
-
-
-
-
-        {/* Main Quest HUD */}
-        {(() => {
-          const mq = idle.mainQuest ?? { currentQuestId: 1, progress: 0, completed: false, minimized: false };
-          if (mq.completed) return null;
-          const q = QUEST_DATA.find(x => x.id === mq.currentQuestId);
-          if (!q) return null;
-          const done = mq.progress >= q.target;
-          const isMinimized = mq.minimized;
+          {/* ============ UI FIXA (não rola com o mapa) ============ */}
+          {/* ============ UI MODERNA (Fixa) ============ */}
           
-          const toggleMinimized = () => {
-            playClick();
-            setIdle(s => ({
-              ...s,
-              mainQuest: { ...(s.mainQuest || mq), minimized: !isMinimized }
-            }));
-          };
-
-          const claim = () => {
-            if (!done) return;
-            playClick();
-            setIdle(s => {
-              const nextItems = { ...(s.items ?? {}) };
-              if (q.reward.items) {
-                for (const [iid, qty] of Object.entries(q.reward.items)) {
-                  nextItems[iid] = (nextItems[iid] ?? 0) + qty;
-                }
-              }
-              const nextRedShards = (s.items?.fragmento_vermelho ?? 0) + (q.reward.redshards ?? 0);
-              nextItems.fragmento_vermelho = nextRedShards;
-              
-              // Aplicar XP de recompensa
-              let nextTrainerXp = (s.trainerXp ?? 0) + (q.reward.trainerXp ?? 0);
-              let nextTrainerLevel = s.trainerLevel ?? 1;
-              while (nextTrainerLevel < 10000 && nextTrainerXp >= trainerXpToNext(nextTrainerLevel)) {
-                nextTrainerXp -= trainerXpToNext(nextTrainerLevel);
-                nextTrainerLevel++;
-              }
-
-              const nextId = mq.currentQuestId + 1;
-              const hasNext = QUEST_DATA.some(x => x.id === nextId);
-              
-              pushChat(`🎁 Recompensa da Quest "${q.title}" coletada!`, "cap");
-              if (q.reward.trainerXp) pushFxAt(trainerPos.x, trainerPos.y - 120, `+${q.reward.trainerXp} XP TREINADOR`, "xp");
-              
-              return {
-                ...s,
-                items: nextItems as any,
-                trainerXp: nextTrainerXp,
-                trainerLevel: nextTrainerLevel,
-                mainQuest: {
-                  currentQuestId: nextId,
-                  progress: 0,
-                  completed: !hasNext,
-                  minimized: false
-                }
-              };
-            });
-
-            // Dar XP para o time
-            if (q.reward.teamXp) {
-              setTeam(tm => tm.map(p => {
-                let lv = p.level;
-                let xp = (p.xp ?? 0) + (q.reward.teamXp ?? 0);
-                while (lv < 10000 && xp >= 100 + lv * 20) {
-                  xp -= 100 + lv * 20;
-                  lv++;
-                }
-                return { ...p, level: lv, xp };
-              }));
-            }
-          };
-
-          return (
-            <div className="main-quest-panel" style={{
-              position: 'absolute', bottom: '340px', left: '20px', // Aumentado de 310px para 340px para não sobrepor equipe
-              width: '280px',
-              background: 'rgba(11, 5, 20, 0.85)', backdropFilter: 'blur(12px)',
-              borderRadius: '12px', border: done ? '2px solid #f5cf6b' : '1px solid rgba(201,184,255,0.3)',
-              padding: '12px', pointerEvents: 'auto',
-              boxShadow: done ? '0 0 20px rgba(245,207,107,0.3)' : '0 4px 12px rgba(0,0,0,0.5)',
-              animation: done ? 'pulse 2s infinite' : 'none',
-              transition: 'all 0.3s'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMinimized ? 0 : 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                   <span style={{ color: '#f5cf6b', fontSize: '11px', fontWeight: 900, letterSpacing: 1.5 }}>MAIN QUEST</span>
-                   {done && <span style={{ fontSize: '10px', animation: 'bounce 1s infinite' }}>🎁</span>}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                   {!isMinimized && <span style={{ color: done ? '#5ec26a' : '#8a7a9c', fontSize: '10px', fontWeight: 800 }}>{mq.progress}/{q.target}</span>}
-                   <button onClick={toggleMinimized} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '12px', opacity: 0.7 }}>
-                     {isMinimized ? '▲' : '▼'}
-                   </button>
-                </div>
+          {/* Top Bar horizontal compacta */}
+          <div className="modern-top-bar">
+            {/* Esquerda: Nome do Mapa */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{
+                color: "#f5cf6b", fontWeight: 900, fontSize: 16,
+                letterSpacing: 1.5, fontFamily: "'Cinzel', serif",
+                textShadow: "0 2px 4px rgba(0,0,0,0.5)"
+              }}>
+                {map.name.toUpperCase()}
               </div>
+              <div style={{ fontSize: 10, color: "#c8b8d0", opacity: 0.8 }}>
+                {map.diff} · {fmtHMS(activeTime)}
+              </div>
+            </div>
 
-              {!isMinimized && (
-                <>
-                  <div style={{ color: '#fff', fontSize: '12px', fontWeight: 700, marginBottom: 4 }}>{q.title}</div>
-                  <div style={{ color: '#b8a8c8', fontSize: '10px', lineHeight: 1.3, marginBottom: 10 }}>{q.description}</div>
-                  
-                  <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px', overflow: 'hidden', marginBottom: 6 }}>
-                    <div style={{ 
-                      width: `${Math.min(100, (mq.progress / q.target) * 100)}%`, 
-                      height: '100%', 
-                      background: done ? '#5ec26a' : '#c9b8ff',
-                      boxShadow: done ? '0 0 8px #5ec26a' : 'none'
-                    }} />
-                  </div>
-
-                  {(() => {
-                    const timeRemaining = mq.expiresAt ? Math.max(0, mq.expiresAt - now) : 0;
-                    const hh = Math.floor(timeRemaining / 3600000);
-                    const mm = Math.floor((timeRemaining % 3600000) / 60000);
-                    const ss = Math.floor((timeRemaining % 60000) / 1000);
-                    return (
-                      <div style={{ 
-                        fontSize: '9px', fontWeight: 900, color: timeRemaining < 300000 ? '#ff5252' : '#8a7a9c',
-                        marginBottom: 10, textAlign: 'right', fontVariantNumeric: 'tabular-nums'
-                      }}>
-                        RESET EM: {String(hh).padStart(2, '0')}:{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}
-                      </div>
-                    );
-                  })()}
-
-                  {done ? (
-                    <button onClick={claim} style={{
-                      width: '100%', padding: '8px', background: 'linear-gradient(180deg, #f5cf6b, #b8862a)',
-                      color: '#0b0510', border: 'none', borderRadius: '6px', fontWeight: 900, fontSize: '11px',
-                      cursor: 'pointer', letterSpacing: 1, boxShadow: '0 2px 0 rgba(0,0,0,0.2)'
-                    }}>COLETAR RECOMPENSA</button>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '9px', color: '#8a7a9c', fontWeight: 700 }}>
-                        <span>RECOMPENSA:</span>
-                        {q.reward.items && Object.entries(q.reward.items).map(([id, qty]) => (
-                          <span key={id} style={{ color: '#c9b8ff' }}>{qty}x {id.replace(/_/g, ' ').toUpperCase()}</span>
-                        ))}
-                        {q.reward.redshards && (
-                          <span style={{ color: '#ff5c5c' }}>{q.reward.redshards} 🔻</span>
-                        )}
-                      </div>
-                      {(q.reward.trainerXp || q.reward.teamXp || q.reward.trainerLevels) && (
-                        <div style={{ display: 'flex', gap: 6, fontSize: '9px', fontWeight: 700 }}>
-                           {q.reward.trainerXp && <span style={{ color: '#f5cf6b' }}>+{q.reward.trainerXp} XP TR</span>}
-                           {q.reward.teamXp && <span style={{ color: '#5ec26a' }}>+{q.reward.teamXp} XP TEAM</span>}
-                           {q.reward.trainerLevels && <span style={{ color: '#f5cf6b' }}>+{q.reward.trainerLevels} LV TR</span>}
-
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
+            {/* Centro: Recursos */}
+            <div style={{ display: "flex", gap: 12 }}>
+              <div className="resource-pill" title="Ouro">
+                <span style={{ fontSize: 18 }}>🪙</span>
+                <span>{fmtK(idle.bank.gold)}</span>
+              </div>
+              <div className="resource-pill" title="Cristais">
+                <img src={crystalGreenImg} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+                <span>{Math.floor(idle.bank.crystals).toLocaleString()}</span>
+              </div>
+              {(idle.items?.safira_verde ?? 0) > 0 && (
+                <div className="resource-pill" title="Safira Verde">
+                  <img src={assetUrlFromJson(safiraVerdeAsset)} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+                  <span>{idle.items!.safira_verde}</span>
+                </div>
+              )}
+              {(idle.items?.fragmento_vermelho ?? 0) > 0 && (
+                <div className="resource-pill" title="Fragmentos Vermelhos" style={{ color: "#ff8b8b", borderColor: "rgba(255,139,139,0.3)" }}>
+                  <span style={{ fontSize: 16 }}>🔻</span>
+                  <span>{idle.items!.fragmento_vermelho}</span>
+                </div>
               )}
             </div>
-          );
-        })()}
 
-        <div className="chat-floating-panel" style={{
-          position: 'absolute', bottom: '100px', left: '20px',
-          width: '280px', maxHeight: chatOpen ? '200px' : '40px',
-          background: 'rgba(11, 5, 20, 0.8)', backdropFilter: 'blur(10px)',
-          borderRadius: '12px', border: '1px solid rgba(201,184,255,0.2)',
-          display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          pointerEvents: 'auto', transition: 'max-height 0.3s'
-        }}>
-          <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#c9b8ff', fontSize: '10px', fontWeight: 900, letterSpacing: 1 }}>GLOBAL CHAT</span>
-            <button onClick={() => setChatOpen(!chatOpen)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>
-              {chatOpen ? '▼' : '▲'}
-            </button>
-          </div>
-          {chatOpen && (
-            <div style={{ flex: 1, overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {chat.slice(-10).map((c, idx) => (
-                <div key={idx} style={{ fontSize: '10px', color: '#fff', opacity: 0.9 }}>
-                  {c.text}
-                </div>
-              ))}
-              <div ref={chatEndRef} />
+            {/* Direita: Pokébolas compactas */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
+                <img src={ballPokeImg} alt="Poké" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.pokeball ? 1 : 0.4 }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#ff8080" }}>{idle.items.pokeball ?? 0}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
+                <img src={ballGreatImg} alt="Great" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.greatball ? 1 : 0.4 }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#7ec4ff" }}>{idle.items.greatball ?? 0}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
+                <img src={ballUltraImg} alt="Ultra" width={20} height={20} style={{ imageRendering: "pixelated", opacity: idle.items.ultraball ? 1 : 0.4 }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#ffd66b" }}>{idle.items.ultraball ?? 0}</span>
+              </div>
             </div>
-          )}
-        </div>
-      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
-        {restingUntil !== null && restingStart !== null && (() => {
+          </div>
+
+          {/* Player Panel (Top Left) */}
+          <div className="trainer-card-compact">
+            <div className="trainer-avatar-box">
+              <div style={{
+                width: "100%", height: "100%",
+                backgroundImage: `url(${skinUrl ?? trainerSheet})`,
+                backgroundSize: "400% 400%",
+                backgroundPosition: `0% 0%`,
+                imageRendering: "pixelated",
+                transform: "scale(1.5) translateY(4px)"
+              }} />
+              <div style={{
+                position: "absolute", bottom: 0, right: 0,
+                background: "#f5cf6b", color: "#000",
+                fontSize: 10, fontWeight: 900, padding: "1px 4px",
+                borderRadius: "4px 0 0 0"
+              }}>
+                Lv.{idle.trainerLevel}
+              </div>
+            </div>
+            <div className="trainer-bars-container">
+              <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", display: "flex", justifyContent: "space-between" }}>
+                <span>{identity?.name?.toUpperCase() ?? "TREINADOR"}</span>
+                {isVip() && <span style={{ color: "#f5cf6b" }}>✦ VIP</span>}
+              </div>
+              
+              {/* HP Bar */}
+              {team[0] && (() => {
+                const max = calcIdleMaxHp(team[0]);
+                const hpPct = Math.max(0, (leaderHp / max) * 100);
+                return (
+                  <div className="hud-bar-bg" title={`HP: ${Math.floor(leaderHp)}/${max}`}>
+                    <div className="hud-bar-fill" style={{ width: `${hpPct}%`, background: "linear-gradient(90deg, #ff4d4d, #b30000)" }} />
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, color: "#fff", textShadow: "1px 1px 0 #000" }}>HP</div>
+                  </div>
+                );
+              })()}
+
+              {/* XP Bar */}
+              {(() => {
+                const xpNeeded = 100 + (idle.trainerLevel ?? 1) * 25;
+                const xpPct = Math.min(100, ((idle.trainerXp ?? 0) / xpNeeded) * 100);
+                return (
+                  <div className="hud-bar-bg" title={`XP: ${idle.trainerXp}/${xpNeeded}`}>
+                    <div className="hud-bar-fill" style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #4dff4d, #00b300)" }} />
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, color: "#fff", textShadow: "1px 1px 0 #000" }}>EXP</div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Mini-Map Circular (Top Right) */}
+          <div className="mini-map-circular">
+             {/* Simulação de radar/mapa simplificado */}
+             <div style={{
+               position: "absolute", inset: 0,
+               backgroundImage: `url(${map.bg})`,
+               backgroundSize: "cover", backgroundPosition: "center",
+               opacity: 0.6, filter: "grayscale(0.5) contrast(1.2)"
+             }} />
+             <div style={{
+               position: "absolute", left: "50%", top: "50%",
+               width: 8, height: 8, borderRadius: "50%",
+               background: "#fff", border: "1px solid #000",
+               transform: "translate(-50%, -50%)",
+               boxShadow: "0 0 10px #fff"
+             }} />
+             {enemies.map(e => (
+               <div key={e.id} style={{
+                 position: "absolute",
+                 left: `${50 + (e.x - trainerPos.x) / 10}%`,
+                 top: `${50 + (e.y - trainerPos.y) / 10}%`,
+                 width: 4, height: 4, borderRadius: "50%",
+                 background: "#ff4d4d", transform: "translate(-50%, -50%)"
+               }} />
+             ))}
+             {/* Overlay de radar scan */}
+             <div style={{
+               position: "absolute", inset: -50,
+               background: "conic-gradient(from 0deg, transparent 0deg, rgba(245,207,107,0.2) 60deg, transparent 65deg)",
+               animation: "rmBuffSpin 4s linear infinite"
+             }} />
+          </div>
+
+          {/* Right Vertical System Menu - Removed / Merged into Dock */}
+          
+          {/* Nav Inferior - Flutuante Dock */}
+          <div className="floating-nav-dock">
+            {([
+              { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
+              { id: "wiki",     label: "Wiki",     img: navInicio,    color: "#c084fc" },
+              { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
+              { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b" },
+              { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
+              { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
+              { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
+            ] as const).map((t) => {
+              const active = tab === t.id;
+              return (
+                <div 
+                  key={t.id} 
+                  className={`nav-dock-item ${active ? 'active' : ''}`}
+                  onClick={() => { playClick(); setTab(t.id as typeof tab); }}
+                >
+                  <img src={t.img} alt="" className="nav-dock-icon" />
+                  <span className="nav-dock-label" style={{ color: active ? t.color : "#c8b8d0" }}>{t.label}</span>
+                </div>
+              );
+            })}
+            <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.1)", margin: "0 4px" }} />
+            <div className="nav-dock-item" onClick={() => setWorldMapOpen(true)} title="Mapa Mundi">
+              <span style={{ fontSize: 20 }}>🌍</span>
+              <span className="nav-dock-label" style={{ color: "#c8b8d0" }}>Mapa</span>
+            </div>
+            <div className="nav-dock-item" onClick={() => setRankOpen(true)} title="Ranking">
+              <span style={{ fontSize: 20 }}>🏆</span>
+              <span className="nav-dock-label" style={{ color: "#c8b8d0" }}>Rank</span>
+            </div>
+          </div>
+
+
+          {/* Floating Chat Panel (Bottom Left) */}
+          <div className="chat-floating-panel">
+             <div style={{ background: "rgba(0,0,0,0.4)", padding: "4px 10px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+               <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>GLOBAL CHAT</span>
+               <button onClick={() => setChatOpen(!chatOpen)} style={{ background: "transparent", border: "none", color: "#9ab", cursor: "pointer", fontSize: 12 }}>{chatOpen ? "▼" : "▲"}</button>
+             </div>
+             {chatOpen && (
+               <div style={{ flex: 1, overflowY: "auto", padding: "6px 10px", display: "flex", flexDirection: "column", gap: 4 }}>
+                 {chat.slice(-20).map((c, idx) => (
+                   <div key={idx} style={{ fontSize: 10.5, lineHeight: 1.3, color: c.kind === "cap" ? "#f5cf6b" : c.kind === "info" ? "#6bd4ff" : "#eadfe8" }}>
+                     {c.text}
+                   </div>
+                 ))}
+                 <div ref={chatEndRef} />
+               </div>
+             )}
+          </div>
 
 
 
 
 
 
-
-
-
+          {/* Overlay de DESCANSO — congela o jogo, cura no final */}
+          {restingUntil !== null && restingStart !== null && (() => {
             const totalDur = Math.max(1, restingUntil - restingStart);
             const elapsed = Math.min(totalDur, Math.max(0, Date.now() - restingStart));
             const remaining = Math.max(0, restingUntil - Date.now());
@@ -10638,7 +9768,7 @@ function IdlePage() {
                 background: "rgba(11,5,16,0.95)",
                 border: `2px solid ${bColor}`,
                 borderRadius: 10, padding: "10px 16px",
-                display: "flex", alignItems: "center", gap: 12, zIndex: 1000000,
+                display: "flex", alignItems: "center", gap: 12, zIndex: 20,
                 boxShadow: `0 0 20px ${bColor}66`,
                 animation: "chest-pop 220ms ease-out",
               }}>
@@ -10649,7 +9779,6 @@ function IdlePage() {
                 </div>
                 <button
                   onClick={() => {
-                    playClick();
                     if (nearBuilding === "lab") { setVaultOpen(true); setNearBuilding(null); }
                     else if (nearBuilding === "gym") { setGymOpen(true); setNearBuilding(null); }
                     else if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
@@ -10660,57 +9789,13 @@ function IdlePage() {
                     color: "#0b0510", border: "none", borderRadius: 6,
                     padding: "8px 14px", fontWeight: 900, fontSize: 12,
                     letterSpacing: 1, cursor: "pointer",
-                    pointerEvents: "auto",
                   }}
                 >{bAction}</button>
               </div>
             );
           })()}
 
-          {/* HUD do Target (Inimigo Selecionado) */}
-          {targetPet && (
-            <div style={{
-              position: 'fixed', left: '50%', top: '70px', transform: 'translateX(-50%)',
-              width: '320px', background: 'rgba(11, 5, 20, 0.9)', backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 82, 82, 0.4)', borderRadius: '16px',
-              padding: '12px', display: 'flex', alignItems: 'center', gap: '15px',
-              boxShadow: '0 0 30px rgba(255, 82, 82, 0.2)', pointerEvents: 'auto',
-              zIndex: 100001
-            }}>
-              <div style={{ width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 82, 82, 0.1)', borderRadius: '12px' }}>
-                <img src={GIF[targetPet.sp]} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <span style={{ color: '#fff', fontSize: '13px', fontWeight: 900 }}>{targetPet.sp.replace(/_/g, ' ').toUpperCase()}</span>
-                  <span style={{ color: '#ff5252', fontSize: '11px', fontWeight: 800 }}>Lv.{targetPet.level}</span>
-                </div>
-
-                <div style={{ position: 'relative', height: '8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ 
-                    width: `${Math.max(0, Math.min(100, (targetPet.hp / targetPet.maxHp) * 100))}%`, 
-                    height: '100%', background: 'linear-gradient(90deg, #ff5252, #ff8080)',
-                    transition: 'width 0.3s ease-out'
-                  }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px' }}>
-                  <span style={{ color: '#ff8080', fontSize: '9px', fontWeight: 700, opacity: 0.8 }}>
-                    {Math.ceil(targetPet.hp)} / {Math.ceil(targetPet.maxHp)} HP
-                  </span>
-                </div>
-              </div>
-              <button onClick={() => setTargetPet(null)} style={{
-                position: 'absolute', top: '-10px', right: '-10px', width: '24px', height: '24px',
-                background: '#ff5252', border: '2px solid #fff', borderRadius: '50%',
-                color: '#fff', fontSize: '12px', fontWeight: 900, cursor: 'pointer',
-                display: 'grid', placeItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-              }}>×</button>
-            </div>
-          )}
-
-
           {/* Faixa BATALHA AUTOMÁTICA / DESMAIADO */}
-
 
           {leaderHp <= 0 ? (
             <div style={{
@@ -10732,93 +9817,358 @@ function IdlePage() {
             </div>
           ) : (() => {
             const ab = idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
-            const setAB = (patch: Partial<Omit<typeof ab, 'preferredBall'> & { preferredBall: typeof ab['preferredBall'] | 'masterball' }>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } as any }));
+            const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
             const on = ab.enabled;
             return (
-              <>
-                {/* Buffs Ativos HUD - Removido da sobreposição da tela principal conforme solicitado */}
-
-
-
+            <div style={{
+              position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+            }}>
+              {showAutoSettings && (
                 <div style={{
-                  position: "absolute", bottom: 95, left: "50%", transform: "translateX(-50%)",
-                  display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                  zIndex: 99997,
-                  pointerEvents: "auto",
+                  background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
+                  borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
+                  minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
                 }}>
-                  {showAutoSettings && (
-                    <div style={{
-                      background: "rgba(11,5,16,0.98)", border: "1px solid rgba(245,207,107,0.5)",
-                      borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8,
-                      minWidth: 240, color: "#eadfe8", fontSize: 11, boxShadow: "0 6px 20px rgba(0,0,0,0.55)",
-                      pointerEvents: "auto",
-                    }}>
-                      <div style={{ fontWeight: 800, color: "#f5cf6b", fontSize: 12, letterSpacing: 1 }}>⚙ CONFIGURAR AUTO</div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span>Lançar Pokébola</span>
-                        <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
-                      </div>
-                      <div style={{ display: "flex", gap: 4 }}>
-                        {(["auto", "pokeball", "greatball", "ultraball", "masterball"] as const).map((b) => (
-                          <button
-                            key={b}
-                            onClick={() => setAB({ preferredBall: b })}
-                            style={{
-                              flex: 1, padding: "6px 2px", borderRadius: 4, fontSize: 9, fontWeight: 900,
-                              background: ab.preferredBall === b ? "#f5cf6b" : "rgba(255,255,255,0.05)",
-                              color: ab.preferredBall === b ? "#0b0510" : "#fff",
-                              border: "1px solid rgba(245,207,107,0.3)", cursor: "pointer"
-                            }}
-                          >
-                            {b === "auto" ? "MELHOR" : b === "pokeball" ? "COMUM" : b === "greatball" ? "GREAT" : b === "ultraball" ? "ULTRA" : "MASTER"}
-                          </button>
-                        ))}
-                      </div>
+                  <div style={{ fontWeight: 800, color: "#f5cf6b", fontSize: 12, letterSpacing: 1 }}>⚙ CONFIGURAR AUTO</div>
+                  <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                    <span>Usar Pokébola</span>
+                    <input type="checkbox" checked={ab.useBall} onChange={(e) => setAB({ useBall: e.target.checked })} />
+                  </label>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <span style={{ color: "#c8b8d0" }}>Pokébola preferida</span>
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                      {(["auto","pokeball","greatball","ultraball"] as const).map((p) => {
+                        const label = p === "auto" ? "Auto" : p === "pokeball" ? "Poké" : p === "greatball" ? "Great" : "Ultra";
+                        const sel = ab.preferredBall === p;
+                        return (
+                          <button key={p} onClick={() => setAB({ preferredBall: p })} disabled={!ab.useBall} style={{
+                            background: sel ? "#f5cf6b" : "rgba(255,255,255,0.06)",
+                            color: sel ? "#0b0510" : "#eadfe8", border: "1px solid rgba(245,207,107,0.4)",
+                            borderRadius: 6, padding: "4px 8px", fontSize: 10, fontWeight: 700,
+                            cursor: ab.useBall ? "pointer" : "not-allowed", opacity: ab.useBall ? 1 : 0.5,
+                          }}>{label}</button>
+                        );
+                      })}
                     </div>
-                  )}
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <span style={{ color: "#c8b8d0" }}>Auto-Poção HP% ≤ {Math.round((idle.autoHeal?.threshold ?? 0.5) * 100)}%</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <input type="range" min={0.1} max={0.9} step={0.05}
+                        value={idle.autoHeal?.threshold ?? 0.5}
+                        onChange={(e) => setIdle((s) => ({ ...s, autoHeal: { ...(s.autoHeal ?? { enabled: false, threshold: 0.5 }), threshold: parseFloat(e.target.value) } }))}
+                        style={{ flex: 1 }}
+                      />
+                      <input type="checkbox"
+                        checked={idle.autoHeal?.enabled ?? false}
+                        onChange={(e) => setIdle((s) => ({ ...s, autoHeal: { ...(s.autoHeal ?? { enabled: false, threshold: 0.5 }), enabled: e.target.checked } }))}
+                        title="Ativar auto-poção"
+                      />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#8f8296", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 6 }}>
+                    💡 Clique em um Pokémon selvagem para lançar a Pokébola manualmente.
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (confirm("Sair e voltar para a tela de login?")) {
+                        signOutRubyM().finally(() => { window.location.reload(); });
+                      }
+                    }}
+                    style={{
+                      marginTop: 6,
+                      background: "linear-gradient(180deg,#7a1d1d,#4a0e0e)",
+                      border: "1px solid #ff6b6b", color: "#ffd7d7",
+                      borderRadius: 8, padding: "6px 10px", cursor: "pointer",
+                      fontSize: 11, fontWeight: 700, letterSpacing: 1,
+                    }}
+                  >
+                    🚪 IR PARA TELA DE LOGIN
+                  </button>
+                </div>
+              )}
+              {/* Quick ball selector — troca rápida sem abrir configurações */}
+              <div style={{
+                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.35)",
+                borderRadius: 10, padding: "4px 8px", display: "flex", alignItems: "center", gap: 6,
+              }}>
+                {([
+                  { id: "auto" as const, img: null, label: "A", count: null as number | null, tint: "#f5cf6b" },
+                  { id: "pokeball" as const, img: ballPokeImg, label: "Poké", count: idle.items.pokeball ?? 0, tint: "#ff8080" },
+                  { id: "greatball" as const, img: ballGreatImg, label: "Great", count: idle.items.greatball ?? 0, tint: "#7ec4ff" },
+                  { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
+                ]).map((b) => {
+                  const sel = ab.preferredBall === b.id;
+                  return (
                     <button
-                      onClick={() => setAB({ enabled: !on })}
+                      key={b.id}
+                      onClick={() => setAB({ preferredBall: b.id, useBall: true })}
+                      title={b.id === "auto" ? "Auto (melhor disponível)" : `${b.label} (${b.count})`}
                       style={{
-                        background: on ? "linear-gradient(135deg, #5ec26a 0%, #2e7d32 100%)" : "linear-gradient(135deg, #ff5c5c 0%, #b71c1c 100%)",
-                        color: "#fff", border: "2px solid rgba(255,255,255,0.2)", borderRadius: 12,
-                        padding: "10px 24px", fontWeight: 900, fontSize: 13, letterSpacing: 1.5,
-                        cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.4)", textTransform: "uppercase"
+                        position: "relative", background: sel ? "rgba(245,207,107,0.18)" : "transparent",
+                        border: sel ? `1.5px solid ${b.tint}` : "1.5px solid transparent",
+                        boxShadow: sel ? `0 0 8px ${b.tint}88` : "none",
+                        borderRadius: 8, padding: 3, cursor: "pointer",
+                        width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
                       }}
                     >
-                      {on ? "⚔ Auto-Batalha ON" : "🛡 Auto-Batalha OFF"}
+                      {b.img ? (
+                        <img src={b.img} alt={b.label} width={24} height={24} style={{ imageRendering: "pixelated", filter: sel ? "none" : "grayscale(0.4)" }} />
+                      ) : (
+                        <span style={{ fontSize: 14, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>A</span>
+                      )}
+                      {b.count !== null && (
+                        <span style={{
+                          position: "absolute", bottom: -2, right: -2, background: "#0b0510",
+                          border: `1px solid ${b.tint}`, borderRadius: 6, padding: "0 3px",
+                          fontSize: 8, fontWeight: 800, color: b.tint, lineHeight: "10px", minWidth: 12, textAlign: "center",
+                        }}>{b.count > 999 ? "999+" : b.count}</span>
+                      )}
                     </button>
-                    <button
-                      onClick={() => setShowAutoSettings(!showAutoSettings)}
-                      style={{
-                        background: showAutoSettings ? "#c9b8ff" : "rgba(255,255,255,0.05)",
-                        color: showAutoSettings ? "#0b0510" : "#c9b8ff",
-                        border: "1px solid rgba(201,184,255,0.3)",
-                        borderRadius: 8, width: 28, height: 28, cursor: "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 14, transition: "all 0.2s",
-                      }}
-                    >⚙</button>
-                  </div>
+                  );
+                })}
+              </div>
+              <div style={{
+                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.4)",
+                borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
+              }}>
+                <button
+                  onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
+                  title={on ? "Auto-batalha ATIVA (clique para desativar)" : "Auto-batalha desativada (clique para ativar)"}
+                  style={{
+                    background: "transparent", border: "none", padding: 0, cursor: "pointer",
+                    width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
+                    position: "relative",
+                  }}
+                >
+                  <img
+                    src={autoIconImg}
+                    alt="Auto"
+                    width={40}
+                    height={40}
+                    style={{
+                      width: 40, height: 40, imageRendering: "pixelated",
+                      filter: on
+                        ? "drop-shadow(0 0 6px #5ec26a) drop-shadow(0 0 10px rgba(94,194,106,0.6))"
+                        : "grayscale(1) opacity(0.55)",
+                      animation: on ? "autoIconPulse 1.2s ease-in-out infinite, autoIconSpin 6s linear infinite" : "none",
+                      transformOrigin: "50% 50%",
+                    }}
+                  />
+                </button>
+                <div style={{ fontSize: 10, color: "#c8b8d0", minWidth: 90 }}>
+                  Lv.{team[0]?.level ?? 1} · EXP {team[0]?.xp ?? 0}/{100 + (team[0]?.level ?? 1) * 20}
                 </div>
-              </>
+                <button
+                  onClick={() => setShowAutoSettings((v) => !v)}
+                  title="Configurar"
+                  style={{
+                    background: showAutoSettings ? "#f5cf6b" : "rgba(255,255,255,0.06)",
+                    color: showAutoSettings ? "#0b0510" : "#f5cf6b",
+                    border: "1px solid rgba(245,207,107,0.5)",
+                    borderRadius: 8, width: 30, height: 30, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 16,
+                  }}
+                >⚙</button>
+              </div>
+            </div>
             );
           })()}
 
 
+          {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
+          {tab !== "batalha" && (
+            <TabOverlay
+              tab={tab}
+              onClose={() => setTab("batalha")}
+              leader={team[0]}
+              team={team}
+              onReorderTeam={(nt) => { setTeam(nt); if (nt[0]) setLeaderHp(calcIdleMaxHp(nt[0])); }}
+              leaderHp={leaderHp}
+              items={idle.items}
+              caughtSpecies={idle.caughtSpecies}
+              seenSpecies={idle.seenSpecies}
+              totals={idle.totals}
+              collection={collectionForDisplay}
+              craftPoints={idle.craftPoints ?? 0}
+              onFragmentCollection={fragmentCollection}
+              gifMap={GIF}
+              onPickTeam={(entry) => onPickTeamFromColecao(entry)}
+              onUseItem={useItem}
+              bank={idle.bank}
+              buffs={idle.buffs}
+              onBuyBall={buyBall}
+              onBuyUltraBundle={buyUltraBundle}
+              onBuyTeleportScroll={buyTeleportScroll}
+              onBuyBook={buyBook}
+              orbTrades={ORB_TRADES}
+              onTradeOrb={tradeForOrb}
+              benchUids={new Set(restingBench.map(p => p.uid))}
+              onBuyPotion={buyPotion}
+              onBuyEgg={buyEgg}
+              shopEggs={SHOP_EGGS}
+
+              onBuyChestAmulet={buyChestAmulet}
+              chestAmuletOwned={idle.items?.chest_amulet ?? 0}
+              autoHeal={idle.autoHeal}
+              setAutoHeal={(next) => setIdle((s) => ({ ...s, autoHeal: next }))}
+              audioSettings={audioSettings}
+              setAudioSettings={setAudioSettings}
+              tasks={idle.tasks}
+              onClaimTask={claimTask}
+              onOpenColecaoDetail={(uid) => setColecaoDetailUid(uid)}
+              onExchange={exchange}
+              onSellItem={sellItem}
+              marketSellPrices={MARKET_SELL_PRICE}
+              identity={identity}
+              onListMarket={listMarketItem}
+              onBuyMarket={buyMarketListing}
+              onCancelMarket={cancelMarketListing}
+              onClaimMarketPayout={claimMarketPayout}
+              isVip={isVip()}
+              pokemonMarketNode={
+                <PokemonMarketPanel
+                  identity={identity}
+                  collection={idle.collection ?? []}
+                  gold={idle.bank.gold}
+                  crystals={idle.bank.crystals}
+                  safiras={idle.items?.safira_verde ?? 0}
+                  isVip={isVip()}
+                  gifOf={(sp) => GIF[sp]}
+                  onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
+                  onReturned={(entry) => setIdle((s) => {
+                    const col = s.collection ?? [];
+                    if (col.some(c => c.uid === entry.uid)) return s;
+                    return { ...s, collection: [...col, entry] };
+                  })}
+                  onSpend={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
+                      : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
+                  }))}
+                  onEarn={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: s.bank.gold + amount }
+                      : { ...s.bank, crystals: s.bank.crystals + amount },
+                  }))}
+                  onSpendSafira={(amount) => {
+                    const cur = idle.items?.safira_verde ?? 0;
+                    if (cur < amount) return false;
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
+                    return true;
+                  }}
+                  onEarnSafira={(amount) => {
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
+                  }}
+                  pushChat={pushChat}
+                />
+              }
+              skinId={skinId}
+              setSkinId={setSkinId}
+              unlockedSkins={idle.unlockedSkins ?? ["default"]}
+              skinTickets={idle.items?.skin_ticket ?? 0}
+              onUnlockSkin={(sid) => {
+                setIdle((s) => {
+                  const tickets = s.items?.skin_ticket ?? 0;
+                  const unlocked = new Set(s.unlockedSkins ?? ["default"]);
+                  if (unlocked.has(sid)) return s;
+                  if (tickets <= 0) return s;
+                  unlocked.add(sid);
+                  return {
+                    ...s,
+                    items: { ...s.items, skin_ticket: tickets - 1 },
+                    unlockedSkins: Array.from(unlocked),
+                  };
+                });
+                setSkinId(sid);
+                pushChat(`✦ Skin premium desbloqueada! Você consumiu 1 Ticket de Skin.`, "cap");
+              }}
+              trainerLevel={idle.trainerLevel ?? 1}
+              onUpgradeBook={upgradeBook}
 
 
+            />
 
+          )}
+        </div>
 
+        {/* ============ MENU LATERAL ESQUERDO (EXPLORE & TEAM) ============ */}
+        <div className="modern-explore-panel" style={{ position: 'fixed', left: '20px', top: '80px', width: '220px', zIndex: 100, pointerEvents: 'auto' }}>
+          <Panel title="EXPLORAR" accent="#3d2b52">
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div ref={coletaRef} style={{
+                background: "rgba(0,0,0,0.5)",
+                border: "1px solid rgba(245,207,107,0.3)",
+                borderRadius: 12, padding: 12,
+                backdropFilter: "blur(8px)"
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 11, letterSpacing: 1 }}>COLETA</span>
+                  <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 10 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 10 }}>
+                  <span style={{ color: "#f4c430", fontWeight: 800, fontSize: 12 }}>● {fmtK(idle.bank.gold)}</span>
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 12 }}>💎 {Math.floor(idle.bank.crystals)}</span>
+                </div>
 
+                <button
+                  onClick={collect}
+                  style={{
+                    width: "100%", background: "linear-gradient(135deg, #7ef27a, #5ec26a)",
+                    color: "#0b0510", border: "1px solid #f5cf6b", borderRadius: 8,
+                    padding: "6px", fontWeight: 900, fontSize: 12, cursor: "pointer"
+                  }}
+                >
+                  COLETAR
+                </button>
+              </div>
 
+              {/* Eventos compactos aqui */}
+              {isGeliusActive() && (
+                <div 
+                  onClick={() => pushChat("🐧 Gelius ativo!", "info")}
+                  style={{ background: "rgba(11,46,74,0.6)", border: "1px solid #7fd8ff", borderRadius: 10, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  <span style={{ fontSize: 14 }}>🐧</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 9, fontWeight: 900, color: "#7fd8ff" }}>EVENTO GELIUS</div>
+                    <div style={{ fontSize: 8, color: "#fff" }}>ONDA ATIVA</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Panel>
+
+          <div style={{ height: 12 }} />
+
+          <Panel title="EQUIPE" accent="#3d2b52">
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {team.map((p, i) => (
+                <div key={p.uid} style={{ 
+                  display: "flex", alignItems: "center", gap: 6, 
+                  background: i === 0 ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.03)",
+                  padding: "4px 8px", borderRadius: 8,
+                  border: i === 0 ? "1px solid rgba(245,207,107,0.3)" : "1px solid rgba(255,255,255,0.05)"
+                }}>
+                  <img src={GIF[p.species]} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 9, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.species.toUpperCase()}</div>
+                    <div style={{ fontSize: 8, color: "rgba(255,255,255,0.5)" }}>LV.{p.level}</div>
+                  </div>
+                  <div style={{ width: 40, height: 4, background: "rgba(0,0,0,0.5)", borderRadius: 2, overflow: "hidden" }}>
+                    <div style={{ width: "100%", height: "100%", background: "#5ec26a" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </div>
 
       <style>{`
-        .mochila-body::-webkit-scrollbar { width: 6px; }
-        .mochila-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-        .mochila-body::-webkit-scrollbar-thumb { background: rgba(245,207,107,0.3); borderRadius: 10px; }
-
 
         @media (max-width: 1400px) {
           .idle-grid { grid-template-columns: 210px 1fr 210px !important; gap: 6px !important; padding: 6px !important; }
@@ -11061,9 +10411,9 @@ function IdlePage() {
 
 
       {identity && (
-        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 10002, display: "flex", flexDirection: "column", gap: 2 }}>
+        <div style={{ position: "fixed", bottom: 8, left: 8, fontSize: 10, color: "#8a7a9c", zIndex: 100, display: "flex", flexDirection: "column", gap: 2 }}>
           <span>{identity.name}</span>
-          <span style={{ fontFamily: "monospace", color: "#c9b8ff", fontSize: 9 }}>
+          <span style={{ fontFamily: "monospace", color: "#7fd8ff", fontSize: 9 }}>
             🌐 IP: {idle.hideIp ? "•••.•••.•••.•••" : (myIp ?? "detectando...")}
           </span>
           <div style={{ display: "flex", gap: 4 }}>
@@ -11129,23 +10479,14 @@ function IdlePage() {
           pushChat(fee === 0 ? `🏦 ${e.species.replace(/_/g, " ")} guardado GRÁTIS (Black Mitic Plus).` : `🏦 ${e.species.replace(/_/g, " ")} guardado para sempre (−${fee.toLocaleString("pt-BR")} 🔻).`, "cap");
         };
         const withdrawPoke = (e: CollectionEntry) => {
-          // Reset de nível ao retirar do cofre para garantir a progressão da season
-          const leveledDown: CollectionEntry = {
-            ...e,
-            level: 1,
-            xp: 0
-          };
-
           setIdle((st) => ({
             ...st,
             pokeVault: (st.pokeVault ?? []).filter((c) => c.uid !== e.uid),
-            collection: [...(st.collection ?? []), leveledDown],
+            collection: [...(st.collection ?? []), e],
           }));
           playClick();
-          pushChat(`🏦 ${e.species.replace(/_/g, " ")} retirado do cofre (Nível resetado p/ 1).`, "cap");
+          pushChat(`🏦 ${e.species.replace(/_/g, " ")} retirado do cofre.`, "cap");
         };
-
-
         const PokeRow = ({ e, stored }: { e: CollectionEntry; stored: boolean }) => {
           const bmp = isBmpEntry(e);
           return (
@@ -11177,10 +10518,10 @@ function IdlePage() {
             <button onClick={() => move(id, n, toVault)} style={{ background: "#2a1a2e", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 6, padding: "4px 7px", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>{toVault ? "▶ TUDO" : "◀ TUDO"}</button>
           </div>
         );
-        return createPortal(
-          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 3000000, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+        return (
+          <div onClick={() => setVaultOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+      {/* Portals moved to top-level for reliability */}
             <div onClick={(e) => e.stopPropagation()} style={{ width: "min(760px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #241a12 0%, #0e0906 100%)", border: "3px solid #f5cf6b", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(245,207,107,0.35)" }}>
-
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <img src={houseBankImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
                 <div style={{ flex: 1 }}>
@@ -11210,10 +10551,9 @@ function IdlePage() {
               </div>
               {vaultTab === "pokemon" && (
                 <div style={{ background: "rgba(160,102,255,0.12)", border: "1px solid rgba(160,102,255,0.4)", borderRadius: 8, padding: "7px 10px", marginBottom: 10, fontSize: 10.5, color: "#e0cbff", lineHeight: 1.5 }}>
-                  🛡 Pokémons guardados aqui são <b>preservados</b>, porém seus <b>níveis serão resetados para 1</b> ao serem retirados.<br />
+                  🛡 Pokémons guardados aqui são <b>preservados na 3ª Season</b> (não serão resetados).<br />
                   Taxa: <b>{POKE_VAULT_FEE_SHARDS.toLocaleString("pt-BR")} 🔻</b> por pokémon · <b>Black Mitic Plus é grátis</b> · vagas usadas: <b>{pokeVault.length}/{POKE_VAULT_SLOTS}</b>
                 </div>
-
               )}
               {vaultTab === "itens" ? (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -11236,14 +10576,14 @@ function IdlePage() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
                     <div style={{ color: "#ffe89a", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🐾 COLEÇÃO ({storable.length})</div>
-                    <div style={{ display: "grid", gap: 6, maxHeight: "350px", overflowY: "auto" }}>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
                       {storable.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Nenhum pokémon disponível (os do time não podem ser guardados).</div>
                         : storable.map((e) => <PokeRow key={e.uid} e={e} stored={false} />)}
                     </div>
                   </div>
                   <div>
                     <div style={{ color: "#e0cbff", fontSize: 11, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>🏦 COFRE ETERNO ({pokeVault.length}/{POKE_VAULT_SLOTS})</div>
-                    <div style={{ display: "grid", gap: 6, maxHeight: "350px", overflowY: "auto" }}>
+                    <div style={{ display: "grid", gap: 6, maxHeight: "46vh", overflowY: "auto" }}>
                       {pokeVault.length === 0 ? <div style={{ color: "#8a7a9c", fontSize: 11 }}>Cofre eterno vazio.</div>
                         : pokeVault.map((e) => <PokeRow key={e.uid} e={e} stored />)}
                     </div>
@@ -11251,67 +10591,11 @@ function IdlePage() {
                 </div>
               )}
             </div>
-          </div>,
-          document.body
+          </div>
         );
       })()}
 
-
-      {/* ═══ 🔐 SENHA DO MAPA ═══ */}
-      {mapPasswordInput && createPortal(
-        <div onClick={() => setMapPasswordInput(null)} style={{ position: "fixed", inset: 0, zIndex: 4000000, background: "rgba(0,0,0,0.92)", display: "grid", placeItems: "center" }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(160deg, #1a1a2e 0%, #0f0f1a 100%)", border: "2px solid #f5cf6b", borderRadius: 20, padding: 30, textAlign: "center", boxShadow: "0 0 50px rgba(245,207,107,0.3)" }}>
-            <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 18, marginBottom: 15, letterSpacing: 2 }}>ACESSO RESTRITO</div>
-            <div style={{ color: "#c8b8d0", fontSize: 12, marginBottom: 20 }}>Digite a senha de 3 dígitos para entrar no {IDLE_MAPS[mapPasswordInput.portal.to].name}</div>
-            
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 25 }}>
-              {[0, 1, 2].map(i => (
-                <div key={i} style={{ width: 45, height: 60, background: "rgba(0,0,0,0.5)", border: "2px solid #f5cf6b", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 900, color: "#fff" }}>
-                  {pinValue[i] || ""}
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, maxWidth: 200, margin: "0 auto" }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, "C", 0, "OK"].map(btn => (
-                <button
-                  key={btn.toString()}
-                  onClick={() => {
-                    playClick();
-                    if (btn === "C") setPinValue("");
-                    else if (btn === "OK") {
-                      if (pinValue === "333") {
-                        const p = mapPasswordInput.portal;
-                        setIdle((s) => ({ ...s, currentMap: p.to }));
-                        setTrainerPos({ x: p.arriveX, y: p.arriveY });
-                        setAttackTargetId(null);
-                        setEnemies([]);
-                        clearBattleScene();
-                        pushChat(`🔓 Senha correta! Bem-vindo ao ${IDLE_MAPS[p.to].name}.`, "cap");
-                        setMapPasswordInput(null);
-                      } else {
-                        pushChat("❌ Senha incorreta!", "info");
-                        setPinValue("");
-                      }
-                    } else if (pinValue.length < 3) {
-                      setPinValue(v => v + btn);
-                    }
-                  }}
-                  style={{
-                    background: btn === "OK" ? "#5ec26a" : btn === "C" ? "#ff5c5c" : "rgba(255,255,255,0.05)",
-                    color: "#fff", border: "1px solid rgba(245,207,107,0.3)", borderRadius: 8,
-                    padding: "12px 0", fontSize: 16, fontWeight: 900, cursor: "pointer"
-                  }}
-                >{btn}</button>
-              ))}
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
       {/* ═══ 🏰 GINÁSIO MEDIEVAL — endgame: 3 andares + portal do Vale ═══ */}
-
       {gymOpen && (() => {
         const shards = idle.items?.fragmento_vermelho ?? 0;
         const st = valeEventStatus();
@@ -11342,9 +10626,8 @@ function IdlePage() {
           pushChat(`🏰 Você adentrou o ${f.label} (−${f.entryShards.toLocaleString("pt-BR")} 🔻). Prepare-se.`, "cap");
           setGymOpen(false);
         };
-        return createPortal(
-          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.88)", display: "grid", placeItems: "center", padding: 16 }}>
-
+        return (
+          <div onClick={() => setGymOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.88)", display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: "min(680px, 100%)", maxHeight: "88vh", overflowY: "auto", background: "linear-gradient(160deg, #2a1010 0%, #0d0505 60%, #150a20 100%)", border: "3px solid #ff5c5c", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(255,92,92,0.35)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                 <img src={houseGymImg} alt="" width={48} height={54} loading="lazy" style={{ imageRendering: "pixelated" }} />
@@ -11415,21 +10698,19 @@ function IdlePage() {
                 >{idle.currentMap === "vale_fragmentos" ? "VOCÊ JÁ ESTÁ NO VALE" : st.open ? "ENTRAR NO VALE 🔻" : "EVENTO FECHADO"}</button>
               </div>
             </div>
-          </div>,
-          document.body
+          </div>
         );
       })()}
 
 
-
       {/* ═══ 📜 LOG DE REDE / FARM ═══ */}
-      {netLogOpen && createPortal(
-        <div onClick={() => setNetLogOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
+      {netLogOpen && (
+        <div onClick={() => setNetLogOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center", padding: 16 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ width: "min(720px, 100%)", maxHeight: "85vh", overflowY: "auto", background: "linear-gradient(160deg, #0d1824 0%, #05080d 100%)", border: "3px solid #6bd4ff", borderRadius: 16, padding: 18, boxShadow: "0 0 70px rgba(107,212,255,0.3)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ color: "#bfe9ff", fontWeight: 900, fontSize: 16, letterSpacing: 1.4 }}>📜 LOG DE REDE</div>
-                <div style={{ color: "#7f95a8", fontSize: 10.5 }}>Seu IP atual: <b style={{ color: "#c9b8ff", fontFamily: "monospace" }}>{myIp ?? "—"}</b> · sessão de farm: {fmtHMS(activeTime)}</div>
+                <div style={{ color: "#7f95a8", fontSize: 10.5 }}>Seu IP atual: <b style={{ color: "#7fd8ff", fontFamily: "monospace" }}>{myIp ?? "—"}</b> · sessão de farm: {fmtHMS(activeTime)}</div>
               </div>
               <button onClick={() => void loadNetLogs()} style={{ background: "#10222f", border: "1px solid #6bd4ff", color: "#bfe9ff", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>🔄 ATUALIZAR</button>
               <button onClick={() => setNetLogOpen(false)} style={{ background: "#10222f", border: "1px solid #3b5a6b", color: "#9ab", borderRadius: 8, padding: "6px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer" }}>FECHAR (ESC)</button>
@@ -11439,7 +10720,7 @@ function IdlePage() {
               {!netLogLoading && netLogs.length === 0 && <div style={{ color: "#7f95a8", fontSize: 11 }}>Nenhum registro de acesso encontrado.</div>}
               {netLogs.map((r) => (
                 <div key={r.id} style={{ display: "flex", gap: 10, alignItems: "center", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(107,212,255,0.18)", borderRadius: 8, padding: "6px 9px", fontSize: 10.5 }}>
-                  <span style={{ color: "#c9b8ff", fontFamily: "monospace", fontWeight: 900, minWidth: 118 }}>{r.ip}</span>
+                  <span style={{ color: "#7fd8ff", fontFamily: "monospace", fontWeight: 900, minWidth: 118 }}>{r.ip}</span>
                   <span style={{ color: "#ffe89a", fontWeight: 800, minWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.username ?? r.user_id.slice(0, 8)}</span>
                   <span style={{ color: "#8fa4b4", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.user_agent ?? "—"}</span>
                   <span style={{ color: "#7f95a8" }}>{new Date(r.created_at).toLocaleString("pt-BR")}</span>
@@ -11447,24 +10728,24 @@ function IdlePage() {
               ))}
             </div>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
 
-      {worldTraderOpen && createPortal((() => {
-          const collection = idle.collection ?? [];
-          const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
-          const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
-          return (
+      {/* ═══ Modal do NPC Trocador (aberto ao clicar no NPC no mapa) ═══ */}
+      {worldTraderOpen && (() => {
+        const collection = idle.collection ?? [];
+        const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
+        const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
+        return (
+          <div
+            onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
+          >
             <div
-              onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
-              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
-            >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  width: "min(640px, 100%)", maxHeight: "90vh", overflowY: "auto",
-                  background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "min(640px, 100%)", maxHeight: "90vh", overflowY: "auto",
+                background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
                 border: "2px solid #ffd94d", borderRadius: 16, padding: 18,
                 boxShadow: "0 12px 36px rgba(0,0,0,0.75), 0 0 32px rgba(255,217,77,0.35)",
               }}
@@ -11615,7 +10896,7 @@ function IdlePage() {
                         Você não tem Pokémon {pick.rarity.toUpperCase()} na coleção.
                       </div>
                     ) : (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "180px", overflowY: "auto", padding: 4 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 6, maxHeight: "22vh", overflowY: "auto", padding: 4 }}>
                         {eligible.map((c) => {
                           const sel = worldTraderSel.has(c.uid);
                           const disabled = !sel && selCount >= pick.count;
@@ -11685,7 +10966,7 @@ function IdlePage() {
                       {fuelOfTab.length === 0 ? (
                         <div style={{ fontSize: 11, color: "#8a7a9c", padding: 8, textAlign: "center" }}>Nenhum {FUEL_TIERS[activeTab].label} disponível.</div>
                       ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "140px", overflowY: "auto" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: 4, maxHeight: "16vh", overflowY: "auto" }}>
                           {fuelOfTab.map((c) => {
                             const sel = worldTraderFuel.has(c.uid);
                             const disabled = !sel && fuelCount >= MAX_FUEL;
@@ -11751,44 +11032,11 @@ function IdlePage() {
                   </div>
                 );
               })()}
-              </div>
+
             </div>
-          );
-        })(), document.body)}
-        {/* ═══ 🕰 BUFFS ATIVOS (Incensos / Orbs) ═══ */}
-        <div style={{
-          position: "fixed", top: 10, left: "50%", transform: "translateX(-50%)",
-          display: "flex", gap: 10, zIndex: 10005, pointerEvents: "none"
-        }}>
-          {(() => {
-            const now = Date.now();
-            const activeBuffs = [
-              { id: "exp", until: idle.buffs.expMultUntil, icon: "✨", label: "EXP", color: "#6bd4ff" },
-              { id: "gold", until: idle.buffs.goldMultUntil, icon: "🪙", label: "OURO", color: "#f5cf6b" },
-              { id: "honey", until: Math.max(idle.buffs.honeyUntil ?? 0, idle.buffs.honeyRareUntil ?? 0), icon: "🍯", label: "MEL", color: "#ffd94d" },
-              { id: "orb", until: idle.buffs.orbUntil, icon: "🔮", label: "ORB", color: "#c084fc" },
-              { id: "team", until: idle.buffs.teamOrbUntil, icon: "👥", label: "TIME", color: "#7ef2a2" },
-            ].filter(b => b.until && b.until > now);
-
-            if (activeBuffs.length === 0) return null;
-
-            return activeBuffs.map(b => (
-              <div key={b.id} style={{
-                background: "rgba(0,0,0,0.7)", border: `1px solid ${b.color}`, borderRadius: 12,
-                padding: "4px 10px", display: "flex", alignItems: "center", gap: 6,
-                boxShadow: `0 0 10px ${b.color}44`, backdropFilter: "blur(4px)", pointerEvents: "auto"
-              }}>
-                <span style={{ fontSize: 14 }}>{b.icon}</span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                  <span style={{ fontSize: 8, fontWeight: 900, color: b.color, letterSpacing: 1 }}>{b.label}</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "monospace" }}>
-                    {fmtOddishMs(b.until! - now)}
-                  </span>
-                </div>
-              </div>
-            ));
-          })()}
-        </div>
+          </div>
+        );
+      })()}
 
       {/* Incubadora — animação de sucesso/falha */}
       {orbAnim && (
@@ -11815,7 +11063,7 @@ function IdlePage() {
             <div style={{ fontSize: 12, color: "#c8b8d0", letterSpacing: 2, fontWeight: 900, marginBottom: 8 }}>
               {orbAnim.phase === "spinning" ? "⚗️  INCUBANDO..." : orbAnim.phase === "success" ? (orbAnim.lucky ? "🌟  SORTE!" : "✨  SUCESSO!") : "💥  FALHOU!"}
             </div>
-            <div style={{ position: 'relative', height: 240, display: 'grid', placeItems: 'center', zIndex: 1 }}>
+            <div style={{ position: "relative", height: 240, display: "grid", placeItems: "center" }}>
               {/* base incubadora */}
               <img
                 src={orbIncubatorImg}
@@ -11853,7 +11101,6 @@ function IdlePage() {
                     position: "absolute", bottom: 30, imageRendering: "pixelated",
                     filter: `drop-shadow(0 0 20px ${orbAnim.color})`,
                     animation: "orb-drop .6s ease-out both, orb-pulse 2s ease-in-out infinite .6s",
-                    zIndex: 2,
                   }}
                 />
               )}
@@ -11910,21 +11157,13 @@ function IdlePage() {
         </div>
       )}
 
-      {/* ❄️ Diálogo do Ancião Glacial — Ritual da Nova Jornada */}
-      <AnciaoGlacialDialog
-        open={anciaoOpen}
-        forced={anciaoForced}
-        onClose={() => { if (!anciaoForced) setAnciaoOpen(false); }}
-        onConfirm={handleSeasonResetRitual}
-      />
-
 
       {/* Botão flutuante: resgatar código */}
       <button
         onClick={() => { setCodeOpen(true); setCodeMsg(null); }}
         title="Resgatar código"
         style={{
-          position: "fixed", bottom: 12, right: 12, zIndex: 10002,
+          position: "fixed", bottom: 12, right: 12, zIndex: 100,
           background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
           border: "1px solid #f5cf6b", color: "#f5cf6b",
           borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 800,
@@ -11933,7 +11172,7 @@ function IdlePage() {
         }}
       >🔑 Código</button>
 
-      {codeOpen && createPortal(
+      {codeOpen && (
         <div
           onClick={() => setCodeOpen(false)}
           style={{
@@ -11951,19 +11190,14 @@ function IdlePage() {
               boxShadow: "0 8px 30px rgba(0,0,0,0.6)",
             }}
           >
-            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8, whiteSpace: "pre-line" }}>
-              Digite um código secreto para receber recompensas.
-              {"\n"}DICA: use <b>RESETPERSON</b> se o Ancião Glacial falhar.
-            </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <div style={{ fontWeight: 800, color: "#f5cf6b" }}>🔑 Resgatar código</div>
               <button onClick={() => setCodeOpen(false)} style={{
                 background: "transparent", border: "none", color: "#f3e5c5", cursor: "pointer", fontSize: 16,
               }}>✕</button>
             </div>
-            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8, whiteSpace: "pre-line" }}>
+            <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8 }}>
               Digite um código secreto para receber recompensas.
-              {"\n"}DICA: use <b>RESETPERSON</b> se o Ancião Glacial falhar.
             </div>
             <div style={{ display: "flex", gap: 6 }}>
               <input
@@ -11998,12 +11232,11 @@ function IdlePage() {
               }}>{codeMsg.text}</div>
             )}
           </div>
-        </div>,
-        document.body
+        </div>
       )}
 
       {/* ===== Painel de Troca Black Mitic Plus (RESGTT55) ===== */}
-      {bmpSwapOpen && createPortal((() => {
+      {bmpSwapOpen && (() => {
         const isBMP = (e: { event?: string | null }) =>
           typeof e.event === "string" && e.event.startsWith("black_mitic");
         const bmpEntries = [
@@ -12212,7 +11445,7 @@ function IdlePage() {
             </div>
           </div>
         );
-      })(), document.body)}
+      })()}
 
 
 
@@ -12221,7 +11454,7 @@ function IdlePage() {
 
 
       {/* ===== Popup do ovo chocando ===== */}
-      {eggOpenResult && createPortal((() => {
+      {eggOpenResult && (() => {
         const rarityColorMap: Record<string, string> = {
           common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
           epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
@@ -12280,12 +11513,12 @@ function IdlePage() {
             </div>
           </div>
         );
-      })(), document.body)}
+      })()}
 
       {/* ===== Modal de escolha do inicial ===== */}
 
 
-      {!starterChosen && createPortal(
+      {!starterChosen && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 1000,
           background: "rgba(11,5,16,0.92)",
@@ -12332,8 +11565,7 @@ function IdlePage() {
               ))}
             </div>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
 
       {/* ===== Modal: detalhes do Pokémon (energia + tempo) ===== */}
@@ -12353,7 +11585,7 @@ function IdlePage() {
         const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
         const src = GIF[pet.species];
         return (
-          <div onClick={() => setPetDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 2100000, display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={() => setPetDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(180deg,#1a1030,#0e0818)", border: "2px solid #f5cf6b", borderRadius: 12, padding: 18, minWidth: 300, maxWidth: 380, color: "#eadfe8" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ width: 72, height: 72, background: "#0b0510", borderRadius: 8, display: "grid", placeItems: "center", overflow: "hidden", border: "1px solid #f5cf6b55" }}>
@@ -12406,14 +11638,14 @@ function IdlePage() {
                   style={{ marginTop: 14, width: "100%", background: "#4a9eff", color: "#0b0510", border: "none", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer" }}
                 >🏡 Levar à Casa Azul (5💎 · 5 min)</button>
               )}
+
             </div>
           </div>
         );
       })()}
 
-
       {/* ===== Modal: Casa Azul — escolher Pokémon para descansar ===== */}
-      {azulPickerOpen && createPortal((() => {
+      {azulPickerOpen && (() => {
         void energyTick;
         const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
         const party = save.party ?? team;
@@ -12473,10 +11705,10 @@ function IdlePage() {
             </div>
           </div>
         );
-      })(), document.body)}
+      })()}
 
       {/* ===== Modal: Detalhes da Coleção ===== */}
-      {colecaoDetailUid && createPortal((() => {
+      {colecaoDetailUid && (() => {
         const entry = collectionForDisplay.find((p) => p.uid === colecaoDetailUid);
         if (!entry) return null;
         const livePet = team.find((p) => p.uid === entry.uid) ?? restingBench.find((p) => p.uid === entry.uid);
@@ -12492,7 +11724,7 @@ function IdlePage() {
         const lore = SPECIES_LORE[sp] ?? RARITY_LORE[base.rarity] ?? "Um Pokémon único, com história ainda por contar.";
         const isCurrent = team[0]?.uid === entry.uid;
         return (
-          <div onClick={() => setColecaoDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 2100000, display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={() => setColecaoDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{
               background: "linear-gradient(180deg, #fff8e5 0%, #f5e6c8 100%)",
               border: `3px solid ${rColor}`,
@@ -12581,23 +11813,115 @@ function IdlePage() {
             </div>
           </div>
         );
-      })(), document.body)}
+      })()}
 
-      {statsCardPet && createPortal(
+      {statsCardPet && (
         <PokemonStatsCard
           pet={statsCardPet}
           team={team}
           gifSrc={GIF[statsCardPet.species]}
           onClose={() => setStatsCardPet(null)}
-        />,
-        document.body
+        />
       )}
 
 
 
 
+      {/* ===== HUD do Alvo (target — centro-topo) ===== */}
+      {(() => {
+        const tgt = attackTargetId != null ? enemies.find((e) => e.id === attackTargetId && e.hp > 0) : null;
+        if (!tgt) return null;
+        const hpPct = Math.max(0, Math.min(1, tgt.hp / Math.max(1, tgt.maxHp)));
+        const hpColor = hpPct > 0.5 ? "#e56b6b" : hpPct > 0.25 ? "#f5cf6b" : "#a83232";
+        const rarityColorMap: Record<string, string> = {
+          common: "#c8c8c8", uncommon: "#7ef2a2", rare: "#6bd4ff",
+          epic: "#c78bff", legendary: "#f5cf6b", mythic: "#ff97e1", mythic_shiny: "#ffd6ff",
+        };
+        const rColor = rarityColorMap[tgt.rarity] ?? "#c8c8c8";
+        const gif = GIF[tgt.sp];
+        return (
+          <div key={tgt.id} style={{
+            position: "fixed", top: 72, left: "50%", transform: "translateX(-50%)",
+            zIndex: 9997, pointerEvents: "none",
+            display: "flex", alignItems: "center", gap: 10,
+            background: "linear-gradient(180deg, rgba(38,14,14,0.94) 0%, rgba(20,6,6,0.94) 100%)",
+            border: `2px solid ${rColor}`,
+            borderRadius: 14,
+            padding: "8px 14px 8px 8px",
+            boxShadow: `0 8px 22px rgba(0,0,0,0.6), 0 0 0 1px ${rColor}44 inset, 0 0 16px ${rColor}66`,
+            minWidth: 260,
+            animation: "evt-slide 220ms cubic-bezier(.2,.9,.3,1.2)",
+          }}>
+
+            <div style={{
+              width: 54, height: 54, flexShrink: 0, borderRadius: "50%",
+              background: `radial-gradient(circle at 40% 35%, ${rColor}66 0%, #2a0a0a 75%)`,
+              border: `2px solid ${rColor}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+              boxShadow: `inset 0 0 6px rgba(0,0,0,0.6), 0 0 10px ${rColor}88`,
+            }}>
+              {gif ? (
+                <img src={gif} alt={tgt.sp} style={{
+                  width: "120%", height: "120%", objectFit: "contain",
+                  imageRendering: "pixelated",
+                  transform: tgt.face === "right" ? "scaleX(-1)" : "none",
+                }} />
+              ) : <span style={{ fontSize: 26 }}>❓</span>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                <span style={{
+                  fontSize: 9, fontWeight: 900, color: "#1a0f26",
+                  background: `linear-gradient(180deg,${rColor},${rColor}aa)`,
+                  padding: "2px 6px", borderRadius: 4, letterSpacing: 1,
+                }}>Lv {tgt.level}</span>
+                {tgt.elite && (
+                  <span style={{
+                    fontSize: 8, fontWeight: 900, color: "#fff",
+                    background: "linear-gradient(180deg,#c72525,#7a1010)",
+                    padding: "2px 5px", borderRadius: 4, letterSpacing: 1,
+                    border: "1px solid #f5cf6b",
+                  }}>★ ELITE</span>
+                )}
+                <span style={{
+                  fontSize: 13, fontWeight: 900, color: "#ffe5c5",
+                  textShadow: "1px 1px 0 #000", letterSpacing: 0.5,
+                  textTransform: "uppercase",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>{tgt.sp.replace(/_/g, " ")}</span>
+              </div>
+              <div style={{
+                position: "relative", height: 12, background: "#0a0410",
+                border: "1px solid #4a1a1a", borderRadius: 6, overflow: "hidden",
+                boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)",
+              }}>
+                <div style={{
+                  position: "absolute", inset: 0, width: `${hpPct * 100}%`,
+                  background: `linear-gradient(180deg, ${hpColor}, ${hpColor}aa)`,
+                  transition: "width 260ms ease, background 260ms ease",
+                  boxShadow: `0 0 8px ${hpColor}99`,
+                }} />
+                <div style={{
+                  position: "absolute", inset: 0, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  fontSize: 9, fontWeight: 900, color: "#fff",
+                  textShadow: "1px 1px 0 #000, -1px -1px 0 #000",
+                  letterSpacing: 0.5,
+                }}>{Math.max(0, Math.round(tgt.hp))} / {tgt.maxHp}</div>
+              </div>
+              <div style={{
+                fontSize: 8, color: rColor, marginTop: 2, letterSpacing: 1.5,
+                textTransform: "uppercase", fontWeight: 800,
+                textShadow: "1px 1px 0 #000",
+              }}>◆ {tgt.rarity} ◆ ALVO</div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
+      <SmartGuideHud hasPokemon={team.length > 0} />
 
       {/* Admin Button for lordryuhhhuyuyghh@gmail.com */}
       {(identity?.email === "lordryuhhhuyuyghh@gmail.com" || identity?.id === "61b4d001-c8c3-424d-862d-0b798782f9d6") && (
@@ -12630,64 +11954,60 @@ function IdlePage() {
 
 
       {/* ============ LOJINHA CASH ============ */}
-      {cashShopOpen && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "auto", background: "rgba(0,0,0,0.75)" }}>
+      {cashShopOpen && (
+        <CashShopModal
 
-          <div style={{ pointerEvents: "auto" }}>
-            <CashShopModal
-              open={cashShopOpen}
-              onClose={() => setCashShopOpen(false)}
-              identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
-              wallet={{
-                coins: idle.bank.gold,
-                crystals: idle.bank.crystals,
-                level: idle.trainerLevel ?? 1,
-                xp: idle.trainerXp ?? 0,
-                xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
-                safiras: idle.items?.safira_verde ?? 0,
-              }}
-              onSpendSafiras={(n) => {
-                const cur = idle.items?.safira_verde ?? 0;
-                if (cur < n) return false;
-                setIdle((s) => ({
-                  ...s,
-                  items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
-                }));
-                return true;
-              }}
-              onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
-              onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
-              onGrantItem={(id, qty) => {
-                setIdle((s) => ({
-                  ...s,
-                  items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
-                }));
-              }}
-              codeInput={codeInput}
-              setCodeInput={setCodeInput}
-              codeMsg={codeMsg}
-              onRedeemCode={() => redeemCrystalCode()}
-            />
-          </div>
-        </div>,
-        document.body
-      )}
-      {blackEggHudOpen && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "auto", background: "rgba(0,0,0,0.75)" }}>
-          <div style={{ pointerEvents: "auto" }}>
-        <BlackMiticEggHud
-          open={blackEggHudOpen}
-          onClose={() => setBlackEggHudOpen(false)}
-          uid={identity?.id ?? "guest"}
-          itemCount={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
-          stones={{
-            stone_grass: idle.items?.stone_grass ?? 0,
-            stone_fire: idle.items?.stone_fire ?? 0,
-            stone_water: idle.items?.stone_water ?? 0,
-            stone_electric: idle.items?.stone_electric ?? 0,
-            stone_dark: idle.items?.stone_dark ?? 0,
-            stone_dragon: idle.items?.stone_dragon ?? 0,
+          open={cashShopOpen}
+          onClose={() => setCashShopOpen(false)}
+          identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
+          wallet={{
+            coins: idle.bank.gold,
+            crystals: idle.bank.crystals,
+            level: idle.trainerLevel ?? 1,
+            xp: idle.trainerXp ?? 0,
+            xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
+            safiras: idle.items?.safira_verde ?? 0,
           }}
+          onSpendSafiras={(n) => {
+          const cur = idle.items?.safira_verde ?? 0;
+          if (cur < n) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
+          }));
+          return true;
+        }}
+
+        onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
+        onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
+        onGrantItem={(id, qty) => {
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
+          }));
+        }}
+        codeInput={codeInput}
+        setCodeInput={setCodeInput}
+        codeMsg={codeMsg}
+        onRedeemCode={() => redeemCrystalCode()}
+      />
+    )}
+
+
+
+      <BlackMiticEggHud
+        open={blackEggHudOpen}
+        onClose={() => setBlackEggHudOpen(false)}
+        uid={identity?.id ?? "guest"}
+        itemCount={idle.items?.[BLACK_EGG_ITEM_ID] ?? 0}
+        stones={{
+          stone_grass: idle.items?.stone_grass ?? 0,
+          stone_fire: idle.items?.stone_fire ?? 0,
+          stone_water: idle.items?.stone_water ?? 0,
+          stone_electric: idle.items?.stone_electric ?? 0,
+          stone_dark: idle.items?.stone_dark ?? 0,
+          stone_dragon: idle.items?.stone_dragon ?? 0,
+        }}
         onConsumeStone={(stoneId, qty) => {
           const have = idleRef.current.items?.[stoneId] ?? 0;
           if (have < qty) return false;
@@ -12746,7 +12066,7 @@ function IdlePage() {
           }));
         }}
         onConsumeBoost={() => {
-          const have = idle.items?.egg_boost_69 ?? 0;
+          const have = idleRef.current.items?.egg_boost_69 ?? 0;
           if (have <= 0) return false;
           setIdle((s) => ({
             ...s,
@@ -12754,16 +12074,9 @@ function IdlePage() {
           }));
           return true;
         }}
-        />
-      </div>
-    </div>,
-    document.body
-  )}
+      />
 
-      {governanteOpen && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 20000, display: "grid", placeItems: "center", pointerEvents: "auto", background: "rgba(0,0,0,0.75)" }}>
-          <div style={{ pointerEvents: "auto" }}>
-            <GovernanteDialog
+      <GovernanteDialog
         open={governanteOpen}
         cards={idle.items?.carta_incubadora ?? 0}
         plusCards={idle.items?.carta_plus ?? 0}
@@ -12893,17 +12206,8 @@ function IdlePage() {
           pushChat(`🐺✦ Governante consumiu ${use}× Carta Riolu Suprema e materializou ${use}× RIOLU BLACK MITIC BRILHANT PLUS Lv 1000 na Coleção.`, "cap");
         }}
       />
-    </div>
-  </div>,
-  document.body
-)}
 
 
-
-
-
-
-      {/* Buffs Ativos HUD - Removido da sobreposição da tela principal conforme solicitado */}
 
 
       {/* MODAIS GLOBAIS FORA DE CONDICIONAIS INTERNAS */}
@@ -12978,15 +12282,8 @@ function IdlePage() {
           { id: "cadeia_ab", x: 20, y: 30 }, { id: "cadeia_ab1", x: 40, y: 50 }, { id: "cadeia_f1", x: 60, y: 70 },
           { id: "evento_myth", x: 80, y: 40 }, { id: "absol_start", x: 15, y: 80 }, { id: "governante_hall", x: 85, y: 85 },
         ];
-        const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number }> = [
-          { id: "continente_4", x: 30, y: 50 },
-          { id: "continente_4_b", x: 50, y: 50 },
-          { id: "continente_4_c", x: 70, y: 50 },
-        ];
-        const bg = worldTab === 4 ? mapContinente4Img : (worldTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : (worldTab === 2 ? assetUrlFromJson(worldMapContinent2Asset) : (worldTab === 3 ? assetUrlFromJson(governanteHallMapAsset) : assetUrlFromJson(worldMapGlobeAsset))));
-        const PINS = worldTab === 4 ? WORLD_PINS_C4 : (worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1));
-
-
+        const bg = worldTab === 1 ? worldMapGlobeAsset : (worldTab === 2 ? worldMapContinent2Asset : governanteHallMapAsset);
+        const PINS = worldTab === 2 ? WORLD_PINS_C2 : (worldTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C1);
         const hasGov = (idle.items?.carta_governante ?? 0) > 0;
         return (
           <div 
@@ -13009,43 +12306,13 @@ function IdlePage() {
                 <h2 style={{ color: "#f5cf6b", margin: 0, fontSize: 24, fontWeight: 900 }}>🌏 MAPA MUNDI — CONT. {worldTab}</h2>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button 
-                    onClick={() => setWorldTab(1)} 
+                    onClick={() => setWorldTab(t => t === 3 ? 1 : (t + 1) as 1|2|3)} 
                     style={{ 
-                      background: worldTab === 1 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
-                      border: "1px solid #f5cf6b", 
-                      color: worldTab === 1 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
+                      background: "linear-gradient(135deg, #f5cf6b, #d9a441)", border: "none", 
+                      color: "#160a20", borderRadius: 8, padding: "6px 12px", 
                       fontWeight: 900, cursor: "pointer" 
                     }}
-                  >CONT. 1</button>
-                  <button 
-                    onClick={() => setWorldTab(2)} 
-                    style={{ 
-                      background: worldTab === 2 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
-                      border: "1px solid #f5cf6b", 
-                      color: worldTab === 2 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
-                      fontWeight: 900, cursor: "pointer" 
-                    }}
-                  >CONT. 2</button>
-                  <button 
-                    onClick={() => setWorldTab(3)} 
-                    style={{ 
-                      background: worldTab === 3 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
-                      border: "1px solid #f5cf6b", 
-                      color: worldTab === 3 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
-                      fontWeight: 900, cursor: "pointer" 
-                    }}
-                  >CONT. 3</button>
-                  <button 
-                    onClick={() => setWorldTab(4)} 
-                    style={{ 
-                      background: worldTab === 4 ? "linear-gradient(135deg, #f5cf6b, #d9a441)" : "rgba(245,207,107,0.1)", 
-                      border: "1px solid #f5cf6b", 
-                      color: worldTab === 4 ? "#160a20" : "#f5cf6b", borderRadius: 8, padding: "6px 12px", 
-                      fontWeight: 900, cursor: "pointer" 
-                    }}
-                  >CONT. 4</button>
-
-
+                  >TROCAR CONTINENTE</button>
                   <button 
                     onClick={() => setWorldMapOpen(false)} 
                     style={{ 
@@ -13059,7 +12326,7 @@ function IdlePage() {
               
               <div style={{ 
                 width: "100%", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", 
-                background: `#000 url(${bg}) center/cover no-repeat`, 
+                background: `#000 url(${assetUrlFromJson(bg)}) center/cover no-repeat`, 
                 position: "relative", border: "2px solid rgba(245,207,107,0.3)" 
               }}>
                 {PINS.map(pin => {
@@ -13070,13 +12337,8 @@ function IdlePage() {
                     <div 
                       key={pin.id} 
                       onClick={() => { 
-                        if (pin.id.startsWith("continente_4")) {
-                          setMapPasswordInput({ portal: { ...PORTAL_SECRET_4, to: pin.id as IdleMapId } });
-                          setPinValue("");
-                        } else {
-                          if (locked) return; 
-                          setIdle(s => ({ ...s, currentMap: pin.id })); 
-                        }
+                        if (locked) return; 
+                        setIdle(s => ({ ...s, currentMap: pin.id })); 
                         setWorldMapOpen(false); 
                       }}
                       style={{ 
@@ -13114,58 +12376,14 @@ function IdlePage() {
         );
       })(), document.body)}
 
-      {isAdminOpen && (
-        <AdminDashboard onClose={() => setIsAdminOpen(false)} />
+      {isAdminOpen && createPortal(
+        <AdminDashboard onClose={() => setIsAdminOpen(false)} />,
+        document.body
       )}
+
     </div>
-    </>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -13178,36 +12396,34 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
       borderRadius: 10, overflow: "hidden",
     }}>
       <div style={{
-        background: accent, color: "#c9b8ff",
+        background: accent, color: "#fff",
         padding: "6px 10px", fontWeight: 700, fontSize: 12,
         letterSpacing: 1,
-        textShadow: "0 0 8px rgba(201, 184, 255, 0.4)",
       }}>{title}</div>
       <div style={{ padding: 10 }}>{children}</div>
     </div>
   );
 }
 
-function TeamRow({ pet, onClick, energyTick, spriteScale = 1 }: { pet: PetInstance; onClick?: () => void; energyTick?: number; spriteScale?: number }) {
+function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () => void; energyTick?: number }) {
   void energyTick; // força re-render por segundo p/ atualizar barra de energia
   const src = GIF[pet.species];
   const now = Date.now();
   const energy = petCurrentEnergy(pet, now, { active: true });
+  const msFull = petMsToFull(pet, now);
   const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
   const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
-  
   if (!src) {
     return (
       <div onClick={onClick} style={{ display: "flex", gap: 8, alignItems: "center", background: "#2a1a3a", padding: 6, borderRadius: 6, cursor: onClick ? "pointer" : undefined }}>
-        <div style={{ width: 36, height: 36, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 16 }}>❓</div>
-        <div style={{ flex: 1, fontSize: 10 }}>
+        <div style={{ width: 48, height: 48, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 20 }}>❓</div>
+        <div style={{ flex: 1, fontSize: 12 }}>
           <div style={{ fontWeight: 600 }}>{pet.species.replace(/_/g, " ").toUpperCase()}</div>
-          <div style={{ fontSize: 9, color: "#b8a8c8" }}>Lv.{pet.level}</div>
+          <div style={{ fontSize: 10, color: "#b8a8c8" }}>Lv.{pet.level}</div>
         </div>
       </div>
     );
   }
-  
   const maxHp = calcIdleMaxHp(pet);
   const hp = pet.hp ?? maxHp;
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
@@ -13222,37 +12438,30 @@ function TeamRow({ pet, onClick, energyTick, spriteScale = 1 }: { pet: PetInstan
     const n = parseInt(h.replace("#", ""), 16);
     return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
   };
-
   return (
-    <div onClick={onClick} style={{
+    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
       display: "flex", gap: 8, alignItems: "center",
       background: exhausted
         ? "linear-gradient(135deg, #14101a 0%, #1a1420 100%)"
-        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.15)} 0%, rgba(11,5,16,0.6) 100%)`,
-      padding: "5px 10px",
-      borderRadius: "12px",
+        : `linear-gradient(135deg, ${hexToRgba(rColor, 0.22)} 0%, rgba(11,5,16,0.85) 100%)`,
+      padding: "5px 8px 5px 5px",
+      borderRadius: 10,
       cursor: onClick ? "pointer" : undefined,
-      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #333" : `1px solid ${hexToRgba(rColor, 0.4)}`),
-      boxShadow: exhausted ? "none" : `0 2px 8px rgba(0,0,0,0.4), inset 0 0 10px ${hexToRgba(rColor, 0.1)}`,
-      opacity: exhausted ? 0.7 : 1,
+      border: resting ? "1px solid #4a9eff" : (exhausted ? "1px solid #333" : `1px solid ${hexToRgba(rColor, 0.7)}`),
+      boxShadow: exhausted
+        ? "inset 0 1px 0 rgba(255,255,255,0.03)"
+        : `0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 ${hexToRgba(rColor, 0.28)}, 0 0 10px ${hexToRgba(rColor, 0.18)}`,
+      opacity: exhausted ? 0.6 : 1,
       position: "relative",
       overflow: "hidden",
-      transition: 'all 0.2s',
-      marginBottom: '2px'
     }}>
-      <TeamRowContent pet={pet} pct={pct} maxHp={maxHp} hp={hp} ePct={ePct} exhausted={exhausted} rColor={rColor} src={src} resting={resting} infinite={infinite} energy={energy} spriteScale={spriteScale} />
-    </div>
-  );
-}
-
-
-function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, resting, infinite, energy, spriteScale = 1 }: any) {
-  const hexToRgba = (h: string, a: number) => {
-    const n = parseInt(h.replace("#", ""), 16);
-    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
-  };
-  return (
-    <>
+      {/* Selo lateral (barra fina de raridade) */}
+      <span style={{
+        position: "absolute", left: 0, top: 6, bottom: 6, width: 2,
+        background: `linear-gradient(180deg, ${rColor}, ${hexToRgba(rColor, 0.3)})`,
+        borderRadius: 2,
+        boxShadow: `0 0 5px ${rColor}88`,
+      }} />
       {/* pulse animado quando saudável */}
       {!exhausted && (
         <span style={{
@@ -13284,12 +12493,7 @@ function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, res
           boxShadow: "inset 0 0 5px rgba(0,0,0,0.75)",
           display: "grid", placeItems: "center", overflow: "hidden",
         }}>
-          <img src={src} alt="" style={{ 
-            width: "82%", imageRendering: "pixelated", 
-            filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.8))",
-            transform: `scale(${spriteScale * 1.8})`, // Reduzido de 2.2 para 1.8
-            transformOrigin: 'center'
-          }} />
+          <img src={src} alt="" style={{ width: "82%", imageRendering: "pixelated", filter: exhausted ? "grayscale(1) brightness(0.55)" : "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
           {resting && <span style={{ position: "absolute", top: -2, right: -2, fontSize: 11, filter: "drop-shadow(0 0 3px #4a9eff)" }}>🏡</span>}
           {exhausted && <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 15, textShadow: "0 0 4px #000" }}>🔒</span>}
         </div>
@@ -13345,57 +12549,10 @@ function TeamRowContent({ pet, pct, maxHp, hp, ePct, exhausted, rColor, src, res
           </span>
         </div>
       </div>
-    </>
-  );
-}
-
-export function ActiveBuffsHUD({ buffs }: { buffs: any }) {
-  if (!buffs) return null;
-  const now = Date.now();
-  const active = [];
-  if (buffs.expMultUntil && now < buffs.expMultUntil) 
-    active.push({ id: 'exp', label: 'EXP', icon: '✨', color: '#6bd4ff', end: buffs.expMultUntil });
-  if (buffs.goldMultUntil && now < buffs.goldMultUntil) 
-    active.push({ id: 'gold', label: 'VIP', icon: '💰', color: '#ffd94d', end: buffs.goldMultUntil });
-  if (buffs.teamOrbUntil && now < buffs.teamOrbUntil)
-    active.push({ id: 'team', label: 'TIME', icon: '👥', color: '#c084fc', end: buffs.teamOrbUntil });
-  if (buffs.orbUntil && now < buffs.orbUntil)
-    active.push({ id: 'orb', label: 'ORB', icon: '🔮', color: '#a7d8ff', end: buffs.orbUntil });
-
-  if (active.length === 0) return null;
-
-  const fmt = (ms: number) => {
-    const s = Math.max(0, Math.floor(ms / 1000));
-    const m = Math.floor(s / 60), r = s % 60;
-    return `${m}:${String(r).padStart(2, "0")}`;
-  };
-
-  return (
-    <div style={{ display: 'flex', gap: 6, pointerEvents: 'auto' }}>
-      {active.map(b => (
-        <div key={b.id} style={{
-          background: 'rgba(11,5,16,0.9)',
-          border: `1px solid ${b.color}66`,
-          borderRadius: 8,
-          padding: '4px 10px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 1,
-          boxShadow: `0 2px 10px rgba(0,0,0,0.5), 0 0 5px ${b.color}22`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 900, color: b.color }}>
-            <span>{b.icon}</span>
-            <span style={{ letterSpacing: 1 }}>{b.label}</span>
-          </div>
-          <div style={{ fontSize: 9, color: '#fff', opacity: 0.8, fontFamily: 'monospace', fontWeight: 700 }}>
-            {fmt(b.end - now)}
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
+
 
 function ProgressRow({ icon, label, value, target }: { icon: string; label: string; value: number; target: number }) {
   const pct = Math.min(100, (value / target) * 100);
@@ -13457,31 +12614,22 @@ function pillStyle(color: string): React.CSSProperties {
 function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React.ReactNode; value: string; title: string }) {
   return (
     <div title={title} style={{
-      display: "inline-flex", alignItems: "center", gap: 10,
-      padding: "6px 16px",
-      background: "rgba(11, 5, 20, 0.75)",
-      backdropFilter: "blur(8px)",
-      borderRadius: "12px",
-      border: "1px solid rgba(201,184,255,0.25)",
-      boxShadow: `0 2px 8px rgba(0,0,0,0.4), inset 0 0 12px ${tint}15`,
-      minWidth: '100px'
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "5px 10px",
+      background: `linear-gradient(180deg, ${tint}22, rgba(0,0,0,0.35))`,
+      borderLeft: "1px solid rgba(245,207,107,0.25)",
+      borderRight: "1px solid rgba(245,207,107,0.25)",
+      boxShadow: `inset 0 0 10px ${tint}18`,
     }}>
-      <div style={{ 
-        width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.3)',
-        display: 'grid', placeItems: 'center', boxShadow: `0 0 10px ${tint}44`
-      }}>{icon}</div>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '8px', fontWeight: 900, letterSpacing: 0.5, textTransform: 'uppercase' }}>{title}</span>
-        <span style={{
-          color: '#fff', fontWeight: 900, fontSize: 13,
-          textShadow: "0 1px 2px rgba(0,0,0,0.8)",
-          letterSpacing: 0.4,
-        }}>{value}</span>
-      </div>
+      {icon}
+      <span style={{
+        color: tint, fontWeight: 900, fontSize: 12.5,
+        textShadow: "0 1px 0 #000",
+        fontFamily: "'Cinzel', Georgia, serif", letterSpacing: 0.4,
+      }}>{value}</span>
     </div>
   );
 }
-
 
 // ── HUD superior: slot elegante para cada Pokébola
 function BallSlot({ img, count, tint }: { img: string; count: number; tint: string }) {
@@ -13622,14 +12770,11 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
-  idle, setIdle,
-
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-  onAnciaoInteraction, spriteScale
+
 }: {
   tab: string;
   onClose: () => void;
-  onAnciaoInteraction: () => void;
   leader: PetInstance | undefined;
   team: PetInstance[];
   onReorderTeam: (next: PetInstance[]) => void;
@@ -13645,47 +12790,48 @@ function TabOverlay({
   onPickTeam: (entry: CollectionEntry) => void;
   onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
-  spriteScale: number;
-  idle: IdleState;
-  setIdle: React.Dispatch<React.SetStateAction<IdleState>>;
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; honeyUntil?: number; honeyRareUntil?: number; teamOrbUntil?: number };
+  onBuyBall: (b: ShopBall, qty?: number) => void;
+  onBuyUltraBundle: (qty?: number) => void;
+  onBuyTeleportScroll: (qty?: number) => void;
+  onBuyBook: (bk: ShopBook, qty?: number) => void;
+  onBuyPotion: (qty?: number) => void;
+  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
+  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_mythic" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
 
-  buffs: any;
-  onBuyBall: any;
-  onBuyUltraBundle: any;
-  onBuyTeleportScroll: any;
-  onBuyBook: any;
-  onBuyPotion: any;
-  onBuyEgg: any;
-  shopEggs: any;
-  onBuyChestAmulet: any;
+  onBuyChestAmulet: () => void;
+
   chestAmuletOwned: number;
-  autoHeal: any;
-  setAutoHeal: any;
-  audioSettings: any;
-  setAudioSettings: any;
-  tasks: any[];
-  onClaimTask: any;
-  onOpenColecaoDetail: any;
-  onExchange: any;
-  onSellItem: any;
-  marketSellPrices: any;
-  identity: any;
-  onListMarket: any;
-  onBuyMarket: any;
-  onCancelMarket: any;
-  onClaimMarketPayout: any;
+  autoHeal: { enabled: boolean; threshold: number };
+  setAutoHeal: (next: { enabled: boolean; threshold: number }) => void;
+  audioSettings: { music: boolean; sfx: boolean; musicVol: number; sfxVol: number };
+  setAudioSettings: React.Dispatch<React.SetStateAction<{ music: boolean; sfx: boolean; musicVol: number; sfxVol: number }>>;
+  tasks: Task[];
+  onClaimTask: (tid: string) => void;
+  onOpenColecaoDetail: (uid: string) => void;
+  onExchange: (dir: "g2c" | "c2g", amount: number) => void;
+  onSellItem: (id: string, qty?: number, currency?: "gold" | "crystal" | "safira") => void;
+  marketSellPrices: Record<string, number>;
+  identity: LocalIdentity | null;
+  onListMarket: (itemId: string, qty: number, price: number, currency?: "gold" | "crystal" | "safira") => Promise<boolean>;
+  onBuyMarket: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
+  onCancelMarket: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
+  onClaimMarketPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
+
   isVip: boolean;
   skinId: string;
-  setSkinId: any;
+  setSkinId: (id: string) => void;
   trainerLevel: number;
   unlockedSkins: string[];
   skinTickets: number;
-  onUnlockSkin: any;
-  onUpgradeBook: any;
-  orbTrades: any;
-  onTradeOrb: any;
+  onUnlockSkin: (id: string) => void;
+  onUpgradeBook: (id: string) => void;
+  orbTrades: { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[];
+  onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[], rarity?: Rarity) => void;
   pokemonMarketNode?: React.ReactNode;
   benchUids: Set<string>;
+
+
 }) {
 
   const title =
@@ -13713,8 +12859,7 @@ function TabOverlay({
     try {
       const raw = typeof window !== "undefined" ? localStorage.getItem(LOCK_KEY) : null;
       if (!raw) return new Set<string>();
-      const parsed = JSON.parse(raw);
-      return new Set(Array.isArray(parsed) ? parsed : []);
+      return new Set(JSON.parse(raw) as string[]);
     } catch { return new Set<string>(); }
   });
   const toggleLock = (uid: string) => {
@@ -13736,10 +12881,6 @@ function TabOverlay({
     entries: Array<{ uid: string; species: Species; level: number; rarity: Rarity; gain: number }>;
     totalGain: number;
   }>(null);
-  const [maximizeTeam, setMaximizeTeam] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(true);
-  const [teamPanelOpen, setTeamPanelOpen] = useState(true);
-  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const teamUidSet = useMemo(() => new Set(team.map((p) => p.uid)), [team]);
   const toggleBulk = (uid: string) => {
     setBulkSel((prev) => {
@@ -13750,8 +12891,6 @@ function TabOverlay({
   };
   const openFragConfirm = (uids: string[]) => {
     const PRISMA_BY_RARITY: Record<string, number> = { common: 1, uncommon: 1, rare: 2, epic: 3, legendary: 5, mythic: 10, mythic_shiny: 20 };
-    const FRAG_HAB_BY_LEVEL: Record<string, number> = { common: 5, uncommon: 10, rare: 20, epic: 40, legendary: 80, mythic: 150, mythic_shiny: 300 };
-    const FRAG_DEF_BY_LEVEL: Record<string, number> = { common: 5, uncommon: 10, rare: 20, epic: 40, legendary: 80, mythic: 150, mythic_shiny: 300 };
     const entries = uids
       .map((uid) => collection.find((e) => e.uid === uid))
       .filter((e): e is CollectionEntry => !!e)
@@ -13763,81 +12902,24 @@ function TabOverlay({
   };
   const confirmFrag = () => {
     if (!fragConfirm) return;
-    fragConfirm.entries.forEach((e) => {
-      // Cálculo de fragmentos de habilidade/defesa baseado no nível e raridade
-      const baseFrags = 1;
-      const rarityMult: Record<string, number> = { 
-        common: 1, uncommon: 2, rare: 4, epic: 8, 
-        legendary: 16, mythic: 32, mythic_shiny: 64 
-      };
-      const mult = rarityMult[e.rarity] ?? 1;
-      const countHab = Math.floor((e.level / 10) * mult) + baseFrags;
-      const countDef = Math.floor((e.level / 10) * mult) + baseFrags;
-
-      onFragmentCollection(e.uid);
-    });
+    fragConfirm.entries.forEach((e) => onFragmentCollection(e.uid));
     setBulkSel(new Set());
     setBulkMode(false);
     setFragConfirm(null);
   };
   return (
-    <div className="modern-floating-window" style={{ 
-      position: "fixed",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      width: "min(1000px, 98vw)",
-      height: "min(700px, 92vh)",
-      background: "rgba(11, 5, 20, 0.98)", 
-      backdropFilter: "blur(20px)",
-      display: "flex",
-      flexDirection: "column",
-      pointerEvents: "auto",
-      overflow: "hidden",
-      zIndex: 2000000,
-      border: "1px solid rgba(201, 184, 255, 0.3)",
-      borderRadius: "20px",
-      boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(201, 184, 255, 0.1)"
-    }}>
+    <div className="modern-floating-window">
 
-      <div className="modern-window-header" style={{ 
-        position: "sticky", 
-        top: 0, 
-        zIndex: 10, 
-        flexShrink: 0,
-        background: "rgba(11, 5, 20, 0.5)",
-        padding: "15px 25px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderBottom: "1px solid rgba(201, 184, 255, 0.2)"
-      }}>
+      <div className="modern-window-header">
         <h2 style={{ 
-          margin: 0, fontSize: 24, color: "#c9b8ff", 
-          fontFamily: "'Cinzel', serif", letterSpacing: 3,
-          textShadow: "0 2px 10px rgba(201, 184, 255, 0.4)"
+          margin: 0, fontSize: 22, color: "#f5cf6b", 
+          fontFamily: "'Cinzel', serif", letterSpacing: 2,
+          textShadow: "0 2px 4px rgba(0,0,0,0.5)"
         }}>{title}</h2>
-        <button onClick={onClose} className="modern-close-btn" style={{
-          background: "rgba(255, 50, 50, 0.15)",
-          border: "1px solid rgba(255, 50, 50, 0.3)",
-          color: "#ff8888",
-          padding: "6px 15px",
-          borderRadius: "8px",
-          fontSize: "12px",
-          fontWeight: 900,
-          cursor: "pointer",
-          transition: "all 0.2s"
-        }}>
+        <button onClick={onClose} className="modern-close-btn">
           FECHAR ✕
         </button>
       </div>
-
-      <div className="modern-window-scroll-content" style={{ 
-        flex: 1, 
-        overflowY: "auto", 
-        padding: 20,
-        WebkitOverflowScrolling: "touch"
-      }}>
 
 
       {tab === "pokemon" && leader && (
@@ -13864,19 +12946,19 @@ function TabOverlay({
           }}>✦ MEW ✦</div>
           <div style={{ position: "relative" }}>
           <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
-          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} benchUids={benchUids} onAnciaoInteraction={onAnciaoInteraction} spriteScale={spriteScale} idle={idle} setIdle={setIdle} />
+          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} />
           <SpeciesLore species={leader.species} rarity={leader.rarity} />
 
 
           {(() => {
-            const RARITY_COLORS: Record<string, { c: string; label: string; aura?: string }> = {
+            const RARITY_COLORS: Record<string, { c: string; label: string }> = {
               common:       { c: "#c8b8d0", label: "COMUM" },
               uncommon:     { c: "#7ef2a2", label: "INCOMUM" },
-              rare:         { c: "#6bd4ff", label: "RARO", aura: "0 0 15px rgba(107, 212, 255, 0.6)" },
-              epic:         { c: "#c084fc", label: "ÉPICO", aura: "0 0 20px rgba(192, 132, 252, 0.7)" },
-              legendary:    { c: "#f5cf6b", label: "LENDÁRIO", aura: "0 0 25px rgba(245, 207, 107, 0.8)" },
-              mythic:       { c: "#ff6b3d", label: "MÍTICO", aura: "0 0 30px rgba(255, 107, 61, 0.9)" },
-              mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦", aura: "0 0 35px rgba(255, 151, 225, 1)" },
+              rare:         { c: "#6bd4ff", label: "RARO" },
+              epic:         { c: "#c084fc", label: "ÉPICO" },
+              legendary:    { c: "#f5cf6b", label: "LENDÁRIO" },
+              mythic:       { c: "#ff6b3d", label: "MÍTICO" },
+              mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦" },
             };
             return (
               <div style={{
@@ -13886,33 +12968,19 @@ function TabOverlay({
                 border: "2.5px solid rgba(245, 207, 107, 0.3)",
                 borderRadius: 16,
                 boxShadow: "0 6px 22px rgba(0,0,0,0.4), inset 0 1px 0 rgba(245,207,107,0.1)",
-                position: "relative", 
-                overflow: "hidden",
-                zIndex: maximizeTeam ? 1000 : 1 // Garante que fique acima de outros HUDs quando maximizado
+                position: "relative", overflow: "hidden",
               }}>
 
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 20%, rgba(245,207,107,0.15), transparent 60%)", pointerEvents: "none" }} />
                 {/* Header do time */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, position: "relative" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div>
-                      <div style={{ color: "#f5cf6b", fontSize: 18, fontWeight: 900, letterSpacing: 2, textShadow: "0 2px 0 #0b0510, 0 0 10px rgba(245,207,107,0.6)" }}>
-                        ⚔ SEU TIME ⚔
-                      </div>
-                      <div style={{ color: "#b8a8c8", fontSize: 10, marginTop: 2, letterSpacing: 1 }}>
-                        Arraste para reordenar — o Líder é o #1
-                      </div>
+                  <div>
+                    <div style={{ color: "#f5cf6b", fontSize: 18, fontWeight: 900, letterSpacing: 2, textShadow: "0 2px 0 #0b0510, 0 0 10px rgba(245,207,107,0.6)" }}>
+                      ⚔ SEU TIME ⚔
                     </div>
-                    <button
-                      onClick={() => setMaximizeTeam(!maximizeTeam)}
-                      style={{
-                        background: "rgba(245,207,107,0.1)", border: "1px solid rgba(245,207,107,0.3)",
-                        borderRadius: 6, color: "#f5cf6b", padding: "2px 6px", fontSize: 10, fontWeight: 900,
-                        cursor: "pointer", display: "flex", alignItems: "center", gap: 4, height: 24, marginTop: -10
-                      }}
-                    >
-                      {maximizeTeam ? "❐ REDUZIR" : "❏ MAXIMIZAR"}
-                    </button>
+                    <div style={{ color: "#b8a8c8", fontSize: 10, marginTop: 2, letterSpacing: 1 }}>
+                      Ordene por prioridade — o Líder é o #1
+                    </div>
                   </div>
                   <div style={{
                     background: "rgba(245,207,107,0.15)", border: "1px solid rgba(245,207,107,0.4)",
@@ -13925,17 +12993,8 @@ function TabOverlay({
 
 
 
-                <div style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: maximizeTeam ? "repeat(auto-fit, minmax(280px, 1fr))" : "1fr", 
-                  gap: 8, 
-                  position: "relative",
-                  maxHeight: maximizeTeam ? "480px" : "auto", // Altura fixa quando maximizado para evitar cobrir a tela inteira
-                  overflowY: maximizeTeam ? "auto" : "visible",
-                  paddingRight: maximizeTeam ? "4px" : "0"
-                }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
                   {team.map((p, i) => {
-                    if (!maximizeTeam && i >= 3) return null;
                     const src = gifMap[p.species];
                     const isLeader = i === 0;
                     const rarityInfo = RARITY_COLORS[p.rarity] ?? RARITY_COLORS.common;
@@ -14007,23 +13066,8 @@ function TabOverlay({
                       </div>
                     );
                     return (
-                      <div key={p.uid} 
-                        draggable
-                        onDragStart={() => setDraggedIdx(i)}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          if (draggedIdx === null || draggedIdx === i) return;
-                          const next = [...team];
-                          const [item] = next.splice(draggedIdx, 1);
-                          next.splice(i, 0, item);
-                          onReorderTeam(next);
-                          setDraggedIdx(i);
-                        }}
-                        onDragEnd={() => setDraggedIdx(null)}
-                        style={{
-                        display: "flex", alignItems: "stretch", gap: 12, padding: "10px 12px", // Reduzido padding vertical
-                        minHeight: 140, // Altura mínima controlada
-                        maxHeight: 180, // Altura máxima controlada
+                      <div key={p.uid} style={{
+                        display: "flex", alignItems: "stretch", gap: 12, padding: 12,
                         background: isLeader
                           ? "rgba(0,0,0,0.4)"
                           : "rgba(0,0,0,0.3)",
@@ -14032,8 +13076,7 @@ function TabOverlay({
                         boxShadow: isLeader
                           ? "0 6px 18px rgba(0,0,0,0.5), inset 0 0 16px rgba(245,207,107,0.05)"
                           : "0 3px 10px rgba(0,0,0,0.5)",
-                        opacity: draggedIdx === i ? 0.5 : 1,
-                        cursor: "grab",
+
                         position: "relative", overflow: "hidden",
                       }}>
                         {/* sparkle overlay */}
@@ -14045,17 +13088,12 @@ function TabOverlay({
                             width: 82, height: 82, borderRadius: 14,
                             background: "rgba(0,0,0,0.4)",
                             border: "1.5px solid rgba(245, 207, 107, 0.2)",
-                            boxShadow: `inset 0 0 14px ${rc}22, 0 3px 10px rgba(0,0,0,0.5), ${rarityInfo.aura || ""}`,
+                            boxShadow: `inset 0 0 14px ${rc}22, 0 3px 10px rgba(0,0,0,0.5)`,
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            position: "relative", overflow: "visible", // mudado para visible para a aura aparecer
+                            position: "relative", overflow: "hidden",
                           }}>
 
-                             {src && <img src={src} alt="" style={{ 
-                               width: 130, height: 130, // Aumentado para preencher melhor o slot (era 110)
-                               imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))",
-                               transform: `scale(${spriteScale * 1.5})`, // Adicionado escala extra
-                               transformOrigin: 'center'
-                             }} />}
+                            {src && <img src={src} alt="" width={70} height={70} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.7))" }} />}
                             {/* Slot number top-left */}
                             <div style={{
                               position: "absolute", top: 2, left: 4,
@@ -14202,7 +13240,7 @@ function TabOverlay({
                   })}
 
                   {/* Slots vazios */}
-                  {maximizeTeam && Array.from({ length: Math.max(0, 6 - team.length) }).map((_, k) => (
+                  {Array.from({ length: Math.max(0, 6 - team.length) }).map((_, k) => (
                     <div key={`empty-${k}`} style={{
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                       padding: 14, minHeight: 60,
@@ -14216,8 +13254,6 @@ function TabOverlay({
                     </div>
                   ))}
                 </div>
-                {/* Botão removido daqui e unificado no painel lateral */}
-
               </div>
             );
           })()}
@@ -14293,8 +13329,6 @@ function TabOverlay({
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
           safira_verde: "Safira Verde 💚",
-          frag_habilidade: "Fragmento de Habilidade 📖",
-          frag_defesa: "Fragmento de Defesa 🛡️",
           carta_governante: "Carta do Governante 👑",
           carta_incubadora: "Carta da Incubadora Lendária 🔮",
           carta_plus: "Carta Suprema Plus ✦",
@@ -14545,7 +13579,6 @@ function TabOverlay({
                 border: "1px solid rgba(245, 207, 107, 0.1)", borderRadius: 12,
                 boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.1)",
                 padding: 12, minHeight: 360,
-                maxHeight: 480, overflowY: "auto"
               }}>
 
                 {filtered.length === 0 ? (
@@ -14557,7 +13590,7 @@ function TabOverlay({
                       : "Nenhum item nesta categoria."}
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(126px, 1fr))", gap: 10 }}>
                     {filtered.map(([id, n]) => {
                       const isEgg = id.startsWith("egg_");
                       const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
@@ -14588,7 +13621,7 @@ function TabOverlay({
                             onClick={(e) => { e.stopPropagation(); setItemDetail(id); }}
                             title="Ver detalhes"
                             style={{
-                            width: 82, height: 82, borderRadius: 10, marginTop: 2,
+                            width: 62, height: 62, borderRadius: 10, marginTop: 2,
                             background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
                             display: "grid", placeItems: "center",
                             border: `2px inset ${P.goldDark}aa`,
@@ -14599,8 +13632,8 @@ function TabOverlay({
                               <img
                                 src={img}
                                 alt=""
-                                width={68}
-                                height={68}
+                                width={52}
+                                height={52}
                                 loading="lazy"
                                 style={{
                                   imageRendering: "pixelated",
@@ -14609,7 +13642,7 @@ function TabOverlay({
                                 }}
                               />
                             ) : (
-                              <ItemPixelIcon id={id} size={68} color={color} />
+                              <ItemPixelIcon id={id} size={52} color={color} />
                             )}
                           </div>
                           <div style={{
@@ -14619,7 +13652,7 @@ function TabOverlay({
                           <div style={{ display: "flex", gap: 4, width: "100%" }}>
                             <button
                               onClick={() => {
-                                const bulk = id === "book_atk" || id === "book_def" || id === "potion" || id === "safira_verde" || id.startsWith("stone_");
+                                const bulk = id === "book_atk" || id === "book_def" || id === "potion";
                                 if (bulk && n > 1) {
                                   const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
                                   if (raw == null) return;
@@ -14635,6 +13668,7 @@ function TabOverlay({
                                 color: "#000", border: "1px solid #fff4d0",
                                 borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
                                 boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+
                               }}
                             >{isEgg ? "CHOCAR" : "USAR"}</button>
                             {sellPrice > 0 && !id.startsWith("stone_") && (
@@ -14647,6 +13681,7 @@ function TabOverlay({
                                   color: "#fff", border: "1px solid rgba(255,255,255,0.2)",
                                   borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
                                   boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+
                                 }}
                               >💰{sellPrice}</button>
                             )}
@@ -14654,29 +13689,28 @@ function TabOverlay({
                             {id.startsWith("stone_") && (
                               <button
                                 onClick={() => {
-                                  const maxBatches = Math.floor(n / 1000);
+                                  const maxBatches = Math.floor(n / 250);
                                   if (maxBatches <= 0) return;
-                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n1000 stones = 8 💚 Safiras`, String(maxBatches));
+                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
                                   if (raw == null) return;
                                   const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
-                                  onSellItem(id, b * 1000, "safira");
+                                  onSellItem(id, b * 250, "safira");
                                 }}
-                                title="Vender por Safira Verde (1000 stones = 8 safiras)"
-                                disabled={n < 1000}
+                                title="Vender por Safira Verde (250 stones = 2 safiras)"
+                                disabled={n < 250}
                                 style={{
                                   padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                  background: n < 1000 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
                                   color: "#0b2540", border: "1.5px solid #065f46",
-                                  borderRadius: 6, cursor: n < 1000 ? "not-allowed" : "pointer",
-                                  boxShadow: "0 2px 0 #065f46", opacity: n < 1000 ? 0.5 : 1,
+                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
+                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
                                 }}
                               >💚</button>
                             )}
+
                           </div>
                           {(() => {
                             const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
-                              book_atk: { to: "frag_habilidade", cost: 1000, trainerLv: 50, label: "Frag Hab." },
-                              book_def: { to: "frag_defesa", cost: 1000, trainerLv: 50, label: "Frag Def." },
                               book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
                               book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
                               book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
@@ -14956,8 +13990,7 @@ function TabOverlay({
               return <div style={{ color: "#b8a8c8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
             return (
-              <div style={{ maxHeight: 1000, overflowY: "auto", paddingRight: 4 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
               {filtered.map((entry, i) => {
                 const sp = entry.species;
                 const isCurrent = leader?.species === sp && leader?.uid === entry.uid;
@@ -15053,7 +14086,7 @@ function TabOverlay({
                        style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%", position: "relative", zIndex: 1 }}
                        title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
                      >
-                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 90, height: 90, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
+                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
                        <div style={{ fontSize: 11, marginTop: 2, color: "#fff", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                      </button>
 
@@ -15089,7 +14122,7 @@ function TabOverlay({
                        title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
                      >
                        {traits.length > 0
-                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 28 : 28} />)
+                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
                          : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
                      </div>
 
@@ -15153,7 +14186,6 @@ function TabOverlay({
                   </div>
                 );
               })}
-              </div>
             </div>
             );
           })()}
@@ -15225,7 +14257,7 @@ function TabOverlay({
 
 
       {tab === "loja" && (
-        <div style={{ maxHeight: 650, overflowY: "auto", paddingRight: 6 }}>
+        <div>
           <div style={{
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -15297,9 +14329,7 @@ function TabOverlay({
             boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
           }}>
 
-            <div style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(107, 212, 255, 0.15), transparent 70%)", borderRadius: 12 }}>
-              <img src={potionNewImg} alt="" width={60} height={60} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 8px rgba(107, 212, 255, 0.6))" }} />
-            </div>
+            <div style={{ fontSize: 40 }}>🧪</div>
             <div style={{ flex: 1, minWidth: 160 }}>
               <div style={{ fontWeight: 800, color: "#eadfe8" }}>Poção</div>
               <div style={{ fontSize: 11, color: "#b8a8c8" }}>Recupera {Math.round(POTION_HEAL_PCT * 100)}% do HP. Usada no auto quando ativado.</div>
@@ -15423,7 +14453,7 @@ function TabOverlay({
 
           <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>🥚 Ovos — chocam Pokémon com raridade aleatória</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
-            {shopEggs.map((e: any) => {
+            {shopEggs.map((e) => {
               const owned = items[e.id] ?? 0;
               const canBuy = e.currency === "gold" ? bank.gold >= e.price : bank.crystals >= e.price;
               return (
@@ -15517,7 +14547,7 @@ function TabOverlay({
             <b style={{ color: "#ffd94d" }}> Você escolhe</b> quais Pokémon entregar.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
-            {orbTrades.map((t: any) => {
+            {orbTrades.map((t) => {
               const available = collection.filter((c) =>
                 (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
                 && !teamUidSet.has(c.uid)
@@ -15579,7 +14609,7 @@ function TabOverlay({
             return (
               <div
                 onClick={() => setOrbPicker(null)}
-                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 9999999, display: "grid", placeItems: "center", padding: 16 }}
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 10000, display: "grid", placeItems: "center", padding: 16 }}
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
@@ -15604,7 +14634,7 @@ function TabOverlay({
                       Você não tem Pokémon {orbPicker.rarity.toUpperCase()} na coleção.
                     </div>
                   ) : (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8, maxHeight: "400px", overflowY: "auto", padding: "4px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
                       {eligible.map((c) => {
                         const sel = orbPickerSel.has(c.uid);
                         const disabled = !sel && selCount >= orbPicker.count;
@@ -15628,9 +14658,9 @@ function TabOverlay({
                             }}
                           >
                             {gifMap[c.species] ? (
-                              <img src={gifMap[c.species]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated" }} />
+                              <img src={gifMap[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
                             ) : (
-                              <div style={{ width: 64, height: 64, background: "#2a1638", borderRadius: 8 }} />
+                              <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
                             )}
                             <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
                             <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
@@ -15699,7 +14729,7 @@ function TabOverlay({
         };
         return (
           <div>
-            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos (Orbs, Incensos e XP)</h3>
+            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
               <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((buffs?.atk ?? 0) * 100)}%`} color="#ff5252" />
               <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
@@ -15720,7 +14750,6 @@ function TabOverlay({
                     <span style={{ color: "#c084fc", fontWeight: 700 }}>+{orbPct}%</span>
                   </div>
                 )}
-
                 {honeyRareActive ? (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#fff0c8", padding: "3px 0" }}>
                     <span>✨🍯 Incenso Raro <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyRareUntil! - nowMs)})</span></span>
@@ -15735,9 +14764,6 @@ function TabOverlay({
                 <div style={{ borderTop: "1px solid #3a2e58", marginTop: 6, paddingTop: 6, display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
                   <span style={{ color: "#f5cf6b" }}>Total EXP</span>
                   <span style={{ color: "#ffd94d" }}>+{totalExpPct}%</span>
-                </div>
-                <div style={{ marginTop: 14, paddingTop: 10, borderTop: "1px solid rgba(245,207,107,0.2)" }}>
-                  <ActiveBuffsHUD buffs={buffs} />
                 </div>
               </div>
             )}
@@ -15924,14 +14950,14 @@ function TabOverlay({
           }}>
             <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
               <input type="checkbox" checked={audioSettings.music}
-                onChange={(e) => setAudioSettings((s: any) => ({ ...s, music: e.target.checked }))}
+                onChange={(e) => setAudioSettings((s) => ({ ...s, music: e.target.checked }))}
                 style={{ width: 18, height: 18 }} />
               <span style={{ color: "#eadfe8", fontWeight: 700 }}>🎵 Música de fundo</span>
             </label>
             <div>
               <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>Volume da música: {Math.round(audioSettings.musicVol * 100)}%</div>
               <input type="range" min={0} max={1} step={0.05} value={audioSettings.musicVol}
-                onChange={(e) => setAudioSettings((s: any) => ({ ...s, musicVol: Number(e.target.value) }))}
+                onChange={(e) => setAudioSettings((s) => ({ ...s, musicVol: Number(e.target.value) }))}
                 style={{ width: "100%" }} />
             </div>
           </div>
@@ -15943,18 +14969,17 @@ function TabOverlay({
           }}>
             <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
               <input type="checkbox" checked={audioSettings.sfx}
-                onChange={(e) => setAudioSettings((s: any) => ({ ...s, sfx: e.target.checked }))}
+                onChange={(e) => setAudioSettings((s) => ({ ...s, sfx: e.target.checked }))}
                 style={{ width: 18, height: 18 }} />
               <span style={{ color: "#eadfe8", fontWeight: 700 }}>🔊 Efeitos sonoros (clique, level-up, capturas)</span>
             </label>
             <div>
               <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>Volume dos efeitos: {Math.round(audioSettings.sfxVol * 100)}%</div>
               <input type="range" min={0} max={1} step={0.05} value={audioSettings.sfxVol}
-                onChange={(e) => setAudioSettings((s: any) => ({ ...s, sfxVol: Number(e.target.value) }))}
+                onChange={(e) => setAudioSettings((s) => ({ ...s, sfxVol: Number(e.target.value) }))}
                 style={{ width: "100%" }} />
             </div>
           </div>
-
 
           <div style={{
             background: "linear-gradient(160deg, #0f1f2e, #16324a)",
@@ -15977,23 +15002,6 @@ function TabOverlay({
             </div>
             <div style={{ fontSize: 11, color: "#8a7a9c" }}>
               Cada poção custa {POTION_PRICE} ouro na Loja e recupera {Math.round(POTION_HEAL_PCT * 100)}% de HP.
-            </div>
-          </div>
-
-          <div style={{
-            background: "linear-gradient(160deg, #1c102a, #2a1a3a)",
-            border: "1px solid rgba(245, 207, 107, 0.4)", borderRadius: 12, padding: 16,
-            display: "flex", flexDirection: "column", gap: 10,
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>🎯 ESTRATÉGIA AUTO-BATALHA</div>
-            <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
-              <input type="checkbox" checked={idle.autoBattle?.prioritizeQuest ?? false}
-                onChange={(e) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), prioritizeQuest: e.target.checked } }))}
-                style={{ width: 18, height: 18 }} />
-              <span style={{ color: "#eadfe8", fontWeight: 700 }}>Priorizar Alvos da Missão Principal</span>
-            </label>
-            <div style={{ fontSize: 10, color: "#8a7a9c", fontStyle: "italic" }}>
-              Se ativo, o treinador focará apenas nos Pokémon da quest atual. Se inativo, atacará qualquer um.
             </div>
           </div>
 
@@ -16146,14 +15154,9 @@ function TabOverlay({
           </div>
         );
       })()}
-
-      </div>
     </div>
   );
 }
-
-
-
 
 function BuffCell({ img, label, value, color }: { img: string; label: string; value: string; color: string }) {
   return (
@@ -16262,14 +15265,12 @@ function MarketScreen({
     stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
     stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
     stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
-    fragmento_ultraball: "Fragmento de Ultra Ball",
   };
   const ICONS: Record<string, string> = {
     pokeball: "⚪", greatball: "🔴", ultraball: "🟡",
     chest_amulet: "🎗", potion: "🧪",
     stone_grass: "🌿", stone_fire: "🔥", stone_water: "💧",
     stone_electric: "⚡", stone_dark: "🌑", stone_dragon: "🐉",
-    fragmento_ultraball: "🟡",
   };
   const CUR_LABEL: Record<string, string> = { gold: "ouro", crystal: "💎 cristais", safira: "💚 safiras" };
   const CUR_COLOR: Record<string, string> = { gold: "#ff9d3d", crystal: "#6bd4ff", safira: "#7dffbe" };
@@ -16746,17 +15747,11 @@ function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) 
     </div>
   );
 }
-function ActiveBonuses({ leaderRarity, team, buffs, benchUids, onAnciaoInteraction, spriteScale, idle, setIdle }: {
+function ActiveBonuses({ leaderRarity, team, buffs }: {
   leaderRarity: Rarity;
   team: { rarity: Rarity }[];
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
-  benchUids: Set<string>;
-  onAnciaoInteraction: () => void;
-  spriteScale: number;
-  idle: IdleState;
-  setIdle: React.Dispatch<React.SetStateAction<IdleState>>;
 }) {
-
   const now = Date.now();
   const expActive = !!(buffs.expMultUntil && now < buffs.expMultUntil);
   const goldActive = !!(buffs.goldMultUntil && now < buffs.goldMultUntil);
@@ -16780,10 +15775,6 @@ function ActiveBonuses({ leaderRarity, team, buffs, benchUids, onAnciaoInteracti
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
     return h > 24 ? `${Math.floor(h / 24)}d` : (h > 0 ? `${h}h ${m}m` : `${m}m`);
   };
-  // handleSeasonReset foi movido para o escopo pai para ser acessível pelo sistema de códigos e NPC.
-
-  // handleAnciaoInteraction removido daqui para ser movido para o escopo correto
-
   const Chip = ({ label, value, color, sub }: { label: string; value: string; color: string; sub?: string }) => (
     <div style={{
       background: `linear-gradient(180deg, ${color}22, ${color}08)`,
@@ -16842,11 +15833,6 @@ function ActiveBonuses({ leaderRarity, team, buffs, benchUids, onAnciaoInteracti
     </div>
   );
 }
-
-// Componente AnciaoGlacialDialog foi movido para o final do arquivo para evitar duplicidade.
-function OldAnciaoGlacialDialog(props: any) { return null; }
-
-// Limpeza de resíduo de código.
 
 
 // ============ Governante NPC — cutscene de diálogo premium ============
@@ -17020,145 +16006,16 @@ function GovernanteDialog(props: {
 }
 
 
-// ============ Ancião Glacial — NPC de Reset de Temporada ============
-function AnciaoGlacialDialog({
-  open,
-  onClose,
-  onConfirm,
-  forced = false,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  forced?: boolean;
-}) {
-  const [step, setStep] = useState(0);
-  const [isResetting, setIsResetting] = useState(false);
 
-  useEffect(() => { if (open) setStep(0); }, [open]);
-  if (!open) return null;
 
-  const lines = [
-    "Saudações, viajante. O gelo eterno guardava sua chegada.",
-    "Eu sou o Ancião Glacial. Sou eu quem abre o caminho para quem busca um novo começo.",
-    "Atravesse minha bênção e eu o levarei ao Vale Dourado — terra verdejante de piso de ouro.",
-  ];
-
-  const handleConfirm = async () => {
-    setIsResetting(true);
-    try {
-      await onConfirm();
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
-  const isLast = step >= lines.length - 1;
-
-  return createPortal(
-    <div
-      onClick={forced ? undefined : onClose}
-
-      style={{
-        position: "fixed", inset: 0, zIndex: 20000,
-        background: "radial-gradient(ellipse at center, rgba(10,30,60,0.85), rgba(0,0,0,0.95))",
-        display: "flex", alignItems: "flex-end", justifyContent: "center",
-        padding: "0 0 40px 0", backdropFilter: "blur(6px)",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "min(720px, 94vw)",
-          background: "linear-gradient(180deg, rgba(20,40,70,0.98), rgba(5,15,30,0.98))",
-          border: "3px solid transparent",
-          borderImage: "linear-gradient(135deg, #c9b8ff, #1e40af, #c9b8ff) 1",
-          borderRadius: 14,
-          boxShadow: "0 0 50px rgba(125,211,252,0.4), inset 0 0 20px rgba(125,211,252,0.1)",
-          padding: 20, display: "flex", gap: 20, color: "#e0f2fe",
-        }}
-      >
-        <div style={{ flexShrink: 0, position: "relative" }}>
-           <img 
-             src="/npc-anciao-glacial.png" 
-             alt="Ancião Glacial" 
-             style={{ 
-               width: 120, height: 120, imageRendering: "pixelated",
-               filter: "drop-shadow(0 0 10px rgba(125,211,252,0.6))"
-             }} 
-           />
-           <div style={{
-             position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)",
-             background: "rgba(30,58,138,0.9)", border: "1px solid #c9b8ff", borderRadius: 4,
-             padding: "2px 8px", fontSize: 10, fontWeight: 900, color: "#fff", whiteSpace: "nowrap"
-           }}>ANCIÃO GLACIAL</div>
-        </div>
-
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{
-            fontSize: 14, fontWeight: 800, color: "#c9b8ff", letterSpacing: 1.5,
-            borderBottom: "1px solid rgba(125,211,252,0.2)", paddingBottom: 6
-          }}>RITUAL DA NOVA JORNADA</div>
-
-          <div style={{
-            fontSize: 16, lineHeight: 1.6, minHeight: 80, color: "#fff",
-            textShadow: "1px 1px 2px rgba(0,0,0,0.5)"
-          }}>
-            {lines[step]}
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", marginTop: 10 }}>
-            <div style={{ flex: 1 }} />
-            {!isLast ? (
-              <button
-                onClick={() => setStep(s => s + 1)}
-                style={{
-                  padding: "10px 20px", background: "linear-gradient(180deg, #c9b8ff, #1e40af)",
-                  border: "1px solid #fff", borderRadius: 8, color: "#fff",
-                  fontWeight: 800, cursor: "pointer", fontSize: 13, letterSpacing: 1,
-                  boxShadow: "0 0 15px rgba(125,211,252,0.5)"
-                }}
-              >OUVIR MAIS ▸</button>
-            ) : (
-              <div style={{ display: "flex", gap: 12 }}>
-                {!forced && (
-                <button
-                  onClick={onClose}
-                  style={{
-                    padding: "10px 20px", background: "rgba(30,58,138,0.4)",
-                    border: "1px solid #c9b8ff66", borderRadius: 8, color: "#c9b8ff",
-                    fontWeight: 700, cursor: "pointer", fontSize: 13
-                  }}
-                  disabled={isResetting}
-                >RECUAR</button>
-                )}
-
-                <button
-                  onClick={handleConfirm}
-                  style={{
-                    padding: "12px 24px",
-                    background: "linear-gradient(180deg, #c9b8ff, #1e40af)",
-                    border: "1px solid #fff", borderRadius: 8, color: "#fff",
-                    fontWeight: 900, cursor: "pointer", fontSize: 14, letterSpacing: 1,
-                    boxShadow: "0 0 20px rgba(125,211,252,0.8)",
-                  }}
-                  disabled={isResetting}
-                >
-                  {isResetting ? "ATRAVESSANDO..." : "✦ ATRAVESSAR A BÊNÇÃO"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body
+function SmartGuideHud({ hasPokemon }: { hasPokemon: boolean }) {
+  const [closed, setClosed] = useState(false);
+  if (closed) return null;
+  return (
+    <ProfessorOakGuide
+      topic={hasPokemon ? "autohunt" : "welcome"}
+      onClose={() => setClosed(true)}
+    />
   );
 }
-
-
-
-
-
-
 
