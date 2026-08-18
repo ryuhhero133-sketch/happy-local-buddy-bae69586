@@ -15075,11 +15075,11 @@ function TabOverlay({
         const totalExpPct = bookPct + orbPct + honeyPct;
         const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
         const stonesMap: Record<keyof typeof stats, { stone: string, color: string, label: string, desc: string, fail: number }> = {
-          attack: { stone: "stone_fire", color: "#ff5252", label: "ATAQUE", desc: "Dano Total +5% por nível.", fail: 15 },
-          speed: { stone: "stone_electric", color: "#ffd94d", label: "VELO", desc: "Intervalo Atk -0.05s.", fail: 12 },
-          synergy: { stone: "stone_grass", color: "#c084fc", label: "SINERG", desc: "Bônus tipo duplicado +2%.", fail: 20 },
-          resistance: { stone: "stone_water", color: "#4a7bff", label: "RESIST", desc: "Dano Recebido -3%.", fail: 10 },
-          mastery: { stone: "stone_dragon", color: "#5ec26a", label: "MASTER", desc: "Crítico e Elemental +1.5%.", fail: 25 },
+          attack: { stone: "stone_fire", color: "#ff5252", label: "ATAQUE", desc: "Aumenta o Dano Total em +5% por nível. Essencial para derrotar Chefes e lendários mais rápido.", fail: 15 },
+          speed: { stone: "stone_electric", color: "#ffd94d", label: "VELO", desc: "Reduz o intervalo de ataque em -0.05s. Quanto mais rápido, mais vezes você ataca por segundo.", fail: 12 },
+          synergy: { stone: "stone_grass", color: "#c084fc", label: "SINERG", desc: "Melhora o bônus de tipo do time em +2%. Fortalece a harmonia entre seus Pokémon.", fail: 20 },
+          resistance: { stone: "stone_water", color: "#4a7bff", label: "RESIST", desc: "Reduz o dano recebido em -3%. Permite que você aguente batalhas contra Pokémon de nível alto.", fail: 10 },
+          mastery: { stone: "stone_dragon", color: "#5ec26a", label: "MASTER", desc: "Aumenta Chance Crítica e Dano Elemental em +1.5%. Maximiza o potencial explosivo do time.", fail: 25 },
         };
         const radarPoints = [
           { label: stonesMap.attack.label, val: 20 + (stats.attack ?? 0) * 8, color: stonesMap.attack.color, key: "attack" as const },
@@ -15154,7 +15154,10 @@ function TabOverlay({
                 </div>
               </div>
               <div style={{ flex: 1, minWidth: 280 }}>
-                <h3 style={{ color: "#f5cf6b", margin: "0 0 12px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
+                <h3 style={{ color: "#f5cf6b", margin: "0 0 4px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
+                <p style={{ fontSize: 10, color: "#a8a0b8", margin: "0 0 12px 0", lineHeight: 1.4 }}>
+                  Evolua os atributos permanentes da sua conta gastando <strong>Stones Elementais</strong> e <strong>Livros</strong>. Cada melhoria ajuda no seu progresso global.
+                </p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
                   {radarPoints.map(p => {
                     const k = p.key;
