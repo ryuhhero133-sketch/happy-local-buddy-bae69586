@@ -14545,7 +14545,8 @@ function TabOverlay({
 
       )}
       {tab === "loja" && (
-        <div style={{ paddingBottom: 60 }}>
+          <div style={{ paddingBottom: 60 }}>
+            <div style={{
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -14808,7 +14809,7 @@ function TabOverlay({
               {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
             </button>
           </div>
-        </div>
+        </>
       )}
 
                       position: "absolute", top: 40, left: 8, right: 14, height: 3,
@@ -15187,7 +15188,7 @@ function TabOverlay({
 
       )}
       {tab === "market" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <MarketScreen
             items={items}
             bank={bank}
@@ -15200,7 +15201,7 @@ function TabOverlay({
             onNpcSell={onSellItem}
             npcPrices={marketSellPrices}
           />
-        </div>
+        </>
       )}
 
 
