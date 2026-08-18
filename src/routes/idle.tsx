@@ -13115,6 +13115,7 @@ function IdlePage() {
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />
       )}
     </div>
+    </>
   );
 }
 
