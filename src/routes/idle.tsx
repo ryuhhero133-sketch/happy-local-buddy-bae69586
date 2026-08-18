@@ -13191,9 +13191,9 @@ function TabOverlay({
     tab === "mochila"   ? "MOCHILA" :
     tab === "colecao"   ? "COLEÇÃO" :
     tab === "pokedex"   ? "POKÉDEX" :
-    tab === "loja"      ? "LOJA BLOQUEADA" :
+    tab === "loja"      ? "LOJA" :
     tab === "wallet"    ? "CARTEIRA" :
-    tab === "market"    ? "MERCADO BLOQUEADO" :
+    tab === "market"    ? "MERCADO" :
 
     tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
@@ -13803,12 +13803,20 @@ function TabOverlay({
                   fontSize: 10.5, fontWeight: 900, letterSpacing: 0.5,
                   boxShadow: `inset 0 0 0 1px ${P.goldLight}80`,
                 }}>{totalTypes} tipos · {totalCount} itens</div>
-                <div style={{
-                  background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`, color: P.ink,
-                  border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
-                  fontSize: 11, fontWeight: 900,
-                  boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-                }}>💰 {bank.gold.toLocaleString()}</div>
+                <div style={{ display: "flex", gap: 5 }}>
+                  <div style={{
+                    background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`, color: P.ink,
+                    border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
+                    fontSize: 11, fontWeight: 900,
+                    boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+                  }}>💰 {bank.gold.toLocaleString()}</div>
+                  <div style={{
+                    background: "linear-gradient(180deg, #c084fc, #9333ea)", color: "#fff",
+                    border: "1.5px solid #7e22ce", borderRadius: 8, padding: "3px 10px",
+                    fontSize: 11, fontWeight: 900,
+                    boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+                  }}>💎 {Math.floor(bank.crystals).toLocaleString()}</div>
+                </div>
               </div>
             </div>
 
@@ -14291,9 +14299,7 @@ function TabOverlay({
                   epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
                 };
                 const rColor = rarityColor[entry.rarity] ?? "#8b6a30";
-                const frozen = !!s.redeemedCodes?.RANKED_RUBY_KEY_CRAFT;
-      const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
-      const gain = frozen ? 0 : baseGain;
+                const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
                 const locked = lockedSet.has(entry.uid);
                  const traits = entry.traits ?? [];
                  const fragDisabled = inTeam || locked;
@@ -14548,14 +14554,7 @@ function TabOverlay({
 
 
       {tab === "loja" && (
-        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
-          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
-          <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
-          <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
-        </div>
-      )}
-      {false && tab === "loja" && (
-        <div>
+        <div style={{
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -14563,8 +14562,11 @@ function TabOverlay({
           }}>
             <span style={{ color: "#f4c430" }}>● Ouro: {fmtK(bank.gold)}</span>
             <span style={{ color: "#c084fc" }}>💎 Cristais: {Math.floor(bank.crystals)}</span>
-          </div>
+        </div>
+      )}
 
+      {tab === "loja" && (
+        <div>
           {(() => {
             const bk = SHOP_BOOKS.find((x) => x.id === "orb_team")!;
             const owned = items[bk.id] ?? 0;
@@ -14821,32 +14823,8 @@ function TabOverlay({
         </div>
       )}
 
-                      position: "absolute", top: 40, left: 8, right: 14, height: 3,
-                      background: `${e.color}dd`, opacity: 0.5, borderRadius: 2, transform: "rotate(6deg)",
-                    }} />
-                  </div>
-                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>{e.name}</div>
-                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center", minHeight: 30 }}>{e.desc}</div>
-                  <div style={{ fontSize: 12, color: e.currency === "gold" ? "#f4c430" : "#c084fc", fontWeight: 700 }}>
-                    {e.currency === "gold" ? "●" : "💎"} {e.price} {e.currency === "gold" ? "ouro" : "cristais"}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
-                  <button
-                    onClick={() => onBuyEgg(e)}
-                    disabled={!canBuy}
-                    style={{
-                      width: "100%", padding: "8px 10px", fontWeight: 800,
-                      background: canBuy ? e.color : "#3a2a4a",
-                      color: canBuy ? "#0b0510" : "#6a5a7c",
-                      border: "none", borderRadius: 6,
-                      cursor: canBuy ? "pointer" : "not-allowed",
-                    }}
-                  >{canBuy ? "COMPRAR" : "SEM RECURSOS"}</button>
-                </div>
-              );
-            })}
-          </div>
-
+      {tab === "loja" && (
+        <div>
           <h3 style={{ color: "#c084fc", fontSize: 15, margin: "6px 0 10px" }}>Livros de Habilidade — pagos em cristais 💎</h3>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
@@ -14943,13 +14921,14 @@ function TabOverlay({
           </div>
 
           {orbPicker && (() => {
+            const op = orbPicker as NonNullable<typeof orbPicker>;
             // Exclui Pokémon do time e travados — evita "não consome / orb infinito"
             // quando o jogador tenta trocar um Pokémon que está em uso.
             const eligible = collection.filter((c) =>
-              (c.rarity === orbPicker.rarity || (orbPicker.rarity === "mythic" && c.rarity === "mythic_shiny")) && !teamUidSet.has(c.uid) && !benchUids.has(c.uid) && !lockedSet.has(c.uid),
+              (c.rarity === op.rarity || (op.rarity === "mythic" && c.rarity === "mythic_shiny")) && !teamUidSet.has(c.uid) && !benchUids.has(c.uid) && !lockedSet.has(c.uid),
             );
             const selCount = orbPickerSel.size;
-            const canConfirm = selCount === orbPicker.count;
+            const canConfirm = selCount === op.count;
             return (
               <div
                 onClick={() => setOrbPicker(null)}
@@ -14960,28 +14939,28 @@ function TabOverlay({
                   style={{
                     width: "min(560px, 100%)", maxHeight: "88vh", overflowY: "auto",
                     background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
-                    border: `2px solid ${orbPicker.color}`, borderRadius: 14, padding: 16,
-                    boxShadow: `0 10px 30px rgba(0,0,0,0.7), 0 0 20px ${orbPicker.color}55`,
+                    border: `2px solid ${op.color}`, borderRadius: 14, padding: 16,
+                    boxShadow: `0 10px 30px rgba(0,0,0,0.7), 0 0 20px ${op.color}55`,
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontWeight: 900, color: orbPicker.color, fontSize: 15 }}>
-                      🧙 Escolha {orbPicker.count} Pokémon {orbPicker.rarity.toUpperCase()}
+                    <div style={{ fontWeight: 900, color: op.color, fontSize: 15 }}>
+                      🧙 Escolha {op.count} Pokémon {op.rarity.toUpperCase()}
                     </div>
                     <button onClick={() => setOrbPicker(null)} style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 18 }}>✕</button>
                   </div>
                   <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 10 }}>
-                    Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{orbPicker.count}</b> — Recompensa: <b>{orbPicker.label}</b>
+                    Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{op.count}</b> — Recompensa: <b>{op.label}</b>
                   </div>
                   {eligible.length === 0 ? (
                     <div style={{ color: "#e28a8a", fontSize: 12, padding: 20, textAlign: "center" }}>
-                      Você não tem Pokémon {orbPicker.rarity.toUpperCase()} na coleção.
+                      Você não tem Pokémon {op.rarity.toUpperCase()} na coleção.
                     </div>
                   ) : (
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
                       {eligible.map((c) => {
                         const sel = orbPickerSel.has(c.uid);
-                        const disabled = !sel && selCount >= orbPicker.count;
+                        const disabled = !sel && selCount >= op.count;
                         return (
                           <button
                             key={c.uid}
@@ -14994,8 +14973,8 @@ function TabOverlay({
                               });
                             }}
                             style={{
-                              background: sel ? `linear-gradient(160deg, ${orbPicker.color}55, ${orbPicker.color}22)` : "#1a0f26",
-                              border: sel ? `2px solid ${orbPicker.color}` : "2px solid #3a2a4a",
+                              background: sel ? `linear-gradient(160deg, ${op.color}55, ${op.color}22)` : "#1a0f26",
+                              border: sel ? `2px solid ${op.color}` : "2px solid #3a2a4a",
                               borderRadius: 10, padding: 6, cursor: disabled ? "not-allowed" : "pointer",
                               display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                               opacity: disabled ? 0.4 : 1, position: "relative",
@@ -15010,7 +14989,7 @@ function TabOverlay({
                             <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
                             {sel && (
                               <div style={{
-                                position: "absolute", top: 2, right: 2, background: orbPicker.color, color: "#0b0510",
+                                position: "absolute", top: 2, right: 2, background: op.color, color: "#0b0510",
                                 width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
                               }}>✓</div>
                             )}
@@ -15034,11 +15013,11 @@ function TabOverlay({
                         const uids = Array.from(orbPickerSel);
                         setOrbPicker(null);
                         setOrbPickerSel(new Set());
-                        onTradeOrb(orbPicker.orbId, uids, [], orbPicker.rarity);
+                        onTradeOrb(op.orbId, uids, [], op.rarity);
                       }}
                       style={{
                         flex: 2, padding: "10px", fontWeight: 900,
-                        background: canConfirm ? orbPicker.color : "#3a2a4a",
+                        background: canConfirm ? op.color : "#3a2a4a",
                         color: canConfirm ? "#0b0510" : "#6a5a7c",
                         border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
                       }}
@@ -15196,27 +15175,18 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
-          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
-          <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
-          <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
-        </div>
-      )}
-      {false && tab === "market" && (
-        <div>
-          <MarketScreen
-            items={items}
-            bank={bank}
-            identity={identity}
-            isVip={isVip}
-            onList={onListMarket}
-            onBuy={onBuyMarket}
-            onCancel={onCancelMarket}
-            onClaimPayout={onClaimMarketPayout}
-            onNpcSell={onSellItem}
-            npcPrices={marketSellPrices}
-          />
-        </div>
+        <MarketScreen
+          items={items}
+          bank={bank}
+          identity={identity}
+          isVip={isVip}
+          onList={onListMarket}
+          onBuy={onBuyMarket}
+          onCancel={onCancelMarket}
+          onClaimPayout={onClaimMarketPayout}
+          onNpcSell={onSellItem}
+          npcPrices={marketSellPrices}
+        />
       )}
 
 
