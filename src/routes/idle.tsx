@@ -15189,27 +15189,30 @@ function TabOverlay({
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
 
-            <div style={{ position: "relative", width: "100%", height: "180px", background: "rgba(0,0,0,0.4)", borderRadius: 16, border: "1px solid #f5cf6b33", overflow: "hidden", display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <div style={{ position: "relative", width: "100%", height: "180px", background: "rgba(0,0,0,0.5)", borderRadius: 16, border: "2px solid #b9a7ff44", overflow: "hidden", display: "flex", justifyContent: "center", alignItems: "center", boxShadow: "0 0 20px rgba(185, 167, 255, 0.15)" }}>
               <img 
-                src={rayquazaShinyBg.url} 
+                src={assetUrlFromJson(rayquazaShinyBg)} 
                 alt="Rayquaza Shiny" 
                 style={{ 
-                  maxWidth: "90%", 
-                  maxHeight: "90%", 
+                  maxWidth: "95%", 
+                  maxHeight: "95%", 
                   objectFit: "contain",
-                  filter: "drop-shadow(0 0 20px rgba(185, 167, 255, 0.4))"
+                  filter: "drop-shadow(0 0 15px rgba(185, 167, 255, 0.5))"
                 }} 
               />
               <div style={{ 
                 position: "absolute", 
-                bottom: 10, 
-                right: 15, 
+                bottom: 12, 
+                right: 18, 
                 fontSize: 10, 
                 fontWeight: 900, 
-                color: "#f5cf6b", 
+                color: "#b9a7ff", 
                 textShadow: "0 2px 4px #000",
-                letterSpacing: 1,
-                opacity: 0.8
+                letterSpacing: 1.5,
+                background: "rgba(0,0,0,0.6)",
+                padding: "2px 8px",
+                borderRadius: 4,
+                border: "1px solid #b9a7ff33"
               }}>
                 ✦ BLACK MITIC PLUS LEGENDARY ✦
               </div>
