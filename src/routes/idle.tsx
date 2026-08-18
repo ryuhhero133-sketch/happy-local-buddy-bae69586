@@ -1099,6 +1099,8 @@ type IdleState = {
                 }}>
                    <div style={{ fontSize: 8, color: "#f5cf6b", fontWeight: 900, marginTop: 4, letterSpacing: 2, opacity: 0.8 }}>ANATOMIA ESTELAR</div>
                    <AnatomiaChart />
+
+                   <AnatomiaChart />
                 </div>
               </div>
 
