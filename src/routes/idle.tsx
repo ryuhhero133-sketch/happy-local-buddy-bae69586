@@ -13191,9 +13191,9 @@ function TabOverlay({
     tab === "mochila"   ? "MOCHILA" :
     tab === "colecao"   ? "COLEÇÃO" :
     tab === "pokedex"   ? "POKÉDEX" :
-    tab === "loja"      ? "LOJA BLOQUEADA" :
+    tab === "loja"      ? "LOJA" :
     tab === "wallet"    ? "CARTEIRA" :
-    tab === "market"    ? "MERCADO BLOQUEADO" :
+    tab === "market"    ? "MERCADO" :
 
     tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
