@@ -15054,34 +15054,34 @@ function TabOverlay({
 
       {tab === "melhorias" && (() => {
         const nowMs = Date.now();
-        const bookActive = !!(buffs?.expMultUntil && nowMs < buffs.expMultUntil);
-        const orbActive = !!(buffs?.orbUntil && nowMs < buffs.orbUntil);
-        const honeyActive = !!(buffs?.honeyUntil && nowMs < buffs.honeyUntil);
-        const honeyRareActive = !!(buffs?.honeyRareUntil && nowMs < buffs.honeyRareUntil);
-        const bookPct = bookActive ? Math.round((buffs?.expMult ?? 0) * 100) : 0;
-        const orbPct = orbActive ? Math.round((buffs?.orbMult ?? 0) * 100) : 0;
+        const bookActive = !!(idle.buffs?.expMultUntil && nowMs < idle.buffs.expMultUntil);
+        const orbActive = !!(idle.buffs?.orbUntil && nowMs < idle.buffs.orbUntil);
+        const honeyActive = !!(idle.buffs?.honeyUntil && nowMs < idle.buffs.honeyUntil);
+        const honeyRareActive = !!(idle.buffs?.honeyRareUntil && nowMs < idle.buffs.honeyRareUntil);
+        const bookPct = bookActive ? Math.round((idle.buffs?.expMult ?? 0) * 100) : 0;
+        const orbPct = orbActive ? Math.round((idle.buffs?.orbMult ?? 0) * 100) : 0;
         const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
         const totalExpPct = bookPct + orbPct + honeyPct;
 
         const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
         const radarPoints = [
-          { label: "ATAQUE", val: 20 + stats.attack * 8, color: "#ff5252" },
-          { label: "VELO",   val: 20 + stats.speed * 8,  color: "#ffd94d" },
-          { label: "SINERG", val: 20 + stats.synergy * 8, color: "#c084fc" },
-          { label: "RESIST", val: 20 + stats.resistance * 8, color: "#4a7bff" },
-          { label: "MASTER", val: 20 + stats.mastery * 8, color: "#5ec26a" },
+          { label: "ATAQUE", val: 20 + (stats.attack ?? 0) * 8, color: "#ff5252", key: "attack" },
+          { label: "VELO",   val: 20 + (stats.speed ?? 0) * 8,  color: "#ffd94d", key: "speed" },
+          { label: "SINERG", val: 20 + (stats.synergy ?? 0) * 8, color: "#c084fc", key: "synergy" },
+          { label: "RESIST", val: 20 + (stats.resistance ?? 0) * 8, color: "#4a7bff", key: "resistance" },
+          { label: "MASTER", val: 20 + (stats.mastery ?? 0) * 8, color: "#5ec26a", key: "mastery" },
         ];
 
         const getPolyPoints = (scale = 1) => {
           return radarPoints.map((p, i) => {
             const angle = (i * 2 * Math.PI) / radarPoints.length - Math.PI / 2;
-            const r = (p.val / 100) * 80 * scale;
+            const r = (Math.min(100, p.val) / 100) * 80 * scale;
             return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`;
           }).join(" ");
         };
 
         const upgradeStat = (key: keyof typeof stats) => {
-          const curLv = stats[key];
+          const curLv = stats[key] ?? 0;
           const stoneCost = 50 + curLv * 25;
           const bookCost = 1 + Math.floor(curLv / 2);
           const stones = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
@@ -15104,7 +15104,7 @@ function TabOverlay({
               globalStats: { ...stats, [key]: curLv + 1 }
             };
           });
-          pushChat(`✨ Evoluiu ${key.toUpperCase()} para Nível ${curLv + 1}!`, "cap");
+          pushChat(`✨ Evoluiu ${String(key).toUpperCase()} para Nível ${curLv + 1}!`, "cap");
         };
 
         return (
@@ -15139,25 +15139,28 @@ function TabOverlay({
               <div style={{ flex: 1, minWidth: 280 }}>
                 <h3 style={{ color: "#f5cf6b", margin: "0 0 12px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {(Object.keys(stats) as Array<keyof typeof stats>).map(k => (
-                    <div key={k} style={{ background: "#1a0f26", border: "1px solid #3a2e58", borderRadius: 10, padding: "8px 12px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                        <span style={{ fontSize: 10, color: "#a8a0b8", textTransform: "uppercase" }}>{k}</span>
-                        <span style={{ fontSize: 12, fontWeight: 900, color: "#f5cf6b" }}>Lv.{stats[k]}</span>
+                  {radarPoints.map(p => {
+                    const k = p.key as keyof typeof stats;
+                    return (
+                      <div key={p.key} style={{ background: "#1a0f26", border: "1px solid #3a2e58", borderRadius: 10, padding: "8px 12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: 10, color: "#a8a0b8", textTransform: "uppercase" }}>{p.label}</span>
+                          <span style={{ fontSize: 12, fontWeight: 900, color: "#f5cf6b" }}>Lv.{stats[k] ?? 0}</span>
+                        </div>
+                        <button 
+                          onClick={() => upgradeStat(k)}
+                          style={{ width: "100%", padding: "4px", background: "linear-gradient(180deg, #ffd94d, #d99b1a)", border: "none", borderRadius: 4, fontSize: 10, fontWeight: 900, cursor: "pointer", color: "#231407" }}
+                        >+ MELHORAR</button>
                       </div>
-                      <button 
-                        onClick={() => upgradeStat(k)}
-                        style={{ width: "100%", padding: "4px", background: "linear-gradient(180deg, #ffd94d, #d99b1a)", border: "none", borderRadius: 4, fontSize: 10, fontWeight: 900, cursor: "pointer", color: "#231407" }}
-                      >+ MELHORAR</button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round(((buffs?.atk ?? 0) + (stats.attack * 0.05)) * 100)}%`} color="#ff5252" />
-              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round(((buffs?.def ?? 0) + (stats.resistance * 0.03)) * 100)}%`} color="#4a7bff" />
+              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round(((idle.buffs?.atk ?? 0) + ((stats.attack ?? 0) * 0.05)) * 100)}%`} color="#ff5252" />
+              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round(((idle.buffs?.def ?? 0) + ((stats.resistance ?? 0) * 0.03)) * 100)}%`} color="#4a7bff" />
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
           </div>
