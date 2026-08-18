@@ -9866,7 +9866,7 @@ function IdlePage() {
               onClaimMarketPayout={claimMarketPayout}
               isVip={isVip()}
               pokemonMarketNode={
-                <div
+                <PokemonMarketPanel
                   identity={identity}
                   collection={idle.collection ?? []}
                   gold={idle.bank.gold}
