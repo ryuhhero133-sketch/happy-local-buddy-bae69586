@@ -4225,7 +4225,7 @@ function IdlePage() {
             rare: 0.02, epic: 0.05, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
           };
           const synergyRarity = team.length >= 2 && team.every((p) => p.rarity === leaderRarity) ? leaderRarity : null;
-          const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
+          const synergyBonus = synergyRarity ? ((teamSynergyMap[synergyRarity] ?? 0) * (1 + (idle.globalStats?.synergy ?? 0) * 0.1)) : 0;
           const totalBonus = rarityBonus + synergyBonus;
           const totalMult = goldMult * (1 + totalBonus);
           const honeyMult = 1 + honeyBonusNow();
@@ -4511,7 +4511,7 @@ function IdlePage() {
                 }
               } else if (target.rarity === "mythic" || target.rarity === "mythic_shiny") {
                 // 💠 Míticos (e shiny): 2% fixo por lançamento
-                captured = Math.random() < 0.02;
+                captured = Math.random() < (0.02 + (idle.globalStats?.mastery ?? 0) * 0.005);
               } else {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
@@ -16184,7 +16184,7 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     rare: 0.02, epic: 0.05, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
   };
   const synergyRarity = team.length >= 2 && team.every((p) => p.rarity === leaderRarity) ? leaderRarity : null;
-  const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
+  const synergyBonus = synergyRarity ? ((teamSynergyMap[synergyRarity] ?? 0) * (1 + (idle.globalStats?.synergy ?? 0) * 0.1)) : 0;
   const rarityLabel: Record<Rarity, string> = {
     common: "Comum", uncommon: "Incomum", rare: "Raro", epic: "Épico",
     legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
