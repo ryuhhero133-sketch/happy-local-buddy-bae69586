@@ -930,6 +930,7 @@ type IdleState = {
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
+  trainerStats?: { atk: number; def: number; hp: number; spe: number; crit: number }; // Melhorias permanentes via Safiras
   // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   redeemedCodes?: Record<string, boolean>;
@@ -15066,14 +15067,70 @@ function TabOverlay({
           const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
           return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${r}s` : `${r}s`;
         };
+
+        const tStats = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
+        const redDiamonds = items.crystal_red || 0;
+
+        const upgradeStat = (key: keyof typeof tStats) => {
+          if (redDiamonds < 100) {
+            pushChat("💎 Você precisa de pelo menos 100 Diamantes Vermelhos para melhorar.", "info");
+            return;
+          }
+          playClick();
+          setIdle(prev => {
+            const currentStats = prev.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
+            const nextStats = { ...currentStats, [key]: currentStats[key] + 1 };
+            const nextItems = { ...prev.items, crystal_red: (prev.items.crystal_red || 0) - 100 };
+            return { ...prev, trainerStats: nextStats, items: nextItems };
+          });
+          pushChat(`✨ Melhoria aplicada em ${key.toUpperCase()}! (-100 Diamantes Vermelhos)`, "info");
+        };
+
         return (
-          <div>
-            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
+          <div style={{ color: "#eadfe8" }}>
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ color: "#f5cf6b", fontSize: 16, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                💎 Safiras de Habilidade <span style={{ fontSize: 11, fontWeight: 500, color: "#8a7a9c" }}>· Consome 100 Diamantes Vermelhos por ponto</span>
+              </h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { key: "atk", label: "Ataque Total", icon: "⚔️", color: "#ff5252" },
+                  { key: "def", label: "Defesa Total", icon: "🛡️", color: "#4a7bff" },
+                  { key: "hp", label: "HP Máximo", icon: "❤️", color: "#ff4d4d" },
+                  { key: "spe", label: "Velocidade", icon: "👟", color: "#f5cf6b" },
+                  { key: "crit", label: "Ataque Crítico", icon: "🎯", color: "#c084fc" },
+                ].map((s) => (
+                  <div key={s.key} style={{ 
+                    background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 12, padding: 12,
+                    display: "flex", justifyContent: "space-between", alignItems: "center"
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#8a7a9c", fontWeight: 700 }}>{s.icon} {s.label}</div>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color }}>+{tStats[s.key as keyof typeof tStats]}</div>
+                    </div>
+                    <button 
+                      onClick={() => upgradeStat(s.key as keyof typeof tStats)}
+                      disabled={redDiamonds < 100}
+                      style={{
+                        background: redDiamonds >= 100 ? "linear-gradient(180deg, #3a2e58, #1c0f2e)" : "#120a1c",
+                        border: `1px solid ${redDiamonds >= 100 ? s.color : "#3a2e58"}`,
+                        color: redDiamonds >= 100 ? "#fff" : "#5a4e78",
+                        padding: "6px 10px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: redDiamonds >= 100 ? "pointer" : "not-allowed",
+                        boxShadow: redDiamonds >= 100 ? `0 0 10px ${s.color}33` : "none"
+                      }}
+                    >MELHORAR</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus Temporários (Livros)</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
               <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((buffs?.atk ?? 0) * 100)}%`} color="#ff5252" />
               <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
+            
             {(bookActive || orbActive || honeyActive || honeyRareActive) && (
               <div style={{ background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 8, padding: 10, marginBottom: 14 }}>
                 <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Composição EXP:</div>
@@ -15106,8 +15163,8 @@ function TabOverlay({
                 </div>
               </div>
             )}
-            <div style={{ color: "#b8a8c8", fontSize: 12, lineHeight: 1.5 }}>
-              Livros, Orbs e Incenso de Mel <strong style={{ color: "#f5cf6b" }}>somam</strong> enquanto ativos. Quando cada tempo acaba, o bônus daquela fonte sai.
+            <div style={{ color: "#b8a8c8", fontSize: 11, lineHeight: 1.5, background: "rgba(0,0,0,0.2)", padding: 8, borderRadius: 8 }}>
+              Habilidades via Safiras são <strong style={{ color: "#f5cf6b" }}>permanentes</strong>. Livros e Orbs são temporários e somam aos bônus permanentes.
             </div>
           </div>
         );
