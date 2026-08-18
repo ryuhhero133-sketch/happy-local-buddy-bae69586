@@ -6914,7 +6914,7 @@ function IdlePage() {
     setTeam((tm) => {
       const filtered = tm.filter((x) => x.uid !== uid);
       if (tm[0]?.uid === uid && filtered[0]) {
-        setLeaderHp(calcIdleMaxHp(filtered[0]));
+        setLeaderHp(calcIdleMaxHp(filtered[0], idleRef.current.trainerStats));
       }
       return filtered;
     });
