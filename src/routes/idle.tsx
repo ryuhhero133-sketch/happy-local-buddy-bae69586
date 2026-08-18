@@ -7692,7 +7692,7 @@ function IdlePage() {
                   };
                   const filtered = chat.filter((m) => chatFilter === "all" ? true : classify(m) === chatFilter);
                   return (
-                    <>
+                    <div>
                       {[...filtered].reverse().map((m) => {
                         const color =
                           m.kind === "chest" ? "#ffa64a" :
@@ -7717,7 +7717,7 @@ function IdlePage() {
                       {filtered.length === 0 && (
                         <div style={{ color: "#6a5a7c", fontStyle: "italic" }}>Nenhum evento neste filtro...</div>
                       )}
-                    </>
+                    </div>
                   );
                 })()}
               </div>
@@ -7851,11 +7851,11 @@ function IdlePage() {
                 return best;
               })();
               return (
-                <>
+                <div>
                   <button onClick={() => { playClick(); setZoom(ZOOM_LEVELS[Math.min(ZOOM_LEVELS.length - 1, curIdx + 1)]); }} style={zoomBtn}>+</button>
                   <div style={{ ...zoomBtn, cursor: "default", fontSize: 10 }}>{Math.round(zoom * 100)}%</div>
                   <button onClick={() => { playClick(); setZoom(ZOOM_LEVELS[Math.max(0, curIdx - 1)]); }} style={zoomBtn}>−</button>
-                </>
+                </div>
               );
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
@@ -8049,7 +8049,7 @@ function IdlePage() {
               }
               if (buffs.length === 0) return null;
               return (
-                <>
+                <div>
                   <style>{`
                     @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
                     @keyframes rmBuffSpin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -8115,7 +8115,7 @@ function IdlePage() {
                       </span>
                     </div>
                   ))}
-                </>
+                </div>
               );
             })()}
           </div>
@@ -8131,7 +8131,7 @@ function IdlePage() {
               imageRendering: "pixelated",
             }}>
               {weather === "rain" && (
-                <>
+                <div>
                   <div className="wx-rain-tint" />
                   <div className="wx-mist" />
                   {rainDrops.map((d, i) => (
@@ -8145,10 +8145,10 @@ function IdlePage() {
                     }} />
                   ))}
                   <div className="wx-flash" />
-                </>
+                </div>
               )}
               {weather === "snow" && (
-                <>
+                <div>
                   <div className="wx-snow-tint" />
                   {snowFlakes.map((s, i) => (
                     <span key={i} className="wx-flake" style={{
@@ -8161,7 +8161,7 @@ function IdlePage() {
                       ["--drift" as string]: `${s.drift}px`,
                     } as React.CSSProperties} />
                   ))}
-                </>
+                </div>
               )}
               <div style={{
                 position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)",
@@ -8906,7 +8906,7 @@ function IdlePage() {
                   cursor: dead ? "default" : "pointer",
                 }}>
                   {e.sp === "lugia" && (
-                    <>
+                    <div>
                       <div style={{
                         position: "absolute", inset: -60, borderRadius: "50%",
                         background: "radial-gradient(circle, rgba(126,230,255,0.35) 0%, rgba(255,151,225,0.18) 45%, transparent 75%)",
@@ -8921,10 +8921,10 @@ function IdlePage() {
                         animation: "spin 8s linear infinite",
                         pointerEvents: "none", zIndex: -1,
                       }} />
-                    </>
+                    </div>
                   )}
                   {e.menace && (
-                    <>
+                    <div>
                       {/* Aura preta com miolo púrpura */}
                       <div style={{
                         position: "absolute", inset: -80, borderRadius: "50%",
@@ -8952,7 +8952,7 @@ function IdlePage() {
                           animation: "pulse 1.2s ease-in-out infinite",
                         }}>✦</div>
                       ))}
-                    </>
+                    </div>
                   )}
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
                   {e.sp === "raichu" && !camouflaged && (
@@ -9252,7 +9252,7 @@ function IdlePage() {
 
             {/* Anel de cura durante o descanso */}
             {restingUntil !== null && (
-              <>
+              <div>
                 <div style={{
                   position: "absolute",
                   left: trainerPos.x - 60, top: trainerPos.y - 60,
@@ -9268,7 +9268,7 @@ function IdlePage() {
                   fontSize: 24, pointerEvents: "none",
                   animation: "chest-pop 900ms ease-in-out infinite",
                 }}>💤💚</div>
-              </>
+              </div>
             )}
 
             {/* Pokémon do jogador segue o treinador */}
@@ -9308,7 +9308,7 @@ function IdlePage() {
                   zIndex: Math.round(leaderY),
                 }}>
                   {isBMP && (
-                    <>
+                    <div>
                       <div className="bmp-aura-glow" style={{ position: "absolute", inset: -22, borderRadius: "50%" }} />
                       <div className="bmp-aura-ring" style={{ position: "absolute", inset: -14, borderRadius: "50%" }} />
                       {[
@@ -9325,10 +9325,10 @@ function IdlePage() {
                           animationDuration: `${s.d}s`,
                         } as React.CSSProperties} />
                       ))}
-                    </>
+                    </div>
                   )}
                   {auraOn && (
-                    <>
+                    <div>
                       <div className="lvaura-glow" style={{
                         position: "absolute", inset: -28, borderRadius: "50%",
                         pointerEvents: "none",
@@ -9346,7 +9346,7 @@ function IdlePage() {
                           ["--i" as string]: i,
                         } as React.CSSProperties} />
                       ))}
-                    </>
+                    </div>
                   )}
                   {SPRITE_SHEET[leaderSp] ? (
                     <div style={{
@@ -9563,7 +9563,7 @@ function IdlePage() {
             const accent = restingKind === "azul" ? "#4a9eff" : "#5ec26a";
             const label = restingKind === "azul" ? "Descansando na Casa Azul" : "Descansando no Lar";
             return (
-              <>
+              <div>
                 <div style={{
                   position: "absolute", top: 10, right: 10, zIndex: 12,
                   background: "rgba(11,5,16,0.92)", border: `2px solid ${accent}`,
@@ -9581,7 +9581,7 @@ function IdlePage() {
                     <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, ${accent}, #a7f3a0)`, transition: "width 200ms" }} />
                   </div>
                 </div>
-              </>
+              </div>
             );
           })()}
           {/* tick invisível pra forçar rerender enquanto descansa */}
@@ -9866,7 +9866,43 @@ function IdlePage() {
               onClaimMarketPayout={claimMarketPayout}
               isVip={isVip()}
               pokemonMarketNode={
-                <div />
+                <PokemonMarketPanel
+                  identity={identity}
+                  collection={idle.collection ?? []}
+                  gold={idle.bank.gold}
+                  crystals={idle.bank.crystals}
+                  safiras={idle.items?.safira_verde ?? 0}
+                  isVip={isVip()}
+                  gifOf={(sp) => GIF[sp]}
+                  onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
+                  onReturned={(entry) => setIdle((s) => {
+                    const col = s.collection ?? [];
+                    if (col.some(c => c.uid === entry.uid)) return s;
+                    return { ...s, collection: [...col, entry] };
+                  })}
+                  onSpend={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
+                      : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
+                  }))}
+                  onEarn={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: s.bank.gold + amount }
+                      : { ...s.bank, crystals: s.bank.crystals + amount },
+                  }))}
+                  onSpendSafira={(amount) => {
+                    const cur = idle.items?.safira_verde ?? 0;
+                    if (cur < amount) return false;
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
+                    return true;
+                  }}
+                  onEarnSafira={(amount) => {
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
+                  }}
+                  pushChat={pushChat}
+                />
               }
               skinId={skinId}
               setSkinId={setSkinId}
@@ -10204,7 +10240,7 @@ function IdlePage() {
               );
 
               return (
-                <>
+                <div>
                   <div style={{ position: "relative" }}>
                     {renderMap(true, false)}
                     <button
@@ -10574,7 +10610,7 @@ function IdlePage() {
                       </div>
                     );
                   })()}
-                </>
+                </div>
               );
             })()}
           </Panel>
@@ -10778,7 +10814,7 @@ function IdlePage() {
                 ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
                 : "Um novo evento está sendo preparado.";
               return (
-                <>
+                <div>
                   <div style={{
                     fontSize: 11, fontWeight: 900, color: "#ffd6ec",
                     letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
@@ -10800,7 +10836,7 @@ function IdlePage() {
                     boxShadow: isOpen ? "0 0 12px rgba(138,255,176,0.85)" : "0 0 8px rgba(255,138,198,0.6)",
                     animation: isOpen ? "pulse 1s infinite" : undefined,
                   }}>{label}</span>
-                </>
+                </div>
               );
             })()}
             </div>
@@ -11298,7 +11334,7 @@ function IdlePage() {
               </div>
 
               {!worldTraderPick && (
-                <>
+                <div>
                   <div style={{ color: "#b8a8c8", fontSize: 12, marginBottom: 10 }}>Escolha a raridade da troca:</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     {ORB_TRADES.map((t) => {
@@ -11358,7 +11394,7 @@ function IdlePage() {
                       );
                     })}
                   </div>
-                </>
+                </div>
               )}
 
               {worldTraderPick && (() => {
@@ -11400,7 +11436,7 @@ function IdlePage() {
                         <div style={{ width: `${success * 100}%`, height: "100%", background: `linear-gradient(90deg, #6bd66b, ${pick.color})`, transition: "width .3s" }} />
                       </div>
                       {pick.upgradeTo && (
-                        <>
+                        <div>
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
                             <span>✨ Orb EVOLUI (upgrade)</span>
                             <b style={{ color: "#ff9adf" }}>{Math.round(upgradeChance * 100)}%</b>
@@ -11408,7 +11444,7 @@ function IdlePage() {
                           <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
                             <div style={{ width: `${upgradeChance * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff9adf, #ffd94d)" }} />
                           </div>
-                        </>
+                        </div>
                       )}
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
                         <span>⏱️ +TEMPO extra (+1~2h)</span>
@@ -11632,7 +11668,7 @@ function IdlePage() {
               )}
               {/* rachadura fail */}
               {orbAnim.phase === "fail" && (
-                <>
+                <div>
                   <div style={{
                     position: "absolute", fontSize: 96, animation: "orb-crack .8s ease-out both", pointerEvents: "none",
                   }}>💔</div>
@@ -11649,7 +11685,7 @@ function IdlePage() {
                       } as React.CSSProperties} />
                     );
                   })}
-                </>
+                </div>
               )}
             </div>
             <div style={{ marginTop: 10, minHeight: 40 }}>
@@ -11657,14 +11693,14 @@ function IdlePage() {
                 <div style={{ fontSize: 12, color: "#c8b8d0" }}>A energia se condensa... aguarde.</div>
               )}
               {orbAnim.phase === "success" && (
-                <>
+                <div>
                   <div style={{ fontSize: 16, fontWeight: 900, color: orbAnim.color }}>+1× {orbAnim.label}</div>
                   {orbAnim.lucky && orbAnim.extraHours ? (
                     <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! +{orbAnim.extraHours}h extras ao ativar</div>
                   ) : orbAnim.lucky ? (
                     <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! Orb evoluiu de raridade!</div>
                   ) : null}
-                </>
+                </div>
               )}
               {orbAnim.phase === "fail" && (
                 <div style={{ fontSize: 12, color: "#e28a8a" }}>A instabilidade dispersou a energia. Pokémon perdidos.</div>
@@ -11943,9 +11979,9 @@ function IdlePage() {
               {/* Confirmação */}
               <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                 <div style={{ fontSize: 11, color: "#c8a8e8" }}>
-                  {source ? <>Fonte: <b style={{ color: "#ffd166" }}>{source.species.toUpperCase()}</b></> : "Selecione um BMP acima."}
+                  {source ? <div>Fonte: <b style={{ color: "#ffd166" }}>{source.species.toUpperCase()}</b></div> : "Selecione um BMP acima."}
                   {" · "}
-                  {bmpSwapTarget ? <>Destino: <b style={{ color: "#ffd166" }}>{bmpSwapTarget.toString().toUpperCase()}</b></> : "Escolha a espécie destino."}
+                  {bmpSwapTarget ? <div>Destino: <b style={{ color: "#ffd166" }}>{bmpSwapTarget.toString().toUpperCase()}</b></div> : "Escolha a espécie destino."}
                 </div>
                 <button
                   disabled={!canConfirm}
@@ -13336,11 +13372,11 @@ function TabOverlay({
                     const maxStat = Math.max(stats.atk, stats.def, stats.spa, stats.spd, stats.spe, 1);
                     const StatIcon = ({ kind, col }: { kind: string; col: string }) => {
                       const paths: Record<string, any> = {
-                        atk: <><path d="M4 20 L14 10 M12 8 L20 4 L18 12 L10 10 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><circle cx="5" cy="19" r="1.5" fill={col}/></>,
-                        def: <><path d="M12 3 L20 6 V12 C20 17 16 20 12 21 C8 20 4 17 4 12 V6 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><path d="M9 12 L11 14 L15 10" stroke={col} strokeWidth="2" fill="none" strokeLinecap="round"/></>,
-                        spa: <><path d="M12 3 L14 10 L21 12 L14 14 L12 21 L10 14 L3 12 L10 10 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
-                        spd: <><circle cx="12" cy="12" r="8" stroke={col} strokeWidth="2" fill={col+"33"}/><path d="M12 4 Q16 12 12 20 Q8 12 12 4" stroke={col} strokeWidth="1.5" fill={col+"77"}/></>,
-                        spe: <><path d="M13 3 L4 14 H11 L9 21 L20 10 H13 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
+                        atk: <div><path d="M4 20 L14 10 M12 8 L20 4 L18 12 L10 10 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><circle cx="5" cy="19" r="1.5" fill={col}/></div>,
+                        def: <div><path d="M12 3 L20 6 V12 C20 17 16 20 12 21 C8 20 4 17 4 12 V6 Z" stroke={col} strokeWidth="2" fill={col+"55"} strokeLinejoin="round"/><path d="M9 12 L11 14 L15 10" stroke={col} strokeWidth="2" fill="none" strokeLinecap="round"/></div>,
+                        spa: <div><path d="M12 3 L14 10 L21 12 L14 14 L12 21 L10 14 L3 12 L10 10 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></div>,
+                        spd: <div><circle cx="12" cy="12" r="8" stroke={col} strokeWidth="2" fill={col+"33"}/><path d="M12 4 Q16 12 12 20 Q8 12 12 4" stroke={col} strokeWidth="1.5" fill={col+"77"}/></div>,
+                        spe: <div><path d="M13 3 L4 14 H11 L9 21 L20 10 H13 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></div>,
                       };
                       return (
                         <svg viewBox="0 0 24 24" width="18" height="18" style={{ filter: `drop-shadow(0 0 3px ${col}aa)` }}>
@@ -14419,7 +14455,7 @@ function TabOverlay({
                       ) : locked ? (
                         <span style={{ fontWeight: 900 }}>🔒 TRAVADO</span>
                       ) : (
-                        <>
+                        <div>
                           <span style={{
                             display: "inline-flex", alignItems: "center", justifyContent: "center",
                             width: 34, height: 34, borderRadius: "50%",
@@ -14435,7 +14471,7 @@ function TabOverlay({
                             />
                           </span>
                           <span style={{ fontSize: 13 }}>+{gain}</span>
-                        </>
+                        </div>
                       )}
                     </button>
                   </div>
@@ -14511,7 +14547,7 @@ function TabOverlay({
 
 
 
-      {tab === "loja" && (
+      {false && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
@@ -14519,7 +14555,7 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "loja" && (
-        <>
+        <div>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -14782,7 +14818,7 @@ function TabOverlay({
               {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
             </button>
           </div>
-        </>
+        </div>
       )}
 
                       position: "absolute", top: 40, left: 8, right: 14, height: 3,
@@ -15159,7 +15195,7 @@ function TabOverlay({
         <WalletScreen bank={bank} onExchange={onExchange} />
       )}
 
-      {tab === "market" && (
+      {false && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
@@ -15167,7 +15203,7 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "market" && (
-        <>
+        <div>
           <MarketScreen
             items={items}
             bank={bank}
@@ -15180,7 +15216,7 @@ function TabOverlay({
             onNpcSell={onSellItem}
             npcPrices={marketSellPrices}
           />
-        </>
+        </div>
       )}
 
 
@@ -15593,9 +15629,9 @@ function MarketScreen({
       </div>
 
       {mode === "browse" && (
-        <>
+        <div>
           {soldPayouts.length > 0 && (
-            <>
+            <div>
               <div style={{ color: "#ffd94d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>💰 VENDAS CONCLUÍDAS — COLETAR PAGAMENTO</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10, marginBottom: 16 }}>
                 {soldPayouts.map((l) => {
@@ -15621,10 +15657,10 @@ function MarketScreen({
                   );
                 })}
               </div>
-            </>
+            </div>
           )}
           {mine.length > 0 && (
-            <>
+            <div>
 
               <div style={{ color: "#8fd0ff", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>MEUS ANÚNCIOS</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10, marginBottom: 16 }}>
@@ -15652,7 +15688,7 @@ function MarketScreen({
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           )}
           <div style={{ color: "#ff9d3d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>À VENDA ({others.length})</div>
           {others.length === 0 ? (
@@ -15695,7 +15731,7 @@ function MarketScreen({
 
             </div>
           )}
-        </>
+        </div>
       )}
 
       {mode === "create" && (
@@ -15759,7 +15795,7 @@ function MarketScreen({
       )}
 
       {mode === "npc" && (
-        <>
+        <div>
           <div style={{ color: "#c8a878", fontSize: 12, marginBottom: 10, fontStyle: "italic" }}>Venda rápida ao NPC — preço fixo, sem esperar comprador.</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
             {Object.keys(npcPrices).map((id) => {
@@ -15790,7 +15826,7 @@ function MarketScreen({
               );
             })}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -16189,7 +16225,7 @@ function GovernanteDialog(props: {
                 }}
               >CONTINUAR ▸</button>
             ) : (canGive > 0 || canGivePlus > 0 || canGiveRiolu > 0) ? (
-              <>
+              <div>
                 <button
                   onClick={onClose}
                   style={{
@@ -16234,7 +16270,7 @@ function GovernanteDialog(props: {
                     }}
                   >✦ RECEBER {canGive} OVO{canGive > 1 ? "S" : ""}</button>
                 )}
-              </>
+              </div>
             ) : (
               <button
                 onClick={onClose}
