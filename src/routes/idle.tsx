@@ -14934,10 +14934,10 @@ function TabOverlay({
             // Exclui Pokémon do time e travados — evita "não consome / orb infinito"
             // quando o jogador tenta trocar um Pokémon que está em uso.
             const eligible = collection.filter((c) =>
-              (c.rarity === orbPicker.rarity || (orbPicker.rarity === "mythic" && c.rarity === "mythic_shiny")) && !teamUidSet.has(c.uid) && !benchUids.has(c.uid) && !lockedSet.has(c.uid),
+              (c.rarity === op.rarity || (op.rarity === "mythic" && c.rarity === "mythic_shiny")) && !teamUidSet.has(c.uid) && !benchUids.has(c.uid) && !lockedSet.has(c.uid),
             );
             const selCount = orbPickerSel.size;
-            const canConfirm = selCount === orbPicker.count;
+            const canConfirm = selCount === op.count;
             return (
               <div
                 onClick={() => setOrbPicker(null)}
@@ -14948,28 +14948,28 @@ function TabOverlay({
                   style={{
                     width: "min(560px, 100%)", maxHeight: "88vh", overflowY: "auto",
                     background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
-                    border: `2px solid ${orbPicker.color}`, borderRadius: 14, padding: 16,
-                    boxShadow: `0 10px 30px rgba(0,0,0,0.7), 0 0 20px ${orbPicker.color}55`,
+                    border: `2px solid ${op.color}`, borderRadius: 14, padding: 16,
+                    boxShadow: `0 10px 30px rgba(0,0,0,0.7), 0 0 20px ${op.color}55`,
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontWeight: 900, color: orbPicker.color, fontSize: 15 }}>
-                      🧙 Escolha {orbPicker.count} Pokémon {orbPicker.rarity.toUpperCase()}
+                    <div style={{ fontWeight: 900, color: op.color, fontSize: 15 }}>
+                      🧙 Escolha {op.count} Pokémon {op.rarity.toUpperCase()}
                     </div>
                     <button onClick={() => setOrbPicker(null)} style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 18 }}>✕</button>
                   </div>
                   <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 10 }}>
-                    Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{orbPicker.count}</b> — Recompensa: <b>{orbPicker.label}</b>
+                    Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{op.count}</b> — Recompensa: <b>{op.label}</b>
                   </div>
                   {eligible.length === 0 ? (
                     <div style={{ color: "#e28a8a", fontSize: 12, padding: 20, textAlign: "center" }}>
-                      Você não tem Pokémon {orbPicker.rarity.toUpperCase()} na coleção.
+                      Você não tem Pokémon {op.rarity.toUpperCase()} na coleção.
                     </div>
                   ) : (
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
                       {eligible.map((c) => {
                         const sel = orbPickerSel.has(c.uid);
-                        const disabled = !sel && selCount >= orbPicker.count;
+                        const disabled = !sel && selCount >= op.count;
                         return (
                           <button
                             key={c.uid}
@@ -14982,8 +14982,8 @@ function TabOverlay({
                               });
                             }}
                             style={{
-                              background: sel ? `linear-gradient(160deg, ${orbPicker.color}55, ${orbPicker.color}22)` : "#1a0f26",
-                              border: sel ? `2px solid ${orbPicker.color}` : "2px solid #3a2a4a",
+                              background: sel ? `linear-gradient(160deg, ${op.color}55, ${op.color}22)` : "#1a0f26",
+                              border: sel ? `2px solid ${op.color}` : "2px solid #3a2a4a",
                               borderRadius: 10, padding: 6, cursor: disabled ? "not-allowed" : "pointer",
                               display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                               opacity: disabled ? 0.4 : 1, position: "relative",
@@ -14998,7 +14998,7 @@ function TabOverlay({
                             <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
                             {sel && (
                               <div style={{
-                                position: "absolute", top: 2, right: 2, background: orbPicker.color, color: "#0b0510",
+                                position: "absolute", top: 2, right: 2, background: op.color, color: "#0b0510",
                                 width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
                               }}>✓</div>
                             )}
@@ -15022,11 +15022,11 @@ function TabOverlay({
                         const uids = Array.from(orbPickerSel);
                         setOrbPicker(null);
                         setOrbPickerSel(new Set());
-                        onTradeOrb(orbPicker.orbId, uids, [], orbPicker.rarity);
+                        onTradeOrb(op.orbId, uids, [], op.rarity);
                       }}
                       style={{
                         flex: 2, padding: "10px", fontWeight: 900,
-                        background: canConfirm ? orbPicker.color : "#3a2a4a",
+                        background: canConfirm ? op.color : "#3a2a4a",
                         color: canConfirm ? "#0b0510" : "#6a5a7c",
                         border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
                       }}
