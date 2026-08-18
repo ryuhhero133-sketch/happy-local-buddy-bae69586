@@ -15184,13 +15184,7 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
-          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
-          <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
-          <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
-        </div>
-      )}
-      {false && tab === "market" && (
+        <div>
         <div>
           <MarketScreen
             items={items}
