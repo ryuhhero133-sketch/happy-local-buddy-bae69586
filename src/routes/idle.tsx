@@ -10479,14 +10479,27 @@ function IdlePage() {
                             })}
                           </div>
                           <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: `2px solid ${activeTab === 2 ? "#a06de0" : "#7a5a20"}`, boxShadow: activeTab === 2 ? "inset 0 0 60px rgba(120,60,180,0.6)" : "inset 0 0 40px rgba(0,0,0,0.6)" }}>
-                            <img
-                              src={bgUrl}
-                              alt={tabTitle}
-                              loading="lazy"
-                              width={1536}
-                              height={1024}
-                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                            />
+                                {activeTab === 4 && (
+                                  <div style={{ position: "absolute", bottom: 20, left: 20, display: "flex", alignItems: "center", gap: 12, background: "rgba(11,5,16,0.9)", border: "2px solid #f5cf6b", borderRadius: 12, padding: "10px 16px", boxShadow: "0 0 30px rgba(0,0,0,0.8)", zIndex: 10 }}>
+                                    <div style={{ width: 48, height: 48, background: `url(${npcOakSprite}) center/contain no-repeat`, filter: "drop-shadow(0 0 8px #f5cf6b)" }} />
+                                    <div style={{ display: "flex", flexDirection: "column" }}>
+                                      <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 13 }}>CARVALHO ABISSAL</div>
+                                      <div style={{ color: "#fff", fontSize: 11, maxWidth: 300, lineHeight: 1.4 }}>
+                                        "Treinador, este continente ainda está envolto em névoas abissais... 10 novas áreas foram detectadas, mas o acesso está selado por enquanto."
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                {bgUrl && (
+                                  <img
+                                    src={bgUrl}
+                                    alt={tabTitle}
+                                    loading="lazy"
+                                    width={1536}
+                                    height={1024}
+                                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                  />
+                                )}
                             {WORLD_PINS.map((pin: any) => {
                               const m = IDLE_MAPS[pin.id as keyof typeof IDLE_MAPS];
                               if (activeTab === 4) {
