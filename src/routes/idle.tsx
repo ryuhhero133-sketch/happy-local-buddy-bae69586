@@ -10386,6 +10386,9 @@ function IdlePage() {
                     const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
                       { id: "continent3_map1" as IdleMapId, x: 25, y: 35 },
                       { id: "continent3_map2" as IdleMapId, x: 65, y: 55 },
+                      { id: "fosso_cristal" as IdleMapId, x: 40, y: 25 },
+                      { id: "vale_ruby" as IdleMapId, x: 60, y: 25 },
+                      { id: "ilha_safira" as IdleMapId, x: 50, y: 75 },
                     ];
                     const activeTab = worldTab;
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : WORLD_PINS_C3;
