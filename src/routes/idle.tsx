@@ -1274,12 +1274,8 @@ function fmtHMS(ms: number) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
 }
 function fmtK(n: number) {
-  if (n >= 1_000_000) return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1000) return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>n / 1000).toFixed(1) + "K";
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1000) return (n / 1000).toFixed(1) + "K";
   return String(Math.floor(n));
 }
 
@@ -1332,18 +1328,14 @@ function IdlePage() {
   useEffect(() => {
     if (!levelToast) return;
     const t = setTimeout(() => setLevelToast(null), 5000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearTimeout(t);
+    return () => clearTimeout(t);
   }, [levelToast]);
   // ⚡ ZAPDOS EVENT — anúncio no topo, aparece só nos mapas da Odisséia + Caverna Sombria
   const [zapdosAnnounce, setZapdosAnnounce] = useState<{ ts: number } | null>(null);
   useEffect(() => {
     if (!zapdosAnnounce) return;
     const t = setTimeout(() => setZapdosAnnounce(null), 8000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearTimeout(t);
+    return () => clearTimeout(t);
   }, [zapdosAnnounce]);
   // alvo atual (para virar o pokémon) — id do inimigo que estamos atacando
   const [attackTargetId, setAttackTargetId] = useState<number | null>(null);
@@ -1437,9 +1429,7 @@ function IdlePage() {
         return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
       }));
     }, 3000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, []);
 
   // ===== Mythic Roamers podem FUGIR (some do mapa) — muito raros =====
@@ -1483,9 +1473,7 @@ function IdlePage() {
         return next;
       });
     }, 20000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, []);
 
   const serverSync = useServerSync({
@@ -1638,9 +1626,7 @@ function IdlePage() {
         if (!cancelled) setCloudBlobReady(true);
       }
     })();
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => { cancelled = true; };
+    return () => { cancelled = true; };
   }, []);
 
   // Autosave do BLOB completo — debounced (1.5s) sempre que idle/team/bench mudam.
@@ -1666,9 +1652,7 @@ function IdlePage() {
       if (document.visibilityState === "hidden") flush();
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => {
+    return () => {
       window.removeEventListener("beforeunload", flush);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
@@ -1728,9 +1712,7 @@ function IdlePage() {
   const [, forceHiveTick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => forceHiveTick((n) => (n + 1) % 1_000_000), 1000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(t);
+    return () => clearInterval(t);
   }, []);
   // ===== Escolha do inicial (declarada cedo p/ gatear loops do jogo) =====
   const [starterChosen, setStarterChosen] = useState<boolean>(() => {
@@ -1783,9 +1765,7 @@ function IdlePage() {
     let raf: number;
     const loop = () => { setAnimTick((n) => n + 1); raf = requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => cancelAnimationFrame(raf);
+    return () => cancelAnimationFrame(raf);
   }, [attackAnim, enemyAttackAnim, captureAnim]);
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
@@ -1818,9 +1798,7 @@ function IdlePage() {
   const [energyTick, setEnergyTick] = useState(0);
   useEffect(() => {
     const iv = setInterval(() => setEnergyTick((n) => n + 1), 1000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, []);
   // Dreno de energia em tempo real do LÍDER enquanto auto-battle está ativo.
   // Escala por raridade: comum ~5min, uncommon ~8min, raro ~15min, épico ~25min,
@@ -1842,9 +1820,7 @@ function IdlePage() {
         return [updated, ...tm.slice(1)];
       });
     }, 1000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, []);
   // Fecha a caverna: expulsa o treinador quando o ciclo terminar
   useEffect(() => {
@@ -1925,9 +1901,7 @@ function IdlePage() {
         xpAccumRef.current = { xp: 0, gold: 0, kills: 0, map: "" };
       }
     }, 30000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(id);
+    return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1959,9 +1933,7 @@ function IdlePage() {
     };
     window.addEventListener("pointerdown", start);
     window.addEventListener("keydown", start);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => {
+    return () => {
       window.removeEventListener("pointerdown", start);
       window.removeEventListener("keydown", start);
       a.pause(); a.src = "";
@@ -2038,9 +2010,7 @@ function IdlePage() {
     const warn = setInterval(() => {
       pushChat("⚠ Criaturas MUITO PODEROSAS foram avistadas por perto... fique alerta!", "info");
     }, 30 * 60 * 1000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => { cancelled = true; clearTimeout(timer); clearInterval(warn); };
+    return () => { cancelled = true; clearTimeout(timer); clearInterval(warn); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2144,9 +2114,7 @@ function IdlePage() {
     };
     check();
     const iv = setInterval(check, 10_000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, []);
 
   // Chat global (cooldown 10 min por jogador)
@@ -2193,16 +2161,12 @@ function IdlePage() {
     if (idle.currentMap !== "grass_oddish") return;
     setGrassOddishSplash(true);
     const t = setTimeout(() => setGrassOddishSplash(false), 4200);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearTimeout(t);
+    return () => clearTimeout(t);
   }, [idle.currentMap]);
   useEffect(() => {
     if (chatCooldownUntil <= Date.now()) return;
     const iv = setInterval(() => setChatTick((n) => n + 1), 1000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [chatCooldownUntil]);
 
   // WASD
@@ -2223,9 +2187,7 @@ function IdlePage() {
     const ku = (e: KeyboardEvent) => { keysRef.current.delete(e.key.toLowerCase()); };
     window.addEventListener("keydown", kd);
     window.addEventListener("keyup", ku);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => { window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); };
+    return () => { window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); };
   }, []);
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
@@ -2242,9 +2204,7 @@ function IdlePage() {
     });
     ro.observe(el);
     setViewSize({ w: el.clientWidth, h: el.clientHeight });
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => ro.disconnect();
+    return () => ro.disconnect();
   }, []);
 
   // ---- Obstáculos com colisão (posições determinísticas) ----
@@ -2331,9 +2291,7 @@ function IdlePage() {
       if (tab !== "batalha") { setTab("batalha"); return; }
     };
     window.addEventListener("keydown", onKey);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => window.removeEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
 
 
@@ -2365,9 +2323,7 @@ function IdlePage() {
       }
     };
     window.addEventListener("keydown", onKey);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => window.removeEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
 
@@ -3146,9 +3102,7 @@ function IdlePage() {
 
   useEffect(() => {
     const iv = setInterval(() => setWalkStep((s) => (moving ? (s + 1) % 4 : 0)), 180);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [moving]);
 
   // ===== Follower (pokémon líder) segue o treinador com trilha suave =====
@@ -3226,9 +3180,7 @@ function IdlePage() {
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => cancelAnimationFrame(raf);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
@@ -3312,9 +3264,7 @@ function IdlePage() {
       const cutoff = Date.now() - 20_000;
       setRemotePlayers((prev) => prev.filter((p) => p.ts >= cutoff));
     }, 4_000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => {
+    return () => {
       clearInterval(dbIv);
       clearInterval(prune);
       void gameDb.from("players").delete().eq("id", meId);
@@ -3398,9 +3348,7 @@ function IdlePage() {
     ch.subscribe();
 
     captureChanRef.current = ch;
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => {
+    return () => {
       captureChanRef.current = null;
       void supabase.removeChannel(ch);
     };
@@ -3444,9 +3392,7 @@ function IdlePage() {
       if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
     };
     window.addEventListener("keydown", onKey);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => window.removeEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [worldMapOpen, rankOpen]);
 
   const RANK_CACHE_TTL_MS = 60 * 1000; // 1 minuto — mostra o nível atual da galera
@@ -3532,9 +3478,7 @@ function IdlePage() {
       }
       finally { if (!cancelled) setRankLoading(false); }
     })();
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => { cancelled = true; };
+    return () => { cancelled = true; };
   }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.craftPoints, idle.collection, team]);
 
   useEffect(() => {
@@ -3544,18 +3488,14 @@ function IdlePage() {
       const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
       void recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
     }, 4500);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearTimeout(t);
+    return () => clearTimeout(t);
   }, [idle.trainerLevel, idle.craftPoints, idle.collection]);
   // Ranking do evento Grass Oddish: envia o total de capturas com debounce.
   useEffect(() => {
     const total = idle.grassOddishCaptured ?? 0;
     if (total <= 0) return;
     const t = setTimeout(() => { void submitOddishCaptures(total, identity?.name); }, 3500);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearTimeout(t);
+    return () => clearTimeout(t);
   }, [idle.grassOddishCaptured, identity?.name]);
   // Recarrega o top do ranking do evento quando o modal abrir.
   useEffect(() => {
@@ -3572,9 +3512,7 @@ function IdlePage() {
         if (!cancelled) setOddishRankLoading(false);
       }
     })();
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => { cancelled = true; };
+    return () => { cancelled = true; };
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   const viewW = viewSize.w / zoom;
   const viewH = viewSize.h / zoom;
@@ -3659,9 +3597,7 @@ function IdlePage() {
     const onHide = () => { if (document.visibilityState === "hidden") persist(); };
     window.addEventListener("beforeunload", persist);
     document.addEventListener("visibilitychange", onHide);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => {
+    return () => {
       clearInterval(iv);
       window.removeEventListener("beforeunload", persist);
       document.removeEventListener("visibilitychange", onHide);
@@ -3976,9 +3912,7 @@ function IdlePage() {
         return changed ? next : prev;
       });
     }, 60);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [enemies, moving, obstacles, chests]);
 
   // ---- Top-up lento de inimigos (spawn escalonado, mantém o jogador atento) ----
@@ -4005,9 +3939,7 @@ function IdlePage() {
         return [...prev, ne];
       });
     }, 2000 + Math.floor(Math.random() * 1500)); // 2-3.5s entre spawns (rápido, evita mapa vazio)
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
 
@@ -4743,9 +4675,7 @@ function IdlePage() {
         return { ...ns, tasks: nt };
       });
     }, 900);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [team, trainerPos, leaderHp]);
 
   // Portais NÃO entram mais automaticamente ao caminhar por cima —
@@ -4787,9 +4717,7 @@ function IdlePage() {
       const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
       saveNow({ ...save, party: [...team, ...restingBench] });
     }, 15_000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [team, restingBench]);
 
   // Detecta level up e dispara aura + fx
@@ -4928,9 +4856,7 @@ function IdlePage() {
     };
     const firstTo = setTimeout(trigger, 45_000);
     const iv = setInterval(trigger, LEGEND_INTERVAL_MS);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => { clearTimeout(firstTo); clearInterval(iv); };
+    return () => { clearTimeout(firstTo); clearInterval(iv); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // (Clima gerenciado pelo ciclo global de neve — não sobrescrever aqui)
@@ -4963,9 +4889,7 @@ function IdlePage() {
       setEnemies([]);
       pushChat(`⌛ Você excedeu 3h em ${IDLE_MAPS[cm].name}. Retornado para Terras de Terry.`, "cap");
     }, 3 * 60 * 60 * 1000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => { clearTimeout(warn1); clearTimeout(kick); };
+    return () => { clearTimeout(warn1); clearTimeout(kick); };
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const geliusReturnMapRef = useRef<IdleMapId | null>(null);
@@ -4986,9 +4910,7 @@ function IdlePage() {
         pushChat(`❄ Domínio Mítico Shiny fechou — teleportado de volta para ${IDLE_MAPS[ret].name}.`, "info");
       }
     }, 1000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ==== EVENTO GELIUS — tick 1s: troca fase aos 5min, expulsa aos 10min ====
@@ -5017,9 +4939,7 @@ function IdlePage() {
         playBonus();
       }
     }, 1000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -5035,9 +4955,7 @@ function IdlePage() {
       const fx = followerStateRef.current;
       pushFxAt(fx.x, fx.y - 30, `☠ -${tick}`, "enemyDmg");
     }, 1500);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [team]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ==== EVENTO PÁSSAROS LENDÁRIOS: Moltres / Zapdos / Articuno a cada 2h ====
@@ -5079,9 +4997,7 @@ function IdlePage() {
     const firstSpawn = setTimeout(spawnBird, BIRD_INTERVAL_MS);
     const ivWarn = setInterval(warn, BIRD_INTERVAL_MS);
     const ivSpawn = setInterval(spawnBird, BIRD_INTERVAL_MS);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => { clearTimeout(firstWarn); clearTimeout(firstSpawn); clearInterval(ivWarn); clearInterval(ivSpawn); };
+    return () => { clearTimeout(firstWarn); clearTimeout(firstSpawn); clearInterval(ivWarn); clearInterval(ivSpawn); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -6774,9 +6690,7 @@ function IdlePage() {
         return [...remaining, ...news];
       });
     }, 10 * 60 * 1000);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => { clearInterval(iv); };
+    return () => { clearInterval(iv); };
   }, [chestTarget]); // eslint-disable-line
 
 
@@ -6850,9 +6764,7 @@ function IdlePage() {
         }));
       }
     }, 300);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [trainerPos.x, trainerPos.y, idle.items]); // eslint-disable-line
 
   // ---- Detecta proximidade dos prédios (Lab / Lar) ----
@@ -7049,9 +6961,7 @@ function IdlePage() {
       pushChat(msg, "cap");
       pushFxAt(trainerPos.x, trainerPos.y - 60, fullRecovery ? "+HP / +⚡" : "+HP", "gold");
     }, Math.max(0, remaining));
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearTimeout(t);
+    return () => clearTimeout(t);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
   // Tick de UI para atualizar barra de progresso do descanso
   const [restNowTick, setRestNowTick] = useState(0);
@@ -7062,9 +6972,7 @@ function IdlePage() {
       // FX flutuantes de cura sobre o treinador
       pushFxAt(trainerPos.x + (Math.random() * 40 - 20), trainerPos.y - 20 - Math.random() * 30, "💚", "gold");
     }, 700);
-    return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>) => clearInterval(iv);
+    return () => clearInterval(iv);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -7084,8 +6992,6 @@ function IdlePage() {
   );
 
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{
       height: "100vh",
       background: "#0b0510",
@@ -7358,8 +7264,6 @@ function IdlePage() {
                   ? "linear-gradient(90deg, rgba(201,182,255,0.20), rgba(201,182,255,0.04))"
                   : "transparent";
                 return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                   <div key={r.user_id} style={{
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "6px 10px",
@@ -7625,8 +7529,6 @@ function IdlePage() {
             const vip = isVip();
             const accent = vip ? "#ffd66b" : "#c9b8ff";
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
               <div style={{
                 position: "relative",
                 padding: "7px 9px 7px 7px",
@@ -7790,8 +7692,6 @@ function IdlePage() {
                   };
                   const filtered = chat.filter((m) => chatFilter === "all" ? true : classify(m) === chatFilter);
                   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                     <>
                       {[...filtered].reverse().map((m) => {
                         const color =
@@ -7809,8 +7709,6 @@ function IdlePage() {
                           m.kind === "hit" ? "✖" :
                           m.kind === "dmg" ? "⚔" : "•";
                         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                           <div key={m.id} style={{ color, textShadow: "1px 1px 0 #000", fontWeight: m.kind === "chest" ? 800 : 400 }}>
                             <span style={{ opacity: 0.7, marginRight: 4 }}>{prefix}</span>{m.text}
                           </div>
@@ -7833,8 +7731,6 @@ function IdlePage() {
                 ] as const).map((t) => {
                   const active = chatFilter === t.k;
                   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                     <button
                       key={t.k}
                       onClick={() => setChatFilter(t.k)}
@@ -7872,8 +7768,6 @@ function IdlePage() {
                   setChatCooldownUntil(Date.now() + 10 * 60 * 1000);
                 };
                 return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                   <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
                     <input
                       value={chatInput}
@@ -7957,8 +7851,6 @@ function IdlePage() {
                 return best;
               })();
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <>
                   <button onClick={() => { playClick(); setZoom(ZOOM_LEVELS[Math.min(ZOOM_LEVELS.length - 1, curIdx + 1)]); }} style={zoomBtn}>+</button>
                   <div style={{ ...zoomBtn, cursor: "default", fontSize: 10 }}>{Math.round(zoom * 100)}%</div>
@@ -8005,8 +7897,6 @@ function IdlePage() {
               const inEvent = idle.currentMap === "gelius1" || idle.currentMap === "gelius2";
               const canEnter = !inEvent && entriesLeft > 0;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <button
                   onClick={() => {
                     if (inEvent) { pushChat(`🐧 Evento Gelius — ${gi.phase === "phase1" ? "Onda 1" : "Onda 2"} · ${timeStr}`, "info"); return; }
@@ -8059,8 +7949,6 @@ function IdlePage() {
               const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
               const inEvent = idle.currentMap === "evento_myth";
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <button
                   onClick={() => {
                     if (inEvent) { pushChat(`❄ Evento Mítico Shiny — ${timeStr} restante`, "info"); return; }
@@ -8161,8 +8049,6 @@ function IdlePage() {
               }
               if (buffs.length === 0) return null;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <>
                   <style>{`
                     @keyframes rmBuffPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
@@ -8356,8 +8242,6 @@ function IdlePage() {
               const beedrillCount = (idle.collection ?? []).filter((c) => c.species === "beedrill").length;
               const canUse = beedrillCount > 0;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <button
                   key={`cocoon-btn-${o.id}`}
                   onClick={(e) => {
@@ -8445,8 +8329,6 @@ function IdlePage() {
                     ] as { k: RankMode; label: string }[]).map((t) => {
                       const active = rankMode === t.k;
                       return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                         <button
                           key={t.k}
                           onClick={() => setRankMode(t.k)}
@@ -8511,8 +8393,6 @@ function IdlePage() {
 
 
                           return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                             <div key={r.id} style={{
                               display: "grid",
                               gridTemplateColumns: "48px 1fr auto",
@@ -8634,8 +8514,6 @@ function IdlePage() {
 
               const [picker, setPicker] = [] as unknown as [number | null, (v: number | null) => void]; // placeholder: usa state controlado abaixo
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div
                   onClick={(e) => e.stopPropagation()}
                   style={{
@@ -8666,8 +8544,6 @@ function IdlePage() {
                       const slot = slots[i] ?? null;
                       if (!slot) {
                         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                           <div key={`hslot-${i}`} style={{ border: "1px dashed rgba(255,214,80,0.4)", borderRadius: 8, padding: 8, background: "rgba(0,0,0,0.25)" }}>
                             <div style={{ fontSize: 11, opacity: 0.75, marginBottom: 6 }}>Slot {i + 1} — vazio</div>
                             {availableBeedrills.length === 0 ? (
@@ -8702,8 +8578,6 @@ function IdlePage() {
                       const ready = pct >= 1;
                       const rare = isRareTierPokemon(entry?.rarity);
                       return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                         <div key={`hslot-${i}`} style={{ border: `1px solid ${rare ? "#ff97e1" : "rgba(255,214,80,0.6)"}`, borderRadius: 8, padding: 8, background: "rgba(0,0,0,0.35)" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                             <img src={beedrillGif} alt="Beedrill" style={{ width: 34, height: 34, imageRendering: "pixelated" }} />
@@ -8753,8 +8627,6 @@ function IdlePage() {
             {visibleBuildings.map((b) => {
               const active = nearBuilding === b.key;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div
                   key={`bld-${b.key}`}
                   style={{
@@ -8811,8 +8683,6 @@ function IdlePage() {
               return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => {
                 const locked = !!(p.reqLevel && lv < p.reqLevel);
                 return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                   <div
                     key={p.key}
                     onClick={() => {
@@ -8893,8 +8763,6 @@ function IdlePage() {
             {(() => {
               const npcX = 260, npcY = 260;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div
                   onClick={() => { playClick(); setWorldTraderOpen(true); }}
                   title="Trocador — Troque Pokémon da coleção por Orbs de XP"
@@ -8936,8 +8804,6 @@ function IdlePage() {
             {idle.currentMap === "governante_hall" && (() => {
               const npcX = WORLD_W / 2, npcY = WORLD_H / 2 - 40;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div
                   onClick={() => { playClick(); setGovernanteOpen(true); }}
                   title="Governante — Entregue Cartas da Incubadora para receber Black Mitic Plus Egg"
@@ -9022,8 +8888,6 @@ function IdlePage() {
                 : e.rarity === "epic" ? "#c084fc"
                 : "#6bd4ff";
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={e.id}
                   onClick={(ev) => { ev.stopPropagation(); if (!dead) throwBallAt(e.id); }}
                   title="Clique para lançar Pokébola"
@@ -9312,8 +9176,6 @@ function IdlePage() {
               const x = captureAnim.fromX + (captureAnim.toX - captureAnim.fromX) * dt;
               const y = captureAnim.fromY + (captureAnim.toY - captureAnim.fromY) * dt - arcY;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div style={{
                   position: "absolute", left: x, top: y,
                   width: 26, height: 26,
@@ -9332,8 +9194,6 @@ function IdlePage() {
             {visibleMapPlayers.map((rp) => {
               const rpLeaderSrc = rp.leaderSp ? GIF[rp.leaderSp] : undefined;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={rp.id} style={{
                   position: "absolute",
                   left: rp.x, top: rp.y,
@@ -9437,8 +9297,6 @@ function IdlePage() {
               const leaderX = renderFollowerX + lungeX;
               const leaderY = renderFollowerY + lungeY;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div style={{
                   position: "absolute",
                   left: leaderX, top: leaderY,
@@ -9549,8 +9407,6 @@ function IdlePage() {
               const size = attackAnim.crit ? 96 : 68;
               const glow = ELEMENT_FX_GLOW[attackAnim.element];
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={attackAnim.id} style={{
                   position: "absolute",
                   left: attackAnim.toX, top: attackAnim.toY,
@@ -9574,8 +9430,6 @@ function IdlePage() {
               const scale = 0.55 + dt * 0.75;
               const glow = ELEMENT_FX_GLOW[enemyAttackAnim.element];
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={enemyAttackAnim.id} style={{
                   position: "absolute",
                   left: enemyAttackAnim.toX, top: enemyAttackAnim.toY,
@@ -9606,8 +9460,6 @@ function IdlePage() {
               const isDmg = f.kind === "myDmg" || f.kind === "enemyDmg";
               const isCrit = f.kind === "crit";
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={f.id} className="fxpop" style={{
                   position: "absolute",
                   left: f.x, top: f.y,
@@ -9711,8 +9563,6 @@ function IdlePage() {
             const accent = restingKind === "azul" ? "#4a9eff" : "#5ec26a";
             const label = restingKind === "azul" ? "Descansando na Casa Azul" : "Descansando no Lar";
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
               <>
                 <div style={{
                   position: "absolute", top: 10, right: 10, zIndex: 12,
@@ -9751,8 +9601,6 @@ function IdlePage() {
                 : "Descansar (leva 1 hora)";
             const bAction = nearBuilding === "lab" ? "RESETAR" : "DESCANSAR";
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
               <div style={{
                 position: "absolute", bottom: 78, left: "50%", transform: "translateX(-50%)",
                 background: "rgba(11,5,16,0.95)",
@@ -9809,8 +9657,6 @@ function IdlePage() {
             const setAB = (patch: Partial<typeof ab>) => setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? ab), ...patch } }));
             const on = ab.enabled;
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
             <div style={{
               position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
@@ -9833,8 +9679,6 @@ function IdlePage() {
                         const label = p === "auto" ? "Auto" : p === "pokeball" ? "Poké" : p === "greatball" ? "Great" : "Ultra";
                         const sel = ab.preferredBall === p;
                         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                           <button key={p} onClick={() => setAB({ preferredBall: p })} disabled={!ab.useBall} style={{
                             background: sel ? "#f5cf6b" : "rgba(255,255,255,0.06)",
                             color: sel ? "#0b0510" : "#eadfe8", border: "1px solid rgba(245,207,107,0.4)",
@@ -9894,8 +9738,6 @@ function IdlePage() {
                 ]).map((b) => {
                   const sel = ab.preferredBall === b.id;
                   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                     <button
                       key={b.id}
                       onClick={() => setAB({ preferredBall: b.id, useBall: true })}
@@ -10326,8 +10168,6 @@ function IdlePage() {
                     const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                     const label = unlocked ? targetMap.name : `${targetMap.name} (Lv ${targetMap.minLevel})`;
                     return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                       <button
                         key={g.key}
                         onClick={interactive ? () => { setPendingGate({ target: g.target, gate: g, fromBig: big }); } : undefined}
@@ -10400,8 +10240,6 @@ function IdlePage() {
               );
 
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <>
                   <div style={{ position: "relative" }}>
                     {renderMap(true, false)}
@@ -10483,8 +10321,6 @@ function IdlePage() {
                             const tm = IDLE_MAPS[g.target];
                             const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
                             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                               <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
                                 ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
                               </span>
@@ -10531,8 +10367,6 @@ function IdlePage() {
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
                     return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                       <div
                         onClick={() => setWorldMapOpen(false)}
                         style={{
@@ -10576,8 +10410,6 @@ function IdlePage() {
                               const active = worldTab === t.id;
                               const locked = t.id === 2 && !hasGovCard;
                               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                                 <button
                                   key={t.id}
                                   onClick={() => { if (locked) return; playClick(); setWorldTab(t.id); }}
@@ -10617,8 +10449,6 @@ function IdlePage() {
                               const ok = trainerLv >= m.minLevel;
                               const current = idle.currentMap === pin.id;
                               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                                 <button
                                   key={pin.id}
                                   title={m.raid ? `${m.name} · RAID (chefes Lv variados)` : `${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}`}
@@ -10698,8 +10528,6 @@ function IdlePage() {
                     const canGo = lvOk && crystalOk;
                     const close = () => setPendingGate(null);
                     return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                       <div
                         onClick={close}
                         style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.82)", display: "grid", placeItems: "center", padding: 20, cursor: "pointer" }}
@@ -10986,8 +10814,6 @@ function IdlePage() {
                 ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
                 : "Um novo evento está sendo preparado.";
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <>
                   <div style={{
                     fontSize: 11, fontWeight: 900, color: "#ffd6ec",
@@ -11130,8 +10956,6 @@ function IdlePage() {
             const color = t.color;
             const isDisabled = (t as { disabled?: boolean }).disabled === true;
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
               <button
                 key={t.id}
                 onClick={() => {
@@ -11480,8 +11304,6 @@ function IdlePage() {
         const teamUidsForTrade = new Set((teamRef.current ?? []).map((p) => p.uid));
         const benchUidsForTrade = new Set((benchRef.current ?? []).map((p) => p.uid));
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div
             onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
             style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 10005, display: "grid", placeItems: "center", padding: 16 }}
@@ -11526,8 +11348,6 @@ function IdlePage() {
                       const canTrade = available >= t.count && reqOk;
                       const owned = idle.items[t.orbId] ?? 0;
                       return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                         <div key={`${t.orbId}-${t.rarity}`} style={{
                           background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                           border: `2px solid ${t.color}66`, borderRadius: 14, padding: 14,
@@ -11595,8 +11415,6 @@ function IdlePage() {
                 const upgradeChance = pick.upgradeTo ? lucky * 0.5 : 0;
                 const timeChance = pick.upgradeTo ? lucky * 0.5 : lucky;
                 return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                   <div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <div style={{ fontWeight: 900, color: pick.color, fontSize: 14 }}>
@@ -11650,8 +11468,6 @@ function IdlePage() {
                           const sel = worldTraderSel.has(c.uid);
                           const disabled = !sel && selCount >= pick.count;
                           return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                             <button
                               key={c.uid}
                               disabled={disabled}
@@ -11701,8 +11517,6 @@ function IdlePage() {
                             const active = activeTab === r;
                             const count = fuelPool.filter((x) => x.rarity === r).length;
                             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                               <button key={r} onClick={() => setWorldTraderFuelTab(r)}
                                 style={{
                                   fontSize: 10, fontWeight: 900, padding: "3px 8px", borderRadius: 6, cursor: "pointer",
@@ -11724,8 +11538,6 @@ function IdlePage() {
                             const disabled = !sel && fuelCount >= MAX_FUEL;
                             const tierColor = FUEL_TIERS[c.rarity as FuelRarity].color;
                             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                               <button
                                 key={c.uid}
                                 disabled={disabled}
@@ -11865,8 +11677,6 @@ function IdlePage() {
                     const dx = Math.cos(angle) * 80;
                     const dy = Math.sin(angle) * 80;
                     return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                       <div key={i} style={{
                         position: "absolute", width: 8, height: 8, borderRadius: 999,
                         background: "#e94b3c",
@@ -12053,8 +11863,6 @@ function IdlePage() {
           setBmpSwapTarget(null);
         };
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div
             onClick={() => setBmpSwapOpen(false)}
             style={{
@@ -12103,8 +11911,6 @@ function IdlePage() {
                       const src = GIF[e.species];
                       const sel = e.uid === bmpSwapSourceUid;
                       return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                         <button
                           key={e.uid}
                           onClick={() => { setBmpSwapSourceUid(e.uid); setBmpSwapMsg(null); }}
@@ -12143,8 +11949,6 @@ function IdlePage() {
                     const src = GIF[sp];
                     const sel = sp === bmpSwapTarget;
                     return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                       <button
                         key={sp}
                         onClick={() => { setBmpSwapTarget(sp); setBmpSwapMsg(null); }}
@@ -12224,8 +12028,6 @@ function IdlePage() {
         const c = rarityColorMap[eggOpenResult.rarity] ?? "#f5cf6b";
         const label = rarityLabelMap[eggOpenResult.rarity] ?? eggOpenResult.rarity;
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div
             onClick={() => setEggOpenResult(null)}
             style={{
@@ -12345,8 +12147,6 @@ function IdlePage() {
         const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
         const src = GIF[pet.species];
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div onClick={() => setPetDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(180deg,#1a1030,#0e0818)", border: "2px solid #f5cf6b", borderRadius: 12, padding: 18, minWidth: 300, maxWidth: 380, color: "#eadfe8" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -12413,8 +12213,6 @@ function IdlePage() {
         const party = save.party ?? team;
         const now = Date.now();
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div onClick={() => { setAzulPickerOpen(false); setAzulPreselectUid(null); }} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(180deg,#0a1830,#0e0818)", border: "2px solid #4a9eff", borderRadius: 12, padding: 18, width: 380, maxHeight: "80vh", overflow: "auto", color: "#eadfe8" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -12434,8 +12232,6 @@ function IdlePage() {
                   const canPick = !infinite && !resting && energy < ENERGY_MAX && idle.bank.crystals >= AZUL_REST_COST;
                   const label = infinite ? "MÍTICO (não cansa)" : resting ? `Descansando (${fmtMS(((p as PetEnergyExt).azulRestUntil!) - now)})` : `${energy}/100`;
                   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                     <div key={p.uid} style={{ display: "flex", gap: 8, alignItems: "center", background: p.uid === azulPreselectUid ? "#12305a" : "#0a1830", border: `1px solid ${p.uid === azulPreselectUid ? "#7fc4ff" : "#4a9eff33"}`, padding: 8, borderRadius: 8, boxShadow: p.uid === azulPreselectUid ? "0 0 12px #4a9eff55" : undefined }}>
                       <div style={{ width: 44, height: 44, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", overflow: "hidden" }}>
                         {src ? <img src={src} alt="" style={{ width: "90%", imageRendering: "pixelated" }} /> : <span>❓</span>}
@@ -12451,8 +12247,6 @@ function IdlePage() {
                         const enabled = resting ? canSpeed : canPickNow;
                         const label = resting ? `Adiantar (${AZUL_REST_COST}💎)` : `Deixar (${AZUL_REST_COST}💎)`;
                         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                           <button
                             disabled={!enabled}
                             onClick={() => resting ? speedUpAzulRest(p.uid) : restPetInAzul(p.uid)}
@@ -12492,8 +12286,6 @@ function IdlePage() {
         const lore = SPECIES_LORE[sp] ?? RARITY_LORE[base.rarity] ?? "Um Pokémon único, com história ainda por contar.";
         const isCurrent = team[0]?.uid === entry.uid;
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div onClick={() => setColecaoDetailUid(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999, display: "grid", placeItems: "center", padding: 16 }}>
             <div onClick={(e) => e.stopPropagation()} style={{
               background: "linear-gradient(180deg, #fff8e5 0%, #f5e6c8 100%)",
@@ -12610,8 +12402,6 @@ function IdlePage() {
         const rColor = rarityColorMap[tgt.rarity] ?? "#c8c8c8";
         const gif = GIF[tgt.sp];
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div key={tgt.id} style={{
             position: "fixed", top: 72, left: "50%", transform: "translateX(-50%)",
             zIndex: 9997, pointerEvents: "none",
@@ -12952,8 +12742,6 @@ function IdlePage() {
 // ============ Componentes visuais ============
 function Panel({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{
       background: "#1a0f26",
       border: "1px solid rgba(245,207,107,0.2)",
@@ -12979,8 +12767,6 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
   if (!src) {
     return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
       <div onClick={onClick} style={{ display: "flex", gap: 8, alignItems: "center", background: "#2a1a3a", padding: 6, borderRadius: 6, cursor: onClick ? "pointer" : undefined }}>
         <div style={{ width: 48, height: 48, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 20 }}>❓</div>
         <div style={{ flex: 1, fontSize: 12 }}>
@@ -13005,8 +12791,6 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
     return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
   };
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
       display: "flex", gap: 8, alignItems: "center",
       background: exhausted
@@ -13125,8 +12909,6 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
 function ProgressRow({ icon, label, value, target }: { icon: string; label: string; value: number; target: number }) {
   const pct = Math.min(100, (value / target) * 100);
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{ marginBottom: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
         <span>{icon} {label}</span>
@@ -13142,8 +12924,6 @@ function ProgressRow({ icon, label, value, target }: { icon: string; label: stri
 // HUD topo — chip elegante para moeda/cristal
 function HudChip({ color, label, icon }: { color: string; label: string; icon: string }) {
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 4,
       background: `linear-gradient(180deg, ${color}22, ${color}08)`,
@@ -13157,8 +12937,6 @@ function HudChip({ color, label, icon }: { color: string; label: string; icon: s
 }
 function HudBall({ img, count, color }: { img: string; count: number; color: string }) {
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 3,
       opacity: count > 0 ? 1 : 0.5,
@@ -13187,8 +12965,6 @@ function pillStyle(color: string): React.CSSProperties {
 // ── HUD superior: nicho clássico para OURO / CRISTAIS
 function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React.ReactNode; value: string; title: string }) {
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div title={title} style={{
       display: "inline-flex", alignItems: "center", gap: 6,
       padding: "5px 10px",
@@ -13211,8 +12987,6 @@ function ResourceNiche({ tint, icon, value, title }: { tint: string; icon: React
 function BallSlot({ img, count, tint }: { img: string; count: number; tint: string }) {
   const empty = count <= 0;
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{
       position: "relative",
       width: 34, height: 34,
@@ -13313,8 +13087,6 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
   const q = clamp(qty);
   const ok = canBuyFn(q);
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "center" }}>
         {presets.map((p) => (
@@ -13486,8 +13258,6 @@ function TabOverlay({
     setFragConfirm(null);
   };
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{
       position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
       border: "1px solid rgba(245,207,107,0.3)", borderRadius: 12,
@@ -13538,8 +13308,6 @@ function TabOverlay({
               mythic_shiny: { c: "#ff97e1", label: "MÍTICO ✦" },
             };
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
               <div style={{
                 marginTop: 18,
                 padding: "14px 16px",
@@ -13611,8 +13379,6 @@ function TabOverlay({
                         spe: <><path d="M13 3 L4 14 H11 L9 21 L20 10 H13 Z" stroke={col} strokeWidth="1.5" fill={col+"77"} strokeLinejoin="round"/></>,
                       };
                       return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                         <svg viewBox="0 0 24 24" width="18" height="18" style={{ filter: `drop-shadow(0 0 3px ${col}aa)` }}>
                           {paths[kind]}
                         </svg>
@@ -13644,8 +13410,6 @@ function TabOverlay({
                       </div>
                     );
                     return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                       <div key={p.uid} style={{
                         display: "flex", alignItems: "stretch", gap: 12, padding: 12,
                         background: isLeader
@@ -13992,8 +13756,6 @@ function TabOverlay({
         };
 
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div style={{
             background: `
               radial-gradient(circle at 50% 30%, rgba(168,85,247,0.28), transparent 55%),
@@ -14067,8 +13829,6 @@ function TabOverlay({
                   const active = mochilaCat === c.id;
                   const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
                   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                     <button
                       key={c.id}
                       onClick={() => setMochilaCat(c.id)}
@@ -14146,8 +13906,6 @@ function TabOverlay({
                       const Icon = ITEM_ICONS[id] ?? Sparkles;
                       const sellPrice = marketSellPrices[id] ?? 0;
                       return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                         <div key={id} style={{
                           background: `linear-gradient(180deg, ${P.panel} 0%, ${P.bg1} 100%)`,
                           border: `2px solid ${P.goldDark}`, borderRadius: 10, padding: 8,
@@ -14275,8 +14033,6 @@ function TabOverlay({
                                 ? `Precisa de ${rule.cost}× (você tem ${n})`
                                 : `Forjar ${rule.label} usando ${rule.cost}×`;
                             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                               <button
                                 onClick={() => onUpgradeBook(id)}
                                 disabled={!enabled}
@@ -14322,8 +14078,6 @@ function TabOverlay({
               const count = items[id] ?? 0;
               const sellPrice = marketSellPrices[id] ?? 0;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div onClick={() => setItemDetail(null)} style={{
                   position: "fixed", inset: 0, zIndex: 9999,
                   background: "rgba(4,4,10,0.72)", backdropFilter: "blur(6px)",
@@ -14518,17 +14272,13 @@ function TabOverlay({
               if (colSort === "recent") return b.capturedAt - a.capturedAt;
               if (colSort === "level_desc") return b.level - a.level;
               if (colSort === "level_asc") return a.level - b.level;
-              if (colSort === "rarity") return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>rarityOrder[b.rarity] ?? 0) - (rarityOrder[a.rarity] ?? 0);
+              if (colSort === "rarity") return (rarityOrder[b.rarity] ?? 0) - (rarityOrder[a.rarity] ?? 0);
               return a.species.localeCompare(b.species);
             });
             if (filtered.length === 0) {
               return <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
               {filtered.map((entry, i) => {
                 const sp = entry.species;
@@ -14553,8 +14303,6 @@ function TabOverlay({
                  const isBrilhant = !!entry.event && entry.event.includes("brilhant");
                  const bmpAccent = isBrilhant ? "#ff97e1" : "#a066ff";
                  return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                    <div
                      key={entry.uid}
                      onClick={() => {
@@ -14773,8 +14521,6 @@ function TabOverlay({
               {seenSpecies.map((sp, i) => {
                 const caught = caughtSpecies.includes(sp);
                 return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                   <div key={sp} style={{
                     background: "linear-gradient(180deg, #3a0a1a, #1a0510)",
                     border: `2px solid ${caught ? "#ffd94d" : "#e11d48"}`,
@@ -14827,8 +14573,6 @@ function TabOverlay({
             const isActive = activeUntil > Date.now();
             const color = ITEM_COLORS[bk.id] ?? "#ff97e1";
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
               <div style={{ marginBottom: 20 }}>
                 <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>✦ Destaque da Loja — Orb de Time</h3>
                 <div style={{
@@ -14908,8 +14652,6 @@ function TabOverlay({
               const canBuy = bank.gold >= b.price;
               const color = ITEM_COLORS[b.id] ?? "#f5cf6b";
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={b.id} style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${color}55`, borderRadius: 12, padding: 14,
@@ -14944,8 +14686,6 @@ function TabOverlay({
               const canBuy = bank.crystals >= COST;
               const color = "#c084fc";
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
@@ -14976,8 +14716,6 @@ function TabOverlay({
               const canBuy = bank.crystals >= COST;
               const color = "#8ec5ff";
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div style={{
                   background: "linear-gradient(160deg, #0f1a2e 0%, #142238 100%)",
                   border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
@@ -15012,8 +14750,6 @@ function TabOverlay({
               const owned = items[e.id] ?? 0;
               const canBuy = e.currency === "gold" ? bank.gold >= e.price : bank.crystals >= e.price;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={e.id} style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${e.color}77`, borderRadius: 12, padding: 14,
@@ -15120,8 +14856,6 @@ function TabOverlay({
               const canBuy = useGold ? bank.gold >= bk.price : bank.crystals >= bk.price;
               const color = ITEM_COLORS[bk.id] ?? "#c084fc";
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={bk.id} style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${color}55`, borderRadius: 12, padding: 14,
@@ -15170,8 +14904,6 @@ function TabOverlay({
               const canTrade = available >= t.count && reqOk;
               const owned = items[t.orbId] ?? 0;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={`${t.orbId}-${t.rarity}`} style={{
                   background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                   border: `1px solid ${t.color}55`, borderRadius: 12, padding: 14,
@@ -15219,8 +14951,6 @@ function TabOverlay({
             const selCount = orbPickerSel.size;
             const canConfirm = selCount === orbPicker.count;
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
               <div
                 onClick={() => setOrbPicker(null)}
                 style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 10000, display: "grid", placeItems: "center", padding: 16 }}
@@ -15253,8 +14983,6 @@ function TabOverlay({
                         const sel = orbPickerSel.has(c.uid);
                         const disabled = !sel && selCount >= orbPicker.count;
                         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                           <button
                             key={c.uid}
                             disabled={disabled}
@@ -15340,8 +15068,6 @@ function TabOverlay({
           return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${r}s` : `${r}s`;
         };
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div>
             <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
@@ -15412,8 +15138,6 @@ function TabOverlay({
               const unlocked = unlockedSkins.includes(s.id);
               const canUnlock = !unlocked && skinTickets > 0;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <button
                   key={s.id}
                   onClick={() => {
@@ -15584,8 +15308,6 @@ function TabOverlay({
         const list = fragConfirm.entries;
         const isBulk = list.length > 1;
         return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
           <div
             onClick={() => setFragConfirm(null)}
             style={{ position: "fixed", inset: 0, zIndex: 10001, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(6px)", display: "grid", placeItems: "center", padding: 16 }}
@@ -15641,8 +15363,6 @@ function TabOverlay({
                   {list.map((e) => {
                     const rc = rarityColor[e.rarity] ?? "#8b6a30";
                     return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                       <div key={e.uid} style={{
                         background: "linear-gradient(180deg, rgba(30,15,50,0.85), rgba(11,5,16,0.9))",
                         border: `2px solid ${rc}88`,
@@ -15725,8 +15445,6 @@ function TabOverlay({
 
 function BuffCell({ img, label, value, color }: { img: string; label: string; value: string; color: string }) {
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{
       background: "#1a0f26", border: `1px solid ${color}55`, borderRadius: 10,
       padding: 12, textAlign: "center",
@@ -15746,8 +15464,6 @@ function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: nu
   const buyCost = buyAmt * 1000;
   const sellGain = sellAmt * 800;
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, maxWidth: 780 }}>
       <div style={{
         gridColumn: "1 / -1",
@@ -15883,8 +15599,6 @@ function MarketScreen({
 
 
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{ maxWidth: 900 }}>
       <div style={{ background: "linear-gradient(180deg,#3d2b0f,#241503)", border: "2px solid #ff9d3d66", borderRadius: 12, padding: 16, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
@@ -15923,8 +15637,6 @@ function MarketScreen({
                 {soldPayouts.map((l) => {
                   const cur = l.currency ?? "gold";
                   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                     <div key={l.id} style={{ background: "linear-gradient(180deg,#2a1f08,#150e02)", border: "1px solid #ffd94d88", borderRadius: 10, padding: 12 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         {STONE_CHEST[l.item_id] ? (
@@ -15988,8 +15700,6 @@ function MarketScreen({
                 const bal = cur === "gold" ? bank.gold : cur === "crystal" ? bank.crystals : (items.safira_verde ?? 0);
                 const canBuy = bal >= l.price;
                 return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                   <div key={l.id} style={{ background: "#1a0f26", border: "1px solid #ff9d3d66", borderRadius: 10, padding: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       {STONE_CHEST[l.item_id] ? (
@@ -16072,8 +15782,6 @@ function MarketScreen({
             const noStock = (items[selItem] ?? 0) < stoneQty;
             const disabled = !isVip || belowMin || noStock;
             return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
               <button disabled={disabled}
                 onClick={async () => { const ok = await onList(selItem, stoneQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
                 style={{ width: "100%", background: disabled ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer" }}>
@@ -16095,8 +15803,6 @@ function MarketScreen({
               const price = npcPrices[id];
               const disabled = have <= 0;
               return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
                 <div key={id} style={{ background: "#1a0f26", border: `1px solid ${disabled ? "#3a2a4a" : "#ff9d3d66"}`, borderRadius: 10, padding: 12, opacity: disabled ? 0.55 : 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                     <div style={{ fontSize: 22 }}>{ICONS[id] ?? "📦"}</div>
@@ -16148,8 +15854,6 @@ function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: n
   const rColor = rarityColor[pet.rarity] ?? "#f5cf6b";
 
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{
       position: "relative",
       background: "linear-gradient(160deg, #1a0f2e 0%, #0b0716 100%)",
@@ -16255,8 +15959,6 @@ function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: n
 function StatBar({ label, value, max, pct, color }: { label: string; value: number; max: number; pct: number; color: string }) {
   return (
     <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
-    <div>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 2 }}>
         <span style={{ color: "#c8b8d0", fontWeight: 700, letterSpacing: 1 }}>{label}</span>
         <span style={{ color: "#f5cf6b", fontWeight: 700 }}>{value}/{max}</span>
@@ -16274,8 +15976,6 @@ function StatBar({ label, value, max, pct, color }: { label: string; value: numb
 }
 function StatCell({ label, value }: { label: string; value: number }) {
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{
       background: "linear-gradient(180deg, #1a0f26, #0b0510)",
       border: "1px solid rgba(245,207,107,0.22)",
@@ -16316,8 +16016,6 @@ const RARITY_LORE: Partial<Record<Rarity, string>> = {
 function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) {
   const lore = SPECIES_LORE[species] ?? RARITY_LORE[rarity] ?? "Um Pokémon único, com história ainda por contar.";
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{
       marginTop: 14,
       background: "linear-gradient(135deg, #2a1a3e 0%, #1a0f26 100%)",
@@ -16378,8 +16076,6 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     active: synergyRarity === r,
   }));
   return (
-    <div>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "red", color: "white", zIndex: 99999, textAlign: "center", fontSize: "10px" }}>MANUTENÇÃO: LOJA/MERCADO BLOQUEADOS</div>
     <div style={{
       marginTop: 14,
       background: "#1a0f26", border: "1px solid rgba(245,207,107,0.15)",
