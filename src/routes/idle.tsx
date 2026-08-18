@@ -65,6 +65,8 @@ import houseLarImg from "@/assets/house-lar.png";
 import houseLabImg from "@/assets/house-lab.png";
 import walletHero from "@/assets/wallet-exchange.jpg";
 import npcOakSprite from "@/assets/npc-oak.png";
+import npcAbyssWitch from "@/assets/npc-abyss-witch.png";
+import continent4Bg from "@/assets/continent4-abyss.jpg";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
@@ -2268,6 +2270,7 @@ function IdlePage() {
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
   const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
+  const [c4Pin, setC4Pin] = useState<string | null>(null);
   const [pendingGate, setPendingGate] = useState<null | { target: string; gate: any; fromBig: boolean }>(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState("");
@@ -10391,20 +10394,21 @@ function IdlePage() {
                       { id: "ilha_safira" as IdleMapId, x: 50, y: 75 },
                     ];
                     const activeTab = worldTab;
-                    const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type?: "crystal" | "ruby" | "safira" }> = [
-                      { id: "mapa_c4_1" as IdleMapId, x: 20, y: 20, type: "crystal" },
-                      { id: "mapa_c4_2" as IdleMapId, x: 30, y: 20, type: "crystal" },
-                      { id: "mapa_c4_3" as IdleMapId, x: 25, y: 35, type: "crystal" },
-                      { id: "mapa_c4_4" as IdleMapId, x: 50, y: 40, type: "ruby" },
-                      { id: "mapa_c4_5" as IdleMapId, x: 60, y: 40, type: "ruby" },
-                      { id: "mapa_c4_6" as IdleMapId, x: 55, y: 55, type: "ruby" },
-                      { id: "mapa_c4_7" as IdleMapId, x: 80, y: 70, type: "safira" },
-                      { id: "mapa_c4_8" as IdleMapId, x: 90, y: 70, type: "safira" },
-                      { id: "mapa_c4_9" as IdleMapId, x: 85, y: 85, type: "safira" },
-                      { id: "mapa_c4_10" as IdleMapId, x: 75, y: 78, type: "safira" },
+                    const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type?: "crystal" | "ruby" | "safira"; name?: string; lv?: string; desc?: string; boss?: string }> = [
+                      { id: "mapa_c4_1" as IdleMapId, x: 20, y: 20, type: "crystal", name: "Catedral de Cristal", lv: "Lv 10.000+", desc: "Torres de cristal puro ecoam cânticos antigos. Pokémon de Gelo e Psíquico nascem envoltos em prismas de luz.", boss: "Guardião Prismático" },
+                      { id: "mapa_c4_2" as IdleMapId, x: 30, y: 20, type: "crystal", name: "Veias Congeladas", lv: "Lv 10.500+", desc: "Rios de cristal líquido cortam a rocha. Dizem que cada veia guarda uma Stone Elemental adormecida.", boss: "Serpente de Quartzo" },
+                      { id: "mapa_c4_3" as IdleMapId, x: 25, y: 35, type: "crystal", name: "Abóbada Prismática", lv: "Lv 11.000+", desc: "Uma cúpula que reflete infinitas versões do treinador. Nem todas são amigáveis.", boss: "Eco Espelhado" },
+                      { id: "mapa_c4_4" as IdleMapId, x: 50, y: 40, type: "ruby", name: "Forja de Ruby", lv: "Lv 12.000+", desc: "Magma carmesim escorre entre bigornas abandonadas. O calor forja armas — e monstros.", boss: "Ferreiro Incandescente" },
+                      { id: "mapa_c4_5" as IdleMapId, x: 60, y: 40, type: "ruby", name: "Fissura Escarlate", lv: "Lv 12.500+", desc: "Uma ferida aberta no fundo do abismo, pulsando como um coração de fogo.", boss: "Coração de Brasa" },
+                      { id: "mapa_c4_6" as IdleMapId, x: 55, y: 55, type: "ruby", name: "Trono Carmesim", lv: "Lv 13.000+", desc: "O antigo salão dos senhores do fogo abissal. Cinzas ainda sussurram ordens.", boss: "Rei das Cinzas" },
+                      { id: "mapa_c4_7" as IdleMapId, x: 80, y: 70, type: "safira", name: "Fossa de Safira", lv: "Lv 14.000+", desc: "Águas pressurizadas azuis-profundas onde a luz nunca chegou. Cuidado com o que respira aqui.", boss: "Leviatã Azul" },
+                      { id: "mapa_c4_8" as IdleMapId, x: 90, y: 70, type: "safira", name: "Jardim Bioluminescente", lv: "Lv 14.500+", desc: "Corais vivos brilham em pulsos hipnóticos. Belo, e absolutamente letal.", boss: "Flor Abissal" },
+                      { id: "mapa_c4_9" as IdleMapId, x: 85, y: 85, type: "safira", name: "Templo Afogado", lv: "Lv 15.000+", desc: "Ruínas de uma civilização que tentou controlar o abismo — e falhou.", boss: "Sacerdote Submerso" },
+                      { id: "mapa_c4_10" as IdleMapId, x: 75, y: 78, type: "safira", name: "Olho do Abismo", lv: "Lv 16.000+", desc: "O vórtice final. A bruxa avisa: quem entra sem preparo não retorna nem como lenda.", boss: "??? Soberano Abissal" },
                     ];
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
-                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : "https://images.unsplash.com/photo-1614728263952-84ea206f99b6?q=80&w=1536&h=1024&auto=format&fit=crop";
+                    const c4Sel = activeTab === 4 ? (WORLD_PINS_C4.find((p) => String(p.id) === c4Pin) ?? null) : null;
+                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
                     const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
@@ -10479,17 +10483,6 @@ function IdlePage() {
                             })}
                           </div>
                           <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: `2px solid ${activeTab === 2 ? "#a06de0" : "#7a5a20"}`, boxShadow: activeTab === 2 ? "inset 0 0 60px rgba(120,60,180,0.6)" : "inset 0 0 40px rgba(0,0,0,0.6)" }}>
-                                {activeTab === 4 && (
-                                  <div style={{ position: "absolute", bottom: 20, left: 20, display: "flex", alignItems: "center", gap: 12, background: "rgba(11,5,16,0.9)", border: "2px solid #f5cf6b", borderRadius: 12, padding: "10px 16px", boxShadow: "0 0 30px rgba(0,0,0,0.8)", zIndex: 10 }}>
-                                    <div style={{ width: 48, height: 48, background: `url(${npcOakSprite}) center/contain no-repeat`, filter: "drop-shadow(0 0 8px #f5cf6b)" }} />
-                                    <div style={{ display: "flex", flexDirection: "column" }}>
-                                      <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 13 }}>CARVALHO ABISSAL</div>
-                                      <div style={{ color: "#fff", fontSize: 11, maxWidth: 300, lineHeight: 1.4 }}>
-                                        "Treinador, este continente ainda está envolto em névoas abissais... 10 novas áreas foram detectadas, mas o acesso está selado por enquanto."
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
                                 {bgUrl && (
                                   <img
                                     src={bgUrl}
@@ -10500,38 +10493,67 @@ function IdlePage() {
                                     style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                                   />
                                 )}
+                                {activeTab === 4 && (
+                                  <div className="c4-fog" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 30% 40%, rgba(0,242,255,0.10), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,42,42,0.10), transparent 55%), linear-gradient(180deg, rgba(6,2,14,0.35), rgba(6,2,14,0.65))" }} />
+                                )}
+                                {activeTab === 4 && (
+                                  <div style={{ position: "absolute", bottom: 0, left: 0, display: "flex", alignItems: "flex-end", gap: 10, zIndex: 12, pointerEvents: "none" }}>
+                                    <img
+                                      src={npcAbyssWitch}
+                                      alt="Vharyx, a Bruxa das Gemas"
+                                      loading="lazy"
+                                      className="c4-witch"
+                                      style={{ width: 150, height: "auto", filter: "drop-shadow(0 0 18px rgba(74,158,255,0.75))" }}
+                                    />
+                                    <div className="c4-dialog" style={{ marginBottom: 18, maxWidth: 330, background: "linear-gradient(135deg, rgba(10,4,20,0.95), rgba(24,8,34,0.95))", border: "2px solid #4a9eff", borderRadius: 12, padding: "10px 14px", boxShadow: "0 0 34px rgba(74,158,255,0.45)" }}>
+                                      <div style={{ color: "#8fd6ff", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>VHARYX · A BRUXA DAS GEMAS</div>
+                                      <div style={{ color: "#e6dcf5", fontSize: 11, lineHeight: 1.5, marginTop: 4 }}>
+                                        "Cristal, Ruby e Safira… as três correntes que selam o abismo. Toque em um selo e eu te conto o que dorme lá dentro — mas nenhum se abrirá hoje."
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                             {WORLD_PINS.map((pin: any) => {
                               const m = IDLE_MAPS[pin.id as keyof typeof IDLE_MAPS];
                               if (activeTab === 4) {
-                                const obsidianColor = "#1a0f26";
                                 const glowColor = pin.type === "crystal" ? "#00f2ff" : pin.type === "ruby" ? "#ff2a2a" : "#4a9eff";
-                                const label = pin.type === "crystal" ? "ÁREA DE CRISTAL" : pin.type === "ruby" ? "ÁREA DE RUBY" : "ÁREA DE SAFIRA";
-                                
+                                const active = c4Pin === String(pin.id);
                                 return (
-                                  <div key={pin.id} style={{ position: "absolute", left: `${pin.x}%`, top: `${pin.y}%`, transform: "translate(-50%,-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                                    <div 
-                                      className="obsidian-point"
-                                      style={{
-                                        width: 24, height: 24, background: obsidianColor, border: `2px solid ${glowColor}`, borderRadius: "4px",
-                                        transform: "rotate(45deg)", boxShadow: `0 0 15px ${glowColor}, inset 0 0 8px rgba(0,0,0,0.8)`,
-                                        display: "flex", alignItems: "center", justifyContent: "center"
-                                      }}
-                                    >
-                                      <div style={{ width: 8, height: 8, background: glowColor, borderRadius: "50%", boxShadow: `0 0 10px ${glowColor}` }} />
+                                  <button
+                                    key={pin.id}
+                                    onClick={(e) => { e.stopPropagation(); playClick(); setC4Pin(active ? null : String(pin.id)); }}
+                                    title={pin.name}
+                                    style={{
+                                      position: "absolute", left: `${pin.x}%`, top: `${pin.y}%`, transform: "translate(-50%,-50%)",
+                                      display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                                      background: "transparent", border: "none", cursor: "pointer", padding: 0, zIndex: active ? 11 : 6,
+                                    }}
+                                  >
+                                    <div style={{ position: "relative", width: 34, height: 34, display: "grid", placeItems: "center" }}>
+                                      <div className="c4-ring" style={{ position: "absolute", inset: 0, border: `1px solid ${glowColor}`, borderRadius: "50%", opacity: 0.5 }} />
+                                      <div
+                                        className="c4-gem"
+                                        style={{
+                                          width: 22, height: 22, borderRadius: 4,
+                                          background: `linear-gradient(145deg, #1a0f26, #070310)`,
+                                          border: `2px solid ${glowColor}`,
+                                          transform: `rotate(45deg) scale(${active ? 1.25 : 1})`,
+                                          boxShadow: `0 0 ${active ? 26 : 14}px ${glowColor}, inset 0 0 8px rgba(0,0,0,0.9)`,
+                                          transition: "transform .2s ease, box-shadow .2s ease",
+                                          display: "grid", placeItems: "center",
+                                        }}
+                                      >
+                                        <div style={{ width: 7, height: 7, background: glowColor, borderRadius: "50%", boxShadow: `0 0 10px ${glowColor}` }} />
+                                      </div>
                                     </div>
-                                    <div style={{ 
-                                      background: "rgba(0,0,0,0.8)", border: `1px solid ${glowColor}`, borderRadius: 4, 
-                                      padding: "2px 6px", fontSize: 9, fontWeight: 900, color: glowColor, whiteSpace: "nowrap",
-                                      textShadow: `0 0 4px ${glowColor}`
-                                    }}>
-                                      🔒 {label}
-                                    </div>
-                                    {/* Linha de liberação (decorativa) */}
                                     <div style={{
-                                      position: "absolute", width: 40, height: 2, background: `linear-gradient(90deg, ${glowColor}, transparent)`,
-                                      left: 20, top: 12, transformOrigin: "left center", opacity: 0.4
-                                    }} />
-                                  </div>
+                                      background: "rgba(0,0,0,0.82)", border: `1px solid ${glowColor}`, borderRadius: 4,
+                                      padding: "2px 6px", fontSize: 8, fontWeight: 900, color: glowColor, whiteSpace: "nowrap",
+                                      textShadow: `0 0 6px ${glowColor}`,
+                                    }}>
+                                      🔒 {pin.name}
+                                    </div>
+                                  </button>
                                 );
                               }
 
