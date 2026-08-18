@@ -13227,8 +13227,10 @@ function IdlePage() {
               </div>
             </div>
           </div>
-        );
-      })(), document.body)}
+          </div>
+        </div>
+      );
+    })(), document.body)}
 
       {isAdminOpen && (
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />
