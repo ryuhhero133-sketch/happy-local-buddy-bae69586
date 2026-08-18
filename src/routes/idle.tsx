@@ -13144,7 +13144,7 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-
+  idle, setIdle, pushChat, playClick,
 }: {
   tab: string;
   onClose: () => void;
@@ -13159,7 +13159,7 @@ function TabOverlay({
   collection: CollectionEntry[];
   craftPoints: number;
   onFragmentCollection: (uid: string) => void;
-  gifMap: Partial<Record<Species, string>>;
+  位map: Partial<Record<Species, string>>;
   onPickTeam: (entry: CollectionEntry) => void;
   onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
@@ -13171,9 +13171,7 @@ function TabOverlay({
   onBuyPotion: (qty?: number) => void;
   onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
   shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
-
   onBuyChestAmulet: () => void;
-
   chestAmuletOwned: number;
   autoHeal: { enabled: boolean; threshold: number };
   setAutoHeal: (next: { enabled: boolean; threshold: number }) => void;
@@ -13190,7 +13188,6 @@ function TabOverlay({
   onBuyMarket: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onCancelMarket: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
   onClaimMarketPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
-
   isVip: boolean;
   skinId: string;
   setSkinId: (id: string) => void;
@@ -13198,6 +13195,10 @@ function TabOverlay({
   unlockedSkins: string[];
   skinTickets: number;
   onUnlockSkin: (id: string) => void;
+  idle: IdleState;
+  setIdle: React.Dispatch<React.SetStateAction<IdleState>>;
+  pushChat: (msg: string, kind: ChatKind) => void;
+  playClick: () => void;
   onUpgradeBook: (id: string) => void;
   orbTrades: { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[];
   onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[], rarity?: Rarity) => void;
