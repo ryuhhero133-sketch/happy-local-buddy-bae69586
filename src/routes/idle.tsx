@@ -14546,7 +14546,6 @@ function TabOverlay({
       {tab === "loja" && (
         <div style={{ paddingBottom: 60 }}>
           <div style={{
-        <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -15188,7 +15187,6 @@ function TabOverlay({
 
       {tab === "market" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        <>
           <MarketScreen
             items={items}
             bank={bank}
