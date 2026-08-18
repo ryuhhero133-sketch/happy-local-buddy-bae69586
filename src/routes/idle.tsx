@@ -14553,7 +14553,7 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "loja" && (
-          <div style={{
+        <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -14766,6 +14766,59 @@ function TabOverlay({
                       background: `${e.color}dd`, opacity: 0.6, borderRadius: 2, transform: "rotate(-8deg)",
                     }} />
                     <div style={{
+                      position: "absolute", bottom: 12, right: 12, width: 6, height: 6,
+                      background: "#fff", opacity: 0.4, borderRadius: "50%",
+                    }} />
+                  </div>
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>{e.name}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{e.desc}</div>
+                  <div style={{ fontSize: 12, color: e.currency === "gold" ? "#f4c430" : "#c084fc", fontWeight: 700 }}>
+                    {e.currency === "gold" ? `● ${e.price} ouro` : `💎 ${e.price} cristais`}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <button
+                    onClick={() => onBuyEgg(e)}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800, fontSize: 12,
+                      background: canBuy ? e.color : "#3a2a4a", color: canBuy ? "#0b0510" : "#6a5a7c",
+                      border: "none", borderRadius: 6, cursor: canBuy ? "pointer" : "not-allowed",
+                    }}
+                  >{canBuy ? "COMPRAR OVO" : e.currency === "gold" ? "SEM OURO" : "SEM CRISTAIS"}</button>
+                </div>
+              );
+            })}
+          </div>
+
+          <h3 style={{ color: "#6bd4ff", fontSize: 15, margin: "6px 0 10px" }}>Amuletos</h3>
+          <div style={{
+            background: "linear-gradient(160deg, #0f1f2e 0%, #16324a 100%)",
+            border: "1px solid #6bd4ff55", borderRadius: 12, padding: 14, marginBottom: 20,
+            display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+          }}>
+            <img src={chestAmuletImg} alt="" width={64} height={64} style={{ imageRendering: "pixelated" }} />
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div style={{ fontWeight: 800, color: "#eadfe8" }}>Amuleto do Caçador de Tesouros</div>
+              <div style={{ fontSize: 11, color: "#b8a8c8" }}>Dobra as recompensas de ouro e cristais ao abrir baús no mapa.</div>
+              <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● 250.000 ouro</div>
+              <div style={{ fontSize: 11, color: "#8a7a9c" }}>Status: {chestAmuletOwned ? "Adquirido ✅" : "Não possuído ❌"}</div>
+            </div>
+            <button
+              onClick={() => onBuyChestAmulet()}
+              disabled={chestAmuletOwned > 0 || bank.gold < 250000}
+              style={{
+                minWidth: 140, padding: "10px 14px", fontWeight: 800, fontSize: 12,
+                background: (chestAmuletOwned === 0 && bank.gold >= 250000) ? "#6bd4ff" : "#3a2a4a",
+                color: (chestAmuletOwned === 0 && bank.gold >= 250000) ? "#0b0510" : "#6a5a7c",
+                border: "none", borderRadius: 6, cursor: (chestAmuletOwned === 0 && bank.gold >= 250000) ? "pointer" : "not-allowed",
+              }}
+            >
+              {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
+            </button>
+          </div>
+        </>
+      )}
+
                       position: "absolute", top: 40, left: 8, right: 14, height: 3,
                       background: `${e.color}dd`, opacity: 0.5, borderRadius: 2, transform: "rotate(6deg)",
                     }} />
@@ -15148,7 +15201,7 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "market" && (
-          {pokemonMarketNode}
+        <>
           <MarketScreen
             items={items}
             bank={bank}
@@ -15161,8 +15214,9 @@ function TabOverlay({
             onNpcSell={onSellItem}
             npcPrices={marketSellPrices}
           />
-        </div>
+        </>
       )}
+
 
 
 
