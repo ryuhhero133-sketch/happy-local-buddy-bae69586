@@ -8131,7 +8131,7 @@ function IdlePage() {
               imageRendering: "pixelated",
             }}>
               {weather === "rain" && (
-                <>
+        <div>
                   <div className="wx-rain-tint" />
                   <div className="wx-mist" />
                   {rainDrops.map((d, i) => (
@@ -8145,10 +8145,10 @@ function IdlePage() {
                     }} />
                   ))}
                   <div className="wx-flash" />
-                </>
-              )}
+        </div>
+      )}
               {weather === "snow" && (
-                <>
+        <div>
                   <div className="wx-snow-tint" />
                   {snowFlakes.map((s, i) => (
                     <span key={i} className="wx-flake" style={{
@@ -8161,8 +8161,8 @@ function IdlePage() {
                       ["--drift" as string]: `${s.drift}px`,
                     } as React.CSSProperties} />
                   ))}
-                </>
-              )}
+        </div>
+      )}
               <div style={{
                 position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)",
                 background: "rgba(11,5,16,0.75)",
@@ -8906,7 +8906,7 @@ function IdlePage() {
                   cursor: dead ? "default" : "pointer",
                 }}>
                   {e.sp === "lugia" && (
-                    <>
+        <div>
                       <div style={{
                         position: "absolute", inset: -60, borderRadius: "50%",
                         background: "radial-gradient(circle, rgba(126,230,255,0.35) 0%, rgba(255,151,225,0.18) 45%, transparent 75%)",
@@ -8921,10 +8921,10 @@ function IdlePage() {
                         animation: "spin 8s linear infinite",
                         pointerEvents: "none", zIndex: -1,
                       }} />
-                    </>
-                  )}
+        </div>
+      )}
                   {e.menace && (
-                    <>
+        <div>
                       {/* Aura preta com miolo púrpura */}
                       <div style={{
                         position: "absolute", inset: -80, borderRadius: "50%",
@@ -8952,8 +8952,8 @@ function IdlePage() {
                           animation: "pulse 1.2s ease-in-out infinite",
                         }}>✦</div>
                       ))}
-                    </>
-                  )}
+        </div>
+      )}
                   <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
                   {e.sp === "raichu" && !camouflaged && (
                     <div style={{
@@ -9252,7 +9252,7 @@ function IdlePage() {
 
             {/* Anel de cura durante o descanso */}
             {restingUntil !== null && (
-              <>
+        <div>
                 <div style={{
                   position: "absolute",
                   left: trainerPos.x - 60, top: trainerPos.y - 60,
@@ -9268,8 +9268,8 @@ function IdlePage() {
                   fontSize: 24, pointerEvents: "none",
                   animation: "chest-pop 900ms ease-in-out infinite",
                 }}>💤💚</div>
-              </>
-            )}
+        </div>
+      )}
 
             {/* Pokémon do jogador segue o treinador */}
             {(() => {
@@ -9308,7 +9308,7 @@ function IdlePage() {
                   zIndex: Math.round(leaderY),
                 }}>
                   {isBMP && (
-                    <>
+        <div>
                       <div className="bmp-aura-glow" style={{ position: "absolute", inset: -22, borderRadius: "50%" }} />
                       <div className="bmp-aura-ring" style={{ position: "absolute", inset: -14, borderRadius: "50%" }} />
                       {[
@@ -9325,10 +9325,10 @@ function IdlePage() {
                           animationDuration: `${s.d}s`,
                         } as React.CSSProperties} />
                       ))}
-                    </>
-                  )}
+        </div>
+      )}
                   {auraOn && (
-                    <>
+        <div>
                       <div className="lvaura-glow" style={{
                         position: "absolute", inset: -28, borderRadius: "50%",
                         pointerEvents: "none",
@@ -9346,8 +9346,8 @@ function IdlePage() {
                           ["--i" as string]: i,
                         } as React.CSSProperties} />
                       ))}
-                    </>
-                  )}
+        </div>
+      )}
                   {SPRITE_SHEET[leaderSp] ? (
                     <div style={{
                       width: "100%", height: "100%",
@@ -9866,7 +9866,43 @@ function IdlePage() {
               onClaimMarketPayout={claimMarketPayout}
               isVip={isVip()}
               pokemonMarketNode={
-                <div />
+                <PokemonMarketPanel
+                  identity={identity}
+                  collection={idle.collection ?? []}
+                  gold={idle.bank.gold}
+                  crystals={idle.bank.crystals}
+                  safiras={idle.items?.safira_verde ?? 0}
+                  isVip={isVip()}
+                  gifOf={(sp) => GIF[sp]}
+                  onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
+                  onReturned={(entry) => setIdle((s) => {
+                    const col = s.collection ?? [];
+                    if (col.some(c => c.uid === entry.uid)) return s;
+                    return { ...s, collection: [...col, entry] };
+                  })}
+                  onSpend={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
+                      : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
+                  }))}
+                  onEarn={(cur, amount) => setIdle((s) => ({
+                    ...s,
+                    bank: cur === "gold"
+                      ? { ...s.bank, gold: s.bank.gold + amount }
+                      : { ...s.bank, crystals: s.bank.crystals + amount },
+                  }))}
+                  onSpendSafira={(amount) => {
+                    const cur = idle.items?.safira_verde ?? 0;
+                    if (cur < amount) return false;
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
+                    return true;
+                  }}
+                  onEarnSafira={(amount) => {
+                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
+                  }}
+                  pushChat={pushChat}
+                />
               }
               skinId={skinId}
               setSkinId={setSkinId}
@@ -11298,7 +11334,7 @@ function IdlePage() {
               </div>
 
               {!worldTraderPick && (
-                <>
+        <div>
                   <div style={{ color: "#b8a8c8", fontSize: 12, marginBottom: 10 }}>Escolha a raridade da troca:</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     {ORB_TRADES.map((t) => {
@@ -11358,8 +11394,8 @@ function IdlePage() {
                       );
                     })}
                   </div>
-                </>
-              )}
+        </div>
+      )}
 
               {worldTraderPick && (() => {
                 const pick = worldTraderPick;
@@ -11400,7 +11436,7 @@ function IdlePage() {
                         <div style={{ width: `${success * 100}%`, height: "100%", background: `linear-gradient(90deg, #6bd66b, ${pick.color})`, transition: "width .3s" }} />
                       </div>
                       {pick.upgradeTo && (
-                        <>
+        <div>
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
                             <span>✨ Orb EVOLUI (upgrade)</span>
                             <b style={{ color: "#ff9adf" }}>{Math.round(upgradeChance * 100)}%</b>
@@ -11408,8 +11444,8 @@ function IdlePage() {
                           <div style={{ height: 6, background: "#1a0f26", borderRadius: 4, overflow: "hidden" }}>
                             <div style={{ width: `${upgradeChance * 100}%`, height: "100%", background: "linear-gradient(90deg, #ff9adf, #ffd94d)" }} />
                           </div>
-                        </>
-                      )}
+        </div>
+      )}
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#c8b8d0", margin: "8px 0 4px" }}>
                         <span>⏱️ +TEMPO extra (+1~2h)</span>
                         <b style={{ color: "#ffd94d" }}>{Math.round(timeChance * 100)}%</b>
@@ -11632,7 +11668,7 @@ function IdlePage() {
               )}
               {/* rachadura fail */}
               {orbAnim.phase === "fail" && (
-                <>
+        <div>
                   <div style={{
                     position: "absolute", fontSize: 96, animation: "orb-crack .8s ease-out both", pointerEvents: "none",
                   }}>💔</div>
@@ -11649,23 +11685,23 @@ function IdlePage() {
                       } as React.CSSProperties} />
                     );
                   })}
-                </>
-              )}
+        </div>
+      )}
             </div>
             <div style={{ marginTop: 10, minHeight: 40 }}>
               {orbAnim.phase === "spinning" && (
                 <div style={{ fontSize: 12, color: "#c8b8d0" }}>A energia se condensa... aguarde.</div>
               )}
               {orbAnim.phase === "success" && (
-                <>
+        <div>
                   <div style={{ fontSize: 16, fontWeight: 900, color: orbAnim.color }}>+1× {orbAnim.label}</div>
                   {orbAnim.lucky && orbAnim.extraHours ? (
                     <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! +{orbAnim.extraHours}h extras ao ativar</div>
                   ) : orbAnim.lucky ? (
                     <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! Orb evoluiu de raridade!</div>
                   ) : null}
-                </>
-              )}
+        </div>
+      )}
               {orbAnim.phase === "fail" && (
                 <div style={{ fontSize: 12, color: "#e28a8a" }}>A instabilidade dispersou a energia. Pokémon perdidos.</div>
               )}
@@ -14435,8 +14471,8 @@ function TabOverlay({
                             />
                           </span>
                           <span style={{ fontSize: 13 }}>+{gain}</span>
-                        </>
-                      )}
+        </div>
+      )}
                     </button>
                   </div>
                 );
@@ -14519,7 +14555,7 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "loja_disabled" && (
-        <>
+        <div>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -14782,7 +14818,7 @@ function TabOverlay({
               {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
             </button>
           </div>
-        </>
+        </div>
       )}
 
                       position: "absolute", top: 40, left: 8, right: 14, height: 3,
@@ -15167,7 +15203,7 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "market_disabled" && (
-        <>
+        <div>
           <MarketScreen
             items={items}
             bank={bank}
@@ -15180,7 +15216,7 @@ function TabOverlay({
             onNpcSell={onSellItem}
             npcPrices={marketSellPrices}
           />
-        </>
+        </div>
       )}
 
 
@@ -15593,9 +15629,9 @@ function MarketScreen({
       </div>
 
       {mode === "browse" && (
-        <>
+        <div>
           {soldPayouts.length > 0 && (
-            <>
+        <div>
               <div style={{ color: "#ffd94d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>💰 VENDAS CONCLUÍDAS — COLETAR PAGAMENTO</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10, marginBottom: 16 }}>
                 {soldPayouts.map((l) => {
@@ -15621,10 +15657,10 @@ function MarketScreen({
                   );
                 })}
               </div>
-            </>
-          )}
+        </div>
+      )}
           {mine.length > 0 && (
-            <>
+        <div>
 
               <div style={{ color: "#8fd0ff", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>MEUS ANÚNCIOS</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10, marginBottom: 16 }}>
@@ -15652,8 +15688,8 @@ function MarketScreen({
                   </div>
                 ))}
               </div>
-            </>
-          )}
+        </div>
+      )}
           <div style={{ color: "#ff9d3d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>À VENDA ({others.length})</div>
           {others.length === 0 ? (
             <div style={{ color: "#8a7a9c", fontStyle: "italic", padding: 20, textAlign: "center" }}>Nenhum anúncio ativo no momento.</div>
@@ -15695,7 +15731,7 @@ function MarketScreen({
 
             </div>
           )}
-        </>
+        </div>
       )}
 
       {mode === "create" && (
@@ -15759,7 +15795,7 @@ function MarketScreen({
       )}
 
       {mode === "npc" && (
-        <>
+        <div>
           <div style={{ color: "#c8a878", fontSize: 12, marginBottom: 10, fontStyle: "italic" }}>Venda rápida ao NPC — preço fixo, sem esperar comprador.</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
             {Object.keys(npcPrices).map((id) => {
@@ -15790,7 +15826,7 @@ function MarketScreen({
               );
             })}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
