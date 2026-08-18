@@ -10316,8 +10316,9 @@ function IdlePage() {
           </button>
 
         </div>
-
-        {(tab !== "batalha" && tab !== "inicio") && (
+      </div>
+      {(tab !== "batalha" && tab !== "inicio") && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000000, pointerEvents: 'auto' }}>
           <TabOverlay
             tab={tab}
             onClose={() => setTab("batalha")}
