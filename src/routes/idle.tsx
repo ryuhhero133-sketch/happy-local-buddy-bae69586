@@ -7849,10 +7849,11 @@ function IdlePage() {
         {[
           { id: "inicio", icon: HUD_ASSETS.navInicio.url, label: "INÍCIO", action: () => setTab("batalha") },
           { id: "pokemon", icon: HUD_ASSETS.navPokemon.url, label: "POKÉMON", action: () => setTab("pokemon") },
-          { id: "mochila", icon: HUD_ASSETS.navMochila.url, label: "MOCHILA", action: () => setTab("bag") },
+          { id: "mochila", icon: HUD_ASSETS.navMochila.url, label: "MOCHILA", action: () => setTab("mochila") },
           { id: "melhorias", icon: HUD_ASSETS.navMelhorias.url, label: "MELHORIAS", action: () => setTab("melhorias") },
           { id: "colecao", icon: HUD_ASSETS.navColecao.url, label: "COLEÇÃO", action: () => setTab("colecao") },
-          { id: "loja", icon: HUD_ASSETS.navLoja.url, label: "LOJA", action: () => setTab("shop") },
+          { id: "loja", icon: HUD_ASSETS.navLoja.url, label: "LOJA", action: () => setTab("loja") },
+
           { id: "wallet", icon: HUD_ASSETS.navWallet.url, label: "CÂMBIO", action: () => setTab("wallet") },
           { id: "market", icon: HUD_ASSETS.navMarket.url, label: "MERCADO", action: () => setTab("market") },
         ].map(item => (
