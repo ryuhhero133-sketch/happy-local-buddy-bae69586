@@ -14547,15 +14547,15 @@ function TabOverlay({
 
 
 
-      {false && tab === "loja" && (
+      {tab === "loja_DISABLED" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
         </div>
       )}
-      {false && tab === "loja" && (
-        <>
+      {false && tab === "loja_DISABLED" && (
+        <div>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -14818,7 +14818,7 @@ function TabOverlay({
               {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
             </button>
           </div>
-        </div>
+        </>
       )}
 
                       position: "absolute", top: 40, left: 8, right: 14, height: 3,
@@ -15195,15 +15195,15 @@ function TabOverlay({
         <WalletScreen bank={bank} onExchange={onExchange} />
       )}
 
-      {false && tab === "market" && (
+      {tab === "market_DISABLED" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
         </div>
       )}
-      {false && tab === "market" && (
-        <>
+      {false && tab === "market_DISABLED" && (
+        <div>
           <MarketScreen
             items={items}
             bank={bank}
@@ -15216,7 +15216,7 @@ function TabOverlay({
             onNpcSell={onSellItem}
             npcPrices={marketSellPrices}
           />
-        </div>
+        </>
       )}
 
 
@@ -15731,7 +15731,7 @@ function MarketScreen({
 
             </div>
           )}
-        </div>
+        </>
       )}
 
       {mode === "create" && (
@@ -15826,7 +15826,7 @@ function MarketScreen({
               );
             })}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
