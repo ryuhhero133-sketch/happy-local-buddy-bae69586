@@ -15153,9 +15153,10 @@ function TabOverlay({
                   transform: "translate(-50%, -50%)", 
                   width: "90%", 
                   height: "90%", 
-                  opacity: 0.25,
+                  opacity: 0.6,
                   objectFit: "contain",
-                  filter: "brightness(0.5) contrast(1.2) drop-shadow(0 0 5px rgba(245,207,107,0.3))"
+                  filter: "brightness(0.8) contrast(1.1) drop-shadow(0 0 8px rgba(245,207,107,0.5))"
+
                 }} 
               />
               
