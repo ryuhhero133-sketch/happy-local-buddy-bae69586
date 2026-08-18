@@ -15082,28 +15082,45 @@ function TabOverlay({
 
         const tStats = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
         const redDiamonds = items.crystal_red || 0;
+        const totalBooks = (items.book_atk || 0) + (items.book_def || 0) + (items.book_exp || 0);
 
         const upgradeStat = (key: keyof Exclude<IdleState["trainerStats"], undefined>) => {
-          if (redDiamonds < 100) {
-            pushChat("💎 Você precisa de pelo menos 100 Diamantes Vermelhos para melhorar.", "info");
+          if (totalBooks < 10) {
+            pushChat("📖 Você precisa queimar pelo menos 10 Livros (Ataque/Defesa/EXP) para esta melhoria.", "info");
             return;
           }
           if (typeof playClick === 'function') playClick();
           setIdle(prev => {
             const currentStats = prev.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
             const nextStats = { ...currentStats, [key]: currentStats[key] + 1 };
-            const nextItems = { ...prev.items, crystal_red: (prev.items.crystal_red || 0) - 100 };
+            
+            // Queima 10 livros (prioridade: Exp > Def > Atk)
+            const nextItems = { ...prev.items };
+            let toBurn = 10;
+            const burnOrder = ["book_exp", "book_def", "book_atk"];
+            for (const bId of burnOrder) {
+              const have = nextItems[bId] || 0;
+              const burn = Math.min(toBurn, have);
+              if (burn > 0) {
+                nextItems[bId] = have - burn;
+                if (nextItems[bId] <= 0) delete nextItems[bId];
+                toBurn -= burn;
+              }
+              if (toBurn <= 0) break;
+            }
+            
             return { ...prev, trainerStats: nextStats, items: nextItems };
           });
-          pushChat(`✨ Melhoria aplicada em ${String(key).toUpperCase()}! (-100 Diamantes Vermelhos)`, "info");
+          pushChat(`✨ Upgrade de Habilidade: ${String(key).toUpperCase()} aumentado! (-10 Livros consumidos)`, "info");
         };
 
         return (
           <div style={{ color: "#eadfe8" }}>
             <div style={{ marginBottom: 20 }}>
-              <h3 style={{ color: "#f5cf6b", fontSize: 16, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-                💎 Safiras de Habilidade <span style={{ fontSize: 11, fontWeight: 500, color: "#8a7a9c" }}>· Consome 100 Diamantes Vermelhos por ponto</span>
+              <h3 style={{ color: "#f5cf6b", fontSize: 16, marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+                🌳 Árvore de Habilidades <span style={{ fontSize: 11, fontWeight: 500, color: "#8a7a9c" }}>· Sacrifique 10 Livros por Upgrade</span>
               </h3>
+              <div style={{ fontSize: 11, color: "#8a7a9c", marginBottom: 12 }}>Queime Livros de Ataque, Defesa ou EXP para fortalecer seu Treinador permanentemente.</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {[
                   { key: "atk", label: "Ataque Total", icon: "⚔️", color: "#ff5252" },
@@ -15122,13 +15139,13 @@ function TabOverlay({
                     </div>
                     <button 
                       onClick={() => upgradeStat(s.key as keyof typeof tStats)}
-                      disabled={redDiamonds < 100}
+                      disabled={totalBooks < 10}
                       style={{
-                        background: redDiamonds >= 100 ? "linear-gradient(180deg, #3a2e58, #1c0f2e)" : "#120a1c",
-                        border: `1px solid ${redDiamonds >= 100 ? s.color : "#3a2e58"}`,
-                        color: redDiamonds >= 100 ? "#fff" : "#5a4e78",
-                        padding: "6px 10px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: redDiamonds >= 100 ? "pointer" : "not-allowed",
-                        boxShadow: redDiamonds >= 100 ? `0 0 10px ${s.color}33` : "none"
+                        background: totalBooks >= 10 ? "linear-gradient(180deg, #3a2e58, #1c0f2e)" : "#120a1c",
+                        border: `1px solid ${totalBooks >= 10 ? s.color : "#3a2e58"}`,
+                        color: totalBooks >= 10 ? "#fff" : "#5a4e78",
+                        padding: "6px 10px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: totalBooks >= 10 ? "pointer" : "not-allowed",
+                        boxShadow: totalBooks >= 10 ? `0 0 10px ${s.color}33` : "none"
                       }}
                     >MELHORAR</button>
                   </div>
@@ -15176,7 +15193,7 @@ function TabOverlay({
               </div>
             )}
             <div style={{ color: "#b8a8c8", fontSize: 11, lineHeight: 1.5, background: "rgba(0,0,0,0.2)", padding: 8, borderRadius: 8 }}>
-              Habilidades via Safiras são <strong style={{ color: "#f5cf6b" }}>permanentes</strong>. Livros e Orbs são temporários e somam aos bônus permanentes.
+              Upgrades da <strong>Árvore de Habilidades</strong> são <strong style={{ color: "#f5cf6b" }}>permanentes</strong>. Queimar livros aqui aumenta seus atributos base.
             </div>
           </div>
         );
