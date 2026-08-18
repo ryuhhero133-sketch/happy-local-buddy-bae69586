@@ -13225,11 +13225,10 @@ function IdlePage() {
                 Bloqueado? Aumente seu Nível de Treinador.
               </div>
             </div>
+            </div>
           </div>
-          </div>
-        </div>
-      );
-    })(), document.body)}
+        );
+      })(), document.body)}
 
       {isAdminOpen && (
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />
