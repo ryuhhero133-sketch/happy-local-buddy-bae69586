@@ -15122,39 +15122,51 @@ function TabOverlay({
           { key: "crit", label: "CRT", val: tStats.crit, icon: "🎯", color: "#c084fc" },
         ];
 
-        // Componente simples para o gráfico de teia (Radar Chart) em SVG
-        const RadarChart = () => {
-          const centerX = 60;
-          const centerY = 60;
-          const radius = 50;
+        // Gráfico Estelar de Anatomia
+        const AnatomiaChart = () => {
+          const centerX = 80;
+          const centerY = 80;
+          const radius = 65;
+          
           const points = stats.map((s, i) => {
             const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
-            // Normaliza o valor para o gráfico (escala logarítmica leve para não sumir com valores baixos)
-            const normalized = Math.min(1, (s.val + 2) / 50); 
+            const normalized = 0.3 + (Math.min(1, (s.val) / 50) * 0.7); 
             const x = centerX + radius * normalized * Math.cos(angle);
             const y = centerY + radius * normalized * Math.sin(angle);
-            return `${x},${y}`;
-          }).join(" ");
+            return { x, y, label: s.label, color: s.color, angle };
+          });
 
-          const gridLevels = [0.2, 0.4, 0.6, 0.8, 1.0];
+          const polygonPoints = points.map(p => `${p.x},${p.y}`).join(" ");
 
           return (
-            <svg width="120" height="120" viewBox="0 0 120 120" style={{ filter: "drop-shadow(0 0 8px rgba(245,207,107,0.2))" }}>
-              {/* Grids hexagonais/pentagonais */}
-              {gridLevels.map((level, idx) => {
-                const p = stats.map((_, i) => {
-                  const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
-                  return `${centerX + radius * level * Math.cos(angle)},${centerY + radius * level * Math.sin(angle)}`;
-                }).join(" ");
-                return <polygon key={idx} points={p} fill="none" stroke="rgba(138,122,156,0.2)" strokeWidth="1" />;
-              })}
-              {/* Eixos */}
-              {stats.map((_, i) => {
-                const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
-                return <line key={i} x1={centerX} y1={centerY} x2={centerX + radius * Math.cos(angle)} y2={centerY + radius * Math.sin(angle)} stroke="rgba(138,122,156,0.3)" strokeDasharray="2,2" />;
-              })}
-              {/* Área preenchida dos status */}
-              <polygon points={points} fill="rgba(245,207,107,0.3)" stroke="#f5cf6b" strokeWidth="2" strokeLinejoin="round" />
+            <svg width="160" height="160" viewBox="0 0 160 160" style={{ filter: "drop-shadow(0 0 12px rgba(245,207,107,0.3))" }}>
+              <defs>
+                <radialGradient id="starGradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#f5cf6b" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#f5cf6b" stopOpacity="0.1" />
+                </radialGradient>
+              </defs>
+              {/* Grids Estelares */}
+              {[0.2, 0.4, 0.6, 0.8, 1.0].map((level, idx) => (
+                <polygon 
+                  key={idx} 
+                  points={stats.map((_, i) => {
+                    const angle = (i * 2 * Math.PI) / stats.length - Math.PI / 2;
+                    return `${centerX + radius * level * Math.cos(angle)},${centerY + radius * level * Math.sin(angle)}`;
+                  }).join(" ")} 
+                  fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="0.5" 
+                />
+              ))}
+              {/* Eixos com brilho */}
+              {points.map((p, i) => (
+                <line key={i} x1={centerX} y1={centerY} x2={centerX + radius * Math.cos(p.angle)} y2={centerY + radius * Math.sin(p.angle)} stroke="rgba(245,207,107,0.2)" strokeDasharray="1,2" />
+              ))}
+              {/* Área de Anatomia */}
+              <polygon points={polygonPoints} fill="url(#starGradient)" stroke="#f5cf6b" strokeWidth="2" strokeLinejoin="round" />
+              {/* Pontos de destaque */}
+              {points.map((p, i) => (
+                <circle key={i} cx={p.x} cy={p.y} r="3" fill="#fff" stroke={p.color} strokeWidth="1" />
+              ))}
             </svg>
           );
         };
@@ -15172,22 +15184,32 @@ function TabOverlay({
                     Livros Disponíveis: <strong style={{ color: totalBooks >= 10 ? "#7ef27a" : "#ff5252" }}>{totalBooks}</strong>
                   </div>
                 </div>
-                {/* Gráfico de Anatomia */}
-                <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 12, border: "1px solid rgba(245,207,107,0.15)", padding: 8, textAlign: "center" }}>
-                   <div style={{ fontSize: 9, color: "#f5cf6b", fontWeight: 900, marginBottom: 4, letterSpacing: 1 }}>GRÁFICO DE ANATOMIA</div>
-                   <RadarChart />
+                {/* Gráfico Estelar de Anatomia */}
+                <div style={{ 
+                  background: "radial-gradient(circle, rgba(245,207,107,0.05) 0%, rgba(0,0,0,0.4) 100%)", 
+                  borderRadius: 20, border: "2px solid rgba(245,207,107,0.2)", padding: 4, textAlign: "center",
+                  position: "relative", overflow: "hidden"
+                }}>
+                   <div style={{ fontSize: 8, color: "#f5cf6b", fontWeight: 900, marginTop: 4, letterSpacing: 2, opacity: 0.8 }}>ANATOMIA ESTELAR</div>
+                   <AnatomiaChart />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {stats.map((s) => (
                   <div key={s.key} style={{ 
-                    background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 12, padding: 12,
-                    display: "flex", justifyContent: "space-between", alignItems: "center"
+                    background: "rgba(20,15,35,0.7)", 
+                    border: `1px solid ${totalBooks >= 10 ? "rgba(245,207,107,0.2)" : "#3a2e58"}`, 
+                    borderRadius: 12, padding: 12,
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    position: "relative", overflow: "hidden"
                   }}>
+                    {/* Linha indicadora minimalista */}
+                    <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: s.color, opacity: 0.6 }} />
+                    
                     <div>
                       <div style={{ fontSize: 10, color: "#8a7a9c", fontWeight: 700, letterSpacing: 1 }}>{s.icon} {s.label}</div>
-                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color }}>+{s.val}</div>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color, textShadow: `0 0 10px ${s.color}44` }}>+{s.val}</div>
                     </div>
                     <button 
                       onClick={() => upgradeStat(s.key as any)}
@@ -15196,10 +15218,12 @@ function TabOverlay({
                         background: totalBooks >= 10 ? "linear-gradient(180deg, #3a2e58, #1c0f2e)" : "#120a1c",
                         border: `1px solid ${totalBooks >= 10 ? s.color : "#3a2e58"}`,
                         color: totalBooks >= 10 ? "#fff" : "#5a4e78",
-                        padding: "6px 10px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: totalBooks >= 10 ? "pointer" : "not-allowed",
-                        boxShadow: totalBooks >= 10 ? `0 0 10px ${s.color}33` : "none",
-                        transition: "all 0.2s"
+                        padding: "6px 12px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: totalBooks >= 10 ? "pointer" : "not-allowed",
+                        boxShadow: totalBooks >= 10 ? `0 0 12px ${s.color}44` : "none",
+                        transition: "transform 0.1s, box-shadow 0.2s",
                       }}
+                      onMouseDown={(e) => { if (totalBooks >= 10) e.currentTarget.style.transform = "scale(0.95)"; }}
+                      onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
                     >UPGRADE</button>
                   </div>
                 ))}
