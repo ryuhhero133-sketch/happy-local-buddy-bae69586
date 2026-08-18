@@ -919,23 +919,23 @@ type IdleState = {
   tasks: Task[];
   mapsUnlocked: number;
   caughtSpecies: Species[];
-  seenSpecies: Species[]; // Pokédex — inimigos derrotados em duelo
-  collection?: CollectionEntry[]; // TODAS as capturas (com repetidos), c/ nível, para fragmentar
-  craftPoints?: number; // pontos obtidos ao fragmentar pokémons da coleção
+  seenSpecies: Species[];
+  collection?: CollectionEntry[];
+  craftPoints?: number;
   items: Record<string, number>;
-  bank: { gold: number; crystals: number }; // moedas coletadas (spendáveis na loja)
-  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number }; // livros de xp/vip são temporários (1h); honey = incenso de mel 1h; honeyRare = incenso raro (dobra bônus); orb = boost independente (stack com livro); teamOrb = distribui EXP para todo o time por 1h
-  autoHeal: { enabled: boolean; threshold: number }; // auto usa poção quando HP% <= threshold
+  bank: { gold: number; crystals: number };
+  buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number };
+  globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
+  autoHeal: { enabled: boolean; threshold: number };
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
-  trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
-  trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
-  unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
-  // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
+  trainerLevel?: number;
+  trainerXp?: number;
+  unlockedSkins?: string[];
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   redeemedCodes?: Record<string, boolean>;
-  blackMiticPlusPending?: number; // ovos Plus emitidos pelo Governante que ainda precisam ser marcados no painel
-  grassOddishCaptured?: number; // contador do evento Grass Oddish
-  grassOddishReturnMap?: IdleMapId; // mapa de origem antes de entrar no evento
+  blackMiticPlusPending?: number;
+  grassOddishCaptured?: number;
+  grassOddishReturnMap?: IdleMapId;
 };
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
@@ -1113,6 +1113,7 @@ function freshIdle(): IdleState {
     items: { premium_box: 1 },
     bank: { gold: 0, crystals: 30 },
     buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0, honeyRareUntil: 0, orbMult: 0, orbUntil: 0, orbId: "", teamOrbUntil: 0 },
+    globalStats: { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 },
     autoHeal: { enabled: true, threshold: 0.5 },
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
     trainerLevel: 1,
@@ -4224,7 +4225,7 @@ function IdlePage() {
             rare: 0.02, epic: 0.05, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
           };
           const synergyRarity = team.length >= 2 && team.every((p) => p.rarity === leaderRarity) ? leaderRarity : null;
-          const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
+          const synergyBonus = synergyRarity ? ((teamSynergyMap[synergyRarity] ?? 0) * (1 + (idle.globalStats?.synergy ?? 0) * 0.1)) : 0;
           const totalBonus = rarityBonus + synergyBonus;
           const totalMult = goldMult * (1 + totalBonus);
           const honeyMult = 1 + honeyBonusNow();
@@ -4420,7 +4421,8 @@ function IdlePage() {
               });
               setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
               newItems[usedBall.id] = (newItems[usedBall.id] ?? 0) - 1;
-              const baseChance = 0.020; // mais difícil: 2.0% base (com bola comum)
+              const masteryBonus = (idle.globalStats?.mastery ?? 0) * 0.005;
+            const baseChance = 0.020 + masteryBonus; // mais difícil: 2.0% base (com bola comum) + Mastery
               if (target.menace) {
                 // 💀 PERIGO ABISSAL — impossível capturar. Ao ser atacado com pokébola, vira agressivo.
                 captured = false;
@@ -4510,7 +4512,7 @@ function IdlePage() {
                 }
               } else if (target.rarity === "mythic" || target.rarity === "mythic_shiny") {
                 // 💠 Míticos (e shiny): 2% fixo por lançamento
-                captured = Math.random() < 0.02;
+                captured = Math.random() < (0.02 + (idle.globalStats?.mastery ?? 0) * 0.005);
               } else {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
@@ -15053,61 +15055,114 @@ function TabOverlay({
 
       {tab === "melhorias" && (() => {
         const nowMs = Date.now();
-        const bookActive = !!(buffs?.expMultUntil && nowMs < buffs.expMultUntil);
-        const orbActive = !!(buffs?.orbUntil && nowMs < buffs.orbUntil);
-        const honeyActive = !!(buffs?.honeyUntil && nowMs < buffs.honeyUntil);
-        const honeyRareActive = !!(buffs?.honeyRareUntil && nowMs < buffs.honeyRareUntil);
-        const bookPct = bookActive ? Math.round((buffs?.expMult ?? 0) * 100) : 0;
-        const orbPct = orbActive ? Math.round((buffs?.orbMult ?? 0) * 100) : 0;
+        const bookActive = !!(idle.buffs?.expMultUntil && nowMs < idle.buffs.expMultUntil);
+        const orbActive = !!(idle.buffs?.orbUntil && nowMs < idle.buffs.orbUntil);
+        const honeyActive = !!(idle.buffs?.honeyUntil && nowMs < idle.buffs.honeyUntil);
+        const honeyRareActive = !!(idle.buffs?.honeyRareUntil && nowMs < idle.buffs.honeyRareUntil);
+        const bookPct = bookActive ? Math.round((idle.buffs?.expMult ?? 0) * 100) : 0;
+        const orbPct = orbActive ? Math.round((idle.buffs?.orbMult ?? 0) * 100) : 0;
         const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
         const totalExpPct = bookPct + orbPct + honeyPct;
-        const fmtTime = (ms: number) => {
-          const s = Math.max(0, Math.floor(ms / 1000));
-          const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
-          return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${r}s` : `${r}s`;
+
+        const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
+        const radarPoints = [
+          { label: "ATAQUE", val: 20 + (stats.attack ?? 0) * 8, color: "#ff5252", key: "attack" as const },
+          { label: "VELO",   val: 20 + (stats.speed ?? 0) * 8,  color: "#ffd94d", key: "speed" as const },
+          { label: "SINERG", val: 20 + (stats.synergy ?? 0) * 8, color: "#c084fc", key: "synergy" as const },
+          { label: "RESIST", val: 20 + (stats.resistance ?? 0) * 8, color: "#4a7bff", key: "resistance" as const },
+          { label: "MASTER", val: 20 + (stats.mastery ?? 0) * 8, color: "#5ec26a", key: "mastery" as const },
+        ];
+
+        const getPolyPoints = (scale = 1) => {
+          return radarPoints.map((p, i) => {
+            const angle = (i * 2 * Math.PI) / radarPoints.length - Math.PI / 2;
+            const r = (Math.min(100, p.val) / 100) * 80 * scale;
+            return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`;
+          }).join(" ");
         };
+
+        const upgradeStat = (key: keyof typeof stats) => {
+          const curLv = stats[key] ?? 0;
+          const stoneCost = 50 + curLv * 25;
+          const bookCost = 1 + Math.floor(curLv / 2);
+          const stones = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
+          const hasStones = stones.every(s => (idle.items[s] ?? 0) >= stoneCost);
+          const hasBooks = (idle.items.book_atk ?? 0) >= bookCost && (idle.items.book_def ?? 0) >= bookCost;
+
+          if (!hasStones || !hasBooks) {
+            pushChat(`Recursos insuficientes! Requer ${stoneCost}x de cada Stone e ${bookCost}x Livros ATK/DEF.`, "info");
+            return;
+          }
+
+          setIdle(s => {
+            const nextItems = { ...s.items };
+            stones.forEach(st => nextItems[st] = (nextItems[st] ?? 0) - stoneCost);
+            nextItems.book_atk = (nextItems.book_atk ?? 0) - bookCost;
+            nextItems.book_def = (nextItems.book_def ?? 0) - bookCost;
+            return {
+              ...s,
+              items: nextItems,
+              globalStats: { ...stats, [key]: curLv + 1 }
+            };
+          });
+          pushChat(`✨ Evoluiu ${String(key).toUpperCase()} para Nível ${curLv + 1}!`, "cap");
+        };
+
         return (
-          <div>
-            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
-              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((buffs?.atk ?? 0) * 100)}%`} color="#ff5252" />
-              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
-              <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
-            </div>
-            {(bookActive || orbActive || honeyActive || honeyRareActive) && (
-              <div style={{ background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 8, padding: 10, marginBottom: 14 }}>
-                <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Composição EXP:</div>
-                {bookActive && (
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d0c0e0", padding: "3px 0" }}>
-                    <span>📖 Livro EXP <span style={{ color: "#8a80a8" }}>({fmtTime(buffs!.expMultUntil! - nowMs)})</span></span>
-                    <span style={{ color: "#5ec26a", fontWeight: 700 }}>+{bookPct}%</span>
-                  </div>
-                )}
-                {orbActive && (
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d0c0e0", padding: "3px 0" }}>
-                    <span>✦ Orb EXP <span style={{ color: "#8a80a8" }}>({fmtTime(buffs!.orbUntil! - nowMs)})</span></span>
-                    <span style={{ color: "#c084fc", fontWeight: 700 }}>+{orbPct}%</span>
-                  </div>
-                )}
-                {honeyRareActive ? (
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#fff0c8", padding: "3px 0" }}>
-                    <span>✨🍯 Incenso Raro <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyRareUntil! - nowMs)})</span></span>
-                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+20% drop/xp/def/vel</span>
-                  </div>
-                ) : honeyActive && (
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#ffe9a8", padding: "3px 0" }}>
-                    <span>🍯 Incenso de Mel <span style={{ color: "#a89060" }}>({fmtTime(buffs!.honeyUntil! - nowMs)})</span></span>
-                    <span style={{ color: "#ffb84d", fontWeight: 700 }}>+10% drop/xp/def/vel</span>
-                  </div>
-                )}
-                <div style={{ borderTop: "1px solid #3a2e58", marginTop: 6, paddingTop: 6, display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
-                  <span style={{ color: "#f5cf6b" }}>Total EXP</span>
-                  <span style={{ color: "#ffd94d" }}>+{totalExpPct}%</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center", background: "rgba(20,15,35,0.8)", padding: 20, borderRadius: 16, border: "2px solid #f5cf6b33" }}>
+              <div style={{ flex: "0 0 200px", position: "relative" }}>
+                <svg width="200" height="200" viewBox="0 0 200 200" style={{ filter: "drop-shadow(0 0 10px rgba(245,207,107,0.2))" }}>
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="1" />
+                  <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="1" />
+                  <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="1" />
+                  {radarPoints.map((_, i) => {
+                    const angle = (i * 2 * Math.PI) / radarPoints.length - Math.PI / 2;
+                    return <line key={i} x1="100" y1="100" x2={100 + 80 * Math.cos(angle)} y2={100 + 80 * Math.sin(angle)} stroke="rgba(245,207,107,0.2)" strokeWidth="1" />;
+                  })}
+                  <polygon points={getPolyPoints()} fill="rgba(245,207,107,0.3)" stroke="#f5cf6b" strokeWidth="2" strokeLinejoin="round" />
+                </svg>
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                  {radarPoints.map((p, i) => {
+                    const angle = (i * 2 * Math.PI) / radarPoints.length - Math.PI / 2;
+                    return (
+                      <div key={i} style={{
+                        position: "absolute",
+                        left: 100 + 95 * Math.cos(angle),
+                        top: 100 + 95 * Math.sin(angle),
+                        transform: "translate(-50%, -50%)",
+                        fontSize: 9, fontWeight: 900, color: p.color, textShadow: "0 1px 2px #000"
+                      }}>{p.label}</div>
+                    );
+                  })}
                 </div>
               </div>
-            )}
-            <div style={{ color: "#b8a8c8", fontSize: 12, lineHeight: 1.5 }}>
-              Livros, Orbs e Incenso de Mel <strong style={{ color: "#f5cf6b" }}>somam</strong> enquanto ativos. Quando cada tempo acaba, o bônus daquela fonte sai.
+              <div style={{ flex: 1, minWidth: 280 }}>
+                <h3 style={{ color: "#f5cf6b", margin: "0 0 12px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {radarPoints.map(p => {
+                    const k = p.key;
+                    return (
+                      <div key={p.key} style={{ background: "#1a0f26", border: "1px solid #3a2e58", borderRadius: 10, padding: "8px 12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: 10, color: "#a8a0b8", textTransform: "uppercase" }}>{p.label}</span>
+                          <span style={{ fontSize: 12, fontWeight: 900, color: "#f5cf6b" }}>Lv.{stats[k] ?? 0}</span>
+                        </div>
+                        <button 
+                          onClick={() => upgradeStat(k)}
+                          style={{ width: "100%", padding: "4px", background: "linear-gradient(180deg, #ffd94d, #d99b1a)", border: "none", borderRadius: 4, fontSize: 10, fontWeight: 900, cursor: "pointer", color: "#231407" }}
+                        >+ MELHORAR</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((((idle.buffs?.atk ?? 0) ?? 0) + ((stats.attack ?? 0) * 0.05)) * 100)}%`} color="#ff5252" />
+              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((((idle.buffs?.def ?? 0) ?? 0) + ((stats.resistance ?? 0) * 0.03)) * 100)}%`} color="#4a7bff" />
+              <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
           </div>
         );
@@ -16114,10 +16169,11 @@ function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) 
     </div>
   );
 }
-function ActiveBonuses({ leaderRarity, team, buffs }: {
+function ActiveBonuses({ leaderRarity, team, buffs, idle }: {
   leaderRarity: Rarity;
   team: { rarity: Rarity }[];
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
+  idle: IdleState;
 }) {
   const now = Date.now();
   const expActive = !!(buffs.expMultUntil && now < buffs.expMultUntil);
@@ -16130,7 +16186,7 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     rare: 0.02, epic: 0.05, legendary: 0.10, mythic: 0.15, mythic_shiny: 0.20,
   };
   const synergyRarity = team.length >= 2 && team.every((p) => p.rarity === leaderRarity) ? leaderRarity : null;
-  const synergyBonus = synergyRarity ? (teamSynergyMap[synergyRarity] ?? 0) : 0;
+  const synergyBonus = synergyRarity ? ((teamSynergyMap[synergyRarity] ?? 0) * (1 + (idle.globalStats?.synergy ?? 0) * 0.1)) : 0;
   const rarityLabel: Record<Rarity, string> = {
     common: "Comum", uncommon: "Incomum", rare: "Raro", epic: "Épico",
     legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
@@ -16166,14 +16222,14 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     }}>
       <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 900, letterSpacing: 2, marginBottom: 8 }}>✨ BÔNUS ATIVOS</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        <Chip label="EXP TOTAL" value={`+${totalXpPct}%`} color="#6bd4ff"
-          sub={`${expActive ? `Livro +${Math.round(buffs.expMult * 100)}% (${fmt(buffs.expMultUntil! - now)})` : "Sem livro"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
-        <Chip label="OURO TOTAL" value={`+${totalGoldPct}%`} color="#ffd94d"
-          sub={`${goldActive ? `VIP +${Math.round((buffs.goldMult ?? 0) * 100)}% (${fmt(buffs.goldMultUntil! - now)})` : "Sem VIP"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
-        <Chip label="DROP ITENS" value={`+${Math.round((rarityBonus + synergyBonus) * 100)}%`} color="#c084fc"
-          sub={`Líder ${leaderRarity} +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
-        <Chip label="ATK / DEF" value={`+${Math.round(buffs.atk * 100)}% / -${Math.round(buffs.def * 100)}%`} color="#ff7a3d"
-          sub={`Livros permanentes de ATK / DEF`} />
+        <Chip label="EXP TOTAL" value={`+${totalXpPct + Math.round((idle.globalStats?.mastery ?? 0) * 2)}%`} color="#6bd4ff"
+          sub={`${expActive ? `Livro +${Math.round(buffs.expMult * 100)}% (${fmt(buffs.expMultUntil! - now)})` : "Sem livro"} · Líder +${Math.round(rarityBonus * 100)}% · Maestria +${Math.round((idle.globalStats?.mastery ?? 0) * 2)}%`} />
+        <Chip label="OURO TOTAL" value={`+${totalGoldPct + Math.round((idle.globalStats?.synergy ?? 0) * 1)}%`} color="#ffd94d"
+          sub={`${goldActive ? `VIP +${Math.round((buffs.goldMult ?? 0) * 100)}% (${fmt(buffs.goldMultUntil! - now)})` : "Sem VIP"} · Líder +${Math.round(rarityBonus * 100)}% · Sinergia +${Math.round((idle.globalStats?.synergy ?? 0) * 1)}%`} />
+        <Chip label="DROP ITENS" value={`+${Math.round((rarityBonus + synergyBonus + (idle.globalStats?.mastery ?? 0) * 0.05) * 100)}%`} color="#c084fc"
+          sub={`Líder ${leaderRarity} +${Math.round(rarityBonus * 100)}% · Maestria +${Math.round((idle.globalStats?.mastery ?? 0) * 5)}%`} />
+        <Chip label="ATK / DEF" value={`+${Math.round((buffs.atk + (idle.globalStats?.attack ?? 0) * 0.05) * 100)}% / -${Math.round((buffs.def + (idle.globalStats?.resistance ?? 0) * 0.03) * 100)}%`} color="#ff7a3d"
+          sub={`Bônus Globais: ATK Lv.${idle.globalStats?.attack ?? 0} · RES Lv.${idle.globalStats?.resistance ?? 0}`} />
       </div>
       <div style={{
         marginTop: 10, padding: "8px 10px",
