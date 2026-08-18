@@ -6799,7 +6799,7 @@ function IdlePage() {
   const pickStarter = (sp: "charmander" | "bulbasaur" | "squirtle") => {
     const pet = makePet(sp, 5);
     setTeam([pet]);
-    setLeaderHp(calcIdleMaxHp(pet));
+    setLeaderHp(calcIdleMaxHp(pet, idleRef.current.trainerStats));
     try {
       localStorage.setItem("rubym.starter.chosen", "1");
       const raw = localStorage.getItem("rubym.save.v2");
