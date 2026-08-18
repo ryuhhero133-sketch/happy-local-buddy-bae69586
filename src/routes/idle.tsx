@@ -15065,11 +15065,11 @@ function TabOverlay({
 
         const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
         const radarPoints = [
-          { label: "ATAQUE", val: 20 + (stats.attack ?? 0) * 8, color: "#ff5252", key: "attack" },
-          { label: "VELO",   val: 20 + (stats.speed ?? 0) * 8,  color: "#ffd94d", key: "speed" },
-          { label: "SINERG", val: 20 + (stats.synergy ?? 0) * 8, color: "#c084fc", key: "synergy" },
-          { label: "RESIST", val: 20 + (stats.resistance ?? 0) * 8, color: "#4a7bff", key: "resistance" },
-          { label: "MASTER", val: 20 + (stats.mastery ?? 0) * 8, color: "#5ec26a", key: "mastery" },
+          { label: "ATAQUE", val: 20 + (stats.attack ?? 0) * 8, color: "#ff5252", key: "attack" as const },
+          { label: "VELO",   val: 20 + (stats.speed ?? 0) * 8,  color: "#ffd94d", key: "speed" as const },
+          { label: "SINERG", val: 20 + (stats.synergy ?? 0) * 8, color: "#c084fc", key: "synergy" as const },
+          { label: "RESIST", val: 20 + (stats.resistance ?? 0) * 8, color: "#4a7bff", key: "resistance" as const },
+          { label: "MASTER", val: 20 + (stats.mastery ?? 0) * 8, color: "#5ec26a", key: "mastery" as const },
         ];
 
         const getPolyPoints = (scale = 1) => {
@@ -15140,7 +15140,7 @@ function TabOverlay({
                 <h3 style={{ color: "#f5cf6b", margin: "0 0 12px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   {radarPoints.map(p => {
-                    const k = p.key as keyof typeof stats;
+                    const k = p.key;
                     return (
                       <div key={p.key} style={{ background: "#1a0f26", border: "1px solid #3a2e58", borderRadius: 10, padding: "8px 12px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
