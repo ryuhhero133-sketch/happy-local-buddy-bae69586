@@ -1,4 +1,4 @@
-import { PetInstance } from "../lib/game-logic";
+import { PetInstance } from "./systems";
 
 export interface PetInstanceLocal extends PetInstance {}
 
