@@ -7718,9 +7718,9 @@ function IdlePage() {
       <div className="hud-left-column" style={{ display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden", zIndex: 10 }}>
         <TrainerProfileHUD 
           identity={identity} 
-          trainerLevel={idle.trainerLevel} 
-          trainerXp={idle.trainerXp} 
-          xpNext={trainerXpToNext(idle.trainerLevel)} 
+          trainerLevel={idle.trainerLevel || 1} 
+          trainerXp={idle.trainerXp || 0} 
+          xpNext={trainerXpToNext(idle.trainerLevel || 1)} 
           onOpenAdmin={() => setIsAdminOpen(true)}
         />
         <TeamPanelHUD 
