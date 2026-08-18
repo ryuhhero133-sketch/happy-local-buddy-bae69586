@@ -14299,7 +14299,7 @@ function TabOverlay({
                   epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
                 };
                 const rColor = rarityColor[entry.rarity] ?? "#8b6a30";
-                const frozen = !!s.redeemedCodes?.RANKED_RUBY_KEY_CRAFT;
+                const frozen = false; // logic removed
       const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
       const gain = frozen ? 0 : baseGain;
                 const locked = lockedSet.has(entry.uid);
