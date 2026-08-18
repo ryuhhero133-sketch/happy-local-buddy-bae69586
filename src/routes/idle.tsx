@@ -15082,19 +15082,26 @@ function TabOverlay({
           return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${r}s` : `${r}s`;
         };
 
-        const tStats = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
+        const tStats = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0, elemental: {} };
         const redDiamonds = items.crystal_red || 0;
         const totalBooks = (items.book_atk || 0) + (items.book_def || 0) + (items.book_exp || 0);
 
-        const upgradeStat = (key: keyof Exclude<IdleState["trainerStats"], undefined>) => {
+        const upgradeStat = (key: string, isElemental = false) => {
           if (totalBooks < 10) {
             pushChat("📖 Você precisa queimar pelo menos 10 Livros (Ataque/Defesa/EXP) para esta melhoria.", "info");
             return;
           }
           if (typeof playClick === 'function') playClick();
           setIdle(prev => {
-            const currentStats = prev.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
-            const nextStats = { ...currentStats, [key]: currentStats[key] + 1 };
+            const currentStats = prev.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0, elemental: {} };
+            const nextStats = { ...currentStats };
+            
+            if (isElemental) {
+              const currentElem = nextStats.elemental || {};
+              nextStats.elemental = { ...currentElem, [key]: (currentElem[key] || 0) + 1 };
+            } else {
+              (nextStats as any)[key] = ((nextStats as any)[key] || 0) + 1;
+            }
             
             // Queima 10 livros (prioridade: Exp > Def > Atk)
             const nextItems = { ...prev.items };
@@ -15113,8 +15120,9 @@ function TabOverlay({
             
             return { ...prev, trainerStats: nextStats, items: nextItems };
           });
-          pushChat(`✨ Upgrade de Habilidade: ${String(key).toUpperCase()} aumentado! (-10 Livros consumidos)`, "info");
+          pushChat(`✨ Upgrade de ${isElemental ? 'Elemento' : 'Habilidade'}: ${key.toUpperCase()} aumentado! (-10 Livros)`, "info");
         };
+
 
         const stats = [
           { key: "atk", label: "ATK", val: tStats.atk, icon: "⚔️", color: "#ff5252", desc: "Aumenta o dano base do treinador em +12 por ponto.", bonus: "+12 Dano" },
@@ -15123,6 +15131,15 @@ function TabOverlay({
           { key: "spe", label: "SPD", val: tStats.spe, icon: "👟", color: "#f5cf6b", desc: "Aumenta a velocidade de movimento no mapa em +5% por ponto.", bonus: "+5%" },
           { key: "crit", label: "CRT", val: tStats.crit, icon: "🎯", color: "#c084fc", desc: "Aumenta a chance de crítico em +1% (máx 85%).", bonus: "+1%" },
         ];
+
+        const elementalStats = [
+          { key: "fire", label: "FOGO", val: tStats.elemental?.fire || 0, icon: "🔥", color: "#ff8c00", desc: "Reduz dano de fogo e aumenta dano contra grama.", bonus: "+2% Res" },
+          { key: "water", label: "ÁGUA", val: tStats.elemental?.water || 0, icon: "💧", color: "#00bfff", desc: "Reduz dano de água e aumenta dano contra fogo.", bonus: "+2% Res" },
+          { key: "grass", label: "GRAMA", val: tStats.elemental?.grass || 0, icon: "🌿", color: "#32cd32", desc: "Reduz dano de grama e aumenta dano contra água.", bonus: "+2% Res" },
+          { key: "electric", label: "RAIO", val: tStats.elemental?.electric || 0, icon: "⚡", color: "#ffff00", desc: "Reduz dano elétrico e aumenta dano contra água.", bonus: "+2% Res" },
+          { key: "dark", label: "DARK", val: tStats.elemental?.dark || 0, icon: "🌑", color: "#707070", desc: "Aumenta resistência a maldições e ataques noturnos.", bonus: "+2% Res" },
+        ];
+
 
         // Gráfico Estelar de Anatomia
         const AnatomiaChart = () => {
@@ -15253,7 +15270,49 @@ function TabOverlay({
                   </div>
                 ))}
               </div>
+
+              {/* ABA ELEMENTAL OBSIDIAN */}
+              <div style={{ 
+                marginTop: 20, 
+                padding: 15, 
+                background: "linear-gradient(135deg, #0f0a14 0%, #1a1520 100%)", 
+                borderRadius: 16, 
+                border: "1px solid #2d2438",
+                boxShadow: "inset 0 0 20px rgba(0,0,0,0.5)"
+              }}>
+                <h3 style={{ color: "#a890d3", fontSize: 14, marginBottom: 10, display: "flex", alignItems: "center", gap: 8, letterSpacing: 1.5 }}>
+                  💎 RESISTÊNCIA ELEMENTAL <span style={{ fontSize: 9, color: "#6a5a7c" }}>· OBSIDIAN SYSTEM</span>
+                </h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {elementalStats.map((s) => (
+                    <div key={s.key} style={{ 
+                      background: "rgba(0,0,0,0.4)", 
+                      border: "1px solid #3a2e58", 
+                      borderRadius: 10, padding: 8,
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                    }}>
+                      <div>
+                        <div style={{ fontSize: 9, color: "#8a7a9c", fontWeight: 700 }}>{s.icon} {s.label}</div>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: s.color }}>
+                          {s.val}% <span style={{ fontSize: 8, color: "#fff", opacity: 0.6 }}>({s.bonus})</span>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => upgradeStat(s.key, true)}
+                        disabled={totalBooks < 10}
+                        style={{
+                          background: totalBooks >= 10 ? "#2d2438" : "#120a1c",
+                          border: `1px solid ${totalBooks >= 10 ? s.color : "#3a2e58"}`,
+                          color: totalBooks >= 10 ? "#fff" : "#5a4e78",
+                          padding: "4px 8px", borderRadius: 6, fontSize: 9, fontWeight: 900, cursor: totalBooks >= 10 ? "pointer" : "not-allowed",
+                        }}
+                      >UP</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
+
 
             <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12, display: "flex", justifyContent: "space-between" }}>
               <span>Bônus Temporários</span>
