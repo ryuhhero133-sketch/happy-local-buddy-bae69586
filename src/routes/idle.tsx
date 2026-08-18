@@ -10091,6 +10091,7 @@ function IdlePage() {
                 nucleo_primordial: [
                   { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
                   { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
+                  { key: "np-c3",    target: "continent3_map1", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#f0abfc" },
                 ],
                 // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
                 gelius1: [
