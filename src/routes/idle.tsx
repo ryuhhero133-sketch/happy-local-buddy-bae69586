@@ -15073,7 +15073,7 @@ function TabOverlay({
         const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
         const totalExpPct = bookPct + orbPct + honeyPct;
         const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
-        const stonesMap = {
+        const stonesMap: Record<keyof typeof stats, { stone: string, color: string, label: string, desc: string, fail: number }> = {
           attack: { stone: "stone_fire", color: "#ff5252", label: "ATAQUE", desc: "Dano Total +5% por nível.", fail: 15 },
           speed: { stone: "stone_electric", color: "#ffd94d", label: "VELO", desc: "Intervalo Atk -0.05s.", fail: 12 },
           synergy: { stone: "stone_grass", color: "#c084fc", label: "SINERG", desc: "Bônus tipo duplicado +2%.", fail: 20 },
