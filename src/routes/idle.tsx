@@ -10317,8 +10317,9 @@ function IdlePage() {
 
         </div>
       </div>
+    </div>
 
-      {(tab !== "batalha" && tab !== "inicio") && (
+    {(tab !== "batalha" && tab !== "inicio") && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 2000000, pointerEvents: 'auto' }}>
           <TabOverlay
             tab={tab}
