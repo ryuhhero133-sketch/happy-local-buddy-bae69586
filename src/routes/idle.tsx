@@ -10048,12 +10048,11 @@ function IdlePage() {
               );
             })}
         </div>
-      </div>
-
-
-
+      {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
+      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         
         {/* Barra Superior Moderna (Arquitetura da Imagem) */}
+
         <div className="modern-top-bar" style={{ 
           position: 'fixed', top: 0, left: 0, right: 0, height: '65px',
           background: 'linear-gradient(180deg, rgba(11, 5, 20, 0.95) 0%, rgba(11, 5, 20, 0.7) 100%)',
