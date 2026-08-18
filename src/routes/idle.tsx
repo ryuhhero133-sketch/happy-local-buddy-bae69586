@@ -15095,10 +15095,14 @@ function TabOverlay({
           setIdle(prev => {
             const currentStats = prev.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0, elemental: {} };
             const nextStats = { ...currentStats };
+            // Ensure elemental is initialized
+            if (!nextStats.elemental) nextStats.elemental = {};
+
             
             if (isElemental) {
               const currentElem = nextStats.elemental || {};
-              nextStats.elemental = { ...currentElem, [key]: (currentElem[key] || 0) + 1 };
+              nextStats.elemental = { ...currentElem, [key]: (Number(currentElem[key as keyof typeof currentElem] || 0)) + 1 };
+
             } else {
               (nextStats as any)[key] = ((nextStats as any)[key] || 0) + 1;
             }
@@ -15133,12 +15137,13 @@ function TabOverlay({
         ];
 
         const elementalStats = [
-          { key: "fire", label: "FOGO", val: tStats.elemental?.fire || 0, icon: "🔥", color: "#ff8c00", desc: "Reduz dano de fogo e aumenta dano contra grama.", bonus: "+2% Res" },
-          { key: "water", label: "ÁGUA", val: tStats.elemental?.water || 0, icon: "💧", color: "#00bfff", desc: "Reduz dano de água e aumenta dano contra fogo.", bonus: "+2% Res" },
-          { key: "grass", label: "GRAMA", val: tStats.elemental?.grass || 0, icon: "🌿", color: "#32cd32", desc: "Reduz dano de grama e aumenta dano contra água.", bonus: "+2% Res" },
-          { key: "electric", label: "RAIO", val: tStats.elemental?.electric || 0, icon: "⚡", color: "#ffff00", desc: "Reduz dano elétrico e aumenta dano contra água.", bonus: "+2% Res" },
-          { key: "dark", label: "DARK", val: tStats.elemental?.dark || 0, icon: "🌑", color: "#707070", desc: "Aumenta resistência a maldições e ataques noturnos.", bonus: "+2% Res" },
+          { key: "fire", label: "FOGO", val: Number(tStats.elemental?.fire || 0), icon: "🔥", color: "#ff8c00", desc: "Reduz dano de fogo e aumenta dano contra grama.", bonus: "+2% Res" },
+          { key: "water", label: "ÁGUA", val: Number(tStats.elemental?.water || 0), icon: "💧", color: "#00bfff", desc: "Reduz dano de água e aumenta dano contra fogo.", bonus: "+2% Res" },
+          { key: "grass", label: "GRAMA", val: Number(tStats.elemental?.grass || 0), icon: "🌿", color: "#32cd32", desc: "Reduz dano de grama e aumenta dano contra água.", bonus: "+2% Res" },
+          { key: "electric", label: "RAIO", val: Number(tStats.elemental?.electric || 0), icon: "⚡", color: "#ffff00", desc: "Reduz dano elétrico e aumenta dano contra água.", bonus: "+2% Res" },
+          { key: "dark", label: "DARK", val: Number(tStats.elemental?.dark || 0), icon: "🌑", color: "#707070", desc: "Aumenta resistência a maldições e ataques noturnos.", bonus: "+2% Res" },
         ];
+
 
 
         // Gráfico Estelar de Anatomia
