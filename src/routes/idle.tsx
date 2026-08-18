@@ -15184,21 +15184,19 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-        <div>
-        <div>
-          <MarketScreen
-            items={items}
-            bank={bank}
-            identity={identity}
-            isVip={isVip}
-            onList={onListMarket}
-            onBuy={onBuyMarket}
-            onCancel={onCancelMarket}
-            onClaimPayout={onClaimMarketPayout}
-            onNpcSell={onSellItem}
-            npcPrices={marketSellPrices}
-          />
-        </div>
+      {tab === "market" && (
+        <MarketScreen
+          items={items}
+          bank={bank}
+          identity={identity}
+          isVip={isVip}
+          onList={onListMarket}
+          onBuy={onBuyMarket}
+          onCancel={onCancelMarket}
+          onClaimPayout={onClaimMarketPayout}
+          onNpcSell={onSellItem}
+          npcPrices={marketSellPrices}
+        />
       )}
 
 
