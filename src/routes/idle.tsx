@@ -16168,10 +16168,11 @@ function SpeciesLore({ species, rarity }: { species: Species; rarity: Rarity }) 
     </div>
   );
 }
-function ActiveBonuses({ leaderRarity, team, buffs }: {
+function ActiveBonuses({ leaderRarity, team, buffs, idle }: {
   leaderRarity: Rarity;
   team: { rarity: Rarity }[];
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number };
+  idle: IdleState;
 }) {
   const now = Date.now();
   const expActive = !!(buffs.expMultUntil && now < buffs.expMultUntil);
