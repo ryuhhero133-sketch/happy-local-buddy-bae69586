@@ -15184,22 +15184,32 @@ function TabOverlay({
                     Livros Disponíveis: <strong style={{ color: totalBooks >= 10 ? "#7ef27a" : "#ff5252" }}>{totalBooks}</strong>
                   </div>
                 </div>
-                {/* Gráfico de Anatomia */}
-                <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 12, border: "1px solid rgba(245,207,107,0.15)", padding: 8, textAlign: "center" }}>
-                   <div style={{ fontSize: 9, color: "#f5cf6b", fontWeight: 900, marginBottom: 4, letterSpacing: 1 }}>GRÁFICO DE ANATOMIA</div>
-                   <RadarChart />
+                {/* Gráfico Estelar de Anatomia */}
+                <div style={{ 
+                  background: "radial-gradient(circle, rgba(245,207,107,0.05) 0%, rgba(0,0,0,0.4) 100%)", 
+                  borderRadius: 20, border: "2px solid rgba(245,207,107,0.2)", padding: 4, textAlign: "center",
+                  position: "relative", overflow: "hidden"
+                }}>
+                   <div style={{ fontSize: 8, color: "#f5cf6b", fontWeight: 900, marginTop: 4, letterSpacing: 2, opacity: 0.8 }}>ANATOMIA ESTELAR</div>
+                   <AnatomiaChart />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {stats.map((s) => (
                   <div key={s.key} style={{ 
-                    background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 12, padding: 12,
-                    display: "flex", justifyContent: "space-between", alignItems: "center"
+                    background: "rgba(20,15,35,0.7)", 
+                    border: `1px solid ${totalBooks >= 10 ? "rgba(245,207,107,0.2)" : "#3a2e58"}`, 
+                    borderRadius: 12, padding: 12,
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    position: "relative", overflow: "hidden"
                   }}>
+                    {/* Linha indicadora minimalista */}
+                    <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: s.color, opacity: 0.6 }} />
+                    
                     <div>
                       <div style={{ fontSize: 10, color: "#8a7a9c", fontWeight: 700, letterSpacing: 1 }}>{s.icon} {s.label}</div>
-                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color }}>+{s.val}</div>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color, textShadow: `0 0 10px ${s.color}44` }}>+{s.val}</div>
                     </div>
                     <button 
                       onClick={() => upgradeStat(s.key as any)}
@@ -15208,10 +15218,12 @@ function TabOverlay({
                         background: totalBooks >= 10 ? "linear-gradient(180deg, #3a2e58, #1c0f2e)" : "#120a1c",
                         border: `1px solid ${totalBooks >= 10 ? s.color : "#3a2e58"}`,
                         color: totalBooks >= 10 ? "#fff" : "#5a4e78",
-                        padding: "6px 10px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: totalBooks >= 10 ? "pointer" : "not-allowed",
-                        boxShadow: totalBooks >= 10 ? `0 0 10px ${s.color}33` : "none",
-                        transition: "all 0.2s"
+                        padding: "6px 12px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: totalBooks >= 10 ? "pointer" : "not-allowed",
+                        boxShadow: totalBooks >= 10 ? `0 0 12px ${s.color}44` : "none",
+                        transition: "transform 0.1s, box-shadow 0.2s",
                       }}
+                      onMouseDown={(e) => { if (totalBooks >= 10) e.currentTarget.style.transform = "scale(0.95)"; }}
+                      onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
                     >UPGRADE</button>
                   </div>
                 ))}
