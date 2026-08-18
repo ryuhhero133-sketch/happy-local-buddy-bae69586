@@ -933,9 +933,13 @@ type IdleState = {
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
   trainerStats?: { atk: number; def: number; hp: number; spe: number; crit: number; elemental: Record<string, number> }; // Melhorias permanentes via Safiras
-  // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
-...
-        const tStats: { atk: number; def: number; hp: number; spe: number; crit: number; elemental: Record<string, number> } = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0, elemental: {} };
+  hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
+  redeemedCodes?: Record<string, boolean>;
+  blackMiticPlusPending?: number; // ovos Plus emitidos pelo Governante que ainda precisam ser marcados no painel
+  grassOddishCaptured?: number; // contador do evento Grass Oddish
+  grassOddishReturnMap?: IdleMapId; // mapa de origem antes de entrar no evento
+};
+
 
         const redDiamonds = items.crystal_red || 0;
         const totalBooks = (items.book_atk || 0) + (items.book_def || 0) + (items.book_exp || 0);
