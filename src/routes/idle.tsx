@@ -14832,6 +14832,8 @@ function TabOverlay({
         </div>
       )}
 
+      {false && tab === "loja" && (
+        <>
           <h3 style={{ color: "#c084fc", fontSize: 15, margin: "6px 0 10px" }}>Livros de Habilidade — pagos em cristais 💎</h3>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
