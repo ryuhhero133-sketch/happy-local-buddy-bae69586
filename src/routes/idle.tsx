@@ -14558,18 +14558,16 @@ function TabOverlay({
             <span style={{ color: "#c084fc" }}>💎 Cristais: {Math.floor(bank.crystals)}</span>
         </div>
       )}
-
       {tab === "loja" && (
-        <div>
-          <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
-            <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
-            <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
-            <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
-          </div>
+        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
+          <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
+          <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
         </div>
       )}
-      {false && tab === "loja" && (
 
+      {false && tab === "loja" && (
+        <div>
           {(() => {
             const bk = SHOP_BOOKS.find((x) => x.id === "orb_team")!;
             const owned = items[bk.id] ?? 0;
