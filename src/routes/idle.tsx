@@ -5546,7 +5546,9 @@ function IdlePage() {
       const col = s.collection ?? [];
       const entry = col.find((e) => e.uid === uid);
       if (!entry) return s;
-      const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
+      const frozen = !!s.redeemedCodes?.RANKED_RUBY_KEY_CRAFT;
+      const baseGain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
+      const gain = frozen ? 0 : baseGain;
       const isEvent = entry.event === "oddish_odyssey";
       const safiraGain = isEvent ? (entry.species === "oddish_shiny" ? 20 : (SAFIRA_VERDE_BY_RARITY[entry.rarity] ?? 1)) : 0;
       // 🌿 Craft de Oddish/Oddish Shiny devolve Stone Verdejante (varia por raridade)
@@ -13189,9 +13191,9 @@ function TabOverlay({
     tab === "mochila"   ? "MOCHILA" :
     tab === "colecao"   ? "COLEÇÃO" :
     tab === "pokedex"   ? "POKÉDEX" :
-    tab === "loja"      ? "LOJA" :
+    tab === "loja"      ? "LOJA BLOQUEADA" :
     tab === "wallet"    ? "CARTEIRA" :
-    tab === "market"    ? "MERCADO" :
+    tab === "market"    ? "MERCADO BLOQUEADO" :
 
     tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
@@ -14544,7 +14546,13 @@ function TabOverlay({
 
 
       {tab === "loja" && (
-        <div style={{ paddingBottom: 60 }}>
+        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
+          <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
+          <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
+        </div>
+      )}
+      {false && tab === "loja" && (
         <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -15186,7 +15194,13 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
+          <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
+          <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
+        </div>
+      )}
+      {false && tab === "market" && (
         <>
           <MarketScreen
             items={items}
