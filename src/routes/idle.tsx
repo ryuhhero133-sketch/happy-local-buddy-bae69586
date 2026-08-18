@@ -5,7 +5,10 @@ import { assetUrlFromJson } from "@/lib/assetUrl";
 import trainerBodyAsset from "@/assets/trainer_body_anatomy.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
 import { Toaster } from "sonner";
-export type { Species, Rarity } from "@/game/systems";
+import type { Species as GameSpecies, Rarity as GameRarity } from "@/game/systems";
+
+export type Species = GameSpecies;
+export type Rarity = GameRarity;
 
 export type CollectionEntry = {
   uid: string;
