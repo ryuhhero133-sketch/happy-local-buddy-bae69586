@@ -1329,7 +1329,8 @@ function IdlePage() {
   const [leaderHp, setLeaderHp] = useState<number>(() => {
     const initTeam = loadTeam();
     const l = initTeam[0];
-    return l ? Math.max(l.hp ?? 0, calcIdleMaxHp(l)) : 0;
+    const s = loadIdle();
+    return l ? Math.max(l.hp ?? 0, calcIdleMaxHp(l, s.trainerStats)) : 0;
   });
   const [leveledAt, setLeveledAt] = useState<number>(0);
   const [levelToast, setLevelToast] = useState<{ level: number; gains: string[]; bonus: string; ts: number } | null>(null);
@@ -1425,14 +1426,14 @@ function IdlePage() {
       setLeaderHp((h) => {
         const leader = t[0];
         if (!leader) return h;
-        const max = calcIdleMaxHp(leader);
+        const max = calcIdleMaxHp(leader, idleRef.current.trainerStats);
         if (h >= max || h <= 0) return h;
         return Math.min(max, h + max * syn.regenPct);
       });
       // Cura pets do time (não-líder)
       setTeam((tm) => tm.map((p, i) => {
         if (i === 0) return p;
-        const max = calcIdleMaxHp(p);
+        const max = calcIdleMaxHp(p, idleRef.current.trainerStats);
         const cur = p.hp ?? max;
         if (cur >= max || cur <= 0) return p;
         return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
@@ -3742,7 +3743,7 @@ function IdlePage() {
       {
         const nowE = Date.now();
         const noTeam = team.length === 0;
-        const allFainted = !noTeam && team.every((p) => (p.uid === team[0].uid ? leaderHp : (p.hp ?? calcIdleMaxHp(p))) <= 0);
+        const allFainted = !noTeam && team.every((p) => (p.uid === team[0].uid ? leaderHp : (p.hp ?? calcIdleMaxHp(p, idle.trainerStats))) <= 0);
         if (allFainted && !restingRef.current && !walkTargetRef.current) {
           const lar = BUILDINGS.find((b) => b.key === "lar");
           if (lar) {
@@ -4167,11 +4168,9 @@ function IdlePage() {
         }, 480);
         setLeaderHp((h) => {
           let nh = Math.max(0, h - eDmg);
-          // (dano rotineiro do inimigo — sem spam no chat)
-          // Auto-poção: se HP% <= threshold, consome 1 poção
           const leaderNow = team[0];
           if (leaderNow && idle.autoHeal.enabled && nh > 0) {
-            const maxHp = calcIdleMaxHp(leaderNow);
+            const maxHp = calcIdleMaxHp(leaderNow, idle.trainerStats);
             if (nh / maxHp <= idle.autoHeal.threshold && (idle.items.potion ?? 0) > 0) {
               const heal = Math.floor(maxHp * POTION_HEAL_PCT);
               nh = Math.min(maxHp, nh + heal);
@@ -4357,7 +4356,7 @@ function IdlePage() {
               if (lv >= 10000) remaining = 0;
               return {
                 ...p, level: lv, xp: remaining,
-                hp: isLeader ? Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })) : Math.min(p.hp, calcIdleMaxHp({ ...p, level: lv })),
+                hp: isLeader ? Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv }, idle.trainerStats)) : Math.min(p.hp, calcIdleMaxHp({ ...p, level: lv }, idle.trainerStats)),
                 energy: newE, energyRegenAt: isLeader ? now : ((p as PetEnergyExt).energyRegenAt ?? now),
               } as PetInstance;
             });
@@ -4858,7 +4857,7 @@ function IdlePage() {
         } while (collidesWithAny(x, y) && tries < 20);
         const petA = makePet(pick.sp, pick.level);
         const hpMult = pick.rarity === "mythic_shiny" ? 4 : pick.rarity === "mythic" ? 3.2 : 2.6;
-        const hp = Math.floor(calcIdleMaxHp(petA) * hpMult);
+        const hp = Math.floor(calcIdleMaxHp(petA, idleRef.current.trainerStats) * hpMult);
         return [
           ...prev,
           { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: false, aggroR: 0, elite: true, level: pick.level, rarity: pick.rarity, eventLegendary: true } as Enemy,
@@ -4963,7 +4962,7 @@ function IdlePage() {
     const iv = setInterval(() => {
       if (Date.now() >= poisonUntilRef.current) return;
       const leader = team[0]; if (!leader) return;
-      const maxHp = calcIdleMaxHp(leader);
+      const maxHp = calcIdleMaxHp(leader, idleRef.current.trainerStats);
       const tick = Math.max(2, Math.floor(maxHp * 0.03));
       setLeaderHp((h) => Math.max(0, h - tick));
       const fx = followerStateRef.current;
@@ -5039,7 +5038,7 @@ function IdlePage() {
     // aplica com pequeno delay para garantir que o setIdle rodou
     setTimeout(() => {
       if (did) {
-        setLeaderHp(calcIdleMaxHp(l));
+        setLeaderHp(calcIdleMaxHp(l, idleRef.current.trainerStats));
         pushFxAt(trainerPos.x, trainerPos.y - 40, "REVIVEU!", "gold");
       } else {
         pushFxAt(trainerPos.x, trainerPos.y - 40, "SEM REVIVE!", "enemyDmg");
@@ -5198,7 +5197,7 @@ function IdlePage() {
     const have = (idle.items[id] ?? 0);
     if (have <= 0) { pushChat(`Você não tem ${id}.`, "info"); return; }
     const useQty = Math.max(1, Math.min(qty, have));
-    const maxHp = calcIdleMaxHp(l);
+    const maxHp = calcIdleMaxHp(l, idle.trainerStats);
     if (id === "potion") {
       if (leaderHp <= 0) { pushChat(`Poção não revive. Reviva por 50 ouro.`, "info"); return; }
       const heal = Math.floor(maxHp * 0.5) * useQty;
@@ -6068,7 +6067,7 @@ function IdlePage() {
         lv = 500 + Math.floor(Math.random() * 401); // 500..900
         pet = makePet(sp, lv, "mythic_shiny");
       }
-      const baseHp = calcIdleMaxHp(pet);
+      const baseHp = calcIdleMaxHp(pet, idleRef.current.trainerStats);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : isDialgaEvent ? 12 : 1;
       const guardianHpMult = isGuardian ? 2.2 : 1;
@@ -6959,10 +6958,10 @@ function IdlePage() {
         ...p,
         energy: fullRecovery ? ENERGY_MAX : (p as PetEnergyExt).energy ?? petCurrentEnergy(p),
         energyRegenAt: fullRecovery ? Date.now() : (p as PetEnergyExt).energyRegenAt ?? Date.now(),
-        hp: calcIdleMaxHp(p),
+        hp: calcIdleMaxHp(p, idleRef.current.trainerStats),
       } as PetInstance)));
       const l = team[0];
-      if (l) setLeaderHp(calcIdleMaxHp(l));
+      if (l) setLeaderHp(calcIdleMaxHp(l, idleRef.current.trainerStats));
       setRestingUntil(null);
       setRestingStart(null);
       setRestingKind(null);
@@ -9293,7 +9292,7 @@ function IdlePage() {
               const leaderSp = leader?.species ?? "charmander";
               const leaderSrc = GIF[leaderSp];
               if (!leaderSrc || !leader) return null;
-              const leaderMax = calcIdleMaxHp(leader);
+              const leaderMax = calcIdleMaxHp(leader, idle.trainerStats);
               const hpPct = Math.max(0, (leaderHp / leaderMax) * 100);
               const xpNeeded = 100 + leader.level * 20;
               const xpPct = Math.min(100, ((leader.xp ?? 0) / xpNeeded) * 100);
@@ -12170,7 +12169,7 @@ function IdlePage() {
         const pet = party.find((p) => p.uid === petDetailUid) ?? team.find((p) => p.uid === petDetailUid);
         if (!pet) return null;
         const now = Date.now();
-        const maxHp = calcIdleMaxHp(pet);
+        const maxHp = calcIdleMaxHp(pet, idle.trainerStats);
         const hp = pet.uid === team[0]?.uid ? leaderHp : (pet.hp ?? maxHp);
         const inTeam = team.some((p) => p.uid === pet.uid);
         const energy = petCurrentEnergy(pet, now, { active: inTeam });
@@ -12808,7 +12807,7 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
       </div>
     );
   }
-  const maxHp = calcIdleMaxHp(pet);
+  const maxHp = calcIdleMaxHp(pet, idle.trainerStats);
   const hp = pet.hp ?? maxHp;
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
   const ePct = Math.max(0, Math.min(100, energy));
@@ -13378,7 +13377,7 @@ function TabOverlay({
                     const isLeader = i === 0;
                     const rarityInfo = RARITY_COLORS[p.rarity] ?? RARITY_COLORS.common;
                     const rc = rarityInfo.c;
-                    const petMax = calcIdleMaxHp(p);
+                    const petMax = calcIdleMaxHp(p, idle.trainerStats);
                     const petHp = isLeader ? leaderHp : (p.hp ?? petMax);
                     const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
                     const hpColor = hpPct > 55 ? "#5ec26a" : hpPct > 25 ? "#f5cf6b" : "#ff5252";
@@ -15988,7 +15987,7 @@ function MarketScreen({
 function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: number; src: string | undefined }) {
 
   const base = SPECIES_BASE[pet.species];
-  const maxHp = calcIdleMaxHp(pet);
+  const maxHp = calcIdleMaxHp(pet, idle.trainerStats);
   const hpPct = Math.max(0, (currentHp / maxHp) * 100);
   const xpNeeded = 100 + pet.level * 20;
   const xp = pet.xp ?? 0;
