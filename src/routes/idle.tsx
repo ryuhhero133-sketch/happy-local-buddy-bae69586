@@ -9866,7 +9866,7 @@ function IdlePage() {
               onClaimMarketPayout={claimMarketPayout}
               isVip={isVip()}
               pokemonMarketNode={
-                <div style={{ position: "relative" }}><div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#fca5a5", padding: 40, textAlign: "center" }}><div style={{ fontSize: 60, marginBottom: 20 }}>🔒</div><h2>MERCADO BLOQUEADO</h2><p>O mercado global está em manutenção e foi desativado.</p></div><PokemonMarketPanel
+                <PokemonMarketPanel
                   identity={identity}
                   collection={idle.collection ?? []}
                   gold={idle.bank.gold}
@@ -14555,7 +14555,7 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "loja" && (
-        <div>
+        <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -15203,7 +15203,7 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "market" && (
-        <div>
+        <>
           <MarketScreen
             items={items}
             bank={bank}
