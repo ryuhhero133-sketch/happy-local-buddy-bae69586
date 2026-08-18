@@ -157,6 +157,8 @@ import mapOddish2Asset from "@/assets/map-oddish-2.png.asset.json";
 import mapOddish3Url from "@/assets/map-oddish3.png";
 import absolStartMapAsset from "@/assets/absol-start-map.png.asset.json";
 import governanteHallMapAsset from "@/assets/governante-hall-map.png.asset.json";
+import continent3Map1Asset from "@/assets/maps/map-continent3-1.png.asset.json";
+import continent3Map2Asset from "@/assets/maps/map-continent3-2.png.asset.json";
 import npcGovernanteAsset from "@/assets/npc-governante.png.asset.json";
 import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
 import oddishEventGifAsset from "@/assets/oddish-event.gif.asset.json";
