@@ -6,7 +6,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase as _supabase } from "@/integrations/supabase/client";
-import type { CollectionEntry, Species, Rarity } from "@/game/systems";
+import type { CollectionEntry, Species, Rarity } from "@/routes/idle";
+
 
 import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
