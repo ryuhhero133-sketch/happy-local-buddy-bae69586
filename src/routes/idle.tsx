@@ -14547,7 +14547,7 @@ function TabOverlay({
 
 
 
-      {tab === "LOJA_DISABLED" && (
+      {tab === "loja" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
@@ -15195,7 +15195,7 @@ function TabOverlay({
         <WalletScreen bank={bank} onExchange={onExchange} />
       )}
 
-      {tab === "MARKET_DISABLED" && (
+      {tab === "market" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
