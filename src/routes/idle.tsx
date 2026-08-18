@@ -15150,19 +15150,26 @@ function TabOverlay({
               </div>
               <div style={{ flex: 1, minWidth: 280 }}>
                 <h3 style={{ color: "#f5cf6b", margin: "0 0 12px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
                   {radarPoints.map(p => {
                     const k = p.key;
+                    const cfg = stonesMap[k];
                     return (
-                      <div key={p.key} style={{ background: "#1a0f26", border: "1px solid #3a2e58", borderRadius: 10, padding: "8px 12px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                          <span style={{ fontSize: 10, color: "#a8a0b8", textTransform: "uppercase" }}>{p.label}</span>
-                          <span style={{ fontSize: 12, fontWeight: 900, color: "#f5cf6b" }}>Lv.{stats[k] ?? 0}</span>
+                      <div key={p.key} style={{ background: "#1a0f26", border: "1px solid #3a2e58", borderRadius: 10, padding: "8px 12px", display: "flex", gap: 10, alignItems: "center" }}>
+                        <div style={{ width: 36, height: 36, background: "#000", borderRadius: 8, display: "grid", placeItems: "center", border: `1px solid ${cfg.color}44` }}>
+                          <img src={STONE_CHEST[cfg.stone]} alt="" style={{ width: 28, height: 28, imageRendering: "pixelated" }} />
                         </div>
-                        <button 
-                          onClick={() => upgradeStat(k)}
-                          style={{ width: "100%", padding: "4px", background: "linear-gradient(180deg, #ffd94d, #d99b1a)", border: "none", borderRadius: 4, fontSize: 10, fontWeight: 900, cursor: "pointer", color: "#231407" }}
-                        >+ MELHORAR</button>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                            <span style={{ fontSize: 10, color: cfg.color, fontWeight: 900 }}>{p.label} <span style={{ color: "#a8a0b8", fontSize: 9 }}>Lv.{stats[k] ?? 0}</span></span>
+                            <span style={{ fontSize: 9, color: "#ff5252", fontWeight: 700 }}>Falha: {cfg.fail}%</span>
+                          </div>
+                          <div style={{ fontSize: 9, color: "#eadfe8", marginBottom: 4, opacity: 0.8 }}>{cfg.desc}</div>
+                          <button 
+                            onClick={() => upgradeStat(k)}
+                            style={{ width: "100%", padding: "4px", background: `linear-gradient(180deg, ${cfg.color}, ${cfg.color}aa)`, border: "none", borderRadius: 4, fontSize: 10, fontWeight: 900, cursor: "pointer", color: "#000" }}
+                          >MELHORAR (Custo: 50+ Stones)</button>
+                        </div>
                       </div>
                     );
                   })}
