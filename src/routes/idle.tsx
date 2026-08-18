@@ -7821,7 +7821,7 @@ function IdlePage() {
         <div style={{ background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px" }}>
           <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px" }}>MAPA ATUAL</div>
           <div style={{ fontSize: "14px", fontWeight: 800, color: "#fff" }}>{map.name}</div>
-          <div style={{ fontSize: "11px", color: "#8a7a9c" }}>Lv. {map.minLv}-{map.maxLv}</div>
+          <div style={{ fontSize: "11px", color: "#8a7a9c" }}>Lv. {map.minLevel}-{map.maxLevel}</div>
         </div>
         
         <div style={{ background: "#1a0f26", border: "1px solid rgba(126, 242, 122, 0.3)", borderRadius: "12px", padding: "12px" }}>
@@ -7849,10 +7849,11 @@ function IdlePage() {
         {[
           { id: "inicio", icon: HUD_ASSETS.navInicio.url, label: "INÍCIO", action: () => setTab("batalha") },
           { id: "pokemon", icon: HUD_ASSETS.navPokemon.url, label: "POKÉMON", action: () => setTab("pokemon") },
-          { id: "mochila", icon: HUD_ASSETS.navMochila.url, label: "MOCHILA", action: () => setTab("bag") },
+          { id: "mochila", icon: HUD_ASSETS.navMochila.url, label: "MOCHILA", action: () => setTab("mochila") },
           { id: "melhorias", icon: HUD_ASSETS.navMelhorias.url, label: "MELHORIAS", action: () => setTab("melhorias") },
           { id: "colecao", icon: HUD_ASSETS.navColecao.url, label: "COLEÇÃO", action: () => setTab("colecao") },
-          { id: "loja", icon: HUD_ASSETS.navLoja.url, label: "LOJA", action: () => setTab("shop") },
+          { id: "loja", icon: HUD_ASSETS.navLoja.url, label: "LOJA", action: () => setTab("loja") },
+
           { id: "wallet", icon: HUD_ASSETS.navWallet.url, label: "CÂMBIO", action: () => setTab("wallet") },
           { id: "market", icon: HUD_ASSETS.navMarket.url, label: "MERCADO", action: () => setTab("market") },
         ].map(item => (
@@ -10054,6 +10055,7 @@ function IdlePage() {
 
 
 
+
         <div className="modern-top-bar" style={{ 
           position: 'fixed', top: 0, left: 0, right: 0, height: '65px',
           background: 'linear-gradient(180deg, rgba(11, 5, 20, 0.95) 0%, rgba(11, 5, 20, 0.7) 100%)',
@@ -10314,10 +10316,10 @@ function IdlePage() {
             <span style={{ fontSize: '24px' }}>🏪</span>
             <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
           </button>
-
         </div>
-      </div>
-    </div>
+
+
+
 
     {(tab !== "batalha" && tab !== "inicio") && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 2000000, pointerEvents: 'auto' }}>
@@ -10571,7 +10573,6 @@ function IdlePage() {
             </div>
           )}
         </div>
-      </div>
       <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
         {restingUntil !== null && restingStart !== null && (() => {
 
@@ -13116,9 +13117,11 @@ function IdlePage() {
       {isAdminOpen && (
         <AdminDashboard onClose={() => setIsAdminOpen(false)} />
       )}
+    </div>
     </>
   );
 }
+
 
 
 
