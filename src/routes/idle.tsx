@@ -469,7 +469,9 @@ type IdleMapId =
   // Evento Grass Oddish — mapa exclusivo, entrada custa 20 Stone Verdejante
   | "grass_oddish"
   // Continente do Governante — acesso via Carta do Governante
-  | "absol_start" | "governante_hall";
+  | "absol_start" | "governante_hall"
+  // Terceiro Continente — Bônus
+  | "continent3_map1" | "continent3_map2";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
