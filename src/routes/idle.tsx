@@ -10,6 +10,7 @@ import { obfuscate, deobfuscate } from "@/lib/utils";
 
 
 
+import { HUD_ASSETS } from "@/lib/hud-assets";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -7704,12 +7705,39 @@ function IdlePage() {
     <>
     <div className="game-root-container" style={{
       height: "100vh",
-      background: "#000",
+      background: "#0b0510",
       color: "#f3e5c5",
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
-      position: "relative"
+      position: "relative",
+      display: "grid",
+      gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
+      gap: "8px",
+      padding: "8px"
     }}>
+      <div className="hud-left-column" style={{ display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden", zIndex: 10 }}>
+        <TrainerProfileHUD 
+          identity={identity} 
+          trainerLevel={idle.trainerLevel || 1} 
+          trainerXp={idle.trainerXp || 0} 
+          xpNext={trainerXpToNext(idle.trainerLevel || 1)} 
+          onOpenAdmin={() => setIsAdminOpen(true)}
+        />
+        <TeamPanelHUD 
+          team={team} 
+          leaderHp={leaderHp} 
+          calcIdleMaxHp={calcIdleMaxHp} 
+          onOpenPokemon={(p: any) => setStatsCardPet(p)}
+        />
+        <div style={{ flex: 1, background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px", letterSpacing: "1px" }}>REGISTRO DE BATALHA</div>
+          <div className="battle-log" style={{ flex: 1, overflowY: "auto", fontSize: "11px", color: "#dcc8e0", display: "flex", flexDirection: "column", gap: "4px" }}>
+             {chat.slice(-20).map((m: any, i: number) => (
+               <div key={i} style={{ borderLeft: "2px solid rgba(255,255,255,0.1)", paddingLeft: "6px" }}>{m.text}</div>
+             ))}
+          </div>
+        </div>
+      </div>
       <div
         className="legacy-world-viewport"
         ref={viewportRef}
@@ -7732,10 +7760,7 @@ function IdlePage() {
           overflow: 'hidden',
           background: viewportBg,
           cursor: 'crosshair',
-          zIndex: 0,
-          pointerEvents: 'auto',
-        }}
-      >
+          zIndex: 0, pointerEvents: "auto" }}>
         <div 
           className="legacy-world-layer"
           style={{
@@ -7789,6 +7814,57 @@ function IdlePage() {
               filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
             }} />
           ))}
+        </div>
+      </div>
+
+      <div className="hud-right-column" style={{ display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden", zIndex: 10 }}>
+        <div style={{ background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px" }}>MAPA ATUAL</div>
+          <div style={{ fontSize: "14px", fontWeight: 800, color: "#fff" }}>{map.name}</div>
+          <div style={{ fontSize: "11px", color: "#8a7a9c" }}>Lv. {map.minLv}-{map.maxLv}</div>
+        </div>
+        
+        <div style={{ background: "#1a0f26", border: "1px solid rgba(126, 242, 122, 0.3)", borderRadius: "12px", padding: "12px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 900, color: "#7ef27a", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+            <img src={HUD_ASSETS.collectIcon.url} width={16} height={16} style={{ imageRendering: "pixelated" }} /> COLETA
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+            <span style={{ color: "#dcc8e0" }}>Ouro Farmado:</span>
+            <span style={{ color: "#f5cf6b", fontWeight: 800 }}>💰 {fmtK(idle.pending.gold)}</span>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px", overflowY: "auto" }}>
+           <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px" }}>TAREFAS</div>
+           <div style={{ fontSize: "11px", color: "#dcc8e0" }}>Nenhuma missão ativa</div>
+        </div>
+      </div>
+
+      <div className="modern-bottom-dock" style={{
+        position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
+        zIndex: 1000, display: "flex", gap: "12px", background: "rgba(26, 15, 38, 0.95)",
+        padding: "8px 20px", borderRadius: "20px", border: "2px solid #f5cf6b44",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.8)"
+      }}>
+        {[
+          { id: "inicio", icon: HUD_ASSETS.navInicio.url, label: "INÍCIO", action: () => setTab("batalha") },
+          { id: "pokemon", icon: HUD_ASSETS.navPokemon.url, label: "POKÉMON", action: () => setTab("pokemon") },
+          { id: "mochila", icon: HUD_ASSETS.navMochila.url, label: "MOCHILA", action: () => setTab("bag") },
+          { id: "melhorias", icon: HUD_ASSETS.navMelhorias.url, label: "MELHORIAS", action: () => setTab("melhorias") },
+          { id: "colecao", icon: HUD_ASSETS.navColecao.url, label: "COLEÇÃO", action: () => setTab("colecao") },
+          { id: "loja", icon: HUD_ASSETS.navLoja.url, label: "LOJA", action: () => setTab("shop") },
+          { id: "wallet", icon: HUD_ASSETS.navWallet.url, label: "CÂMBIO", action: () => setTab("wallet") },
+          { id: "market", icon: HUD_ASSETS.navMarket.url, label: "MERCADO", action: () => setTab("market") },
+        ].map(item => (
+          <button key={item.id} onClick={item.action} style={{
+            background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column",
+            alignItems: "center", gap: "4px", minWidth: "60px", transition: "transform 0.2s"
+          }} className="dock-item">
+            <img src={item.icon} style={{ width: "34px", height: "34px", imageRendering: "pixelated" }} />
+            <span style={{ fontSize: "9px", fontWeight: 900, color: "#f3e5c5" }}>{item.label}</span>
+          </button>
+        ))}
+      </div>
 
       <style>{`
         .modern-floating-window {
@@ -7807,19 +7883,12 @@ function IdlePage() {
         .side-btn:active {
           transform: scale(0.95);
         }
-        .bottom-dock-container button {
-          transition: transform 0.2s, opacity 0.2s;
-          pointer-events: auto !important;
-        }
-        .bottom-dock-container button:hover {
+        .dock-item:hover {
           transform: translateY(-5px);
           opacity: 0.8;
         }
-        .bottom-dock-container button:active {
+        .dock-item:active {
           transform: translateY(0) scale(0.9);
-        }
-        .bottom-dock-container {
-          pointer-events: auto !important;
         }
         .resource-item {
           transition: transform 0.2s;
@@ -7844,7 +7913,6 @@ function IdlePage() {
         .chat-floating-panel:hover {
            max-height: 400px !important;
         }
-
       `}</style>
 
 
@@ -9979,16 +10047,13 @@ function IdlePage() {
                 </div>
               );
             })}
-          </div>
         </div>
 
 
-      {/* Camada de HUD — Camada flutuante transparente acima do jogo */}
-      <div className="hud-overlay-container" style={{ position: 'fixed', inset: 0, zIndex: 1000, pointerEvents: 'none', background: 'transparent' }}>
 
 
-        
-        {/* Barra Superior Moderna (Arquitetura da Imagem) */}
+
+
         <div className="modern-top-bar" style={{ 
           position: 'fixed', top: 0, left: 0, right: 0, height: '65px',
           background: 'linear-gradient(180deg, rgba(11, 5, 20, 0.95) 0%, rgba(11, 5, 20, 0.7) 100%)',
@@ -10856,10 +10921,12 @@ function IdlePage() {
               trainerLevel={idle.trainerLevel ?? 1}
               onUpgradeBook={upgradeBook}
             />
-            </div>
           )}
-        </div>
-      </div>
+
+
+
+
+
 
 
       <style>{`
