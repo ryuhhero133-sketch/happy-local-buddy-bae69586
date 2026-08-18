@@ -7358,46 +7358,8 @@ function IdlePage() {
           </div>
         </div>
       )}
-      {/* ❄️ Overlay de Congelamento — ativo quando a Chave Ruby do Ranked CRAFT foi coletada. */}
-      {idle.redeemedCodes?.RANKED_RUBY_KEY_CRAFT && (
-        <>
-          <style>{`
-            @keyframes rm-ice-drift { 0%{background-position:0 0,0 0} 100%{background-position:600px 400px,-500px 350px} }
-            @keyframes rm-ice-pulse { 0%,100%{opacity:.55} 50%{opacity:.85} }
-            @keyframes rm-ice-shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
-          `}</style>
-          <div style={{
-            position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9998,
-            background: `
-              radial-gradient(1200px 800px at 50% 50%, rgba(180,230,255,0.0) 0%, rgba(120,200,255,0.18) 55%, rgba(60,140,220,0.32) 100%),
-              repeating-linear-gradient(45deg, rgba(200,240,255,0.06) 0 3px, transparent 3px 12px),
-              repeating-linear-gradient(-45deg, rgba(160,220,255,0.05) 0 2px, transparent 2px 10px)
-            `,
-            backgroundSize: "auto, 24px 24px, 20px 20px",
-            animation: "rm-ice-drift 40s linear infinite, rm-ice-pulse 4s ease-in-out infinite",
-            boxShadow: "inset 0 0 220px 60px rgba(120,200,255,0.35), inset 0 0 60px 20px rgba(200,240,255,0.5)",
-            mixBlendMode: "screen",
-          }} />
-          {/* Bordas de cristal */}
-          <div style={{
-            position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9999,
-            border: "6px solid transparent",
-            borderImage: "linear-gradient(135deg, rgba(200,240,255,0.9), rgba(90,170,230,0.5), rgba(200,240,255,0.9)) 1",
-            boxShadow: "inset 0 0 40px rgba(180,230,255,0.6)",
-          }} />
-          {/* Badge congelado */}
-          <div style={{
-            position: "fixed", top: 8, left: "50%", transform: "translateX(-50%)", zIndex: 10000,
-            padding: "5px 14px", borderRadius: 999,
-            background: "linear-gradient(90deg, rgba(30,80,140,0.85), rgba(120,200,255,0.85), rgba(30,80,140,0.85))",
-            border: "1px solid rgba(200,240,255,0.75)",
-            color: "#e8f7ff", fontWeight: 900, fontSize: 11, letterSpacing: 1.2,
-            textShadow: "0 0 8px rgba(200,240,255,0.9)",
-            boxShadow: "0 0 18px rgba(120,200,255,0.7)",
-            pointerEvents: "none",
-          }}>❄ RANKED CRAFT CONGELADO — PONTOS BLOQUEADOS ❄</div>
-        </>
-      )}
+      {/* ❄️ Overlay de Congelamento REMOVIDO */}
+
 
       {(() => {
         const cornerOrn = (pos: "tl"|"tr"|"bl"|"br"): React.CSSProperties => ({
@@ -13229,9 +13191,9 @@ function TabOverlay({
     tab === "mochila"   ? "MOCHILA" :
     tab === "colecao"   ? "COLEÇÃO" :
     tab === "pokedex"   ? "POKÉDEX" :
-    tab === "loja"      ? "LOJA" :
+    tab === "loja"      ? "LOJA BLOQUEADA" :
     tab === "wallet"    ? "CARTEIRA" :
-    tab === "market"    ? "MERCADO" :
+    tab === "market"    ? "MERCADO BLOQUEADO" :
 
     tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
@@ -14584,7 +14546,13 @@ function TabOverlay({
 
 
       {tab === "loja" && (
-        <div>
+        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
+          <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
+          <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
+        </div>
+      )}
+      {false && tab === "loja" && (
           <div style={{
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -15173,7 +15141,13 @@ function TabOverlay({
       )}
 
       {tab === "market" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
+          <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
+          <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
+        </div>
+      )}
+      {false && tab === "market" && (
           {pokemonMarketNode}
           <MarketScreen
             items={items}
