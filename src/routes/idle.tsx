@@ -14832,7 +14832,7 @@ function TabOverlay({
         </div>
       )}
 
-      {false && tab === "loja" && (
+      {tab === "loja" && (
         <div>
           <h3 style={{ color: "#c084fc", fontSize: 15, margin: "6px 0 10px" }}>Livros de Habilidade — pagos em cristais 💎</h3>
 
