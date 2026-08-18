@@ -15072,16 +15072,21 @@ function TabOverlay({
         const orbPct = orbActive ? Math.round((idle.buffs?.orbMult ?? 0) * 100) : 0;
         const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
         const totalExpPct = bookPct + orbPct + honeyPct;
-
         const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
+        const stonesMap: Record<keyof typeof stats, { stone: string, color: string, label: string, desc: string, fail: number }> = {
+          attack: { stone: "stone_fire", color: "#ff5252", label: "ATAQUE", desc: "Dano Total +5% por nível.", fail: 15 },
+          speed: { stone: "stone_electric", color: "#ffd94d", label: "VELO", desc: "Intervalo Atk -0.05s.", fail: 12 },
+          synergy: { stone: "stone_grass", color: "#c084fc", label: "SINERG", desc: "Bônus tipo duplicado +2%.", fail: 20 },
+          resistance: { stone: "stone_water", color: "#4a7bff", label: "RESIST", desc: "Dano Recebido -3%.", fail: 10 },
+          mastery: { stone: "stone_dragon", color: "#5ec26a", label: "MASTER", desc: "Crítico e Elemental +1.5%.", fail: 25 },
+        };
         const radarPoints = [
-          { label: "ATAQUE", val: 20 + (stats.attack ?? 0) * 8, color: "#ff5252", key: "attack" as const },
-          { label: "VELO",   val: 20 + (stats.speed ?? 0) * 8,  color: "#ffd94d", key: "speed" as const },
-          { label: "SINERG", val: 20 + (stats.synergy ?? 0) * 8, color: "#c084fc", key: "synergy" as const },
-          { label: "RESIST", val: 20 + (stats.resistance ?? 0) * 8, color: "#4a7bff", key: "resistance" as const },
-          { label: "MASTER", val: 20 + (stats.mastery ?? 0) * 8, color: "#5ec26a", key: "mastery" as const },
+          { label: stonesMap.attack.label, val: 20 + (stats.attack ?? 0) * 8, color: stonesMap.attack.color, key: "attack" as const },
+          { label: stonesMap.speed.label, val: 20 + (stats.speed ?? 0) * 8, color: stonesMap.speed.color, key: "speed" as const },
+          { label: stonesMap.synergy.label, val: 20 + (stats.synergy ?? 0) * 8, color: stonesMap.synergy.color, key: "synergy" as const },
+          { label: stonesMap.resistance.label, val: 20 + (stats.resistance ?? 0) * 8, color: stonesMap.resistance.color, key: "resistance" as const },
+          { label: stonesMap.mastery.label, val: 20 + (stats.mastery ?? 0) * 8, color: stonesMap.mastery.color, key: "mastery" as const },
         ];
-
         const getPolyPoints = (scale = 1) => {
           return radarPoints.map((p, i) => {
             const angle = (i * 2 * Math.PI) / radarPoints.length - Math.PI / 2;
@@ -15089,34 +15094,33 @@ function TabOverlay({
             return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`;
           }).join(" ");
         };
-
         const upgradeStat = (key: keyof typeof stats) => {
           const curLv = stats[key] ?? 0;
+          const config = stonesMap[key];
           const stoneCost = 50 + curLv * 25;
           const bookCost = 1 + Math.floor(curLv / 2);
-          const stones = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
-          const hasStones = stones.every(s => (idle.items[s] ?? 0) >= stoneCost);
+          const hasStones = (idle.items[config.stone] ?? 0) >= stoneCost;
           const hasBooks = (idle.items.book_atk ?? 0) >= bookCost && (idle.items.book_def ?? 0) >= bookCost;
-
           if (!hasStones || !hasBooks) {
-            pushChat(`Recursos insuficientes! Requer ${stoneCost}x de cada Stone e ${bookCost}x Livros ATK/DEF.`, "info");
+            pushChat(`Falta: ${stoneCost}x ${config.stone.replace("stone_","").toUpperCase()} e ${bookCost}x Livros.`, "info");
             return;
           }
-
-
+          if (Math.random() * 100 < config.fail) {
+            setIdle((s: any) => {
+              const ni = { ...s.items }; ni[config.stone] = (ni[config.stone] ?? 0) - Math.floor(stoneCost/2);
+              return { ...s, items: ni };
+            });
+            pushChat(`❌ FALHA! Perdido: ${Math.floor(stoneCost/2)}x Stones.`, "info");
+            return;
+          }
           setIdle((s: any) => {
-            const nextItems = { ...s.items };
-            stones.forEach(st => nextItems[st] = (nextItems[st] ?? 0) - stoneCost);
-            nextItems.book_atk = (nextItems.book_atk ?? 0) - bookCost;
-            nextItems.book_def = (nextItems.book_def ?? 0) - bookCost;
-            return {
-              ...s,
-              items: nextItems,
-              globalStats: { ...stats, [key]: curLv + 1 }
-            };
+            const ni = { ...s.items };
+            ni[config.stone] = (ni[config.stone] ?? 0) - stoneCost;
+            ni.book_atk = (ni.book_atk ?? 0) - bookCost;
+            ni.book_def = (ni.book_def ?? 0) - bookCost;
+            return { ...s, items: ni, globalStats: { ...stats, [key]: curLv + 1 } };
           });
-
-          pushChat(`✨ Evoluiu ${String(key).toUpperCase()} para Nível ${curLv + 1}!`, "cap");
+          pushChat(`✨ Evoluiu ${config.label} para Nível ${curLv + 1}!`, "cap");
         };
 
         return (
@@ -15150,19 +15154,26 @@ function TabOverlay({
               </div>
               <div style={{ flex: 1, minWidth: 280 }}>
                 <h3 style={{ color: "#f5cf6b", margin: "0 0 12px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
                   {radarPoints.map(p => {
                     const k = p.key;
+                    const cfg = stonesMap[k];
                     return (
-                      <div key={p.key} style={{ background: "#1a0f26", border: "1px solid #3a2e58", borderRadius: 10, padding: "8px 12px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                          <span style={{ fontSize: 10, color: "#a8a0b8", textTransform: "uppercase" }}>{p.label}</span>
-                          <span style={{ fontSize: 12, fontWeight: 900, color: "#f5cf6b" }}>Lv.{stats[k] ?? 0}</span>
+                      <div key={p.key} style={{ background: "#1a0f26", border: "1px solid #3a2e58", borderRadius: 10, padding: "8px 12px", display: "flex", gap: 10, alignItems: "center" }}>
+                        <div style={{ width: 36, height: 36, background: "#000", borderRadius: 8, display: "grid", placeItems: "center", border: `1px solid ${cfg.color}44` }}>
+                          <img src={STONE_CHEST[cfg.stone]} alt="" style={{ width: 28, height: 28, imageRendering: "pixelated" }} />
                         </div>
-                        <button 
-                          onClick={() => upgradeStat(k)}
-                          style={{ width: "100%", padding: "4px", background: "linear-gradient(180deg, #ffd94d, #d99b1a)", border: "none", borderRadius: 4, fontSize: 10, fontWeight: 900, cursor: "pointer", color: "#231407" }}
-                        >+ MELHORAR</button>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                            <span style={{ fontSize: 10, color: cfg.color, fontWeight: 900 }}>{p.label} <span style={{ color: "#a8a0b8", fontSize: 9 }}>Lv.{stats[k] ?? 0}</span></span>
+                            <span style={{ fontSize: 9, color: "#ff5252", fontWeight: 700 }}>Falha: {cfg.fail}%</span>
+                          </div>
+                          <div style={{ fontSize: 9, color: "#eadfe8", marginBottom: 4, opacity: 0.8 }}>{cfg.desc}</div>
+                          <button 
+                            onClick={() => upgradeStat(k)}
+                            style={{ width: "100%", padding: "4px", background: `linear-gradient(180deg, ${cfg.color}, ${cfg.color}aa)`, border: "none", borderRadius: 4, fontSize: 10, fontWeight: 900, cursor: "pointer", color: "#000" }}
+                          >MELHORAR (Custo: 50+ Stones)</button>
+                        </div>
                       </div>
                     );
                   })}
