@@ -15573,7 +15573,7 @@ function WalletScreen({
     </div>
   );
 }
-}
+
 
 // ============ MERCADO P2P (jogador vs jogador) ============
 type MarketListing = {
