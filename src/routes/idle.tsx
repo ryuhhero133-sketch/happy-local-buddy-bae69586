@@ -14555,10 +14555,12 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "loja" && (
+        <div style={{ display: "none" }}>
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
+        </div>
         </div>
       )}
       {false && tab === "loja" && (
@@ -15210,10 +15212,12 @@ function TabOverlay({
         </div>
       )}
       {false && tab === "market" && (
+        <div style={{ display: "none" }}>
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
+        </div>
         </div>
       )}
       {false && tab === "market" && (
