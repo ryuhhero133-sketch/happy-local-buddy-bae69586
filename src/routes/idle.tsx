@@ -13193,7 +13193,7 @@ function TabOverlay({
     tab === "colecao"   ? "COLEÇÃO" :
     tab === "pokedex"   ? "POKÉDEX" :
     tab === "loja"      ? "LOJA" :
-    tab === "wallet"    ? "CARTEIRA" :
+    tab === "wallet"    ? "BANCO MEDIEVAL" :
     tab === "market"    ? "MERCADO BLOQUEADO" :
 
     tab === "melhorias" ? "MELHORIAS" :
