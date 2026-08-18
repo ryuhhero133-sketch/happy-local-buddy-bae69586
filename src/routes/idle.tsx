@@ -10318,7 +10318,6 @@ function IdlePage() {
           </button>
 
         </div>
-      </div>
 
 
 
