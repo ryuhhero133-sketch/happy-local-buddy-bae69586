@@ -10927,7 +10927,6 @@ function IdlePage() {
           )}
         </div>
       </div>
-    </div>
 
 
       <style>{`
