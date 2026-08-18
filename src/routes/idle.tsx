@@ -1020,7 +1020,7 @@ type IdleState = {
             const normalized = 0.3 + (Math.min(1, (s.val) / 50) * 0.7); 
             const x = centerX + radius * normalized * Math.cos(angle);
             const y = centerY + radius * normalized * Math.sin(angle);
-            return { x, y, label: s.label, color: s.color, angle };
+            return { x, y, label: s.label, color: s.color, angle, val: s.val };
           });
 
           const polygonPoints = points.map(p => `${p.x},${p.y}`).join(" ");
