@@ -15809,7 +15809,7 @@ function MarketScreen({
               );
             })}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
