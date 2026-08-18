@@ -4421,7 +4421,8 @@ function IdlePage() {
               });
               setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
               newItems[usedBall.id] = (newItems[usedBall.id] ?? 0) - 1;
-              const baseChance = 0.020; // mais difícil: 2.0% base (com bola comum)
+              const masteryBonus = (idle.globalStats?.mastery ?? 0) * 0.005;
+            const baseChance = 0.020 + masteryBonus; // mais difícil: 2.0% base (com bola comum) + Mastery
               if (target.menace) {
                 // 💀 PERIGO ABISSAL — impossível capturar. Ao ser atacado com pokébola, vira agressivo.
                 captured = false;
