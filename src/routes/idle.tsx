@@ -10334,7 +10334,6 @@ function IdlePage() {
             collection={idle.collection || []}
             idle={idle}
             setIdle={setIdle}
-
             craftPoints={idle.items?.cristal_fragmentado || 0}
             onFragmentCollection={fragmentCollection}
             gifMap={GIF}
@@ -10380,7 +10379,8 @@ function IdlePage() {
             pokemonMarketNode={undefined}
             benchUids={new Set()}
           />
-        )}
+        </div>
+      )}
 
 
 
