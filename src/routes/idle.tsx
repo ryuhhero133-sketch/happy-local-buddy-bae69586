@@ -8689,7 +8689,7 @@ function IdlePage() {
             {(() => {
               const lv = idle.trainerLevel ?? 1;
               return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => {
-                const locked = !!(p.reqLevel && lv < p.reqLevel);
+                const locked = false; // Ignora requisito de nível para portais do mundo
                 return (
                   <div
                     key={p.key}
@@ -10091,6 +10091,7 @@ function IdlePage() {
                 nucleo_primordial: [
                   { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
                   { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
+                  { key: "np-c3",    target: "continent3_map1", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#f0abfc" },
                 ],
                 // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
                 gelius1: [
@@ -10334,7 +10335,7 @@ function IdlePage() {
                         <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
                           🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
                             const tm = IDLE_MAPS[g.target];
-                            const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
+                            const ok = true; // Ignora requisito de nível para portais
                             return (
                               <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
                                 ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
@@ -10466,12 +10467,12 @@ function IdlePage() {
                             {WORLD_PINS.map((pin) => {
                               const m = IDLE_MAPS[pin.id];
                               if (!m) return null;
-                              const ok = trainerLv >= m.minLevel;
+                              const ok = true; // Ignora requisito de nível conforme pedido do usuário
                               const current = idle.currentMap === pin.id;
                               return (
                                 <button
                                   key={pin.id}
-                                  title={m.raid ? `${m.name} · RAID (chefes Lv variados)` : `${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}`}
+                                  title={m.raid ? `${m.name} · RAID (chefes Lv variados)` : `${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}${trainerLv < m.minLevel ? " (LIVRE)" : ""}`}
                                   onClick={() => {
                                     if (current) { setWorldMapOpen(false); return; }
                                     playClick();
@@ -10484,7 +10485,7 @@ function IdlePage() {
                                     };
                                     // Pergaminho de Teleporte — se tiver e o mapa for elegível (nível OK), teleporta instantâneo sem custo
                                     const scrolls = idle.items?.scroll_teleport ?? 0;
-                                    if (scrolls > 0 && (idle.trainerLevel ?? 1) >= m.minLevel) {
+                                    if (scrolls > 0 && true) {
                                       setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
                                       setWorldMapOpen(false);
                                       travelToGate(synthGate);
