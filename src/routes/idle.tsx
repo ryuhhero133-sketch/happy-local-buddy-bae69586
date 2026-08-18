@@ -14554,7 +14554,7 @@ function TabOverlay({
           <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
         </div>
       )}
-      {false && tab === "loja" && (
+      {false && tab === "loja_admin_locked" && (
         <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -15202,7 +15202,7 @@ function TabOverlay({
           <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
         </div>
       )}
-      {false && tab === "market" && (
+      {false && tab === "market_admin_locked" && (
         <>
           <MarketScreen
             items={items}
