@@ -15097,8 +15097,7 @@ function TabOverlay({
             pushChat(`Recursos insuficientes! Requer ${stoneCost}x de cada Stone e ${bookCost}x Livros ATK/DEF.`, "info");
             return;
           }
-            return;
-          }
+
 
           setIdle(s => {
             const nextItems = { ...s.items };
