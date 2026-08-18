@@ -13803,12 +13803,20 @@ function TabOverlay({
                   fontSize: 10.5, fontWeight: 900, letterSpacing: 0.5,
                   boxShadow: `inset 0 0 0 1px ${P.goldLight}80`,
                 }}>{totalTypes} tipos · {totalCount} itens</div>
-                <div style={{
-                  background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`, color: P.ink,
-                  border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
-                  fontSize: 11, fontWeight: 900,
-                  boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-                }}>💰 {bank.gold.toLocaleString()}</div>
+                <div style={{ display: "flex", gap: 5 }}>
+                  <div style={{
+                    background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`, color: P.ink,
+                    border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
+                    fontSize: 11, fontWeight: 900,
+                    boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+                  }}>💰 {bank.gold.toLocaleString()}</div>
+                  <div style={{
+                    background: "linear-gradient(180deg, #c084fc, #9333ea)", color: "#fff",
+                    border: "1.5px solid #7e22ce", borderRadius: 8, padding: "3px 10px",
+                    fontSize: 11, fontWeight: 900,
+                    boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+                  }}>💎 {Math.floor(bank.crystals).toLocaleString()}</div>
+                </div>
               </div>
             </div>
 
