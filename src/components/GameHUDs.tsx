@@ -39,12 +39,11 @@ export function TrainerProfileHUD({ identity, trainerLevel, trainerXp, xpNext, o
   const pct = Math.min(100, (trainerXp / (xpNext || 1)) * 100);
   return (
     <div style={{
-      background: 'rgba(11, 5, 20, 0.85)',
-      backdropFilter: 'blur(8px)',
-      border: '1px solid rgba(201,184,255,0.3)',
-      borderRadius: 16,
-      padding: '10px 14px',
-      width: 220,
+      background: 'linear-gradient(180deg, #1a0f26 0%, #0b0510 100%)',
+      border: '1px solid rgba(245, 207, 107, 0.3)',
+      borderRadius: 12,
+      padding: '12px',
+      width: '100%',
       pointerEvents: 'auto',
       boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
       display: 'flex',
@@ -54,24 +53,25 @@ export function TrainerProfileHUD({ identity, trainerLevel, trainerXp, xpNext, o
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ 
-            width: 32, height: 32, borderRadius: 8, 
-            background: 'linear-gradient(135deg, #c9b8ff 0%, #7c4dff 100%)',
-            display: 'grid', placeItems: 'center', fontSize: 16
+            width: 32, height: 32, borderRadius: 6, 
+            background: 'linear-gradient(135deg, #ffd94d 0%, #b8862a 100%)',
+            display: 'grid', placeItems: 'center', fontSize: 16,
+            border: '1px solid #fff4d0'
           }}>👤</div>
-          <span style={{ fontWeight: 900, color: '#fff', fontSize: 12 }}>{identity?.name || 'TREINADOR'}</span>
+          <span style={{ fontWeight: 900, color: '#fff', fontSize: 12, letterSpacing: 0.5 }}>{identity?.name?.toUpperCase() || 'TREINADOR'}</span>
         </div>
-        <div style={{ background: '#f5cf6b', color: '#0b0510', padding: '2px 6px', borderRadius: 6, fontWeight: 900, fontSize: 10 }}>
+        <div style={{ background: '#f5cf6b', color: '#0b0510', padding: '2px 8px', borderRadius: 4, fontWeight: 900, fontSize: 10 }}>
           LV.{trainerLevel}
         </div>
       </div>
-      <div style={{ height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: '#c9b8ff', transition: 'width 0.3s' }} />
+      <div style={{ height: 8, background: 'rgba(0,0,0,0.4)', borderRadius: 4, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #ffd94d, #f5cf6b)', transition: 'width 0.3s' }} />
       </div>
       {identity?.isAdmin && (
         <button onClick={onOpenAdmin} style={{
-          background: 'rgba(201,184,255,0.1)', border: '1px solid rgba(201,184,255,0.2)',
-          borderRadius: 6, color: '#c9b8ff', fontSize: 9, padding: '4px', cursor: 'pointer',
-          fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5
+          background: 'rgba(245,207,107,0.1)', border: '1px solid rgba(245,207,107,0.3)',
+          borderRadius: 6, color: '#f5cf6b', fontSize: 9, padding: '6px', cursor: 'pointer',
+          fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1
         }}>Painel Admin</button>
       )}
     </div>
@@ -81,12 +81,11 @@ export function TrainerProfileHUD({ identity, trainerLevel, trainerXp, xpNext, o
 export function TeamPanelHUD({ team, leaderHp, calcIdleMaxHp, onOpenPokemon }: any) {
   return (
     <div style={{
-      background: 'rgba(11, 5, 20, 0.85)',
-      backdropFilter: 'blur(8px)',
-      border: '1px solid rgba(201,184,255,0.3)',
-      borderRadius: 16,
-      padding: '10px 14px',
-      width: 220,
+      background: 'linear-gradient(180deg, #1a0f26 0%, #0b0510 100%)',
+      border: '1px solid rgba(245, 207, 107, 0.3)',
+      borderRadius: 12,
+      padding: '12px',
+      width: '100%',
       pointerEvents: 'auto',
       boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
       display: 'flex',
@@ -94,25 +93,37 @@ export function TeamPanelHUD({ team, leaderHp, calcIdleMaxHp, onOpenPokemon }: a
       gap: 10
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontWeight: 900, color: '#c9b8ff', fontSize: 10, letterSpacing: 1 }}>SUA EQUIPE</span>
+        <span style={{ fontWeight: 900, color: '#f5cf6b', fontSize: 10, letterSpacing: 1.5 }}>SUA EQUIPE</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {team.slice(0, 3).map((p: any, i: number) => {
+        {team.slice(0, 6).map((p: any, i: number) => {
           const max = calcIdleMaxHp(p);
           const cur = i === 0 ? leaderHp : p.hp ?? max;
           const pct = Math.max(0, Math.min(100, (cur / max) * 100));
           return (
-            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.05)', borderRadius: 6, display: 'grid', placeItems: 'center' }}>
+            <div 
+              key={p.uid || p.id} 
+              onClick={() => onOpenPokemon(p)}
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: 10, 
+                padding: '6px', background: 'rgba(255,255,255,0.03)', 
+                borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)'
+              }}
+            >
+              <div style={{ 
+                width: 32, height: 32, background: 'rgba(0,0,0,0.3)', 
+                borderRadius: 6, display: 'grid', placeItems: 'center',
+                border: '1px solid rgba(245,207,107,0.2)'
+              }}>
                 <span style={{ fontSize: 18 }}>🐾</span>
               </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, fontWeight: 800 }}>
-                  <span style={{ color: '#fff' }}>{p.species.toUpperCase()}</span>
-                  <span style={{ color: '#eadfe8' }}>Lv.{p.level}</span>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, fontWeight: 900 }}>
+                  <span style={{ color: '#fff', letterSpacing: 0.5 }}>{p.species.toUpperCase()}</span>
+                  <span style={{ color: '#f5cf6b' }}>LV.{p.level}</span>
                 </div>
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', background: pct > 50 ? '#5ec26a' : pct > 20 ? '#f5cf6b' : '#ff5c5c' }} />
+                <div style={{ height: 6, background: 'rgba(0,0,0,0.4)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: `${pct}%`, height: '100%', background: pct > 50 ? '#5ec26a' : pct > 20 ? '#f5cf6b' : '#ff5c5c', transition: 'width 0.3s' }} />
                 </div>
               </div>
             </div>
