@@ -15160,8 +15160,8 @@ function TabOverlay({
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round(((idle.buffs?.atk ?? 0) + ((stats.attack ?? 0) * 0.05)) * 100)}%`} color="#ff5252" />
-              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round(((idle.buffs?.def ?? 0) + ((stats.resistance ?? 0) * 0.03)) * 100)}%`} color="#4a7bff" />
+              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((((idle.buffs?.atk ?? 0) ?? 0) + ((stats.attack ?? 0) * 0.05)) * 100)}%`} color="#ff5252" />
+              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((((idle.buffs?.def ?? 0) ?? 0) + ((stats.resistance ?? 0) * 0.03)) * 100)}%`} color="#4a7bff" />
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
           </div>
