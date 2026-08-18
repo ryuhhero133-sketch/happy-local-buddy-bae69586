@@ -1241,11 +1241,11 @@ type IdleState = {
                 Status de treinador são <strong style={{ color: "#f5cf6b" }}>multiplicativos</strong> e afetam todo o seu time. 
                 Cada upgrade na anatomia aumenta o poder bruto dos seus Pokémon.
               </div>
-
             </div>
           </div>
         );
       })()}
+
 
 
 
