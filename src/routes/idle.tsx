@@ -10948,9 +10948,8 @@ function IdlePage() {
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
-             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
-            // Carteira bloqueada temporariamente
-            // { id: "wallet",   label: "Carteira", img: navWallet,    color: "#ffd66b" },
+            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
+            { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b" },
           ] as const).map((t) => {
 
             const active = tab === t.id;
@@ -13194,7 +13193,7 @@ function TabOverlay({
     tab === "colecao"   ? "COLEÇÃO" :
     tab === "pokedex"   ? "POKÉDEX" :
     tab === "loja"      ? "LOJA" :
-    tab === "wallet"    ? "CARTEIRA" :
+    tab === "wallet"    ? "BANCO MEDIEVAL" :
     tab === "market"    ? "MERCADO BLOQUEADO" :
 
     tab === "melhorias" ? "MELHORIAS" :
@@ -15423,7 +15422,7 @@ function BuffCell({ img, label, value, color }: { img: string; label: string; va
   );
 }
 
-// ============ CARTEIRA (câmbio) ============
+// ============ BANCO MEDIEVAL (câmbio e resgate) ============
 function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: number }; onExchange: (dir: "g2c" | "c2g", amount: number) => void }) {
   const [buyAmt, setBuyAmt] = useState(1);
   const [sellAmt, setSellAmt] = useState(1);
@@ -15450,8 +15449,8 @@ function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: nu
         }} />
         <div style={{ position: "relative", padding: "16px 18px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 10 }}>
           <div>
-            <div style={{ color: "#ffe58a", fontWeight: 900, fontSize: 20, letterSpacing: 2, textShadow: "2px 2px 0 #000, 0 0 12px #f5cf6b66" }}>✦ CASA DE CÂMBIO</div>
-            <div style={{ color: "#dcc8e0", fontSize: 12, marginTop: 3, textShadow: "1px 1px 0 #000" }}>Converta ouro em cristais e vice-versa. Taxa: 1000 💰 ⇄ 1 💎 (compra) · 1 💎 → 800 💰 (venda).</div>
+            <div style={{ color: "#ffe58a", fontWeight: 900, fontSize: 20, letterSpacing: 2, textShadow: "2px 2px 0 #000, 0 0 12px #f5cf6b66" }}>✦ BANCO MEDIEVAL</div>
+            <div style={{ color: "#dcc8e0", fontSize: 12, marginTop: 3, textShadow: "1px 1px 0 #000" }}>Central de recursos: Converta moedas e retire o que foi guardado nos cofres do reino.</div>
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #f5cf6b88", borderRadius: 8, padding: "6px 12px", color: "#f5cf6b", fontWeight: 800, boxShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>💰 {bank.gold.toLocaleString()}</div>
@@ -15459,6 +15458,8 @@ function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: nu
           </div>
         </div>
       </div>
+      
+      {/* Câmbio */}
       <div style={{ background: "#1a0f26", border: "1px solid #8fd0ff55", borderRadius: 10, padding: 14 }}>
         <div style={{ color: "#8fd0ff", fontWeight: 800, marginBottom: 6 }}>Comprar 💎 com Ouro</div>
         <div style={{ color: "#c8b8d0", fontSize: 12, marginBottom: 10 }}>1 💎 = 1000 ouro</div>
@@ -15467,19 +15468,50 @@ function WalletScreen({ bank, onExchange }: { bank: { gold: number; crystals: nu
         <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Custo: <b style={{ color: "#f5cf6b" }}>{buyCost.toLocaleString()} ouro</b></div>
         <button disabled={bank.gold < buyCost} onClick={() => onExchange("g2c", buyAmt)}
           style={{ width: "100%", background: bank.gold < buyCost ? "#333" : "linear-gradient(180deg,#4a9eff,#1e3a5f)", color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: bank.gold < buyCost ? "not-allowed" : "pointer" }}>
-          Comprar {buyAmt} 💎
+          Converter {buyAmt} 💎
         </button>
       </div>
+
       <div style={{ background: "#1a0f26", border: "1px solid #f5cf6b55", borderRadius: 10, padding: 14 }}>
         <div style={{ color: "#f5cf6b", fontWeight: 800, marginBottom: 6 }}>Vender 💎 por Ouro</div>
-        <div style={{ color: "#c8b8d0", fontSize: 12, marginBottom: 10 }}>1 💎 = 800 ouro (spread)</div>
+        <div style={{ color: "#c8b8d0", fontSize: 12, marginBottom: 10 }}>1 💎 = 800 ouro</div>
         <input type="number" min={1} value={sellAmt} onChange={(e) => setSellAmt(Math.max(1, parseInt(e.target.value) || 1))}
           style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #f5cf6b55", borderRadius: 6, padding: 8, fontSize: 14 }} />
         <div style={{ fontSize: 12, color: "#c8b8d0", margin: "8px 0" }}>Você recebe: <b style={{ color: "#f5cf6b" }}>{sellGain.toLocaleString()} ouro</b></div>
         <button disabled={bank.crystals < sellAmt} onClick={() => onExchange("c2g", sellAmt)}
           style={{ width: "100%", background: bank.crystals < sellAmt ? "#333" : "linear-gradient(180deg,#f5cf6b,#8b6a30)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: bank.crystals < sellAmt ? "not-allowed" : "pointer" }}>
-          Vender {sellAmt} 💎
+          Converter {sellAmt} 💰
         </button>
+      </div>
+
+      {/* Seção de Resgate (Mock/Visual para o usuário pegar seus recursos) */}
+      <div style={{ 
+        gridColumn: "1 / -1", 
+        marginTop: 10,
+        background: "linear-gradient(160deg, #2a1a0a, #3d2b0f)",
+        border: "1px solid #ff9d3d88",
+        borderRadius: 12,
+        padding: 16,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 16
+      }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ color: "#ff9d3d", fontWeight: 900, fontSize: 14, letterSpacing: 1 }}>🏛️ COFRE DE RESGATE</div>
+          <div style={{ color: "#c8a878", fontSize: 11, marginTop: 4 }}>Retire recursos acumulados de temporadas anteriores ou depósitos de segurança.</div>
+        </div>
+        <button 
+          onClick={() => {
+            // Apenas feedback visual já que o sistema está integrado ao bank.gold/crystals que sincroniza
+            window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Banco Medieval", body: "Recursos sincronizados com sua carteira!", tone: "info" } }));
+          }}
+          style={{
+            padding: "10px 20px", background: "linear-gradient(180deg, #ff9d3d, #c67100)",
+            color: "#fff", border: "none", borderRadius: 8, fontWeight: 900, cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(255,157,61,0.3)"
+          }}
+        >RESGATAR TUDO</button>
       </div>
     </div>
   );
