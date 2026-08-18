@@ -10181,23 +10181,23 @@ function IdlePage() {
                   {/* Portais para outros mapas */}
                   {currentGates.map((g) => {
                     const targetMap = IDLE_MAPS[g.target];
-                    const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
-                    const label = unlocked ? targetMap.name : `${targetMap.name} (Lv ${targetMap.minLevel})`;
+                    const unlocked = true; // Ignora requisito de nível conforme pedido do usuário
+                    const label = targetMap.name;
                     return (
                       <button
                         key={g.key}
                         onClick={interactive ? () => { setPendingGate({ target: g.target, gate: g, fromBig: big }); } : undefined}
                         title={label}
-                        className={interactive && unlocked ? "map-pulse-dot" : undefined}
+                        className={interactive ? "map-pulse-dot" : undefined}
                         style={{
                           position: "absolute",
                           left: `${(g.x / WORLD_W) * 100}%`,
                           top: `${(g.y / WORLD_H) * 100}%`,
                           transform: "translate(-50%,-50%)",
                           width: big ? 26 : 12, height: big ? 26 : 12, borderRadius: "50%",
-                          background: unlocked ? g.color : "#5a5a5a",
-                          border: `2px solid ${unlocked ? "#eafff0" : "#8a8a8a"}`,
-                          cursor: interactive && unlocked ? "pointer" : "not-allowed",
+                          background: g.color,
+                          border: `2px solid #eafff0`,
+                          cursor: interactive ? "pointer" : "not-allowed",
                           padding: 0,
                           boxShadow: unlocked ? `0 0 ${big ? 12 : 6}px ${g.color}` : "none",
                         }}
@@ -10541,12 +10541,12 @@ function IdlePage() {
                   {pendingGate && (() => {
                     const tm = IDLE_MAPS[pendingGate.target as keyof typeof IDLE_MAPS];
                     const trainerLv = idle.trainerLevel ?? 1;
-                    const lvOk = trainerLv >= tm.minLevel;
+                    const lvOk = true; // Ignora requisito de nível conforme pedido do usuário
                     const cost = tm.entryCrystals ?? 0;
                     const gold = 1000;
                     const crystalOk = cost === 0 || idle.bank.crystals >= cost;
                     const goldOk = idle.bank.gold >= gold;
-                    const canGo = lvOk && crystalOk;
+                    const canGo = crystalOk;
                     const close = () => setPendingGate(null);
                     return (
                       <div
