@@ -9866,43 +9866,7 @@ function IdlePage() {
               onClaimMarketPayout={claimMarketPayout}
               isVip={isVip()}
               pokemonMarketNode={
-                <PokemonMarketPanel
-                  identity={identity}
-                  collection={idle.collection ?? []}
-                  gold={idle.bank.gold}
-                  crystals={idle.bank.crystals}
-                  safiras={idle.items?.safira_verde ?? 0}
-                  isVip={isVip()}
-                  gifOf={(sp) => GIF[sp]}
-                  onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
-                  onReturned={(entry) => setIdle((s) => {
-                    const col = s.collection ?? [];
-                    if (col.some(c => c.uid === entry.uid)) return s;
-                    return { ...s, collection: [...col, entry] };
-                  })}
-                  onSpend={(cur, amount) => setIdle((s) => ({
-                    ...s,
-                    bank: cur === "gold"
-                      ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
-                      : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
-                  }))}
-                  onEarn={(cur, amount) => setIdle((s) => ({
-                    ...s,
-                    bank: cur === "gold"
-                      ? { ...s.bank, gold: s.bank.gold + amount }
-                      : { ...s.bank, crystals: s.bank.crystals + amount },
-                  }))}
-                  onSpendSafira={(amount) => {
-                    const cur = idle.items?.safira_verde ?? 0;
-                    if (cur < amount) return false;
-                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
-                    return true;
-                  }}
-                  onEarnSafira={(amount) => {
-                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
-                  }}
-                  pushChat={pushChat}
-                />
+                <div />
               }
               skinId={skinId}
               setSkinId={setSkinId}
@@ -14547,15 +14511,15 @@ function TabOverlay({
 
 
 
-      {tab === "loja_DISABLED" && (
+      {tab === "loja_disabled" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>LOJA BLOQUEADA</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O sistema de loja está temporariamente indisponível por ordem da administração.</p>
         </div>
       )}
-      {false && tab === "loja_DISABLED" && (
-        <div>
+      {false && tab === "loja_disabled" && (
+        <>
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
             border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
@@ -15195,15 +15159,15 @@ function TabOverlay({
         <WalletScreen bank={bank} onExchange={onExchange} />
       )}
 
-      {tab === "market_DISABLED" && (
+      {tab === "market_disabled" && (
         <div style={{ padding: 20, textAlign: "center", color: "#fca5a5", background: "rgba(255,0,0,0.1)", borderRadius: 12, border: "1px dashed #f87171" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
           <h3 style={{ margin: 0 }}>MERCADO BLOQUEADO</h3>
           <p style={{ fontSize: 12, opacity: 0.8 }}>O mercado global está em manutenção e foi desativado.</p>
         </div>
       )}
-      {false && tab === "market_DISABLED" && (
-        <div>
+      {false && tab === "market_disabled" && (
+        <>
           <MarketScreen
             items={items}
             bank={bank}
