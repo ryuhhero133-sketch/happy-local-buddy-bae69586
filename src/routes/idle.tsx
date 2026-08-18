@@ -10487,8 +10487,41 @@ function IdlePage() {
                               height={1024}
                               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                             />
-                            {WORLD_PINS.map((pin) => {
-                              const m = IDLE_MAPS[pin.id];
+                            {WORLD_PINS.map((pin: any) => {
+                              const m = IDLE_MAPS[pin.id as keyof typeof IDLE_MAPS];
+                              if (activeTab === 4) {
+                                const obsidianColor = "#1a0f26";
+                                const glowColor = pin.type === "crystal" ? "#00f2ff" : pin.type === "ruby" ? "#ff2a2a" : "#4a9eff";
+                                const label = pin.type === "crystal" ? "ÁREA DE CRISTAL" : pin.type === "ruby" ? "ÁREA DE RUBY" : "ÁREA DE SAFIRA";
+                                
+                                return (
+                                  <div key={pin.id} style={{ position: "absolute", left: `${pin.x}%`, top: `${pin.y}%`, transform: "translate(-50%,-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                    <div 
+                                      className="obsidian-point"
+                                      style={{
+                                        width: 24, height: 24, background: obsidianColor, border: `2px solid ${glowColor}`, borderRadius: "4px",
+                                        transform: "rotate(45deg)", boxShadow: `0 0 15px ${glowColor}, inset 0 0 8px rgba(0,0,0,0.8)`,
+                                        display: "flex", alignItems: "center", justifyContent: "center"
+                                      }}
+                                    >
+                                      <div style={{ width: 8, height: 8, background: glowColor, borderRadius: "50%", boxShadow: `0 0 10px ${glowColor}` }} />
+                                    </div>
+                                    <div style={{ 
+                                      background: "rgba(0,0,0,0.8)", border: `1px solid ${glowColor}`, borderRadius: 4, 
+                                      padding: "2px 6px", fontSize: 9, fontWeight: 900, color: glowColor, whiteSpace: "nowrap",
+                                      textShadow: `0 0 4px ${glowColor}`
+                                    }}>
+                                      🔒 {label}
+                                    </div>
+                                    {/* Linha de liberação (decorativa) */}
+                                    <div style={{
+                                      position: "absolute", width: 40, height: 2, background: `linear-gradient(90deg, ${glowColor}, transparent)`,
+                                      left: 20, top: 12, transformOrigin: "left center", opacity: 0.4
+                                    }} />
+                                  </div>
+                                );
+                              }
+
                               if (!m) return null;
                               const ok = true; // Ignora requisito de nível conforme pedido do usuário
                               const current = idle.currentMap === pin.id;
