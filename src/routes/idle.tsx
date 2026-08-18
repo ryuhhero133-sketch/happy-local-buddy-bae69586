@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles } from "lucide-react";
@@ -15185,7 +15186,32 @@ function TabOverlay({
               <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((((idle.buffs?.atk ?? 0)) + ((stats.attack ?? 0) * 0.05)) * 100)}%`} color="#ff5252" />
               <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((((idle.buffs?.def ?? 0)) + ((stats.resistance ?? 0) * 0.03)) * 100)}%`} color="#4a7bff" />
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
+            </div>
 
+            <div style={{ position: "relative", width: "100%", height: "180px", background: "rgba(0,0,0,0.4)", borderRadius: 16, border: "1px solid #f5cf6b33", overflow: "hidden", display: "flex", justifyContent: "center", alignItems: "center" }}>
+              <img 
+                src={rayquazaShinyBg.url} 
+                alt="Rayquaza Shiny" 
+                style={{ 
+                  maxWidth: "90%", 
+                  maxHeight: "90%", 
+                  objectFit: "contain",
+                  filter: "drop-shadow(0 0 20px rgba(185, 167, 255, 0.4))"
+                }} 
+              />
+              <div style={{ 
+                position: "absolute", 
+                bottom: 10, 
+                right: 15, 
+                fontSize: 10, 
+                fontWeight: 900, 
+                color: "#f5cf6b", 
+                textShadow: "0 2px 4px #000",
+                letterSpacing: 1,
+                opacity: 0.8
+              }}>
+                ✦ BLACK MITIC PLUS LEGENDARY ✦
+              </div>
             </div>
           </div>
         );
