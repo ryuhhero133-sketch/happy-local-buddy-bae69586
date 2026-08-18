@@ -7707,15 +7707,13 @@ function IdlePage() {
       height: "100vh",
       background: "#0b0510",
       color: "#f3e5c5",
-      fontFamily: "\'Trebuchet MS\', system-ui, sans-serif",
+      fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
       position: "relative",
       display: "grid",
       gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
       gap: "8px",
       padding: "8px"
-    <div className="game-root-container" style={{
-      height: "100vh", background: "#0b0510", color: "#f3e5c5", fontFamily: "\'Trebuchet MS\', system-ui, sans-serif", overflow: "hidden", position: "relative", display: "grid", gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)", gap: "8px", padding: "8px"
     }}>
       <div className="hud-left-column" style={{ display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden", zIndex: 10 }}>
         <TrainerProfileHUD 
