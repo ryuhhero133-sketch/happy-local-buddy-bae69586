@@ -10483,17 +10483,6 @@ function IdlePage() {
                             })}
                           </div>
                           <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: `2px solid ${activeTab === 2 ? "#a06de0" : "#7a5a20"}`, boxShadow: activeTab === 2 ? "inset 0 0 60px rgba(120,60,180,0.6)" : "inset 0 0 40px rgba(0,0,0,0.6)" }}>
-                                {activeTab === 4 && (
-                                  <div style={{ position: "absolute", bottom: 20, left: 20, display: "flex", alignItems: "center", gap: 12, background: "rgba(11,5,16,0.9)", border: "2px solid #f5cf6b", borderRadius: 12, padding: "10px 16px", boxShadow: "0 0 30px rgba(0,0,0,0.8)", zIndex: 10 }}>
-                                    <div style={{ width: 48, height: 48, background: `url(${npcOakSprite}) center/contain no-repeat`, filter: "drop-shadow(0 0 8px #f5cf6b)" }} />
-                                    <div style={{ display: "flex", flexDirection: "column" }}>
-                                      <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 13 }}>CARVALHO ABISSAL</div>
-                                      <div style={{ color: "#fff", fontSize: 11, maxWidth: 300, lineHeight: 1.4 }}>
-                                        "Treinador, este continente ainda está envolto em névoas abissais... 10 novas áreas foram detectadas, mas o acesso está selado por enquanto."
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
                                 {bgUrl && (
                                   <img
                                     src={bgUrl}
@@ -10504,38 +10493,67 @@ function IdlePage() {
                                     style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                                   />
                                 )}
+                                {activeTab === 4 && (
+                                  <div className="c4-fog" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 30% 40%, rgba(0,242,255,0.10), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,42,42,0.10), transparent 55%), linear-gradient(180deg, rgba(6,2,14,0.35), rgba(6,2,14,0.65))" }} />
+                                )}
+                                {activeTab === 4 && (
+                                  <div style={{ position: "absolute", bottom: 0, left: 0, display: "flex", alignItems: "flex-end", gap: 10, zIndex: 12, pointerEvents: "none" }}>
+                                    <img
+                                      src={npcAbyssWitch}
+                                      alt="Vharyx, a Bruxa das Gemas"
+                                      loading="lazy"
+                                      className="c4-witch"
+                                      style={{ width: 150, height: "auto", filter: "drop-shadow(0 0 18px rgba(74,158,255,0.75))" }}
+                                    />
+                                    <div className="c4-dialog" style={{ marginBottom: 18, maxWidth: 330, background: "linear-gradient(135deg, rgba(10,4,20,0.95), rgba(24,8,34,0.95))", border: "2px solid #4a9eff", borderRadius: 12, padding: "10px 14px", boxShadow: "0 0 34px rgba(74,158,255,0.45)" }}>
+                                      <div style={{ color: "#8fd6ff", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>VHARYX · A BRUXA DAS GEMAS</div>
+                                      <div style={{ color: "#e6dcf5", fontSize: 11, lineHeight: 1.5, marginTop: 4 }}>
+                                        "Cristal, Ruby e Safira… as três correntes que selam o abismo. Toque em um selo e eu te conto o que dorme lá dentro — mas nenhum se abrirá hoje."
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                             {WORLD_PINS.map((pin: any) => {
                               const m = IDLE_MAPS[pin.id as keyof typeof IDLE_MAPS];
                               if (activeTab === 4) {
-                                const obsidianColor = "#1a0f26";
                                 const glowColor = pin.type === "crystal" ? "#00f2ff" : pin.type === "ruby" ? "#ff2a2a" : "#4a9eff";
-                                const label = pin.type === "crystal" ? "ÁREA DE CRISTAL" : pin.type === "ruby" ? "ÁREA DE RUBY" : "ÁREA DE SAFIRA";
-                                
+                                const active = c4Pin === String(pin.id);
                                 return (
-                                  <div key={pin.id} style={{ position: "absolute", left: `${pin.x}%`, top: `${pin.y}%`, transform: "translate(-50%,-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                                    <div 
-                                      className="obsidian-point"
-                                      style={{
-                                        width: 24, height: 24, background: obsidianColor, border: `2px solid ${glowColor}`, borderRadius: "4px",
-                                        transform: "rotate(45deg)", boxShadow: `0 0 15px ${glowColor}, inset 0 0 8px rgba(0,0,0,0.8)`,
-                                        display: "flex", alignItems: "center", justifyContent: "center"
-                                      }}
-                                    >
-                                      <div style={{ width: 8, height: 8, background: glowColor, borderRadius: "50%", boxShadow: `0 0 10px ${glowColor}` }} />
+                                  <button
+                                    key={pin.id}
+                                    onClick={(e) => { e.stopPropagation(); playClick(); setC4Pin(active ? null : String(pin.id)); }}
+                                    title={pin.name}
+                                    style={{
+                                      position: "absolute", left: `${pin.x}%`, top: `${pin.y}%`, transform: "translate(-50%,-50%)",
+                                      display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                                      background: "transparent", border: "none", cursor: "pointer", padding: 0, zIndex: active ? 11 : 6,
+                                    }}
+                                  >
+                                    <div style={{ position: "relative", width: 34, height: 34, display: "grid", placeItems: "center" }}>
+                                      <div className="c4-ring" style={{ position: "absolute", inset: 0, border: `1px solid ${glowColor}`, borderRadius: "50%", opacity: 0.5 }} />
+                                      <div
+                                        className="c4-gem"
+                                        style={{
+                                          width: 22, height: 22, borderRadius: 4,
+                                          background: `linear-gradient(145deg, #1a0f26, #070310)`,
+                                          border: `2px solid ${glowColor}`,
+                                          transform: `rotate(45deg) scale(${active ? 1.25 : 1})`,
+                                          boxShadow: `0 0 ${active ? 26 : 14}px ${glowColor}, inset 0 0 8px rgba(0,0,0,0.9)`,
+                                          transition: "transform .2s ease, box-shadow .2s ease",
+                                          display: "grid", placeItems: "center",
+                                        }}
+                                      >
+                                        <div style={{ width: 7, height: 7, background: glowColor, borderRadius: "50%", boxShadow: `0 0 10px ${glowColor}` }} />
+                                      </div>
                                     </div>
-                                    <div style={{ 
-                                      background: "rgba(0,0,0,0.8)", border: `1px solid ${glowColor}`, borderRadius: 4, 
-                                      padding: "2px 6px", fontSize: 9, fontWeight: 900, color: glowColor, whiteSpace: "nowrap",
-                                      textShadow: `0 0 4px ${glowColor}`
-                                    }}>
-                                      🔒 {label}
-                                    </div>
-                                    {/* Linha de liberação (decorativa) */}
                                     <div style={{
-                                      position: "absolute", width: 40, height: 2, background: `linear-gradient(90deg, ${glowColor}, transparent)`,
-                                      left: 20, top: 12, transformOrigin: "left center", opacity: 0.4
-                                    }} />
-                                  </div>
+                                      background: "rgba(0,0,0,0.82)", border: `1px solid ${glowColor}`, borderRadius: 4,
+                                      padding: "2px 6px", fontSize: 8, fontWeight: 900, color: glowColor, whiteSpace: "nowrap",
+                                      textShadow: `0 0 6px ${glowColor}`,
+                                    }}>
+                                      🔒 {pin.name}
+                                    </div>
+                                  </button>
                                 );
                               }
 
