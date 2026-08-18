@@ -13223,6 +13223,7 @@ function IdlePage() {
               <div style={{ marginTop: 12, textAlign: "center", color: "#8a7a9c", fontSize: 11 }}>
                 Use as teclas direcionais ou o mouse para escolher seu destino. 
                 Bloqueado? Aumente seu Nível de Treinador.
+              </div>
             </div>
           </div>
         );
