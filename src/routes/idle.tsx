@@ -7720,14 +7720,14 @@ function IdlePage() {
           identity={identity} 
           trainerLevel={idle.trainerLevel} 
           trainerXp={idle.trainerXp} 
-          xpNext={xpNext(idle.trainerLevel)} 
+          xpNext={trainerXpToNext(idle.trainerLevel)} 
           onOpenAdmin={() => setIsAdminOpen(true)}
         />
         <TeamPanelHUD 
           team={team} 
           leaderHp={leaderHp} 
           calcIdleMaxHp={calcIdleMaxHp} 
-          onOpenPokemon={(p: any) => setPokemonStatsOpen(p)}
+          onOpenPokemon={(p: any) => setStatsCardPet(p)}
         />
         <div style={{ flex: 1, background: "#1a0f26", border: "1px solid rgba(245, 207, 107, 0.2)", borderRadius: "12px", padding: "12px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: "10px", fontWeight: 900, color: "#f5cf6b", marginBottom: "8px", letterSpacing: "1px" }}>REGISTRO DE BATALHA</div>
