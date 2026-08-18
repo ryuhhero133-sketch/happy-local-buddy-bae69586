@@ -10485,7 +10485,7 @@ function IdlePage() {
                                     };
                                     // Pergaminho de Teleporte — se tiver e o mapa for elegível (nível OK), teleporta instantâneo sem custo
                                     const scrolls = idle.items?.scroll_teleport ?? 0;
-                                    if (scrolls > 0 && (idle.trainerLevel ?? 1) >= m.minLevel) {
+                                    if (scrolls > 0 && true) {
                                       setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
                                       setWorldMapOpen(false);
                                       travelToGate(synthGate);
