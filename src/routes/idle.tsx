@@ -10316,7 +10316,6 @@ function IdlePage() {
             <span style={{ fontSize: '9px', fontWeight: 800 }}>LOJA</span>
           </button>
         </div>
-      </div>
 
 
 
