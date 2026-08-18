@@ -6,8 +6,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase as _supabase } from "@/integrations/supabase/client";
-import type { CollectionEntry } from "@/routes/idle";
-import type { Species, Rarity } from "@/game/systems";
+import type { CollectionEntry, Species, Rarity } from "@/routes/idle";
+
+
 import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
@@ -70,7 +71,7 @@ type OfferRow = {
   created_at: string;
 };
 
-const RARITY_COLOR: Record<string, string> = {
+const RARITY_COLOR: Record<Rarity, string> = {
   common: "#c8b8d0", uncommon: "#7ef2a2", rare: "#6bd4ff",
   epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
 };
