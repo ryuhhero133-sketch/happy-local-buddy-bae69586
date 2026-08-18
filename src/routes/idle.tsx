@@ -16220,14 +16220,14 @@ function ActiveBonuses({ leaderRarity, team, buffs }: {
     }}>
       <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 900, letterSpacing: 2, marginBottom: 8 }}>✨ BÔNUS ATIVOS</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        <Chip label="EXP TOTAL" value={`+${totalXpPct}%`} color="#6bd4ff"
-          sub={`${expActive ? `Livro +${Math.round(buffs.expMult * 100)}% (${fmt(buffs.expMultUntil! - now)})` : "Sem livro"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
-        <Chip label="OURO TOTAL" value={`+${totalGoldPct}%`} color="#ffd94d"
-          sub={`${goldActive ? `VIP +${Math.round((buffs.goldMult ?? 0) * 100)}% (${fmt(buffs.goldMultUntil! - now)})` : "Sem VIP"} · Líder +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
-        <Chip label="DROP ITENS" value={`+${Math.round((rarityBonus + synergyBonus) * 100)}%`} color="#c084fc"
-          sub={`Líder ${leaderRarity} +${Math.round(rarityBonus * 100)}%${synergyBonus > 0 ? ` · Sinergia +${Math.round(synergyBonus * 100)}%` : ""}`} />
-        <Chip label="ATK / DEF" value={`+${Math.round(buffs.atk * 100)}% / -${Math.round(buffs.def * 100)}%`} color="#ff7a3d"
-          sub={`Livros permanentes de ATK / DEF`} />
+        <Chip label="EXP TOTAL" value={`+${totalXpPct + Math.round((idle.globalStats?.mastery ?? 0) * 2)}%`} color="#6bd4ff"
+          sub={`${expActive ? `Livro +${Math.round(buffs.expMult * 100)}% (${fmt(buffs.expMultUntil! - now)})` : "Sem livro"} · Líder +${Math.round(rarityBonus * 100)}% · Maestria +${Math.round((idle.globalStats?.mastery ?? 0) * 2)}%`} />
+        <Chip label="OURO TOTAL" value={`+${totalGoldPct + Math.round((idle.globalStats?.synergy ?? 0) * 1)}%`} color="#ffd94d"
+          sub={`${goldActive ? `VIP +${Math.round((buffs.goldMult ?? 0) * 100)}% (${fmt(buffs.goldMultUntil! - now)})` : "Sem VIP"} · Líder +${Math.round(rarityBonus * 100)}% · Sinergia +${Math.round((idle.globalStats?.synergy ?? 0) * 1)}%`} />
+        <Chip label="DROP ITENS" value={`+${Math.round((rarityBonus + synergyBonus + (idle.globalStats?.mastery ?? 0) * 0.05) * 100)}%`} color="#c084fc"
+          sub={`Líder ${leaderRarity} +${Math.round(rarityBonus * 100)}% · Maestria +${Math.round((idle.globalStats?.mastery ?? 0) * 5)}%`} />
+        <Chip label="ATK / DEF" value={`+${Math.round((buffs.atk + (idle.globalStats?.attack ?? 0) * 0.05) * 100)}% / -${Math.round((buffs.def + (idle.globalStats?.resistance ?? 0) * 0.03) * 100)}%`} color="#ff7a3d"
+          sub={`Bônus Globais: ATK Lv.${idle.globalStats?.attack ?? 0} · RES Lv.${idle.globalStats?.resistance ?? 0}`} />
       </div>
       <div style={{
         marginTop: 10, padding: "8px 10px",
