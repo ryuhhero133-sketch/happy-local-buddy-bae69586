@@ -10335,7 +10335,7 @@ function IdlePage() {
                         <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
                           🏠 Lar · 🔬 Laboratório · {currentGates.map((g) => {
                             const tm = IDLE_MAPS[g.target];
-                            const ok = (idle.trainerLevel ?? 1) >= tm.minLevel;
+                            const ok = true; // Ignora requisito de nível para portais
                             return (
                               <span key={g.key} style={{ color: ok ? g.color : "#8a7a9c", marginRight: 8 }}>
                                 ● {tm.name}{ok ? "" : ` (Lv ${tm.minLevel})`}
