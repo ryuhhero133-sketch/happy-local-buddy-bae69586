@@ -9855,6 +9855,10 @@ function IdlePage() {
               onBuyPotion={buyPotion}
               onBuyEgg={buyEgg}
               shopEggs={SHOP_EGGS}
+              idle={idle}
+              setIdle={setIdle}
+              pushChat={pushChat}
+              playClick={playClick}
 
               onBuyChestAmulet={buyChestAmulet}
               chestAmuletOwned={idle.items?.chest_amulet ?? 0}
@@ -13159,7 +13163,7 @@ function TabOverlay({
   collection: CollectionEntry[];
   craftPoints: number;
   onFragmentCollection: (uid: string) => void;
-  位map: Partial<Record<Species, string>>;
+  gifMap: Partial<Record<Species, string>>;
   onPickTeam: (entry: CollectionEntry) => void;
   onUseItem: (id: string, qty?: number) => void;
   bank: { gold: number; crystals: number };
@@ -13197,7 +13201,7 @@ function TabOverlay({
   onUnlockSkin: (id: string) => void;
   idle: IdleState;
   setIdle: React.Dispatch<React.SetStateAction<IdleState>>;
-  pushChat: (msg: string, kind: ChatKind) => void;
+  pushChat: (msg: string, kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture") => void;
   playClick: () => void;
   onUpgradeBook: (id: string) => void;
   orbTrades: { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[];
