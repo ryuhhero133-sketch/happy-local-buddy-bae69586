@@ -15071,19 +15071,19 @@ function TabOverlay({
         const tStats = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
         const redDiamonds = items.crystal_red || 0;
 
-        const upgradeStat = (key: keyof typeof tStats) => {
+        const upgradeStat = (key: keyof Exclude<IdleState["trainerStats"], undefined>) => {
           if (redDiamonds < 100) {
             pushChat("💎 Você precisa de pelo menos 100 Diamantes Vermelhos para melhorar.", "info");
             return;
           }
-          playClick();
+          if (typeof playClick === 'function') playClick();
           setIdle(prev => {
             const currentStats = prev.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
             const nextStats = { ...currentStats, [key]: currentStats[key] + 1 };
             const nextItems = { ...prev.items, crystal_red: (prev.items.crystal_red || 0) - 100 };
             return { ...prev, trainerStats: nextStats, items: nextItems };
           });
-          pushChat(`✨ Melhoria aplicada em ${key.toUpperCase()}! (-100 Diamantes Vermelhos)`, "info");
+          pushChat(`✨ Melhoria aplicada em ${String(key).toUpperCase()}! (-100 Diamantes Vermelhos)`, "info");
         };
 
         return (
