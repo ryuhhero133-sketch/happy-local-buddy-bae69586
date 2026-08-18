@@ -8689,7 +8689,7 @@ function IdlePage() {
             {(() => {
               const lv = idle.trainerLevel ?? 1;
               return WORLD_PORTALS.filter(p => p.from === idle.currentMap).map((p) => {
-                const locked = !!(p.reqLevel && lv < p.reqLevel);
+                const locked = false; // Ignora requisito de nível para portais do mundo
                 return (
                   <div
                     key={p.key}
