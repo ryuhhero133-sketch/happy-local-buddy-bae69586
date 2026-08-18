@@ -930,6 +930,7 @@ type IdleState = {
   trainerLevel?: number; // nível do TREINADOR (separado do nível do pokémon)
   trainerXp?: number;    // xp acumulado do treinador rumo ao próximo nível
   unlockedSkins?: string[]; // skins premium desbloqueadas (default sempre incluída)
+  trainerStats?: { atk: number; def: number; hp: number; spe: number; crit: number }; // Melhorias permanentes via Safiras
   // Colmeias do Ninho de Marimbondo — 3 slots de Beedrill por casulo, produzem incenso a cada 10 min
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   redeemedCodes?: Record<string, boolean>;
@@ -1142,8 +1143,10 @@ function applyTrainerXp(s: IdleState, gained: number): { state: IdleState; level
 }
 
 const IDLE_HP_MULT = 6;
-function calcIdleMaxHp(pet: PetInstance) {
-  return calcMaxHp(pet) * IDLE_HP_MULT;
+function calcIdleMaxHp(pet: PetInstance, trainerStats?: { hp: number }) {
+  const baseHp = calcMaxHp(pet) * IDLE_HP_MULT;
+  const trainerBonus = (trainerStats?.hp ?? 0) * 50; // Cada safira de HP dá 50 de vida
+  return baseHp + trainerBonus;
 }
 
 function highLevelEnemyHpMult(enemyLevel: number, leaderLevel: number) {
@@ -1326,7 +1329,8 @@ function IdlePage() {
   const [leaderHp, setLeaderHp] = useState<number>(() => {
     const initTeam = loadTeam();
     const l = initTeam[0];
-    return l ? Math.max(l.hp ?? 0, calcIdleMaxHp(l)) : 0;
+    const s = loadIdle();
+    return l ? Math.max(l.hp ?? 0, calcIdleMaxHp(l, s.trainerStats)) : 0;
   });
   const [leveledAt, setLeveledAt] = useState<number>(0);
   const [levelToast, setLevelToast] = useState<{ level: number; gains: string[]; bonus: string; ts: number } | null>(null);
@@ -1422,14 +1426,14 @@ function IdlePage() {
       setLeaderHp((h) => {
         const leader = t[0];
         if (!leader) return h;
-        const max = calcIdleMaxHp(leader);
+        const max = calcIdleMaxHp(leader, idleRef.current.trainerStats);
         if (h >= max || h <= 0) return h;
         return Math.min(max, h + max * syn.regenPct);
       });
       // Cura pets do time (não-líder)
       setTeam((tm) => tm.map((p, i) => {
         if (i === 0) return p;
-        const max = calcIdleMaxHp(p);
+        const max = calcIdleMaxHp(p, idleRef.current.trainerStats);
         const cur = p.hp ?? max;
         if (cur >= max || cur <= 0) return p;
         return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
@@ -1782,15 +1786,15 @@ function IdlePage() {
       if (idx >= 0) {
         const arr = [...tm];
         const [p] = arr.splice(idx, 1);
-        setLeaderHp(calcIdleMaxHp(p));
+        setLeaderHp(calcIdleMaxHp(p, idle.trainerStats));
         return [p, ...arr];
       }
       if (tm.length >= 6) {
         const arr = tm.slice(0, 4);
-        setLeaderHp(calcIdleMaxHp(newPet));
+        setLeaderHp(calcIdleMaxHp(newPet, idle.trainerStats));
         return [newPet, ...arr];
       }
-      setLeaderHp(calcIdleMaxHp(newPet));
+      setLeaderHp(calcIdleMaxHp(newPet, idle.trainerStats));
       return [newPet, ...tm];
     });
     setTab("batalha");
@@ -3739,7 +3743,7 @@ function IdlePage() {
       {
         const nowE = Date.now();
         const noTeam = team.length === 0;
-        const allFainted = !noTeam && team.every((p) => (p.uid === team[0].uid ? leaderHp : (p.hp ?? calcIdleMaxHp(p))) <= 0);
+        const allFainted = !noTeam && team.every((p) => (p.uid === team[0].uid ? leaderHp : (p.hp ?? calcIdleMaxHp(p, idle.trainerStats))) <= 0);
         if (allFainted && !restingRef.current && !walkTargetRef.current) {
           const lar = BUILDINGS.find((b) => b.key === "lar");
           if (lar) {
@@ -3865,7 +3869,8 @@ function IdlePage() {
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 6 * distBoost * (1 + honeyBonusNow());
+        const trainerSpeBonus = (idle.trainerStats?.spe ?? 0) * 0.05; // +5% por safira
+        const speed = 6 * distBoost * (1 + honeyBonusNow() + trainerSpeBonus);
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -4001,11 +4006,13 @@ function IdlePage() {
         const base = SPECIES_BASE[leader.species];
         // CRIT: base 5% + 0.3%/nível + 0.5% por ponto de crit ascension, cap 60%
         const critAsc = (leader.ascensionStats as Record<string, number> | undefined)?.crit ?? 0;
-        const critChance = Math.min(0.6, 0.05 + leader.level * 0.003 + critAsc * 0.005);
+        const trainerCritBonus = (idle.trainerStats?.crit ?? 0) * 0.01; // +1% por safira
+        const critChance = Math.min(0.85, 0.05 + leader.level * 0.003 + critAsc * 0.005 + trainerCritBonus);
         const isCrit = Math.random() < critChance;
         // Pokémon selvagens têm 50% de resistência ao bônus do Livro de Ataque (balanceamento anti-stack)
         const atkBookEffective = idle.buffs.atk * 0.5;
-        let dmg = Math.floor((5 + leader.level * 0.8 + base.atk * 0.12 + Math.random() * 5) * (1 + atkBookEffective));
+        const trainerAtkBonus = (idle.trainerStats?.atk ?? 0) * 12; // +12 flat por safira
+        let dmg = Math.floor((5 + leader.level * 0.8 + base.atk * 0.12 + Math.random() * 5 + trainerAtkBonus) * (1 + atkBookEffective));
         if (isCrit) dmg = Math.floor(dmg * 1.8);
         // n2 debuff: enquanto ativo, reduz -40% do ataque do jogador
         if (Date.now() < atkDebuffUntilRef.current) dmg = Math.floor(dmg * 0.6);
@@ -4026,7 +4033,9 @@ function IdlePage() {
         const eBase = SPECIES_BASE[target.sp];
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyDef = honeyBonusNow();
+        const trainerDefBonus = (idle.trainerStats?.def ?? 0) * 8; // reduz 8 flat por safira
         let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
+        eDmg = Math.max(1, eDmg - trainerDefBonus);
 
         // ==== Efeitos por mapa (Terry / n2 / n3) ====
         const mapNow = idle.currentMap;
@@ -4159,11 +4168,9 @@ function IdlePage() {
         }, 480);
         setLeaderHp((h) => {
           let nh = Math.max(0, h - eDmg);
-          // (dano rotineiro do inimigo — sem spam no chat)
-          // Auto-poção: se HP% <= threshold, consome 1 poção
           const leaderNow = team[0];
           if (leaderNow && idle.autoHeal.enabled && nh > 0) {
-            const maxHp = calcIdleMaxHp(leaderNow);
+            const maxHp = calcIdleMaxHp(leaderNow, idle.trainerStats);
             if (nh / maxHp <= idle.autoHeal.threshold && (idle.items.potion ?? 0) > 0) {
               const heal = Math.floor(maxHp * POTION_HEAL_PCT);
               nh = Math.min(maxHp, nh + heal);
@@ -4349,7 +4356,7 @@ function IdlePage() {
               if (lv >= 10000) remaining = 0;
               return {
                 ...p, level: lv, xp: remaining,
-                hp: isLeader ? Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })) : Math.min(p.hp, calcIdleMaxHp({ ...p, level: lv })),
+                hp: isLeader ? Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv }, idle.trainerStats)) : Math.min(p.hp, calcIdleMaxHp({ ...p, level: lv }, idle.trainerStats)),
                 energy: newE, energyRegenAt: isLeader ? now : ((p as PetEnergyExt).energyRegenAt ?? now),
               } as PetInstance;
             });
@@ -4760,12 +4767,12 @@ function IdlePage() {
         randomSummary = Object.entries(rollCount)
           .map(([k, v]) => `+${v} ${statLabel[k]}`);
         const updated = { ...l, ascensionStats: asc };
-        return [{ ...updated, hp: calcIdleMaxHp(updated) }, ...tm.slice(1)];
+        return [{ ...updated, hp: calcIdleMaxHp(updated, idleRef.current.trainerStats) }, ...tm.slice(1)];
       });
       // cura ao subir de nível — chamada após setTeam, mas leaderHp é reset pelo maxHp novo
       setTimeout(() => {
         const cur = team[0];
-        if (cur) setLeaderHp(calcIdleMaxHp({ ...cur, level: lv, ascensionStats: { ...(cur.ascensionStats ?? {}) } }));
+        if (cur) setLeaderHp(calcIdleMaxHp({ ...cur, level: lv, ascensionStats: { ...(cur.ascensionStats ?? {}) } }, idleRef.current.trainerStats));
       }, 0);
       pushFxAt(trainerPos.x, trainerPos.y - 70, `LV ${lv}!`, "xp");
       pushFxAt(trainerPos.x, trainerPos.y - 100, `✨ BÔNUS +${statLabel[bonusStat]}`, "gold");
@@ -4850,7 +4857,7 @@ function IdlePage() {
         } while (collidesWithAny(x, y) && tries < 20);
         const petA = makePet(pick.sp, pick.level);
         const hpMult = pick.rarity === "mythic_shiny" ? 4 : pick.rarity === "mythic" ? 3.2 : 2.6;
-        const hp = Math.floor(calcIdleMaxHp(petA) * hpMult);
+        const hp = Math.floor(calcIdleMaxHp(petA, idleRef.current.trainerStats) * hpMult);
         return [
           ...prev,
           { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: false, aggroR: 0, elite: true, level: pick.level, rarity: pick.rarity, eventLegendary: true } as Enemy,
@@ -4955,7 +4962,7 @@ function IdlePage() {
     const iv = setInterval(() => {
       if (Date.now() >= poisonUntilRef.current) return;
       const leader = team[0]; if (!leader) return;
-      const maxHp = calcIdleMaxHp(leader);
+      const maxHp = calcIdleMaxHp(leader, idleRef.current.trainerStats);
       const tick = Math.max(2, Math.floor(maxHp * 0.03));
       setLeaderHp((h) => Math.max(0, h - tick));
       const fx = followerStateRef.current;
@@ -4985,7 +4992,7 @@ function IdlePage() {
           tries++;
         } while (collidesWithAny(x, y) && tries < 20);
         const petA = makePet(pick.sp, pick.level);
-        const hp = Math.floor(calcIdleMaxHp(petA) * 5);
+        const hp = Math.floor(calcIdleMaxHp(petA, idleRef.current.trainerStats) * 5);
         return [
           ...prev,
           { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left",
@@ -5031,7 +5038,7 @@ function IdlePage() {
     // aplica com pequeno delay para garantir que o setIdle rodou
     setTimeout(() => {
       if (did) {
-        setLeaderHp(calcIdleMaxHp(l));
+        setLeaderHp(calcIdleMaxHp(l, idleRef.current.trainerStats));
         pushFxAt(trainerPos.x, trainerPos.y - 40, "REVIVEU!", "gold");
       } else {
         pushFxAt(trainerPos.x, trainerPos.y - 40, "SEM REVIVE!", "enemyDmg");
@@ -5190,7 +5197,7 @@ function IdlePage() {
     const have = (idle.items[id] ?? 0);
     if (have <= 0) { pushChat(`Você não tem ${id}.`, "info"); return; }
     const useQty = Math.max(1, Math.min(qty, have));
-    const maxHp = calcIdleMaxHp(l);
+    const maxHp = calcIdleMaxHp(l, idle.trainerStats);
     if (id === "potion") {
       if (leaderHp <= 0) { pushChat(`Poção não revive. Reviva por 50 ouro.`, "info"); return; }
       const heal = Math.floor(maxHp * 0.5) * useQty;
@@ -6060,7 +6067,7 @@ function IdlePage() {
         lv = 500 + Math.floor(Math.random() * 401); // 500..900
         pet = makePet(sp, lv, "mythic_shiny");
       }
-      const baseHp = calcIdleMaxHp(pet);
+      const baseHp = calcIdleMaxHp(pet, idleRef.current.trainerStats);
       const highHp = highLevelEnemyHpMult(lv, leaderLv);
       const roamerHpMult = isMythicRoamer ? 6 : isDialgaEvent ? 12 : 1;
       const guardianHpMult = isGuardian ? 2.2 : 1;
@@ -6791,7 +6798,7 @@ function IdlePage() {
   const pickStarter = (sp: "charmander" | "bulbasaur" | "squirtle") => {
     const pet = makePet(sp, 5);
     setTeam([pet]);
-    setLeaderHp(calcIdleMaxHp(pet));
+    setLeaderHp(calcIdleMaxHp(pet, idleRef.current.trainerStats));
     try {
       localStorage.setItem("rubym.starter.chosen", "1");
       const raw = localStorage.getItem("rubym.save.v2");
@@ -6870,7 +6877,7 @@ function IdlePage() {
       if (tm.some((x) => x.uid === uid)) return tm.map((x) => x.uid === uid ? refreshed : x);
       if (tm.length >= 6) return tm;
       const next = [...tm, refreshed];
-      if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
+      if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed, idleRef.current.trainerStats));
       return next;
     });
     pushChat(`⚡ ${pet.species.toUpperCase()} descansou instantaneamente (-${AZUL_REST_COST}💎)`, "info");
@@ -6906,7 +6913,7 @@ function IdlePage() {
     setTeam((tm) => {
       const filtered = tm.filter((x) => x.uid !== uid);
       if (tm[0]?.uid === uid && filtered[0]) {
-        setLeaderHp(calcIdleMaxHp(filtered[0]));
+        setLeaderHp(calcIdleMaxHp(filtered[0], idleRef.current.trainerStats));
       }
       return filtered;
     });
@@ -6930,7 +6937,7 @@ function IdlePage() {
         if (tm.some((x) => x.uid === uid)) return tm;
         if (tm.length >= 6) return tm;
         const next = [...tm, refreshed];
-        if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
+        if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed, idleRef.current.trainerStats));
         return next;
       });
       pushChat(`⚡ ${refreshed.species.toUpperCase()} voltou ao time com energia cheia!`, "cap");
@@ -6951,10 +6958,10 @@ function IdlePage() {
         ...p,
         energy: fullRecovery ? ENERGY_MAX : (p as PetEnergyExt).energy ?? petCurrentEnergy(p),
         energyRegenAt: fullRecovery ? Date.now() : (p as PetEnergyExt).energyRegenAt ?? Date.now(),
-        hp: calcIdleMaxHp(p),
+        hp: calcIdleMaxHp(p, idleRef.current.trainerStats),
       } as PetInstance)));
       const l = team[0];
-      if (l) setLeaderHp(calcIdleMaxHp(l));
+      if (l) setLeaderHp(calcIdleMaxHp(l, idleRef.current.trainerStats));
       setRestingUntil(null);
       setRestingStart(null);
       setRestingKind(null);
@@ -9285,7 +9292,7 @@ function IdlePage() {
               const leaderSp = leader?.species ?? "charmander";
               const leaderSrc = GIF[leaderSp];
               if (!leaderSrc || !leader) return null;
-              const leaderMax = calcIdleMaxHp(leader);
+              const leaderMax = calcIdleMaxHp(leader, idle.trainerStats);
               const hpPct = Math.max(0, (leaderHp / leaderMax) * 100);
               const xpNeeded = 100 + leader.level * 20;
               const xpPct = Math.min(100, ((leader.xp ?? 0) / xpNeeded) * 100);
@@ -9830,7 +9837,7 @@ function IdlePage() {
               onClose={() => setTab("batalha")}
               leader={team[0]}
               team={team}
-              onReorderTeam={(nt) => { setTeam(nt); if (nt[0]) setLeaderHp(calcIdleMaxHp(nt[0])); }}
+              onReorderTeam={(nt) => { setTeam(nt); if (nt[0]) setLeaderHp(calcIdleMaxHp(nt[0], idle.trainerStats)); }}
               leaderHp={leaderHp}
               items={idle.items}
               caughtSpecies={idle.caughtSpecies}
@@ -9854,6 +9861,10 @@ function IdlePage() {
               onBuyPotion={buyPotion}
               onBuyEgg={buyEgg}
               shopEggs={SHOP_EGGS}
+              idle={idle}
+              setIdle={setIdle}
+              pushChat={pushChat}
+              playClick={playClick}
 
               onBuyChestAmulet={buyChestAmulet}
               chestAmuletOwned={idle.items?.chest_amulet ?? 0}
@@ -12158,7 +12169,7 @@ function IdlePage() {
         const pet = party.find((p) => p.uid === petDetailUid) ?? team.find((p) => p.uid === petDetailUid);
         if (!pet) return null;
         const now = Date.now();
-        const maxHp = calcIdleMaxHp(pet);
+        const maxHp = calcIdleMaxHp(pet, idle.trainerStats);
         const hp = pet.uid === team[0]?.uid ? leaderHp : (pet.hp ?? maxHp);
         const inTeam = team.some((p) => p.uid === pet.uid);
         const energy = petCurrentEnergy(pet, now, { active: inTeam });
@@ -12796,7 +12807,8 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
       </div>
     );
   }
-  const maxHp = calcIdleMaxHp(pet);
+  const s = loadIdle();
+  const maxHp = calcIdleMaxHp(pet, s.trainerStats);
   const hp = pet.hp ?? maxHp;
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
   const ePct = Math.max(0, Math.min(100, energy));
@@ -13143,7 +13155,7 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-
+  idle, setIdle, pushChat, playClick,
 }: {
   tab: string;
   onClose: () => void;
@@ -13170,9 +13182,7 @@ function TabOverlay({
   onBuyPotion: (qty?: number) => void;
   onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
   shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
-
   onBuyChestAmulet: () => void;
-
   chestAmuletOwned: number;
   autoHeal: { enabled: boolean; threshold: number };
   setAutoHeal: (next: { enabled: boolean; threshold: number }) => void;
@@ -13189,7 +13199,6 @@ function TabOverlay({
   onBuyMarket: (l: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
   onCancelMarket: (l: { id: string; item_id: string; qty: number; seller_id: string }) => Promise<boolean>;
   onClaimMarketPayout: (l: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }) => Promise<boolean>;
-
   isVip: boolean;
   skinId: string;
   setSkinId: (id: string) => void;
@@ -13197,6 +13206,10 @@ function TabOverlay({
   unlockedSkins: string[];
   skinTickets: number;
   onUnlockSkin: (id: string) => void;
+  idle: IdleState;
+  setIdle: React.Dispatch<React.SetStateAction<IdleState>>;
+  pushChat: (msg: string, kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture") => void;
+  playClick: () => void;
   onUpgradeBook: (id: string) => void;
   orbTrades: { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; label: string; rarity: Rarity; count: number; color: string; img: string; desc: string; baseSuccess: number; upgradeTo?: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; requires?: { itemId: string; qty: number; label: string } }[];
   onTradeOrb: (orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team", uids: string[], fuelUids: string[], rarity?: Rarity) => void;
@@ -13365,7 +13378,7 @@ function TabOverlay({
                     const isLeader = i === 0;
                     const rarityInfo = RARITY_COLORS[p.rarity] ?? RARITY_COLORS.common;
                     const rc = rarityInfo.c;
-                    const petMax = calcIdleMaxHp(p);
+                    const petMax = calcIdleMaxHp(p, idle.trainerStats);
                     const petHp = isLeader ? leaderHp : (p.hp ?? petMax);
                     const hpPct = Math.max(0, Math.min(100, (petHp / petMax) * 100));
                     const hpColor = hpPct > 55 ? "#5ec26a" : hpPct > 25 ? "#f5cf6b" : "#ff5252";
@@ -15066,14 +15079,70 @@ function TabOverlay({
           const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
           return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${r}s` : `${r}s`;
         };
+
+        const tStats = idle.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
+        const redDiamonds = items.crystal_red || 0;
+
+        const upgradeStat = (key: keyof Exclude<IdleState["trainerStats"], undefined>) => {
+          if (redDiamonds < 100) {
+            pushChat("💎 Você precisa de pelo menos 100 Diamantes Vermelhos para melhorar.", "info");
+            return;
+          }
+          if (typeof playClick === 'function') playClick();
+          setIdle(prev => {
+            const currentStats = prev.trainerStats || { atk: 0, def: 0, hp: 0, spe: 0, crit: 0 };
+            const nextStats = { ...currentStats, [key]: currentStats[key] + 1 };
+            const nextItems = { ...prev.items, crystal_red: (prev.items.crystal_red || 0) - 100 };
+            return { ...prev, trainerStats: nextStats, items: nextItems };
+          });
+          pushChat(`✨ Melhoria aplicada em ${String(key).toUpperCase()}! (-100 Diamantes Vermelhos)`, "info");
+        };
+
         return (
-          <div>
-            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus ativos</h3>
+          <div style={{ color: "#eadfe8" }}>
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ color: "#f5cf6b", fontSize: 16, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                💎 Safiras de Habilidade <span style={{ fontSize: 11, fontWeight: 500, color: "#8a7a9c" }}>· Consome 100 Diamantes Vermelhos por ponto</span>
+              </h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { key: "atk", label: "Ataque Total", icon: "⚔️", color: "#ff5252" },
+                  { key: "def", label: "Defesa Total", icon: "🛡️", color: "#4a7bff" },
+                  { key: "hp", label: "HP Máximo", icon: "❤️", color: "#ff4d4d" },
+                  { key: "spe", label: "Velocidade", icon: "👟", color: "#f5cf6b" },
+                  { key: "crit", label: "Ataque Crítico", icon: "🎯", color: "#c084fc" },
+                ].map((s) => (
+                  <div key={s.key} style={{ 
+                    background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 12, padding: 12,
+                    display: "flex", justifyContent: "space-between", alignItems: "center"
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#8a7a9c", fontWeight: 700 }}>{s.icon} {s.label}</div>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: s.color }}>+{tStats[s.key as keyof typeof tStats]}</div>
+                    </div>
+                    <button 
+                      onClick={() => upgradeStat(s.key as keyof typeof tStats)}
+                      disabled={redDiamonds < 100}
+                      style={{
+                        background: redDiamonds >= 100 ? "linear-gradient(180deg, #3a2e58, #1c0f2e)" : "#120a1c",
+                        border: `1px solid ${redDiamonds >= 100 ? s.color : "#3a2e58"}`,
+                        color: redDiamonds >= 100 ? "#fff" : "#5a4e78",
+                        padding: "6px 10px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: redDiamonds >= 100 ? "pointer" : "not-allowed",
+                        boxShadow: redDiamonds >= 100 ? `0 0 10px ${s.color}33` : "none"
+                      }}
+                    >MELHORAR</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <h3 style={{ color: "#f5cf6b", fontSize: 15, marginBottom: 12 }}>Bônus Temporários (Livros)</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
               <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((buffs?.atk ?? 0) * 100)}%`} color="#ff5252" />
               <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((buffs?.def ?? 0) * 100)}%`} color="#4a7bff" />
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
+            
             {(bookActive || orbActive || honeyActive || honeyRareActive) && (
               <div style={{ background: "rgba(20,15,35,0.6)", border: "1px solid #3a2e58", borderRadius: 8, padding: 10, marginBottom: 14 }}>
                 <div style={{ color: "#f5cf6b", fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Composição EXP:</div>
@@ -15106,8 +15175,8 @@ function TabOverlay({
                 </div>
               </div>
             )}
-            <div style={{ color: "#b8a8c8", fontSize: 12, lineHeight: 1.5 }}>
-              Livros, Orbs e Incenso de Mel <strong style={{ color: "#f5cf6b" }}>somam</strong> enquanto ativos. Quando cada tempo acaba, o bônus daquela fonte sai.
+            <div style={{ color: "#b8a8c8", fontSize: 11, lineHeight: 1.5, background: "rgba(0,0,0,0.2)", padding: 8, borderRadius: 8 }}>
+              Habilidades via Safiras são <strong style={{ color: "#f5cf6b" }}>permanentes</strong>. Livros e Orbs são temporários e somam aos bônus permanentes.
             </div>
           </div>
         );
@@ -15919,7 +15988,8 @@ function MarketScreen({
 function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: number; src: string | undefined }) {
 
   const base = SPECIES_BASE[pet.species];
-  const maxHp = calcIdleMaxHp(pet);
+  const s = loadIdle();
+  const maxHp = calcIdleMaxHp(pet, s.trainerStats);
   const hpPct = Math.max(0, (currentHp / maxHp) * 100);
   const xpNeeded = 100 + pet.level * 20;
   const xp = pet.xp ?? 0;
