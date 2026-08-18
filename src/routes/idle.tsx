@@ -1242,9 +1242,11 @@ type IdleState = {
                 Cada upgrade na anatomia aumenta o poder bruto dos seus Pokémon.
               </div>
             </div>
+            </div>
           </div>
         );
       })()}
+
 
 
 
