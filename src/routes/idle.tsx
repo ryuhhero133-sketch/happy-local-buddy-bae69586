@@ -15154,7 +15154,10 @@ function TabOverlay({
                 </div>
               </div>
               <div style={{ flex: 1, minWidth: 280 }}>
-                <h3 style={{ color: "#f5cf6b", margin: "0 0 12px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
+                <h3 style={{ color: "#f5cf6b", margin: "0 0 4px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
+                <p style={{ fontSize: 10, color: "#a8a0b8", margin: "0 0 12px 0", lineHeight: 1.4 }}>
+                  Evolua os atributos permanentes da sua conta gastando <strong>Stones Elementais</strong> e <strong>Livros</strong>. Cada melhoria ajuda no seu progresso global.
+                </p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
                   {radarPoints.map(p => {
                     const k = p.key;
