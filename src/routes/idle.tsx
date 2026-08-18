@@ -15172,7 +15172,14 @@ function TabOverlay({
       )}
 
       {tab === "wallet" && (
-        <WalletScreen bank={bank} onExchange={onExchange} />
+        <WalletScreen 
+          bank={bank} 
+          items={items}
+          collection={collection}
+          gifMap={gifMap}
+          onOpenColecaoDetail={onOpenColecaoDetail}
+          onExchange={onExchange} 
+        />
       )}
 
       {tab === "market" && (
