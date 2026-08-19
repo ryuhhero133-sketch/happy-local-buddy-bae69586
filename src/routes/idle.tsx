@@ -71,6 +71,8 @@ import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import overworldPixelAsset from "@/assets/world/overworld.png.asset.json";
+import worldMapRefAsset from "@/assets/world/overworld-ref.png.asset.json";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
