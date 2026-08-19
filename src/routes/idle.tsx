@@ -10410,7 +10410,7 @@ function IdlePage() {
                     ];
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
                     const c4Sel = activeTab === 4 ? (WORLD_PINS_C4.find((p) => String(p.id) === c4Pin) ?? null) : null;
-                    const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
+                    // const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
                     const tabTitle = activeTab === 1 ? "📜 THE FLOATING KINGDOMS · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
@@ -10497,16 +10497,6 @@ function IdlePage() {
                             background: "#160a1e",
                           }}>
 
-                                {bgUrl && (
-                                  <img
-                                    src={bgUrl}
-                                    alt={tabTitle}
-                                    loading="lazy"
-                                    width={1536}
-                                    height={1024}
-                                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                                  />
-                                )}
                                 {activeTab === 4 && (
                                   <div className="c4-fog" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 30% 40%, rgba(0,242,255,0.10), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,42,42,0.10), transparent 55%), linear-gradient(180deg, rgba(6,2,14,0.35), rgba(6,2,14,0.65))" }} />
                                 )}
