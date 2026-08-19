@@ -10731,20 +10731,22 @@ function IdlePage() {
                                      
                                      {/* Arte Pixel do Local */}
                                      <div style={{
-                                       fontSize: current ? 24 : 20,
-                                       filter: current ? "drop-shadow(0 0 8px #7ef27a)" : "none",
+                                       fontSize: current ? 32 : 26,
+                                       filter: current ? "drop-shadow(0 0 10px #7ef27a)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))",
                                        transform: `scale(${current ? 1.2 : 1})`,
                                        transition: "transform 0.3s ease",
+                                       imageRendering: "pixelated",
                                      }}>
                                        {pin.type === "castle" ? "🏰" : 
                                         pin.type === "village" ? "🏡" : 
                                         pin.type === "volcano" ? "🌋" : 
                                         pin.type === "cave" ? "🕳️" : 
-                                        pin.type === "forest" ? "🌲" : 
+                                        pin.type === "forest" ? "🌳" : 
                                         pin.type === "beach" ? "🏖️" : 
                                         pin.type === "mountain" ? "🏔️" : 
                                         pin.type === "snow" ? "❄️" : "🏛️"}
                                      </div>
+
 
                                      {/* Indicador de Selecionado */}
                                      {current && (
