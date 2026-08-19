@@ -10496,45 +10496,78 @@ function IdlePage() {
                             boxShadow: "inset 0 0 100px rgba(0,0,0,0.8)",
                             background: "#160a1e",
                           }}>
-                                 {/* Background procedural com ilhas e estética RPG */}
-                                 <div style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#1a2c4e", overflow: "hidden" }}>
-                                   {/* Mar / Efeito de Água Abissal */}
-                                   <div style={{
-                                     position: "absolute", inset: 0,
-                                     backgroundImage: activeTab === 4
-                                       ? "radial-gradient(circle at 50% 50%, #160a26 0%, #08040d 100%)"
-                                       : "radial-gradient(circle at 50% 50%, #2a4c8a 0%, #1a2c4e 100%)",
-                                     opacity: 0.8
-                                   }} />
+                            {/* Novo Mapa Mundi Visual Pixel Art */}
+                            <div className="world-map-container" style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#1a2c4e", overflow: "hidden" }}>
+                              {/* Camada de Água / Abismo */}
+                              <div style={{
+                                position: "absolute", inset: 0,
+                                background: activeTab === 4
+                                  ? "radial-gradient(circle at 50% 50%, #160a26 0%, #08040d 100%)"
+                                  : "radial-gradient(circle at 50% 50%, #2a4c8a 0%, #1a2c4e 100%)",
+                              }}>
+                                {/* Efeito de Ondas / Estrelas */}
+                                <div style={{ position: "absolute", inset: 0, opacity: 0.2, background: "url('https://www.transparenttextures.com/patterns/stardust.png')" }} />
+                              </div>
 
-                                   {/* Grelha de Pixel Art de Fundo */}
-                                   <div style={{
-                                     position: "absolute", inset: 0,
-                                     backgroundImage: "linear-gradient(#ffffff05 1px, transparent 1px), linear-gradient(90deg, #ffffff05 1px, transparent 1px)",
-                                     backgroundSize: "20px 20px",
-                                     opacity: 0.5
-                                   }} />
+                              {/* Renderização do Cenário Continental (Pixel Art CSS) */}
+                              <div style={{
+                                position: "absolute", left: "5%", top: "5%", width: "90%", height: "90%",
+                                transition: "transform 0.5s ease",
+                              }}>
+                                {/* Ilhas e Terrenos Principais */}
+                                <div style={{
+                                  position: "absolute", inset: 0,
+                                  background: activeTab === 4 ? "rgba(40, 20, 60, 0.4)" : "rgba(34, 76, 34, 0.3)",
+                                  borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
+                                  boxShadow: `inset 0 0 120px rgba(0,0,0,0.8), 0 0 60px ${activeTab === 4 ? "rgba(120,40,255,0.2)" : "rgba(0,0,0,0.5)"}`,
+                                  border: activeTab === 4 ? "4px solid #4a2a6a" : "4px solid #3d5a2a",
+                                  animation: "islandFloat 8s infinite ease-in-out"
+                                }}>
+                                  {/* Vegetação / Detalhes de Terreno */}
+                                  {[...Array(20)].map((_, i) => (
+                                    <div key={i} style={{
+                                      position: "absolute",
+                                      left: `${Math.random() * 90}%`,
+                                      top: `${Math.random() * 90}%`,
+                                      width: 40 + Math.random() * 60,
+                                      height: 30 + Math.random() * 40,
+                                      background: activeTab === 4 ? "rgba(20, 10, 30, 0.6)" : "rgba(20, 50, 20, 0.4)",
+                                      borderRadius: "50%",
+                                      filter: "blur(10px)",
+                                    }} />
+                                  ))}
 
-                                   {/* Continentes como Ilhas Procedurais */}
-                                   <div style={{
-                                     position: "absolute",
-                                     left: "5%", top: "5%", right: "5%", bottom: "5%",
-                                     background: activeTab === 4 ? "rgba(20, 10, 40, 0.4)" : "rgba(30, 60, 20, 0.2)",
-                                     borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
-                                     boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 0 40px rgba(0,0,0,0.4)",
-                                     border: activeTab === 4 ? "2px solid #4a2a6a" : "2px solid #3d5a2a",
-                                     animation: "islandFloat 6s infinite ease-in-out"
-                                   }} />
+                                  {/* Estruturas Visuais (Vilas/Castelos desenhados) */}
+                                  {activeTab === 1 && (
+                                    <>
+                                      <div style={{ position: "absolute", left: "20%", top: "30%", fontSize: 40, opacity: 0.6 }}>🌲</div>
+                                      <div style={{ position: "absolute", left: "70%", top: "60%", fontSize: 50, opacity: 0.6 }}>🏔️</div>
+                                      <div style={{ position: "absolute", left: "40%", top: "15%", fontSize: 30, opacity: 0.5 }}>🛶</div>
+                                    </>
+                                  )}
+                                  {activeTab === 4 && (
+                                    <>
+                                      <div style={{ position: "absolute", left: "25%", top: "45%", fontSize: 45, opacity: 0.4 }}>💎</div>
+                                      <div style={{ position: "absolute", left: "65%", top: "25%", fontSize: 40, opacity: 0.4 }}>🔥</div>
+                                      <div style={{ position: "absolute", left: "80%", top: "70%", fontSize: 50, opacity: 0.4 }}>💧</div>
+                                    </>
+                                  )}
 
-                                   {/* Decorações Procedurais (Nuvens / Névoa) */}
-                                   <div style={{
-                                     position: "absolute", inset: 0,
-                                     background: activeTab === 4
-                                       ? "url('https://www.transparenttextures.com/patterns/stardust.png')"
-                                       : "url('https://www.transparenttextures.com/patterns/clouds.png')",
-                                     opacity: 0.2, pointerEvents: "none"
-                                   }} />
-                                 </div>
+                                  {/* Rios / Veias de Energia */}
+                                  <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.3, pointerEvents: "none" }}>
+                                    <path d="M10,50 Q30,20 50,50 T90,50" fill="none" stroke={activeTab === 4 ? "#9d4dff" : "#4a9eff"} strokeWidth="4" strokeDasharray="10,5" />
+                                    <path d="M20,10 Q50,40 80,10" fill="none" stroke={activeTab === 4 ? "#9d4dff" : "#4a9eff"} strokeWidth="2" strokeDasharray="5,5" />
+                                  </svg>
+                                </div>
+
+                                {/* Nuvens / Névoa de Exploração */}
+                                <div style={{
+                                  position: "absolute", inset: -100,
+                                  background: "radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.4) 100%)",
+                                  pointerEvents: "none", zIndex: 5,
+                                }} />
+                              </div>
+                            </div>
 
                                 {activeTab === 4 && (
                                   <div className="c4-fog" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 30% 40%, rgba(0,242,255,0.10), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,42,42,0.10), transparent 55%), linear-gradient(180deg, rgba(6,2,14,0.35), rgba(6,2,14,0.65))" }} />
@@ -10640,33 +10673,55 @@ function IdlePage() {
                                     display: "flex", flexDirection: "column", alignItems: "center",
                                   }}
                                 >
-                                  <div style={{
-                                    width: current ? 32 : 24, height: current ? 32 : 24,
-                                    background: current ? "#7ef27a" : "#f5cf6b",
-                                    border: `2px solid ${current ? "#fff" : "#3d2a08"}`,
-                                    borderRadius: pin.type === "castle" ? 4 : "50%",
-                                    boxShadow: current ? "0 0 20px #7ef27a" : "0 4px 0 rgba(0,0,0,0.3)",
-                                    display: "grid", placeItems: "center",
-                                    animation: current ? "worldPinPulse 2s infinite ease-in-out" : "worldFloating 3s infinite ease-in-out",
-                                    animationDelay: `${(pin.x + pin.y) * 0.05}s`,
-                                  }}>
-                                    {current ? (
-                                      <div style={{ width: 10, height: 10, background: "#fff", borderRadius: "50%" }} />
-                                    ) : (
-                                      <span style={{ fontSize: 12 }}>{pin.type === "castle" ? "🏰" : pin.type === "village" ? "🏡" : pin.type === "volcano" ? "🌋" : pin.type === "cave" ? "🕳️" : "📍"}</span>
-                                    )}
-                                  </div>
-                                  <div style={{
-                                    marginTop: 4, padding: "2px 6px",
-                                    background: "rgba(11,5,16,0.85)", border: `1px solid ${current ? "#7ef27a" : "#f5cf6b"}`,
-                                    borderRadius: 3, color: current ? "#7ef27a" : "#ffe08a",
-                                    fontSize: 9, fontWeight: 900, whiteSpace: "nowrap",
-                                    textShadow: "1px 1px 0 #000",
-                                    pointerEvents: "none",
-                                    fontFamily: "'Press Start 2P', monospace",
-                                  }}>
-                                    {m.name}
-                                  </div>
+                                   {/* Elemento Visual do Mapa Integrado ao Cenário */}
+                                   <div style={{
+                                     position: "relative",
+                                     width: current ? 48 : 40, height: current ? 48 : 40,
+                                     display: "grid", placeItems: "center",
+                                     animation: current ? "worldPinPulse 2s infinite ease-in-out" : "worldFloating 3s infinite ease-in-out",
+                                     animationDelay: `${(pin.x + pin.y) * 0.05}s`,
+                                   }}>
+                                     {/* Base / Sombra do Prédio */}
+                                     <div style={{ position: "absolute", bottom: -4, width: "80%", height: "20%", background: "rgba(0,0,0,0.4)", borderRadius: "50%", filter: "blur(2px)" }} />
+                                     
+                                     {/* Arte Pixel do Local */}
+                                     <div style={{
+                                       fontSize: current ? 24 : 20,
+                                       filter: current ? "drop-shadow(0 0 8px #7ef27a)" : "none",
+                                       transform: `scale(${current ? 1.2 : 1})`,
+                                       transition: "transform 0.3s ease",
+                                     }}>
+                                       {pin.type === "castle" ? "🏰" : 
+                                        pin.type === "village" ? "🏡" : 
+                                        pin.type === "volcano" ? "🌋" : 
+                                        pin.type === "cave" ? "🕳️" : 
+                                        pin.type === "forest" ? "🌲" : 
+                                        pin.type === "beach" ? "🏖️" : 
+                                        pin.type === "mountain" ? "🏔️" : 
+                                        pin.type === "snow" ? "❄️" : "🏛️"}
+                                     </div>
+
+                                     {/* Indicador de Selecionado */}
+                                     {current && (
+                                       <div style={{
+                                         position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
+                                         width: 8, height: 8, background: "#7ef27a", borderRadius: "50%",
+                                         boxShadow: "0 0 10px #7ef27a",
+                                       }} />
+                                     )}
+                                   </div>
+                                   <div className="map-pin-label" style={{
+                                     marginTop: 4, padding: "2px 6px",
+                                     background: "rgba(11,5,16,0.9)", border: `1px solid ${current ? "#7ef27a" : "#f5cf6b"}`,
+                                     borderRadius: 4, color: current ? "#7ef27a" : "#ffe08a",
+                                     fontSize: 8, fontWeight: 900, whiteSpace: "nowrap",
+                                     textShadow: "1px 1px 0 #000",
+                                     pointerEvents: "none",
+                                     fontFamily: "'Press Start 2P', monospace",
+                                     boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                                   }}>
+                                     {m.name}
+                                   </div>
                                 </button>
                               );
                             })}
