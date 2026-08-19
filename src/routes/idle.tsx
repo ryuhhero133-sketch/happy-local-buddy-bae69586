@@ -10525,74 +10525,74 @@ function IdlePage() {
                               <div style={{
                                 position: "absolute", left: "0%", top: "0%", width: "100%", height: "100%",
                                 transition: "transform 0.5s ease",
-                                zIndex: 2
+                                zIndex: 2,
+                                pointerEvents: "none"
                               }}>
                                 {/* ILHA CENTRAL — Continente I */}
                                 {activeTab === 1 && (
-                                  <div style={{
-                                    position: "absolute", left: "25%", top: "20%", width: "50%", height: "60%",
-                                    background: "rgba(34, 76, 34, 0.45)",
-                                    borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
-                                    boxShadow: `inset 0 0 100px rgba(0,0,0,0.7), 0 30px 60px rgba(0,0,0,0.6)`,
-                                    border: "6px solid #3d5a2a",
-                                    animation: "islandFloat 8s infinite ease-in-out"
-                                  }}>
-                                     {/* Detalhes da Ilha Principal baseados na referência */}
-                                     <div style={{ position: "absolute", left: "40%", top: "20%", fontSize: 80, filter: "drop-shadow(0 10px 10px rgba(0,0,0,0.5))" }}>🏰</div>
-                                     <div style={{ position: "absolute", left: "15%", top: "40%", fontSize: 40, opacity: 0.8 }}>🏡</div>
-                                     <div style={{ position: "absolute", left: "70%", top: "15%", fontSize: 60, opacity: 0.9 }}>🌲</div>
-                                     <div style={{ position: "absolute", left: "75%", top: "50%", fontSize: 50, filter: "hue-rotate(200deg)" }}>🌊</div>
-                                     
-                                     {/* Pontes conectando ilhas (como na referência) */}
-                                     <div style={{ position: "absolute", left: "-25%", top: "45%", width: "25%", height: 16, background: "linear-gradient(90deg, transparent, #5a4a3a, #5a4a3a)", borderRadius: 4, transform: "rotate(-10deg)" }} />
-                                     <div style={{ position: "absolute", right: "-20%", top: "50%", width: "20%", height: 16, background: "linear-gradient(90deg, #5a4a3a, #5a4a3a, transparent)", borderRadius: 4, transform: "rotate(15deg)" }} />
-                                  </div>
+                                  <>
+                                    {/* Arte de Fundo de Ilha Estilizada Pixel-Art (CSS-only shapes) */}
+                                    <div style={{
+                                      position: "absolute", left: "20%", top: "15%", width: "60%", height: "70%",
+                                      background: "linear-gradient(135deg, #3d5a2a 0%, #2a4c1a 100%)",
+                                      clipPath: "polygon(10% 20%, 30% 0%, 70% 5%, 95% 25%, 90% 70%, 70% 95%, 30% 100%, 0% 80%)",
+                                      boxShadow: "inset -10px -10px 0 rgba(0,0,0,0.3), 0 30px 0 rgba(0,0,0,0.2)",
+                                      animation: "islandFloat 12s infinite ease-in-out",
+                                      opacity: 0.9
+                                    }} />
+                                    
+                                    {/* Montanhas ao Norte */}
+                                    <div style={{
+                                      position: "absolute", left: "40%", top: "10%", width: "120px", height: "80px",
+                                      background: "#4a4a4a",
+                                      clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+                                      borderBottom: "10px solid #2a2a2a",
+                                      animation: "islandFloat 12s infinite ease-in-out 0.5s"
+                                    }}>
+                                      <div style={{ position: "absolute", top: 0, left: "20%", width: "60%", height: "30%", background: "#fff", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
+                                    </div>
+                                    
+                                    {/* Lagoa no Centro-Sul */}
+                                    <div style={{
+                                      position: "absolute", left: "45%", top: "60%", width: "180px", height: "100px",
+                                      background: "radial-gradient(circle, #4a9eff 0%, #1a3c7e 80%)",
+                                      borderRadius: "50% 40% 60% 40%",
+                                      boxShadow: "inset 0 0 20px rgba(0,0,0,0.5)",
+                                      animation: "islandFloat 12s infinite ease-in-out 1s"
+                                    }} />
+
+                                    {/* Florestas densas */}
+                                    <div style={{
+                                      position: "absolute", left: "25%", top: "30%", width: "100px", height: "120px",
+                                      background: "#1a3c1a", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+                                      opacity: 0.8, animation: "islandFloat 12s infinite ease-in-out 1.5s"
+                                    }} />
+                                    <div style={{
+                                      position: "absolute", right: "25%", top: "40%", width: "120px", height: "150px",
+                                      background: "#1a3c1a", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+                                      opacity: 0.8, animation: "islandFloat 12s infinite ease-in-out 2s"
+                                    }} />
+                                  </>
                                 )}
 
-                                {/* ILHAS MENORES AO REDOR */}
+                                {/* ILHAS FLUTUANTES MENORES (Continente I) */}
                                 {activeTab === 1 && (
                                   <>
-                                    {/* Ilha Noroeste (Vila) */}
+                                    {/* Ilha Satélite Noroeste */}
                                     <div style={{
-                                      position: "absolute", left: "10%", top: "15%", width: "22%", height: "25%",
-                                      background: "rgba(40, 85, 40, 0.5)",
-                                      borderRadius: "60% 40% 30% 70%",
-                                      boxShadow: "inset 0 0 40px rgba(0,0,0,0.5), 0 15px 30px rgba(0,0,0,0.4)",
-                                      border: "4px solid #4a6a3a",
-                                      animation: "islandFloat 9s infinite ease-in-out reverse"
-                                    }}>
-                                      <div style={{ position: "absolute", left: "30%", top: "20%", fontSize: 45 }}>🏡</div>
-                                      <div style={{ position: "absolute", left: "55%", top: "45%", fontSize: 35 }}>🏡</div>
-                                    </div>
+                                      position: "absolute", left: "5%", top: "10%", width: "15%", height: "20%",
+                                      background: "#2a4c1a", clipPath: "polygon(20% 0%, 80% 20%, 100% 80%, 0% 100%)",
+                                      boxShadow: "0 10px 0 rgba(0,0,0,0.2)",
+                                      animation: "islandFloat 10s infinite ease-in-out reverse"
+                                    }} />
 
-                                    {/* Ilha Sudoeste (Mina/Caverna) */}
+                                    {/* Ilha Satélite Leste */}
                                     <div style={{
-                                      position: "absolute", left: "8%", top: "60%", width: "25%", height: "28%",
-                                      background: "rgba(60, 60, 60, 0.5)",
-                                      borderRadius: "30% 70% 60% 40%",
-                                      boxShadow: "inset 0 0 40px rgba(0,0,0,0.6), 0 15px 30px rgba(0,0,0,0.5)",
-                                      border: "4px solid #4a4a4a",
-                                      animation: "islandFloat 7s infinite ease-in-out 1s"
-                                    }}>
-                                      <div style={{ position: "absolute", left: "40%", top: "35%", fontSize: 50 }}>🕳️</div>
-                                      <div style={{ position: "absolute", left: "20%", top: "20%", fontSize: 30, opacity: 0.6 }}>🏔️</div>
-                                    </div>
-
-                                    {/* Ilha Leste (Floresta Mística) */}
-                                    <div style={{
-                                      position: "absolute", right: "5%", top: "25%", width: "28%", height: "55%",
-                                      background: "rgba(20, 90, 40, 0.5)",
-                                      borderRadius: "70% 30% 40% 60%",
-                                      boxShadow: "inset 0 0 50px rgba(0,0,0,0.6), 0 20px 40px rgba(0,0,0,0.5)",
-                                      border: "4px solid #2a5a2a",
-                                      animation: "islandFloat 10s infinite ease-in-out"
-                                    }}>
-                                      <div style={{ position: "absolute", left: "40%", top: "10%", fontSize: 70 }}>🌳</div>
-                                      <div style={{ position: "absolute", left: "20%", top: "40%", fontSize: 40, opacity: 0.8 }}>🌲</div>
-                                      <div style={{ position: "absolute", left: "50%", top: "60%", fontSize: 40 }}>🌲</div>
-                                      {/* Cachoeira baseada na referência */}
-                                      <div style={{ position: "absolute", bottom: -20, left: "30%", width: 24, height: 60, background: "linear-gradient(180deg, #4a9eff, #8fd6ff, transparent)", borderRadius: "0 0 12px 12px", animation: "pulse 2s infinite" }} />
-                                    </div>
+                                      position: "absolute", right: "5%", top: "30%", width: "18%", height: "25%",
+                                      background: "#3d5a2a", clipPath: "polygon(0% 20%, 70% 0%, 100% 60%, 30% 100%)",
+                                      boxShadow: "0 15px 0 rgba(0,0,0,0.2)",
+                                      animation: "islandFloat 14s infinite ease-in-out 2s"
+                                    }} />
                                   </>
                                 )}
                                 
@@ -10612,6 +10612,7 @@ function IdlePage() {
                                 )}
                               </div>
                             </div>
+
 
 
                                 {activeTab === 4 && (
