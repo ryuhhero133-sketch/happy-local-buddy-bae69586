@@ -10399,6 +10399,13 @@ function IdlePage() {
                       { id: "ilha_safira" as IdleMapId, x: 85, y: 60, type: "beach" },
                     ];
                     const activeTab = worldTab;
+                    const isC1Unlocked = true; // Continente 1 sempre liberado
+                    const isC2Unlocked = (idle.items?.carta_governante ?? 0) > 0;
+                    const isC3Unlocked = (idle.trainerLevel ?? 1) >= 200; // Exemplo de requisito
+                    const isC4Unlocked = false; // Em breve
+
+                    const continentUnlocked = activeTab === 1 ? isC1Unlocked : activeTab === 2 ? isC2Unlocked : activeTab === 3 ? isC3Unlocked : isC4Unlocked;
+
                     const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type?: "crystal" | "ruby" | "safira"; name?: string; lv?: string; desc?: string; boss?: string }> = [
                       { id: "mapa_c4_1" as IdleMapId, x: 15, y: 25, type: "crystal", name: "Catedral de Cristal", lv: "Lv 10.000+", desc: "Torres de cristal puro ecoam cânticos antigos.", boss: "Guardião Prismático" },
                       { id: "mapa_c4_2" as IdleMapId, x: 25, y: 20, type: "crystal", name: "Veias Congeladas", lv: "Lv 10.500+", desc: "Rios de cristal líquido cortam a rocha.", boss: "Serpente de Quartzo" },
@@ -10413,6 +10420,7 @@ function IdlePage() {
                     ];
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
                     const c4Sel = activeTab === 4 ? (WORLD_PINS_C4.find((p) => String(p.id) === c4Pin) ?? null) : null;
+
                     // const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
                     const tabTitle = activeTab === 1 ? "📜 THE FLOATING KINGDOMS · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
                     const trainerLv = idle.trainerLevel ?? 1;
@@ -10496,8 +10504,9 @@ function IdlePage() {
                             borderRadius: 2, overflow: "hidden",
                             border: `2px solid #3d2a08`,
                             boxShadow: "inset 0 0 100px rgba(0,0,0,0.8)",
-                            background: "#160a1e",
+                            background: "#08040d", // Fundo preto para ressaltar o continente colorido
                           }}>
+
                             {/* Novo Mapa Mundi Visual Pixel Art — Integrado e Baseado na Referência */}
                             <div className="world-map-container" style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#1a3c7e", overflow: "hidden" }}>
                               {/* Efeito de Ondas de Água no Fundo */}
@@ -10519,10 +10528,13 @@ function IdlePage() {
                               {/* Renderização do Cenário Continental */}
                               <div style={{
                                 position: "absolute", left: "0%", top: "0%", width: "100%", height: "100%",
-                                transition: "transform 0.5s ease",
+                                transition: "transform 0.5s ease, filter 1s ease",
                                 zIndex: 2,
-                                pointerEvents: "none"
+                                pointerEvents: "none",
+                                filter: continentUnlocked ? "none" : "grayscale(1) brightness(0.5)",
                               }}>
+
+
                                 {/* ILHA PRINCIPAL — Continente I */}
                                 {activeTab === 1 && (
                                   <>
@@ -10807,7 +10819,8 @@ function IdlePage() {
                                      {/* Arte Pixel do Local */}
                                      <div style={{
                                        fontSize: current ? 32 : 26,
-                                       filter: current ? "drop-shadow(0 0 10px #7ef27a)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))",
+                                       filter: !continentUnlocked ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #7ef27a)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
+
                                        transform: `scale(${current ? 1.2 : 1})`,
                                        transition: "transform 0.3s ease",
                                        imageRendering: "pixelated",
