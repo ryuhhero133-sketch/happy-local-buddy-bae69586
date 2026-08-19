@@ -10617,8 +10617,10 @@ function IdlePage() {
                               }
 
                               if (!m) return null;
-                              const ok = true; 
+                              const ok = true;
                               const current = idle.currentMap === pin.id;
+                              const targetMap = m;
+
                               return (
                                 <button
                                   key={pin.id}
