@@ -10572,12 +10572,12 @@ function IdlePage() {
                               }
 
                               if (!m) return null;
-                              const ok = true; // Ignora requisito de nível conforme pedido do usuário
+                              const ok = true; 
                               const current = idle.currentMap === pin.id;
                               return (
                                 <button
                                   key={pin.id}
-                                  title={m.raid ? `${m.name} · RAID (chefes Lv variados)` : `${m.name} · Lv ${m.minLevel}${m.maxLevel ? `–${m.maxLevel}` : ""}${trainerLv < m.minLevel ? " (LIVRE)" : ""}`}
+                                  title={m.raid ? `${m.name} · RAID` : `${m.name} · Lv ${m.minLevel}`}
                                   onClick={() => {
                                     if (current) { setWorldMapOpen(false); return; }
                                     playClick();
@@ -10588,13 +10588,12 @@ function IdlePage() {
                                       arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
                                       color: "#f5cf6b",
                                     };
-                                    // Pergaminho de Teleporte — se tiver e o mapa for elegível (nível OK), teleporta instantâneo sem custo
                                     const scrolls = idle.items?.scroll_teleport ?? 0;
-                                    if (scrolls > 0 && true) {
+                                    if (scrolls > 0) {
                                       setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
                                       setWorldMapOpen(false);
                                       travelToGate(synthGate);
-                                      pushChat(`📜 Pergaminho de Teleporte consumido — viagem instantânea para ${m.name}.`, "cap");
+                                      pushChat(`📜 Pergaminho consumido — viagem para ${m.name}.`, "cap");
                                       return;
                                     }
                                     setWorldMapOpen(false);
@@ -10604,39 +10603,59 @@ function IdlePage() {
                                     position: "absolute",
                                     left: `${pin.x}%`, top: `${pin.y}%`,
                                     transform: "translate(-50%,-50%)",
-                                    background: current
-                                      ? "linear-gradient(135deg, #7ef27a, #4ec26a)"
-                                      : ok
-                                        ? "linear-gradient(135deg, rgba(245,207,107,0.95), rgba(217,164,65,0.95))"
-                                        : "rgba(30,20,40,0.85)",
-                                    border: `2px solid ${current ? "#fff" : ok ? "#fff2b8" : "#6a5a70"}`,
-                                    color: current ? "#0b1a0b" : ok ? "#1a0f26" : "#8a7a9c",
-                                    borderRadius: 20,
-                                    padding: "4px 10px",
-                                    fontSize: 10,
-                                    fontWeight: 900,
-                                    letterSpacing: 0.3,
+                                    background: "transparent",
+                                    border: "none",
                                     cursor: "pointer",
-                                    boxShadow: current
-                                      ? "0 0 16px rgba(126,242,122,0.9), 0 0 4px #fff"
-                                      : ok
-                                        ? "0 0 12px rgba(245,207,107,0.7)"
-                                        : "0 2px 4px rgba(0,0,0,0.6)",
-                                    whiteSpace: "nowrap",
-                                    animation: current ? "worldPinPulse 1.6s ease-in-out infinite" : undefined,
+                                    padding: 0,
+                                    zIndex: current ? 20 : 10,
+                                    display: "flex", flexDirection: "column", alignItems: "center",
                                   }}
                                 >
-                                  {current ? "📍 " : ok ? "● " : "🔒 "}{m.name} <span style={{ opacity: 0.75, fontWeight: 700, color: m.raid ? "#ff8ad6" : undefined }}>{m.raid ? "RAID" : `Lv${m.minLevel}${m.maxLevel ? `-${m.maxLevel}` : ""}`}</span>
+                                  <div style={{
+                                    width: current ? 32 : 24, height: current ? 32 : 24,
+                                    background: current ? "#7ef27a" : "#f5cf6b",
+                                    border: `2px solid ${current ? "#fff" : "#3d2a08"}`,
+                                    borderRadius: pin.type === "castle" ? 4 : "50%",
+                                    boxShadow: current ? "0 0 20px #7ef27a" : "0 4px 0 rgba(0,0,0,0.3)",
+                                    display: "grid", placeItems: "center",
+                                    animation: current ? "worldPinPulse 2s infinite ease-in-out" : "worldFloating 3s infinite ease-in-out",
+                                    animationDelay: `${(pin.x + pin.y) * 0.05}s`,
+                                  }}>
+                                    {current ? (
+                                      <div style={{ width: 10, height: 10, background: "#fff", borderRadius: "50%" }} />
+                                    ) : (
+                                      <span style={{ fontSize: 12 }}>{pin.type === "castle" ? "🏰" : pin.type === "village" ? "🏡" : pin.type === "volcano" ? "🌋" : pin.type === "cave" ? "🕳️" : "📍"}</span>
+                                    )}
+                                  </div>
+                                  <div style={{
+                                    marginTop: 4, padding: "2px 6px",
+                                    background: "rgba(11,5,16,0.85)", border: `1px solid ${current ? "#7ef27a" : "#f5cf6b"}`,
+                                    borderRadius: 3, color: current ? "#7ef27a" : "#ffe08a",
+                                    fontSize: 9, fontWeight: 900, whiteSpace: "nowrap",
+                                    textShadow: "1px 1px 0 #000",
+                                    pointerEvents: "none",
+                                    fontFamily: "'Press Start 2P', monospace",
+                                  }}>
+                                    {m.name}
+                                  </div>
                                 </button>
                               );
                             })}
                           </div>
-                          <div style={{ marginTop: 10, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", fontSize: 11, color: "#c8b8d0" }}>
+
+                          <div style={{ marginTop: 8, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", fontSize: 10, color: "#c8b8d0", fontFamily: "monospace" }}>
                             <span>📍 Você está em <b style={{ color: "#7ef27a" }}>{map.name}</b></span>
-                            <span>🎖 Treinador Lv <b style={{ color: "#f5cf6b" }}>{trainerLv}</b></span>
-                            <span style={{ color: "#8a7a9c" }}>Clique num destino para viajar (🪙 1000 + 💎 taxa se houver).</span>
+                            <span>🎖 Lv <b style={{ color: "#f5cf6b" }}>{trainerLv}</b></span>
+                            <span style={{ color: "#8a7a9c" }}>Selecione uma ilha para viajar via Portal (🪙 1000 + 💎 taxa).</span>
                           </div>
-                          <style>{`@keyframes worldPinPulse { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.12); } }`}</style>
+
+                          <style>{`
+                            @keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+                            @keyframes worldFloating { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+                            .c4-ring { animation: c4RingRotate 4s linear infinite; }
+                            @keyframes c4RingRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                          `}</style>
+
                         </div>
                       </div>
                     );
