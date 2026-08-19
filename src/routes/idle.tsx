@@ -10620,31 +10620,27 @@ function IdlePage() {
                                     </>
                                   )}
                                 
-                                {activeTab === 4 && (
-                                  <div style={{
-                                    position: "absolute", inset: "10%",
-                                    background: "rgba(40, 20, 60, 0.4)",
-                                    borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
-                                    boxShadow: `inset 0 0 120px rgba(0,0,0,0.8), 0 0 60px rgba(120,40,255,0.2)`,
-                                    border: "4px solid #4a2a6a",
-                                    animation: "islandFloat 8s infinite ease-in-out"
-                                  }}>
-                                    <div style={{ position: "absolute", left: "25%", top: "45%", fontSize: 45, opacity: 0.4 }}>💎</div>
-                                    <div style={{ position: "absolute", left: "65%", top: "25%", fontSize: 40, opacity: 0.4 }}>🔥</div>
-
-                                    <div style={{ position: "absolute", left: "80%", top: "70%", fontSize: 50, opacity: 0.4 }}>💧</div>
-                                  </div>
-                                )}
+                                  {activeTab === 4 && (
+                                    <div style={{
+                                      position: "absolute", inset: "10%",
+                                      background: "rgba(40, 20, 60, 0.4)",
+                                      borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
+                                      boxShadow: `inset 0 0 120px rgba(0,0,0,0.8), 0 0 60px rgba(120,40,255,0.2)`,
+                                      border: "4px solid #4a2a6a",
+                                      animation: "islandFloat 8s infinite ease-in-out"
+                                    }}>
+                                      <div style={{ position: "absolute", left: "25%", top: "45%", fontSize: 45, opacity: 0.4 }}>💎</div>
+                                      <div style={{ position: "absolute", left: "65%", top: "25%", fontSize: 40, opacity: 0.4 }}>🔥</div>
+                                      <div style={{ position: "absolute", left: "80%", top: "70%", fontSize: 50, opacity: 0.4 }}>💧</div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-
-
-
-                                {activeTab === 4 && (
-                                  <div className="c4-fog" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 30% 40%, rgba(0,242,255,0.10), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,42,42,0.10), transparent 55%), linear-gradient(180deg, rgba(6,2,14,0.35), rgba(6,2,14,0.65))" }} />
-                                )}
-                                {activeTab === 4 && (
-                                  <div style={{ position: "absolute", bottom: 0, left: 0, display: "flex", alignItems: "flex-end", gap: 10, zIndex: 12, pointerEvents: "none" }}>
+                              {activeTab === 4 && (
+                                <div className="c4-fog" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 30% 40%, rgba(0,242,255,0.10), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,42,42,0.10), transparent 55%), linear-gradient(180deg, rgba(6,2,14,0.35), rgba(6,2,14,0.65))" }} />
+                              )}
+                              {activeTab === 4 && (
+                                <div style={{ position: "absolute", bottom: 0, left: 0, display: "flex", alignItems: "flex-end", gap: 10, zIndex: 12, pointerEvents: "none" }}>
                                     <img
                                       src={npcAbyssWitch}
                                       alt="Vharyx, a Bruxa das Gemas"
