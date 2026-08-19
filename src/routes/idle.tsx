@@ -10489,7 +10489,14 @@ function IdlePage() {
                               );
                             })}
                           </div>
-                          <div style={{ position: "relative", width: "100%", aspectRatio: "1536 / 1024", borderRadius: 10, overflow: "hidden", border: `2px solid ${activeTab === 2 ? "#a06de0" : "#7a5a20"}`, boxShadow: activeTab === 2 ? "inset 0 0 60px rgba(120,60,180,0.6)" : "inset 0 0 40px rgba(0,0,0,0.6)" }}>
+                          <div style={{
+                            position: "relative", width: "100%", aspectRatio: "1536 / 1024",
+                            borderRadius: 2, overflow: "hidden",
+                            border: `2px solid #3d2a08`,
+                            boxShadow: "inset 0 0 100px rgba(0,0,0,0.8)",
+                            background: "#160a1e",
+                          }}>
+
                                 {bgUrl && (
                                   <img
                                     src={bgUrl}
