@@ -10429,19 +10429,18 @@ function IdlePage() {
                       >
                         <div
                           onClick={(e) => e.stopPropagation()}
-                            style={{
-                              background: "#08040d",
-                              border: "4px solid #f5cf6b",
-                              borderRadius: 4,
-                              padding: 4,
-                              maxWidth: 1100, width: "100%",
-                              cursor: "default",
-                              boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(245,207,107,0.3)",
-                              position: "relative",
-                              overflow: "hidden",
-                              imageRendering: "pixelated",
-                            }}
-
+                          style={{
+                            background: "#08040d",
+                            border: "4px solid #f5cf6b",
+                            borderRadius: 4,
+                            padding: 4,
+                            maxWidth: 1100, width: "100%",
+                            cursor: "default",
+                            boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(245,207,107,0.3)",
+                            position: "relative",
+                            overflow: "hidden",
+                            imageRendering: "pixelated",
+                          }}
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px", gap: 8 }}>
                             <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 15, letterSpacing: 2 }}>
@@ -10500,26 +10499,21 @@ function IdlePage() {
                             background: "#160a1e",
                           }}>
                             {/* Novo Mapa Mundi Visual Pixel Art — Integrado e Baseado na Referência */}
-                            <div className="world-map-container" style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#2a4c8a", overflow: "hidden" }}>
-                              {/* Fundo de Referência Suave (como guia visual) */}
+                            <div className="world-map-container" style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#1a3c7e", overflow: "hidden" }}>
+                              {/* Efeito de Ondas de Água no Fundo */}
                               <div style={{
                                 position: "absolute", inset: 0,
-                                backgroundImage: `url(${assetUrlFromJson(worldMapRefAsset)})`,
-                                backgroundSize: "cover",
-                                opacity: 0.15,
-                                mixBlendMode: "overlay",
-                                pointerEvents: "none"
-                              }} />
-                              
-                              {/* Camada de Água / Abismo com Animação */}
-                              <div style={{
-                                position: "absolute", inset: 0,
-                                background: activeTab === 4
+                                background: activeTab === 4 
                                   ? "radial-gradient(circle at 50% 50%, #160a26 0%, #08040d 100%)"
                                   : "linear-gradient(180deg, #1a3c7e 0%, #2a4c8a 50%, #1a3c7e 100%)",
                               }}>
-                                {/* Efeito de Ondas / Estrelas */}
-                                <div style={{ position: "absolute", inset: 0, opacity: 0.2, background: "url('https://www.transparenttextures.com/patterns/stardust.png')" }} />
+                                <div style={{ 
+                                  position: "absolute", inset: 0, 
+                                  opacity: 0.3, 
+                                  backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
+                                  backgroundSize: "20px 20px",
+                                  animation: "stardustFloat 20s linear infinite"
+                                }} />
                               </div>
 
                               {/* Renderização do Cenário Continental */}
@@ -10529,119 +10523,177 @@ function IdlePage() {
                                 zIndex: 2,
                                 pointerEvents: "none"
                               }}>
-                                {/* ILHA CENTRAL — Continente I */}
+                                {/* ILHA PRINCIPAL — Continente I */}
                                 {activeTab === 1 && (
                                   <>
-                                    {/* Arte de Fundo de Ilha Estilizada Pixel-Art (CSS-only shapes) */}
-                                    <div style={{
-                                      position: "absolute", left: "15%", top: "15%", width: "70%", height: "70%",
-                                      background: "linear-gradient(135deg, #3d5a2a 0%, #2a4c1a 100%)",
-                                      clipPath: "polygon(10% 25%, 25% 5%, 45% 0%, 75% 10%, 95% 35%, 90% 75%, 75% 95%, 45% 100%, 20% 90%, 5% 65%)",
-                                      boxShadow: "inset -10px -10px 0 rgba(0,0,0,0.3), 0 30px 0 rgba(0,0,0,0.2)",
-                                      animation: "islandFloat 12s infinite ease-in-out",
-                                      opacity: 0.95
-                                    }} />
-                                    
-                                    {/* Região de Neve (Norte) */}
-                                    <div style={{
-                                      position: "absolute", left: "35%", top: "5%", width: "25%", height: "20%",
-                                      background: "#f0f8ff", borderRadius: "40% 60% 30% 70%",
-                                      boxShadow: "inset 0 0 20px #fff", filter: "blur(2px)",
-                                      animation: "islandFloat 12s infinite ease-in-out 0.2s"
-                                    }} />
-                                    
-                                    {/* Montanhas ao Norte */}
-                                    <div style={{
-                                      position: "absolute", left: "42%", top: "8%", width: "100px", height: "70px",
-                                      background: "#4a4a4a", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-                                      borderBottom: "8px solid #2a2a2a", animation: "islandFloat 12s infinite ease-in-out 0.5s"
-                                    }}>
-                                      <div style={{ position: "absolute", top: 0, left: "20%", width: "60%", height: "30%", background: "#fff", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
-                                    </div>
-                                    
-                                    {/* Lagoa no Centro-Sul */}
-                                    <div style={{
-                                      position: "absolute", left: "40%", top: "60%", width: "160px", height: "90px",
-                                      background: "radial-gradient(circle, #4a9eff 0%, #1a3c7e 80%)",
-                                      borderRadius: "50% 40% 60% 40%", boxShadow: "inset 0 0 20px rgba(0,0,0,0.5)",
-                                      animation: "islandFloat 12s infinite ease-in-out 1s"
-                                    }} />
+                                      {/* A Ilha Maior (Massa de Terra Principal) */}
+                                      <div style={{
+                                        position: "absolute", left: "10%", top: "10%", width: "80%", height: "80%",
+                                        background: "#3d5a2a",
+                                        clipPath: "polygon(15% 20%, 30% 10%, 60% 5%, 85% 15%, 95% 40%, 90% 70%, 75% 90%, 50% 95%, 20% 85%, 5% 50%)",
+                                        boxShadow: "0 20px 0 #2a3d1a, inset -8px -8px 0 rgba(0,0,0,0.2)",
+                                        animation: "islandFloat 8s infinite ease-in-out"
+                                      }}>
+                                        {/* Textura de Grama/Solo */}
+                                        <div style={{ position: "absolute", inset: 0, opacity: 0.2, background: "repeating-linear-gradient(45deg, #2a3d1a 0px, #2a3d1a 2px, transparent 2px, transparent 4px)" }} />
+                                      </div>
+                                      
+                                      {/* Planície Central e Caminhos (Inspirado na Referência) */}
+                                      <div style={{
+                                        position: "absolute", left: "20%", top: "25%", width: "60%", height: "50%",
+                                        background: "#4da64d", clipPath: "polygon(10% 20%, 90% 10%, 80% 80%, 20% 90%)",
+                                        opacity: 0.6, zIndex: 1, animation: "islandFloat 8s infinite ease-in-out 0.2s"
+                                      }} />
 
-                                    {/* Florestas densas (Oeste e Leste) */}
-                                    <div style={{
-                                      position: "absolute", left: "25%", top: "35%", width: "80px", height: "100px",
-                                      background: "#1a3c1a", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-                                      opacity: 0.85, animation: "islandFloat 12s infinite ease-in-out 1.5s"
-                                    }} />
-                                    <div style={{
-                                      position: "absolute", right: "20%", top: "45%", width: "100px", height: "130px",
-                                      background: "#1a3c1a", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-                                      opacity: 0.85, animation: "islandFloat 12s infinite ease-in-out 2s"
-                                    }} />
-                                    
-                                    {/* Região Desértica (Noroeste) */}
-                                    <div style={{
-                                      position: "absolute", left: "48%", top: "22%", width: "15%", height: "12%",
-                                      background: "linear-gradient(135deg, #edc9af, #c2b280)",
-                                      clipPath: "polygon(10% 0%, 90% 20%, 80% 90%, 0% 80%)",
-                                      opacity: 0.9, animation: "islandFloat 12s infinite ease-in-out 0.8s"
-                                    }} />
+                                      {/* O Grande Lago Central */}
+                                      <div style={{
+                                        position: "absolute", left: "25%", top: "35%", width: "15%", height: "20%",
+                                        background: "#4a9eff", borderRadius: "40% 60% 50% 50%",
+                                        boxShadow: "inset 0 0 15px #1a3c7e", zIndex: 2,
+                                        animation: "islandFloat 8s infinite ease-in-out 0.5s"
+                                      }} />
 
-                                    {/* Abismo / Cavernas (Sudeste) */}
-                                    <div style={{
-                                      position: "absolute", right: "22%", bottom: "18%", width: "20%", height: "15%",
-                                      background: "#1a1a1a", clipPath: "polygon(20% 10%, 80% 0%, 100% 90%, 10% 100%)",
-                                      opacity: 0.7, animation: "islandFloat 12s infinite ease-in-out 2.5s"
-                                    }} />
-                                  </>
-                                )}
+                                      {/* Região Gelada (Pico Norte) */}
+                                      <div style={{
+                                        position: "absolute", left: "55%", top: "8%", width: "30%", height: "25%",
+                                        background: "#ffffff",
+                                        clipPath: "polygon(20% 30%, 50% 0%, 80% 20%, 100% 60%, 70% 90%, 30% 80%, 0% 50%)",
+                                        boxShadow: "0 15px 0 #d0e0f0", zIndex: 3,
+                                        animation: "islandFloat 8s infinite ease-in-out 1s"
+                                      }}>
+                                        {/* Montanhas com Neve */}
+                                        <div style={{ position: "absolute", left: "30%", top: "10%", width: "40%", height: "60%", background: "#a0b0c0", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}>
+                                          <div style={{ position: "absolute", top: 0, left: "20%", width: "60%", height: "30%", background: "#fff", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
+                                        </div>
+                                      </div>
 
-                                {/* ILHAS FLUTUANTES MENORES (Continente I) */}
-                                {activeTab === 1 && (
-                                  <>
-                                    {/* Ilha Satélite Noroeste (acima da vila) */}
-                                    <div style={{
-                                      position: "absolute", left: "8%", top: "12%", width: "12%", height: "15%",
-                                      background: "#2a4c1a", clipPath: "polygon(20% 0%, 80% 20%, 100% 80%, 0% 100%)",
-                                      boxShadow: "0 10px 0 rgba(0,0,0,0.2)",
-                                      animation: "islandFloat 10s infinite ease-in-out reverse"
-                                    }} />
+                                      {/* Região Vulcânica / Montanhosa (Centro-Leste) */}
+                                      <div style={{
+                                        position: "absolute", left: "45%", top: "40%", width: "20%", height: "20%",
+                                        zIndex: 3, animation: "islandFloat 8s infinite ease-in-out 1.5s"
+                                      }}>
+                                        {/* Vulcão */}
+                                        <div style={{ position: "absolute", left: "20%", bottom: "10%", width: "60%", height: "80%", background: "#5d4037", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}>
+                                          <div style={{ position: "absolute", top: 0, left: "40%", width: "20%", height: "10%", background: "#ff5722", borderRadius: "50% 50% 0 0" }} />
+                                        </div>
+                                        {/* Montanhas menores ao redor */}
+                                        <div style={{ position: "absolute", left: 0, bottom: 0, width: "30%", height: "40%", background: "#795548", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
+                                        <div style={{ position: "absolute", right: 0, bottom: 0, width: "30%", height: "40%", background: "#795548", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
+                                      </div>
 
-                                    {/* Ilha Satélite Sul (montanhas rochosas) */}
-                                    <div style={{
-                                      position: "absolute", left: "12%", top: "70%", width: "15%", height: "18%",
-                                      background: "#4a4a4a", clipPath: "polygon(0% 20%, 70% 0%, 100% 60%, 30% 100%)",
-                                      boxShadow: "0 15px 0 rgba(0,0,0,0.2)",
-                                      animation: "islandFloat 14s infinite ease-in-out 2s"
-                                    }} />
-                                  </>
-                                )}
+                                      {/* O Deserto (Noroeste) */}
+                                      <div style={{
+                                        position: "absolute", left: "45%", top: "25%", width: "12%", height: "10%",
+                                        background: "#edc9af", borderRadius: "20px", opacity: 0.9, zIndex: 2,
+                                        transform: "rotate(-15deg)", animation: "islandFloat 8s infinite ease-in-out 0.8s"
+                                      }}>
+                                        <div style={{ position: "absolute", left: "20%", top: "20%", width: "10px", height: "15px", background: "#2e7d32", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} /> {/* Cacto */}
+                                      </div>
+
+                                      {/* Região Sombria / Cavernas (Leste) */}
+                                      <div style={{
+                                        position: "absolute", right: "12%", top: "50%", width: "15%", height: "25%",
+                                        background: "#2c3e50", clipPath: "polygon(20% 0%, 100% 20%, 80% 100%, 0% 80%)",
+                                        boxShadow: "0 10px 0 #1a252f", zIndex: 2, animation: "islandFloat 8s infinite ease-in-out 2.2s"
+                                      }}>
+                                        <div style={{ position: "absolute", left: "30%", top: "40%", width: "40%", height: "30%", background: "#000", borderRadius: "50%" }} /> {/* Entrada da caverna */}
+                                      </div>
+
+                                      {/* Vilarejo e Porto (Sudoeste) */}
+                                      <div style={{
+                                        position: "absolute", left: "15%", bottom: "25%", width: "12%", height: "15%",
+                                        background: "#8d6e63", borderRadius: "5px", zIndex: 2, animation: "islandFloat 8s infinite ease-in-out 1.8s"
+                                      }}>
+                                        <div style={{ position: "absolute", left: "20%", top: "-10px", width: "20px", height: "20px", background: "#e57373", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} /> {/* Casinha */}
+                                        <div style={{ position: "absolute", right: "20%", top: "10px", width: "15px", height: "15px", background: "#fff", borderRadius: "2px" }} />
+                                      </div>
+
+                                      {/* Pequenas Ilhas Satélites */}
+                                      <div style={{ position: "absolute", right: "5%", top: "15%", width: "40px", height: "30px", background: "#3d5a2a", borderRadius: "50%", animation: "islandFloat 6s infinite ease-in-out" }} />
+                                      <div style={{ position: "absolute", left: "5%", bottom: "10%", width: "60px", height: "45px", background: "#3d5a2a", borderRadius: "50%", animation: "islandFloat 7s infinite ease-in-out 1s" }} />
+                                    </>
+                                  )}
+                                  
+                                  {/* CONTINENTE II — Templo do Governante */}
+                                  {activeTab === 2 && (
+                                    <>
+                                      <div style={{
+                                        position: "absolute", left: "20%", top: "20%", width: "60%", height: "60%",
+                                        background: "linear-gradient(135deg, #8b7355, #c5a059)",
+                                        clipPath: "polygon(20% 10%, 80% 0%, 100% 30%, 90% 80%, 50% 100%, 10% 85%, 0% 40%)",
+                                        boxShadow: "0 25px 0 #5d4a36, inset -10px -10px 0 rgba(0,0,0,0.3)",
+                                        animation: "islandFloat 9s infinite ease-in-out"
+                                      }}>
+                                        <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "repeating-linear-gradient(0deg, #000 0px, #000 1px, transparent 1px, transparent 3px)" }} />
+                                      </div>
+                                      {/* O Templo Central Dourado */}
+                                      <div style={{
+                                        position: "absolute", left: "40%", top: "35%", width: "20%", height: "25%",
+                                        background: "#ffd700", clipPath: "polygon(50% 0%, 100% 40%, 100% 100%, 0% 100%, 0% 40%)",
+                                        boxShadow: "0 10px 0 #b8860b, 0 0 30px rgba(255,215,0,0.4)",
+                                        zIndex: 3, animation: "islandFloat 9s infinite ease-in-out 0.5s"
+                                      }}>
+                                        <div style={{ position: "absolute", top: "20%", left: "25%", width: "50%", height: "30%", background: "#4a3c10" }} />
+                                      </div>
+                                      {/* Jardins Reais */}
+                                      <div style={{
+                                        position: "absolute", left: "25%", top: "55%", width: "15%", height: "15%",
+                                        background: "#2e7d32", borderRadius: "50% 50% 0 0", zIndex: 2,
+                                        animation: "islandFloat 9s infinite ease-in-out 1s"
+                                      }} />
+                                    </>
+                                  )}
+
+                                  {/* CONTINENTE III — Novas Fronteiras */}
+                                  {activeTab === 3 && (
+                                    <>
+                                      {/* Arquipélago de Ilhas Flutuantes */}
+                                      <div style={{
+                                        position: "absolute", left: "15%", top: "25%", width: "30%", height: "30%",
+                                        background: "#3d5a2a", clipPath: "polygon(10% 20%, 90% 0%, 100% 80%, 20% 100%)",
+                                        boxShadow: "0 15px 0 #2a3d1a", animation: "islandFloat 7s infinite ease-in-out"
+                                      }} />
+                                      <div style={{
+                                        position: "absolute", right: "15%", top: "40%", width: "35%", height: "35%",
+                                        background: "#5d4037", clipPath: "polygon(0% 10%, 100% 20%, 80% 100%, 10% 90%)",
+                                        boxShadow: "0 15px 0 #3e2723", animation: "islandFloat 7s infinite ease-in-out 1.2s"
+                                      }} >
+                                         {/* Pequeno Vulcão no C3 */}
+                                         <div style={{ position: "absolute", right: "20%", top: "20%", width: "30%", height: "40%", background: "#c62828", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
+                                      </div>
+                                      {/* Ilha de Safira/Praia ao Sul */}
+                                      <div style={{
+                                        position: "absolute", left: "40%", bottom: "15%", width: "25%", height: "20%",
+                                        background: "#edc9af", clipPath: "polygon(20% 0%, 80% 10%, 100% 100%, 0% 90%)",
+                                        boxShadow: "0 12px 0 #c2a38a", animation: "islandFloat 7s infinite ease-in-out 0.8s"
+                                      }}>
+                                        <div style={{ position: "absolute", top: "10%", left: "40%", width: "20%", height: "20%", background: "#4a9eff", borderRadius: "50%" }} />
+                                      </div>
+                                    </>
+                                  )}
+
                                 
-                                {activeTab === 4 && (
-                                  <div style={{
-                                    position: "absolute", inset: "10%",
-                                    background: "rgba(40, 20, 60, 0.4)",
-                                    borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
-                                    boxShadow: `inset 0 0 120px rgba(0,0,0,0.8), 0 0 60px rgba(120,40,255,0.2)`,
-                                    border: "4px solid #4a2a6a",
-                                    animation: "islandFloat 8s infinite ease-in-out"
-                                  }}>
-                                    <div style={{ position: "absolute", left: "25%", top: "45%", fontSize: 45, opacity: 0.4 }}>💎</div>
-                                    <div style={{ position: "absolute", left: "65%", top: "25%", fontSize: 40, opacity: 0.4 }}>🔥</div>
-
-                                    <div style={{ position: "absolute", left: "80%", top: "70%", fontSize: 50, opacity: 0.4 }}>💧</div>
-                                  </div>
-                                )}
+                                  {activeTab === 4 && (
+                                    <div style={{
+                                      position: "absolute", inset: "10%",
+                                      background: "rgba(40, 20, 60, 0.4)",
+                                      borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
+                                      boxShadow: `inset 0 0 120px rgba(0,0,0,0.8), 0 0 60px rgba(120,40,255,0.2)`,
+                                      border: "4px solid #4a2a6a",
+                                      animation: "islandFloat 8s infinite ease-in-out"
+                                    }}>
+                                      <div style={{ position: "absolute", left: "25%", top: "45%", fontSize: 45, opacity: 0.4 }}>💎</div>
+                                      <div style={{ position: "absolute", left: "65%", top: "25%", fontSize: 40, opacity: 0.4 }}>🔥</div>
+                                      <div style={{ position: "absolute", left: "80%", top: "70%", fontSize: 50, opacity: 0.4 }}>💧</div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-
-
-
-                                {activeTab === 4 && (
-                                  <div className="c4-fog" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 30% 40%, rgba(0,242,255,0.10), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,42,42,0.10), transparent 55%), linear-gradient(180deg, rgba(6,2,14,0.35), rgba(6,2,14,0.65))" }} />
-                                )}
-                                {activeTab === 4 && (
-                                  <div style={{ position: "absolute", bottom: 0, left: 0, display: "flex", alignItems: "flex-end", gap: 10, zIndex: 12, pointerEvents: "none" }}>
+                              {activeTab === 4 && (
+                                <div className="c4-fog" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 30% 40%, rgba(0,242,255,0.10), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,42,42,0.10), transparent 55%), linear-gradient(180deg, rgba(6,2,14,0.35), rgba(6,2,14,0.65))" }} />
+                              )}
+                              {activeTab === 4 && (
+                                <div style={{ position: "absolute", bottom: 0, left: 0, display: "flex", alignItems: "flex-end", gap: 10, zIndex: 12, pointerEvents: "none" }}>
                                     <img
                                       src={npcAbyssWitch}
                                       alt="Vharyx, a Bruxa das Gemas"
@@ -11165,7 +11217,7 @@ function IdlePage() {
               ev.stopPropagation();
               if (!ODDISH_EVENT.enabled) {
                 try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
-                          return;
+                return;
               }
               const cur = idle;
               const inEvent = cur.currentMap === "grass_oddish";
