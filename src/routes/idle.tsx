@@ -10681,6 +10681,7 @@ function IdlePage() {
                           <style>{`
                             @keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
                             @keyframes worldFloating { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+                            @keyframes islandFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(10px, 15px); } }
                             .c4-ring { animation: c4RingRotate 4s linear infinite; }
                             @keyframes c4RingRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                           `}</style>
