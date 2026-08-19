@@ -10500,26 +10500,21 @@ function IdlePage() {
                             background: "#160a1e",
                           }}>
                             {/* Novo Mapa Mundi Visual Pixel Art — Integrado e Baseado na Referência */}
-                            <div className="world-map-container" style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#2a4c8a", overflow: "hidden" }}>
-                              {/* Fundo de Referência Suave (como guia visual) */}
+                            <div className="world-map-container" style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#1a3c7e", overflow: "hidden" }}>
+                              {/* Efeito de Ondas de Água no Fundo */}
                               <div style={{
                                 position: "absolute", inset: 0,
-                                backgroundImage: `url(${assetUrlFromJson(worldMapRefAsset)})`,
-                                backgroundSize: "cover",
-                                opacity: 0.15,
-                                mixBlendMode: "overlay",
-                                pointerEvents: "none"
-                              }} />
-                              
-                              {/* Camada de Água / Abismo com Animação */}
-                              <div style={{
-                                position: "absolute", inset: 0,
-                                background: activeTab === 4
+                                background: activeTab === 4 
                                   ? "radial-gradient(circle at 50% 50%, #160a26 0%, #08040d 100%)"
                                   : "linear-gradient(180deg, #1a3c7e 0%, #2a4c8a 50%, #1a3c7e 100%)",
                               }}>
-                                {/* Efeito de Ondas / Estrelas */}
-                                <div style={{ position: "absolute", inset: 0, opacity: 0.2, background: "url('https://www.transparenttextures.com/patterns/stardust.png')" }} />
+                                <div style={{ 
+                                  position: "absolute", inset: 0, 
+                                  opacity: 0.3, 
+                                  backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
+                                  backgroundSize: "20px 20px",
+                                  animation: "stardustFloat 20s linear infinite"
+                                }} />
                               </div>
 
                               {/* Renderização do Cenário Continental */}
