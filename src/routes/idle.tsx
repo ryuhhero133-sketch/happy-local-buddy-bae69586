@@ -10361,59 +10361,60 @@ function IdlePage() {
 
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
-                    const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number }> = [
-                      { id: "arena", x: 15, y: 22 },
-                      { id: "terra", x: 32, y: 16 },
-                      { id: "deserto_purpura", x: 54, y: 20 },
-                      { id: "pantano_fogo", x: 87, y: 26 },
-                      { id: "praia", x: 12, y: 60 },
-                      { id: "venofogo", x: 26, y: 42 },
-                      { id: "terry", x: 40, y: 44 },
-                      { id: "n2", x: 47, y: 52 },
-                      { id: "n3", x: 53, y: 58 },
-                      { id: "fantasma", x: 60, y: 46 },
-                      { id: "caverna", x: 78, y: 52 },
-                      { id: "vale_rochas", x: 20, y: 78 },
-                      { id: "neve", x: 36, y: 74 },
-                      { id: "deserto", x: 48, y: 30 },
-                      { id: "abismo_gelo", x: 58, y: 82 },
-                      { id: "abismo_veneno", x: 66, y: 86 },
-                      { id: "abismo_dragao", x: 74, y: 88 },
-                      { id: "cadeia_ab", x: 80, y: 76 },
-                      { id: "cadeia_ab1", x: 86, y: 68 },
-                      { id: "cadeia_f1", x: 92, y: 58 },
-                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 90, y: 84 }] : []),
+                    const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
+                      { id: "arena", x: 44, y: 44, type: "castle" },
+                      { id: "terra", x: 38, y: 35, type: "forest" },
+                      { id: "deserto_purpura", x: 55, y: 35, type: "desert" },
+                      { id: "pantano_fogo", x: 72, y: 40, type: "volcano" },
+                      { id: "praia", x: 30, y: 60, type: "beach" },
+                      { id: "venofogo", x: 42, y: 55, type: "volcano" },
+                      { id: "terry", x: 50, y: 58, type: "forest" },
+                      { id: "n2", x: 58, y: 62, type: "forest" },
+                      { id: "n3", x: 65, y: 65, type: "forest" },
+                      { id: "fantasma", x: 75, y: 55, type: "cave" },
+                      { id: "caverna", x: 82, y: 48, type: "cave" },
+                      { id: "vale_rochas", x: 20, y: 78, type: "mountain" },
+                      { id: "neve", x: 36, y: 74, type: "snow" },
+                      { id: "deserto", x: 48, y: 30, type: "desert" },
+                      { id: "abismo_gelo", x: 58, y: 82, type: "cave" },
+                      { id: "abismo_veneno", x: 66, y: 86, type: "cave" },
+                      { id: "abismo_dragao", x: 74, y: 88, type: "cave" },
+                      { id: "cadeia_ab", x: 88, y: 42, type: "cave" },
+                      { id: "cadeia_ab1", x: 92, y: 38, type: "cave" },
+                      { id: "cadeia_f1", x: 95, y: 35, type: "cave" },
+                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event" }] : []),
                     ];
-                    const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number }> = [
-                      { id: "absol_start" as IdleMapId, x: 18, y: 45 },
-                      { id: "governante_hall" as IdleMapId, x: 52, y: 55 },
+                    const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
+                      { id: "absol_start" as IdleMapId, x: 20, y: 75, type: "village" },
+                      { id: "governante_hall" as IdleMapId, x: 50, y: 35, type: "castle" },
                     ];
-                    const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number }> = [
-                      { id: "continent3_map1" as IdleMapId, x: 25, y: 35 },
-                      { id: "continent3_map2" as IdleMapId, x: 65, y: 55 },
-                      { id: "fosso_cristal" as IdleMapId, x: 40, y: 25 },
-                      { id: "vale_ruby" as IdleMapId, x: 60, y: 25 },
-                      { id: "ilha_safira" as IdleMapId, x: 50, y: 75 },
+                    const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
+                      { id: "continent3_map1" as IdleMapId, x: 15, y: 40, type: "island" },
+                      { id: "continent3_map2" as IdleMapId, x: 35, y: 45, type: "island" },
+                      { id: "fosso_cristal" as IdleMapId, x: 55, y: 30, type: "cave" },
+                      { id: "vale_ruby" as IdleMapId, x: 75, y: 35, type: "volcano" },
+                      { id: "ilha_safira" as IdleMapId, x: 85, y: 60, type: "beach" },
                     ];
                     const activeTab = worldTab;
                     const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type?: "crystal" | "ruby" | "safira"; name?: string; lv?: string; desc?: string; boss?: string }> = [
-                      { id: "mapa_c4_1" as IdleMapId, x: 20, y: 20, type: "crystal", name: "Catedral de Cristal", lv: "Lv 10.000+", desc: "Torres de cristal puro ecoam cânticos antigos. Pokémon de Gelo e Psíquico nascem envoltos em prismas de luz.", boss: "Guardião Prismático" },
-                      { id: "mapa_c4_2" as IdleMapId, x: 30, y: 20, type: "crystal", name: "Veias Congeladas", lv: "Lv 10.500+", desc: "Rios de cristal líquido cortam a rocha. Dizem que cada veia guarda uma Stone Elemental adormecida.", boss: "Serpente de Quartzo" },
-                      { id: "mapa_c4_3" as IdleMapId, x: 25, y: 35, type: "crystal", name: "Abóbada Prismática", lv: "Lv 11.000+", desc: "Uma cúpula que reflete infinitas versões do treinador. Nem todas são amigáveis.", boss: "Eco Espelhado" },
-                      { id: "mapa_c4_4" as IdleMapId, x: 50, y: 40, type: "ruby", name: "Forja de Ruby", lv: "Lv 12.000+", desc: "Magma carmesim escorre entre bigornas abandonadas. O calor forja armas — e monstros.", boss: "Ferreiro Incandescente" },
-                      { id: "mapa_c4_5" as IdleMapId, x: 60, y: 40, type: "ruby", name: "Fissura Escarlate", lv: "Lv 12.500+", desc: "Uma ferida aberta no fundo do abismo, pulsando como um coração de fogo.", boss: "Coração de Brasa" },
-                      { id: "mapa_c4_6" as IdleMapId, x: 55, y: 55, type: "ruby", name: "Trono Carmesim", lv: "Lv 13.000+", desc: "O antigo salão dos senhores do fogo abissal. Cinzas ainda sussurram ordens.", boss: "Rei das Cinzas" },
-                      { id: "mapa_c4_7" as IdleMapId, x: 80, y: 70, type: "safira", name: "Fossa de Safira", lv: "Lv 14.000+", desc: "Águas pressurizadas azuis-profundas onde a luz nunca chegou. Cuidado com o que respira aqui.", boss: "Leviatã Azul" },
-                      { id: "mapa_c4_8" as IdleMapId, x: 90, y: 70, type: "safira", name: "Jardim Bioluminescente", lv: "Lv 14.500+", desc: "Corais vivos brilham em pulsos hipnóticos. Belo, e absolutamente letal.", boss: "Flor Abissal" },
-                      { id: "mapa_c4_9" as IdleMapId, x: 85, y: 85, type: "safira", name: "Templo Afogado", lv: "Lv 15.000+", desc: "Ruínas de uma civilização que tentou controlar o abismo — e falhou.", boss: "Sacerdote Submerso" },
-                      { id: "mapa_c4_10" as IdleMapId, x: 75, y: 78, type: "safira", name: "Olho do Abismo", lv: "Lv 16.000+", desc: "O vórtice final. A bruxa avisa: quem entra sem preparo não retorna nem como lenda.", boss: "??? Soberano Abissal" },
+                      { id: "mapa_c4_1" as IdleMapId, x: 15, y: 25, type: "crystal", name: "Catedral de Cristal", lv: "Lv 10.000+", desc: "Torres de cristal puro ecoam cânticos antigos.", boss: "Guardião Prismático" },
+                      { id: "mapa_c4_2" as IdleMapId, x: 25, y: 20, type: "crystal", name: "Veias Congeladas", lv: "Lv 10.500+", desc: "Rios de cristal líquido cortam a rocha.", boss: "Serpente de Quartzo" },
+                      { id: "mapa_c4_3" as IdleMapId, x: 20, y: 35, type: "crystal", name: "Abóbada Prismática", lv: "Lv 11.000+", desc: "Uma cúpula que reflete infinitas versões do treinador.", boss: "Eco Espelhado" },
+                      { id: "mapa_c4_4" as IdleMapId, x: 45, y: 35, type: "ruby", name: "Forja de Ruby", lv: "Lv 12.000+", desc: "Magma carmesim escorre entre bigornas abandonadas.", boss: "Ferreiro Incandescente" },
+                      { id: "mapa_c4_5" as IdleMapId, x: 55, y: 30, type: "ruby", name: "Fissura Escarlate", lv: "Lv 12.500+", desc: "Uma ferida aberta no fundo do abismo.", boss: "Coração de Brasa" },
+                      { id: "mapa_c4_6" as IdleMapId, x: 50, y: 48, type: "ruby", name: "Trono Carmesim", lv: "Lv 13.000+", desc: "O antigo salão dos senhores do fogo abissal.", boss: "Rei das Cinzas" },
+                      { id: "mapa_c4_7" as IdleMapId, x: 75, y: 65, type: "safira", name: "Fossa de Safira", lv: "Lv 14.000+", desc: "Águas pressurizadas azuis-profundas.", boss: "Leviatã Azul" },
+                      { id: "mapa_c4_8" as IdleMapId, x: 85, y: 60, type: "safira", name: "Jardim Bioluminescente", lv: "Lv 14.500+", desc: "Corais vivos brilham em pulsos hipnóticos.", boss: "Flor Abissal" },
+                      { id: "mapa_c4_9" as IdleMapId, x: 80, y: 78, type: "safira", name: "Templo Afogado", lv: "Lv 15.000+", desc: "Ruínas de uma civilização que tentou controlar o abismo.", boss: "Sacerdote Submerso" },
+                      { id: "mapa_c4_10" as IdleMapId, x: 70, y: 72, type: "safira", name: "Olho do Abismo", lv: "Lv 16.000+", desc: "O vórtice final.", boss: "??? Soberano Abissal" },
                     ];
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
                     const c4Sel = activeTab === 4 ? (WORLD_PINS_C4.find((p) => String(p.id) === c4Pin) ?? null) : null;
-                    const bgUrl = activeTab === 1 ? assetUrlFromJson(worldMapGlobeAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
-                    const tabTitle = activeTab === 1 ? "🌍 MAPA MUNDI · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
+                    const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
+                    const tabTitle = activeTab === 1 ? "📜 THE FLOATING KINGDOMS · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
+
                     return (
                       <div
                         onClick={() => setWorldMapOpen(false)}
