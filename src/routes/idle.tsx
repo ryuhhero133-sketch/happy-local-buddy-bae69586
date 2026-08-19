@@ -10738,14 +10738,31 @@ function IdlePage() {
                                        transition: "transform 0.3s ease",
                                        imageRendering: "pixelated",
                                      }}>
-                                       {pin.type === "castle" ? "🏰" : 
-                                        pin.type === "village" ? "🏡" : 
-                                        pin.type === "volcano" ? "🌋" : 
-                                        pin.type === "cave" ? "🕳️" : 
-                                        pin.type === "forest" ? "🌳" : 
-                                        pin.type === "beach" ? "🏖️" : 
-                                        pin.type === "mountain" ? "🏔️" : 
-                                        pin.type === "snow" ? "❄️" : "🏛️"}
+                                        {/* Representação visual mais robusta do local (pixel-art feeling) */}
+                                        <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                                          {/* Símbolo do local com efeito de profundidade */}
+                                          <div style={{ position: "absolute", inset: 0, opacity: 0.3, filter: "blur(4px)", transform: "translateY(2px)" }}>
+                                            {pin.type === "castle" ? "🏰" : 
+                                             pin.type === "village" ? "🏡" : 
+                                             pin.type === "volcano" ? "🌋" : 
+                                             pin.type === "cave" ? "🕳️" : 
+                                             pin.type === "forest" ? "🌳" : 
+                                             pin.type === "beach" ? "🏖️" : 
+                                             pin.type === "mountain" ? "🏔️" : 
+                                             pin.type === "snow" ? "❄️" : "🏛️"}
+                                          </div>
+                                          <div style={{ position: "relative" }}>
+                                            {pin.type === "castle" ? "🏰" : 
+                                             pin.type === "village" ? "🏡" : 
+                                             pin.type === "volcano" ? "🌋" : 
+                                             pin.type === "cave" ? "🕳️" : 
+                                             pin.type === "forest" ? "🌳" : 
+                                             pin.type === "beach" ? "🏖️" : 
+                                             pin.type === "mountain" ? "🏔️" : 
+                                             pin.type === "snow" ? "❄️" : "🏛️"}
+                                          </div>
+                                        </div>
+
                                      </div>
 
 
