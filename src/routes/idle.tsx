@@ -10537,6 +10537,22 @@ function IdlePage() {
                                     }} />
                                   ))}
 
+                                  {/* Estruturas Visuais (Vilas/Castelos desenhados) */}
+                                  {activeTab === 1 && (
+                                    <>
+                                      <div style={{ position: "absolute", left: "20%", top: "30%", fontSize: 40, opacity: 0.6 }}>🌲</div>
+                                      <div style={{ position: "absolute", left: "70%", top: "60%", fontSize: 50, opacity: 0.6 }}>🏔️</div>
+                                      <div style={{ position: "absolute", left: "40%", top: "15%", fontSize: 30, opacity: 0.5 }}>🛶</div>
+                                    </>
+                                  )}
+                                  {activeTab === 4 && (
+                                    <>
+                                      <div style={{ position: "absolute", left: "25%", top: "45%", fontSize: 45, opacity: 0.4 }}>💎</div>
+                                      <div style={{ position: "absolute", left: "65%", top: "25%", fontSize: 40, opacity: 0.4 }}>🔥</div>
+                                      <div style={{ position: "absolute", left: "80%", top: "70%", fontSize: 50, opacity: 0.4 }}>💧</div>
+                                    </>
+                                  )}
+
                                   {/* Rios / Veias de Energia */}
                                   <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.3, pointerEvents: "none" }}>
                                     <path d="M10,50 Q30,20 50,50 T90,50" fill="none" stroke={activeTab === 4 ? "#9d4dff" : "#4a9eff"} strokeWidth="4" strokeDasharray="10,5" />
