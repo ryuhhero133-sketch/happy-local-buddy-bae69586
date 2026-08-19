@@ -10364,19 +10364,19 @@ function IdlePage() {
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "arena", x: 44, y: 44, type: "castle" },
-                      { id: "terra", x: 32, y: 38, type: "forest" },
-                      { id: "deserto_purpura", x: 55, y: 25, type: "desert" },
-                      { id: "pantano_fogo", x: 72, y: 40, type: "volcano" },
-                      { id: "praia", x: 28, y: 55, type: "beach" },
+                      { id: "arena", x: 44, y: 41, type: "castle" }, // Castelo central
+                      { id: "terra", x: 26, y: 19, type: "forest" }, // Floresta norte/oeste
+                      { id: "deserto_purpura", x: 74, y: 28, type: "volcano" }, // Montanhas à direita
+                      { id: "pantano_fogo", x: 50, y: 42, type: "volcano" }, // Vulcão central
+                      { id: "praia", x: 15, y: 48, type: "beach" }, // Enseada esquerda
                       { id: "venofogo", x: 42, y: 55, type: "volcano" },
-                      { id: "terry", x: 50, y: 48, type: "forest" },
+                      { id: "terry", x: 62, y: 52, type: "village" }, // Vilarejo à direita
                       { id: "n2", x: 58, y: 52, type: "forest" },
                       { id: "n3", x: 65, y: 55, type: "forest" },
-                      { id: "fantasma", x: 75, y: 55, type: "cave" },
+                      { id: "fantasma", x: 82, y: 82, type: "cave" }, // Dungeon deserto sudeste
                       { id: "caverna", x: 82, y: 48, type: "cave" },
                       { id: "vale_rochas", x: 18, y: 72, type: "mountain" },
-                      { id: "neve", x: 42, y: 15, type: "snow" },
+                      { id: "neve", x: 70, y: 12, type: "snow" }, // Montanha de neve NE
                       { id: "deserto", x: 48, y: 22, type: "desert" },
                       { id: "abismo_gelo", x: 58, y: 72, type: "cave" },
                       { id: "abismo_veneno", x: 66, y: 76, type: "cave" },
