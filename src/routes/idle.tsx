@@ -10613,6 +10613,65 @@ function IdlePage() {
                                       <div style={{ position: "absolute", left: "5%", bottom: "10%", width: "60px", height: "45px", background: "#3d5a2a", borderRadius: "50%", animation: "islandFloat 7s infinite ease-in-out 1s" }} />
                                     </>
                                   )}
+                                  
+                                  {/* CONTINENTE II — Templo do Governante */}
+                                  {activeTab === 2 && (
+                                    <>
+                                      <div style={{
+                                        position: "absolute", left: "20%", top: "20%", width: "60%", height: "60%",
+                                        background: "linear-gradient(135deg, #8b7355, #c5a059)",
+                                        clipPath: "polygon(20% 10%, 80% 0%, 100% 30%, 90% 80%, 50% 100%, 10% 85%, 0% 40%)",
+                                        boxShadow: "0 25px 0 #5d4a36, inset -10px -10px 0 rgba(0,0,0,0.3)",
+                                        animation: "islandFloat 9s infinite ease-in-out"
+                                      }}>
+                                        <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "repeating-linear-gradient(0deg, #000 0px, #000 1px, transparent 1px, transparent 3px)" }} />
+                                      </div>
+                                      {/* O Templo Central Dourado */}
+                                      <div style={{
+                                        position: "absolute", left: "40%", top: "35%", width: "20%", height: "25%",
+                                        background: "#ffd700", clipPath: "polygon(50% 0%, 100% 40%, 100% 100%, 0% 100%, 0% 40%)",
+                                        boxShadow: "0 10px 0 #b8860b, 0 0 30px rgba(255,215,0,0.4)",
+                                        zIndex: 3, animation: "islandFloat 9s infinite ease-in-out 0.5s"
+                                      }}>
+                                        <div style={{ position: "absolute", top: "20%", left: "25%", width: "50%", height: "30%", background: "#4a3c10" }} />
+                                      </div>
+                                      {/* Jardins Reais */}
+                                      <div style={{
+                                        position: "absolute", left: "25%", top: "55%", width: "15%", height: "15%",
+                                        background: "#2e7d32", borderRadius: "50% 50% 0 0", zIndex: 2,
+                                        animation: "islandFloat 9s infinite ease-in-out 1s"
+                                      }} />
+                                    </>
+                                  )}
+
+                                  {/* CONTINENTE III — Novas Fronteiras */}
+                                  {activeTab === 3 && (
+                                    <>
+                                      {/* Arquipélago de Ilhas Flutuantes */}
+                                      <div style={{
+                                        position: "absolute", left: "15%", top: "25%", width: "30%", height: "30%",
+                                        background: "#3d5a2a", clipPath: "polygon(10% 20%, 90% 0%, 100% 80%, 20% 100%)",
+                                        boxShadow: "0 15px 0 #2a3d1a", animation: "islandFloat 7s infinite ease-in-out"
+                                      }} />
+                                      <div style={{
+                                        position: "absolute", right: "15%", top: "40%", width: "35%", height: "35%",
+                                        background: "#5d4037", clipPath: "polygon(0% 10%, 100% 20%, 80% 100%, 10% 90%)",
+                                        boxShadow: "0 15px 0 #3e2723", animation: "islandFloat 7s infinite ease-in-out 1.2s"
+                                      }} >
+                                         {/* Pequeno Vulcão no C3 */}
+                                         <div style={{ position: "absolute", right: "20%", top: "20%", width: "30%", height: "40%", background: "#c62828", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
+                                      </div>
+                                      {/* Ilha de Safira/Praia ao Sul */}
+                                      <div style={{
+                                        position: "absolute", left: "40%", bottom: "15%", width: "25%", height: "20%",
+                                        background: "#edc9af", clipPath: "polygon(20% 0%, 80% 10%, 100% 100%, 0% 90%)",
+                                        boxShadow: "0 12px 0 #c2a38a", animation: "islandFloat 7s infinite ease-in-out 0.8s"
+                                      }}>
+                                        <div style={{ position: "absolute", top: "10%", left: "40%", width: "20%", height: "20%", background: "#4a9eff", borderRadius: "50%" }} />
+                                      </div>
+                                    </>
+                                  )}
+
                                 
                                   {activeTab === 4 && (
                                     <div style={{
