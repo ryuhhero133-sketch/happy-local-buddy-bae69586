@@ -10710,17 +10710,18 @@ function IdlePage() {
                                        }} />
                                      )}
                                    </div>
-                                  <div style={{
-                                    marginTop: 4, padding: "2px 6px",
-                                    background: "rgba(11,5,16,0.85)", border: `1px solid ${current ? "#7ef27a" : "#f5cf6b"}`,
-                                    borderRadius: 3, color: current ? "#7ef27a" : "#ffe08a",
-                                    fontSize: 9, fontWeight: 900, whiteSpace: "nowrap",
-                                    textShadow: "1px 1px 0 #000",
-                                    pointerEvents: "none",
-                                    fontFamily: "'Press Start 2P', monospace",
-                                  }}>
-                                    {m.name}
-                                  </div>
+                                   <div className="map-pin-label" style={{
+                                     marginTop: 4, padding: "2px 6px",
+                                     background: "rgba(11,5,16,0.9)", border: `1px solid ${current ? "#7ef27a" : "#f5cf6b"}`,
+                                     borderRadius: 4, color: current ? "#7ef27a" : "#ffe08a",
+                                     fontSize: 8, fontWeight: 900, whiteSpace: "nowrap",
+                                     textShadow: "1px 1px 0 #000",
+                                     pointerEvents: "none",
+                                     fontFamily: "'Press Start 2P', monospace",
+                                     boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                                   }}>
+                                     {m.name}
+                                   </div>
                                 </button>
                               );
                             })}
