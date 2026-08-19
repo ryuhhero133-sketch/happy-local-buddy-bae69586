@@ -10657,22 +10657,43 @@ function IdlePage() {
                                     display: "flex", flexDirection: "column", alignItems: "center",
                                   }}
                                 >
-                                  <div style={{
-                                    width: current ? 32 : 24, height: current ? 32 : 24,
-                                    background: current ? "#7ef27a" : "#f5cf6b",
-                                    border: `2px solid ${current ? "#fff" : "#3d2a08"}`,
-                                    borderRadius: pin.type === "castle" ? 4 : "50%",
-                                    boxShadow: current ? "0 0 20px #7ef27a" : "0 4px 0 rgba(0,0,0,0.3)",
-                                    display: "grid", placeItems: "center",
-                                    animation: current ? "worldPinPulse 2s infinite ease-in-out" : "worldFloating 3s infinite ease-in-out",
-                                    animationDelay: `${(pin.x + pin.y) * 0.05}s`,
-                                  }}>
-                                    {current ? (
-                                      <div style={{ width: 10, height: 10, background: "#fff", borderRadius: "50%" }} />
-                                    ) : (
-                                      <span style={{ fontSize: 12 }}>{pin.type === "castle" ? "🏰" : pin.type === "village" ? "🏡" : pin.type === "volcano" ? "🌋" : pin.type === "cave" ? "🕳️" : "📍"}</span>
-                                    )}
-                                  </div>
+                                   {/* Elemento Visual do Mapa Integrado ao Cenário */}
+                                   <div style={{
+                                     position: "relative",
+                                     width: current ? 48 : 40, height: current ? 48 : 40,
+                                     display: "grid", placeItems: "center",
+                                     animation: current ? "worldPinPulse 2s infinite ease-in-out" : "worldFloating 3s infinite ease-in-out",
+                                     animationDelay: `${(pin.x + pin.y) * 0.05}s`,
+                                   }}>
+                                     {/* Base / Sombra do Prédio */}
+                                     <div style={{ position: "absolute", bottom: -4, width: "80%", height: "20%", background: "rgba(0,0,0,0.4)", borderRadius: "50%", filter: "blur(2px)" }} />
+                                     
+                                     {/* Arte Pixel do Local */}
+                                     <div style={{
+                                       fontSize: current ? 24 : 20,
+                                       filter: current ? "drop-shadow(0 0 8px #7ef27a)" : "none",
+                                       transform: `scale(${current ? 1.2 : 1})`,
+                                       transition: "transform 0.3s ease",
+                                     }}>
+                                       {pin.type === "castle" ? "🏰" : 
+                                        pin.type === "village" ? "🏡" : 
+                                        pin.type === "volcano" ? "🌋" : 
+                                        pin.type === "cave" ? "🕳️" : 
+                                        pin.type === "forest" ? "🌲" : 
+                                        pin.type === "beach" ? "🏖️" : 
+                                        pin.type === "mountain" ? "🏔️" : 
+                                        pin.type === "snow" ? "❄️" : "🏛️"}
+                                     </div>
+
+                                     {/* Indicador de Selecionado */}
+                                     {current && (
+                                       <div style={{
+                                         position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
+                                         width: 8, height: 8, background: "#7ef27a", borderRadius: "50%",
+                                         boxShadow: "0 0 10px #7ef27a",
+                                       }} />
+                                     )}
+                                   </div>
                                   <div style={{
                                     marginTop: 4, padding: "2px 6px",
                                     background: "rgba(11,5,16,0.85)", border: `1px solid ${current ? "#7ef27a" : "#f5cf6b"}`,
