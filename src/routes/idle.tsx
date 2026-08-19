@@ -10529,8 +10529,10 @@ function IdlePage() {
                                 position: "absolute", left: "0%", top: "0%", width: "100%", height: "100%",
                                 transition: "transform 0.5s ease",
                                 zIndex: 2,
-                                pointerEvents: "none"
+                                pointerEvents: "none",
+                                filter: continentUnlocked ? "none" : "grayscale(1) brightness(0.7)",
                               }}>
+
                                 {/* ILHA PRINCIPAL — Continente I */}
                                 {activeTab === 1 && (
                                   <>
