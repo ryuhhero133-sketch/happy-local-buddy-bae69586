@@ -10524,14 +10524,9 @@ function IdlePage() {
                                 zIndex: 2,
                                 pointerEvents: "none"
                               }}>
-                                {/* ILHA CENTRAL — Continente I */}
+                                {/* ILHA PRINCIPAL — Continente I */}
                                 {activeTab === 1 && (
                                   <>
-                                    {/* Arte de Fundo de Ilha Estilizada Pixel-Art (CSS-only shapes) */}
-                                    <div style={{
-                                  {/* ILHA PRINCIPAL — Continente I */}
-                                  {activeTab === 1 && (
-                                    <>
                                       {/* A Ilha Maior (Massa de Terra Principal) */}
                                       <div style={{
                                         position: "absolute", left: "10%", top: "10%", width: "80%", height: "80%",
