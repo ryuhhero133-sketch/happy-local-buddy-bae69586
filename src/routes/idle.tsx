@@ -10817,7 +10817,8 @@ function IdlePage() {
                                      {/* Arte Pixel do Local */}
                                      <div style={{
                                        fontSize: current ? 32 : 26,
-                                       filter: current ? "drop-shadow(0 0 10px #7ef27a)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))",
+                                       filter: !continentUnlocked ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #7ef27a)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
+
                                        transform: `scale(${current ? 1.2 : 1})`,
                                        transition: "transform 0.3s ease",
                                        imageRendering: "pixelated",
