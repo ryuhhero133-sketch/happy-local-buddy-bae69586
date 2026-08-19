@@ -10410,7 +10410,7 @@ function IdlePage() {
                     ];
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
                     const c4Sel = activeTab === 4 ? (WORLD_PINS_C4.find((p) => String(p.id) === c4Pin) ?? null) : null;
-                    const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
+                    // const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
                     const tabTitle = activeTab === 1 ? "📜 THE FLOATING KINGDOMS · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
                     const trainerLv = idle.trainerLevel ?? 1;
                     const scrollsAvail = idle.items?.scroll_teleport ?? 0;
@@ -10496,17 +10496,46 @@ function IdlePage() {
                             boxShadow: "inset 0 0 100px rgba(0,0,0,0.8)",
                             background: "#160a1e",
                           }}>
+                                 {/* Background procedural com ilhas e estética RPG */}
+                                 <div style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#1a2c4e", overflow: "hidden" }}>
+                                   {/* Mar / Efeito de Água Abissal */}
+                                   <div style={{
+                                     position: "absolute", inset: 0,
+                                     backgroundImage: activeTab === 4
+                                       ? "radial-gradient(circle at 50% 50%, #160a26 0%, #08040d 100%)"
+                                       : "radial-gradient(circle at 50% 50%, #2a4c8a 0%, #1a2c4e 100%)",
+                                     opacity: 0.8
+                                   }} />
 
-                                {bgUrl && (
-                                  <img
-                                    src={bgUrl}
-                                    alt={tabTitle}
-                                    loading="lazy"
-                                    width={1536}
-                                    height={1024}
-                                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                                  />
-                                )}
+                                   {/* Grelha de Pixel Art de Fundo */}
+                                   <div style={{
+                                     position: "absolute", inset: 0,
+                                     backgroundImage: "linear-gradient(#ffffff05 1px, transparent 1px), linear-gradient(90deg, #ffffff05 1px, transparent 1px)",
+                                     backgroundSize: "20px 20px",
+                                     opacity: 0.5
+                                   }} />
+
+                                   {/* Continentes como Ilhas Procedurais */}
+                                   <div style={{
+                                     position: "absolute",
+                                     left: "5%", top: "5%", right: "5%", bottom: "5%",
+                                     background: activeTab === 4 ? "rgba(20, 10, 40, 0.4)" : "rgba(30, 60, 20, 0.2)",
+                                     borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
+                                     boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 0 40px rgba(0,0,0,0.4)",
+                                     border: activeTab === 4 ? "2px solid #4a2a6a" : "2px solid #3d5a2a",
+                                     animation: "islandFloat 6s infinite ease-in-out"
+                                   }} />
+
+                                   {/* Decorações Procedurais (Nuvens / Névoa) */}
+                                   <div style={{
+                                     position: "absolute", inset: 0,
+                                     background: activeTab === 4
+                                       ? "url('https://www.transparenttextures.com/patterns/stardust.png')"
+                                       : "url('https://www.transparenttextures.com/patterns/clouds.png')",
+                                     opacity: 0.2, pointerEvents: "none"
+                                   }} />
+                                 </div>
+
                                 {activeTab === 4 && (
                                   <div className="c4-fog" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 30% 40%, rgba(0,242,255,0.10), transparent 55%), radial-gradient(circle at 70% 65%, rgba(255,42,42,0.10), transparent 55%), linear-gradient(180deg, rgba(6,2,14,0.35), rgba(6,2,14,0.65))" }} />
                                 )}
@@ -10652,6 +10681,7 @@ function IdlePage() {
                           <style>{`
                             @keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
                             @keyframes worldFloating { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+                            @keyframes islandFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(10px, 15px); } }
                             .c4-ring { animation: c4RingRotate 4s linear infinite; }
                             @keyframes c4RingRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                           `}</style>
