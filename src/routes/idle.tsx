@@ -10528,11 +10528,12 @@ function IdlePage() {
                               {/* Renderização do Cenário Continental */}
                               <div style={{
                                 position: "absolute", left: "0%", top: "0%", width: "100%", height: "100%",
-                                transition: "transform 0.5s ease",
+                                transition: "transform 0.5s ease, filter 1s ease",
                                 zIndex: 2,
                                 pointerEvents: "none",
-                                filter: continentUnlocked ? "none" : "grayscale(1) brightness(0.7)",
+                                filter: continentUnlocked ? "none" : "grayscale(1) brightness(0.5)",
                               }}>
+
 
                                 {/* ILHA PRINCIPAL — Continente I */}
                                 {activeTab === 1 && (
