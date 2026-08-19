@@ -10504,8 +10504,9 @@ function IdlePage() {
                             borderRadius: 2, overflow: "hidden",
                             border: `2px solid #3d2a08`,
                             boxShadow: "inset 0 0 100px rgba(0,0,0,0.8)",
-                            background: "#160a1e",
+                            background: "#08040d", // Fundo preto para ressaltar o continente colorido
                           }}>
+
                             {/* Novo Mapa Mundi Visual Pixel Art — Integrado e Baseado na Referência */}
                             <div className="world-map-container" style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#1a3c7e", overflow: "hidden" }}>
                               {/* Efeito de Ondas de Água no Fundo */}
