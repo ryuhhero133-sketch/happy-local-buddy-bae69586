@@ -10426,15 +10426,19 @@ function IdlePage() {
                       >
                         <div
                           onClick={(e) => e.stopPropagation()}
-                          style={{
-                            background: "#0b0510",
-                            border: "3px solid #f5cf6b",
-                            borderRadius: 16,
-                            padding: 12,
-                            maxWidth: 1100, width: "100%",
-                            cursor: "default",
-                            boxShadow: "0 0 80px rgba(245,207,107,0.5)",
-                          }}
+                            style={{
+                              background: "#08040d",
+                              border: "4px solid #f5cf6b",
+                              borderRadius: 4,
+                              padding: 4,
+                              maxWidth: 1100, width: "100%",
+                              cursor: "default",
+                              boxShadow: "0 0 100px rgba(0,0,0,0.8), 0 0 40px rgba(245,207,107,0.3)",
+                              position: "relative",
+                              overflow: "hidden",
+                              imageRendering: "pixelated",
+                            }}
+
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px", gap: 8 }}>
                             <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 15, letterSpacing: 2 }}>
