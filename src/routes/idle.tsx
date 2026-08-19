@@ -71,7 +71,7 @@ import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import overworldPixelAsset from "@/assets/world/overworld.png.asset.json";
-import worldMapRefAsset from "@/assets/world/overworld-ref.png.asset.json";
+import worldMapRefAsset from "@/assets/world_map_reference.png.asset.json";
 
 
 import { supabase } from "@/integrations/supabase/client";
@@ -10364,19 +10364,19 @@ function IdlePage() {
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "arena", x: 44, y: 44, type: "castle" },
-                      { id: "terra", x: 32, y: 38, type: "forest" },
-                      { id: "deserto_purpura", x: 55, y: 25, type: "desert" },
-                      { id: "pantano_fogo", x: 72, y: 40, type: "volcano" },
-                      { id: "praia", x: 28, y: 55, type: "beach" },
+                      { id: "arena", x: 44, y: 41, type: "castle" }, // Castelo central
+                      { id: "terra", x: 26, y: 19, type: "forest" }, // Floresta norte/oeste
+                      { id: "deserto_purpura", x: 74, y: 28, type: "volcano" }, // Montanhas à direita
+                      { id: "pantano_fogo", x: 50, y: 42, type: "volcano" }, // Vulcão central
+                      { id: "praia", x: 15, y: 48, type: "beach" }, // Enseada esquerda
                       { id: "venofogo", x: 42, y: 55, type: "volcano" },
-                      { id: "terry", x: 50, y: 48, type: "forest" },
+                      { id: "terry", x: 62, y: 52, type: "village" }, // Vilarejo à direita
                       { id: "n2", x: 58, y: 52, type: "forest" },
                       { id: "n3", x: 65, y: 55, type: "forest" },
-                      { id: "fantasma", x: 75, y: 55, type: "cave" },
+                      { id: "fantasma", x: 82, y: 82, type: "cave" }, // Dungeon deserto sudeste
                       { id: "caverna", x: 82, y: 48, type: "cave" },
                       { id: "vale_rochas", x: 18, y: 72, type: "mountain" },
-                      { id: "neve", x: 42, y: 15, type: "snow" },
+                      { id: "neve", x: 70, y: 12, type: "snow" }, // Montanha de neve NE
                       { id: "deserto", x: 48, y: 22, type: "desert" },
                       { id: "abismo_gelo", x: 58, y: 72, type: "cave" },
                       { id: "abismo_veneno", x: 66, y: 76, type: "cave" },
@@ -10525,7 +10525,7 @@ function IdlePage() {
                                 }} />
                               </div>
 
-                              {/* Renderização do Cenário Continental */}
+                              {/* Renderização do Cenário Continental via Asset da Referência */}
                               <div style={{
                                 position: "absolute", left: "0%", top: "0%", width: "100%", height: "100%",
                                 transition: "transform 0.5s ease, filter 1s ease",
@@ -10533,171 +10533,22 @@ function IdlePage() {
                                 pointerEvents: "none",
                                 filter: continentUnlocked ? "none" : "grayscale(1) brightness(0.5)",
                               }}>
-
-
-                                {/* ILHA PRINCIPAL — Continente I */}
-                                {activeTab === 1 && (
-                                  <>
-                                      {/* A Ilha Maior (Massa de Terra Principal) */}
-                                      <div style={{
-                                        position: "absolute", left: "10%", top: "10%", width: "80%", height: "80%",
-                                        background: "#3d5a2a",
-                                        clipPath: "polygon(15% 20%, 30% 10%, 60% 5%, 85% 15%, 95% 40%, 90% 70%, 75% 90%, 50% 95%, 20% 85%, 5% 50%)",
-                                        boxShadow: "0 20px 0 #2a3d1a, inset -8px -8px 0 rgba(0,0,0,0.2)",
-                                        animation: "islandFloat 8s infinite ease-in-out"
-                                      }}>
-                                        {/* Textura de Grama/Solo */}
-                                        <div style={{ position: "absolute", inset: 0, opacity: 0.2, background: "repeating-linear-gradient(45deg, #2a3d1a 0px, #2a3d1a 2px, transparent 2px, transparent 4px)" }} />
-                                      </div>
-                                      
-                                      {/* Planície Central e Caminhos (Inspirado na Referência) */}
-                                      <div style={{
-                                        position: "absolute", left: "20%", top: "25%", width: "60%", height: "50%",
-                                        background: "#4da64d", clipPath: "polygon(10% 20%, 90% 10%, 80% 80%, 20% 90%)",
-                                        opacity: 0.6, zIndex: 1, animation: "islandFloat 8s infinite ease-in-out 0.2s"
-                                      }} />
-
-                                      {/* O Grande Lago Central */}
-                                      <div style={{
-                                        position: "absolute", left: "25%", top: "35%", width: "15%", height: "20%",
-                                        background: "#4a9eff", borderRadius: "40% 60% 50% 50%",
-                                        boxShadow: "inset 0 0 15px #1a3c7e", zIndex: 2,
-                                        animation: "islandFloat 8s infinite ease-in-out 0.5s"
-                                      }} />
-
-                                      {/* Região Gelada (Pico Norte) */}
-                                      <div style={{
-                                        position: "absolute", left: "55%", top: "8%", width: "30%", height: "25%",
-                                        background: "#ffffff",
-                                        clipPath: "polygon(20% 30%, 50% 0%, 80% 20%, 100% 60%, 70% 90%, 30% 80%, 0% 50%)",
-                                        boxShadow: "0 15px 0 #d0e0f0", zIndex: 3,
-                                        animation: "islandFloat 8s infinite ease-in-out 1s"
-                                      }}>
-                                        {/* Montanhas com Neve */}
-                                        <div style={{ position: "absolute", left: "30%", top: "10%", width: "40%", height: "60%", background: "#a0b0c0", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}>
-                                          <div style={{ position: "absolute", top: 0, left: "20%", width: "60%", height: "30%", background: "#fff", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
-                                        </div>
-                                      </div>
-
-                                      {/* Região Vulcânica / Montanhosa (Centro-Leste) */}
-                                      <div style={{
-                                        position: "absolute", left: "45%", top: "40%", width: "20%", height: "20%",
-                                        zIndex: 3, animation: "islandFloat 8s infinite ease-in-out 1.5s"
-                                      }}>
-                                        {/* Vulcão */}
-                                        <div style={{ position: "absolute", left: "20%", bottom: "10%", width: "60%", height: "80%", background: "#5d4037", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}>
-                                          <div style={{ position: "absolute", top: 0, left: "40%", width: "20%", height: "10%", background: "#ff5722", borderRadius: "50% 50% 0 0" }} />
-                                        </div>
-                                        {/* Montanhas menores ao redor */}
-                                        <div style={{ position: "absolute", left: 0, bottom: 0, width: "30%", height: "40%", background: "#795548", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
-                                        <div style={{ position: "absolute", right: 0, bottom: 0, width: "30%", height: "40%", background: "#795548", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
-                                      </div>
-
-                                      {/* O Deserto (Noroeste) */}
-                                      <div style={{
-                                        position: "absolute", left: "45%", top: "25%", width: "12%", height: "10%",
-                                        background: "#edc9af", borderRadius: "20px", opacity: 0.9, zIndex: 2,
-                                        transform: "rotate(-15deg)", animation: "islandFloat 8s infinite ease-in-out 0.8s"
-                                      }}>
-                                        <div style={{ position: "absolute", left: "20%", top: "20%", width: "10px", height: "15px", background: "#2e7d32", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} /> {/* Cacto */}
-                                      </div>
-
-                                      {/* Região Sombria / Cavernas (Leste) */}
-                                      <div style={{
-                                        position: "absolute", right: "12%", top: "50%", width: "15%", height: "25%",
-                                        background: "#2c3e50", clipPath: "polygon(20% 0%, 100% 20%, 80% 100%, 0% 80%)",
-                                        boxShadow: "0 10px 0 #1a252f", zIndex: 2, animation: "islandFloat 8s infinite ease-in-out 2.2s"
-                                      }}>
-                                        <div style={{ position: "absolute", left: "30%", top: "40%", width: "40%", height: "30%", background: "#000", borderRadius: "50%" }} /> {/* Entrada da caverna */}
-                                      </div>
-
-                                      {/* Vilarejo e Porto (Sudoeste) */}
-                                      <div style={{
-                                        position: "absolute", left: "15%", bottom: "25%", width: "12%", height: "15%",
-                                        background: "#8d6e63", borderRadius: "5px", zIndex: 2, animation: "islandFloat 8s infinite ease-in-out 1.8s"
-                                      }}>
-                                        <div style={{ position: "absolute", left: "20%", top: "-10px", width: "20px", height: "20px", background: "#e57373", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} /> {/* Casinha */}
-                                        <div style={{ position: "absolute", right: "20%", top: "10px", width: "15px", height: "15px", background: "#fff", borderRadius: "2px" }} />
-                                      </div>
-
-                                      {/* Pequenas Ilhas Satélites */}
-                                      <div style={{ position: "absolute", right: "5%", top: "15%", width: "40px", height: "30px", background: "#3d5a2a", borderRadius: "50%", animation: "islandFloat 6s infinite ease-in-out" }} />
-                                      <div style={{ position: "absolute", left: "5%", bottom: "10%", width: "60px", height: "45px", background: "#3d5a2a", borderRadius: "50%", animation: "islandFloat 7s infinite ease-in-out 1s" }} />
-                                    </>
-                                  )}
-                                  
-                                  {/* CONTINENTE II — Templo do Governante */}
-                                  {activeTab === 2 && (
-                                    <>
-                                      <div style={{
-                                        position: "absolute", left: "20%", top: "20%", width: "60%", height: "60%",
-                                        background: "linear-gradient(135deg, #8b7355, #c5a059)",
-                                        clipPath: "polygon(20% 10%, 80% 0%, 100% 30%, 90% 80%, 50% 100%, 10% 85%, 0% 40%)",
-                                        boxShadow: "0 25px 0 #5d4a36, inset -10px -10px 0 rgba(0,0,0,0.3)",
-                                        animation: "islandFloat 9s infinite ease-in-out"
-                                      }}>
-                                        <div style={{ position: "absolute", inset: 0, opacity: 0.1, background: "repeating-linear-gradient(0deg, #000 0px, #000 1px, transparent 1px, transparent 3px)" }} />
-                                      </div>
-                                      {/* O Templo Central Dourado */}
-                                      <div style={{
-                                        position: "absolute", left: "40%", top: "35%", width: "20%", height: "25%",
-                                        background: "#ffd700", clipPath: "polygon(50% 0%, 100% 40%, 100% 100%, 0% 100%, 0% 40%)",
-                                        boxShadow: "0 10px 0 #b8860b, 0 0 30px rgba(255,215,0,0.4)",
-                                        zIndex: 3, animation: "islandFloat 9s infinite ease-in-out 0.5s"
-                                      }}>
-                                        <div style={{ position: "absolute", top: "20%", left: "25%", width: "50%", height: "30%", background: "#4a3c10" }} />
-                                      </div>
-                                      {/* Jardins Reais */}
-                                      <div style={{
-                                        position: "absolute", left: "25%", top: "55%", width: "15%", height: "15%",
-                                        background: "#2e7d32", borderRadius: "50% 50% 0 0", zIndex: 2,
-                                        animation: "islandFloat 9s infinite ease-in-out 1s"
-                                      }} />
-                                    </>
-                                  )}
-
-                                  {/* CONTINENTE III — Novas Fronteiras */}
-                                  {activeTab === 3 && (
-                                    <>
-                                      {/* Arquipélago de Ilhas Flutuantes */}
-                                      <div style={{
-                                        position: "absolute", left: "15%", top: "25%", width: "30%", height: "30%",
-                                        background: "#3d5a2a", clipPath: "polygon(10% 20%, 90% 0%, 100% 80%, 20% 100%)",
-                                        boxShadow: "0 15px 0 #2a3d1a", animation: "islandFloat 7s infinite ease-in-out"
-                                      }} />
-                                      <div style={{
-                                        position: "absolute", right: "15%", top: "40%", width: "35%", height: "35%",
-                                        background: "#5d4037", clipPath: "polygon(0% 10%, 100% 20%, 80% 100%, 10% 90%)",
-                                        boxShadow: "0 15px 0 #3e2723", animation: "islandFloat 7s infinite ease-in-out 1.2s"
-                                      }} >
-                                         {/* Pequeno Vulcão no C3 */}
-                                         <div style={{ position: "absolute", right: "20%", top: "20%", width: "30%", height: "40%", background: "#c62828", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
-                                      </div>
-                                      {/* Ilha de Safira/Praia ao Sul */}
-                                      <div style={{
-                                        position: "absolute", left: "40%", bottom: "15%", width: "25%", height: "20%",
-                                        background: "#edc9af", clipPath: "polygon(20% 0%, 80% 10%, 100% 100%, 0% 90%)",
-                                        boxShadow: "0 12px 0 #c2a38a", animation: "islandFloat 7s infinite ease-in-out 0.8s"
-                                      }}>
-                                        <div style={{ position: "absolute", top: "10%", left: "40%", width: "20%", height: "20%", background: "#4a9eff", borderRadius: "50%" }} />
-                                      </div>
-                                    </>
-                                  )}
-
-                                
+                                {/* Imagem de Referência do Mapa (Asset oficial do projeto agora) */}
+                                <div style={{
+                                  position: "absolute", inset: 0,
+                                  backgroundImage: `url(${assetUrlFromJson(worldMapRefAsset)})`,
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
+                                  animation: "islandFloat 10s infinite ease-in-out"
+                                }}>
+                                  {/* Overlay de cor para dar um feeling de "profundezas" no Continente IV se necessário, 
+                                      mas por padrão usamos a imagem original para os continentes 1-3 */}
                                   {activeTab === 4 && (
                                     <div style={{
-                                      position: "absolute", inset: "10%",
-                                      background: "rgba(40, 20, 60, 0.4)",
-                                      borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
-                                      boxShadow: `inset 0 0 120px rgba(0,0,0,0.8), 0 0 60px rgba(120,40,255,0.2)`,
-                                      border: "4px solid #4a2a6a",
-                                      animation: "islandFloat 8s infinite ease-in-out"
-                                    }}>
-                                      <div style={{ position: "absolute", left: "25%", top: "45%", fontSize: 45, opacity: 0.4 }}>💎</div>
-                                      <div style={{ position: "absolute", left: "65%", top: "25%", fontSize: 40, opacity: 0.4 }}>🔥</div>
-                                      <div style={{ position: "absolute", left: "80%", top: "70%", fontSize: 50, opacity: 0.4 }}>💧</div>
-                                    </div>
+                                      position: "absolute", inset: 0,
+                                      background: "rgba(20, 10, 30, 0.7)",
+                                      mixBlendMode: "multiply"
+                                    }} />
                                   )}
                                 </div>
                               </div>
@@ -10766,8 +10617,10 @@ function IdlePage() {
                               }
 
                               if (!m) return null;
-                              const ok = true; 
+                              const ok = true;
                               const current = idle.currentMap === pin.id;
+                              const targetMap = m;
+
                               return (
                                 <button
                                   key={pin.id}
