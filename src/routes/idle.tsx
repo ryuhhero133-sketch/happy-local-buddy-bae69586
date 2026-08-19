@@ -10365,25 +10365,26 @@ function IdlePage() {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
                       { id: "arena", x: 44, y: 44, type: "castle" },
-                      { id: "terra", x: 38, y: 35, type: "forest" },
-                      { id: "deserto_purpura", x: 55, y: 35, type: "desert" },
+                      { id: "terra", x: 32, y: 38, type: "forest" },
+                      { id: "deserto_purpura", x: 55, y: 25, type: "desert" },
                       { id: "pantano_fogo", x: 72, y: 40, type: "volcano" },
-                      { id: "praia", x: 30, y: 60, type: "beach" },
+                      { id: "praia", x: 28, y: 55, type: "beach" },
                       { id: "venofogo", x: 42, y: 55, type: "volcano" },
-                      { id: "terry", x: 50, y: 58, type: "forest" },
-                      { id: "n2", x: 58, y: 62, type: "forest" },
-                      { id: "n3", x: 65, y: 65, type: "forest" },
+                      { id: "terry", x: 50, y: 48, type: "forest" },
+                      { id: "n2", x: 58, y: 52, type: "forest" },
+                      { id: "n3", x: 65, y: 55, type: "forest" },
                       { id: "fantasma", x: 75, y: 55, type: "cave" },
                       { id: "caverna", x: 82, y: 48, type: "cave" },
-                      { id: "vale_rochas", x: 20, y: 78, type: "mountain" },
-                      { id: "neve", x: 36, y: 74, type: "snow" },
-                      { id: "deserto", x: 48, y: 30, type: "desert" },
-                      { id: "abismo_gelo", x: 58, y: 82, type: "cave" },
-                      { id: "abismo_veneno", x: 66, y: 86, type: "cave" },
-                      { id: "abismo_dragao", x: 74, y: 88, type: "cave" },
+                      { id: "vale_rochas", x: 18, y: 72, type: "mountain" },
+                      { id: "neve", x: 42, y: 15, type: "snow" },
+                      { id: "deserto", x: 48, y: 22, type: "desert" },
+                      { id: "abismo_gelo", x: 58, y: 72, type: "cave" },
+                      { id: "abismo_veneno", x: 66, y: 76, type: "cave" },
+                      { id: "abismo_dragao", x: 74, y: 78, type: "cave" },
                       { id: "cadeia_ab", x: 88, y: 42, type: "cave" },
                       { id: "cadeia_ab1", x: 92, y: 38, type: "cave" },
                       { id: "cadeia_f1", x: 95, y: 35, type: "cave" },
+
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event" }] : []),
                     ];
                     const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
@@ -10525,74 +10526,94 @@ function IdlePage() {
                               <div style={{
                                 position: "absolute", left: "0%", top: "0%", width: "100%", height: "100%",
                                 transition: "transform 0.5s ease",
-                                zIndex: 2
+                                zIndex: 2,
+                                pointerEvents: "none"
                               }}>
                                 {/* ILHA CENTRAL — Continente I */}
                                 {activeTab === 1 && (
-                                  <div style={{
-                                    position: "absolute", left: "25%", top: "20%", width: "50%", height: "60%",
-                                    background: "rgba(34, 76, 34, 0.45)",
-                                    borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
-                                    boxShadow: `inset 0 0 100px rgba(0,0,0,0.7), 0 30px 60px rgba(0,0,0,0.6)`,
-                                    border: "6px solid #3d5a2a",
-                                    animation: "islandFloat 8s infinite ease-in-out"
-                                  }}>
-                                     {/* Detalhes da Ilha Principal baseados na referência */}
-                                     <div style={{ position: "absolute", left: "40%", top: "20%", fontSize: 80, filter: "drop-shadow(0 10px 10px rgba(0,0,0,0.5))" }}>🏰</div>
-                                     <div style={{ position: "absolute", left: "15%", top: "40%", fontSize: 40, opacity: 0.8 }}>🏡</div>
-                                     <div style={{ position: "absolute", left: "70%", top: "15%", fontSize: 60, opacity: 0.9 }}>🌲</div>
-                                     <div style={{ position: "absolute", left: "75%", top: "50%", fontSize: 50, filter: "hue-rotate(200deg)" }}>🌊</div>
-                                     
-                                     {/* Pontes conectando ilhas (como na referência) */}
-                                     <div style={{ position: "absolute", left: "-25%", top: "45%", width: "25%", height: 16, background: "linear-gradient(90deg, transparent, #5a4a3a, #5a4a3a)", borderRadius: 4, transform: "rotate(-10deg)" }} />
-                                     <div style={{ position: "absolute", right: "-20%", top: "50%", width: "20%", height: 16, background: "linear-gradient(90deg, #5a4a3a, #5a4a3a, transparent)", borderRadius: 4, transform: "rotate(15deg)" }} />
-                                  </div>
+                                  <>
+                                    {/* Arte de Fundo de Ilha Estilizada Pixel-Art (CSS-only shapes) */}
+                                    <div style={{
+                                      position: "absolute", left: "15%", top: "15%", width: "70%", height: "70%",
+                                      background: "linear-gradient(135deg, #3d5a2a 0%, #2a4c1a 100%)",
+                                      clipPath: "polygon(10% 25%, 25% 5%, 45% 0%, 75% 10%, 95% 35%, 90% 75%, 75% 95%, 45% 100%, 20% 90%, 5% 65%)",
+                                      boxShadow: "inset -10px -10px 0 rgba(0,0,0,0.3), 0 30px 0 rgba(0,0,0,0.2)",
+                                      animation: "islandFloat 12s infinite ease-in-out",
+                                      opacity: 0.95
+                                    }} />
+                                    
+                                    {/* Região de Neve (Norte) */}
+                                    <div style={{
+                                      position: "absolute", left: "35%", top: "5%", width: "25%", height: "20%",
+                                      background: "#f0f8ff", borderRadius: "40% 60% 30% 70%",
+                                      boxShadow: "inset 0 0 20px #fff", filter: "blur(2px)",
+                                      animation: "islandFloat 12s infinite ease-in-out 0.2s"
+                                    }} />
+                                    
+                                    {/* Montanhas ao Norte */}
+                                    <div style={{
+                                      position: "absolute", left: "42%", top: "8%", width: "100px", height: "70px",
+                                      background: "#4a4a4a", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+                                      borderBottom: "8px solid #2a2a2a", animation: "islandFloat 12s infinite ease-in-out 0.5s"
+                                    }}>
+                                      <div style={{ position: "absolute", top: 0, left: "20%", width: "60%", height: "30%", background: "#fff", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }} />
+                                    </div>
+                                    
+                                    {/* Lagoa no Centro-Sul */}
+                                    <div style={{
+                                      position: "absolute", left: "40%", top: "60%", width: "160px", height: "90px",
+                                      background: "radial-gradient(circle, #4a9eff 0%, #1a3c7e 80%)",
+                                      borderRadius: "50% 40% 60% 40%", boxShadow: "inset 0 0 20px rgba(0,0,0,0.5)",
+                                      animation: "islandFloat 12s infinite ease-in-out 1s"
+                                    }} />
+
+                                    {/* Florestas densas (Oeste e Leste) */}
+                                    <div style={{
+                                      position: "absolute", left: "25%", top: "35%", width: "80px", height: "100px",
+                                      background: "#1a3c1a", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+                                      opacity: 0.85, animation: "islandFloat 12s infinite ease-in-out 1.5s"
+                                    }} />
+                                    <div style={{
+                                      position: "absolute", right: "20%", top: "45%", width: "100px", height: "130px",
+                                      background: "#1a3c1a", clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+                                      opacity: 0.85, animation: "islandFloat 12s infinite ease-in-out 2s"
+                                    }} />
+                                    
+                                    {/* Região Desértica (Noroeste) */}
+                                    <div style={{
+                                      position: "absolute", left: "48%", top: "22%", width: "15%", height: "12%",
+                                      background: "linear-gradient(135deg, #edc9af, #c2b280)",
+                                      clipPath: "polygon(10% 0%, 90% 20%, 80% 90%, 0% 80%)",
+                                      opacity: 0.9, animation: "islandFloat 12s infinite ease-in-out 0.8s"
+                                    }} />
+
+                                    {/* Abismo / Cavernas (Sudeste) */}
+                                    <div style={{
+                                      position: "absolute", right: "22%", bottom: "18%", width: "20%", height: "15%",
+                                      background: "#1a1a1a", clipPath: "polygon(20% 10%, 80% 0%, 100% 90%, 10% 100%)",
+                                      opacity: 0.7, animation: "islandFloat 12s infinite ease-in-out 2.5s"
+                                    }} />
+                                  </>
                                 )}
 
-                                {/* ILHAS MENORES AO REDOR */}
+                                {/* ILHAS FLUTUANTES MENORES (Continente I) */}
                                 {activeTab === 1 && (
                                   <>
-                                    {/* Ilha Noroeste (Vila) */}
+                                    {/* Ilha Satélite Noroeste (acima da vila) */}
                                     <div style={{
-                                      position: "absolute", left: "10%", top: "15%", width: "22%", height: "25%",
-                                      background: "rgba(40, 85, 40, 0.5)",
-                                      borderRadius: "60% 40% 30% 70%",
-                                      boxShadow: "inset 0 0 40px rgba(0,0,0,0.5), 0 15px 30px rgba(0,0,0,0.4)",
-                                      border: "4px solid #4a6a3a",
-                                      animation: "islandFloat 9s infinite ease-in-out reverse"
-                                    }}>
-                                      <div style={{ position: "absolute", left: "30%", top: "20%", fontSize: 45 }}>🏡</div>
-                                      <div style={{ position: "absolute", left: "55%", top: "45%", fontSize: 35 }}>🏡</div>
-                                    </div>
+                                      position: "absolute", left: "8%", top: "12%", width: "12%", height: "15%",
+                                      background: "#2a4c1a", clipPath: "polygon(20% 0%, 80% 20%, 100% 80%, 0% 100%)",
+                                      boxShadow: "0 10px 0 rgba(0,0,0,0.2)",
+                                      animation: "islandFloat 10s infinite ease-in-out reverse"
+                                    }} />
 
-                                    {/* Ilha Sudoeste (Mina/Caverna) */}
+                                    {/* Ilha Satélite Sul (montanhas rochosas) */}
                                     <div style={{
-                                      position: "absolute", left: "8%", top: "60%", width: "25%", height: "28%",
-                                      background: "rgba(60, 60, 60, 0.5)",
-                                      borderRadius: "30% 70% 60% 40%",
-                                      boxShadow: "inset 0 0 40px rgba(0,0,0,0.6), 0 15px 30px rgba(0,0,0,0.5)",
-                                      border: "4px solid #4a4a4a",
-                                      animation: "islandFloat 7s infinite ease-in-out 1s"
-                                    }}>
-                                      <div style={{ position: "absolute", left: "40%", top: "35%", fontSize: 50 }}>🕳️</div>
-                                      <div style={{ position: "absolute", left: "20%", top: "20%", fontSize: 30, opacity: 0.6 }}>🏔️</div>
-                                    </div>
-
-                                    {/* Ilha Leste (Floresta Mística) */}
-                                    <div style={{
-                                      position: "absolute", right: "5%", top: "25%", width: "28%", height: "55%",
-                                      background: "rgba(20, 90, 40, 0.5)",
-                                      borderRadius: "70% 30% 40% 60%",
-                                      boxShadow: "inset 0 0 50px rgba(0,0,0,0.6), 0 20px 40px rgba(0,0,0,0.5)",
-                                      border: "4px solid #2a5a2a",
-                                      animation: "islandFloat 10s infinite ease-in-out"
-                                    }}>
-                                      <div style={{ position: "absolute", left: "40%", top: "10%", fontSize: 70 }}>🌳</div>
-                                      <div style={{ position: "absolute", left: "20%", top: "40%", fontSize: 40, opacity: 0.8 }}>🌲</div>
-                                      <div style={{ position: "absolute", left: "50%", top: "60%", fontSize: 40 }}>🌲</div>
-                                      {/* Cachoeira baseada na referência */}
-                                      <div style={{ position: "absolute", bottom: -20, left: "30%", width: 24, height: 60, background: "linear-gradient(180deg, #4a9eff, #8fd6ff, transparent)", borderRadius: "0 0 12px 12px", animation: "pulse 2s infinite" }} />
-                                    </div>
+                                      position: "absolute", left: "12%", top: "70%", width: "15%", height: "18%",
+                                      background: "#4a4a4a", clipPath: "polygon(0% 20%, 70% 0%, 100% 60%, 30% 100%)",
+                                      boxShadow: "0 15px 0 rgba(0,0,0,0.2)",
+                                      animation: "islandFloat 14s infinite ease-in-out 2s"
+                                    }} />
                                   </>
                                 )}
                                 
@@ -10607,11 +10628,13 @@ function IdlePage() {
                                   }}>
                                     <div style={{ position: "absolute", left: "25%", top: "45%", fontSize: 45, opacity: 0.4 }}>💎</div>
                                     <div style={{ position: "absolute", left: "65%", top: "25%", fontSize: 40, opacity: 0.4 }}>🔥</div>
+
                                     <div style={{ position: "absolute", left: "80%", top: "70%", fontSize: 50, opacity: 0.4 }}>💧</div>
                                   </div>
                                 )}
                               </div>
                             </div>
+
 
 
                                 {activeTab === 4 && (
@@ -10737,14 +10760,31 @@ function IdlePage() {
                                        transition: "transform 0.3s ease",
                                        imageRendering: "pixelated",
                                      }}>
-                                       {pin.type === "castle" ? "🏰" : 
-                                        pin.type === "village" ? "🏡" : 
-                                        pin.type === "volcano" ? "🌋" : 
-                                        pin.type === "cave" ? "🕳️" : 
-                                        pin.type === "forest" ? "🌳" : 
-                                        pin.type === "beach" ? "🏖️" : 
-                                        pin.type === "mountain" ? "🏔️" : 
-                                        pin.type === "snow" ? "❄️" : "🏛️"}
+                                        {/* Representação visual mais robusta do local (pixel-art feeling) */}
+                                        <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                                          {/* Símbolo do local com efeito de profundidade */}
+                                          <div style={{ position: "absolute", inset: 0, opacity: 0.3, filter: "blur(4px)", transform: "translateY(2px)" }}>
+                                            {pin.type === "castle" ? "🏰" : 
+                                             pin.type === "village" ? "🏡" : 
+                                             pin.type === "volcano" ? "🌋" : 
+                                             pin.type === "cave" ? "🕳️" : 
+                                             pin.type === "forest" ? "🌳" : 
+                                             pin.type === "beach" ? "🏖️" : 
+                                             pin.type === "mountain" ? "🏔️" : 
+                                             pin.type === "snow" ? "❄️" : "🏛️"}
+                                          </div>
+                                          <div style={{ position: "relative" }}>
+                                            {pin.type === "castle" ? "🏰" : 
+                                             pin.type === "village" ? "🏡" : 
+                                             pin.type === "volcano" ? "🌋" : 
+                                             pin.type === "cave" ? "🕳️" : 
+                                             pin.type === "forest" ? "🌳" : 
+                                             pin.type === "beach" ? "🏖️" : 
+                                             pin.type === "mountain" ? "🏔️" : 
+                                             pin.type === "snow" ? "❄️" : "🏛️"}
+                                          </div>
+                                        </div>
+
                                      </div>
 
 
