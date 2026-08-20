@@ -11583,8 +11583,25 @@ function IdlePage() {
               fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
             }}
           >
-            {/* Window Header */}
             <div
+              onMouseDown={(e) => {
+                forgeDragRef.current = {
+                  isDragging: true,
+                  startX: e.clientX,
+                  startY: e.clientY,
+                  winX: forgePos.x,
+                  winY: forgePos.y,
+                };
+              }}
+              onTouchStart={(e) => {
+                forgeDragRef.current = {
+                  isDragging: true,
+                  startX: e.touches[0].clientX,
+                  startY: e.touches[0].clientY,
+                  winX: forgePos.x,
+                  winY: forgePos.y,
+                };
+              }}
               style={{
                 background: "linear-gradient(90deg, #d97706 0%, #b45309 100%)",
                 padding: "10px 14px",
@@ -11592,6 +11609,7 @@ function IdlePage() {
                 justifyContent: "space-between",
                 alignItems: "center",
                 userSelect: "none",
+                cursor: "grab",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
