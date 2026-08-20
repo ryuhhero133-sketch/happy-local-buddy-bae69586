@@ -14416,10 +14416,14 @@ function TabOverlay({
       )}
 
       {tab === "wallet" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, textAlign: "center", padding: 40 }}>
-          O banco agora é uma janela modular <strong>🏦 Banco Medieval</strong>.<br/>
-          Clique no botão "Banco Medieval" na barra inferior para abrir.
-        </div>
+        <WalletScreen
+          bank={idle.bank}
+          items={idle.items}
+          collection={idle.collection}
+          gifMap={GIF}
+          onOpenColecaoDetail={onOpenColecaoDetail}
+          onExchange={onExchange}
+        />
       )}
 
       {tab === "market" && (
