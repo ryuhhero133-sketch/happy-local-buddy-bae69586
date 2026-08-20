@@ -12277,7 +12277,18 @@ function IdlePage() {
 
                    <button 
                     onClick={() => setShowAuraEggDetails(false)}
-                    style={{ width: "100%", background: "#4f46e5", color: "#fff", border: "none", padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 10, cursor: "pointer" }}
+                    style={{ 
+                      width: "100%", 
+                      background: "linear-gradient(135deg, #4f46e5, #4338ca)", 
+                      color: "#fff", 
+                      border: "none", 
+                      padding: "10px", 
+                      borderRadius: 10, 
+                      fontWeight: 900, 
+                      fontSize: 12, 
+                      cursor: "pointer",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                    }}
                    >
                      VOLTAR
                    </button>
