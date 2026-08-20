@@ -11754,10 +11754,15 @@ function IdlePage() {
                    </div>
                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       {[
-                        { id: "level_50", title: "Mestre Iniciante", desc: "Alcance Nível 50 de Treinador", target: 50, current: idle.trainerLevel || 1, reward: 50 },
-                        { id: "level_200", title: "Veterano Ruby", desc: "Alcance Nível 200 de Treinador", target: 200, current: idle.trainerLevel || 1, reward: 200 },
-                        { id: "level_500", title: "Lenda Mística", desc: "Alcance Nível 500 de Treinador", target: 500, current: idle.trainerLevel || 1, reward: 500 },
-                        { id: "collect_1000", title: "Colecionador de Pedras", desc: "Acumule 1.000 Stones (Total)", target: 1000, current: Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0), reward: 150 },
+                        { id: "level_50", title: "Mestre Iniciante", desc: "Alcance Nível 50 de Treinador", target: 50, current: idle.trainerLevel || 1, reward: { type: "crystals", amount: 50 } },
+                        { id: "level_200", title: "Veterano Ruby", desc: "Alcance Nível 200 de Treinador", target: 200, current: idle.trainerLevel || 1, reward: { type: "crystals", amount: 200 } },
+                        { id: "level_500", title: "Lenda Mística", desc: "Alcance Nível 500 de Treinador", target: 500, current: idle.trainerLevel || 1, reward: { type: "crystals", amount: 500 } },
+                        { id: "collect_1000", title: "Colecionador de Pedras", desc: "Acumule 1.000 Stones (Total)", target: 1000, current: Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0), reward: { type: "crystals", amount: 150 } },
+                        { id: "kill_1000", title: "Exterminador", desc: "Derrote 1.000 Pokémon", target: 1000, current: idle.totalKills || 0, reward: { type: "item", id: "ball_ultra", amount: 50 } },
+                        { id: "level_1000", title: "Semi-Deus", desc: "Alcance Nível 1.000 de Treinador", target: 1000, current: idle.trainerLevel || 1, reward: { type: "item", id: "egg_legendary", amount: 1 } },
+                        { id: "level_2000", title: "Divindade", desc: "Alcance Nível 2.000 de Treinador", target: 2000, current: idle.trainerLevel || 1, reward: { type: "item", id: "egg_mythic", amount: 1 } },
+                        { id: "level_5000", title: "Absoluto", desc: "Alcance Nível 5.000 de Treinador", target: 5000, current: idle.trainerLevel || 1, reward: { type: "level", amount: 1 } },
+                        { id: "collect_10000", title: "Magnata das Essências", desc: "Acumule 10.000 Stones", target: 10000, current: Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0), reward: { type: "item", id: "ball_poke", amount: 500 } },
                       ].map(q => {
                         const isDone = (forgeQuests.completedIds || []).includes(q.id);
                         const progress = Math.min(100, (q.current / q.target) * 100);
