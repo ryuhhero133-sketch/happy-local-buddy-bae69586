@@ -97,7 +97,8 @@ export const BackpackWindowContent: React.FC<BackpackWindowContentProps> = ({
                     x{n}
                   </div>
                   <div className="aspect-square bg-[#0b0510] rounded border border-[#3a2a4a] flex items-center justify-center text-xl">
-                    📦
+                    {id.startsWith("egg_") ? "🥚" : id.includes("ball") ? "⚾" : id.includes("potion") ? "🧪" : id.includes("book") ? "📖" : "✨"}
+
                   </div>
                   <div className="text-[9px] font-bold truncate text-center">{ITEM_NAMES[id] || id}</div>
                   
