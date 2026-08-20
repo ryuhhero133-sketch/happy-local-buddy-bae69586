@@ -11450,7 +11450,8 @@ function IdlePage() {
 
 
         {/* ============ NAV INFERIOR ============ */}
-        <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "center", gap: 4, background: "linear-gradient(180deg,#0b0510 0%,#160a20 100%)", padding: "8px 0", borderTop: "1px solid rgba(245,207,107,0.15)" }}>
+        <div className="bottom-nav-bar" style={{ gridColumn: "1 / -1" }}>
+
           {([
             { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
             { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
@@ -11698,6 +11699,144 @@ function IdlePage() {
         </div>
       )}
 
+
+      {tab === "evento" && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 10000,
+          background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)",
+          display: "grid", placeItems: "center", padding: 20
+        }}>
+          <div style={{
+            width: "min(500px, 95vw)", background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
+            border: "3px solid #f5cf6b", borderRadius: 20, padding: 20, position: "relative",
+            boxShadow: "0 0 50px rgba(245,207,107,0.3)"
+          }}>
+            <button 
+              onClick={() => setTab("inicio")}
+              style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900 }}
+            >
+              ×
+            </button>
+            <div style={{ textAlign: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 RECOMPENSA DIÁRIA</div>
+              <div style={{ fontSize: 12, color: "#c8b8d0", marginTop: 4 }}>Colete prêmios incríveis a cada 24 horas!</div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+              {[1, 2, 3, 4, 5, 6, 7].map(day => {
+                const now = Date.now();
+                const lastClaim = idle.lastDailyReward || 0;
+                const currentDay = idle.dailyRewardDay || 0;
+                const canClaim = (now - lastClaim) >= 86400000 && (currentDay % 7) + 1 === day;
+                const isClaimed = (currentDay % 7) >= day;
+                const isLocked = !canClaim && !isClaimed;
+
+                return (
+                  <div key={day} style={{
+                    background: isClaimed ? "rgba(34,197,94,0.2)" : (canClaim ? "rgba(245,207,107,0.15)" : "rgba(255,255,255,0.05)"),
+                    border: `2px solid ${isClaimed ? "#22c55e" : (canClaim ? "#f5cf6b" : "#4a3b5c")}`,
+                    borderRadius: 12, padding: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                    opacity: isLocked ? 0.6 : 1, transition: "all 0.2s",
+                    boxShadow: canClaim ? "0 0 15px rgba(245,207,107,0.4)" : "none",
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 900, color: isClaimed ? "#22c55e" : "#f5cf6b" }}>DIA {day}</div>
+                    <div style={{ fontSize: 24, filter: isClaimed ? "grayscale(0.5)" : "none" }}>
+                      {day === 7 ? "💎" : (isClaimed ? "📦" : "🎁")}
+                    </div>
+                    <div style={{ fontSize: 8, color: "#fff", textAlign: "center", fontWeight: 700 }}>
+                      {day === 7 ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                            <img src={ballPokeImg} width={10} style={{ imageRendering: "pixelated" }} /> 200
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                            <img src={ballGreatImg} width={10} style={{ imageRendering: "pixelated" }} /> 100
+                          </div>
+                          <span>1 Rary Cand</span>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          <span>500 Gold</span>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                            <img src={ballPokeImg} width={10} style={{ imageRendering: "pixelated" }} /> 20
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                            <img src={ballGreatImg} width={10} style={{ imageRendering: "pixelated" }} /> 5
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {canClaim ? (
+                      <button 
+                        onClick={() => {
+                          const rewardDay = (idle.dailyRewardDay || 0) + 1;
+                          setIdle(s => {
+                            const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
+                            
+                            if (day === 7) {
+                              next.items = { ...next.items };
+                              next.items.ball_poke = (next.items.ball_poke || 0) + 200;
+                              next.items.ball_great = (next.items.ball_great || 0) + 100;
+                              next.items.rare_candy = (next.items.rare_candy || 0) + 1;
+                            } else {
+                              next.bank.gold = (next.bank.gold || 0) + 500;
+                              next.items = { ...next.items };
+                              next.items.ball_poke = (next.items.ball_poke || 0) + 20;
+                              next.items.ball_great = (next.items.ball_great || 0) + 5;
+                            }
+                            return next;
+                          });
+                          pushChat(`🎁 Recompensa do Dia ${day} coletada!`, "cap");
+                          playBonus();
+                        }}
+                        style={{
+                          marginTop: 5, width: "100%", background: "#f5cf6b", color: "#1a0f2e",
+                          border: "none", borderRadius: 6, fontSize: 8, fontWeight: 900, padding: "4px 0", cursor: "pointer",
+                          animation: "pulseGlow 1.5s infinite"
+                        }}
+                      >
+                        RESGATAR
+                      </button>
+                    ) : isClaimed ? (
+                      <div style={{ marginTop: 5, fontSize: 8, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>
+                    ) : (
+                      <div style={{ marginTop: 5, fontSize: 8, color: "#4a3b5c", fontWeight: 900 }}>BLOQUEADO</div>
+                    )}
+                  </div>
+                );
+              })}
+              
+              {/* Informações de Tempo */}
+              {(() => {
+                const now = Date.now();
+                const lastClaim = idle.lastDailyReward || 0;
+                const nextClaim = lastClaim + 86400000;
+                const diff = nextClaim - now;
+                if (diff <= 0) return null;
+                const hours = Math.floor(diff / 3600000);
+                const mins = Math.floor((diff % 3600000) / 60000);
+                return (
+                  <div style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: 10, fontSize: 10, color: "#f5cf6b", fontWeight: 700 }}>
+                    ⏳ Próximo resgate em: {hours}h {mins}m
+                  </div>
+                );
+              })()}
+            </div>
+            
+            <button 
+              onClick={() => setTab("inicio")}
+              style={{
+                marginTop: 20, width: "100%", padding: "12px", background: "rgba(245,207,107,0.1)",
+                border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b",
+                fontWeight: 900, fontSize: 12, cursor: "pointer", transition: "all 0.2s"
+              }}
+            >
+              FECHAR CALENDÁRIO
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* BOTÃO FLUTUANTE DA FORJA */}
       <div
         onMouseDown={(e) => {
@@ -11754,61 +11893,58 @@ function IdlePage() {
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
-                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    top: -65, left: -45, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s ease-out forwards"
+                    left: 20, top: -75, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s ease-out forwards", zIndex: 1
                   }}
                   title="Abrir Forja"
                 >
                   <img src={chestOpenImg} style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
                 </div>
+
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
-                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 55, top: -65, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.1s ease-out forwards"
+                    left: 70, top: -45, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.1s ease-out forwards", zIndex: 1
                   }}
                   title="Alquimia"
                 >
-                  <FlaskConical size={20} color="#d97706" />
+                  <FlaskConical size={22} color="#d97706" />
                 </div>
+
                 <div 
                   onClick={(e) => { e.stopPropagation(); setTab("evento"); playClick(); }}
                   style={{
-                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 5, top: -85, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.2s ease-out forwards, orbGlow 2s infinite ease-in-out"
+                    left: 70, top: 15, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.2s ease-out forwards, orbGlow 2s infinite ease-in-out", zIndex: 1
                   }}
                   title="Calendário de Eventos"
                 >
-                  <Calendar size={20} color="#d97706" />
+                  <Calendar size={22} color="#d97706" />
                 </div>
+
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(true); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
-                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: -80, top: -5, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.3s ease-out forwards"
+                    left: 20, top: 45, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.3s ease-out forwards", zIndex: 1
                   }}
                   title="Missões da Forja"
                 >
-                  <Sparkles size={20} color="#d97706" />
+                  <Sparkles size={22} color="#d97706" />
                 </div>
+
                 <div 
                   onClick={(e) => { 
                     e.stopPropagation(); 
-                    if (auraEggCrafting?.active) {
-                      setForgeMinimized(false);
-                      setShowAuraEggDetails(true);
-                      setForgeShowOrbit(false);
-                      playClick();
-                      return;
-                    }
                     setForgeMinimized(false);
                     setShowForgeQuests(false);
                     setShowAuraEggDetails(true);
@@ -11816,14 +11952,14 @@ function IdlePage() {
                     playClick();
                   }}
                   style={{
-                    position: "absolute", width: 46, height: 46, background: "#0f172a", border: "3px solid #4ade80", borderRadius: "50%",
+                    position: "absolute", width: 48, height: 48, background: "#0f172a", border: "3px solid #4ade80", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 85, top: -5, boxShadow: "0 0 15px rgba(74,222,128,0.5)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.4s ease-out forwards, eggGlowTri 3s linear infinite"
+                    left: -35, top: -25, boxShadow: "0 0 15px rgba(74,222,128,0.5)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.4s ease-out forwards, eggGlowTri 3s linear infinite", zIndex: 1
                   }}
                   title="Forja de Aura Egg"
                 >
-                  <FlaskConical size={24} color="#fff" className={auraEggCrafting?.active ? "animate-pulse" : ""} />
+                  <div style={{ fontSize: 24 }}>🥚</div>
                   {auraEggCrafting?.active && (
                     <div style={{
                       position: "absolute", bottom: -12, width: "100%", height: 5, background: "#334155", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)"
@@ -11832,6 +11968,7 @@ function IdlePage() {
                     </div>
                   )}
                 </div>
+
 
               </>
             )}

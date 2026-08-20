@@ -491,6 +491,30 @@ html, body, #root {
   100% { box-shadow: 0 0 15px #4ade80, inset 0 0 10px #4ade80; border-color: #4ade80; }
 }
 
+.bottom-nav-bar {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  background: linear-gradient(180deg, #0b0510 0%, #160a20 100%);
+  padding: 8px 0;
+  border-top: 2px solid rgba(245,207,107,0.3);
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+  position: relative;
+  z-index: 100;
+}
+
+.bottom-nav-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f5cf6b, transparent);
+  opacity: 0.5;
+}
+
+
   box-shadow: 0 0 8px rgba(74,222,128,0.7), inset 0 1px 0 rgba(255,255,255,0.5);
   transition: width 0.6s cubic-bezier(.2,.9,.3,1.1);
 }
