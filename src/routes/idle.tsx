@@ -10791,8 +10791,10 @@ function IdlePage() {
                             @keyframes popIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
                             @keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
                             @keyframes obsidianGlow { from { filter: brightness(1) drop-shadow(0 0 5px #a066ff); } to { filter: brightness(1.5) drop-shadow(0 0 20px #a066ff); } }
-                            @keyframes worldFloating { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-                            @keyframes islandFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(10px, 15px); } }
+                             @keyframes worldFloating { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+                             @keyframes islandFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(0,0); } }
+                             @keyframes snowFall { 0% { transform: translateY(-100%) translateX(-10%); opacity: 0; } 50% { opacity: 0.6; } 100% { transform: translateY(1000%) translateX(10%); opacity: 0; } }
+
                             .c4-ring { animation: c4RingRotate 4s linear infinite; }
                             @keyframes c4RingRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                           `}</style>
