@@ -11681,15 +11681,15 @@ function IdlePage() {
                              pushChat("⏳ Você já resgatou sua recompensa hoje! Volte amanhã.", "info");
                              return;
                            }
-                           const newGold = (idle.gold || 0) + (day === 7 ? 5000 : 500 * day);
+                           const newGold = (idle.bank?.gold || 0) + (day === 7 ? 5000 : 500 * day);
                            setIdle(prev => ({ 
                              ...prev, 
-                             gold: newGold,
+                             bank: { ...prev.bank, gold: newGold },
                              lastDailyReward: now,
                              dailyRewardDay: (prev.dailyRewardDay || 0) + 1
                            }));
-                           if (isVip) pushChat("✨ BÔNUS MESTRE: Recompensas VIP creditadas!", "success");
-                           pushChat(`🎁 Dia ${day} resgatado com sucesso!`, "success");
+                           if (isVip) pushChat("✨ BÔNUS MESTRE: Recompensas VIP creditadas!", "info");
+                           pushChat(`🎁 Dia ${day} resgatado com sucesso!`, "info");
                          }} style={{
                            width: "100%",
                            background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e", border: "none",
