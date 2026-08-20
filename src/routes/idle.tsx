@@ -11573,12 +11573,16 @@ function IdlePage() {
           <div style={{
             width: "min(500px, 95vw)", background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
             border: "3px solid #f5cf6b", borderRadius: 20, padding: 20, position: "relative",
-            boxShadow: "0 0 50px rgba(245,207,107,0.3)"
+            boxShadow: "0 0 50px rgba(245,207,107,0.3)",
+            backgroundImage: "url(/__l5e/assets-v1/9530de8d-d1f5-4e35-935c-b5b9312c18e5/reward-bg.png)",
+            backgroundSize: "cover", backgroundPosition: "center"
           }}>
+            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)", borderRadius: 17, zIndex: 0 }} />
             <button 
               onClick={() => setTab("inicio")}
-              style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900 }}
+              style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900, zIndex: 1 }}
             >
+
               ×
             </button>
             <div style={{ textAlign: "center", marginBottom: 20 }}>
