@@ -11487,136 +11487,192 @@ function IdlePage() {
         </div>
       </div>
 
-      {/* RPG MODULAR WINDOWS: FORGE */}
-      {forgeWindowOpen && (
-        <div
-          style={{
-            position: "fixed",
-            left: forgePos.x,
-            top: forgePos.y,
-            zIndex: 3000,
-            width: 320,
-            pointerEvents: "auto",
-          }}
-        >
+      {/* BOTÃO FLUTUANTE DA FORJA */}
+      <div
+        onMouseDown={(e) => {
+          forgeDragRef.current = {
+            isDragging: true,
+            startX: e.clientX,
+            startY: e.clientY,
+            winX: forgePos.x,
+            winY: forgePos.y,
+          };
+        }}
+        onTouchStart={(e) => {
+          forgeDragRef.current = {
+            isDragging: true,
+            startX: e.touches[0].clientX,
+            startY: e.touches[0].clientY,
+            winX: forgePos.x,
+            winY: forgePos.y,
+          };
+        }}
+        onClick={(e) => {
+          if (forgeDragRef.current?.isDragging && Math.abs(e.clientX - forgeDragRef.current.startX) < 5) {
+            // Se não arrastou muito, abre/minimiza
+            setForgeMinimized(!forgeMinimized);
+            playClick();
+          }
+        }}
+        style={{
+          position: "fixed",
+          left: forgePos.x,
+          top: forgePos.y,
+          zIndex: 4000,
+          cursor: "grab",
+          transition: forgeMinimized ? "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
+          display: forgeWindowOpen ? "block" : "none",
+        }}
+      >
+        {forgeMinimized ? (
+          <div
+            onClick={() => {
+               setForgeMinimized(false);
+               playClick();
+            }}
+            style={{
+              width: 56,
+              height: 56,
+              background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+              border: "3px solid #d97706",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(217,119,6,0.2)",
+              animation: "float 3s ease-in-out infinite",
+              position: "relative"
+            }}
+          >
+            <img 
+              src={chestClosedImg} 
+              alt="Forge" 
+              style={{ width: 32, height: 32, imageRendering: "pixelated" }} 
+            />
+            <div style={{
+              position: "absolute",
+              top: -2,
+              right: -2,
+              background: "#d97706",
+              color: "#fff",
+              fontSize: 9,
+              fontWeight: 900,
+              padding: "2px 4px",
+              borderRadius: 6,
+              border: "1px solid #fff"
+            }}>FORJA</div>
+          </div>
+        ) : (
           <div
             style={{
-              background: "linear-gradient(160deg, #1a0d2a 0%, #120820 100%)",
-              border: "3px solid #a855f7",
-              borderRadius: 12,
-              boxShadow: "0 10px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(168,85,247,0.2)",
+              width: 320,
+              background: "#fdfbf7",
+              border: "4px solid #d97706",
+              borderRadius: 16,
+              boxShadow: "0 15px 50px rgba(0,0,0,0.5)",
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
+              fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
             }}
           >
             {/* Window Header */}
             <div
-              onMouseDown={(e) => {
-                forgeDragRef.current = {
-                  isDragging: true,
-                  startX: e.clientX,
-                  startY: e.clientY,
-                  winX: forgePos.x,
-                  winY: forgePos.y,
-                };
-              }}
-              onTouchStart={(e) => {
-                forgeDragRef.current = {
-                  isDragging: true,
-                  startX: e.touches[0].clientX,
-                  startY: e.touches[0].clientY,
-                  winX: forgePos.x,
-                  winY: forgePos.y,
-                };
-              }}
               style={{
-                background: "linear-gradient(90deg, #a855f7 0%, #5b21b6 100%)",
-                padding: "8px 12px",
-                cursor: "grab",
+                background: "linear-gradient(90deg, #d97706 0%, #b45309 100%)",
+                padding: "10px 14px",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
                 userSelect: "none",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <img src="https://rpg-idle-game.lovable.app/assets/items/item_key_ruby.png" width={18} height={18} style={{ imageRendering: "pixelated" }} />
-                <span style={{ color: "#fff", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>FORJA MÍSTICA</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <img src={chestOpenImg} width={24} height={24} style={{ imageRendering: "pixelated" }} />
+                <span style={{ color: "#fff", fontWeight: 900, fontSize: 14, letterSpacing: 1, textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>FORJA MÍSTICA</span>
               </div>
-              <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ display: "flex", gap: 8 }}>
                 <button
-                  onClick={() => setForgeMinimized(!forgeMinimized)}
-                  style={{ background: "rgba(0,0,0,0.3)", border: "none", color: "#fff", padding: "2px 6px", cursor: "pointer", borderRadius: 4 }}
+                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(true); playClick(); }}
+                  style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", padding: "4px 8px", cursor: "pointer", borderRadius: 6, fontWeight: 900 }}
                 >
-                  {forgeMinimized ? "□" : "–"}
+                  _
                 </button>
                 <button
-                  onClick={() => setForgeWindowOpen(false)}
-                  style={{ background: "#ef4444", border: "none", color: "#fff", padding: "2px 6px", cursor: "pointer", borderRadius: 4 }}
+                  onClick={(e) => { e.stopPropagation(); setForgeWindowOpen(false); playClick(); }}
+                  style={{ background: "#ef4444", border: "none", color: "#fff", padding: "4px 8px", cursor: "pointer", borderRadius: 6, fontWeight: 900 }}
                 >
                   ×
                 </button>
               </div>
             </div>
 
-            {!forgeMinimized && (
-              <div style={{ padding: 12, maxHeight: 400, overflowY: "auto" }}>
-                <div style={{ fontSize: 11, color: "#d4a2ff", marginBottom: 10, fontWeight: 700, textAlign: "center", textTransform: "uppercase" }}>
-                  Inventário de Pedras Elementais
-                </div>
-                
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {Object.entries(idle.items || {})
-                    .filter(([id]) => id.startsWith("stone_"))
-                    .map(([id, n]) => {
-                      const names: Record<string, string> = {
-                        stone_grass: "Grama", stone_fire: "Fogo",
-                        stone_water: "Água", stone_electric: "Eletro",
-                        stone_dark: "Trevas", stone_dragon: "Dragão"
-                      };
-                      const icons: Record<string, string> = {
-                        stone_grass: "🌿", stone_fire: "🔥",
-                        stone_water: "💧", stone_electric: "⚡",
-                        stone_dark: "🌑", stone_dragon: "🐉"
-                      };
-                      return (
-                        <div key={id} style={{
-                          background: "rgba(0,0,0,0.4)",
-                          border: "1.5px solid rgba(168,85,247,0.3)",
-                          borderRadius: 8,
-                          padding: 8,
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          gap: 4
-                        }}>
-                          <div style={{ fontSize: 24 }}>{icons[id] || "💎"}</div>
-                          <div style={{ fontSize: 10, fontWeight: 900, color: "#fff" }}>{names[id] || id.replace("stone_","").toUpperCase()}</div>
-                          <div style={{
-                            background: "#a855f7",
-                            color: "#fff",
-                            fontSize: 10,
-                            padding: "1px 6px",
-                            borderRadius: 4,
-                            fontWeight: 900,
-                            boxShadow: "0 2px 0 #5b21b6"
-                          }}>
-                            {Number(n).toLocaleString()}
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-
-                <div style={{ marginTop: 14, padding: 8, background: "rgba(168,85,247,0.1)", borderRadius: 6, border: "1px dashed #a855f7", fontSize: 10, color: "#b39dd8", textAlign: "center" }}>
-                   Use as pedras na aba "Melhorias" para fortalecer seu time.
-                </div>
+            <div style={{ padding: 16, maxHeight: 400, overflowY: "auto", background: "#fdfbf7" }}>
+              <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                ✨ Inventário de Essências ✨
               </div>
-            )}
+              
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {Object.entries(idle.items || {})
+                  .filter(([id]) => id.startsWith("stone_"))
+                  .map(([id, n]) => {
+                    const names: Record<string, string> = {
+                      stone_grass: "Grama", stone_fire: "Fogo",
+                      stone_water: "Água", stone_electric: "Eletro",
+                      stone_dark: "Trevas", stone_dragon: "Dragão"
+                    };
+                    // Usar as imagens originais que o usuário pediu ("igual tem na bag")
+                    const stoneImgs: Record<string, string> = {
+                      stone_grass: chestGrassImg,
+                      stone_fire: chestFireImg,
+                      stone_water: chestWaterImg,
+                      stone_electric: chestElectricImg,
+                      stone_dark: chestDarkImg,
+                      stone_dragon: chestDragonImg
+                    };
+                    
+                    return (
+                      <div key={id} style={{
+                        background: "#fff9eb",
+                        border: "2px solid #fde68a",
+                        borderRadius: 12,
+                        padding: "10px 6px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 6,
+                        boxShadow: "0 2px 5px rgba(217,119,6,0.1)",
+                        transition: "transform 0.2s",
+                      }}>
+                        <img 
+                          src={stoneImgs[id] || chestClosedImg} 
+                          alt={id}
+                          style={{ width: 40, height: 40, imageRendering: "pixelated", filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.15))" }}
+                        />
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#78350f" }}>{names[id] || id.replace("stone_","").toUpperCase()}</div>
+                        <div style={{
+                          background: "#d97706",
+                          color: "#fff",
+                          fontSize: 11,
+                          padding: "2px 8px",
+                          borderRadius: 8,
+                          fontWeight: 900,
+                          boxShadow: "0 2px 0 #92400e"
+                        }}>
+                          {Number(n).toLocaleString()}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              <div style={{ marginTop: 18, padding: 10, background: "#fef3c7", borderRadius: 10, border: "1px dashed #d97706", fontSize: 10, color: "#92400e", textAlign: "center", lineHeight: 1.4, fontWeight: 600 }}>
+                 Utilize estas pedras raras no painel de <b>Melhorias</b> para transcender o poder da sua equipe.
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
 
       <style>{`
