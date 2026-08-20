@@ -10442,13 +10442,8 @@ function IdlePage() {
                     boxShadow: "0 0 8px #6bd4ff",
                   }} />
 
-                </div>
               );
 
-              return (
-                <div>
-                  <div style={{ position: "relative" }}>
-                    {renderMap(true, false)}
                     <button
                       onClick={() => { playClick(); setBigMapOpen(true); }}
                       title="Abrir mapa grande"
@@ -11192,7 +11187,6 @@ function IdlePage() {
                       </div>
                     );
                   })()}
-                </div>
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
               {renderMap(true, false)}
@@ -15065,11 +15059,6 @@ function TabOverlay({
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; }}
                       title={inTeam ? "No time — não pode fragmentar" : locked ? "Travado — destrave para fragmentar" : `Fragmentar por +${gain} pts de craft`}
                     >
-                      {inTeam ? (
-                        <span style={{ fontWeight: 900 }}>★ NO TIME</span>
-                      ) : locked ? (
-                        <span style={{ fontWeight: 900 }}>🔒 TRAVADO</span>
-                      ) : (
                         <div>
                           <span style={{
                             display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -15153,6 +15142,7 @@ function TabOverlay({
           )}
         </div>
       )}
+
 
 
 
@@ -16116,6 +16106,7 @@ function TabOverlay({
     </div>
   );
 }
+
 
 function BuffCell({ img, label, value, color }: { img: string; label: string; value: string; color: string }) {
   return (
