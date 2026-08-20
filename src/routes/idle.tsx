@@ -12095,20 +12095,20 @@ function IdlePage() {
                      🔮 Forja de Aura Egg 🔮
                    </div>
                    
-                     <div style={{ 
-                       background: `linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url(${assetUrlFromJson(auraEggBgAsset)})`,
-                       backgroundSize: "cover",
-                       backgroundPosition: "center",
-                       border: "3px solid #818cf8", 
-                       borderRadius: 14, 
-                       padding: 15, 
-                       marginBottom: 15,
-                       position: "relative",
-                       overflow: "hidden",
-                       boxShadow: "0 0 25px rgba(99, 102, 241, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.2)",
-                       filter: "brightness(1.15) saturate(1.1)"
-                     }}>
-                       <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(238, 242, 255, 0.75)", zIndex: 0 }} />
+                      <div style={{ 
+                        background: `url(${assetUrlFromJson(auraEggBgAsset)})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        border: "3px solid #818cf8", 
+                        borderRadius: 14, 
+                        padding: 15, 
+                        marginBottom: 15,
+                        position: "relative",
+                        overflow: "hidden",
+                        boxShadow: "0 0 25px rgba(99, 102, 241, 0.6), inset 0 0 30px rgba(255, 255, 255, 0.3)",
+                        filter: "brightness(1.25) saturate(1.2) contrast(1.1)"
+                      }}>
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(238, 242, 255, 0.35)", zIndex: 0, backdropFilter: "blur(1px)" }} />
 
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                          <div style={{ width: 50, height: 50, background: "#fff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #6366f1" }}>
