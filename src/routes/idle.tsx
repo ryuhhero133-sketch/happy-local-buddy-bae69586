@@ -12171,14 +12171,14 @@ function IdlePage() {
                                          pushChat("❌ Sem stones suficientes para aumentar a chance!", "info");
                                       }
                                    }}
-                                   style={{ 
-                                     display: "flex", flexDirection: "column", gap: 2, background: "#fff", padding: "4px 8px", borderRadius: 6, 
-                                     border: "2px solid #c7d2fe", opacity: has ? 1 : 0.5, cursor: "pointer", position: "relative" 
+                                     style={{ 
+                                     display: "flex", flexDirection: "column", gap: 3, background: "rgba(0,0,0,0.3)", padding: "6px 10px", borderRadius: 8, 
+                                     border: "2px solid #fbbf24", opacity: has ? 1 : 0.6, cursor: "pointer", position: "relative" 
                                    }}
                                  >
-                                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                       <ItemPixelIcon id={s} size={16} />
-                                       <span style={{ fontSize: 9, fontWeight: 900, color: has ? "#059669" : "#ef4444" }}>{totalNeeded}x</span>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                       <ItemPixelIcon id={s} size={20} />
+                                       <span style={{ fontSize: 12, fontWeight: 900, color: has ? "#fff" : "#ef4444" }}>{totalNeeded}x</span>
                                     </div>
                                     <div style={{ width: "100%", height: 3, background: "#e2e8f0", borderRadius: 2, overflow: "hidden" }}>
                                        <div style={{ 
