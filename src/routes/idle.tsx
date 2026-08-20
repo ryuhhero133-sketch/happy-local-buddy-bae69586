@@ -1910,7 +1910,7 @@ function IdlePage() {
   const enemyIdRef = useRef(1);
   const chestIdRef = useRef(1);
   const fxIdRef = useRef(1);
-  const [tab, setTab] = useState<"inicio" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas">("batalha");
+  const [tab, setTab] = useState<"inicio" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento">("inicio");
   const [skinId, setSkinId] = useState<string>(() => {
     if (typeof window === "undefined") return "default";
     try { return localStorage.getItem(SKIN_KEY) || "default"; } catch { return "default"; }
