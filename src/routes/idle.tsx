@@ -11817,7 +11817,7 @@ function IdlePage() {
                                   </div>
                                   <div style={{ background: "#d97706", color: "#fff", padding: "2px 6px", borderRadius: 6, fontSize: 9, fontWeight: 900 }}>
                                       {q.reward.type === "crystals" ? `${q.reward.amount} 💎` : 
-                                       q.reward.type === "item" ? `${q.reward.amount}x ${q.reward.id?.replace("ball_","").replace("egg_","").toUpperCase()}` :
+                                       q.reward.type === "item" ? `${q.reward.amount}x ${(q.reward as any).id?.replace("ball_","").replace("egg_","").toUpperCase()}` :
                                        `+${q.reward.amount} LV`}
                                   </div>
                                </div>
