@@ -5323,19 +5323,10 @@ function IdlePage() {
       const add = id === "orb_xp_minor" ? 0.10 : id === "orb_xp_major" ? 0.20 : (id === "incenso_xp_24h" ? 0.50 : 0.30);
       const pct = Math.round(add * 100);
       const is24 = id === "orb_xp_supreme_24h" || id === "incenso_xp_24h";
-      const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : id === "incenso_xp_24h" ? "Incenso de XP 24h" : is24 ? "Orb Supremo 24h" : "Orb Supremo";
+      const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : id === "incenso_xp_24h" ? "Incenso de XP 24h" : (is24 ? "Orb Supremo 24h" : "Orb Supremo");
       const nowT = Date.now();
       if ((idle.buffs.orbUntil ?? 0) > nowT) {
         pushChat(`Já há um Orb/Incenso de EXP ativo. Só 1 pode ficar ativo por vez.`, "info");
-        return;
-      }
-      const add = id === "orb_xp_minor" ? 0.10 : id === "orb_xp_major" ? 0.20 : 0.30;
-      const pct = Math.round(add * 100);
-      const is24 = id === "orb_xp_supreme_24h";
-      const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : is24 ? "Orb Supremo 24h" : "Orb Supremo";
-      const nowT = Date.now();
-      if ((idle.buffs.orbUntil ?? 0) > nowT) {
-        pushChat(`Já há um Orb de EXP ativo. Só 1 orb pode ficar ativo por vez.`, "info");
         return;
       }
       const extraH = is24 ? 0 : (((idle.items as any)[`${id}_extra`] ?? 0) as number);
@@ -11656,9 +11647,9 @@ function IdlePage() {
               overflow: "hidden",
               fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
               position: "fixed",
-              left: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
+              left: !forgeMinimized ? "50%" : forgePos.x,
+              top: !forgeMinimized ? "50%" : forgePos.y,
+              transform: !forgeMinimized ? "translate(-50%, -50%)" : "none",
 
             }}
           >
@@ -11827,10 +11818,9 @@ function IdlePage() {
                         const nextItems = { ...prev.items };
                         STONES.forEach(k => nextItems[k] = (nextItems[k] ?? 0) - cost);
                         
-                        // 20% de chance de falha
                         if (Math.random() < 0.20) {
                           pushChat("💥 O craft falhou! As stones foram perdidas.", "info");
-                          playFail(); // assume playFail existe ou ignore
+                          // playFail(); // playFail não existe, removido
                           return { ...prev, items: nextItems };
                         }
 
