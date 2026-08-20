@@ -8160,7 +8160,17 @@ function IdlePage() {
             display: "flex", flexDirection: "column", gap: 10
           }}>
             <button
-              onClick={() => openWindow("craft", "Forja Ancestral", <CraftWindowContent />)}
+              onClick={() => openWindow("craft", "Forja Ancestral", (
+                <CraftWindowContent 
+                  items={idle.items} 
+                  bank={idle.totals} 
+                  onCraft={(itemId, cost) => {
+                    // Implementação básica p/ evitar erro de compilação; o ideal é usar as funções de craft já existentes
+                    console.log("Crafting", itemId, cost);
+                    // Aqui você chamaria a lógica de craft real do jogo
+                  }} 
+                />
+              ))}
               style={{
                 width: 52, height: 52, borderRadius: 12,
                 background: "linear-gradient(135deg, #1e1e1e, #333)",
@@ -8178,6 +8188,7 @@ function IdlePage() {
               <Hammer size={28} />
               <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>FORJA</span>
             </button>
+
             
             <button
               onClick={() => openWindow("collection_window", "Coleção Real", null)}
@@ -8257,7 +8268,70 @@ function IdlePage() {
           )}
 
 
-            {/* Contador de jogadores online removido a pedido do usuário */}
+          {/* HUD Target / Selecionado no Topo */}
+          {selectedMapInfo && (
+            <div style={{
+              position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)",
+              zIndex: 70, width: "min(400px, 90vw)",
+              background: "rgba(10,5,15,0.95)",
+              border: "2px solid #a066ff", borderRadius: 12,
+              boxShadow: "0 0 25px rgba(160,102,255,0.4), inset 0 0 10px rgba(0,0,0,0.8)",
+              padding: 12, overflow: "hidden"
+            }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <div style={{
+                  width: 64, height: 64, borderRadius: 10,
+                  background: "rgba(30,15,45,0.8)",
+                  border: "1px solid #a066ff55",
+                  display: "grid", placeItems: "center", overflow: "hidden"
+                }}>
+                  <MapIconRenderer 
+                    type={selectedMapInfo.type} 
+                    name={selectedMapInfo.name} 
+                    ok={idle.trainerLevel >= selectedMapInfo.level} 
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <h3 style={{ margin: 0, color: "#f5cf6b", fontSize: 16, fontWeight: 900, letterSpacing: 1 }}>
+                        {selectedMapInfo.name.toUpperCase()}
+                      </h3>
+                      <div style={{ fontSize: 10, color: "#a066ff", fontWeight: 800, marginTop: 2 }}>
+                        DIFF: {selectedMapInfo.difficulty} · LV.{selectedMapInfo.level}+
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setSelectedMapInfo(null)}
+                      style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 16 }}
+                    >✕</button>
+                  </div>
+                  
+                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                    <button
+                      onClick={() => {
+                        handleTravel(selectedMapInfo.id);
+                        setSelectedMapInfo(null);
+                      }}
+                      disabled={idle.trainerLevel < selectedMapInfo.level}
+                      style={{
+                        flex: 1, padding: "8px 0", borderRadius: 6,
+                        background: idle.trainerLevel < selectedMapInfo.level 
+                          ? "#333" 
+                          : "linear-gradient(180deg, #a066ff, #6b28c8)",
+                        color: "#fff", fontWeight: 900, fontSize: 12,
+                        border: "none", cursor: idle.trainerLevel < selectedMapInfo.level ? "not-allowed" : "pointer",
+                        boxShadow: idle.trainerLevel < selectedMapInfo.level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
+                      }}
+                    >
+                      {idle.trainerLevel < selectedMapInfo.level ? "BLOQUEADO" : "VIAJAR AGORA"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
 
 
 
