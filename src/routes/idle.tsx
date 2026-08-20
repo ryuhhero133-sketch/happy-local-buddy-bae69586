@@ -11844,8 +11844,9 @@ function IdlePage() {
                                         if (q.reward.type === "crystals") {
                                           next.crystals = (next.crystals || 0) + q.reward.amount;
                                           next.bank = { ...next.bank, crystals: (next.bank.crystals || 0) + q.reward.amount };
-                                        } else if (q.reward.type === "item" && q.reward.id) {
-                                          next.items = { ...next.items, [q.reward.id]: (next.items[q.reward.id] ?? 0) + q.reward.amount };
+                                        } else if (q.reward.type === "item" && (q.reward as any).id) {
+                                          const rid = (q.reward as any).id;
+                                          next.items = { ...next.items, [rid]: (next.items[rid] ?? 0) + q.reward.amount };
                                         } else if (q.reward.type === "level") {
                                           next.trainerLevel = (next.trainerLevel || 1) + q.reward.amount;
                                         }
