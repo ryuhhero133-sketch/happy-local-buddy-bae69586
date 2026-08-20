@@ -11699,16 +11699,17 @@ function IdlePage() {
                       style={{
                         background: isVip 
                           ? "linear-gradient(135deg, #fff9e6 0%, #fff 100%)" 
-                          : "rgba(0,0,0,0.3)",
+                          : "rgba(255,255,255,0.08)",
                         padding: "10px 15px", 
                         display: "flex", 
                         alignItems: "center", 
                         gap: 12,
-                        color: isVip ? "#1a0f2e" : "rgba(255,255,255,0.4)", 
+                        color: isVip ? "#1a0f2e" : "rgba(255,255,255,0.8)", 
                         position: "relative", 
                         overflow: "hidden",
                         cursor: isVip ? "default" : "help",
-                        transition: "all 0.3s ease"
+                        transition: "all 0.3s ease",
+                        filter: !isVip ? "saturate(1.2)" : "none"
                       }}
                     >
                        {!isVip && (
