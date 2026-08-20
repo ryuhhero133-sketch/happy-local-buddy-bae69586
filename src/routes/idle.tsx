@@ -11608,7 +11608,7 @@ function IdlePage() {
               paddingRight: 5, 
               flex: 1 
             }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(day => {
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day, idx) => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
                 const currentDay = idle.dailyRewardDay || 0;
