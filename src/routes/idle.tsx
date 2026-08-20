@@ -10384,9 +10384,6 @@ function IdlePage() {
                       { id: "cadeia_ab", x: 22, y: 82, type: "cave" },
                       { id: "cadeia_ab1", x: 26, y: 88, type: "cave" },
                       { id: "cadeia_f1", x: 28, y: 92, type: "cave" },
-                      { id: "portal_f", x: 92, y: 90, type: "event" }, // Vórtice (Inferior Direita)
-
-
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event" }] : []),
                     ];
                     const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
