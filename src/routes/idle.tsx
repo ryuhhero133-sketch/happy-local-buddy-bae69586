@@ -8253,10 +8253,79 @@ function IdlePage() {
               }}
               onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #a066ff88"; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
-              title="Abrir Coleção (LAND)"
+              title="Abrir Coleção Real"
             >
-              <Sparkles size={28} />
+              <Package size={28} />
               <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>COLEÇÃO</span>
+            </button>
+
+            <button
+              onClick={() => openWindow("mochila_window", "Mochila de Aventura", (
+                <BackpackWindowContent
+                  items={idle.items}
+                  bank={{ gold: idle.bank.gold, crystals: idle.bank.crystals }}
+                  onUseItem={(id) => useItem(id)}
+                  onSellItem={(id) => onSellItem(id)}
+                  marketSellPrices={marketSellPrices}
+                />
+              ))}
+              style={{
+                width: 52, height: 52, borderRadius: 12,
+                background: "linear-gradient(135deg, #3d2b0f, #241503)",
+                border: "2px solid #ff9d3d",
+                color: "#ff9d3d",
+                display: "grid", placeItems: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #ff9d3d88"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
+              title="Abrir Mochila"
+            >
+              <Package size={28} />
+              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>MOCHILA</span>
+            </button>
+
+            <button
+              onClick={() => openWindow("melhorias_window", "Anatomia da Conta", (
+                <ImprovementsWindowContent
+                  stats={{
+                    attack: idle.buffs.atk || 0,
+                    speed: idle.buffs.speed || 0,
+                    synergy: idle.buffs.synergy || 0,
+                    resistance: idle.buffs.def || 0,
+                    mastery: idle.buffs.mastery || 0
+                  }}
+                  items={idle.items}
+                  onUpgrade={(key) => onUpgradeBook(key as string)}
+                  stonesMap={STONES_MAP}
+                  stoneImgs={{
+                    stone_grass: assetUrlFromJson(fxGrassImg as any),
+                    stone_fire: assetUrlFromJson(fxFireImg as any),
+                    stone_water: assetUrlFromJson(fxWaterImg as any),
+                    stone_electric: assetUrlFromJson(fxElectricImg as any),
+                    stone_dark: assetUrlFromJson(fxPoisonImg as any),
+                    stone_dragon: assetUrlFromJson(fxPsychicImg as any)
+                  }}
+                />
+              ))}
+              style={{
+                width: 52, height: 52, borderRadius: 12,
+                background: "linear-gradient(135deg, #0f1a26, #1a2f46)",
+                border: "2px solid #5cd3ff",
+                color: "#5cd3ff",
+                display: "grid", placeItems: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #5cd3ff88"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
+              title="Melhorias de Conta"
+            >
+              <TrendingUp size={28} />
+              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>TREINAR</span>
             </button>
           </div>
 
