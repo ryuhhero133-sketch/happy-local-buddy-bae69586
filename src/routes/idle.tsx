@@ -116,6 +116,10 @@ const SKINS: { id: string; label: string; url: string | null }[] = [
   { id: "goku", label: "Goku", url: assetUrlFromJson(skinGokuAsset) },
 ];
 const SKIN_KEY = "rubym.skin.v1";
+const EQUIPMENT_KEY = "rubym.trainer.equipment.v1";
+const OWNED_EQUIPMENT_KEY = "rubym.trainer.owned_equipment.v1";
+import { EquipmentSlot, EquipmentItem, TRAINER_EQUIPMENT_DATA } from "@/game/systems";
+
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
 import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
