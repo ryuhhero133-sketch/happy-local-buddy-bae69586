@@ -15023,10 +15023,10 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-  idle, setIdle, pushChat
-
-
+  idle, setIdle, pushChat,
+  equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem
 }: {
+
   tab: string;
   onClose: () => void;
   leader: PetInstance | undefined;
@@ -15087,7 +15087,14 @@ function TabOverlay({
   idle: any;
   setIdle: React.Dispatch<React.SetStateAction<any>>;
   pushChat: (msg: string, tone?: any) => void;
-
+  equippedItems: Record<EquipmentSlot, string | null>;
+  setEquippedItems: React.Dispatch<React.SetStateAction<Record<EquipmentSlot, string | null>>>;
+  ownedEquipment: string[];
+  skinUrl: string | null;
+  getTrainerStats: () => { xpBonus: number; goldBonus: number; dropRate: number; speed: number };
+  equipmentSlotPicker: EquipmentSlot | null;
+  setEquipmentSlotPicker: React.Dispatch<React.SetStateAction<EquipmentSlot | null>>;
+  onEquipItem: (slot: EquipmentSlot, itemId: string | null) => void;
 }) {
 
 
