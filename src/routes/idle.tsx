@@ -10425,7 +10425,9 @@ function IdlePage() {
                     ];
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
                     const c4Sel = activeTab === 4 ? (WORLD_PINS_C4.find((p) => String(p.id) === c4Pin) ?? null) : null;
+                    const selPin = selectedMapInfo ? WORLD_PINS.find(p => p.id === selectedMapInfo) : null;
                     const selMap = selectedMapInfo ? IDLE_MAPS[selectedMapInfo] : null;
+
 
                     // const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
                     const tabTitle = activeTab === 1 ? "📜 THE FLOATING KINGDOMS · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
