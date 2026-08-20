@@ -1145,11 +1145,6 @@ function freshIdle(): IdleState {
     hives: {},
   };
 }
-    trainerXp: 0,
-    unlockedSkins: ["default"],
-    redeemedCodes: {},
-  };
-}
 function saveIdle(s: IdleState) {
   try { localStorage.setItem(IDLE_KEY, JSON.stringify(s)); } catch { /* ignore */ }
 }
