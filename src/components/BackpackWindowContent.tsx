@@ -104,14 +104,14 @@ export const BackpackWindowContent: React.FC<BackpackWindowContentProps> = ({
                   
                   <div className="flex gap-1">
                     <button 
-                      onClick={() => onUseItem(id)}
+                      onClick={() => onUseItem(id, 1)}
                       className="flex-1 bg-[#f5cf6b] text-[#0b0510] text-[8px] font-bold py-1 rounded hover:brightness-110"
                     >
-                      USAR
+                      {id.startsWith("egg_") ? "CHOCAR" : "USAR"}
                     </button>
-                    {sellPrice > 0 && (
+                    {sellPrice > 0 && !id.startsWith("stone_") && (
                       <button 
-                        onClick={() => onSellItem(id, 1)}
+                        onClick={() => onSellItem(id, 1, "gold")}
                         className="p-1 bg-[#ff5252] text-white rounded hover:brightness-110"
                         title={`Vender por ${sellPrice} ouro`}
                       >
@@ -119,6 +119,7 @@ export const BackpackWindowContent: React.FC<BackpackWindowContentProps> = ({
                       </button>
                     )}
                   </div>
+
                 </div>
               );
             })}
