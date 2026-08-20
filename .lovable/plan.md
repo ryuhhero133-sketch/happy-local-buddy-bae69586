@@ -1,11 +1,24 @@
-## Modular Game HUD System
+# Plan - Overhaul Forge System
 
-We will implement a reusable `GameWindow` component and a `WindowManager` state to handle floating, draggable panels. The first implementation will be a "FORGE" mini-inventory for Elemental Stones.
+Implement persistence and new "Orbiting" interaction for the Forge floating window system.
 
-### Technical Details
+## User Requirements
+- The Forge must persist its position and state (open/minimized) across page reloads.
+- The Forge must open correctly when clicked.
+- Clicking the Forge should reveal secondary "Orbiting" icons (e.g., Crafting) around it.
+- UI Style: RPG/MMO theme with a light beige inventory and specific Elemental Stone icons.
 
-- **State Management**: Add `forgeWindowOpen`, `forgePos`, and `forgeMinimized` to `src/routes/idle.tsx`.
-- **Component**: Create a `GameWindow` functional component within `src/routes/idle.tsx` that uses `framer-motion` (or standard React state) for dragging.
-- **Trigger**: Add an "ABRIR FORJA" button in the `mochila` (Backpack) tab or a dedicated HUD icon.
-- **Content**: The Forge window will display `idle.items` filtered for `stone_` prefixes, showing icons, counts, and a compact RPG layout.
-- **Safety**: No changes to existing Supabase schemas or backpack logic. This is a purely visual/additive overlay.
+## Technical Details
+- **Persistence**: Use `localStorage` to save/load `forgePos`, `forgeMinimized`, and `forgeWindowOpen` states.
+- **Interaction Logic**: Refine the drag-vs-click detection to ensure the window opens correctly.
+- **Orbiting UI**: Add a set of secondary action buttons (icons) that appear in a circular pattern around the minimized Forge chest when a toggle/long-press is active or as a context menu.
+- **Styling**: Enhance the "Golden Chest" floating orb and the beige inventory window.
+
+## Proposed Changes
+
+### `src/routes/idle.tsx`
+- Update state initialization for `forgePos`, `forgeMinimized`, and `forgeWindowOpen` to load from `localStorage`.
+- Add `useEffect` hooks to save these states to `localStorage` whenever they change.
+- Implement `isForgeActionsOpen` state for the orbiting icons.
+- Add a circular layout for "Craft" and "Enhance" icons around the minimized chest.
+- Fix click handlers to ensure `setForgeWindowOpen(true)` and `setForgeMinimized(false)` work reliably.
