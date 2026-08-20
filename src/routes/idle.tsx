@@ -1909,6 +1909,35 @@ function IdlePage() {
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
+
+  // --- RPG MODULAR WINDOWS ---
+  const [forgeWindowOpen, setForgeWindowOpen] = useState(false);
+  const [forgeMinimized, setForgeMinimized] = useState(false);
+  const [forgePos, setForgePos] = useState({ x: 100, y: 100 });
+  const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number } | null>(null);
+
+  useEffect(() => {
+    const mm = (e: MouseEvent | TouchEvent) => {
+      if (!forgeDragRef.current) return;
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const dx = clientX - forgeDragRef.current.startX;
+      const dy = clientY - forgeDragRef.current.startY;
+      setForgePos({ x: forgeDragRef.current.winX + dx, y: forgeDragRef.current.winY + dy });
+    };
+    const mu = () => { forgeDragRef.current = null; };
+    window.addEventListener("mousemove", mm);
+    window.addEventListener("mouseup", mu);
+    window.addEventListener("touchmove", mm);
+    window.addEventListener("touchend", mu);
+    return () => {
+      window.removeEventListener("mousemove", mm);
+      window.removeEventListener("mouseup", mu);
+      window.removeEventListener("touchmove", mm);
+      window.removeEventListener("touchend", mu);
+    };
+  }, []);
+
   // Acumula XP/ouro/kills por mapa e anuncia no chat só a cada ~30s (evita spam e sobrecarga).
   const xpAccumRef = useRef({ xp: 0, gold: 0, kills: 0, map: "" as string });
   useEffect(() => {
