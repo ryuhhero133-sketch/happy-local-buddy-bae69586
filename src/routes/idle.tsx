@@ -11548,6 +11548,7 @@ function IdlePage() {
                                (window as any).onSellItem?.(id, qty, curr);
                             }}
                             marketSellPrices={(window as any).marketSellPrices || {}}
+
                           />
                         ), { width: 400, height: 500 });
                       } else if (t.id === "melhorias") {
