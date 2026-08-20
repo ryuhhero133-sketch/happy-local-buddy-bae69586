@@ -1923,7 +1923,7 @@ function IdlePage() {
     if (typeof window === "undefined") return { x: 1000, y: 600 };
     const saved = localStorage.getItem("rubym.forge.pos");
     if (saved) try { return JSON.parse(saved); } catch { }
-    return { x: window.innerWidth - 100, y: window.innerHeight - 200 };
+    return { x: window.innerWidth - 80, y: window.innerHeight - 150 };
   });
   const [forgeShowOrbit, setForgeShowOrbit] = useState(false);
   const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number; hasMoved: boolean } | null>(null);
@@ -1936,25 +1936,27 @@ function IdlePage() {
 
   useEffect(() => {
     const mm = (e: MouseEvent | TouchEvent) => {
-      if (!forgeDragRef.current) return;
+      if (!forgeDragRef.current || !forgeDragRef.current.isDragging) return;
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       const dx = clientX - forgeDragRef.current.startX;
       const dy = clientY - forgeDragRef.current.startY;
       
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
         forgeDragRef.current.hasMoved = true;
       }
 
       setForgePos({ x: forgeDragRef.current.winX + dx, y: forgeDragRef.current.winY + dy });
-      forgeDragRef.current.isDragging = true;
     };
-    const mu = () => { 
+    const mu = () => {
       if (forgeDragRef.current) {
-        setTimeout(() => { if (forgeDragRef.current) forgeDragRef.current.isDragging = false; }, 50);
+        forgeDragRef.current.isDragging = false;
       }
-      forgeDragRef.current = null; 
     };
+    window.addEventListener("mousemove", mm);
+    window.addEventListener("mouseup", mu);
+    window.addEventListener("touchmove", mm, { passive: false });
+    window.addEventListener("touchend", mu);
     return () => {
       window.removeEventListener("mousemove", mm);
       window.removeEventListener("mouseup", mu);
@@ -11547,7 +11549,7 @@ function IdlePage() {
           top: forgePos.y,
           zIndex: 4000,
           cursor: "grab",
-          transition: !forgeDragRef.current?.isDragging ? "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
+          transition: "none",
           display: forgeWindowOpen ? "block" : "none",
         }}
       >
