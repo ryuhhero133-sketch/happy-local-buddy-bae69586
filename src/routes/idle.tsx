@@ -10802,10 +10802,17 @@ function IdlePage() {
                               fontFamily: "'Press Start 2P', monospace", color: "#e6dcf5",
                               animation: "popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)"
                             }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-                                <div style={{ color: "#f5cf6b", fontSize: 14 }}>{selMap.name}</div>
-                                <button onClick={() => setSelectedMapInfo(null)} style={{ color: "#ff4d4d", background: "none", border: "none", cursor: "pointer", fontSize: 16 }}>✕</button>
-                              </div>
+                               <div style={{ display: "flex", gap: 16, marginBottom: 12, alignItems: "center" }}>
+                                 <div style={{ width: 64, height: 64, flexShrink: 0, background: "rgba(0,0,0,0.5)", borderRadius: 8, border: "2px solid #f5cf6b", padding: 4 }}>
+                                   <MapIconRenderer type={selMap.type} name={selMap.name} ok={true} />
+                                 </div>
+                                 <div style={{ flex: 1 }}>
+                                   <div style={{ color: "#f5cf6b", fontSize: 14 }}>{selMap.name}</div>
+                                   <div style={{ color: "#8a7a9c", fontSize: 7, marginTop: 4 }}>PONTO DE INTERESSE</div>
+                                 </div>
+                                 <button onClick={() => setSelectedMapInfo(null)} style={{ color: "#ff4d4d", background: "none", border: "none", cursor: "pointer", fontSize: 16, alignSelf: "flex-start" }}>✕</button>
+                               </div>
+
 
                               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 8, marginBottom: 16 }}>
                                 <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
