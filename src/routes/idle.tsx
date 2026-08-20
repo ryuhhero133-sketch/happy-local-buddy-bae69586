@@ -14294,10 +14294,10 @@ function TabOverlay({
 
       {tab === "mochila" && (
         <BackpackContent
-          items={idle.items}
-          onUseItem={useItem}
-          onSellItem={sellItem}
-          marketSellPrices={MARKET_SELL_PRICE}
+          items={items}
+          onUseItem={onUseItem}
+          onSellItem={onSellItem}
+          marketSellPrices={marketSellPrices}
         />
       )}
 
