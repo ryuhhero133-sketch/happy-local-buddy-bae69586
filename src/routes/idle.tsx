@@ -1919,9 +1919,7 @@ function IdlePage() {
   });
   const [forgePos, setForgePos] = useState(() => {
     if (typeof window === "undefined") return { x: 1000, y: 600 };
-    const saved = localStorage.getItem("rubym.forge.pos");
-    if (saved) try { return JSON.parse(saved); } catch { }
-    // Padrão: Perto do automático (inferior direito)
+    // Reseta sempre para o padrão ao atualizar (solicitado pelo usuário)
     return { x: window.innerWidth - 380, y: window.innerHeight - 250 };
   });
   const [forgeShowOrbit, setForgeShowOrbit] = useState(false);
@@ -1930,8 +1928,8 @@ function IdlePage() {
   useEffect(() => {
     localStorage.setItem("rubym.forge.open", String(forgeWindowOpen));
     localStorage.setItem("rubym.forge.minimized", String(forgeMinimized));
-    localStorage.setItem("rubym.forge.pos", JSON.stringify(forgePos));
-  }, [forgeWindowOpen, forgeMinimized, forgePos]);
+    // Removemos o salvamento da posição para que ela não persista no F5
+  }, [forgeWindowOpen, forgeMinimized]);
 
   useEffect(() => {
     const mm = (e: MouseEvent | TouchEvent) => {
