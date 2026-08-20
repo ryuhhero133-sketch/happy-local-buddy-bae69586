@@ -105,6 +105,10 @@ import raikouAsset from "@/assets/legends/raikou.gif.asset.json";
 import suicuneAsset from "@/assets/legends/suicune.gif.asset.json";
 import suicuneShinyAsset from "@/assets/legends/suicune-shiny.gif.asset.json";
 import luxrayFAsset from "@/assets/legends/luxray-f.gif.asset.json";
+import iconRareCandyAsset from "@/assets/items/icon-rare-candy.png.asset.json";
+import iconEggEpicAsset from "@/assets/items/icon-egg-epic.png.asset.json";
+import iconMasterBallAsset from "@/assets/items/icon-master-ball.png.asset.json";
+
 
 const SKINS: { id: string; label: string; url: string | null }[] = [
   { id: "default", label: "Treinador Clássico", url: null },
