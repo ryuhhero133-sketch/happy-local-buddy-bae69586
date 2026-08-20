@@ -1388,6 +1388,7 @@ function IdlePage() {
     }
   }, [team]);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
+  const [selectedMapInfo, setSelectedMapInfo] = useState<IdleMapId | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
   // ============= Server sync (Supabase anti-cheat) =============
@@ -10419,6 +10420,7 @@ function IdlePage() {
                     ];
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
                     const c4Sel = activeTab === 4 ? (WORLD_PINS_C4.find((p) => String(p.id) === c4Pin) ?? null) : null;
+                    const selMap = selectedMapInfo ? IDLE_MAPS[selectedMapInfo] : null;
 
                     // const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
                     const tabTitle = activeTab === 1 ? "📜 THE FLOATING KINGDOMS · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
@@ -10627,23 +10629,7 @@ function IdlePage() {
                                   onClick={() => {
                                     if (current) { setWorldMapOpen(false); return; }
                                     playClick();
-                                    const synthGate = {
-                                      key: `world-${pin.id}`,
-                                      target: pin.id,
-                                      x: WORLD_W / 2, y: WORLD_H / 2,
-                                      arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
-                                      color: "#f5cf6b",
-                                    };
-                                    const scrolls = idle.items?.scroll_teleport ?? 0;
-                                    if (scrolls > 0) {
-                                      setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
-                                      setWorldMapOpen(false);
-                                      travelToGate(synthGate);
-                                      pushChat(`📜 Pergaminho consumido — viagem para ${m.name}.`, "cap");
-                                      return;
-                                    }
-                                    setWorldMapOpen(false);
-                                    setPendingGate({ target: pin.id, gate: synthGate, fromBig: false });
+                                    setSelectedMapInfo(pin.id);
                                   }}
                                   style={{
                                     position: "absolute",
@@ -10705,24 +10691,24 @@ function IdlePage() {
                                          <div style={{ position: "relative", width: "100%", height: "100%" }}>
                                            {/* Símbolo do local com efeito de profundidade */}
                                            <div style={{ position: "absolute", inset: 0, opacity: 0.3, filter: "blur(4px)", transform: "translateY(2px)" }}>
-                                             {pin.type === "castle" ? "🏰" : 
-                                              pin.type === "village" ? "🏡" : 
-                                              pin.type === "volcano" ? "🌋" : 
-                                              pin.type === "cave" ? "🕳️" : 
-                                              pin.type === "forest" ? "🌳" : 
-                                              pin.type === "beach" ? "🏖️" : 
-                                              pin.type === "mountain" ? "🏔️" : 
-                                              pin.type === "snow" ? "❄️" : "🏛️"}
+                                             {pin.type === "castle" ? "🏰" :
+                                              pin.type === "village" ? "🏡" :
+                                              pin.type === "volcano" ? "🌋" :
+                                              pin.type === "cave" ? "💎" :
+                                              pin.type === "forest" ? "🌿" :
+                                              pin.type === "beach" ? "🐚" :
+                                              pin.type === "mountain" ? "🗻" :
+                                              pin.type === "snow" ? "❄️" : "📍"}
                                            </div>
                                            <div style={{ position: "relative" }}>
-                                             {pin.type === "castle" ? "🏰" : 
-                                              pin.type === "village" ? "🏡" : 
-                                              pin.type === "volcano" ? "🌋" : 
-                                              pin.type === "cave" ? "🕳️" : 
-                                              pin.type === "forest" ? "🌳" : 
-                                              pin.type === "beach" ? "🏖️" : 
-                                              pin.type === "mountain" ? "🏔️" : 
-                                              pin.type === "snow" ? "❄️" : "🏛️"}
+                                             {pin.type === "castle" ? "🏰" :
+                                              pin.type === "village" ? "🏡" :
+                                              pin.type === "volcano" ? "🌋" :
+                                              pin.type === "cave" ? "💎" :
+                                              pin.type === "forest" ? "🌿" :
+                                              pin.type === "beach" ? "🐚" :
+                                              pin.type === "mountain" ? "🗻" :
+                                              pin.type === "snow" ? "❄️" : "📍"}
                                            </div>
                                          </div>
 
@@ -10763,6 +10749,7 @@ function IdlePage() {
                           </div>
 
                           <style>{`
+                            @keyframes popIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
                             @keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
                             @keyframes worldFloating { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
                             @keyframes islandFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(10px, 15px); } }
@@ -10771,6 +10758,78 @@ function IdlePage() {
                           `}</style>
 
                           </div>
+
+                          {/* Info Panel do Mapa Selecionado */}
+                          {selectedMapInfo && selMap && (
+                            <div style={{
+                              position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+                              width: 340, background: "rgba(11, 5, 20, 0.98)", border: "3px solid #f5cf6b",
+                              borderRadius: 12, padding: 16, zIndex: 100, boxShadow: "0 0 50px rgba(0,0,0,1)",
+                              fontFamily: "'Press Start 2P', monospace", color: "#e6dcf5",
+                              animation: "popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)"
+                            }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                                <div style={{ color: "#f5cf6b", fontSize: 14 }}>{selMap.name}</div>
+                                <button onClick={() => setSelectedMapInfo(null)} style={{ color: "#ff4d4d", background: "none", border: "none", cursor: "pointer", fontSize: 16 }}>✕</button>
+                              </div>
+
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 8, marginBottom: 16 }}>
+                                <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
+                                  <div style={{ color: "#8a7a9c", marginBottom: 4 }}>Dificuldade</div>
+                                  <div style={{ color: "#f5cf6b" }}>{selMap.diff}</div>
+                                </div>
+                                <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
+                                  <div style={{ color: "#8a7a9c", marginBottom: 4 }}>Elemento</div>
+                                  <div style={{ color: "#7ef27a" }}>{selMap.element}</div>
+                                </div>
+                                <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
+                                  <div style={{ color: "#8a7a9c", marginBottom: 4 }}>Nível Mín.</div>
+                                  <div style={{ color: "#ffe08a" }}>Lv {selMap.minLevel}</div>
+                                </div>
+                                <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
+                                  <div style={{ color: "#8a7a9c", marginBottom: 4 }}>Taxa XP</div>
+                                  <div style={{ color: "#a066ff" }}>x{selMap.rate.toFixed(1)}</div>
+                                </div>
+                              </div>
+
+                              <div style={{ fontSize: 7, color: "#8a7a9c", lineHeight: 1.5, marginBottom: 16, borderLeft: "2px solid #a066ff", paddingLeft: 8 }}>
+                                Explore este território para encontrar novos desafios e criaturas poderosas.
+                                {selMap.raid && <div style={{ color: "#ff2a2a", marginTop: 4 }}>⚠️ ÁREA DE RAID: Perigo Extremo!</div>}
+                              </div>
+
+                              <button
+                                onClick={() => {
+                                  const pinId = selectedMapInfo!;
+                                  const synthGate = {
+                                    key: `world-${pinId}`,
+                                    target: pinId,
+                                    x: WORLD_W / 2, y: WORLD_H / 2,
+                                    arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
+                                    color: "#f5cf6b",
+                                  };
+                                  const scrolls = idle.items?.scroll_teleport ?? 0;
+                                  if (scrolls > 0) {
+                                    setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
+                                    setWorldMapOpen(false);
+                                    setSelectedMapInfo(null);
+                                    travelToGate(synthGate);
+                                    pushChat(`📜 Pergaminho consumido — viagem para ${selMap.name}.`, "cap");
+                                    return;
+                                  }
+                                  setWorldMapOpen(false);
+                                  setSelectedMapInfo(null);
+                                  setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
+                                }}
+                                style={{
+                                  width: "100%", padding: "12px", background: "linear-gradient(180deg, #f5cf6b, #b58d24)",
+                                  border: "none", borderRadius: 8, color: "#000", fontWeight: 900, fontSize: 10,
+                                  cursor: "pointer", boxShadow: "0 4px 0 #7a5d15"
+                                }}
+                              >
+                                VIAJAR AGORA
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
