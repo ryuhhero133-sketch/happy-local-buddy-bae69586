@@ -1936,25 +1936,27 @@ function IdlePage() {
 
   useEffect(() => {
     const mm = (e: MouseEvent | TouchEvent) => {
-      if (!forgeDragRef.current) return;
+      if (!forgeDragRef.current || !forgeDragRef.current.isDragging) return;
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       const dx = clientX - forgeDragRef.current.startX;
       const dy = clientY - forgeDragRef.current.startY;
       
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
         forgeDragRef.current.hasMoved = true;
       }
 
       setForgePos({ x: forgeDragRef.current.winX + dx, y: forgeDragRef.current.winY + dy });
-      forgeDragRef.current.isDragging = true;
     };
-    const mu = () => { 
+    const mu = () => {
       if (forgeDragRef.current) {
-        setTimeout(() => { if (forgeDragRef.current) forgeDragRef.current.isDragging = false; }, 50);
+        forgeDragRef.current.isDragging = false;
       }
-      forgeDragRef.current = null; 
     };
+    window.addEventListener("mousemove", mm);
+    window.addEventListener("mouseup", mu);
+    window.addEventListener("touchmove", mm, { passive: false });
+    window.addEventListener("touchend", mu);
     return () => {
       window.removeEventListener("mousemove", mm);
       window.removeEventListener("mouseup", mu);
