@@ -11895,7 +11895,7 @@ function IdlePage() {
                   style={{
                     position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 20, top: -75, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    left: 6, top: -78, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
                     animation: "orbPop 0.3s ease-out forwards", zIndex: 1
                   }}
                   title="Abrir Forja"
@@ -11908,7 +11908,7 @@ function IdlePage() {
                   style={{
                     position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 70, top: -45, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    left: 70, top: -50, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
                     animation: "orbPop 0.3s 0.1s ease-out forwards", zIndex: 1
                   }}
                   title="Alquimia"
@@ -11921,7 +11921,7 @@ function IdlePage() {
                   style={{
                     position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 70, top: 15, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
+                    left: 92, top: 6, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
                     animation: "orbPop 0.3s 0.2s ease-out forwards, orbGlow 2s infinite ease-in-out", zIndex: 1
                   }}
                   title="Calendário de Eventos"
@@ -11934,7 +11934,7 @@ function IdlePage() {
                   style={{
                     position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 20, top: 45, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    left: 70, top: 62, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
                     animation: "orbPop 0.3s 0.3s ease-out forwards", zIndex: 1
                   }}
                   title="Missões da Forja"
@@ -11952,14 +11952,14 @@ function IdlePage() {
                     playClick();
                   }}
                   style={{
-                    position: "absolute", width: 48, height: 48, background: "#0f172a", border: "3px solid #4ade80", borderRadius: "50%",
+                    position: "absolute", width: 52, height: 52, background: "#0f172a", border: "3px solid #4ade80", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: -35, top: -25, boxShadow: "0 0 15px rgba(74,222,128,0.5)", transform: "scale(1)", transition: "all 0.2s",
+                    left: 6, top: 90, boxShadow: "0 0 15px rgba(74,222,128,0.5)", transform: "scale(1)", transition: "all 0.2s",
                     animation: "orbPop 0.3s 0.4s ease-out forwards, eggGlowTri 3s linear infinite", zIndex: 1
                   }}
                   title="Forja de Aura Egg"
                 >
-                  <div style={{ fontSize: 24 }}>🥚</div>
+                  <div style={{ fontSize: 26 }}>🥚</div>
                   {auraEggCrafting?.active && (
                     <div style={{
                       position: "absolute", bottom: -12, width: "100%", height: 5, background: "#334155", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)"
