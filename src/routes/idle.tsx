@@ -950,6 +950,7 @@ type IdleState = {
   lastQuestReset?: number;
   lastDailyReward?: number;
   dailyRewardDay?: number;
+  isVip?: boolean;
   // Propriedades restauradas para corrigir erros de build
   craftPoints?: number;
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
