@@ -11873,23 +11873,6 @@ function IdlePage() {
                         });
                       })()}
                     </div>
-
-                                        playBonus();
-                                        const rewardText = q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
-                                                          q.reward.type === "item" ? `${q.reward.amount}x ${q.reward.id}` : `+${q.reward.amount} Nível`;
-                                        pushChat(`🎉 Missão Concluída: ${q.title}! Ganhou ${rewardText}!`, "cap");
-                                      }}
-                                      style={{ background: "#059669", color: "#fff", border: "none", padding: "2px 6px", borderRadius: 4, cursor: "pointer", fontSize: 8 }}
-                                    >
-                                      RESGATAR
-                                    </button>
-                                  )
-                                }
-                             </div>
-                          </div>
-                        );
-                      })}
-                   </div>
                    <button 
                     onClick={() => setShowForgeQuests(false)}
                     style={{ marginTop: 15, width: "100%", background: "#d97706", color: "#fff", border: "none", padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 10, cursor: "pointer" }}
