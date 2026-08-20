@@ -1911,13 +1911,11 @@ function IdlePage() {
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
 
   // --- RPG MODULAR WINDOWS ---
-  const [forgeWindowOpen, setForgeWindowOpen] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return localStorage.getItem("rubym.forge.open") !== "false";
-  });
+  const [forgeWindowOpen, setForgeWindowOpen] = useState(true);
   const [forgeMinimized, setForgeMinimized] = useState(() => {
     if (typeof window === "undefined") return true;
-    return localStorage.getItem("rubym.forge.minimized") !== "false";
+    const saved = localStorage.getItem("rubym.forge.minimized");
+    return saved === null ? true : saved === "true";
   });
   const [forgePos, setForgePos] = useState(() => {
     if (typeof window === "undefined") return { x: 1000, y: 600 };
