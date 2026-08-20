@@ -950,6 +950,7 @@ type IdleState = {
   lastQuestReset?: number;
   lastDailyReward?: number;
   dailyRewardDay?: number;
+  isVip?: boolean;
   // Propriedades restauradas para corrigir erros de build
   craftPoints?: number;
   hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
@@ -11573,7 +11574,7 @@ function IdlePage() {
           display: "grid", placeItems: "center", padding: 20
         }}>
           <div style={{
-            width: "min(500px, 95vw)", background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
+            width: "min(600px, 95vw)", background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
             border: "3px solid #f5cf6b", borderRadius: 20, padding: 20, position: "relative",
             boxShadow: "0 0 50px rgba(245,207,107,0.3)",
             backgroundImage: `url(${assetUrlFromJson(mewtwoRewardBgAsset)})`,
@@ -11585,15 +11586,13 @@ function IdlePage() {
               onClick={() => setTab("inicio")}
               style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900, zIndex: 1 }}
             >
-
               ×
             </button>
             <div style={{ textAlign: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 RECOMPENSA DIÁRIA</div>
-              <div style={{ fontSize: 12, color: "#c8b8d0", marginTop: 4 }}>Colete prêmios incríveis a cada 24 horas!</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 15, position: "relative", zIndex: 1 }}>
               {[1, 2, 3, 4, 5, 6, 7].map(day => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
@@ -11601,277 +11600,95 @@ function IdlePage() {
                 const canClaim = (now - lastClaim) >= 86400000 && (currentDay % 7) + 1 === day;
                 const isClaimed = (currentDay % 7) >= day;
                 const isLocked = !canClaim && !isClaimed;
+                const isVip = !!idle.isVip;
 
                 return (
-                  <div key={day} style={{
-                    background: isClaimed ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.95)",
-                    border: `2.5px solid ${isClaimed ? "#22c55e" : "#f5cf6b"}`,
-                    borderRadius: 16, padding: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                    opacity: isLocked ? 0.8 : 1, transition: "all 0.2s",
-                    boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.7)" : "0 4px 10px rgba(0,0,0,0.1)",
-                    position: "relative",
-                  }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, color: isClaimed ? "#22c55e" : "#d97706" }}>DIA {day}</div>
-                    <div style={{ 
-                      width: 50, height: 50, display: "grid", placeItems: "center",
-                      background: "radial-gradient(circle, rgba(245,207,107,0.1) 0%, transparent 70%)",
-                      filter: isClaimed ? "grayscale(0.6)" : "none" 
+                  <div key={day} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    {/* Linha Normal */}
+                    <div style={{
+                      background: "rgba(255,255,255,0.95)", border: `2.5px solid ${isClaimed ? "#22c55e" : "#f5cf6b"}`,
+                      borderRadius: 12, padding: 10, display: "flex", alignItems: "center", gap: 10,
+                      opacity: isLocked ? 0.8 : 1, boxShadow: canClaim ? "0 0 10px rgba(245,207,107,0.7)" : "none"
                     }}>
-                      {day === 7 ? (
-                        <img src={assetUrlFromJson(iconCashPackage)} width={42} height={42} style={{ objectFit: "contain", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }} />
-                      ) : (
-                        <div style={{ fontSize: 28 }}>{isClaimed ? "📦" : "🎁"}</div>
-                      )}
+                       <div style={{ fontSize: 18 }}>{day === 7 ? "🏆" : "🎁"}</div>
+                       <div style={{ flex: 1, fontSize: 10, fontWeight: 900, color: "#1a0f2e" }}>
+                         {day === 7 ? "Master Ball + Skins" : "500 Gold + 20 Pokeballs"}
+                       </div>
+                       {canClaim && (
+                         <button onClick={() => {
+                           const rewardDay = (idle.dailyRewardDay || 0) + 1;
+                           setIdle(s => {
+                             const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
+                             next.bank = { ...next.bank, gold: (next.bank.gold || 0) + (day === 7 ? 2000 : 500) };
+                             next.items = { ...next.items };
+                             next.items.ball_poke = (next.items.ball_poke || 0) + (day === 7 ? 200 : 20);
+                             
+                             if (isVip) {
+                               next.bank.crystals = (next.bank.crystals || 0) + 200;
+                               if (day === 7) {
+                                 next.items.master_ball = (next.items.master_ball || 0) + 1;
+                                 const skins = ["pedro", "phone", "goku"];
+                                 const randomSkin = skins[Math.floor(Math.random() * skins.length)];
+                                 next.unlockedSkins = Array.from(new Set([...(next.unlockedSkins || []), randomSkin]));
+                               }
+                             }
+                             return next;
+                           });
+                           pushChat(`🎁 Recompensa do Dia ${day} coletada!${isVip ? " (+Bônus VIP 💎)" : ""}`, "cap");
+                           playBonus();
+                         }} style={{
+                           background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e", border: "none",
+                           padding: "6px 12px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: "pointer",
+                           boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                         }}>RESGATAR</button>
+                       )}
+                       {!canClaim && isClaimed && <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>}
+                       {!canClaim && !isClaimed && <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 900 }}>BLOQUEADO</div>}
                     </div>
-                    <div style={{ fontSize: 9, color: "#1a0f2e", textAlign: "center", fontWeight: 800 }}>
-                      {day === 7 ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                            <img src={ballPokeImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 200
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                            <img src={ballGreatImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 100
-                          </div>
-                          <span style={{ color: "#7c3aed" }}>1 Rary Cand</span>
-                        </div>
-                      ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                          <span>500 Gold</span>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                            <img src={ballPokeImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 20
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                            <img src={ballGreatImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 5
-                          </div>
-                        </div>
-                      )}
+                    
+                    {/* Linha VIP */}
+                    <div style={{
+                      background: isVip ? "linear-gradient(90deg, rgba(245,207,107,0.2), rgba(217,119,6,0.2))" : "rgba(0,0,0,0.3)",
+                      border: `2px solid ${isVip ? "#f5cf6b" : "#4a5568"}`, borderRadius: 12, padding: 10, display: "flex", alignItems: "center", gap: 10,
+                      color: isVip ? "#fff" : "#718096", position: "relative", overflow: "hidden"
+                    }}>
+                       {!isVip && (
+                         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.4)", zIndex: 1 }}>
+                           <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b", textShadow: "0 1px 2px #000" }}>PASSE MESTRE</span>
+                         </div>
+                       )}
+                       <div style={{ fontSize: 18, filter: isVip ? "none" : "grayscale(1)" }}>💎</div>
+                       <div style={{ flex: 1, fontSize: 10, fontWeight: 900 }}>
+                         {day === 7 ? "+200 CRISTAL + MASTER BALL + SKIN VIP" : "+200 CRISTAL + 5X ITENS"}
+                       </div>
                     </div>
-                    {canClaim ? (
-                      <button 
-                        onClick={() => {
-                          const rewardDay = (idle.dailyRewardDay || 0) + 1;
-                          setIdle(s => {
-                            const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
-                            
-                            if (day === 7) {
-                              next.items = { ...next.items };
-                              next.items.ball_poke = (next.items.ball_poke || 0) + 200;
-                              next.items.ball_great = (next.items.ball_great || 0) + 100;
-                              next.items.rare_candy = (next.items.rare_candy || 0) + 1;
-                            } else {
-                              next.bank.gold = (next.bank.gold || 0) + 500;
-                              next.items = { ...next.items };
-                              next.items.ball_poke = (next.items.ball_poke || 0) + 20;
-                              next.items.ball_great = (next.items.ball_great || 0) + 5;
-                            }
-                            return next;
-                          });
-                          pushChat(`🎁 Recompensa do Dia ${day} coletada!`, "cap");
-                          playBonus();
-                        }}
-                        style={{
-                          marginTop: 5, width: "100%", background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e",
-                          border: "none", borderRadius: 8, fontSize: 9, fontWeight: 900, padding: "5px 0", cursor: "pointer",
-                          animation: "pulseGlow 1.5s infinite", boxShadow: "0 2px 6px rgba(217,119,6,0.4)"
-                        }}
-                      >
-                        RESGATAR
-                      </button>
-                    ) : isClaimed ? (
-                      <div style={{ marginTop: 5, fontSize: 9, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>
-                    ) : (
-                      <div style={{ marginTop: 5, fontSize: 9, color: "#94a3b8", fontWeight: 900 }}>BLOQUEADO</div>
-                    )}
                   </div>
                 );
               })}
-              
-              {/* Informações de Tempo */}
-              {(() => {
-                const now = Date.now();
-                const lastClaim = idle.lastDailyReward || 0;
-                const nextClaim = lastClaim + 86400000;
-                const diff = nextClaim - now;
-                if (diff <= 0) return null;
-                const hours = Math.floor(diff / 3600000);
-                const mins = Math.floor((diff % 3600000) / 60000);
-                return (
-                  <div style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: 10, fontSize: 10, color: "#f5cf6b", fontWeight: 700 }}>
-                    ⏳ Próximo resgate em: {hours}h {mins}m
-                  </div>
-                );
-              })()}
             </div>
-            
-            <button 
-              onClick={() => setTab("inicio")}
-              style={{
-                marginTop: 20, width: "100%", padding: "12px", background: "rgba(245,207,107,0.1)",
-                border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b",
-                fontWeight: 900, fontSize: 12, cursor: "pointer", transition: "all 0.2s",
-                position: "relative", zIndex: 1
-              }}
-            >
+
+            {/* Cronômetro */}
+            {(() => {
+              const now = Date.now();
+              const lastClaim = idle.lastDailyReward || 0;
+              const nextClaim = lastClaim + 86400000;
+              const diff = nextClaim - now;
+              if (diff <= 0) return null;
+              const hours = Math.floor(diff / 3600000);
+              const mins = Math.floor((diff % 3600000) / 60000);
+              return (
+                <div style={{ textAlign: "center", marginTop: 15, fontSize: 11, color: "#f5cf6b", fontWeight: 800, textShadow: "0 1px 2px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}>
+                  ⏳ PRÓXIMO RESGATE EM: {hours}h {mins}m
+                </div>
+              );
+            })()}
+
+            <button onClick={() => setTab("inicio")} style={{ marginTop: 20, width: "100%", padding: "12px", background: "rgba(245,207,107,0.1)", border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b", fontWeight: 900, fontSize: 12, cursor: "pointer" }}>
               FECHAR CALENDÁRIO
             </button>
           </div>
         </div>
       )}
-
-
-
-      {tab === "evento" && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 10000,
-          background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)",
-          display: "grid", placeItems: "center", padding: 20
-        }}>
-          <div style={{
-            width: "min(500px, 95vw)", background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
-            border: "3px solid #f5cf6b", borderRadius: 20, padding: 20, position: "relative",
-            boxShadow: "0 0 50px rgba(245,207,107,0.3)",
-            backgroundImage: `url(${assetUrlFromJson(mewtwoRewardBgAsset)})`,
-            backgroundSize: "cover", backgroundPosition: "center",
-            overflow: "hidden"
-          }}>
-            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(1px)", zIndex: 0 }} />
-            <button 
-              onClick={() => setTab("inicio")}
-              style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900 }}
-            >
-              ×
-            </button>
-            <div style={{ textAlign: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 RECOMPENSA DIÁRIA</div>
-              <div style={{ fontSize: 12, color: "#c8b8d0", marginTop: 4 }}>Colete prêmios incríveis a cada 24 horas!</div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, position: "relative", zIndex: 1 }}>
-              {[1, 2, 3, 4, 5, 6, 7].map(day => {
-                const now = Date.now();
-                const lastClaim = idle.lastDailyReward || 0;
-                const currentDay = idle.dailyRewardDay || 0;
-                const canClaim = (now - lastClaim) >= 86400000 && (currentDay % 7) + 1 === day;
-                const isClaimed = (currentDay % 7) >= day;
-                const isLocked = !canClaim && !isClaimed;
-
-                return (
-                  <div key={day} style={{
-                    background: isClaimed ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.95)",
-                    border: `2.5px solid ${isClaimed ? "#22c55e" : "#f5cf6b"}`,
-                    borderRadius: 16, padding: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                    opacity: isLocked ? 0.8 : 1, transition: "all 0.2s",
-                    boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.7)" : "0 4px 10px rgba(0,0,0,0.1)",
-                    position: "relative",
-                  }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, color: isClaimed ? "#22c55e" : "#d97706" }}>DIA {day}</div>
-                    <div style={{ 
-                      width: 50, height: 50, display: "grid", placeItems: "center",
-                      background: "radial-gradient(circle, rgba(245,207,107,0.1) 0%, transparent 70%)",
-                      filter: isClaimed ? "grayscale(0.6)" : "none" 
-                    }}>
-                      {day === 7 ? (
-                        <img src={assetUrlFromJson(iconCashPackage)} width={42} height={42} style={{ objectFit: "contain", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }} />
-                      ) : (
-                        <div style={{ fontSize: 28 }}>{isClaimed ? "📦" : "🎁"}</div>
-                      )}
-                    </div>
-                    <div style={{ fontSize: 9, color: "#1a0f2e", textAlign: "center", fontWeight: 800 }}>
-                      {day === 7 ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                            <img src={ballPokeImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 200
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                            <img src={ballGreatImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 100
-                          </div>
-                          <span style={{ color: "#7c3aed" }}>1 Rary Cand</span>
-                        </div>
-                      ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                          <span>500 Gold</span>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                            <img src={ballPokeImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 20
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                            <img src={ballGreatImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 5
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    {canClaim ? (
-                      <button 
-                        onClick={() => {
-                          const rewardDay = (idle.dailyRewardDay || 0) + 1;
-                          setIdle(s => {
-                            const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
-                            
-                            if (day === 7) {
-                              next.items = { ...next.items };
-                              next.items.ball_poke = (next.items.ball_poke || 0) + 200;
-                              next.items.ball_great = (next.items.ball_great || 0) + 100;
-                              next.items.rare_candy = (next.items.rare_candy || 0) + 1;
-                            } else {
-                              next.bank.gold = (next.bank.gold || 0) + 500;
-                              next.items = { ...next.items };
-                              next.items.ball_poke = (next.items.ball_poke || 0) + 20;
-                              next.items.ball_great = (next.items.ball_great || 0) + 5;
-                            }
-                            return next;
-                          });
-                          pushChat(`🎁 Recompensa do Dia ${day} coletada!`, "cap");
-                          playBonus();
-                        }}
-                        style={{
-                          marginTop: 5, width: "100%", background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e",
-                          border: "none", borderRadius: 8, fontSize: 9, fontWeight: 900, padding: "5px 0", cursor: "pointer",
-                          animation: "pulseGlow 1.5s infinite", boxShadow: "0 2px 6px rgba(217,119,6,0.4)"
-                        }}
-                      >
-                        RESGATAR
-                      </button>
-                    ) : isClaimed ? (
-                      <div style={{ marginTop: 5, fontSize: 9, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>
-                    ) : (
-                      <div style={{ marginTop: 5, fontSize: 9, color: "#94a3b8", fontWeight: 900 }}>BLOQUEADO</div>
-                    )}
-                  </div>
-                );
-              })}
-              
-              {/* Informações de Tempo */}
-              {(() => {
-                const now = Date.now();
-                const lastClaim = idle.lastDailyReward || 0;
-                const nextClaim = lastClaim + 86400000;
-                const diff = nextClaim - now;
-                if (diff <= 0) return null;
-                const hours = Math.floor(diff / 3600000);
-                const mins = Math.floor((diff % 3600000) / 60000);
-                return (
-                  <div style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: 10, fontSize: 10, color: "#f5cf6b", fontWeight: 700 }}>
-                    ⏳ Próximo resgate em: {hours}h {mins}m
-                  </div>
-                );
-              })()}
-            </div>
-            
-            <button 
-              onClick={() => setTab("inicio")}
-              style={{
-                marginTop: 20, width: "100%", padding: "12px", background: "rgba(245,207,107,0.1)",
-                border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b",
-                fontWeight: 900, fontSize: 12, cursor: "pointer", transition: "all 0.2s",
-                position: "relative", zIndex: 1
-              }}
-            >
-              FECHAR CALENDÁRIO
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* BOTÃO FLUTUANTE DA FORJA */}
       <div
         onMouseDown={(e) => {
           forgeDragRef.current = {
