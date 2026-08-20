@@ -12099,16 +12099,16 @@ function IdlePage() {
                         background: `url(${assetUrlFromJson(auraEggBgAsset)})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
-                        border: "3px solid #818cf8", 
-                        borderRadius: 14, 
-                        padding: 15, 
+                        border: "3px solid #f59e0b", 
+                        borderRadius: 18, 
+                        padding: 20, 
                         marginBottom: 15,
                         position: "relative",
                         overflow: "hidden",
-                        boxShadow: "0 0 25px rgba(99, 102, 241, 0.6), inset 0 0 30px rgba(255, 255, 255, 0.3)",
-                        filter: "brightness(1.25) saturate(1.2) contrast(1.1)"
+                        boxShadow: "0 0 40px rgba(245, 158, 11, 0.5), inset 0 0 30px rgba(0, 0, 0, 0.4)",
+                        filter: "brightness(1.15) saturate(1.2) contrast(1.2)"
                       }}>
-                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(238, 242, 255, 0.35)", zIndex: 0, backdropFilter: "blur(1px)" }} />
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.4) 100%)", zIndex: 0 }} />
 
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                          <div style={{ width: 50, height: 50, background: "#fff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #6366f1" }}>
@@ -12121,32 +12121,32 @@ function IdlePage() {
                       </div>
 
                       <div style={{ position: "relative", zIndex: 1 }}>
-                        <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900, marginBottom: 8, textShadow: "0 1px 1px white" }}>Probabilidades:</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
-                              <span style={{ color: "#4b5563" }}>Ovo Comum</span>
-                              <span style={{ color: "#1f2937" }}>{Math.floor(50 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
-                           </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
-                              <span style={{ color: "#2563eb" }}>Ovo Raro</span>
-                              <span style={{ color: "#1d4ed8" }}>{Math.floor(30 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
-                           </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
-                              <span style={{ color: "#9333ea" }}>Ovo Épico</span>
-                              <span style={{ color: "#7e22ce" }}>{Math.floor(10 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
-                           </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
-                              <span style={{ color: "#dc2626" }}>Falha Crítica</span>
-                              <span style={{ color: "#b91c1c" }}>{Math.max(1, Math.floor(15 * (1 - (auraEggDetails?.extraChance || 0))))}%</span>
-                           </div>
-                        </div>
+                         <div style={{ fontSize: 14, color: "#fef3c7", fontWeight: 900, marginBottom: 8, textShadow: "0 2px 2px rgba(0,0,0,0.5)" }}>Probabilidades:</div>
+                         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 15, background: "rgba(0,0,0,0.2)", padding: 10, borderRadius: 10 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 900 }}>
+                               <span style={{ color: "#d1d5db" }}>Ovo Comum</span>
+                               <span style={{ color: "#fff" }}>{Math.floor(50 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 900 }}>
+                               <span style={{ color: "#60a5fa" }}>Ovo Raro</span>
+                               <span style={{ color: "#fff" }}>{Math.floor(30 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 900 }}>
+                               <span style={{ color: "#c084fc" }}>Ovo Épico</span>
+                               <span style={{ color: "#fff" }}>{Math.floor(10 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 900 }}>
+                               <span style={{ color: "#f87171" }}>Falha Crítica</span>
+                               <span style={{ color: "#fff" }}>{Math.max(1, Math.floor(15 * (1 - (auraEggDetails?.extraChance || 0))))}%</span>
+                            </div>
+                         </div>
 
-                        <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900, marginBottom: 8, textShadow: "0 1px 1px white" }}>Custo Base & Ingredientes Extras:</div>
+                        <div style={{ fontSize: 14, color: "#fef3c7", fontWeight: 900, marginBottom: 8, textShadow: "0 2px 2px rgba(0,0,0,0.5)" }}>Custo Base & Ingredientes Extras:</div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 15 }}>
-                           <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#fff", padding: "4px 8px", borderRadius: 6, border: "2px solid #c7d2fe", opacity: (idle.items?.safira_verde ?? 0) >= 1 ? 1 : 0.5 }}>
-                              <ItemPixelIcon id="safira_verde" size={16} />
-                              <span style={{ fontSize: 9, fontWeight: 900, color: (idle.items?.safira_verde ?? 0) >= 1 ? "#059669" : "#ef4444" }}>1x Safira</span>
-                           </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,0,0,0.3)", padding: "6px 12px", borderRadius: 8, border: "2px solid #fbbf24", opacity: (idle.items?.safira_verde ?? 0) >= 1 ? 1 : 0.5 }}>
+                               <ItemPixelIcon id="safira_verde" size={20} />
+                               <span style={{ fontSize: 12, fontWeight: 900, color: (idle.items?.safira_verde ?? 0) >= 1 ? "#fff" : "#ef4444" }}>1x Safira</span>
+                            </div>
                            {["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"].map(s => {
                               const baseCount = 200;
                               const extraCount = auraEggDetails?.stonesUsed?.[s] || 0;
@@ -12171,14 +12171,14 @@ function IdlePage() {
                                          pushChat("❌ Sem stones suficientes para aumentar a chance!", "info");
                                       }
                                    }}
-                                   style={{ 
-                                     display: "flex", flexDirection: "column", gap: 2, background: "#fff", padding: "4px 8px", borderRadius: 6, 
-                                     border: "2px solid #c7d2fe", opacity: has ? 1 : 0.5, cursor: "pointer", position: "relative" 
+                                     style={{ 
+                                     display: "flex", flexDirection: "column", gap: 3, background: "rgba(0,0,0,0.3)", padding: "6px 10px", borderRadius: 8, 
+                                     border: "2px solid #fbbf24", opacity: has ? 1 : 0.6, cursor: "pointer", position: "relative" 
                                    }}
                                  >
-                                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                       <ItemPixelIcon id={s} size={16} />
-                                       <span style={{ fontSize: 9, fontWeight: 900, color: has ? "#059669" : "#ef4444" }}>{totalNeeded}x</span>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                       <ItemPixelIcon id={s} size={20} />
+                                       <span style={{ fontSize: 12, fontWeight: 900, color: has ? "#fff" : "#ef4444" }}>{totalNeeded}x</span>
                                     </div>
                                     <div style={{ width: "100%", height: 3, background: "#e2e8f0", borderRadius: 2, overflow: "hidden" }}>
                                        <div style={{ 
@@ -12257,23 +12257,23 @@ function IdlePage() {
                         style={{ 
                           width: "100%", 
                           background: auraEggCrafting?.active 
-                            ? "linear-gradient(135deg, #94a3b8, #64748b)" 
-                            : "linear-gradient(135deg, #6366f1, #4f46e5)", 
-                          color: "#fff", 
-                          border: "none", 
-                          padding: "14px", 
-                          borderRadius: 14, 
-                          fontWeight: 900, 
-                          fontSize: 16, 
-                          cursor: auraEggCrafting?.active ? "not-allowed" : "pointer",
-                          boxShadow: auraEggCrafting?.active ? "none" : "0 5px 0 #3730a3, 0 8px 20px rgba(99, 102, 241, 0.4)",
-                          transition: "all 0.1s active",
-                          textShadow: "0 1px 2px rgba(0,0,0,0.3)",
-                          marginBottom: 12
-                        }}
-                      >
-                        {auraEggCrafting?.active ? `FORJANDO (${Math.floor(auraEggCrafting.progress)}%)` : "INICIAR FORJA MÍSTICA"}
-                      </button>
+                             ? "linear-gradient(135deg, #475569, #1e293b)" 
+                             : "linear-gradient(135deg, #f59e0b, #d97706)", 
+                           color: "#fff", 
+                           border: "2px solid rgba(255,255,255,0.3)", 
+                           padding: "16px", 
+                           borderRadius: 16, 
+                           fontWeight: 900, 
+                           fontSize: 18, 
+                           cursor: auraEggCrafting?.active ? "not-allowed" : "pointer",
+                           boxShadow: auraEggCrafting?.active ? "none" : "0 8px 0 #92400e, 0 10px 25px rgba(245, 158, 11, 0.5)",
+                           transition: "all 0.2s ease",
+                           textShadow: "0 2px 2px rgba(0,0,0,0.5)",
+                           marginBottom: 12
+                         }}
+                       >
+                         {auraEggCrafting?.active ? `FORJANDO (${Math.floor(auraEggCrafting.progress)}%)` : "✨ INICIAR FORJA MÍSTICA ✨"}
+                       </button>
                    </div>
 
                    <button 
