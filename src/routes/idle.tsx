@@ -11191,26 +11191,28 @@ function IdlePage() {
                       </div>
                     );
                   })()}
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-              {renderMap(true, false)}
-              <button
-                onClick={() => { playClick(); setBigMapOpen(true); }}
-                title="Abrir mapa grande"
-                style={{
-                  position: "absolute", top: 4, right: 4,
-                  background: "rgba(11,5,16,0.8)", border: "1px solid #f5cf6b",
-                  color: "#f5cf6b", borderRadius: 4, padding: "2px 6px",
-                  fontSize: 11, fontWeight: 800, cursor: "pointer",
-                  zIndex: 10
-                }}
-              >⛶</button>
-            </div>
-            <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
-              {map.name}
-            </div>
-          </div>
+                </div>
+              );
+
+              return (
+                <div style={{ position: "relative" }}>
+                  {renderMap(true, false)}
+                  <button
+                    onClick={() => { playClick(); setBigMapOpen(true); }}
+                    title="Abrir mapa grande"
+                    style={{
+                      position: "absolute", top: 4, right: 4,
+                      background: "rgba(11,5,16,0.8)", border: "1px solid #f5cf6b",
+                      color: "#f5cf6b", borderRadius: 4, padding: "2px 6px",
+                      fontSize: 11, fontWeight: 800, cursor: "pointer",
+                      zIndex: 10
+                    }}
+                  >⛶</button>
+                </div>
+              );
+            })()}
           </Panel>
+
 
 
           {/* COLETA — logo abaixo do mapa, destaque */}
