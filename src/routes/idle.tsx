@@ -11636,6 +11636,11 @@ function IdlePage() {
               flexDirection: "column",
               overflow: "hidden",
               fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+              position: "fixed",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+
             }}
           >
             <div
@@ -11731,32 +11736,38 @@ function IdlePage() {
                  }}>
                    <ItemPixelIcon id="rare_candy" size={40} />
                    <div style={{ fontSize: 11, fontWeight: 800, color: "#78350f" }}>Rare Candy</div>
-                   <div style={{ fontSize: 9, color: "#92400e", fontWeight: 700 }}>{Number(idle.items?.rare_candy || 0)} un</div>
+                   <div style={{ fontSize: 9, color: "#92400e", fontWeight: 700, textAlign: "center", padding: "0 4px" }}>
+                     Sobe +1 Nível do Pokémon instantaneamente.
+                   </div>
+                   <div style={{ fontSize: 9, color: "#d97706", fontWeight: 900 }}>{Number(idle.items?.rare_candy || 0)} un</div>
                    <button 
                     onClick={() => {
                       const cost = 50;
-                      const hasAny = Object.keys(idle.items || {}).some(k => k.startsWith("stone_") && (idle.items[k] ?? 0) >= cost);
-                      if (!hasAny) {
-                        pushChat("❌ Você precisa de pelo menos 50 stones de um tipo para forjar Rare Candy!", "info");
+                      const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
+                      const hasAll = STONES.every(k => (idle.items[k] ?? 0) >= cost);
+                      
+                      if (!hasAll) {
+                        pushChat("❌ Você precisa de 50 stones de CADA tipo para forjar Rare Candy!", "info");
                         return;
                       }
                       setIdle(prev => {
                         const nextItems = { ...prev.items };
-                        // Consome 50 de qualquer stone que o player tenha em abundância
-                        const stoneKey = Object.keys(nextItems).find(k => k.startsWith("stone_") && (nextItems[k] ?? 0) >= cost);
-                        if (!stoneKey) return prev;
-                        nextItems[stoneKey] = (nextItems[stoneKey] ?? 0) - cost;
+                        // Consome 50 de CADA stone
+                        STONES.forEach(k => {
+                          nextItems[k] = (nextItems[k] ?? 0) - cost;
+                        });
                         nextItems.rare_candy = (nextItems.rare_candy ?? 0) + 1;
                         playBonus();
-                        pushChat(`✨ Forjou 1 Rare Candy usando 50 Stones!`, "info");
+                        pushChat(`✨ Forjou 1 Rare Candy usando 50 de cada Essência!`, "info");
                         return { ...prev, items: nextItems };
                       });
                     }}
                     style={{ background: "#d97706", border: "none", color: "#fff", fontSize: 10, padding: "4px 8px", borderRadius: 6, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
                    >
-                     FORJAR (50 St)
+                     FORJAR (50 Cada)
                    </button>
                  </div>
+
 
                  {/* Ovos (Apenas ver se tem) */}
                  {Object.entries(idle.items || {})
