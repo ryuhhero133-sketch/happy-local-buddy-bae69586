@@ -11608,12 +11608,12 @@ function IdlePage() {
               paddingRight: 5, 
               flex: 1 
             }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((day, idx) => {
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day, idx) => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
                 const currentDay = idle.dailyRewardDay || 0;
-                const canClaim = (now - lastClaim) >= 86400000 && (currentDay % 9) + 1 === day;
-                const isClaimed = (currentDay % 9) >= day;
+                const canClaim = (now - lastClaim) >= 86400000 && (currentDay % 10) + 1 === day;
+                const isClaimed = (currentDay % 10) >= day;
                 const isLocked = !canClaim && !isClaimed;
                 const isVip = !!idle.isVip;
 
@@ -11627,7 +11627,8 @@ function IdlePage() {
                     case 6: return { img: chestAmuletImg, label: "3k Gold + Amulet Chest", vipImg: catEggsUrl, vipLabel: "200💎 + Ovo Roxo" };
                     case 7: return { img: assetUrlFromJson(iconCashPackage), label: "5k Gold + Super Pack", vipImg: assetUrlFromJson(blackMiticPlusEggIcon), vipLabel: "Master Ball + Egg + Skin" };
                     case 8: return { img: ballPokeImg, label: "1k Gold + 20 Great Balls", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "250💎 + 50 Ultra" };
-                    case 9: return { img: premiumBoxImg, label: "Bau Especial + Ouro", vipImg: premiumBoxImg, vipLabel: "250💎 + 2 Livros XP" };
+                    case 9: return { img: ballGreatImg, label: "2k Gold + 5 Ultra Balls", vipImg: bookExpImg, vipLabel: "250💎 + 2 Livros XP" };
+                    case 10: return { img: premiumBoxImg, label: "Bau Premium VIP", vipImg: premiumBoxImg, vipLabel: "Relíquia Mestre" };
                     default: return { img: ballPokeImg, label: "Reward", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "VIP Bonus" };
                   }
                 };
@@ -11640,19 +11641,19 @@ function IdlePage() {
                     gap: 0, 
                     background: isLocked ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.08)", 
                     borderRadius: 16, 
-                    border: (day === 7 || day === 9) 
+                    border: (day === 10) 
                        ? "3px solid #f5cf6b" 
                        : (isClaimed ? "2px solid #10b981" : (canClaim ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.3)")),
 
                     overflow: "hidden",
-                    boxShadow: (day === 7 || day === 9) 
+                    boxShadow: (day === 10) 
                       ? "0 0 40px rgba(245,207,107,0.6), inset 0 0 20px rgba(245,207,107,0.3)" 
                       : (isClaimed ? "0 0 15px rgba(16,185,129,0.3)" : (canClaim ? "0 0 25px rgba(245,207,107,0.4)" : "none")),
-                     gridColumn: (day === 7 || day === 9) ? "span 2" : "span 1",
+                     gridColumn: "span 1",
                      order: day,
 
-                    height: (day === 7 || day === 9) ? 280 : 240,
-                    margin: (day === 7 || day === 9) ? "10px 0" : "0",
+                    height: 240,
+                    margin: 0,
                     transition: "all 0.3s ease",
                     transform: canClaim ? "scale(1.02)" : "none",
                     position: "relative",
@@ -11683,31 +11684,31 @@ function IdlePage() {
                          }}>✅</div>
                        )}
                        <div style={{ 
-                         color: (day === 7 || day === 9) ? "#f5cf6b" : "#f59e0b", 
-                         fontSize: (day === 7 || day === 9) ? 14 : 11, 
+                         color: (day === 10) ? "#f5cf6b" : "#f59e0b", 
+                         fontSize: (day === 10) ? 13 : 11, 
                          fontWeight: 900, 
                          letterSpacing: 2, 
-                         textShadow: (day === 7 || day === 9) ? "0 0 10px rgba(245,207,107,0.5)" : "0 1px 2px rgba(0,0,0,0.2)" 
+                         textShadow: (day === 10) ? "0 0 10px rgba(245,207,107,0.5)" : "0 1px 2px rgba(0,0,0,0.2)" 
                        }}>
-                         DIA {day} {(day === 7 || day === 9) && "🌟"}
+                         DIA {day} {day === 10 && "🔥"}
                        </div>
 
                        <div style={{ 
-                         width: (day === 7 || day === 9) ? 90 : 60, 
-                         height: (day === 7 || day === 9) ? 90 : 60, 
+                         width: (day === 10) ? 75 : 60, 
+                         height: (day === 10) ? 75 : 60, 
                          display: "grid", 
                          placeItems: "center", 
-                         background: (day === 7 || day === 9) ? "radial-gradient(circle, rgba(245,207,107,0.2) 0%, rgba(0,0,0,0.1) 70%)" : "rgba(0,0,0,0.05)", 
-                         borderRadius: (day === 7 || day === 9) ? 20 : 12, 
-                         boxShadow: (day === 7 || day === 9) ? "0 0 20px rgba(245,207,107,0.3), inset 0 0 10px rgba(0,0,0,0.1)" : "inset 0 0 10px rgba(0,0,0,0.05)",
+                         background: (day === 10) ? "radial-gradient(circle, rgba(245,207,107,0.2) 0%, rgba(0,0,0,0.1) 70%)" : "rgba(0,0,0,0.05)", 
+                         borderRadius: (day === 10) ? 20 : 12, 
+                         boxShadow: (day === 10) ? "0 0 20px rgba(245,207,107,0.3), inset 0 0 10px rgba(0,0,0,0.1)" : "inset 0 0 10px rgba(0,0,0,0.05)",
                          position: "relative"
                        }}>
-                         {(day === 7 || day === 9) && (
+                         {(day === 10) && (
                            <div style={{
-                             position: "absolute", inset: -10,
+                             position: "absolute", inset: -8,
                              border: "2px solid #f5cf6b", borderRadius: 25,
                              animation: "rotate 10s linear infinite",
-                             opacity: 0.3
+                             opacity: 0.6
                            }} />
                          )}
 
@@ -11715,11 +11716,11 @@ function IdlePage() {
                            src={rew.img} 
                            alt=""
                            style={{ 
-                             width: (day === 7 || day === 9) ? 75 : 48, 
-                             height: (day === 7 || day === 9) ? 75 : 48, 
+                             width: (day === 10) ? 60 : 48, 
+                             height: (day === 10) ? 60 : 48, 
                              objectFit: "contain",
-                             animation: (day === 7 || day === 9) ? "float 3s ease-in-out infinite" : (canClaim ? "pulse 2s infinite" : "none"),
-                             filter: (day === 7 || day === 9) ? "drop-shadow(0 0 8px rgba(245,207,107,0.6))" : "none"
+                             animation: (day === 10) ? "float 3s ease-in-out infinite" : (canClaim ? "pulse 2s infinite" : "none"),
+                             filter: (day === 10) ? "drop-shadow(0 0 8px rgba(245,207,107,0.8))" : "none"
 
                            }} 
                          />
@@ -11828,11 +11829,11 @@ function IdlePage() {
                            src={rew.vipImg} 
                            alt=""
                            style={{ 
-                            width: (day === 7 || day === 9) ? 75 : (day === 7 ? 55 : 42), 
-                            height: (day === 7 || day === 9) ? 75 : (day === 7 ? 55 : 42), 
-                            objectFit: "contain",
-                            filter: (day === 7 || day === 9) ? "drop-shadow(0 0 12px #f5cf6b)" : "none",
-                            animation: (isVip || day === 7 || day === 9) ? "float 3s ease-in-out infinite" : "none"
+                             width: (day === 10) ? 55 : 42, 
+                             height: (day === 10) ? 55 : 42, 
+                             objectFit: "contain",
+                             filter: (day === 10) ? "drop-shadow(0 0 12px #f5cf6b)" : "none",
+                             animation: (isVip || day === 10) ? "float 3s ease-in-out infinite" : "none"
 
                            }} 
                          />
