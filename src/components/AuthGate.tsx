@@ -112,6 +112,9 @@ type Mode = "login" | "signup" | "reset";
 /* ───────────────────────────── AUTH GATE ───────────────────────────── */
 
 export function AuthGate({ children }: { children: ReactNode }) {
+  const [maintenance, setMaintenance] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const [mounted, setMounted] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [identity, setIdentity] = useState<LocalIdentity | null>(null);

@@ -4,17 +4,25 @@ import { supabase } from "@/integrations/supabase/client";
 export const checkMaintenanceMode = createServerFn({ method: "GET" })
   .handler(async () => {
     try {
-      // Usamos o public-publishable client para ler uma configuração global ou verificar a role
-      // Mas para ser performático e seguro, verificamos se existe um registro de manutenção
+      // Usamos o public-publishable client para ler uma configuração global
+      // Note: No Supabase, se value for JSONB, data.value pode vir como string "true" ou booleano true
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("app_config")
         .select("value")
         .eq("key", "maintenance_mode")
         .maybeSingle();
       
-      return { enabled: data?.value === "true" || data?.value === true };
+      if (error) {
+        console.error("[Maintenance] DB error:", error);
+        return { enabled: false };
+      }
+
+      const isEnabled = data?.value === "true" || data?.value === true;
+      console.log("[Maintenance] Check status:", isEnabled, data?.value);
+      return { enabled: isEnabled };
     } catch (e) {
+
       console.error("[Maintenance] Error checking mode:", e);
       return { enabled: false };
     }
