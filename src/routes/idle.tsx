@@ -3,13 +3,15 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
 import { WindowManager } from "@/components/WindowManager";
 import { CraftWindowContent, RECIPES } from "@/components/CraftWindowContent";
-import { Hammer } from "lucide-react";
+import { Hammer, Package, TrendingUp } from "lucide-react";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, Search } from "lucide-react";
 import { CollectionWindowContent } from "@/components/CollectionWindowContent";
+import { BackpackWindowContent } from "@/components/BackpackWindowContent";
+import { ImprovementsWindowContent } from "@/components/ImprovementsWindowContent";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
