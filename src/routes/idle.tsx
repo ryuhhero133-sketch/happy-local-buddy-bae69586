@@ -113,6 +113,16 @@ const SKINS: { id: string; label: string; url: string | null }[] = [
   { id: "goku", label: "Goku", url: assetUrlFromJson(skinGokuAsset) },
 ];
 const SKIN_KEY = "rubym.skin.v1";
+
+interface MapInfo {
+  name: string;
+  difficulty: string;
+  element: string;
+  level: number;
+  xpRate: number;
+  type?: string; // Add if missing
+}
+
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
 import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
@@ -8192,7 +8202,7 @@ function IdlePage() {
             <button
               onClick={() => openWindow("collection_window", "Coleção Real", (
                 <CollectionWindowContent
-                  collection={idle.collection || []}
+                  collection={(idle.collection || []) as PetInstance[]}
                   maxCollection={MAX_COLLECTION}
                   caughtCount={idle.caughtSpecies.length}
                   teamUids={new Set(team.map(p => p.uid))}
