@@ -11589,8 +11589,12 @@ function IdlePage() {
           }}>
             <div style={{ position: "absolute", inset: 0, background: "rgba(10,5,20,0.65)", backdropFilter: "blur(2px)", zIndex: 0 }} />
             <button 
-              onClick={() => setTab("inicio")}
-              style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900, zIndex: 1 }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setTab("inicio");
+              }}
+              style={{ position: "absolute", top: 15, right: 20, background: "rgba(0,0,0,0.3)", border: "2px solid #f5cf6b", color: "#f5cf6b", width: 32, height: 32, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 20, cursor: "pointer", fontWeight: 900, zIndex: 10, boxShadow: "0 0 10px rgba(245,207,107,0.3)" }}
             >
               ×
             </button>
