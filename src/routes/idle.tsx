@@ -16809,5 +16809,86 @@ function GovernanteDialog(props: {
   );
 }
 
+// Componente auxiliar para renderizar ícones gerados ou fallback robusto
+function MapIconRenderer({ type, name, ok }: { type: string; name: string; ok: boolean }) {
+  const generateIcon = useServerFn(generateMapIcon);
+  const [svg, setSvg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!ok) return;
+    const cacheKey = `map-icon-${type}-${name}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      setSvg(cached);
+      return;
+    }
+
+    setLoading(true);
+    generateIcon({ data: { type, name } })
+      .then(res => {
+        if (res.svg) {
+          setSvg(res.svg);
+          localStorage.setItem(cacheKey, res.svg);
+        }
+      })
+      .catch(err => console.error("Icon generation error:", err))
+      .finally(() => setLoading(false));
+  }, [type, name, ok]);
+
+  if (svg && ok) {
+    return (
+      <div 
+        dangerouslySetInnerHTML={{ __html: svg }} 
+        style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
+      />
+    );
+  }
+
+  // Fallback visual RPG (Original melhorado)
+  const getEmoji = () => {
+    switch(type) {
+      case "castle": return "🏰";
+      case "village": return "🏡";
+      case "volcano": return "🌋";
+      case "cave": return "💎";
+      case "forest": return "🌿";
+      case "beach": return "🐚";
+      case "mountain": return "🗻";
+      case "snow": return "❄️";
+      case "island": return "🏝️";
+      default: return "📍";
+    }
+  };
+
+  const getColor = () => {
+    switch(type) {
+      case "castle": return "gold";
+      case "village": return "#7ef27a";
+      case "volcano": return "#ff4d4d";
+      case "cave": return "#70d2ff";
+      case "forest": return "#4ade80";
+      case "beach": return "#38bdf8";
+      case "mountain": return "#94a3b8";
+      case "snow": return "#e0f2fe";
+      default: return "#f5cf6b";
+    }
+  };
+
+  return (
+    <div style={{ 
+      position: "relative",
+      filter: ok ? `drop-shadow(0 0 12px ${getColor()})` : "none",
+      transition: "all 0.4s ease",
+      opacity: loading ? 0.5 : 1
+    }}>
+      <div style={{ fontSize: 32, filter: `drop-shadow(0 0 5px ${getColor()})` }}>
+        {getEmoji()}
+      </div>
+    </div>
+  );
+}
+
+
 
 
