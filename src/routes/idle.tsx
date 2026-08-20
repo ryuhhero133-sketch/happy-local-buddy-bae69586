@@ -10364,39 +10364,48 @@ function IdlePage() {
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "arena", x: 44, y: 41, type: "castle" }, // Castelo central
-                      { id: "terra", x: 26, y: 19, type: "forest" }, // Floresta norte/oeste
-                      { id: "deserto_purpura", x: 74, y: 28, type: "volcano" }, // Montanhas à direita
-                      { id: "pantano_fogo", x: 50, y: 42, type: "volcano" }, // Vulcão central
-                      { id: "praia", x: 15, y: 48, type: "beach" }, // Enseada esquerda
-                      { id: "venofogo", x: 42, y: 55, type: "volcano" },
-                      { id: "terry", x: 62, y: 52, type: "village" }, // Vilarejo à direita
-                      { id: "n2", x: 58, y: 52, type: "forest" },
-                      { id: "n3", x: 65, y: 55, type: "forest" },
-                      { id: "fantasma", x: 82, y: 82, type: "cave" }, // Dungeon deserto sudeste
-                      { id: "caverna", x: 82, y: 48, type: "cave" },
-                      { id: "vale_rochas", x: 18, y: 72, type: "mountain" },
-                      { id: "neve", x: 70, y: 12, type: "snow" }, // Montanha de neve NE
-                      { id: "deserto", x: 48, y: 22, type: "desert" },
-                      { id: "abismo_gelo", x: 58, y: 72, type: "cave" },
-                      { id: "abismo_veneno", x: 66, y: 76, type: "cave" },
-                      { id: "abismo_dragao", x: 74, y: 78, type: "cave" },
-                      { id: "cadeia_ab", x: 88, y: 42, type: "cave" },
-                      { id: "cadeia_ab1", x: 92, y: 38, type: "cave" },
-                      { id: "cadeia_f1", x: 95, y: 35, type: "cave" },
+                      { id: "neve", x: 19.5, y: 15.5, type: "snow" }, // Top left snowy mountains
+                      { id: "neve_val", x: 15.5, y: 25, type: "snow" },
+                      { id: "neve_gelo", x: 23, y: 20, type: "snow" },
+                      { id: "arena", x: 44, y: 17, type: "castle" }, // Top center green castle
+                      { id: "terra", x: 38, y: 12, type: "forest" }, 
+                      { id: "floresta_secreta", x: 48, y: 10, type: "forest" },
+                      { id: "deserto", x: 70, y: 17, type: "desert" }, // Top right golden island
+                      { id: "deserto_purpura", x: 78, y: 22, type: "desert" },
+                      { id: "caverna", x: 74, y: 12, type: "cave" },
+                      { id: "praia", x: 22, y: 45, type: "beach" }, // Middle left green/water
+                      { id: "vale_rochas", x: 16, y: 40, type: "mountain" },
+                      { id: "n2", x: 28, y: 42, type: "forest" },
+                      { id: "pantano_fogo", x: 46, y: 44, type: "volcano" }, // Center volcanoes/town
+                      { id: "venofogo", x: 41, y: 52, type: "volcano" },
+                      { id: "terry", x: 52, y: 48, type: "village" },
+                      { id: "n3", x: 55, y: 42, type: "forest" },
+                      { id: "abismo_gelo", x: 80, y: 40, type: "cave" }, // Right side islands
+                      { id: "abismo_veneno", x: 85, y: 45, type: "cave" },
+                      { id: "abismo_dragao", x: 92, y: 40, type: "cave" },
+                      { id: "fantasma", x: 15, y: 78, type: "cave" }, // Bottom left lava/dark
+                      { id: "volcao_abissal", x: 10, y: 70, type: "volcano" },
+                      { id: "cadeia_ab", x: 22, y: 82, type: "cave" },
+                      { id: "cadeia_ab1", x: 26, y: 88, type: "cave" },
+                      { id: "cadeia_f1", x: 28, y: 92, type: "cave" },
+                      { id: "ferry_ab", x: 50, y: 85, type: "village" }, // Bottom center island
+                      { id: "jardim_ab", x: 45, y: 75, type: "forest" },
+                      { id: "montanha_m", x: 78, y: 75, type: "mountain" }, // Bottom right peaks
+                      { id: "neve_end", x: 85, y: 70, type: "snow" },
+                      { id: "portal_f", x: 92, y: 90, type: "event" }, // Bottom right whirlpool area
 
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event" }] : []),
                     ];
                     const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "absol_start" as IdleMapId, x: 20, y: 75, type: "village" },
-                      { id: "governante_hall" as IdleMapId, x: 50, y: 35, type: "castle" },
+                      { id: "absol_start" as IdleMapId, x: 45, y: 75, type: "village" },
+                      { id: "governante_hall" as IdleMapId, x: 44, y: 17, type: "castle" },
                     ];
                     const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "continent3_map1" as IdleMapId, x: 15, y: 40, type: "island" },
-                      { id: "continent3_map2" as IdleMapId, x: 35, y: 45, type: "island" },
-                      { id: "fosso_cristal" as IdleMapId, x: 55, y: 30, type: "cave" },
-                      { id: "vale_ruby" as IdleMapId, x: 75, y: 35, type: "volcano" },
-                      { id: "ilha_safira" as IdleMapId, x: 85, y: 60, type: "beach" },
+                      { id: "continent3_map1" as IdleMapId, x: 80, y: 40, type: "island" },
+                      { id: "continent3_map2" as IdleMapId, x: 85, y: 45, type: "island" },
+                      { id: "fosso_cristal" as IdleMapId, x: 74, y: 12, type: "cave" },
+                      { id: "vale_ruby" as IdleMapId, x: 78, y: 22, type: "volcano" },
+                      { id: "ilha_safira" as IdleMapId, x: 92, y: 40, type: "beach" },
                     ];
                     const activeTab = worldTab;
                     const isC1Unlocked = true; // Continente 1 sempre liberado
