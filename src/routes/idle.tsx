@@ -11627,7 +11627,7 @@ function IdlePage() {
                     border: "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
                     boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.2)" : "none",
-                    gridColumn: day === 7 ? "span 2" : "span 1"
+                    gridColumn: day === 7 ? "span 4" : "span 1"
                   }}>
                     {/* Linha Normal */}
                     <div style={{
