@@ -17146,18 +17146,19 @@ function TabOverlay({
               {(["head", "body", "weapon"] as const).map(slot => {
                 const itemKey = equippedItems[slot];
                 const item = itemKey ? (TRAINER_EQUIPMENT_DATA as any)[itemKey] : null;
+                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "#5c4033";
                 return (
                   <div key={slot} 
                     onClick={() => setEquipmentSlotPicker(slot)}
                     style={{
                       width: 50, height: 50,
                       background: "rgba(0,0,0,0.4)",
-                      border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
+                      border: `2px solid ${rColor}`,
                       borderRadius: 8,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       cursor: "pointer",
                       position: "relative",
-                      boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
+                      boxShadow: item ? `0 0 10px ${rColor}33` : "none"
                     }}>
                     {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
                     {item && <div style={{ fontSize: 24 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
@@ -17182,6 +17183,24 @@ function TabOverlay({
               ) : (
                 <div style={{ fontSize: 60 }}>🧢</div>
               )}
+              
+              {/* Stats Summary Float */}
+              {(() => {
+                const ts = getTrainerStats();
+                const hasAny = ts.xpBonus || ts.goldBonus || ts.dropRate || ts.speed;
+                if (!hasAny) return null;
+                return (
+                  <div style={{
+                    position: "absolute", bottom: 0, left: 0, right: 0,
+                    background: "rgba(0,0,0,0.7)", padding: "2px 4px",
+                    display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6,
+                    borderTop: "1px solid rgba(139, 94, 60, 0.3)"
+                  }}>
+                    {ts.xpBonus > 0 && <span style={{ color: "#4ade80", fontSize: 8, fontWeight: 900 }}>XP+{Math.round(ts.xpBonus*100)}%</span>}
+                    {ts.goldBonus > 0 && <span style={{ color: "#fbbf24", fontSize: 8, fontWeight: 900 }}>$+{Math.round(ts.goldBonus*100)}%</span>}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Right Slots */}
@@ -17189,18 +17208,19 @@ function TabOverlay({
               {(["necklace", "ring", "feet"] as const).map(slot => {
                 const itemKey = equippedItems[slot];
                 const item = itemKey ? (TRAINER_EQUIPMENT_DATA as any)[itemKey] : null;
+                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "#5c4033";
                 return (
                   <div key={slot} 
                     onClick={() => setEquipmentSlotPicker(slot)}
                     style={{
                       width: 50, height: 50,
                       background: "rgba(0,0,0,0.4)",
-                      border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
+                      border: `2px solid ${rColor}`,
                       borderRadius: 8,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       cursor: "pointer",
                       position: "relative",
-                      boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
+                      boxShadow: item ? `0 0 10px ${rColor}33` : "none"
                     }}>
                     {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
                     {item && <div style={{ fontSize: 24 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
@@ -17208,7 +17228,6 @@ function TabOverlay({
                   </div>
                 );
               })}
-
             </div>
           </div>
 
