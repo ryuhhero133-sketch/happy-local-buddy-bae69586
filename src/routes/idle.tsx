@@ -12257,23 +12257,23 @@ function IdlePage() {
                         style={{ 
                           width: "100%", 
                           background: auraEggCrafting?.active 
-                            ? "linear-gradient(135deg, #94a3b8, #64748b)" 
-                            : "linear-gradient(135deg, #6366f1, #4f46e5)", 
-                          color: "#fff", 
-                          border: "none", 
-                          padding: "14px", 
-                          borderRadius: 14, 
-                          fontWeight: 900, 
-                          fontSize: 16, 
-                          cursor: auraEggCrafting?.active ? "not-allowed" : "pointer",
-                          boxShadow: auraEggCrafting?.active ? "none" : "0 5px 0 #3730a3, 0 8px 20px rgba(99, 102, 241, 0.4)",
-                          transition: "all 0.1s active",
-                          textShadow: "0 1px 2px rgba(0,0,0,0.3)",
-                          marginBottom: 12
-                        }}
-                      >
-                        {auraEggCrafting?.active ? `FORJANDO (${Math.floor(auraEggCrafting.progress)}%)` : "INICIAR FORJA MÍSTICA"}
-                      </button>
+                             ? "linear-gradient(135deg, #475569, #1e293b)" 
+                             : "linear-gradient(135deg, #f59e0b, #d97706)", 
+                           color: "#fff", 
+                           border: "2px solid rgba(255,255,255,0.3)", 
+                           padding: "16px", 
+                           borderRadius: 16, 
+                           fontWeight: 900, 
+                           fontSize: 18, 
+                           cursor: auraEggCrafting?.active ? "not-allowed" : "pointer",
+                           boxShadow: auraEggCrafting?.active ? "none" : "0 8px 0 #92400e, 0 10px 25px rgba(245, 158, 11, 0.5)",
+                           transition: "all 0.2s ease",
+                           textShadow: "0 2px 2px rgba(0,0,0,0.5)",
+                           marginBottom: 12
+                         }}
+                       >
+                         {auraEggCrafting?.active ? `FORJANDO (${Math.floor(auraEggCrafting.progress)}%)` : "✨ INICIAR FORJA MÍSTICA ✨"}
+                       </button>
                    </div>
 
                    <button 
