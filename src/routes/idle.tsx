@@ -11382,9 +11382,10 @@ function IdlePage() {
             { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
             { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
             { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b" },
-            
+            { id: "forge_win",label: "Forja",    img: "https://rpg-idle-game.lovable.app/assets/items/item_key_ruby.png", color: "#a855f7", isWindow: true },
             { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a" },
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
+
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
