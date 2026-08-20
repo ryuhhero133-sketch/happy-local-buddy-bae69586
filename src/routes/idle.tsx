@@ -11538,10 +11538,7 @@ function IdlePage() {
           <div
             onClick={(e) => {
                e.stopPropagation();
-               if (!forgeDragRef.current?.isDragging) {
-                 setForgeMinimized(false);
-                 playClick();
-               }
+               // O clique é tratado pelo pai agora
             }}
             style={{
               width: 56,
