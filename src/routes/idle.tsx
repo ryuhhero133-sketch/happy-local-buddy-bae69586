@@ -12197,7 +12197,7 @@ function IdlePage() {
                         onClick={() => {
                           const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
                           const hasSafira = (idle.items?.safira_verde ?? 0) >= 1;
-                          const hasStones = STONES.every(s => (idle.items?.[s] ?? 0) >= 200);
+                          const hasStones = STONES.every(s => (idle.items?.[s] ?? 0) >= (200 + (auraEggDetails?.stonesUsed?.[s] || 0)));
                           
                           if (!hasSafira || !hasStones) {
                             pushChat("❌ Recursos insuficientes!", "info");
@@ -12207,11 +12207,17 @@ function IdlePage() {
                           setIdle(prev => {
                             const nextItems = { ...prev.items };
                             nextItems.safira_verde = (nextItems.safira_verde ?? 0) - 1;
-                            STONES.forEach(s => nextItems[s] = (nextItems[s] ?? 0) - 200);
+                            STONES.forEach(s => {
+                               const extra = auraEggDetails?.stonesUsed?.[s] || 0;
+                               nextItems[s] = (nextItems[s] ?? 0) - (200 + extra);
+                            });
                             return { ...prev, items: nextItems };
                           });
 
                           setAuraEggCrafting({ active: true, progress: 0 });
+                          const finalExtraChance = auraEggDetails.extraChance;
+                          setAuraEggDetails({ stonesUsed: {}, extraChance: 0 }); // Limpa seleções ao iniciar
+
                           playClick();
 
                           const duration = 5000;
