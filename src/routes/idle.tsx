@@ -11919,15 +11919,16 @@ function IdlePage() {
                 <div 
                   onClick={(e) => { e.stopPropagation(); setTab("evento"); playClick(); }}
                   style={{
-                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 5, top: -85, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.2s ease-out forwards, orbGlow 2s infinite ease-in-out"
+                    left: 70, top: 15, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.2s ease-out forwards, orbGlow 2s infinite ease-in-out", zIndex: 1
                   }}
                   title="Calendário de Eventos"
                 >
-                  <Calendar size={20} color="#d97706" />
+                  <Calendar size={22} color="#d97706" />
                 </div>
+
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(true); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
