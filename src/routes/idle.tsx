@@ -11650,17 +11650,14 @@ function IdlePage() {
                     boxShadow: (day === 7 || day === 10) 
                       ? "0 0 40px rgba(245,207,107,0.6), inset 0 0 20px rgba(245,207,107,0.3)" 
                       : (isClaimed ? "0 0 15px rgba(16,185,129,0.3)" : (canClaim ? "0 0 25px rgba(245,207,107,0.4)" : "none")),
-
                     gridColumn: (day === 7 || day === 10) ? "span 2" : "span 1",
                     height: (day === 7 || day === 10) ? 280 : 240,
                     margin: (day === 7 || day === 10) ? "10px 0" : "0",
                     transition: "all 0.3s ease",
                     transform: canClaim ? "scale(1.02)" : "none",
                     position: "relative",
-                    boxShadow: (day === 7 || day === 10) 
-                      ? "0 0 40px rgba(245,207,107,0.6), inset 0 0 20px rgba(245,207,107,0.3)" 
-                      : (isClaimed ? "0 0 15px rgba(16,185,129,0.3)" : (canClaim ? "0 0 25px rgba(245,207,107,0.4)" : "none")),
                   }}>
+
 
                     <div style={{
                       background: isClaimed 
