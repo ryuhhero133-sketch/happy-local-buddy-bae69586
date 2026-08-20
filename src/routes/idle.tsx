@@ -123,6 +123,7 @@ import { EquipmentSlot, EquipmentItem, TRAINER_EQUIPMENT_DATA, RARITY_COLOR } fr
 
 
 
+
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
 import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
@@ -1957,6 +1958,7 @@ function IdlePage() {
   }, [ownedEquipment]);
 
   const skinUrl = SKINS.find((s) => s.id === skinId)?.url ?? null;
+
 
 
   // Auto-battle / chat / WASD
