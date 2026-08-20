@@ -1,11 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
+import { WindowManager } from "@/components/WindowManager";
+import { CraftWindowContent } from "@/components/CraftWindowContent";
+import { Hammer } from "lucide-react";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles } from "lucide-react";
+import { FlaskConical, Sparkles, Search } from "lucide-react";
+import { CollectionWindowContent } from "@/components/CollectionWindowContent";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -7529,6 +7533,10 @@ function IdlePage() {
         </div>
       )}
 
+      <WindowManager>
+        {({ openWindow, closeWindow, isWindowOpen }) => (
+          <>
+
       <div className="idle-grid" style={{
         display: "grid",
         gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
@@ -8147,7 +8155,76 @@ function IdlePage() {
 
 
 
+          {/* Botões do WindowManager (LAND, CRAFT, etc) */}
+          <div style={{
+            position: "absolute", bottom: 80, left: 12, zIndex: 60,
+            display: "flex", flexDirection: "column", gap: 10
+          }}>
+            <button
+              onClick={() => openWindow("craft", "Forja Ancestral", (
+                <CraftWindowContent 
+                  items={idle.items} 
+                  bank={idle.bank} 
+                  onCraft={(recipeId) => {
+                    console.log("Crafting", recipeId);
+                  }} 
+                />
+              ))}
+              style={{
+                width: 52, height: 52, borderRadius: 12,
+                background: "linear-gradient(135deg, #1e1e1e, #333)",
+                border: "2px solid #f5cf6b",
+                color: "#f5cf6b",
+                display: "grid", placeItems: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #f5cf6b88"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
+              title="Abrir Forja Ancestral (CRAFT)"
+            >
+              <Hammer size={28} />
+              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>FORJA</span>
+            </button>
+
+            
+            <button
+              onClick={() => openWindow("collection_window", "Coleção Real", (
+                <CollectionWindowContent
+                  collection={idle.collection || []}
+                  maxCollection={MAX_COLLECTION}
+                  caughtCount={idle.caughtSpecies.length}
+                  teamUids={new Set(team.map(p => p.uid))}
+                  onSelectPokemon={(uid) => {
+                    const found = (idle.collection || []).find(p => p.uid === uid);
+                    if (found) {
+                      onPickTeamFromColecao(found);
+                    }
+                  }}
+                />
+              ))}
+              style={{
+                width: 52, height: 52, borderRadius: 12,
+                background: "linear-gradient(135deg, #1e1e1e, #333)",
+                border: "2px solid #a066ff",
+                color: "#a066ff",
+                display: "grid", placeItems: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #a066ff88"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
+              title="Abrir Coleção (LAND)"
+            >
+              <Sparkles size={28} />
+              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>COLEÇÃO</span>
+            </button>
+          </div>
+
           {/* Clima estilo pixel-RPG */}
+
           {weather !== "clear" && (
             <div style={{
               position: "absolute", inset: 0, zIndex: 40,
@@ -8203,7 +8280,78 @@ function IdlePage() {
           )}
 
 
-            {/* Contador de jogadores online removido a pedido do usuário */}
+          {/* HUD Target / Selecionado no Topo */}
+          {selectedMapInfo && (
+            <div style={{
+              position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)",
+              zIndex: 70, width: "min(400px, 90vw)",
+              background: "rgba(10,5,15,0.95)",
+              border: "2px solid #a066ff", borderRadius: 12,
+              boxShadow: "0 0 25px rgba(160,102,255,0.4), inset 0 0 10px rgba(0,0,0,0.8)",
+              padding: 12, overflow: "hidden"
+            }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <div style={{
+                  width: 64, height: 64, borderRadius: 10,
+                  background: "rgba(30,15,45,0.8)",
+                  border: "1px solid #a066ff55",
+                  display: "grid", placeItems: "center", overflow: "hidden"
+                }}>
+                  <MapIconRenderer 
+                    type={IDLE_MAPS[selectedMapInfo].type} 
+                    name={IDLE_MAPS[selectedMapInfo].name} 
+                    ok={(idle.trainerLevel ?? 1) >= IDLE_MAPS[selectedMapInfo].level} 
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <h3 style={{ margin: 0, color: "#f5cf6b", fontSize: 16, fontWeight: 900, letterSpacing: 1 }}>
+                        {IDLE_MAPS[selectedMapInfo].name.toUpperCase()}
+                      </h3>
+                      <div style={{ fontSize: 10, color: "#a066ff", fontWeight: 800, marginTop: 2 }}>
+                        DIFF: {IDLE_MAPS[selectedMapInfo].difficulty} · LV.{IDLE_MAPS[selectedMapInfo].level}+
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setSelectedMapInfo(null)}
+                      style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 16 }}
+                    >✕</button>
+                  </div>
+                  
+                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                      <button
+                        onClick={() => {
+                          const pinId = selectedMapInfo;
+                          const synthGate = {
+                            key: `world-${pinId}`,
+                            target: pinId,
+                            x: WORLD_W / 2, y: WORLD_H / 2,
+                            arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
+                            color: "#f5cf6b",
+                          };
+                          setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
+                          setSelectedMapInfo(null);
+                        }}
+                        disabled={(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level}
+                        style={{
+                          flex: 1, padding: "8px 0", borderRadius: 6,
+                          background: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level 
+                            ? "#333" 
+                            : "linear-gradient(180deg, #a066ff, #6b28c8)",
+                          color: "#fff", fontWeight: 900, fontSize: 12,
+                          border: "none", cursor: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "not-allowed" : "pointer",
+                          boxShadow: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
+                        }}
+                      >
+                        {(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "BLOQUEADO" : "VIAJAR AGORA"}
+                      </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
 
 
 
@@ -11704,6 +11852,11 @@ function IdlePage() {
           {identity.name}
         </div>
       )}
+          </>
+        )}
+      </WindowManager>
+
+
 
 
 
@@ -13144,10 +13297,9 @@ function IdlePage() {
         }}
       />
     </div>
-
-
   );
 }
+
 
 
 // ============ Componentes visuais ============
@@ -14587,7 +14739,9 @@ function TabOverlay({
           boxShadow: "inset 0 0 24px rgba(184,134,42,0.25), 0 4px 18px rgba(0,0,0,0.4)",
         }}>
           {/* HUD topo da coleção */}
+          {/* Início Coleção (Removido daqui para janelas se desejado, mas mantido para fallback) */}
           <div style={{
+
             display: "flex", justifyContent: "space-between", alignItems: "center",
             marginBottom: 14, paddingBottom: 12,
             borderBottom: "2px solid rgba(184,134,42,0.5)",
