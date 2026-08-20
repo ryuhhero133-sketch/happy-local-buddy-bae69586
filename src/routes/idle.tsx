@@ -1927,6 +1927,7 @@ function IdlePage() {
       const dx = clientX - forgeDragRef.current.startX;
       const dy = clientY - forgeDragRef.current.startY;
       setForgePos({ x: forgeDragRef.current.winX + dx, y: forgeDragRef.current.winY + dy });
+      forgeDragRef.current.isDragging = true;
     };
     const mu = () => { forgeDragRef.current = null; };
     window.addEventListener("mousemove", mm);
