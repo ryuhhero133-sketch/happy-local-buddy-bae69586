@@ -4849,8 +4849,12 @@ function IdlePage() {
             const capPenalty = overCap > 0 ? Math.max(0.05, 1 - overCap * 0.2) : 1;
             const finalScale = lvScale * capPenalty;
             const mythEvKillMult = idle.currentMap === "evento_myth" ? 6 : 1;
-            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult));
-            const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3)) : 0;
+            
+            const tStats = getTrainerStats();
+            const trXpMult = 1 + tStats.xpBonus;
+
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult * trXpMult));
+            const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3 * trXpMult)) : 0;
             const totalTrainerXp = killTrainerXp + captureTrainerXp;
             const applied = applyTrainerXp(s, totalTrainerXp);
             if (applied.leveledTo != null) {
@@ -4888,8 +4892,8 @@ function IdlePage() {
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0) },
-              totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
+              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 * (1 + getTrainerStats().dropRate) ? 1 : 0) },
+              totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
               items: itemsWithBalls,
