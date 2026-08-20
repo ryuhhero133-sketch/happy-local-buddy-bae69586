@@ -16815,39 +16815,140 @@ function TabOverlay({
       })()}
 
 
-      {tab === "inicio" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6 }}>
-          <p style={{ marginTop: 0 }}>Bem-vindo ao <strong style={{ color: "#f5cf6b" }}>Modo Idle</strong>!</p>
-          <ul style={{ paddingLeft: 20 }}>
-            <li>Seus Pokémon batalham automaticamente.</li>
-            <li>Ache <strong>baús</strong> pelo mapa — dão ouro extra.</li>
-            <li>Compre <strong>Pokébolas</strong> na Loja para capturar Pokémon.</li>
-            <li>Use <strong>Livros</strong> pra ficar mais forte.</li>
-            <li>Novos Pokémon aparecem conforme seu nível sobe.</li>
-          </ul>
+      {tab === "inicio" && (() => {
+        const teamPower = team.reduce((sum, p) => sum + computePower(p), 0);
+        const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
+        const trainerSpeed = 100 + (stats.speed * 5); // Base 100 + 5% por nível de speed stat
+        
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* PAINEL DO TREINADOR RPG */}
+            <div style={{
+              background: "linear-gradient(165deg, #1a0f26 0%, #0b0510 100%)",
+              border: "2px solid #f5cf6b44", borderRadius: 16, padding: 18,
+              boxShadow: "0 8px 32px rgba(0,0,0,0.6), inset 0 0 20px rgba(245,207,107,0.05)",
+              display: "grid", gridTemplateColumns: "140px 1fr", gap: 20,
+              position: "relative", overflow: "hidden"
+            }}>
+              {/* Brilho decorativo */}
+              <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, background: "rgba(245,207,107,0.1)", filter: "blur(40px)", borderRadius: "50%" }} />
+              
+              {/* LADO ESQUERDO: AVATAR & EQUIPAMENTO */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
+                <div style={{ 
+                  width: 120, height: 140, background: "rgba(20,10,30,0.6)", borderRadius: 12, 
+                  border: "2px solid #f5cf6b66", position: "relative", overflow: "hidden",
+                  display: "grid", placeItems: "center", boxShadow: "inset 0 0 15px rgba(0,0,0,0.8)"
+                }}>
+                  {skinUrl ? (
+                    <img src={skinUrl} alt="Skin" style={{ height: "90%", imageRendering: "pixelated", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.6))" }} />
+                  ) : (
+                    <span style={{ fontSize: 40 }}>👤</span>
+                  )}
+                  {/* Overlay Nível */}
+                  <div style={{ 
+                    position: "absolute", bottom: 0, left: 0, right: 0, 
+                    background: "rgba(0,0,0,0.75)", color: "#f5cf6b", fontSize: 11, 
+                    fontWeight: 900, textAlign: "center", padding: "2px 0",
+                    borderTop: "1px solid #f5cf6b44"
+                  }}>
+                    NV. {idle.trainerLevel ?? 1}
+                  </div>
+                </div>
 
-          <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "18px 0 10px" }}>
-            Escolher Skin <span style={{ fontSize: 11, color: "#b9a7ff" }}>· 🎟️ Tickets: {skinTickets}</span>
-          </h3>
-          <div style={{ fontSize: 11, color: "#b9a7ff", marginBottom: 8 }}>
-            Skins premium ficam bloqueadas. Abra a <strong>Caixa Premium ✦</strong> na Mochila para ganhar Tickets e desbloquear a skin que quiser.
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
-            {SKINS.map((s) => {
-              const active = s.id === skinId;
-              const unlocked = unlockedSkins.includes(s.id);
-              const canUnlock = !unlocked && skinTickets > 0;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => {
-                    if (unlocked) { setSkinId(s.id); return; }
-                    if (canUnlock) {
-                      if (window.confirm(`Desbloquear a skin "${s.label}" usando 1 Ticket de Skin ✦?`)) {
-                        onUnlockSkin(s.id);
-                      }
-                    }
-                  }}
+                {/* SLOTS DE EQUIPAMENTO (Placeholder p/ novos itens) */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, width: "100%" }}>
+                  {[1, 2, 3].map(i => (
+                    <div key={i} style={{ 
+                      aspectRatio: "1/1", background: "rgba(0,0,0,0.4)", borderRadius: 6, 
+                      border: "1px dashed #f5cf6b33", display: "grid", placeItems: "center",
+                      fontSize: 10, color: "#4a3a5a"
+                    }}>
+                      {i === 1 ? "👟" : i === 2 ? "⚔️" : "🛡️"}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* LADO DIREITO: ESTATÍSTICAS DETALHADAS */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ borderBottom: "1px solid #f5cf6b22", paddingBottom: 6 }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1.5, textShadow: "0 2px 4px #000" }}>
+                    {identity?.email?.split("@")[0].toUpperCase() || "TREINADOR"}
+                  </div>
+                  <div style={{ fontSize: 10, color: "#8a7a9c", fontStyle: "italic" }}>Aventureiro do Reino de Medievam</div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <div style={{ background: "rgba(255,255,255,0.03)", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(245,207,107,0.1)" }}>
+                    <div style={{ fontSize: 9, color: "#a8a0b8", fontWeight: 700 }}>PODER TOTAL EM EQUIPE</div>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: "#f5cf6b" }}>⚔️ {teamPower.toLocaleString()}</div>
+                  </div>
+                  <div style={{ background: "rgba(255,255,255,0.03)", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(143,208,255,0.1)" }}>
+                    <div style={{ fontSize: 9, color: "#a8a0b8", fontWeight: 700 }}>VELOCIDADE DO TREINADOR</div>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: "#8fd0ff" }}>💨 {trainerSpeed}%</div>
+                  </div>
+                </div>
+
+                {/* Barra de EXP Treinador */}
+                <div style={{ marginTop: 4 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#c8b8d0", marginBottom: 4 }}>
+                    <span>EXPERIÊNCIA DO TREINADOR</span>
+                    <span style={{ fontWeight: 800 }}>{(idle.trainerXp ?? 0).toLocaleString()} / {trainerXpToNext(idle.trainerLevel ?? 1).toLocaleString()}</span>
+                  </div>
+                  <div style={{ height: 8, background: "#1a0808", borderRadius: 4, border: "1px solid #3a1010", overflow: "hidden", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.5)" }}>
+                    <div style={{ 
+                      width: `${Math.min(100, ((idle.trainerXp ?? 0) / trainerXpToNext(idle.trainerLevel ?? 1)) * 100)}%`, 
+                      height: "100%", background: "linear-gradient(90deg, #f5cf6b, #d4a439)",
+                      boxShadow: "0 0 10px rgba(245,207,107,0.4)"
+                    }} />
+                  </div>
+                </div>
+
+                {/* Quick Stats Grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, marginTop: 4 }}>
+                  <div style={{ textAlign: "center", padding: 6, background: "rgba(0,0,0,0.2)", borderRadius: 6 }}>
+                    <div style={{ fontSize: 8, color: "#8a7a9c" }}>KILLS</div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#eadfe8" }}>{(idle.totalKills ?? 0).toLocaleString()}</div>
+                  </div>
+                  <div style={{ textAlign: "center", padding: 6, background: "rgba(0,0,0,0.2)", borderRadius: 6 }}>
+                    <div style={{ fontSize: 8, color: "#8a7a9c" }}>CAPTURAS</div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#eadfe8" }}>{(idle.totals?.captured ?? 0).toLocaleString()}</div>
+                  </div>
+                  <div style={{ textAlign: "center", padding: 6, background: "rgba(0,0,0,0.2)", borderRadius: 6 }}>
+                    <div style={{ fontSize: 8, color: "#8a7a9c" }}>OURO TOTAL</div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#eadfe8" }}>{Math.floor((idle.totals?.gold ?? 0) / 1000)}k</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SELETOR DE SKINS */}
+            <div style={{ 
+              background: "rgba(20,15,35,0.6)", borderRadius: 16, padding: 16, 
+              border: "1px solid rgba(185,167,255,0.2)" 
+            }}>
+              <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "0 0 10px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                VISUAL DO TREINADOR 
+                <span style={{ fontSize: 11, color: "#b9a7ff", fontWeight: 400 }}>🎟️ Tickets: {skinTickets}</span>
+              </h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: 10 }}>
+                {SKINS.map((s) => {
+                  const active = s.id === skinId;
+                  const unlocked = unlockedSkins.includes(s.id);
+                  const canUnlock = !unlocked && skinTickets > 0;
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        if (unlocked) { setSkinId(s.id); return; }
+                        if (canUnlock) {
+                          if (window.confirm(`Desbloquear a skin "${s.label}" usando 1 Ticket de Skin ✦?`)) {
+                            onUnlockSkin(s.id);
+                          }
+                        }
+                      }}
+
                   disabled={!unlocked && !canUnlock}
                   style={{
                     position: "relative",
