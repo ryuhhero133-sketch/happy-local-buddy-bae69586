@@ -11802,7 +11802,11 @@ function IdlePage() {
                                           }
                                           return next;
                                         });
-                                        setForgeQuests((prev: any) => ({ ...prev, completedIds: [...(prev.completedIds || []), q.id] }));
+                                        setForgeQuests((prev: any) => {
+                                          const next = { ...prev, completedIds: [...(prev.completedIds || []), q.id] };
+                                          localStorage.setItem("rubym.forge.quests", JSON.stringify(next));
+                                          return next;
+                                        });
 
                                         playBonus();
                                         const rewardText = q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
