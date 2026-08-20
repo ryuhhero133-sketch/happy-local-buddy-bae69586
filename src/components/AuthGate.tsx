@@ -114,6 +114,8 @@ type Mode = "login" | "signup" | "reset";
 export function AuthGate({ children }: { children: ReactNode }) {
   const [maintenance, setMaintenance] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [bypassCode, setBypassCode] = useState("");
+  const [isBypassed, setIsBypassed] = useState(false);
 
   const [mounted, setMounted] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
@@ -303,7 +305,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
 
-  if (maintenance && !isAdmin) {
+  if (maintenance && !isAdmin && !isBypassed) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-black text-red-500 font-mono text-center relative overflow-hidden">
         {/* Animated background to show it's active */}
@@ -319,19 +321,46 @@ export function AuthGate({ children }: { children: ReactNode }) {
           <div className="h-1 w-full bg-red-900 rounded-full overflow-hidden">
             <div className="h-full bg-red-500 animate-[loading_2s_infinite]" style={{ width: '40%' }} />
           </div>
-          <p className="text-base leading-relaxed font-bold">
-            liberar para entrar ok
-          </p>
+          
+          <div className="space-y-4">
+            <p className="text-base leading-relaxed font-bold">
+              Servidor em atualização técnica.
+            </p>
+            
+            <div className="pt-2">
+              <input
+                type="password"
+                placeholder="CÓDIGO DE ACESSO"
+                value={bypassCode}
+                onChange={(e) => setBypassCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && bypassCode === "ryuh333") {
+                    setIsBypassed(true);
+                  }
+                }}
+                className="w-full bg-red-950/30 border border-red-900 text-red-500 px-4 py-3 rounded text-center font-black placeholder:text-red-900 focus:outline-none focus:border-red-600 transition-colors"
+              />
+              {bypassCode === "ryuh333" && (
+                <button
+                  onClick={() => setIsBypassed(true)}
+                  className="w-full mt-2 py-2 bg-red-600 text-white font-black hover:bg-red-500 transition-colors"
+                >
+                  ACESSAR AGORA
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="pt-6">
             <button 
               onClick={() => window.location.reload()}
-              className="w-full px-8 py-4 bg-red-600 hover:bg-red-500 text-white font-black tracking-widest transition-all active:scale-95 shadow-lg shadow-red-900/50"
+              className="w-full px-8 py-4 border-2 border-red-900 hover:border-red-600 text-red-600 hover:text-red-500 font-black tracking-widest transition-all active:scale-95"
             >
               ATUALIZAR STATUS
             </button>
           </div>
           <p className="text-[10px] opacity-50 pt-4 uppercase tracking-widest">
-            Servidor em atualização técnica
+            Apenas administradores autorizados
           </p>
         </div>
         <style>{`
