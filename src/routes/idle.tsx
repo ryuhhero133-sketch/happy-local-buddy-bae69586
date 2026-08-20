@@ -8172,9 +8172,12 @@ function IdlePage() {
             display: "flex", flexDirection: "column", gap: 10
           }}>
             <button
-              onClick={() => openWindow("craft_hud", "Forja Portátil", (
-                <CraftHUD items={idle.items || {}} />
-              ))}
+              onClick={() => {
+                console.log("Opening Craft HUD...");
+                openWindow("craft_hud", "Forja Portátil", (
+                  <CraftHUD items={idle.items || {}} />
+                ));
+              }}
               style={{
                 width: 52, height: 52, borderRadius: 12,
                 background: "linear-gradient(135deg, #2d1b0e, #4a3728)",
