@@ -116,7 +116,7 @@ export const CollectionWindowContent: React.FC<CollectionWindowContentProps> = (
           <div className="grid grid-cols-4 gap-2">
             {filtered.map((p) => {
               const inTeam = teamUids.has(p.uid);
-              const color = TIER_COLOR[p.rarity] || '#f5cf6b';
+              const color = (TIER_COLOR as any)[p.rarity] || '#f5cf6b';
               return (
                 <button
                   key={p.uid}
