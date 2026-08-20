@@ -1911,22 +1911,41 @@ function IdlePage() {
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
 
   // --- RPG MODULAR WINDOWS ---
-  const [forgeWindowOpen, setForgeWindowOpen] = useState(true);
-  const [forgeMinimized, setForgeMinimized] = useState(true);
+  const [forgeWindowOpen, setForgeWindowOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("rubym.forge.open") !== "false";
+  });
+  const [forgeMinimized, setForgeMinimized] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("rubym.forge.minimized") !== "false";
+  });
   const [forgePos, setForgePos] = useState(() => {
     if (typeof window === "undefined") return { x: 1000, y: 600 };
+    const saved = localStorage.getItem("rubym.forge.pos");
+    if (saved) try { return JSON.parse(saved); } catch { }
     return { x: window.innerWidth - 100, y: window.innerHeight - 200 };
   });
-  const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number } | null>(null);
+  const [forgeShowOrbit, setForgeShowOrbit] = useState(false);
+  const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number; hasMoved: boolean } | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem("rubym.forge.open", String(forgeWindowOpen));
+    localStorage.setItem("rubym.forge.minimized", String(forgeMinimized));
+    localStorage.setItem("rubym.forge.pos", JSON.stringify(forgePos));
+  }, [forgeWindowOpen, forgeMinimized, forgePos]);
 
   useEffect(() => {
     const mm = (e: MouseEvent | TouchEvent) => {
       if (!forgeDragRef.current) return;
-      e.preventDefault(); // Evitar scroll ao arrastar no mobile
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       const dx = clientX - forgeDragRef.current.startX;
       const dy = clientY - forgeDragRef.current.startY;
+      
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        forgeDragRef.current.hasMoved = true;
+      }
+
       setForgePos({ x: forgeDragRef.current.winX + dx, y: forgeDragRef.current.winY + dy });
       forgeDragRef.current.isDragging = true;
     };
@@ -1936,10 +1955,6 @@ function IdlePage() {
       }
       forgeDragRef.current = null; 
     };
-    window.addEventListener("mousemove", mm);
-    window.addEventListener("mouseup", mu);
-    window.addEventListener("touchmove", mm);
-    window.addEventListener("touchend", mu);
     return () => {
       window.removeEventListener("mousemove", mm);
       window.removeEventListener("mouseup", mu);
@@ -11506,6 +11521,7 @@ function IdlePage() {
             startY: e.clientY,
             winX: forgePos.x,
             winY: forgePos.y,
+            hasMoved: false,
           };
         }}
         onTouchStart={(e) => {
@@ -11515,12 +11531,13 @@ function IdlePage() {
             startY: e.touches[0].clientY,
             winX: forgePos.x,
             winY: forgePos.y,
+            hasMoved: false,
           };
         }}
         onClick={(e) => {
           e.stopPropagation();
-          if (forgeDragRef.current && !forgeDragRef.current.isDragging) {
-             setForgeMinimized(!forgeMinimized);
+          if (forgeDragRef.current && !forgeDragRef.current.hasMoved) {
+             setForgeShowOrbit(!forgeShowOrbit);
              playClick();
           }
         }}
@@ -11530,47 +11547,83 @@ function IdlePage() {
           top: forgePos.y,
           zIndex: 4000,
           cursor: "grab",
-          transition: forgeMinimized ? "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
+          transition: !forgeDragRef.current?.isDragging ? "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
           display: forgeWindowOpen ? "block" : "none",
         }}
       >
         {forgeMinimized ? (
           <div
-            onClick={(e) => {
-               e.stopPropagation();
-               // O clique é tratado pelo pai agora
-            }}
             style={{
+              position: "relative",
               width: 56,
               height: 56,
-              background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
-              border: "3px solid #d97706",
-              borderRadius: "50%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 6px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(217,119,6,0.2)",
-              animation: "float 3s ease-in-out infinite",
-              position: "relative"
             }}
           >
-            <img 
-              src={chestClosedImg} 
-              alt="Forge" 
-              style={{ width: 32, height: 32, imageRendering: "pixelated" }} 
-            />
-            <div style={{
-              position: "absolute",
-              top: -2,
-              right: -2,
-              background: "#d97706",
-              color: "#fff",
-              fontSize: 9,
-              fontWeight: 900,
-              padding: "2px 4px",
-              borderRadius: 6,
-              border: "1px solid #fff"
-            }}>FORJA</div>
+            {/* Ícones Orbitais */}
+            {forgeShowOrbit && (
+              <>
+                <div 
+                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setForgeShowOrbit(false); playClick(); }}
+                  style={{
+                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    top: -45, left: 8, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s ease-out forwards"
+                  }}
+                >
+                  <img src={chestOpenImg} style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
+                </div>
+                <div 
+                  onClick={(e) => { e.stopPropagation(); playClick(); /* Ação de craft */ }}
+                  style={{
+                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    left: 60, top: 8, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.1s ease-out forwards"
+                  }}
+                >
+                  <FlaskConical size={20} color="#d97706" />
+                </div>
+              </>
+            )}
+
+            <div
+              style={{
+                width: 56,
+                height: 56,
+                background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+                border: "3px solid #d97706",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 6px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(217,119,6,0.2)",
+                animation: "float 3s ease-in-out infinite",
+                position: "relative",
+                zIndex: 2
+              }}
+            >
+              <img 
+                src={chestClosedImg} 
+                alt="Forge" 
+                style={{ width: 32, height: 32, imageRendering: "pixelated" }} 
+              />
+              <div style={{
+                position: "absolute",
+                top: -2,
+                right: -2,
+                background: "#d97706",
+                color: "#fff",
+                fontSize: 9,
+                fontWeight: 900,
+                padding: "2px 4px",
+                borderRadius: 6,
+                border: "1px solid #fff"
+              }}>FORJA</div>
+            </div>
           </div>
         ) : (
           <div
@@ -11718,6 +11771,10 @@ function IdlePage() {
         @keyframes float {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-10px); }
+        }
+        @keyframes orbPop {
+          0% { transform: scale(0); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
         }
 
         @keyframes fxpop {
