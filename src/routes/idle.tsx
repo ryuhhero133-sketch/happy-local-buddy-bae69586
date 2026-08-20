@@ -8154,7 +8154,54 @@ function IdlePage() {
 
 
 
+          {/* Botões do WindowManager (LAND, CRAFT, etc) */}
+          <div style={{
+            position: "absolute", bottom: 80, left: 12, zIndex: 60,
+            display: "flex", flexDirection: "column", gap: 10
+          }}>
+            <button
+              onClick={() => openWindow("craft", "Forja Ancestral", <CraftWindowContent />)}
+              style={{
+                width: 52, height: 52, borderRadius: 12,
+                background: "linear-gradient(135deg, #1e1e1e, #333)",
+                border: "2px solid #f5cf6b",
+                color: "#f5cf6b",
+                display: "grid", placeItems: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #f5cf6b88"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
+              title="Abrir Forja Ancestral (CRAFT)"
+            >
+              <Hammer size={28} />
+              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>FORJA</span>
+            </button>
+            
+            <button
+              onClick={() => openWindow("collection_window", "Coleção Real", null)}
+              style={{
+                width: 52, height: 52, borderRadius: 12,
+                background: "linear-gradient(135deg, #1e1e1e, #333)",
+                border: "2px solid #a066ff",
+                color: "#a066ff",
+                display: "grid", placeItems: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #a066ff88"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
+              title="Abrir Coleção (LAND)"
+            >
+              <Sparkles size={28} />
+              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>COLEÇÃO</span>
+            </button>
+          </div>
+
           {/* Clima estilo pixel-RPG */}
+
           {weather !== "clear" && (
             <div style={{
               position: "absolute", inset: 0, zIndex: 40,
@@ -14598,7 +14645,9 @@ function TabOverlay({
           boxShadow: "inset 0 0 24px rgba(184,134,42,0.25), 0 4px 18px rgba(0,0,0,0.4)",
         }}>
           {/* HUD topo da coleção */}
+          {/* Início Coleção (Removido daqui para janelas se desejado, mas mantido para fallback) */}
           <div style={{
+
             display: "flex", justifyContent: "space-between", alignItems: "center",
             marginBottom: 14, paddingBottom: 12,
             borderBottom: "2px solid rgba(184,134,42,0.5)",
