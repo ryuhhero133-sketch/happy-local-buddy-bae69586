@@ -11788,11 +11788,25 @@ function IdlePage() {
                                   q.current >= q.target && (
                                     <button 
                                       onClick={() => {
-                                        setIdle((prev: IdleState) => ({ ...prev, crystals: (prev.crystals || 0) + q.reward }));
+                                        setIdle((prev: IdleState) => {
+                                          const next = { ...prev };
+                                          if (q.reward.type === "crystals") {
+                                            next.crystals = (next.crystals || 0) + q.reward.amount;
+                                          } else if (q.reward.type === "item" && q.reward.id) {
+                                            const nextItems = { ...next.items };
+                                            nextItems[q.reward.id] = (nextItems[q.reward.id] ?? 0) + q.reward.amount;
+                                            next.items = nextItems;
+                                          } else if (q.reward.type === "level") {
+                                            next.trainerLevel = (next.trainerLevel || 1) + q.reward.amount;
+                                          }
+                                          return next;
+                                        });
                                         setForgeQuests((prev: any) => ({ ...prev, completedIds: [...(prev.completedIds || []), q.id] }));
 
                                         playBonus();
-                                        pushChat(`🎉 Missão Concluída: ${q.title}! +${q.reward} Cristais!`, "cap");
+                                        const rewardText = q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
+                                                          q.reward.type === "item" ? `${q.reward.amount}x ${q.reward.id}` : `+${q.reward.amount} Nível`;
+                                        pushChat(`🎉 Missão Concluída: ${q.title}! Ganhou ${rewardText}!`, "cap");
                                       }}
                                       style={{ background: "#059669", color: "#fff", border: "none", padding: "2px 6px", borderRadius: 4, cursor: "pointer", fontSize: 8 }}
                                     >
