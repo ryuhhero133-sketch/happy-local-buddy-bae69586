@@ -1971,8 +1971,57 @@ function IdlePage() {
   }, [forgeQuests]);
 
 
+  const forgeNotifications = useMemo(() => {
+    // 1. Quests check
+    const now = Date.now();
+    const lastReset = idle.lastQuestReset || 0;
+    const needsReset = (now - lastReset) > 86400000;
+    const currentStoneCount = Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0);
+    
+    const quests = [
+      ...Array.from({ length: Math.floor((idle.trainerLevel || 1) / 50) + 1 }).map((_, i) => ({
+        id: `lv_tier_${i}`,
+        target: (i + 1) * 50,
+        current: idle.trainerLevel || 1,
+        category: "static"
+      })),
+      { id: "kill_daily", target: 100, current: (idle.totalKills || 0) % 100, category: "daily" },
+      { id: "collect_stones", target: 5000, current: currentStoneCount, category: "static" }
+    ];
+
+    const completedIds = forgeQuests.completedIds || [];
+    const hasQuestReady = quests.some(q => {
+      const isDone = completedIds.includes(q.id);
+      if (q.category === "daily") return needsReset ? true : !isDone && q.current >= q.target;
+      return !isDone && q.current >= q.target;
+    });
+
+    // 2. Aura Egg check
+    const hasEggReady = auraEggCrafting?.active && auraEggCrafting.progress >= 100;
+
+    // 3. Upgradable books check
+    const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+      book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
+      book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
+      book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
+      book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "VIP 60d" },
+    };
+    const hasForgeUpgrades = Object.entries(UP).some(([id, rule]) => {
+      const n = idle.items?.[id] || 0;
+      return (idle.trainerLevel || 1) >= rule.trainerLv && n >= rule.cost;
+    });
+
+    return {
+      quests: hasQuestReady,
+      egg: hasEggReady,
+      forge: hasForgeUpgrades,
+      any: hasQuestReady || hasEggReady || hasForgeUpgrades
+    };
+  }, [idle, forgeQuests, auraEggCrafting]);
+
   useEffect(() => {
     localStorage.setItem("rubym.forge.open", String(forgeWindowOpen));
+
     localStorage.setItem("rubym.forge.minimized", String(forgeMinimized));
     localStorage.setItem("rubym.forge.pos", JSON.stringify(forgePos));
   }, [forgeWindowOpen, forgeMinimized, forgePos]);
@@ -11957,7 +12006,14 @@ function IdlePage() {
                   title="Abrir Forja"
                 >
                   <img src={chestOpenImg} style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
+                  {forgeNotifications.forge && (
+                    <div style={{
+                      position: "absolute", top: -2, right: -2, width: 12, height: 12, background: "#ef4444", border: "2px solid #fff", borderRadius: "50%",
+                      boxShadow: "0 0 5px rgba(239,68,68,0.5)", animation: "pulse 2s infinite"
+                    }} />
+                  )}
                 </div>
+
 
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
@@ -11996,7 +12052,14 @@ function IdlePage() {
                   title="Missões da Forja"
                 >
                   <Sparkles size={22} color="#d97706" />
+                  {forgeNotifications.quests && (
+                    <div style={{
+                      position: "absolute", top: -2, right: -2, width: 12, height: 12, background: "#ef4444", border: "2px solid #fff", borderRadius: "50%",
+                      boxShadow: "0 0 5px rgba(239,68,68,0.5)", animation: "pulse 2s infinite"
+                    }} />
+                  )}
                 </div>
+
 
                 <div 
                   onClick={(e) => { 
@@ -12023,7 +12086,15 @@ function IdlePage() {
                       <div style={{ width: `${auraEggCrafting.progress}%`, height: "100%", background: "linear-gradient(90deg, #4ade80, #60a5fa, #a855f7)" }} />
                     </div>
                   )}
+                  {forgeNotifications.egg && (
+                    <div style={{
+                      position: "absolute", top: -2, right: -2, width: 14, height: 14, background: "#ef4444", border: "2px solid #fff", borderRadius: "50%",
+                      boxShadow: "0 0 8px rgba(239,68,68,0.7)", animation: "pulse 1.5s infinite",
+                      display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 8, fontWeight: 900
+                    }}>!</div>
+                  )}
                 </div>
+
 
 
               </>
