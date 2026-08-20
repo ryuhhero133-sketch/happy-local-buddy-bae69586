@@ -11514,7 +11514,7 @@ function IdlePage() {
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48", isWindow: false },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff", isWindow: false },
             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true, isWindow: false },
-            { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b", isWindow: false },
+            { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b", isWindow: true },
           ] as const).map((t) => {
 
 
@@ -11574,8 +11574,21 @@ function IdlePage() {
                             onToggleLock={(uid) => toggleLock(uid)}
                           />
                         ), { width: 450, height: 550 });
+                      } else if (t.id === "wallet") {
+                        manager.openWindow("wallet", "🏦 Banco Medieval", (
+                          <WalletScreen 
+                            bank={idle.bank} 
+                            items={idle.items}
+                            collection={idle.collection || []}
+                            gifMap={gifMap}
+                            onOpenColecaoDetail={(uid) => {
+                              const p = (idle.collection || []).find(x => x.uid === uid);
+                              if (p) setStatsCardPet(p as any);
+                            }}
+                            onExchange={(dir, amt) => onExchange(dir, amt)} 
+                          />
+                        ), { width: 500, height: 600 });
                       }
-
                     }
                     return;
                   }
@@ -14376,14 +14389,10 @@ function TabOverlay({
       )}
 
       {tab === "wallet" && (
-        <WalletScreen 
-          bank={bank} 
-          items={items}
-          collection={collection}
-          gifMap={gifMap}
-          onOpenColecaoDetail={onOpenColecaoDetail}
-          onExchange={onExchange} 
-        />
+        <div style={{ color: "#c8b8d0", fontSize: 13, textAlign: "center", padding: 40 }}>
+          O banco agora é uma janela modular <strong>🏦 Banco Medieval</strong>.<br/>
+          Clique no botão "Banco Medieval" na barra inferior para abrir.
+        </div>
       )}
 
       {tab === "market" && (
