@@ -1923,7 +1923,7 @@ function IdlePage() {
     if (typeof window === "undefined") return { x: 1000, y: 600 };
     const saved = localStorage.getItem("rubym.forge.pos");
     if (saved) try { return JSON.parse(saved); } catch { }
-    return { x: window.innerWidth - 100, y: window.innerHeight - 200 };
+    return { x: window.innerWidth - 80, y: window.innerHeight - 150 };
   });
   const [forgeShowOrbit, setForgeShowOrbit] = useState(false);
   const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number; hasMoved: boolean } | null>(null);
