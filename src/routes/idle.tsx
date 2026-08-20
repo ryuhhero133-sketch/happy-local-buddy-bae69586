@@ -11945,13 +11945,6 @@ function IdlePage() {
                 <div 
                   onClick={(e) => { 
                     e.stopPropagation(); 
-                    if (auraEggCrafting?.active) {
-                      setForgeMinimized(false);
-                      setShowAuraEggDetails(true);
-                      setForgeShowOrbit(false);
-                      playClick();
-                      return;
-                    }
                     setForgeMinimized(false);
                     setShowForgeQuests(false);
                     setShowAuraEggDetails(true);
@@ -11959,14 +11952,14 @@ function IdlePage() {
                     playClick();
                   }}
                   style={{
-                    position: "absolute", width: 46, height: 46, background: "#0f172a", border: "3px solid #4ade80", borderRadius: "50%",
+                    position: "absolute", width: 48, height: 48, background: "#0f172a", border: "3px solid #4ade80", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 85, top: -5, boxShadow: "0 0 15px rgba(74,222,128,0.5)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.4s ease-out forwards, eggGlowTri 3s linear infinite"
+                    left: -35, top: -25, boxShadow: "0 0 15px rgba(74,222,128,0.5)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.4s ease-out forwards, eggGlowTri 3s linear infinite", zIndex: 1
                   }}
                   title="Forja de Aura Egg"
                 >
-                  <FlaskConical size={24} color="#fff" className={auraEggCrafting?.active ? "animate-pulse" : ""} />
+                  <div style={{ fontSize: 24 }}>🥚</div>
                   {auraEggCrafting?.active && (
                     <div style={{
                       position: "absolute", bottom: -12, width: "100%", height: 5, background: "#334155", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)"
@@ -11975,6 +11968,7 @@ function IdlePage() {
                     </div>
                   )}
                 </div>
+
 
               </>
             )}
