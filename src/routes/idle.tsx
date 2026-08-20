@@ -11617,6 +11617,20 @@ function IdlePage() {
                 const isLocked = !canClaim && !isClaimed;
                 const isVip = !!idle.isVip;
 
+                const getDailyReward = (d: number) => {
+                  switch(d) {
+                    case 1: return { img: ballPokeImg, label: "500 Gold + 20 Pokeballs", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "200💎 + 100◓" };
+                    case 2: return { img: ballGreatImg, label: "1k Gold + 10 Great Balls", vipImg: bookExpImg, vipLabel: "200💎 + Rare Candy" };
+                    case 3: return { img: ballUltraImg, label: "1.5k Gold + 5 Ultra Balls", vipImg: assetUrlFromJson(orbXpSupremeAsset), vipLabel: "200💎 + Incenso 24h" };
+                    case 4: return { img: bookExpImg, label: "2k Gold + 1 Rare Candy", vipImg: assetUrlFromJson(raikouAsset), vipLabel: "200💎 + Pokemon Épico" };
+                    case 5: return { img: premiumBoxImg, label: "2.5k Gold + Premium Box", vipImg: assetUrlFromJson(iceBallIconAsset), vipLabel: "200💎 + Master Ball" };
+                    case 6: return { img: chestAmuletImg, label: "3k Gold + Amulet Chest", vipImg: assetUrlFromJson(catEggsAsset), vipLabel: "200💎 + Ovo Roxo" };
+                    case 7: return { img: assetUrlFromJson(iconCashPackage), label: "5k Gold + Super Pack", vipImg: assetUrlFromJson(blackMiticPlusEggIcon), vipLabel: "Master Ball + Egg + Skin" };
+                    default: return { img: ballPokeImg, label: "Reward", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "VIP Bonus" };
+                  }
+                };
+                const rew = getDailyReward(day);
+
                 return (
                   <div key={day} style={{ 
                     display: "flex", 
@@ -11627,15 +11641,17 @@ function IdlePage() {
                     border: "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
                     boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.2)" : "none",
-                    gridColumn: day === 7 ? "span 4" : "span 1"
+                    gridColumn: day === 7 ? "span 4" : "span 1",
+                    height: 195
                   }}>
-                    {/* Linha Normal */}
                     <div style={{
                       background: "rgba(255,255,255,0.95)", 
                       padding: "10px", 
+                      flex: 1,
                       display: "flex", 
                       flexDirection: "column",
                       alignItems: "center", 
+                      justifyContent: "space-between",
                       gap: 4,
                       opacity: isLocked ? 0.8 : 1,
                       borderBottom: "1px solid rgba(0,0,0,0.05)",
@@ -11645,7 +11661,7 @@ function IdlePage() {
                        <div style={{ color: "#f59e0b", fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>DIA {day}</div>
                        <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.03)", borderRadius: 10 }}>
                          <img 
-                           src={day === 7 ? assetUrlFromJson(iconCashPackage) : ballPokeImg} 
+                           src={rew.img} 
                            alt=""
                            style={{ 
                              width: 32, height: 32, objectFit: "contain",
@@ -11653,8 +11669,8 @@ function IdlePage() {
                            }} 
                          />
                        </div>
-                       <div style={{ fontSize: 9, fontWeight: 900, color: "#1a0f2e", opacity: 0.8, lineHeight: 1.1 }}>
-                         {day === 7 ? "2k Gold + 200 Pokeballs + 100 Great" : "500 Gold + 20 Pokeballs"}
+                       <div style={{ fontSize: 9, fontWeight: 900, color: "#1a0f2e", opacity: 0.8, lineHeight: 1.1, minHeight: 22 }}>
+                         {rew.label}
                        </div>
                        
                        {canClaim ? (
