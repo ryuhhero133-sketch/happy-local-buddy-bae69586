@@ -12141,7 +12141,7 @@ function IdlePage() {
                             </div>
                          </div>
 
-                        <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900, marginBottom: 8, textShadow: "0 1px 1px white" }}>Custo Base & Ingredientes Extras:</div>
+                        <div style={{ fontSize: 14, color: "#fef3c7", fontWeight: 900, marginBottom: 8, textShadow: "0 2px 2px rgba(0,0,0,0.5)" }}>Custo Base & Ingredientes Extras:</div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 15 }}>
                            <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#fff", padding: "4px 8px", borderRadius: 6, border: "2px solid #c7d2fe", opacity: (idle.items?.safira_verde ?? 0) >= 1 ? 1 : 0.5 }}>
                               <ItemPixelIcon id="safira_verde" size={16} />
