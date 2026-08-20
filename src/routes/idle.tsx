@@ -12095,17 +12095,19 @@ function IdlePage() {
                      🔮 Forja de Aura Egg 🔮
                    </div>
                    
-                    <div style={{ 
-                      background: `url(${assetUrlFromJson(auraEggBgAsset)})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      border: "2px solid #c7d2fe", 
-                      borderRadius: 12, 
-                      padding: 15, 
-                      marginBottom: 15,
-                      position: "relative",
-                      overflow: "hidden"
-                    }}>
+                     <div style={{ 
+                       background: `linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url(${assetUrlFromJson(auraEggBgAsset)})`,
+                       backgroundSize: "cover",
+                       backgroundPosition: "center",
+                       border: "3px solid #818cf8", 
+                       borderRadius: 14, 
+                       padding: 15, 
+                       marginBottom: 15,
+                       position: "relative",
+                       overflow: "hidden",
+                       boxShadow: "0 0 25px rgba(99, 102, 241, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.2)",
+                       filter: "brightness(1.15) saturate(1.1)"
+                     }}>
                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(238, 242, 255, 0.75)", zIndex: 0 }} />
 
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
