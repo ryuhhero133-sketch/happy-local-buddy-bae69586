@@ -11577,8 +11577,8 @@ function IdlePage() {
           display: "grid", placeItems: "center", padding: "20px 0"
         }}>
           <div style={{
-            width: "min(400px, 95vw)", 
-            maxHeight: "90vh",
+            width: "min(480px, 95vw)", 
+            maxHeight: "85vh",
             background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
             border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
             boxShadow: "0 0 60px rgba(245,207,107,0.4), 0 0 120px rgba(0,0,0,0.8)",
@@ -11598,7 +11598,16 @@ function IdlePage() {
               <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, position: "relative", zIndex: 1, overflowY: "auto", paddingRight: 5, flex: 1 }}>
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: 12, 
+              position: "relative", 
+              zIndex: 1, 
+              overflowY: "auto", 
+              paddingRight: 5, 
+              flex: 1 
+            }}>
               {[1, 2, 3, 4, 5, 6, 7].map(day => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
@@ -11618,6 +11627,7 @@ function IdlePage() {
                     border: "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
                     boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.2)" : "none",
+                    gridColumn: day === 7 ? "span 2" : "span 1"
                   }}>
                     {/* Linha Normal */}
                     <div style={{
