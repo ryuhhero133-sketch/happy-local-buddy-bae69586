@@ -11405,23 +11405,19 @@ function IdlePage() {
                     return;
                   }
                   playClick();
-                  if ((t as any).isWindow) {
-                    if (t.id === "forge_win") setForgeWindowOpen(prev => !prev);
-                  } else {
-                    setTab(t.id as typeof tab);
-                  }
+                  setTab(t.id as typeof tab);
                 }}
                 title={isDisabled ? `${t.label} (em breve)` : t.label}
                 style={{
                   flex: 1, maxWidth: 130,
-                  background: ((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? `linear-gradient(180deg, ${color}33 0%, ${color}11 100%)` : "transparent",
-                  color: isDisabled ? "#6a5a70" : (((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? color : "#c8b8d0"),
-                  border: ((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? `1px solid ${color}88` : "1px solid transparent",
+                  background: active ? `linear-gradient(180deg, ${color}33 0%, ${color}11 100%)` : "transparent",
+                  color: isDisabled ? "#6a5a70" : (active ? color : "#c8b8d0"),
+                  border: active ? `1px solid ${color}88` : "1px solid transparent",
                   padding: "8px 6px", cursor: isDisabled ? "not-allowed" : "pointer",
                   borderRadius: 10, display: "flex", flexDirection: "column",
                   alignItems: "center", gap: 4, fontSize: 11, position: "relative",
                   transition: "background 150ms, color 150ms, border-color 150ms",
-                  boxShadow: ((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? `0 0 14px ${color}66, inset 0 1px 0 ${color}44` : "none",
+                  boxShadow: active ? `0 0 14px ${color}66, inset 0 1px 0 ${color}44` : "none",
                   opacity: isDisabled ? 0.55 : 1,
                 }}
               >
@@ -11434,10 +11430,10 @@ function IdlePage() {
                     width: 34, height: 34, imageRendering: "pixelated",
                     filter: isDisabled
                       ? "grayscale(1) brightness(0.7) drop-shadow(0 2px 2px rgba(0,0,0,0.6))"
-                      : (((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen))
+                      : (active
                         ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 2px 2px rgba(0,0,0,0.5))`
                         : "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) saturate(0.85) brightness(0.9)"),
-                    transform: ((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? "translateY(-2px) scale(1.08)" : "none",
+                    transform: active ? "translateY(-2px) scale(1.08)" : "none",
                     transition: "transform 150ms, filter 150ms",
                   }}
                 />
