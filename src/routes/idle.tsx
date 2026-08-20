@@ -10526,7 +10526,30 @@ function IdlePage() {
                                     />
                                   );
                                 })}
-                              </svg>
+                                </svg>
+
+                              {/* Efeito de Neve Leve */}
+                              <div style={{ position: "absolute", inset: 0, zIndex: 4, pointerEvents: "none", overflow: "hidden" }}>
+                                {Array.from({ length: 20 }).map((_, i) => (
+                                  <div
+                                    key={`snow-${i}`}
+                                    style={{
+                                      position: "absolute",
+                                      left: `${Math.random() * 100}%`,
+                                      top: `-10px`,
+                                      width: `${Math.random() * 4 + 2}px`,
+                                      height: `${Math.random() * 4 + 2}px`,
+                                      background: "white",
+                                      borderRadius: "50%",
+                                      opacity: 0.6,
+                                      filter: "blur(1px)",
+                                      animation: `snowFall ${Math.random() * 10 + 10}s linear infinite`,
+                                      animationDelay: `${Math.random() * 10}s`
+                                    }}
+                                  />
+                                ))}
+                              </div>
+
 
                               {/* Efeito de Ondas de Água no Fundo */}
                               <div style={{
@@ -10558,7 +10581,9 @@ function IdlePage() {
                                   backgroundImage: `url(${assetUrlFromJson(worldMapRefAsset)})`,
                                   backgroundSize: "cover",
                                   backgroundPosition: "center",
-                                  animation: "islandFloat 10s infinite ease-in-out"
+                                  animation: "islandFloat 10s infinite ease-in-out",
+                                  transform: "translate(0, 0)" // Forçar parada se o usuário preferir via CSS override posterior, mas aqui mantemos o float suave solicitado no prompt anterior, por ora vou desativar o float se a instrução atual diz "deixa ela parada"
+
                                 }}>
                                   {/* Overlay de cor para dar um feeling de "profundezas" no Continente IV se necessário, 
                                       mas por padrão usamos a imagem original para os continentes 1-3 */}
@@ -10709,29 +10734,45 @@ function IdlePage() {
                                         animation: ok ? "obsidianGlow 2s infinite alternate ease-in-out" : "none"
                                       }}>
                                          {/* Representação visual mais robusta do local (pixel-art feeling) */}
-                                         <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                                           {/* Símbolo do local com efeito de profundidade */}
-                                           <div style={{ position: "absolute", inset: 0, opacity: 0.3, filter: "blur(4px)", transform: "translateY(2px)" }}>
-                                             {pin.type === "castle" ? "🏰" :
-                                              pin.type === "village" ? "🏡" :
-                                              pin.type === "volcano" ? "🌋" :
-                                              pin.type === "cave" ? "💎" :
-                                              pin.type === "forest" ? "🌿" :
-                                              pin.type === "beach" ? "🐚" :
-                                              pin.type === "mountain" ? "🗻" :
-                                              pin.type === "snow" ? "❄️" : "📍"}
-                                           </div>
-                                           <div style={{ position: "relative" }}>
-                                             {pin.type === "castle" ? "🏰" :
-                                              pin.type === "village" ? "🏡" :
-                                              pin.type === "volcano" ? "🌋" :
-                                              pin.type === "cave" ? "💎" :
-                                              pin.type === "forest" ? "🌿" :
-                                              pin.type === "beach" ? "🐚" :
-                                              pin.type === "mountain" ? "🗻" :
-                                              pin.type === "snow" ? "❄️" : "📍"}
-                                           </div>
-                                         </div>
+                                          <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                                            {/* Símbolo do local com efeito de profundidade e brilho RPG */}
+                                            <div style={{ position: "absolute", inset: 0, opacity: 0.5, filter: "blur(8px)", transform: "translateY(2px)" }}>
+                                              {pin.type === "castle" ? "🏰" :
+                                               pin.type === "village" ? "🏡" :
+                                               pin.type === "volcano" ? "🌋" :
+                                               pin.type === "cave" ? "💎" :
+                                               pin.type === "forest" ? "🌿" :
+                                               pin.type === "beach" ? "🐚" :
+                                               pin.type === "mountain" ? "🗻" :
+                                               pin.type === "snow" ? "❄️" :
+                                               pin.type === "island" ? "🏝️" : "📍"}
+                                            </div>
+                                            <div style={{ 
+                                              position: "relative",
+                                              filter: ok ? "drop-shadow(0 0 12px rgba(245,207,107,0.6))" : "none",
+                                              transition: "all 0.4s ease"
+                                            }}>
+                                              {pin.type === "castle" ? (
+                                                <div style={{ fontSize: 32, filter: "drop-shadow(0 0 5px gold)" }}>🏰</div>
+                                              ) : pin.type === "village" ? (
+                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 5px #7ef27a)" }}>🏡</div>
+                                              ) : pin.type === "volcano" ? (
+                                                <div style={{ fontSize: 32, filter: "drop-shadow(0 0 8px #ff4d4d)" }}>🌋</div>
+                                              ) : pin.type === "cave" ? (
+                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 10px #70d2ff)" }}>💎</div>
+                                              ) : pin.type === "forest" ? (
+                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 8px #4ade80)" }}>🌿</div>
+                                              ) : pin.type === "beach" ? (
+                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 8px #38bdf8)" }}>🐚</div>
+                                              ) : pin.type === "mountain" ? (
+                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 5px #94a3b8)" }}>🗻</div>
+                                              ) : pin.type === "snow" ? (
+                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 8px #e0f2fe)" }}>❄️</div>
+                                              ) : pin.type === "island" ? (
+                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 10px #fbbf24)" }}>🏝️</div>
+                                              ) : "📍"}
+                                            </div>
+                                          </div>
 
                                       </div>
 
@@ -10773,8 +10814,10 @@ function IdlePage() {
                             @keyframes popIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
                             @keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
                             @keyframes obsidianGlow { from { filter: brightness(1) drop-shadow(0 0 5px #a066ff); } to { filter: brightness(1.5) drop-shadow(0 0 20px #a066ff); } }
-                            @keyframes worldFloating { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-                            @keyframes islandFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(10px, 15px); } }
+                             @keyframes worldFloating { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+                             @keyframes islandFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(0,0); } }
+                             @keyframes snowFall { 0% { transform: translateY(-100%) translateX(-10%); opacity: 0; } 50% { opacity: 0.6; } 100% { transform: translateY(1000%) translateX(10%); opacity: 0; } }
+
                             .c4-ring { animation: c4RingRotate 4s linear infinite; }
                             @keyframes c4RingRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                           `}</style>
