@@ -11893,15 +11893,16 @@ function IdlePage() {
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
-                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    top: -65, left: -45, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s ease-out forwards"
+                    left: 20, top: -75, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s ease-out forwards", zIndex: 1
                   }}
                   title="Abrir Forja"
                 >
                   <img src={chestOpenImg} style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
                 </div>
+
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
