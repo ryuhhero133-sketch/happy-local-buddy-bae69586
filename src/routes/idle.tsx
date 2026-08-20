@@ -12231,11 +12231,12 @@ function IdlePage() {
                             if (currentStep >= steps) {
                               clearInterval(interval);
                               const roll = Math.random();
+                              const boost = 1 + finalExtraChance;
                               let resultRarity: Rarity = "common";
-                              if (roll < 0.1) resultRarity = "epic";
-                              else if (roll < 0.4) resultRarity = "rare";
+                              if (roll < 0.1 * boost) resultRarity = "epic";
+                              else if (roll < 0.4 * boost) resultRarity = "rare";
 
-                              const success = Math.random() > 0.15;
+                              const success = Math.random() > (0.15 * (1 - finalExtraChance));
                               if (success) {
                                 const eggId = `egg_${resultRarity}` as any;
                                 setIdle(prev => ({
