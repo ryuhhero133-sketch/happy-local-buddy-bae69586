@@ -1599,7 +1599,6 @@ function IdlePage() {
     },
   });
 
-  const [tab, setTab] = useState<"batalha" | "pokemon" | "mochila" | "tarefas" | "loja" | "colecao" | "inicio" | "melhorias" | "pokedex" | "market" | "wallet" | "evento" | "config">("inicio");
 
 
   // ============= Cloud FULL BLOB (game_saves) =============
