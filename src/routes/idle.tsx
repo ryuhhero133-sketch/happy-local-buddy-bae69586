@@ -12095,17 +12095,19 @@ function IdlePage() {
                      🔮 Forja de Aura Egg 🔮
                    </div>
                    
-                    <div style={{ 
-                      background: `url(${assetUrlFromJson(auraEggBgAsset)})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      border: "2px solid #c7d2fe", 
-                      borderRadius: 12, 
-                      padding: 15, 
-                      marginBottom: 15,
-                      position: "relative",
-                      overflow: "hidden"
-                    }}>
+                     <div style={{ 
+                       background: `linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url(${assetUrlFromJson(auraEggBgAsset)})`,
+                       backgroundSize: "cover",
+                       backgroundPosition: "center",
+                       border: "3px solid #818cf8", 
+                       borderRadius: 14, 
+                       padding: 15, 
+                       marginBottom: 15,
+                       position: "relative",
+                       overflow: "hidden",
+                       boxShadow: "0 0 25px rgba(99, 102, 241, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.2)",
+                       filter: "brightness(1.15) saturate(1.1)"
+                     }}>
                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(238, 242, 255, 0.75)", zIndex: 0 }} />
 
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
@@ -12119,27 +12121,27 @@ function IdlePage() {
                       </div>
 
                       <div style={{ position: "relative", zIndex: 1 }}>
-                        <div style={{ fontSize: 10, color: "#3730a3", fontWeight: 800, marginBottom: 8 }}>Probabilidades:</div>
+                        <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900, marginBottom: 8, textShadow: "0 1px 1px white" }}>Probabilidades:</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
-                              <span style={{ color: "#6b7280" }}>Ovo Comum</span>
-                              <span>{Math.floor(50 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
+                              <span style={{ color: "#4b5563" }}>Ovo Comum</span>
+                              <span style={{ color: "#1f2937" }}>{Math.floor(50 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
                            </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
-                              <span style={{ color: "#3b82f6" }}>Ovo Raro</span>
-                              <span>{Math.floor(30 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
+                              <span style={{ color: "#2563eb" }}>Ovo Raro</span>
+                              <span style={{ color: "#1d4ed8" }}>{Math.floor(30 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
                            </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
-                              <span style={{ color: "#a855f7" }}>Ovo Épico</span>
-                              <span>{Math.floor(10 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
+                              <span style={{ color: "#9333ea" }}>Ovo Épico</span>
+                              <span style={{ color: "#7e22ce" }}>{Math.floor(10 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
                            </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
-                              <span style={{ color: "#ef4444" }}>Falha Crítica</span>
-                              <span>{Math.max(1, Math.floor(15 * (1 - (auraEggDetails?.extraChance || 0))))}%</span>
+                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
+                              <span style={{ color: "#dc2626" }}>Falha Crítica</span>
+                              <span style={{ color: "#b91c1c" }}>{Math.max(1, Math.floor(15 * (1 - (auraEggDetails?.extraChance || 0))))}%</span>
                            </div>
                         </div>
 
-                        <div style={{ fontSize: 10, color: "#3730a3", fontWeight: 800, marginBottom: 8 }}>Custo Base & Ingredientes Extras:</div>
+                        <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900, marginBottom: 8, textShadow: "0 1px 1px white" }}>Custo Base & Ingredientes Extras:</div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 15 }}>
                            <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#fff", padding: "4px 8px", borderRadius: 6, border: "2px solid #c7d2fe", opacity: (idle.items?.safira_verde ?? 0) >= 1 ? 1 : 0.5 }}>
                               <ItemPixelIcon id="safira_verde" size={16} />
@@ -12254,15 +12256,19 @@ function IdlePage() {
                         }}
                         style={{ 
                           width: "100%", 
-                          background: auraEggCrafting?.active ? "#94a3b8" : "#6366f1", 
+                          background: auraEggCrafting?.active 
+                            ? "linear-gradient(135deg, #94a3b8, #64748b)" 
+                            : "linear-gradient(135deg, #6366f1, #4f46e5)", 
                           color: "#fff", 
                           border: "none", 
-                          padding: "10px", 
-                          borderRadius: 8, 
+                          padding: "12px", 
+                          borderRadius: 10, 
                           fontWeight: 900, 
-                          fontSize: 11, 
+                          fontSize: 13, 
                           cursor: auraEggCrafting?.active ? "not-allowed" : "pointer",
-                          boxShadow: "0 4px 0 #4f46e5"
+                          boxShadow: auraEggCrafting?.active ? "none" : "0 4px 12px rgba(79, 70, 229, 0.4), inset 0 1px 1px rgba(255,255,255,0.3)",
+                          transition: "all 0.2s ease",
+                          textShadow: "0 1px 2px rgba(0,0,0,0.2)"
                         }}
                       >
                         {auraEggCrafting?.active ? `FORJANDO (${Math.floor(auraEggCrafting.progress)}%)` : "INICIAR FORJA MÍSTICA"}
@@ -12271,7 +12277,18 @@ function IdlePage() {
 
                    <button 
                     onClick={() => setShowAuraEggDetails(false)}
-                    style={{ width: "100%", background: "#4f46e5", color: "#fff", border: "none", padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 10, cursor: "pointer" }}
+                    style={{ 
+                      width: "100%", 
+                      background: "linear-gradient(135deg, #4f46e5, #4338ca)", 
+                      color: "#fff", 
+                      border: "none", 
+                      padding: "10px", 
+                      borderRadius: 10, 
+                      fontWeight: 900, 
+                      fontSize: 12, 
+                      cursor: "pointer",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                    }}
                    >
                      VOLTAR
                    </button>
