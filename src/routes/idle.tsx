@@ -11585,12 +11585,12 @@ function IdlePage() {
 
               ×
             </button>
-            <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <div style={{ textAlign: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
               <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 RECOMPENSA DIÁRIA</div>
               <div style={{ fontSize: 12, color: "#c8b8d0", marginTop: 4 }}>Colete prêmios incríveis a cada 24 horas!</div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, position: "relative", zIndex: 1 }}>
               {[1, 2, 3, 4, 5, 6, 7].map(day => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
@@ -11601,11 +11601,11 @@ function IdlePage() {
 
                 return (
                   <div key={day} style={{
-                    background: isClaimed ? "rgba(34,197,94,0.2)" : (canClaim ? "rgba(245,207,107,0.15)" : "rgba(255,255,255,0.05)"),
+                    background: isClaimed ? "rgba(34,197,94,0.3)" : (canClaim ? "rgba(245,207,107,0.3)" : "rgba(0,0,0,0.5)"),
                     border: `2px solid ${isClaimed ? "#22c55e" : (canClaim ? "#f5cf6b" : "#4a3b5c")}`,
                     borderRadius: 12, padding: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
-                    opacity: isLocked ? 0.6 : 1, transition: "all 0.2s",
-                    boxShadow: canClaim ? "0 0 15px rgba(245,207,107,0.4)" : "none",
+                    opacity: isLocked ? 0.8 : 1, transition: "all 0.2s",
+                    boxShadow: canClaim ? "0 0 15px rgba(245,207,107,0.6)" : "none",
                   }}>
                     <div style={{ fontSize: 10, fontWeight: 900, color: isClaimed ? "#22c55e" : "#f5cf6b" }}>DIA {day}</div>
                     <div style={{ fontSize: 24, filter: isClaimed ? "grayscale(0.5)" : "none" }}>
@@ -11696,7 +11696,8 @@ function IdlePage() {
               style={{
                 marginTop: 20, width: "100%", padding: "12px", background: "rgba(245,207,107,0.1)",
                 border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b",
-                fontWeight: 900, fontSize: 12, cursor: "pointer", transition: "all 0.2s"
+                fontWeight: 900, fontSize: 12, cursor: "pointer", transition: "all 0.2s",
+                position: "relative", zIndex: 1
               }}
             >
               FECHAR CALENDÁRIO
@@ -11704,6 +11705,7 @@ function IdlePage() {
           </div>
         </div>
       )}
+
 
 
       {tab === "evento" && (
