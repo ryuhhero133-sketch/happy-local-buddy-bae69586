@@ -11620,11 +11620,11 @@ function IdlePage() {
                 const getDailyReward = (d: number) => {
                   switch(d) {
                     case 1: return { img: ballPokeImg, label: "500 Gold + 20 Pokeballs", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "200💎 + 100◓" };
-                    case 2: return { img: ballGreatImg, label: "1k Gold + 10 Great Balls", vipImg: bookExpImg, vipLabel: "200💎 + Rare Candy" };
-                    case 3: return { img: ballUltraImg, label: "1.5k Gold + 5 Ultra Balls", vipImg: assetUrlFromJson(orbXpSupremeAsset), vipLabel: "200💎 + Incenso 24h" };
-                    case 4: return { img: bookExpImg, label: "2k Gold + 1 Rare Candy", vipImg: assetUrlFromJson(raikouAsset), vipLabel: "200💎 + Pokemon Épico" };
+                    case 2: return { img: ballGreatImg, label: "1k Gold + 10 Great Balls", vipImg: bookExpImg, vipLabel: "200💎 + Livro XP" };
+                    case 3: return { img: ballUltraImg, label: "1.5k Gold + 5 Ultra Balls", vipImg: orbXpSupremeUrl, vipLabel: "200💎 + Incenso 24h" };
+                    case 4: return { img: bookExpImg, label: "2k Gold + 1 Livro EXP", vipImg: assetUrlFromJson(raikouAsset), vipLabel: "200💎 + Pokemon Épico" };
                     case 5: return { img: premiumBoxImg, label: "2.5k Gold + Premium Box", vipImg: assetUrlFromJson(iceBallIconAsset), vipLabel: "200💎 + Master Ball" };
-                    case 6: return { img: chestAmuletImg, label: "3k Gold + Amulet Chest", vipImg: assetUrlFromJson(catEggsAsset), vipLabel: "200💎 + Ovo Roxo" };
+                    case 6: return { img: chestAmuletImg, label: "3k Gold + Amulet Chest", vipImg: catEggsUrl, vipLabel: "200💎 + Ovo Roxo" };
                     case 7: return { img: assetUrlFromJson(iconCashPackage), label: "5k Gold + Super Pack", vipImg: assetUrlFromJson(blackMiticPlusEggIcon), vipLabel: "Master Ball + Egg + Skin" };
                     default: return { img: ballPokeImg, label: "Reward", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "VIP Bonus" };
                   }
