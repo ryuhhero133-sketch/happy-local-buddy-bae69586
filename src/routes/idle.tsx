@@ -17386,8 +17386,9 @@ function TabOverlay({
         </div>
       )}
 
-
+      {tab === "config" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 520 }}>
+
           <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.5 }}>
             Ajuste os sons e a música do jogo. A música toca em loop de fundo enquanto você joga.
           </div>
