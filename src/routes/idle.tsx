@@ -7709,7 +7709,20 @@ function IdlePage() {
                   +{team.length - 1} no banco (minimizado)
                 </div>
               )}
-              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
+              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => openWindow("collection_window", "Coleção Real", (
+                <CollectionWindowContent
+                  collection={(idle.collection || []) as any as PetInstance[]}
+                  maxCollection={MAX_COLLECTION}
+                  caughtCount={idle.caughtSpecies.length}
+                  teamUids={new Set(team.map(p => p.uid))}
+                  onSelectPokemon={(uid) => {
+                    const found = (idle.collection || []).find(p => p.uid === uid);
+                    if (found) {
+                      onPickTeamFromColecao(found);
+                    }
+                  }}
+                />
+              ))}>Ver todos</button>
             </div>
           </Panel>
 
@@ -7899,7 +7912,7 @@ function IdlePage() {
                 </div>
               );
             })()}
-            <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
+            <button onClick={() => { playClick(); openWindow("config_window", "Configurações", <div className="p-4 text-[#f3e5ab]">Configurações em breve...</div>); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
               onClick={() => { playClick(); pushChat("🏆 Ranked temporariamente bloqueado.", "info"); }}
               style={{
@@ -11180,8 +11193,25 @@ function IdlePage() {
                     );
                   })()}
                 </div>
-              );
-            })()}
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+              {renderMap(true, false)}
+              <button
+                onClick={() => { playClick(); setBigMapOpen(true); }}
+                title="Abrir mapa grande"
+                style={{
+                  position: "absolute", top: 4, right: 4,
+                  background: "rgba(11,5,16,0.8)", border: "1px solid #f5cf6b",
+                  color: "#f5cf6b", borderRadius: 4, padding: "2px 6px",
+                  fontSize: 11, fontWeight: 800, cursor: "pointer",
+                  zIndex: 10
+                }}
+              >⛶</button>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
+              {map.name}
+            </div>
+          </div>
           </Panel>
 
 
@@ -15065,12 +15095,6 @@ function TabOverlay({
             </div>
             );
           })()}
-        </div>
-      )}
-
-
-
-      {tab === "pokedex" && (
         <div style={{
           background: "linear-gradient(180deg, #2a0510, #1a0510)",
           border: "2px solid #e11d48",
