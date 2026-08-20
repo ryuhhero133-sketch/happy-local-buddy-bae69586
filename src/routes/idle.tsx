@@ -11692,7 +11692,25 @@ function IdlePage() {
                          DIA {day} {(day === 7 || day === 10) && "🌟"}
                        </div>
 
-                       <div style={{ width: 60, height: 60, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.05)", borderRadius: 12, boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)" }}>
+                       <div style={{ 
+                         width: (day === 7 || day === 10) ? 90 : 60, 
+                         height: (day === 7 || day === 10) ? 90 : 60, 
+                         display: "grid", 
+                         placeItems: "center", 
+                         background: (day === 7 || day === 10) ? "radial-gradient(circle, rgba(245,207,107,0.2) 0%, rgba(0,0,0,0.1) 70%)" : "rgba(0,0,0,0.05)", 
+                         borderRadius: (day === 7 || day === 10) ? 20 : 12, 
+                         boxShadow: (day === 7 || day === 10) ? "0 0 20px rgba(245,207,107,0.3), inset 0 0 10px rgba(0,0,0,0.1)" : "inset 0 0 10px rgba(0,0,0,0.05)",
+                         position: "relative"
+                       }}>
+                         {(day === 7 || day === 10) && (
+                           <div style={{
+                             position: "absolute", inset: -10,
+                             border: "2px solid #f5cf6b", borderRadius: 25,
+                             animation: "rotate 10s linear infinite",
+                             opacity: 0.3
+                           }} />
+                         )}
+
                          <img 
                            src={rew.img} 
                            alt=""
