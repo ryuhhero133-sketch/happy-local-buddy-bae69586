@@ -10522,18 +10522,58 @@ function IdlePage() {
                                 {WORLD_PINS.map((pin, i) => {
                                   if (i === 0) return null;
                                   const prev = WORLD_PINS[i - 1];
+                                  const targetMap = IDLE_MAPS[pin.id];
+                                  const prevMap = IDLE_MAPS[prev.id];
+                                  
+                                  // Lógica de liberação baseada em nível (exemplo simplificado)
+                                  const isPinUnlocked = (idle.trainerLevel ?? 1) >= (targetMap?.minLevel ?? 0);
+                                  const isPrevUnlocked = (idle.trainerLevel ?? 1) >= (prevMap?.minLevel ?? 0);
+                                  const isPathUnlocked = isPinUnlocked && isPrevUnlocked;
+
                                   return (
-                                    <line
-                                      key={`line-${pin.id}`}
-                                      x1={`${prev.x}%`} y1={`${prev.y}%`}
-                                      x2={`${pin.x}%`} y2={`${pin.y}%`}
-                                      stroke={activeTab === 4 ? "rgba(160,80,255,0.4)" : "rgba(245,207,107,0.3)"}
-                                      strokeWidth="2"
-                                      strokeDasharray="4 4"
-                                    />
+                                    <g key={`line-group-${pin.id}`}>
+                                      <line
+                                        x1={`${prev.x}%`} y1={`${prev.y}%`}
+                                        x2={`${pin.x}%`} y2={`${pin.y}%`}
+                                        stroke={isPathUnlocked ? "#00ff00" : "#ff0000"}
+                                        strokeWidth={isPathUnlocked ? "3" : "2"}
+                                        strokeDasharray={isPathUnlocked ? "none" : "4 4"}
+                                        style={{ 
+                                          opacity: isPathUnlocked ? 0.8 : 0.4,
+                                          filter: isPathUnlocked ? "drop-shadow(0 0 5px #00ff00)" : "none"
+                                        }}
+                                      >
+                                        {isPathUnlocked && (
+                                          <animate 
+                                            attributeName="stroke-dasharray" 
+                                            from="0, 100" 
+                                            to="100, 0" 
+                                            dur="2s" 
+                                            repeatCount="indefinite" 
+                                          />
+                                        )}
+                                      </line>
+                                      {/* Efeito de pulso verde para caminhos liberados */}
+                                      {isPathUnlocked && (
+                                        <line
+                                          x1={`${prev.x}%`} y1={`${prev.y}%`}
+                                          x2={`${pin.x}%`} y2={`${pin.y}%`}
+                                          stroke="#00ff00"
+                                          strokeWidth="5"
+                                          style={{ opacity: 0.3 }}
+                                        >
+                                          <animate 
+                                            attributeName="opacity" 
+                                            values="0.1;0.5;0.1" 
+                                            dur="1.5s" 
+                                            repeatCount="indefinite" 
+                                          />
+                                        </line>
+                                      )}
+                                    </g>
                                   );
                                 })}
-                                </svg>
+                              </svg>
 
                               {/* Efeito de Neve Leve */}
                               <div style={{ position: "absolute", inset: 0, zIndex: 4, pointerEvents: "none", overflow: "hidden" }}>
