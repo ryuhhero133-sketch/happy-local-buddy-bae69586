@@ -11739,7 +11739,7 @@ function IdlePage() {
                          />
                        </div>
                        <div style={{ fontSize: 8, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.1 }}>
-                         <div style={{ color: isVip ? "#d97706" : "#f5cf6b" }}>
+                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa" }}>
                            BÔNUS {isVip && "✨"}
                          </div>
                          <div style={{ opacity: 0.9 }}>
