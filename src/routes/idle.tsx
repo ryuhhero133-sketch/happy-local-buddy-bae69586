@@ -7534,6 +7534,8 @@ function IdlePage() {
 
       <WindowManager>
         {({ openWindow, closeWindow, isWindowOpen }) => (
+          <>
+
       <div className="idle-grid" style={{
         display: "grid",
         gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
@@ -11709,9 +11711,10 @@ function IdlePage() {
           {identity.name}
         </div>
       )}
-    </div>
-    )}
-  </WindowManager>
+          </>
+        )}
+      </WindowManager>
+
 
 
 
@@ -13153,10 +13156,9 @@ function IdlePage() {
         }}
       />
     </div>
-
-
   );
 }
+
 
 
 // ============ Componentes visuais ============
