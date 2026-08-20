@@ -11794,6 +11794,83 @@ function IdlePage() {
                 >
                   <Sparkles size={20} color="#d97706" />
                 </div>
+                <div 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    if (auraEggCrafting?.active) {
+                      setForgeMinimized(false);
+                      setForgeShowOrbit(false);
+                      playClick();
+                      return;
+                    }
+                    const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
+                    const hasSafira = (idle.items?.safira_verde ?? 0) >= 1;
+                    const hasStones = STONES.every(s => (idle.items[s] ?? 0) >= 200);
+                    
+                    if (!hasSafira || !hasStones) {
+                      pushChat("❌ Precisa de 1 Safira Verde e 200 stones de CADA tipo!", "info");
+                      return;
+                    }
+
+                    // Inicia craft
+                    setIdle(prev => {
+                      const nextItems = { ...prev.items };
+                      nextItems.safira_verde = (nextItems.safira_verde ?? 0) - 1;
+                      STONES.forEach(s => nextItems[s] = (nextItems[s] ?? 0) - 200);
+                      return { ...prev, items: nextItems };
+                    });
+
+                    setAuraEggCrafting({ active: true, progress: 0 });
+                    playClick();
+                    pushChat("🔮 A energia está se concentrando... Criando Aura Egg!", "info");
+
+                    const duration = 5000;
+                    const steps = 50;
+                    let currentStep = 0;
+                    const interval = setInterval(() => {
+                      currentStep++;
+                      const progress = (currentStep / steps) * 100;
+                      setAuraEggCrafting(prev => prev ? { ...prev, progress } : null);
+
+                      if (currentStep >= steps) {
+                        clearInterval(interval);
+                        const roll = Math.random();
+                        let resultRarity: Rarity = "common";
+                        if (roll < 0.1) resultRarity = "epic";
+                        else if (roll < 0.4) resultRarity = "rare";
+
+                        const success = Math.random() > 0.15; // 15% falha
+                        if (success) {
+                          const eggId = `egg_${resultRarity}` as any;
+                          setIdle(prev => ({
+                            ...prev,
+                            items: { ...prev.items, [eggId]: (prev.items[eggId] ?? 0) + 1 }
+                          }));
+                          pushChat(`✨ Sucesso! Você forjou um Aura Egg (${resultRarity.toUpperCase()})!`, "cap");
+                          playBonus();
+                        } else {
+                          pushChat("💥 A energia instável explodiu! O craft falhou.", "info");
+                        }
+                        setAuraEggCrafting(null);
+                      }
+                    }, duration / steps);
+                  }}
+                  style={{
+                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    left: -20, top: -50, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.4s ease-out forwards"
+                  }}
+                >
+                  <FlaskConical size={20} color={auraEggCrafting?.active ? "#6366f1" : "#d97706"} className={auraEggCrafting?.active ? "animate-pulse" : ""} />
+                  {auraEggCrafting?.active && (
+                    <div style={{
+                      position: "absolute", bottom: -8, width: "120%", height: 4, background: "#eee", borderRadius: 2, overflow: "hidden", border: "1px solid #d97706"
+                    }}>
+                      <div style={{ width: `${auraEggCrafting.progress}%`, height: "100%", background: "#6366f1" }} />
+                    </div>
+                  )}
+                </div>
               </>
             )}
 
