@@ -11715,8 +11715,12 @@ function IdlePage() {
                            src={rew.img} 
                            alt=""
                            style={{ 
-                             width: 48, height: 48, objectFit: "contain",
-                             animation: canClaim ? "pulse 2s infinite" : "none"
+                             width: (day === 7 || day === 10) ? 75 : 48, 
+                             height: (day === 7 || day === 10) ? 75 : 48, 
+                             objectFit: "contain",
+                             animation: (day === 7 || day === 10) ? "float 3s ease-in-out infinite" : (canClaim ? "pulse 2s infinite" : "none"),
+                             filter: (day === 7 || day === 10) ? "drop-shadow(0 0 8px rgba(245,207,107,0.6))" : "none"
+
                            }} 
                          />
                        </div>
