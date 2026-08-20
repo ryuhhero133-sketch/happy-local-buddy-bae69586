@@ -3,18 +3,18 @@ import { GameWindow, type WindowState } from './GameWindow';
 
 interface WindowManagerProps {
   children: (props: {
-    openWindow: (id: string, title: string, icon?: React.ReactNode) => void;
+    openWindow: (id: string, title: string, content?: React.ReactNode) => void;
     closeWindow: (id: string) => void;
     isWindowOpen: (id: string) => boolean;
   }) => React.ReactNode;
 }
 
 export const WindowManager: React.FC<WindowManagerProps> = ({ children }) => {
-  const [windows, setWindows] = useState<Record<string, WindowState>>({});
+  const [windows, setWindows] = useState<Record<string, WindowState & { content?: React.ReactNode }>>({});
   const [activeWindows, setActiveWindows] = useState<string[]>([]);
   const [nextZIndex, setNextZIndex] = useState(1000);
 
-  const openWindow = useCallback((id: string, title: string) => {
+  const openWindow = useCallback((id: string, title: string, content?: React.ReactNode) => {
     setWindows(prev => ({
       ...prev,
       [id]: {
@@ -23,7 +23,8 @@ export const WindowManager: React.FC<WindowManagerProps> = ({ children }) => {
         isMinimized: false,
         zIndex: nextZIndex,
         position: prev[id]?.position || { x: 100 + activeWindows.length * 30, y: 100 + activeWindows.length * 30 },
-        title
+        title,
+        content
       }
     }));
     if (!activeWindows.includes(id)) {
@@ -92,8 +93,7 @@ export const WindowManager: React.FC<WindowManagerProps> = ({ children }) => {
             onFocus={() => focusWindow(window.id)}
             initialPosition={window.position}
           >
-            {/* The actual content will be rendered here by a separate portal-based or registry system */}
-            <div id={`window-content-${window.id}`} />
+            {window.content || <div id={`window-content-${window.id}`} />}
           </GameWindow>
         )
       ))}
