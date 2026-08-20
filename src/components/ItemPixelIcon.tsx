@@ -283,7 +283,33 @@ const ICONS: Record<string, () => Cell[]> = {
   stone_electric: () => drawStone("#f6d94a", "#8a6a10", "#fff7b0"),
   stone_dark:     () => drawStone("#7b3ee0", "#3a1478", "#c9a4ff"),
   stone_dragon:   () => drawStone("#ff4d94", "#7a1147", "#ffb0d4"),
+  rare_candy:     () => drawCandy("#ffbde8", "#d946ef", "#ffffff"),
 };
+
+function drawCandy(main: string, stripe: string, hi: string): Cell[] {
+  const cells: Cell[] = [];
+  // Corpo do doce (oval)
+  cells.push(...fillRect(4, 6, 11, 9, main));
+  cells.push(...fillRect(5, 5, 10, 5, main));
+  cells.push(...fillRect(5, 10, 10, 10, main));
+  // Listras transversais
+  cells.push([6, 5, stripe], [7, 6, stripe], [8, 7, stripe], [9, 8, stripe], [10, 9, stripe], [11, 10, stripe]);
+  cells.push([4, 7, stripe], [5, 8, stripe], [6, 9, stripe], [7, 10, stripe]);
+  // Brilho
+  cells.push([5, 6, hi], [6, 6, hi], [5, 7, hi]);
+  // Embrulho (pontas)
+  cells.push([2, 6, main], [2, 7, main], [3, 7, main], [3, 8, main], [2, 8, main], [2, 9, main]);
+  cells.push([13, 6, main], [13, 7, main], [12, 7, main], [12, 8, main], [13, 8, main], [13, 9, main]);
+  // Outline
+  const outline = [
+    [5,4],[6,4],[7,4],[8,4],[9,4],[10,4],
+    [4,5],[11,5],[3,6],[12,6],[2,5],[13,5],[1,6],[1,7],[1,8],[1,9],[2,10],[14,6],[14,7],[14,8],[14,9],[13,10],
+    [3,10],[12,10],[4,11],[11,11],[5,11],[6,11],[7,11],[8,11],[9,11],[10,11]
+  ];
+  outline.forEach(([x,y]) => cells.push([x,y,C.outline]));
+  return cells;
+}
+
 
 function drawStone(main: string, dark: string, hi: string): Cell[] {
   const cells: Cell[] = [];
