@@ -12,9 +12,7 @@ import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, Search } from "lucide-react";
-import { CollectionWindowContent } from "@/components/CollectionWindowContent";
-import { BackpackWindowContent } from "@/components/BackpackWindowContent";
-import { ImprovementsWindowContent } from "@/components/ImprovementsWindowContent";
+
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 
 import type { LucideIcon } from "lucide-react";
