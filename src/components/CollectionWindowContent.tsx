@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, ChevronDown, Trash2, ArrowUpCircle } from 'lucide-react';
 import type { PetInstance, Rarity } from '@/game/systems';
 import { TIER_COLOR } from '@/game/traits';
+import { RARITY_COLOR } from '@/game/systems';
 
 interface CollectionWindowContentProps {
   collection: PetInstance[];
@@ -116,7 +117,7 @@ export const CollectionWindowContent: React.FC<CollectionWindowContentProps> = (
           <div className="grid grid-cols-4 gap-2">
             {filtered.map((p) => {
               const inTeam = teamUids.has(p.uid);
-              const color = TIER_COLOR[p.rarity] || '#f5cf6b';
+              const color = (TIER_COLOR as any)[p.rarity] || (RARITY_COLOR as any)[p.rarity] || '#f5cf6b';
               return (
                 <button
                   key={p.uid}

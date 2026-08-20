@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
 import { WindowManager } from "@/components/WindowManager";
-import { CraftWindowContent } from "@/components/CraftWindowContent";
+import { CraftWindowContent, RECIPES } from "@/components/CraftWindowContent";
 import { Hammer } from "lucide-react";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
@@ -8164,15 +8164,51 @@ function IdlePage() {
               onClick={() => openWindow("craft", "Forja Ancestral", (
                 <CraftWindowContent 
                   items={idle.items} 
-                  bank={idle.bank} 
+                  bank={{ gold: idle.bank.gold, crystals: idle.bank.crystals }} 
                   onCraft={(recipeId) => {
-                    console.log("Crafting", recipeId);
-                  }} 
+                    const recipe = (RECIPES as any[]).find(r => r.id === recipeId);
+                    if (!recipe) return;
+                    
+                    const canCraft = recipe.ingredients.every((ing: any) => {
+                      if (ing.isCurrency) {
+                        if (ing.id === 'crystal') return idle.bank.crystals >= ing.qty;
+                        if (ing.id === 'gold') return idle.bank.gold >= ing.qty;
+                        return false;
+                      }
+                      return (idle.items[ing.id] || 0) >= ing.qty;
+                    });
+
+                    if (!canCraft) {
+                      pushChat("Materiais insuficientes para forjar este item.", "info");
+                      return;
+                    }
+
+                    setIdle(s => {
+                      const nextItems = { ...s.items };
+                      const nextBank = { ...s.bank };
+                      
+                      recipe.ingredients.forEach((ing: any) => {
+                        if (ing.isCurrency) {
+                          if (ing.id === 'crystal') nextBank.crystals -= ing.qty;
+                          if (ing.id === 'gold') nextBank.gold -= ing.qty;
+                        } else {
+                          nextItems[ing.id] = (nextItems[ing.id] || 0) - ing.qty;
+                        }
+                      });
+
+                      nextItems[recipe.result.id] = (nextItems[recipe.result.id] || 0) + recipe.result.qty;
+                      
+                      return { ...s, items: nextItems, bank: nextBank };
+                    });
+
+                    pushChat(`⚒️ Item forjado com sucesso: ${recipe.name}!`, "cap");
+                    pushFxAt(trainerPosRef.current.x, trainerPosRef.current.y - 40, "FORJADO!", "capture");
+                  }}
                 />
               ))}
               style={{
                 width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, #1e1e1e, #333)",
+                background: "linear-gradient(135deg, #4a3010, #8b6a30)",
                 border: "2px solid #f5cf6b",
                 color: "#f5cf6b",
                 display: "grid", placeItems: "center",
@@ -8188,11 +8224,10 @@ function IdlePage() {
               <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>FORJA</span>
             </button>
 
-            
             <button
               onClick={() => openWindow("collection_window", "Coleção Real", (
                 <CollectionWindowContent
-                  collection={idle.collection || []}
+                  collection={(idle.collection || []).map(p => ({ ...p, hp: 100, maxHp: 100, fome: 100, lealdade: 100 })) as any}
                   maxCollection={MAX_COLLECTION}
                   caughtCount={idle.caughtSpecies.length}
                   teamUids={new Set(team.map(p => p.uid))}
@@ -8298,9 +8333,9 @@ function IdlePage() {
                   display: "grid", placeItems: "center", overflow: "hidden"
                 }}>
                   <MapIconRenderer 
-                    type={IDLE_MAPS[selectedMapInfo].type} 
+                    type={(IDLE_MAPS[selectedMapInfo] as any).type} 
                     name={IDLE_MAPS[selectedMapInfo].name} 
-                    ok={(idle.trainerLevel ?? 1) >= IDLE_MAPS[selectedMapInfo].level} 
+                    ok={(idle.trainerLevel ?? 1) >= (IDLE_MAPS[selectedMapInfo] as any).level} 
                   />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -8310,7 +8345,7 @@ function IdlePage() {
                         {IDLE_MAPS[selectedMapInfo].name.toUpperCase()}
                       </h3>
                       <div style={{ fontSize: 10, color: "#a066ff", fontWeight: 800, marginTop: 2 }}>
-                        DIFF: {IDLE_MAPS[selectedMapInfo].difficulty} · LV.{IDLE_MAPS[selectedMapInfo].level}+
+                        DIFF: {(IDLE_MAPS[selectedMapInfo] as any).difficulty} · LV.{(IDLE_MAPS[selectedMapInfo] as any).level}+
                       </div>
                     </div>
                     <button 
@@ -8333,18 +8368,18 @@ function IdlePage() {
                           setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
                           setSelectedMapInfo(null);
                         }}
-                        disabled={(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level}
+                        disabled={(idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level}
                         style={{
                           flex: 1, padding: "8px 0", borderRadius: 6,
-                          background: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level 
+                          background: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level 
                             ? "#333" 
                             : "linear-gradient(180deg, #a066ff, #6b28c8)",
                           color: "#fff", fontWeight: 900, fontSize: 12,
-                          border: "none", cursor: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "not-allowed" : "pointer",
-                          boxShadow: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
+                          border: "none", cursor: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "not-allowed" : "pointer",
+                          boxShadow: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
                         }}
                       >
-                        {(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "BLOQUEADO" : "VIAJAR AGORA"}
+                        {(idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "BLOQUEADO" : "VIAJAR AGORA"}
                       </button>
                   </div>
                 </div>
