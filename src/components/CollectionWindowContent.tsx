@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Search, ChevronDown, Trash2, ArrowUpCircle } from 'lucide-react';
-import type { PetInstance, Rarity, CollectionEntry } from '@/game/systems';
+import type { PetInstance, Rarity } from '@/game/systems';
 import { TIER_COLOR } from '@/game/traits';
 
 interface CollectionWindowContentProps {
-  collection: CollectionEntry[];
+  collection: PetInstance[];
+
 
   maxCollection: number;
   caughtCount: number;
