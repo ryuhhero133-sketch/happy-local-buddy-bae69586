@@ -10757,6 +10757,78 @@ function IdlePage() {
                           `}</style>
 
                           </div>
+
+                          {/* Info Panel do Mapa Selecionado */}
+                          {selectedMapInfo && selMap && (
+                            <div style={{
+                              position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+                              width: 340, background: "rgba(11, 5, 20, 0.98)", border: "3px solid #f5cf6b",
+                              borderRadius: 12, padding: 16, zIndex: 100, boxShadow: "0 0 50px rgba(0,0,0,1)",
+                              fontFamily: "'Press Start 2P', monospace", color: "#e6dcf5",
+                              animation: "popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)"
+                            }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                                <div style={{ color: "#f5cf6b", fontSize: 14 }}>{selMap.name}</div>
+                                <button onClick={() => setSelectedMapInfo(null)} style={{ color: "#ff4d4d", background: "none", border: "none", cursor: "pointer", fontSize: 16 }}>✕</button>
+                              </div>
+
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 8, marginBottom: 16 }}>
+                                <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
+                                  <div style={{ color: "#8a7a9c", marginBottom: 4 }}>Dificuldade</div>
+                                  <div style={{ color: "#f5cf6b" }}>{selMap.diff}</div>
+                                </div>
+                                <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
+                                  <div style={{ color: "#8a7a9c", marginBottom: 4 }}>Elemento</div>
+                                  <div style={{ color: "#7ef27a" }}>{selMap.element}</div>
+                                </div>
+                                <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
+                                  <div style={{ color: "#8a7a9c", marginBottom: 4 }}>Nível Mín.</div>
+                                  <div style={{ color: "#ffe08a" }}>Lv {selMap.minLevel}</div>
+                                </div>
+                                <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
+                                  <div style={{ color: "#8a7a9c", marginBottom: 4 }}>Taxa XP</div>
+                                  <div style={{ color: "#a066ff" }}>x{selMap.rate.toFixed(1)}</div>
+                                </div>
+                              </div>
+
+                              <div style={{ fontSize: 7, color: "#8a7a9c", lineHeight: 1.5, marginBottom: 16, borderLeft: "2px solid #a066ff", paddingLeft: 8 }}>
+                                Explore este território para encontrar novos desafios e criaturas poderosas.
+                                {selMap.raid && <div style={{ color: "#ff2a2a", marginTop: 4 }}>⚠️ ÁREA DE RAID: Perigo Extremo!</div>}
+                              </div>
+
+                              <button
+                                onClick={() => {
+                                  const pinId = selectedMapInfo!;
+                                  const synthGate = {
+                                    key: `world-${pinId}`,
+                                    target: pinId,
+                                    x: WORLD_W / 2, y: WORLD_H / 2,
+                                    arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
+                                    color: "#f5cf6b",
+                                  };
+                                  const scrolls = idle.items?.scroll_teleport ?? 0;
+                                  if (scrolls > 0) {
+                                    setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
+                                    setWorldMapOpen(false);
+                                    setSelectedMapInfo(null);
+                                    travelToGate(synthGate);
+                                    pushChat(`📜 Pergaminho consumido — viagem para ${selMap.name}.`, "cap");
+                                    return;
+                                  }
+                                  setWorldMapOpen(false);
+                                  setSelectedMapInfo(null);
+                                  setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
+                                }}
+                                style={{
+                                  width: "100%", padding: "12px", background: "linear-gradient(180deg, #f5cf6b, #b58d24)",
+                                  border: "none", borderRadius: 8, color: "#000", fontWeight: 900, fontSize: 10,
+                                  cursor: "pointer", boxShadow: "0 4px 0 #7a5d15"
+                                }}
+                              >
+                                VIAJAR AGORA
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
