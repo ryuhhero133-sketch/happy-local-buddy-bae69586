@@ -11606,13 +11606,26 @@ function IdlePage() {
                   <div key={day} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                     {/* Linha Normal */}
                     <div style={{
-                      background: "rgba(255,255,255,0.95)", border: `2.5px solid ${isClaimed ? "#22c55e" : "#f5cf6b"}`,
+                      background: "rgba(255,255,255,0.95)", border: `2.5px solid ${isClaimed ? "#22c55e" : (canClaim ? "#f5cf6b" : "#e5e7eb")}`,
                       borderRadius: 12, padding: 10, display: "flex", alignItems: "center", gap: 10,
-                      opacity: isLocked ? 0.8 : 1, boxShadow: canClaim ? "0 0 10px rgba(245,207,107,0.7)" : "none"
+                      opacity: isLocked ? 0.8 : 1, 
+                      boxShadow: canClaim ? "0 0 15px rgba(245,207,107,0.8), inset 0 0 10px rgba(245,207,107,0.3)" : "none",
+                      position: "relative"
                     }}>
-                       <div style={{ fontSize: 18 }}>{day === 7 ? "🏆" : "🎁"}</div>
+                       <div style={{ width: 40, height: 40, display: "grid", placeItems: "center" }}>
+                         <img 
+                           src={day === 7 ? assetUrlFromJson(iconCashPackage) : ballPokeImg} 
+                           alt=""
+                           style={{ 
+                             width: 32, height: 32, objectFit: "contain",
+                             filter: isLocked ? "grayscale(1) opacity(0.5)" : "none",
+                             animation: canClaim ? "pulse 2s infinite" : "none"
+                           }} 
+                         />
+                       </div>
                        <div style={{ flex: 1, fontSize: 10, fontWeight: 900, color: "#1a0f2e" }}>
-                         {day === 7 ? "Master Ball + Skins" : "500 Gold + 20 Pokeballs"}
+                         <div style={{ color: "#f59e0b", fontSize: 9 }}>DIA {day}</div>
+                         {day === 7 ? "2k Gold + 200 Pokeballs + 100 Great" : "500 Gold + 20 Pokeballs"}
                        </div>
                        {canClaim && (
                          <button onClick={() => {
@@ -11622,6 +11635,7 @@ function IdlePage() {
                              next.bank = { ...next.bank, gold: (next.bank.gold || 0) + (day === 7 ? 2000 : 500) };
                              next.items = { ...next.items };
                              next.items.ball_poke = (next.items.ball_poke || 0) + (day === 7 ? 200 : 20);
+                             if (day === 7) next.items.ball_great = (next.items.ball_great || 0) + 100;
                              
                              if (isVip) {
                                next.bank.crystals = (next.bank.crystals || 0) + 200;
@@ -11639,7 +11653,8 @@ function IdlePage() {
                          }} style={{
                            background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e", border: "none",
                            padding: "6px 12px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: "pointer",
-                           boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                           boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                           animation: "bounce 1s infinite"
                          }}>RESGATAR</button>
                        )}
                        {!canClaim && isClaimed && <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>}
@@ -11648,17 +11663,28 @@ function IdlePage() {
                     
                     {/* Linha VIP */}
                     <div style={{
-                      background: isVip ? "linear-gradient(90deg, rgba(245,207,107,0.2), rgba(217,119,6,0.2))" : "rgba(0,0,0,0.3)",
+                      background: isVip ? "linear-gradient(90deg, rgba(255,255,255,0.95), rgba(245,207,107,0.1))" : "rgba(0,0,0,0.3)",
                       border: `2px solid ${isVip ? "#f5cf6b" : "#4a5568"}`, borderRadius: 12, padding: 10, display: "flex", alignItems: "center", gap: 10,
-                      color: isVip ? "#fff" : "#718096", position: "relative", overflow: "hidden"
+                      color: isVip ? "#1a0f2e" : "#718096", position: "relative", overflow: "hidden",
+                      boxShadow: (isVip && canClaim) ? "0 0 15px rgba(245,207,107,0.6)" : "none"
                     }}>
                        {!isVip && (
-                         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.4)", zIndex: 1 }}>
-                           <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b", textShadow: "0 1px 2px #000" }}>PASSE MESTRE</span>
+                         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.6)", zIndex: 1 }}>
+                           <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b", textShadow: "0 1px 2px #000", letterSpacing: 1 }}>💎 PASSE MESTRE 💎</span>
                          </div>
                        )}
-                       <div style={{ fontSize: 18, filter: isVip ? "none" : "grayscale(1)" }}>💎</div>
+                       <div style={{ width: 40, height: 40, display: "grid", placeItems: "center" }}>
+                         <img 
+                           src={day === 7 ? assetUrlFromJson(raichuAsset) : assetUrlFromJson(iconCrystalBlue)} 
+                           alt=""
+                           style={{ 
+                             width: day === 7 ? 40 : 24, height: day === 7 ? 40 : 24, objectFit: "contain",
+                             filter: !isVip ? "grayscale(1) brightness(0.5)" : "none"
+                           }} 
+                         />
+                       </div>
                        <div style={{ flex: 1, fontSize: 10, fontWeight: 900 }}>
+                         <div style={{ color: "#d97706", fontSize: 9 }}>BÔNUS VIP</div>
                          {day === 7 ? "+200 CRISTAL + MASTER BALL + SKIN VIP" : "+200 CRISTAL + 5X ITENS"}
                        </div>
                     </div>
