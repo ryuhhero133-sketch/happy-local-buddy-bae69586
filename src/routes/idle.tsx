@@ -11608,12 +11608,12 @@ function IdlePage() {
               paddingRight: 5, 
               flex: 1 
             }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day, idx) => {
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((day, idx) => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
                 const currentDay = idle.dailyRewardDay || 0;
-                const canClaim = (now - lastClaim) >= 86400000 && (currentDay % 7) + 1 === day;
-                const isClaimed = (currentDay % 7) >= day;
+                const canClaim = (now - lastClaim) >= 86400000 && (currentDay % 9) + 1 === day;
+                const isClaimed = (currentDay % 9) >= day;
                 const isLocked = !canClaim && !isClaimed;
                 const isVip = !!idle.isVip;
 
@@ -11627,8 +11627,7 @@ function IdlePage() {
                     case 6: return { img: chestAmuletImg, label: "3k Gold + Amulet Chest", vipImg: catEggsUrl, vipLabel: "200💎 + Ovo Roxo" };
                     case 7: return { img: assetUrlFromJson(iconCashPackage), label: "5k Gold + Super Pack", vipImg: assetUrlFromJson(blackMiticPlusEggIcon), vipLabel: "Master Ball + Egg + Skin" };
                     case 8: return { img: ballPokeImg, label: "1k Gold + 20 Great Balls", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "250💎 + 50 Ultra" };
-                    case 9: return { img: ballGreatImg, label: "2k Gold + 5 Ultra Balls", vipImg: bookExpImg, vipLabel: "250💎 + 2 Livros XP" };
-                    case 10: return { img: premiumBoxImg, label: "???", vipImg: premiumBoxImg, vipLabel: "Bau Premium VIP" };
+                    case 9: return { img: premiumBoxImg, label: "Bau Especial + Ouro", vipImg: premiumBoxImg, vipLabel: "250💎 + 2 Livros XP" };
                     default: return { img: ballPokeImg, label: "Reward", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "VIP Bonus" };
                   }
                 };
@@ -11641,19 +11640,19 @@ function IdlePage() {
                     gap: 0, 
                     background: isLocked ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.08)", 
                     borderRadius: 16, 
-                     border: (day === 7 || day === 10) 
+                    border: (day === 7 || day === 9) 
                        ? "3px solid #f5cf6b" 
                        : (isClaimed ? "2px solid #10b981" : (canClaim ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.3)")),
 
                     overflow: "hidden",
-                    boxShadow: (day === 7 || day === 10) 
+                    boxShadow: (day === 7 || day === 9) 
                       ? "0 0 40px rgba(245,207,107,0.6), inset 0 0 20px rgba(245,207,107,0.3)" 
                       : (isClaimed ? "0 0 15px rgba(16,185,129,0.3)" : (canClaim ? "0 0 25px rgba(245,207,107,0.4)" : "none")),
-                     gridColumn: (day === 7 || day === 10) ? "span 2" : "span 1",
-                     order: (day === 7 || day === 10) ? 100 + day : day, // Garante que dias especiais fiquem destacados ou no fim se necessário, mas aqui mantemos a ordem
+                     gridColumn: (day === 7 || day === 9) ? "span 2" : "span 1",
+                     order: day,
 
-                    height: (day === 7 || day === 10) ? 280 : 240,
-                    margin: (day === 7 || day === 10) ? "10px 0" : "0",
+                    height: (day === 7 || day === 9) ? 280 : 240,
+                    margin: (day === 7 || day === 9) ? "10px 0" : "0",
                     transition: "all 0.3s ease",
                     transform: canClaim ? "scale(1.02)" : "none",
                     position: "relative",
