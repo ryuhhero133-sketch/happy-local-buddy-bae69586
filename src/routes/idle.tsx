@@ -11791,12 +11791,12 @@ function IdlePage() {
                          animation: "rotate 4s linear infinite", zIndex: 0
                        }} />
   
-                       <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.2)" : "rgba(255,255,255,0.05)", borderRadius: 8 }}>
+                       <div style={{ width: 50, height: 50, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.3)" : "rgba(255,255,255,0.08)", borderRadius: 10 }}>
                          <img 
                            src={rew.vipImg} 
                            alt=""
                            style={{ 
-                             width: day === 7 ? 40 : 30, height: day === 7 ? 40 : 30, objectFit: "contain",
+                             width: day === 7 ? 55 : 42, height: day === 7 ? 55 : 42, objectFit: "contain",
                              filter: "none",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
