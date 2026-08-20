@@ -183,6 +183,35 @@ export const RARITY_NAME: Record<Rarity, string> = {
   mythic_shiny: "MITICO BRILHANTE",
 };
 
+
+
+export type EquipmentSlot = "head" | "body" | "weapon" | "feet" | "necklace" | "ring";
+
+export interface EquipmentStats {
+  xpBonus?: number; // 0.1 = +10%
+  goldBonus?: number;
+  dropRate?: number;
+  speed?: number; // agilidade
+}
+
+export interface EquipmentItem {
+  id: string;
+  name: string;
+  slot: EquipmentSlot;
+  rarity: Rarity;
+  stats: EquipmentStats;
+}
+
+export const TRAINER_EQUIPMENT_DATA: Record<string, EquipmentItem> = {
+  "basic_helmet": { id: "basic_helmet", name: "Elmo de Aprendiz", slot: "head", rarity: "common", stats: { xpBonus: 0.05 } },
+  "wood_sword": { id: "wood_sword", name: "Espada de Treino", slot: "weapon", rarity: "common", stats: { speed: 5 } },
+  "leather_armor": { id: "leather_armor", name: "Armadura de Couro", slot: "body", rarity: "common", stats: { goldBonus: 0.05 } },
+  "old_boots": { id: "old_boots", name: "Botas Velhas", slot: "feet", rarity: "common", stats: { dropRate: 0.05 } },
+  "simple_ring": { id: "simple_ring", name: "Anel Simples", slot: "ring", rarity: "common", stats: { goldBonus: 0.02, xpBonus: 0.02 } },
+  "iron_necklace": { id: "iron_necklace", name: "Colar de Ferro", slot: "necklace", rarity: "common", stats: { dropRate: 0.02 } },
+};
+
+
 export interface PetInstance {
   uid: string;
   species: Species;

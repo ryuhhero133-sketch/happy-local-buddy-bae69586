@@ -116,6 +116,14 @@ const SKINS: { id: string; label: string; url: string | null }[] = [
   { id: "goku", label: "Goku", url: assetUrlFromJson(skinGokuAsset) },
 ];
 const SKIN_KEY = "rubym.skin.v1";
+const EQUIPMENT_KEY = "rubym.trainer.equipment.v1";
+const OWNED_EQUIPMENT_KEY = "rubym.trainer.owned_equipment.v1";
+import { EquipmentSlot, EquipmentItem, TRAINER_EQUIPMENT_DATA, RARITY_COLOR } from "@/game/systems";
+
+
+
+
+
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
 import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
@@ -1922,10 +1930,51 @@ function IdlePage() {
     if (typeof window === "undefined") return "default";
     try { return localStorage.getItem(SKIN_KEY) || "default"; } catch { return "default"; }
   });
+  const [equippedItems, setEquippedItems] = useState<Record<EquipmentSlot, string | null>>(() => {
+    if (typeof window === "undefined") return { head: null, body: null, weapon: null, feet: null, necklace: null, ring: null };
+    try { 
+      const saved = localStorage.getItem(EQUIPMENT_KEY);
+      return saved ? JSON.parse(saved) : { head: null, body: null, weapon: null, feet: null, necklace: null, ring: null };
+    } catch { return { head: null, body: null, weapon: null, feet: null, necklace: null, ring: null }; }
+  });
+  const [ownedEquipment, setOwnedEquipment] = useState<string[]>(() => {
+    if (typeof window === "undefined") return ["basic_helmet", "wood_sword", "leather_armor", "old_boots", "simple_ring", "iron_necklace"];
+    try {
+      const saved = localStorage.getItem(OWNED_EQUIPMENT_KEY);
+      return saved ? JSON.parse(saved) : ["basic_helmet", "wood_sword", "leather_armor", "old_boots", "simple_ring", "iron_necklace"];
+    } catch { return ["basic_helmet", "wood_sword", "leather_armor", "old_boots", "simple_ring", "iron_necklace"]; }
+  });
+
   useEffect(() => {
     try { localStorage.setItem(SKIN_KEY, skinId); } catch { /* ignore */ }
   }, [skinId]);
+
+  useEffect(() => {
+    try { localStorage.setItem(EQUIPMENT_KEY, JSON.stringify(equippedItems)); } catch { /* ignore */ }
+  }, [equippedItems]);
+
+  useEffect(() => {
+    try { localStorage.setItem(OWNED_EQUIPMENT_KEY, JSON.stringify(ownedEquipment)); } catch { /* ignore */ }
+  }, [ownedEquipment]);
+
   const skinUrl = SKINS.find((s) => s.id === skinId)?.url ?? null;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // Auto-battle / chat / WASD
   const [auto, setAuto] = useState(true);
   const autoRef = useRef(true);
@@ -17018,80 +17067,173 @@ function TabOverlay({
 
 
       {tab === "inicio" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6 }}>
-          <p style={{ marginTop: 0 }}>Bem-vindo ao <strong style={{ color: "#f5cf6b" }}>Modo Idle</strong>!</p>
-          <ul style={{ paddingLeft: 20 }}>
-            <li>Seus Pokémon batalham automaticamente.</li>
-            <li>Ache <strong>baús</strong> pelo mapa — dão ouro extra.</li>
-            <li>Compre <strong>Pokébolas</strong> na Loja para capturar Pokémon.</li>
-            <li>Use <strong>Livros</strong> pra ficar mais forte.</li>
-            <li>Novos Pokémon aparecem conforme seu nível sobe.</li>
-          </ul>
-
-          <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "18px 0 10px" }}>
-            Escolher Skin <span style={{ fontSize: 11, color: "#b9a7ff" }}>· 🎟️ Tickets: {skinTickets}</span>
-          </h3>
-          <div style={{ fontSize: 11, color: "#b9a7ff", marginBottom: 8 }}>
-            Skins premium ficam bloqueadas. Abra a <strong>Caixa Premium ✦</strong> na Mochila para ganhar Tickets e desbloquear a skin que quiser.
+        <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6, display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Welcome and Tips */}
+          <div style={{ background: "rgba(0,0,0,0.3)", padding: 16, borderRadius: 12, border: "1px solid rgba(245,207,107,0.2)" }}>
+            <p style={{ marginTop: 0, color: "#f5cf6b", fontWeight: 900 }}>Bem-vindo ao Modo Idle!</p>
+            <ul style={{ paddingLeft: 20, fontSize: 12 }}>
+              <li>Seus Pokémon batalham automaticamente. Ache baús pelo mapa.</li>
+              <li>Novos Pokémon aparecem conforme seu nível sobe.</li>
+            </ul>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
-            {SKINS.map((s) => {
-              const active = s.id === skinId;
-              const unlocked = unlockedSkins.includes(s.id);
-              const canUnlock = !unlocked && skinTickets > 0;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => {
-                    if (unlocked) { setSkinId(s.id); return; }
-                    if (canUnlock) {
-                      if (window.confirm(`Desbloquear a skin "${s.label}" usando 1 Ticket de Skin ✦?`)) {
-                        onUnlockSkin(s.id);
-                      }
-                    }
-                  }}
-                  disabled={!unlocked && !canUnlock}
-                  style={{
+
+          {/* TRAINER EQUIPMENT PANEL */}
+          <div style={{
+            background: "linear-gradient(160deg, #2a1f3d 0%, #1a0f26 100%)",
+            border: "4px solid #8b5e3c",
+            borderRadius: 12,
+            padding: "20px 10px",
+            position: "relative",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(139, 94, 60, 0.2)",
+            display: "grid",
+            gridTemplateColumns: "1fr 140px 1fr",
+            alignItems: "center",
+            gap: 15,
+            imageRendering: "pixelated"
+          }}>
+            {/* Header */}
+            <div style={{
+              position: "absolute",
+              top: -15,
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "#8b5e3c",
+              padding: "4px 20px",
+              borderRadius: 20,
+              border: "2px solid #d4a373",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 900,
+              letterSpacing: 2,
+              whiteSpace: "nowrap",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.5)"
+            }}>EQUIPAMENTO</div>
+
+            {/* Left Slots */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-end" }}>
+              {(["head", "body", "weapon"] as const).map(slot => {
+                const itemKey = equippedItems[slot];
+                const item = itemKey ? TRAINER_EQUIPMENT_DATA[itemKey as keyof typeof TRAINER_EQUIPMENT_DATA] : null;
+                return (
+                  <div key={slot} style={{
+                    width: 50, height: 50,
+                    background: "rgba(0,0,0,0.4)",
+                    border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
+                    borderRadius: 8,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer",
                     position: "relative",
-                    background: active ? "linear-gradient(160deg,#3a1f5c,#6b3fb0)" : unlocked ? "#1a0f26" : "#120a1c",
-                    border: `2px solid ${active ? "#f5cf6b" : unlocked ? "rgba(107,212,255,0.35)" : "rgba(255,255,255,0.08)"}`,
-                    borderRadius: 10, padding: 10,
-                    cursor: unlocked ? "pointer" : canUnlock ? "pointer" : "not-allowed",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                    color: unlocked ? "#eadfe8" : "#7a6f8a", fontFamily: "inherit",
-                    boxShadow: active ? "0 0 18px rgba(245,207,107,0.45)" : "none",
-                    opacity: unlocked ? 1 : 0.85,
-                  }}
-                >
-                  <div style={{
-                    width: 72, height: 72, display: "grid", placeItems: "center",
-                    background: "rgba(0,0,0,0.35)", borderRadius: 8,
-                    imageRendering: "pixelated",
-                    filter: unlocked ? "none" : "grayscale(1) brightness(0.55)",
+                    boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
                   }}>
-                    {s.url ? (
-                      <img src={s.url} alt={s.label} style={{ maxWidth: "100%", maxHeight: "100%", imageRendering: "pixelated" }} />
-                    ) : (
-                      <div style={{ fontSize: 32 }}>🧢</div>
-                    )}
+                    {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
+                    {item && <div style={{ fontSize: 24 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
+                    <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
                   </div>
-                  <div style={{ fontSize: 11, fontWeight: 700, textAlign: "center" }}>{s.label}</div>
-                  {active && <div style={{ fontSize: 9, color: "#f5cf6b" }}>✓ EM USO</div>}
-                  {!unlocked && (
-                    <div style={{ fontSize: 9, color: canUnlock ? "#f5cf6b" : "#8a7fa0", fontWeight: 700 }}>
-                      {canUnlock ? "🎟️ USAR TICKET" : "🔒 BLOQUEADA"}
-                    </div>
-                  )}
-                  {!unlocked && (
-                    <div style={{ position: "absolute", top: 6, right: 6, fontSize: 14 }}>🔒</div>
-                  )}
-                </button>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            {/* Center: Trainer Preview */}
+            <div style={{
+              width: 130, height: 160,
+              background: "rgba(0,0,0,0.2)",
+              borderRadius: 12,
+              border: "2px solid #5c4033",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              position: "relative",
+              overflow: "hidden"
+            }}>
+              {skinUrl ? (
+                <img src={skinUrl} alt="Trainer" style={{ width: 100, height: 100, imageRendering: "pixelated", objectFit: "contain" }} />
+              ) : (
+                <div style={{ fontSize: 60 }}>🧢</div>
+              )}
+            </div>
+
+            {/* Right Slots */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-start" }}>
+              {(["necklace", "ring", "feet"] as const).map(slot => {
+                const itemKey = equippedItems[slot];
+                const item = itemKey ? TRAINER_EQUIPMENT_DATA[itemKey as keyof typeof TRAINER_EQUIPMENT_DATA] : null;
+                return (
+                  <div key={slot} style={{
+                    width: 50, height: 50,
+                    background: "rgba(0,0,0,0.4)",
+                    border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
+                    borderRadius: 8,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer",
+                    position: "relative",
+                    boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
+                  }}>
+                    {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
+                    {item && <div style={{ fontSize: 24 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
+                    <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
+
+          {/* SKINS SECTION */}
+          <div>
+            <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "0 0 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              Guarda-Roupa <span>🎟️ Tickets: {skinTickets}</span>
+            </h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 10 }}>
+              {SKINS.map((s) => {
+                const active = s.id === skinId;
+                const unlocked = unlockedSkins.includes(s.id);
+                const canUnlock = !unlocked && skinTickets > 0;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      if (unlocked) { setSkinId(s.id); return; }
+                      if (canUnlock) {
+                        if (window.confirm(`Desbloquear a skin "${s.label}" usando 1 Ticket de Skin ✦?`)) {
+                          onUnlockSkin(s.id);
+                        }
+                      }
+                    }}
+                    disabled={!unlocked && !canUnlock}
+                    style={{
+                      position: "relative",
+                      background: active ? "linear-gradient(160deg,#3a1f5c,#6b3fb0)" : unlocked ? "#1a0f26" : "#120a1c",
+                      border: `2px solid ${active ? "#f5cf6b" : unlocked ? "rgba(107,212,255,0.35)" : "rgba(255,255,255,0.08)"}`,
+                      borderRadius: 10, padding: 8,
+                      cursor: unlocked ? "pointer" : canUnlock ? "pointer" : "not-allowed",
+                      display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                      color: unlocked ? "#eadfe8" : "#7a6f8a", fontFamily: "inherit",
+                      boxShadow: active ? "0 0 15px rgba(245,207,107,0.3)" : "none",
+                      opacity: unlocked ? 1 : 0.85,
+                      transition: "all 0.2s ease"
+                    }}
+                  >
+                    <div style={{
+                      width: 60, height: 60, display: "grid", placeItems: "center",
+                      background: "rgba(0,0,0,0.35)", borderRadius: 8,
+                      imageRendering: "pixelated",
+                      filter: unlocked ? "none" : "grayscale(1) brightness(0.55)",
+                    }}>
+                      {s.url ? (
+                        <img src={s.url} alt={s.label} style={{ maxWidth: "100%", maxHeight: "100%", imageRendering: "pixelated" }} />
+                      ) : (
+                        <div style={{ fontSize: 24 }}></div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 10, fontWeight: 700, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{s.label}</div>
+                    {!unlocked && <div style={{ position: "absolute", top: 4, right: 4, fontSize: 12 }}>🔒</div>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
+
+
 
       {tab === "wallet" && (
         <WalletScreen 

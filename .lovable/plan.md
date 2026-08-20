@@ -1,36 +1,31 @@
-# Plan: Trainer Equipment & Skin System
+# Plano: Sistema de Equipamentos do Treinador
 
-Implement a thematic "Equipment" panel in the **Início** tab, inspired by the provided reference image. This will centralize trainer customization, including equipment slots and skin selection.
+Implementar a lógica de interação para o painel de equipamentos, incluindo o modal de seleção de itens e a aplicação dos bônus de status (XP, Gold, Drop, Velocidade).
 
-## User Review Required
+## Tarefas
 
-> [!IMPORTANT]
-> - Which statistics should each equipment type (Head, Chest, etc.) improve? (e.g., Attack, Defense, HP, or Catch Rate).
-> - Should equipment be obtainable via **Forge**, **Drops**, or **Shop**?
+### 1. Preparação da Interface (idle.tsx)
+- Criar estado para controlar qual slot está sendo editado (`equipmentSlotPicker: EquipmentSlot | null`).
+- Criar função `onEquipItem(slot, itemId)` para atualizar o estado de equipamentos.
 
-## Proposed Changes
+### 2. Modal de Seleção de Equipamento
+- Implementar um modal RPG elegante que mostre os itens disponíveis para o slot selecionado.
+- Exibir nome, raridade e bônus de cada item.
+- Adicionar som de clique ao equipar.
 
-### Game Systems & State
-- Define `EquipmentSlot` types: `head`, `chest`, `weapon`, `boots`, `necklace`, `ring`.
-- Add `equipment` to the local/cloud save state to persist equipped items.
-- Define a base set of equipment items in `src/game/systems.tsx`.
+### 3. Aplicação de Bônus (Cálculos de Jogo)
+- Criar um hook ou função utilitária `getTrainerStats()` que some todos os bônus dos itens equipados.
+- Integrar esses bônus nos sistemas de:
+    - Ganho de XP (Pokémon e Treinador).
+    - Drop de Ouro.
+    - Taxa de captura/Drop de itens.
+    - Velocidade de ataque/movimentação.
 
-### UI Components (`src/routes/idle.tsx`)
-- **Trainer Equipment Panel**: 
-    - A pixel-art styled container with a dark purple background and golden borders.
-    - Central character preview (using the active `skinId`).
-    - 6 equipment slots arranged around the trainer, mirroring the reference image.
-    - Hover/Click interactions to show stats or change gear.
-- **Skin Selector Integration**:
-    - Relocate the existing skin selection grid into a "Wardrobe" sub-section of the Início tab.
-    - Standardize the skin card visuals to match the new equipment panel style.
+### 4. Refinamento Visual
+- Adicionar tooltips ao passar o mouse nos slots equipados.
+- Garantir que o "Guarda-Roupa" (Skins) e "Equipamento" coexistam harmoniosamente na aba Início.
 
-### Visual Design
-- Use `rgba` overlays and pixel-perfect borders for the "Tempered Glass" effect seen in other UI elements.
-- Placeholder icons for empty slots using thematic pixel-art silhouettes.
-
-## Technical Details
-- **File**: `src/routes/idle.tsx` (Primary UI logic).
-- **File**: `src/game/systems.tsx` (Item definitions and types).
-- **State**: `equippedItems: Record<EquipmentSlot, string | null>`.
-- **Styling**: Tailwind CSS for grid layout + inline `style` for specific pixel-art decorative elements.
+## Detalhes Técnicos
+- O estado `equippedItems` já está persistindo no `localStorage`.
+- Utilizar os dados de `TRAINER_EQUIPMENT_DATA` definidos em `systems.tsx`.
+- Cores de raridade vindas de `RARITY_COLOR`.
