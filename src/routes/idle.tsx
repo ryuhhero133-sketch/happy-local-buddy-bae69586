@@ -11596,12 +11596,25 @@ function IdlePage() {
                     background: isClaimed ? "rgba(34,197,94,0.2)" : (canClaim ? "rgba(245,207,107,0.15)" : "rgba(255,255,255,0.05)"),
                     border: `2px solid ${isClaimed ? "#22c55e" : (canClaim ? "#f5cf6b" : "#4a3b5c")}`,
                     borderRadius: 12, padding: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
-                    opacity: isLocked ? 0.6 : 1, transition: "all 0.2s"
+                    opacity: isLocked ? 0.6 : 1, transition: "all 0.2s",
+                    boxShadow: canClaim ? "0 0 15px rgba(245,207,107,0.4)" : "none",
                   }}>
                     <div style={{ fontSize: 10, fontWeight: 900, color: isClaimed ? "#22c55e" : "#f5cf6b" }}>DIA {day}</div>
-                    <div style={{ fontSize: 20 }}>{day === 7 ? "💎" : "🎁"}</div>
+                    <div style={{ fontSize: 24, filter: isClaimed ? "grayscale(0.5)" : "none" }}>
+                      {day === 7 ? "💎" : (isClaimed ? "📦" : "🎁")}
+                    </div>
                     <div style={{ fontSize: 8, color: "#fff", textAlign: "center", fontWeight: 700 }}>
-                      {day === 7 ? "50 Cristais" : "500 Gold\n20 Pokéballs\n5 Great Balls"}
+                      {day === 7 ? "50 Cristais" : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          <span>500 Gold</span>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                            <img src={ballPokeImg} width={10} style={{ imageRendering: "pixelated" }} /> 20
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                            <img src={ballGreatImg} width={10} style={{ imageRendering: "pixelated" }} /> 5
+                          </div>
+                        </div>
+                      )}
                     </div>
                     {canClaim ? (
                       <button 
@@ -11624,7 +11637,8 @@ function IdlePage() {
                         }}
                         style={{
                           marginTop: 5, width: "100%", background: "#f5cf6b", color: "#1a0f2e",
-                          border: "none", borderRadius: 6, fontSize: 8, fontWeight: 900, padding: "4px 0", cursor: "pointer"
+                          border: "none", borderRadius: 6, fontSize: 8, fontWeight: 900, padding: "4px 0", cursor: "pointer",
+                          animation: "pulseGlow 1.5s infinite"
                         }}
                       >
                         RESGATAR
@@ -11745,12 +11759,23 @@ function IdlePage() {
                   <FlaskConical size={20} color="#d97706" />
                 </div>
                 <div 
+                  onClick={(e) => { e.stopPropagation(); setTab("evento"); playClick(); }}
+                  style={{
+                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    left: 45, top: -35, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.2s ease-out forwards, orbGlow 2s infinite ease-in-out"
+                  }}
+                >
+                  <Calendar size={20} color="#d97706" />
+                </div>
+                <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(true); setForgeShowOrbit(false); playClick(); }}
                   style={{
                     position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
                     left: -40, top: 8, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.2s ease-out forwards"
+                    animation: "orbPop 0.3s 0.3s ease-out forwards"
                   }}
                 >
                   <Sparkles size={20} color="#d97706" />
@@ -12311,6 +12336,14 @@ function IdlePage() {
         @keyframes orbPop {
           0% { transform: scale(0); opacity: 0; }
           100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes orbGlow {
+          0%, 100% { box-shadow: 0 0 10px rgba(217,119,6,0.3); border-color: #d97706; }
+          50% { box-shadow: 0 0 20px rgba(217,119,6,0.8); border-color: #f5cf6b; transform: scale(1.05); }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(0.98); box-shadow: 0 0 15px rgba(245,207,107,0.6); }
         }
 
         @keyframes fxpop {
