@@ -4,17 +4,13 @@ import { generateMapIcon } from "@/lib/icons.functions";
 import { WindowManager } from "@/components/WindowManager";
 import { CraftWindowContent } from "@/components/CraftWindowContent";
 import { Hammer } from "lucide-react";
-import { BackpackWindowContent } from "@/components/BackpackWindowContent";
-import { CollectionWindowContent } from "@/components/CollectionWindowContent";
-import { ImprovementsWindowContent } from "@/components/ImprovementsWindowContent";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, Search } from "lucide-react";
-
+import { CollectionWindowContent } from "@/components/CollectionWindowContent";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
-
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
 import navPokemon from "@/assets/icons/nav-pokemon.png";
@@ -8196,7 +8192,7 @@ function IdlePage() {
             <button
               onClick={() => openWindow("collection_window", "Coleção Real", (
                 <CollectionWindowContent
-                  collection={(idle.collection || []) as any}
+                  collection={idle.collection || []}
                   maxCollection={MAX_COLLECTION}
                   caughtCount={idle.caughtSpecies.length}
                   teamUids={new Set(team.map(p => p.uid))}
@@ -8302,22 +8298,20 @@ function IdlePage() {
                   display: "grid", placeItems: "center", overflow: "hidden"
                 }}>
                   <MapIconRenderer 
-                    type={(IDLE_MAPS as any)[selectedMapInfo].type} 
-                    name={(IDLE_MAPS as any)[selectedMapInfo].name} 
-                    ok={(idle.trainerLevel ?? 1) >= (IDLE_MAPS as any)[selectedMapInfo].level} 
+                    type={IDLE_MAPS[selectedMapInfo].type} 
+                    name={IDLE_MAPS[selectedMapInfo].name} 
+                    ok={(idle.trainerLevel ?? 1) >= IDLE_MAPS[selectedMapInfo].level} 
                   />
-
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
                       <h3 style={{ margin: 0, color: "#f5cf6b", fontSize: 16, fontWeight: 900, letterSpacing: 1 }}>
-                        {(IDLE_MAPS as any)[selectedMapInfo].name.toUpperCase()}
+                        {IDLE_MAPS[selectedMapInfo].name.toUpperCase()}
                       </h3>
                       <div style={{ fontSize: 10, color: "#a066ff", fontWeight: 800, marginTop: 2 }}>
-                        DIFF: {(IDLE_MAPS as any)[selectedMapInfo].difficulty} · LV.{(IDLE_MAPS as any)[selectedMapInfo].level}+
+                        DIFF: {IDLE_MAPS[selectedMapInfo].difficulty} · LV.{IDLE_MAPS[selectedMapInfo].level}+
                       </div>
-
                     </div>
                     <button 
                       onClick={() => setSelectedMapInfo(null)}
@@ -8339,19 +8333,18 @@ function IdlePage() {
                           setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
                           setSelectedMapInfo(null);
                         }}
-                        disabled={(idle.trainerLevel ?? 1) < (IDLE_MAPS as any)[selectedMapInfo].level}
+                        disabled={(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level}
                         style={{
                           flex: 1, padding: "8px 0", borderRadius: 6,
-                          background: (idle.trainerLevel ?? 1) < (IDLE_MAPS as any)[selectedMapInfo].level 
+                          background: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level 
                             ? "#333" 
                             : "linear-gradient(180deg, #a066ff, #6b28c8)",
                           color: "#fff", fontWeight: 900, fontSize: 12,
-                          border: "none", cursor: (idle.trainerLevel ?? 1) < (IDLE_MAPS as any)[selectedMapInfo].level ? "not-allowed" : "pointer",
-                          boxShadow: (idle.trainerLevel ?? 1) < (IDLE_MAPS as any)[selectedMapInfo].level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
-
+                          border: "none", cursor: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "not-allowed" : "pointer",
+                          boxShadow: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
                         }}
                       >
-                        {(idle.trainerLevel ?? 1) < (IDLE_MAPS as any)[selectedMapInfo].level ? "BLOQUEADO" : "VIAJAR AGORA"}
+                        {(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "BLOQUEADO" : "VIAJAR AGORA"}
                       </button>
                   </div>
                 </div>
@@ -11505,21 +11498,17 @@ function IdlePage() {
         {/* ============ NAV INFERIOR ============ */}
         <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "center", gap: 4, background: "linear-gradient(180deg,#0b0510 0%,#160a20 100%)", padding: "8px 0", borderTop: "1px solid rgba(245,207,107,0.15)" }}>
           {([
-            { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b", isWindow: false },
-            { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252", isWindow: false },
-            { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b", isWindow: false },
+            { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
+            { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
+            { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b" },
             
-            { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a", isWindow: false },
-
-            { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a", isWindow: false },
-            { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48", isWindow: false },
-            { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff", isWindow: false },
-            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true, isWindow: false },
-            { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b", isWindow: false },
-            { id: "land",     label: "TEST MENU",   img: navInicio,   color: "#a78bfa", isWindow: true },
+            { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a" },
+            { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
+            { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
+            { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
+            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
+            { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b" },
           ] as const).map((t) => {
-
-
 
             const active = tab === t.id;
             const showActive = active;
@@ -11531,82 +11520,12 @@ function IdlePage() {
                 onClick={() => {
                   if (isDisabled) {
                     playClick();
-                    pushChat("🛒 Mercado temporariamente bloqueado.", "info");
+                     pushChat("🛒 Mercado temporariamente bloqueado.", "info");
                     return;
                   }
                   playClick();
-                  
-                  if (t.id === "land") {
-                    const manager = (window as any).windowManager;
-                    if (manager) {
-                      manager.openWindow("land", "🧪 Experimental Test Menu", (
-                        <div style={{ padding: 16, color: "#eadfe8" }}>
-                          <div style={{ fontSize: 13, marginBottom: 12, opacity: 0.8 }}>Use este menu para testar o novo sistema de janelas modulares.</div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                            <button 
-                              onClick={() => manager.openWindow("mochila_test", "📦 Mochila (TEST)", (
-                                <BackpackWindowContent 
-                                  items={idle.items}
-                                  bank={idle.bank}
-                                  onUseItem={useItem}
-                                  onSellItem={sellItem}
-                                  marketSellPrices={MARKET_SELL_PRICE || {}}
-                                />
-                              ), { width: 400, height: 500 })}
-                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
-                            >Mochila (Test)</button>
-                            
-                            <button 
-                              onClick={() => manager.openWindow("colecao_test", "🛡️ Coleção (TEST)", (
-                                <CollectionWindowContent 
-                                  collection={(idle.collection || []) as any}
-                                  maxCollection={500}
-                                  caughtCount={idle.caughtSpecies?.length || 0}
-                                  onSelectPokemon={(uid: string) => {
-                                    const p = (idle.collection || []).find((x: any) => x.uid === uid);
-                                    if (p) setStatsCardPet(p as any);
-                                  }}
-                                  teamUids={new Set((idle as any).activeTeam?.map((p: any) => p.uid) || [])}
-                                />
-                              ), { width: 450, height: 550 })}
-                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
-                            >Coleção (Test)</button>
-                            <button 
-                              onClick={() => manager.openWindow("forja_test", "⚒️ Forja (TEST)", (
-                                <CraftWindowContent 
-                                  items={idle.items}
-                                  bank={idle.bank}
-                                  onCraft={(id) => pushChat(`Crafting ${id}...`, "info")}
-                                />
-                              ), { width: 400, height: 500 })}
-                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
-                            >Forja (Test)</button>
-
-                            <button 
-                              onClick={() => manager.openWindow("melhorias_test", "✨ Melhorias (TEST)", (
-                                <ImprovementsWindowContent 
-                                  stats={idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 }}
-                                  items={idle.items}
-                                  onUpgradeStat={(key) => {
-                                     pushChat(`Evoluindo ${key}...`, "info");
-                                  }}
-                                />
-                              ), { width: 350, height: 450 })}
-                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
-                            >Melhorias (Test)</button>
-                          </div>
-                        </div>
-                      ), { width: 400, height: 350 });
-                    }
-                    return;
-                  }
-
-
-                  
                   setTab(t.id as typeof tab);
-
                 }}
-
                 title={isDisabled ? `${t.label} (em breve)` : t.label}
                 style={{
                   flex: 1, maxWidth: 130,
@@ -14293,34 +14212,1555 @@ function TabOverlay({
         </div>
       )}
 
-      {tab === "mochila" && (
-        <BackpackWindowContent
-          items={items}
-          bank={idle.bank}
-          onUseItem={onUseItem}
-          onSellItem={onSellItem}
-          marketSellPrices={marketSellPrices}
-        />
-      )}
+      {tab === "mochila" && (() => {
+        const NAMES: Record<string, string> = {
+          potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
+          book_atk: "Livro Ataque", book_def: "Livro Defesa", book_exp: "Livro EXP",
+          book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP ✦",
+          book_vip_30: "Livro VIP 30d ✦✦", book_vip_60: "Livro VIP 60d ✦✦✦",
+          chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
+          premium_box: "Caixa Premium ✦ Evento",
+          skin_ticket: "Ticket de Skin ✦",
+          bau_esmeralda: "Baú de Esmeralda 💠",
+          chave_ruby: "Chave Ruby 🔴",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
+          incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
+          orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
+          safira_verde: "Safira Verde 💚",
+          carta_governante: "Carta do Governante 👑",
+          carta_incubadora: "Carta da Incubadora Lendária 🔮",
+          carta_plus: "Carta Suprema Plus ✦",
+          carta_riolu: "Carta Riolu Suprema 🐺✦",
+          stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
+          stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
+          stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
+          black_mitic_egg: "Black Mitic Egg ✦",
+          egg_boost_69: "Cristal do Despertar ✦",
+          stone_pack_all: "Pacote das Seis Stones 💠",
+        };
+        const ITEM_DESC: Record<string, string> = {
+          potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
+          pokeball: "Pokébola padrão. Chance base de captura.",
+          greatball: "Great Ball. Melhor chance de captura contra pokémon fortes.",
+          ultraball: "Ultra Ball. Alta chance de captura, essencial contra míticos.",
+          book_atk: "Aumenta o Ataque do time em batalha (permanente ao usar).",
+          book_def: "Aumenta a Defesa do time em batalha (permanente ao usar).",
+          book_exp: "Livro de EXP · +10% EXP por 1 hora.",
+          book_exp_big: "Livro de EXP Raro · +20% EXP por 1 hora.",
+          book_exp_max: "Livro de EXP Lendário · +30% EXP por 1 hora.",
+          book_vip: "Livro VIP · +20% Ouro e EXP por 1 hora.",
+          book_vip_30: "Livro VIP 30 dias · +30% Ouro e EXP.",
+          book_vip_60: "Livro VIP 60 dias · +40% Ouro e EXP.",
+          orb_xp_minor: "Orb Menor ✦ · +10% EXP por 1 hora (stack com livro).",
+          orb_xp_major: "Orb Maior ✦✦ · +20% EXP por 1 hora (stack com livro).",
+          orb_xp_supreme: "Orb Supremo ✦✦✦ · +30% EXP por 1 hora (stack com livro).",
+          orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦ · +30% EXP por 24 horas contínuas. Não empilha com outro orb ativo.",
+          orb_team: "Orb de Time ✦✦✦ · distribui EXP a todo o time por 3 horas.",
+          incenso_mel: "Incenso de Mel 🍯 · +10% drop/xp/def/velocidade por 1 hora.",
+          incenso_mel_raro: "Incenso Raro ✨🍯 · +20% drop/xp/def/velocidade por 1 hora.",
+          incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
+          premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
+          bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
+          chave_ruby: "Chave Ruby 🔴 · usada para conversão na Escala Ruby (loja exclusiva). Recompensa do Top 50 do Ranked Global — coletada uma única vez por conta. Top 1: 15 · Top 2: 13 · Top 3: 11 · Top 4: 7 · Top 5–50: 3.",
+          skin_ticket: "Ticket de Skin ✦ · use na aba Início para desbloquear uma skin premium.",
+          egg_common: "Ovo Comum · chocado gera um pokémon aleatório de raridade baixa.",
+          egg_rare: "Ovo Raro · chance de raridades altas ao chocar.",
+          egg_epic: "Ovo Épico · alta chance de raridade Épica.",
+          egg_mystic: "Ovo Místico · pode chocar espécies míticas.",
+          egg_aura: "Ovo da Aura · espécies especiais com aura elemental.",
+          egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
+          egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
+          safira_verde: "Safira Verde 💚 · moeda do evento Oddish. Converte em Esmeraldas (200:1) na Cash Shop.",
+          berry: "Baga · restaura um pouco de HP em batalha.",
+          revive: "Reviver · devolve um pokémon caído com HP parcial.",
+          key: "Chave · abre baús trancados encontrados no mundo.",
+          chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
+          carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
+          carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
+          carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para materializar 1 Black Mitic Plus direto na Coleção, VERSÁTIL com 6 traits. Uso único.",
+          carta_riolu: "Carta Riolu Suprema 🐺✦ · leve ao Governante para materializar 1 Riolu Black Mitic Brilhant Plus (Lv 1000, 6 traits) direto na Coleção. Uso único.",
+          stone_grass: "Stone Verdejante 🌿 · alimenta ovos Black Míticos e vale ouro.",
+          stone_fire: "Stone Ígnea 🔥 · alimenta ovos Black Míticos e vale ouro.",
+          stone_water: "Stone Aquática 💧 · alimenta ovos Black Míticos e vale ouro.",
+          stone_electric: "Stone Elétrica ⚡ · alimenta ovos Black Míticos e vale ouro.",
+          stone_dark: "Stone Sombria 🌑 · alimenta ovos Black Míticos, valor alto.",
+          stone_dragon: "Stone Dragão 🐉 · alimenta ovos Black Míticos, valor muito alto.",
+          black_mitic_egg: "Black Mitic Egg ✦ · ovo lendário que flutua ao seu lado. Clique nele no mapa para abrir a HUD e alimentar com Elemental Stones (50 por vez). Cooldown de 7h por alimentação. A afinidade elemental dominante decidirá o elemento do futuro Pokémon.",
+          egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
+          stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
+        };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
+        const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
+          if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
+          if (id === "potion" || id === "revive" || id === "berry") return "potions";
+          if (id.startsWith("book_")) return "books";
+          if (id.startsWith("egg_")) return "eggs";
+          return "other";
+        };
+        const CATS: { id: "all" | "balls" | "potions" | "books" | "eggs" | "other"; label: string; icon: string }[] = [
+          { id: "all", label: "Tudo", icon: catAllUrl },
+          { id: "balls", label: "Bolas", icon: catBallsUrl },
+          { id: "potions", label: "Poções", icon: catPotionsUrl },
+          { id: "books", label: "Livros", icon: catBooksUrl },
+          { id: "eggs", label: "Ovos", icon: catEggsUrl },
+          { id: "other", label: "Outros", icon: catOtherUrl },
+        ];
+        // filtra chaves internas de contagem (não devem aparecer na mochila)
+        const entries = Object.entries(items).filter(([id, n]) => n > 0 && !id.startsWith("_"));
+        const totalTypes = entries.length;
+        const totalCount = entries.reduce((a, [, n]) => a + n, 0);
+        const filtered = mochilaCat === "all" ? entries : entries.filter(([id]) => catOf(id) === mochilaCat);
+        // slots: preenche a grade com mínimo de 24 slots
+        const SLOTS_MIN = 24;
+        const emptyCount = Math.max(0, SLOTS_MIN - filtered.length);
+
+        // Paleta obsidiana + violeta arcano — dark fantasy
+        const P = {
+          bg1: "#1a0d2a", bg2: "#120820", bg3: "#0a0416",
+          ink: "#f0e2ff", inkSoft: "#b39dd8",
+          gold: "#a855f7", goldLight: "#d4a2ff", goldDark: "#5b21b6",
+          rose: "#c026d3", roseSoft: "#e94dea",
+          panel: "#1e1030",
+        };
+
+        return (
+          <div style={{
+            background: `
+              radial-gradient(circle at 50% 30%, rgba(168,85,247,0.28), transparent 55%),
+              url(${bagBgGlowUrl}) center/cover no-repeat,
+              linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)
+            `,
+            border: `3px solid ${P.gold}`, borderRadius: 16, padding: 14,
+            boxShadow: `inset 0 0 0 2px ${P.goldLight}55, inset 0 0 80px rgba(168,85,247,0.22), 0 8px 32px rgba(0,0,0,0.75)`,
+            fontFamily: '"Pixelify Sans", ui-monospace, monospace',
+            position: "relative",
+          }}>
+            <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
+              background: "radial-gradient(ellipse at 50% 0%, rgba(212,162,255,0.18), transparent 60%)" }} />
+
+            {/* CABEÇALHO — pergaminho dourado */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
+              padding: "12px 16px",
+              background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
+              border: `2px solid ${P.goldDark}`, borderRadius: 12,
+              boxShadow: `inset 0 0 0 1px ${P.goldLight}, 0 3px 0 rgba(0,0,0,0.15)`,
+            }}>
+              <div style={{
+                width: 60, height: 60, borderRadius: 12, flexShrink: 0,
+                background: `radial-gradient(circle at 35% 30%, #fff4d0, ${P.goldLight} 55%, ${P.goldDark})`,
+                display: "grid", placeItems: "center",
+                border: `2px solid ${P.goldDark}`,
+                boxShadow: `inset 0 2px 4px rgba(255,255,255,0.6), 0 3px 8px rgba(0,0,0,0.35)`,
+              }}>
+                <img src={bagIconImg} alt="" width={40} height={40} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.4))" }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  color: P.goldDark, fontSize: 22, fontWeight: 900, letterSpacing: 3, lineHeight: 1,
+                  textShadow: `0 1px 0 ${P.panel}, 0 2px 3px rgba(0,0,0,0.15)`,
+                }}>✦ MOCHILA ✦</div>
+                <div style={{ color: P.inkSoft, fontSize: 10.5, marginTop: 6, fontStyle: "italic" }}>
+                  "Um bom aventureiro carrega o mundo nas costas."
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-end" }}>
+                <div style={{
+                  background: `linear-gradient(180deg, ${P.panel}, ${P.bg2})`, color: P.ink,
+                  border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
+                  fontSize: 10.5, fontWeight: 900, letterSpacing: 0.5,
+                  boxShadow: `inset 0 0 0 1px ${P.goldLight}80`,
+                }}>{totalTypes} tipos · {totalCount} itens</div>
+                <div style={{ display: "flex", gap: 5 }}>
+                  <div style={{
+                    background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`, color: P.ink,
+                    border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
+                    fontSize: 11, fontWeight: 900,
+                    boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+                  }}>💰 {bank.gold.toLocaleString()}</div>
+                  <div style={{
+                    background: "linear-gradient(180deg, #c084fc, #9333ea)", color: "#fff",
+                    border: "1.5px solid #7e22ce", borderRadius: 8, padding: "3px 10px",
+                    fontSize: 11, fontWeight: 900,
+                    boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
+                  }}>💎 {Math.floor(bank.crystals).toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* GRID LAYOUT — sidebar categorias + grade */}
+            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12 }}>
+              {/* SIDEBAR CATEGORIAS */}
+              <div style={{
+                background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
+                border: `2px solid ${P.goldDark}`, borderRadius: 12,
+                boxShadow: `inset 0 0 0 1px ${P.goldLight}70`,
+                padding: 8, display: "flex", flexDirection: "column", gap: 6,
+              }}>
+                <div style={{
+                  textAlign: "center", fontSize: 10, fontWeight: 900, letterSpacing: 2,
+                  color: P.goldDark, padding: "4px 0 6px", borderBottom: `1px dashed ${P.goldDark}55`,
+                }}>CATEGORIAS</div>
+                {CATS.map((c) => {
+                  const active = mochilaCat === c.id;
+                  const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setMochilaCat(c.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        padding: "8px 10px", fontSize: 11.5, fontWeight: 900, letterSpacing: 0.3,
+                        background: active
+                          ? `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`
+                          : `linear-gradient(180deg, ${P.panel}, ${P.bg2})`,
+                        color: P.ink,
+                        border: `1.5px solid ${active ? P.goldDark : P.gold + "77"}`,
+                        borderRadius: 9, cursor: "pointer",
+                        boxShadow: active
+                          ? `inset 0 0 0 1px #fff8e4, 0 2px 0 rgba(0,0,0,0.25)`
+                          : `0 1px 0 rgba(0,0,0,0.1)`,
+                        transform: active ? "translateX(3px)" : "translateX(0)",
+                        transition: "all 120ms",
+                        textAlign: "left", width: "100%",
+                      }}
+                    >
+                      <img
+                        src={c.icon}
+                        alt=""
+                        width={44}
+                        height={44}
+                        style={{
+                          imageRendering: "pixelated", flexShrink: 0,
+                          filter: active
+                            ? "drop-shadow(0 0 8px rgba(212,162,255,0.95)) drop-shadow(0 2px 3px rgba(0,0,0,0.55))"
+                            : "drop-shadow(0 0 4px rgba(168,85,247,0.4)) drop-shadow(0 1px 2px rgba(0,0,0,0.55))",
+                          animation: active ? "cat-bounce 1.4s ease-in-out infinite" : "cat-bounce 3.2s ease-in-out infinite",
+                        }}
+                      />
+                      <span style={{ flex: 1 }}>{c.label}</span>
+                      <span style={{
+                        background: active ? P.goldDark : P.ink + "22",
+                        color: active ? "#fff8e4" : P.inkSoft,
+                        fontSize: 10, fontWeight: 900, padding: "1px 7px",
+                        borderRadius: 999, minWidth: 22, textAlign: "center",
+                      }}>{count}</span>
+                    </button>
+                  );
+                })}
+                <div style={{ flex: 1 }} />
+                <div style={{
+                  marginTop: 4, padding: "6px 8px", fontSize: 9.5, fontWeight: 700,
+                  color: P.inkSoft, textAlign: "center", fontStyle: "italic",
+                  borderTop: `1px dashed ${P.goldDark}55`,
+                }}>
+                  {SLOTS_MIN - filtered.length > 0 ? `${SLOTS_MIN - filtered.length} slots livres` : "Mochila cheia"}
+                </div>
+              </div>
+
+              {/* GRADE DE ITENS */}
+              <div style={{
+                background: `linear-gradient(180deg, ${P.panel}dd, ${P.bg1}dd)`,
+                border: `2px solid ${P.goldDark}`, borderRadius: 12,
+                boxShadow: `inset 0 0 0 1px ${P.goldLight}70, inset 0 0 22px rgba(184,134,42,0.12)`,
+                padding: 12, minHeight: 360,
+              }}>
+                {filtered.length === 0 ? (
+                  <div style={{
+                    color: P.inkSoft, fontSize: 13, padding: 60, textAlign: "center", fontStyle: "italic",
+                  }}>
+                    {entries.length === 0
+                      ? "Sua mochila está vazia. Derrote Pokémon, abra baús ou visite a Loja!"
+                      : "Nenhum item nesta categoria."}
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(126px, 1fr))", gap: 10 }}>
+                    {filtered.map(([id, n]) => {
+                      const isEgg = id.startsWith("egg_");
+                      const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
+                      const img = ITEM_IMG[id];
+                      const Icon = ITEM_ICONS[id] ?? Sparkles;
+                      const sellPrice = marketSellPrices[id] ?? 0;
+                      return (
+                        <div key={id} style={{
+                          background: `linear-gradient(180deg, ${P.panel} 0%, ${P.bg1} 100%)`,
+                          border: `2px solid ${P.goldDark}`, borderRadius: 10, padding: 8,
+                          textAlign: "center", position: "relative",
+                          boxShadow: `inset 0 0 0 1px ${P.goldLight}88, 0 3px 0 rgba(0,0,0,0.18)`,
+                          display: "flex", flexDirection: "column", gap: 6, alignItems: "center",
+                          transition: "transform 120ms, box-shadow 120ms",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `inset 0 0 0 1px #fff8e4, 0 6px 14px rgba(0,0,0,0.35), 0 0 14px ${color}66`; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `inset 0 0 0 1px ${P.goldLight}88, 0 3px 0 rgba(0,0,0,0.18)`; }}
+                        >
+                          <div style={{
+                            position: "absolute", top: -6, right: -6,
+                            background: `linear-gradient(180deg, ${P.rose}, #7a1e12)`, color: "#fff8e4",
+                            fontSize: 10, fontWeight: 900, padding: "2px 7px",
+                            borderRadius: 999, minWidth: 24, textAlign: "center",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                            border: `1.5px solid ${P.panel}`,
+                          }}>x{n}</div>
+                          <div
+                            onClick={(e) => { e.stopPropagation(); setItemDetail(id); }}
+                            title="Ver detalhes"
+                            style={{
+                            width: 62, height: 62, borderRadius: 10, marginTop: 2,
+                            background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
+                            display: "grid", placeItems: "center",
+                            border: `2px inset ${P.goldDark}aa`,
+                            boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 10px ${color}44`,
+                            position: "relative", overflow: "hidden", cursor: "pointer",
+                          }}>
+                            {img ? (
+                              <img
+                                src={img}
+                                alt=""
+                                width={52}
+                                height={52}
+                                loading="lazy"
+                                style={{
+                                  imageRendering: "pixelated",
+                                  filter: `drop-shadow(0 0 6px ${color}aa) drop-shadow(0 2px 2px rgba(0,0,0,0.45))`,
+                                  animation: "item-float 2.4s ease-in-out infinite",
+                                }}
+                              />
+                            ) : (
+                              <ItemPixelIcon id={id} size={52} color={color} />
+                            )}
+                          </div>
+                          <div style={{
+                            fontSize: 10.5, fontWeight: 900, color: P.ink, letterSpacing: 0.2, lineHeight: 1.15,
+                            minHeight: 24, display: "flex", alignItems: "center",
+                          }}>{NAMES[id] ?? id}</div>
+                          <div style={{ display: "flex", gap: 4, width: "100%" }}>
+                            <button
+                              onClick={() => {
+                                const bulk = id === "book_atk" || id === "book_def" || id === "potion";
+                                if (bulk && n > 1) {
+                                  const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
+                                  if (raw == null) return;
+                                  const q = Math.max(1, Math.min(n, parseInt(raw, 10) || 1));
+                                  onUseItem(id, q);
+                                } else {
+                                  onUseItem(id, 1);
+                                }
+                              }}
+                              style={{
+                                flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
+                                background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
+                                color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                                borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
+                                boxShadow: `0 2px 0 ${P.goldDark}`,
+                              }}
+                            >{isEgg ? "CHOCAR" : "USAR"}</button>
+                            {sellPrice > 0 && !id.startsWith("stone_") && (
+                              <button
+                                onClick={() => onSellItem(id, 1)}
+                                title={`Vender 1 por ${sellPrice} ouro`}
+                                style={{
+                                  flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
+                                  background: `linear-gradient(180deg, ${P.roseSoft}, ${P.rose})`,
+                                  color: "#fff8e4", border: `1.5px solid #7a1e12`,
+                                  borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
+                                  boxShadow: `0 2px 0 #7a1e12`,
+                                }}
+                              >💰{sellPrice}</button>
+                            )}
+
+                            {id.startsWith("stone_") && (
+                              <button
+                                onClick={() => {
+                                  const maxBatches = Math.floor(n / 250);
+                                  if (maxBatches <= 0) return;
+                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
+                                  if (raw == null) return;
+                                  const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
+                                  onSellItem(id, b * 250, "safira");
+                                }}
+                                title="Vender por Safira Verde (250 stones = 2 safiras)"
+                                disabled={n < 250}
+                                style={{
+                                  padding: "5px 6px", fontSize: 10, fontWeight: 900,
+                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
+                                  color: "#0b2540", border: "1.5px solid #065f46",
+                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
+                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
+                                }}
+                              >💚</button>
+                            )}
+
+                          </div>
+                          {(() => {
+                            const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+                              book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
+                              book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
+                              book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
+                              book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "VIP 60d" },
+                            };
+                            const rule = UP[id];
+                            if (!rule) return null;
+                            const okLv = trainerLevel >= rule.trainerLv;
+                            const okQty = n >= rule.cost;
+                            const enabled = okLv && okQty;
+                            const title = !okLv
+                              ? `Requer Treinador Lv.${rule.trainerLv}`
+                              : !okQty
+                                ? `Precisa de ${rule.cost}× (você tem ${n})`
+                                : `Forjar ${rule.label} usando ${rule.cost}×`;
+                            return (
+                              <button
+                                onClick={() => onUpgradeBook(id)}
+                                disabled={!enabled}
+                                title={title}
+                                style={{
+                                  marginTop: 2, width: "100%", padding: "5px 4px", fontSize: 9.5, fontWeight: 900,
+                                  background: enabled ? "linear-gradient(180deg, #8bffb0, #3a8a5a)" : `${P.bg3}88`,
+                                  color: enabled ? "#0b2010" : P.inkSoft,
+                                  border: `1.5px solid ${enabled ? "#2a5a3a" : P.gold + "77"}`,
+                                  borderRadius: 6, cursor: enabled ? "pointer" : "not-allowed", letterSpacing: 0.3,
+                                }}
+                              >⚒️ {rule.label}</button>
+                            );
+                          })()}
+                        </div>
+                      );
+                    })}
+                    {Array.from({ length: emptyCount }).map((_, i) => (
+                      <div key={`empty-${i}`} style={{
+                        background: `${P.bg2}55`,
+                        border: `2px dashed ${P.gold}66`, borderRadius: 10,
+                        minHeight: 150,
+                        boxShadow: `inset 0 0 12px ${P.gold}22`,
+                      }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <style>{`
+              @media (max-width: 720px) {
+                .mochila-body { grid-template-columns: 1fr !important; }
+              }
+            `}</style>
+
+            {itemDetail && (() => {
+              const id = itemDetail;
+              const isEgg = id.startsWith("egg_");
+              const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
+              const img = ITEM_IMG[id];
+              const name = NAMES[id] ?? id;
+              const desc = ITEM_DESC[id] ?? "Item do universo IdleMon. Ainda sem descrição detalhada.";
+              const count = items[id] ?? 0;
+              const sellPrice = marketSellPrices[id] ?? 0;
+              return (
+                <div onClick={() => setItemDetail(null)} style={{
+                  position: "fixed", inset: 0, zIndex: 9999,
+                  background: "rgba(4,4,10,0.72)", backdropFilter: "blur(6px)",
+                  display: "grid", placeItems: "center", padding: 16,
+                }}>
+                  <div onClick={(e) => e.stopPropagation()} style={{
+                    width: "min(420px, 96vw)", position: "relative",
+                    background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
+                    border: `2px solid ${P.goldDark}`, borderRadius: 14,
+                    boxShadow: `inset 0 0 0 1px ${P.goldLight}88, 0 0 40px ${color}55, 0 12px 40px rgba(0,0,0,0.6)`,
+                    padding: 18, color: P.ink,
+                  }}>
+                    <button onClick={() => setItemDetail(null)} style={{
+                      position: "absolute", top: 8, right: 10, background: "transparent",
+                      border: "none", color: P.inkSoft, fontSize: 20, cursor: "pointer", fontWeight: 900,
+                    }}>×</button>
+                    <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                      <div style={{
+                        width: 84, height: 84, borderRadius: 12, flexShrink: 0,
+                        background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
+                        display: "grid", placeItems: "center",
+                        border: `2px inset ${P.goldDark}aa`,
+                        boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 14px ${color}66`,
+                      }}>
+                        {img ? (
+                          <img src={img} alt="" width={68} height={68} style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 6px ${color}aa)` }} />
+                        ) : (
+                          <ItemPixelIcon id={id} size={68} color={color} />
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.2 }}>{name}</div>
+                        <div style={{ fontSize: 11, color: P.inkSoft, marginTop: 4, fontWeight: 700 }}>Quantidade: <span style={{ color: P.gold }}>x{count}</span></div>
+                        {sellPrice > 0 && (
+                          <div style={{ fontSize: 11, color: P.inkSoft, marginTop: 2, fontWeight: 700 }}>Preço de venda: <span style={{ color: "#ffd66b" }}>{sellPrice} 🪙</span></div>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{
+                      marginTop: 14, padding: 12, borderRadius: 10,
+                      background: `${P.bg2}80`, border: `1px dashed ${P.goldDark}88`,
+                      fontSize: 12.5, lineHeight: 1.5, color: P.ink,
+                    }}>{desc}</div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                      {!isEgg && count > 0 && (
+                        <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
+                          flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                          background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
+                          color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                          borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
+                          boxShadow: `0 2px 0 ${P.goldDark}`,
+                        }}>USAR</button>
+                      )}
+                      {isEgg && count > 0 && (
+                        <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
+                          flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                          background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
+                          color: P.ink, border: `1.5px solid ${P.goldDark}`,
+                          borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
+                          boxShadow: `0 2px 0 ${P.goldDark}`,
+                        }}>CHOCAR</button>
+                      )}
+                      <button onClick={() => setItemDetail(null)} style={{
+                        flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
+                        background: "transparent", color: P.inkSoft,
+                        border: `1.5px solid ${P.goldDark}`, borderRadius: 8, cursor: "pointer",
+                      }}>FECHAR</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        );
+      })()}
+
 
       {tab === "colecao" && (
-        <CollectionWindowContent
-          collection={collection as any}
-          maxCollection={MAX_COLLECTION}
-          caughtCount={caughtSpecies.length}
-          onSelectPokemon={onOpenColecaoDetail}
-          teamUids={teamUidSet}
-        />
-      )}
+        <div style={{
+          background: "linear-gradient(180deg, #f5e6c8 0%, #e8d4a8 100%)",
+          border: "3px solid #b8862a",
+          borderRadius: 14, padding: 18,
+          boxShadow: "inset 0 0 24px rgba(184,134,42,0.25), 0 4px 18px rgba(0,0,0,0.4)",
+        }}>
+          {/* HUD topo da coleção */}
+          {/* Início Coleção (Removido daqui para janelas se desejado, mas mantido para fallback) */}
+          <div style={{
 
-      {tab === "forja" && (
-        <div style={{ padding: 20, textAlign: "center", color: "#8a7a9c" }}>
-          <h2 style={{ color: "#f5cf6b" }}>SISTEMA DE FORJA</h2>
-          <p>Acesse o Menu de Teste para ver a versão experimental.</p>
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            marginBottom: 14, paddingBottom: 12,
+            borderBottom: "2px solid rgba(184,134,42,0.5)",
+          }}>
+            <div>
+              <div style={{ color: "#6b4a10", fontSize: 20, fontWeight: 900, letterSpacing: 3, fontFamily: "Georgia, serif" }}>
+                ✦ COLEÇÃO ✦
+              </div>
+              <div style={{ color: "#8b6a30", fontSize: 12, marginTop: 2, fontStyle: "italic" }}>
+                Registro particular do treinador
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "#b8862a", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.5)" }}>
+                {collection.length} / {MAX_COLLECTION} NA COLEÇÃO
+              </div>
+              <div style={{ background: "#8b6a30", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
+                {caughtSpecies.length} ESPÉCIES
+              </div>
+              <div style={{ background: "linear-gradient(180deg,#7c3aed,#4f26a4)", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(124,58,237,0.5)" }}>
+                ⚒️ {craftPoints} PTS CRAFT
+              </div>
+            </div>
+          </div>
+          {/* Filtros */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12, padding: "8px 10px", background: "rgba(107,74,16,0.12)", borderRadius: 10, border: "1px dashed rgba(107,74,16,0.35)" }}>
+            <input
+              value={colFilterName}
+              onChange={(e) => setColFilterName(e.target.value)}
+              placeholder="🔍 Buscar por nome..."
+              style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}
+            />
+            <select value={colFilterRarity} onChange={(e) => setColFilterRarity(e.target.value as "all" | Rarity)}
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              <option value="all">Todas raridades</option>
+              <option value="common">Comum</option>
+              <option value="uncommon">Incomum</option>
+              <option value="rare">Raro</option>
+              <option value="epic">Épico</option>
+              <option value="legendary">Lendário</option>
+              <option value="mythic">Mítico</option>
+              <option value="mythic_shiny">Mítico Brilhante</option>
+            </select>
+            <select value={colSort} onChange={(e) => setColSort(e.target.value as typeof colSort)}
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              <option value="recent">Mais recentes</option>
+              <option value="level_desc">Nível ↓</option>
+              <option value="level_asc">Nível ↑</option>
+              <option value="rarity">Raridade</option>
+              <option value="name">Nome</option>
+            </select>
+            <button
+              onClick={() => setColOnlyLocked((v) => !v)}
+              style={{
+                padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
+                border: "1px solid #b8862a", cursor: "pointer",
+                background: colOnlyLocked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
+                color: colOnlyLocked ? "#4a3010" : "#8b6a30",
+              }}
+              title="Mostrar somente Pokémon travados"
+            >🔒 {colOnlyLocked ? "SÓ TRAVADOS" : "TRAVADOS"}</button>
+            <button
+              onClick={() => { setBulkMode((v) => !v); setBulkSel(new Set()); }}
+              style={{
+                padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
+                border: "1px solid #6b21a8", cursor: "pointer",
+                background: bulkMode ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#f3e8ff",
+                color: bulkMode ? "#fff" : "#5b21b6",
+                boxShadow: bulkMode ? "0 0 10px rgba(167,139,250,0.6)" : "none",
+              }}
+              title="Selecionar vários para fragmentar de uma vez"
+            >☑ {bulkMode ? "SELECIONANDO" : "SELECIONAR"}</button>
+            {bulkMode && bulkSel.size > 0 && (
+              <button
+                onClick={() => openFragConfirm([...bulkSel])}
+                style={{
+                  padding: "6px 14px", fontSize: 12, fontWeight: 900, borderRadius: 8,
+                  border: "1px solid #3b0f7a", cursor: "pointer",
+                  background: "linear-gradient(180deg,#c084fc,#6b21a8)",
+                  color: "#fff",
+                  boxShadow: "0 0 12px rgba(192,132,252,0.7)",
+                }}
+              >⚒️ FRAGMENTAR {bulkSel.size}</button>
+            )}
+            <div style={{ fontSize: 11, color: "#6b4a10", fontWeight: 800 }}>
+              🔒 {lockedSet.size} travados
+            </div>
+          </div>
+
+          {collection.length === 0 ? (
+            <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
+              Nenhum Pokémon capturado ainda. Continue a jornada — a taxa de captura é baixa (5%).
+            </div>
+          ) : (() => {
+            const rarityOrder: Record<Rarity, number> = {
+              common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, mythic: 5, mythic_shiny: 6,
+            } as Record<Rarity, number>;
+            const q = colFilterName.trim().toLowerCase();
+            const filtered = collection.filter((e) => {
+              if (colFilterRarity !== "all" && e.rarity !== colFilterRarity) return false;
+              if (q && !e.species.toLowerCase().includes(q)) return false;
+              if (colOnlyLocked && !lockedSet.has(e.uid)) return false;
+              return true;
+            });
+            filtered.sort((a, b) => {
+              if (colSort === "recent") return b.capturedAt - a.capturedAt;
+              if (colSort === "level_desc") return b.level - a.level;
+              if (colSort === "level_asc") return a.level - b.level;
+              if (colSort === "rarity") return (rarityOrder[b.rarity] ?? 0) - (rarityOrder[a.rarity] ?? 0);
+              return a.species.localeCompare(b.species);
+            });
+            if (filtered.length === 0) {
+              return <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
+            }
+            return (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
+              {filtered.map((entry, i) => {
+                const sp = entry.species;
+                const isCurrent = leader?.species === sp && leader?.uid === entry.uid;
+                const teamPet = team.find((p) => p.uid === entry.uid);
+                const inTeam = !!teamPet;
+                const displayLevel = teamPet?.level ?? entry.level;
+                const rarityColor: Partial<Record<Rarity, string>> = {
+                  common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
+                  epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
+                };
+                const rColor = rarityColor[entry.rarity] ?? "#8b6a30";
+                const gain = CRAFT_BY_RARITY[entry.rarity] ?? 1;
+                const locked = lockedSet.has(entry.uid);
+                 const traits = entry.traits ?? [];
+                 const fragDisabled = inTeam || locked;
+                 const isSelected = bulkSel.has(entry.uid);
+                 const canBulkPick = !inTeam && !locked;
+                 const isBMP = !!entry.event && entry.event.startsWith("black_mitic");
+                 const isBrilhant = !!entry.event && entry.event.includes("brilhant");
+                 const bmpAccent = isBrilhant ? "#ff97e1" : "#a066ff";
+                 return (
+                   <div
+                     key={entry.uid}
+                     onClick={() => {
+                       if (!bulkMode) return;
+                       if (!canBulkPick) return;
+                       toggleBulk(entry.uid);
+                     }}
+                     style={{
+                       background: isBMP
+                         ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
+                         : locked
+                         ? "linear-gradient(180deg, #fff4c8, #f7dc9a)"
+                         : isSelected
+                           ? "linear-gradient(180deg, #ede9fe, #c4b5fd)"
+                           : "linear-gradient(180deg, #fff8e5, #f5e6c8)",
+                       border: `2.5px solid ${isBMP ? bmpAccent : (isSelected ? "#7c3aed" : locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a"))}`,
+                       borderRadius: 12, padding: 10, textAlign: "center",
+                       position: "relative",
+                       overflow: "hidden",
+                       boxShadow: isBMP
+                         ? `0 4px 14px rgba(0,0,0,0.6), 0 0 22px ${bmpAccent}88, inset 0 0 26px ${bmpAccent}33`
+                         : `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(124,58,237,0.7)" : ""}`,
+                       display: "grid",
+                       gridTemplateRows: "auto auto auto auto 36px",
+                       gap: 4,
+                       alignItems: "center",
+                       justifyItems: "center",
+                       minHeight: 220,
+                       cursor: bulkMode ? (canBulkPick ? "pointer" : "not-allowed") : "default",
+                     }}
+                   >
+                     {isBMP && (
+                       <div style={{
+                         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+                         background: `radial-gradient(circle at 50% 20%, ${bmpAccent}55, transparent 60%), radial-gradient(circle at 80% 90%, ${bmpAccent}33, transparent 55%)`,
+                       }} />
+                     )}
+                    <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, fontWeight: 900, color: "#8b6a30", letterSpacing: 1, zIndex: 2 }}>
+                      #{String(i + 1).padStart(3, "0")}
+                    </div>
+                    {inTeam && (
+                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#3d7a4a", zIndex: 2 }}>★ TIME</div>
+                    )}
+                    {/* Checkbox de bulk select */}
+                    {bulkMode && canBulkPick && (
+                      <div style={{
+                        position: "absolute", top: 6, left: 26,
+                        width: 22, height: 22, borderRadius: 6,
+                        border: `2px solid ${isSelected ? "#7c3aed" : "#8b6a30"}`,
+                        background: isSelected ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#fff8e5",
+                        color: "#fff", fontSize: 14, fontWeight: 900,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        boxShadow: isSelected ? "0 0 8px rgba(124,58,237,0.7)" : "none",
+                        zIndex: 3,
+                      }}>{isSelected ? "✓" : ""}</div>
+                    )}
+                    {/* Botão cadeado */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleLock(entry.uid); }}
+                      title={locked ? "Destravar (permite fragmentar)" : "Travar (protege de fragmentar)"}
+                      style={{
+                        position: "absolute", top: 22, right: 4,
+                        width: 24, height: 24, borderRadius: "50%",
+                        border: "1px solid #b8862a", cursor: "pointer",
+                        background: locked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
+                        color: locked ? "#4a3010" : "#8b6a30",
+                        fontSize: 12, fontWeight: 900, padding: 0, zIndex: 2,
+                      }}
+                    >{locked ? "🔒" : "🔓"}</button>
+
+                    {/* Sprite + nome */}
+                     <button
+                       onClick={(e) => { e.stopPropagation(); if (bulkMode) { if (canBulkPick) toggleBulk(entry.uid); return; } onOpenColecaoDetail(entry.uid); }}
+                       style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%", position: "relative", zIndex: 1 }}
+                       title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
+                     >
+                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
+                       <div style={{ fontSize: 11, marginTop: 2, color: isBMP ? "#f7ecff" : "#4a3010", fontWeight: 800, textAlign: "center", textShadow: isBMP ? "0 1px 3px #000" : undefined }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
+                     </button>
+
+                     {/* Raridade / Badge BMP */}
+                     <div style={{
+                       fontSize: 9, padding: "2px 8px", borderRadius: 10,
+                       background: isBMP ? `linear-gradient(180deg, ${bmpAccent}, #4a1080)` : rColor,
+                       color: "#fff", justifySelf: "center", fontWeight: 900, letterSpacing: 1,
+                       boxShadow: isBMP ? `0 0 8px ${bmpAccent}bb` : undefined,
+                       border: isBMP ? "1px solid rgba(255,255,255,0.25)" : undefined,
+                       position: "relative", zIndex: 1,
+                     }}>
+                       {isBMP ? (isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS") : entry.rarity.toUpperCase()}
+                     </div>
+
+                     {/* Nível */}
+                     <div style={{ fontSize: 11, color: isBMP ? "#f5cf6b" : "#6b4a10", fontWeight: 900, position: "relative", zIndex: 1, textShadow: isBMP ? "0 1px 2px #000" : undefined }}>
+                       Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
+                     </div>
+
+                     {/* Traits — mostra TODOS (até 6) para Black Mitic */}
+                     <div
+                       style={{
+                         display: "flex", gap: 3, justifyContent: "center", alignItems: "center",
+                         flexWrap: "wrap", minHeight: 28, position: "relative", zIndex: 1,
+                         padding: isBMP ? "4px 6px" : 0,
+                         background: isBMP ? "rgba(0,0,0,0.35)" : "transparent",
+                         border: isBMP ? `1px solid ${bmpAccent}66` : "none",
+                         borderRadius: isBMP ? 8 : 0,
+                         width: isBMP ? "100%" : "auto",
+                       }}
+                       title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
+                     >
+                       {traits.length > 0
+                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
+                         : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
+                     </div>
+
+
+                    {/* Botão fragmentar (ícone cristal) */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (inTeam) { alert("Retire do time antes de fragmentar."); return; }
+                        if (locked) { alert("Este Pokémon está TRAVADO 🔒. Destrave para fragmentar."); return; }
+                        if (bulkMode) { toggleBulk(entry.uid); return; }
+                        openFragConfirm([entry.uid]);
+                      }}
+                      disabled={fragDisabled}
+                      style={{
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        padding: "4px 10px", height: 36,
+                        background: fragDisabled
+                          ? "linear-gradient(180deg,#d9c8a8,#b8a680)"
+                          : "linear-gradient(180deg,#c4b5fd 0%,#8b5cf6 45%,#5b21b6 100%)",
+                        color: "#fff", fontWeight: 900, fontSize: 12, letterSpacing: 0.5,
+                        border: fragDisabled ? "1px solid #96835a" : "1px solid #3b0f7a",
+                        borderRadius: 9,
+                        boxShadow: fragDisabled
+                          ? "inset 0 -2px 0 rgba(0,0,0,0.15)"
+                          : "inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.35), 0 0 14px rgba(167,139,250,0.75)",
+                        cursor: fragDisabled ? "not-allowed" : "pointer",
+                        opacity: fragDisabled ? 0.75 : 1,
+                        transition: "transform 90ms, filter 120ms",
+                        textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                      }}
+                      onMouseEnter={(e) => { if (!fragDisabled) (e.currentTarget as HTMLButtonElement).style.filter = "brightness(1.15)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; }}
+                      title={inTeam ? "No time — não pode fragmentar" : locked ? "Travado — destrave para fragmentar" : `Fragmentar por +${gain} pts de craft`}
+                    >
+                      {inTeam ? (
+                        <span style={{ fontWeight: 900 }}>★ NO TIME</span>
+                      ) : locked ? (
+                        <span style={{ fontWeight: 900 }}>🔒 TRAVADO</span>
+                      ) : (
+                        <div>
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", justifyContent: "center",
+                            width: 34, height: 34, borderRadius: "50%",
+                            background: "radial-gradient(circle at 40% 35%, rgba(255,255,255,0.55), rgba(196,181,253,0.15) 55%, transparent 75%)",
+                            boxShadow: "0 0 10px rgba(233,213,255,0.8), inset 0 0 8px rgba(124,58,237,0.35)",
+                          }}>
+                            <img
+                              src={assetUrlFromJson(iconFragmentCrystal)}
+                              alt=""
+                              width={30}
+                              height={30}
+                              style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px rgba(233,213,255,0.9)) drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }}
+                            />
+                          </span>
+                          <span style={{ fontSize: 13 }}>+{gain}</span>
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            );
+          })()}
         </div>
       )}
 
 
+
+      {tab === "pokedex" && (
+        <div style={{
+          background: "linear-gradient(180deg, #2a0510, #1a0510)",
+          border: "2px solid #e11d48",
+          borderRadius: 10, padding: 14,
+          boxShadow: "inset 0 0 30px rgba(225,29,72,0.25)",
+        }}>
+          <div style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            marginBottom: 12, paddingBottom: 10, borderBottom: "1px solid #e11d4855",
+          }}>
+            <div>
+              <div style={{ color: "#ff6b8a", fontSize: 18, fontWeight: 900, letterSpacing: 2 }}>
+                📕 POKÉDEX
+              </div>
+              <div style={{ color: "#ffb3c1", fontSize: 11, marginTop: 2 }}>
+                Registro de Pokémon enfrentados em duelos
+              </div>
+            </div>
+            <div style={{
+              background: "#e11d48", color: "#fff", fontWeight: 900,
+              padding: "6px 14px", borderRadius: 20, fontSize: 13,
+              boxShadow: "0 0 12px #e11d4888",
+            }}>
+              {seenSpecies.length} REGISTRADO{seenSpecies.length === 1 ? "" : "S"}
+            </div>
+          </div>
+          {seenSpecies.length === 0 ? (
+            <div style={{ color: "#ffb3c1", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
+              Nenhum Pokémon registrado ainda. Derrote inimigos em batalha para registrá-los!
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: 10 }}>
+              {seenSpecies.map((sp, i) => {
+                const caught = caughtSpecies.includes(sp);
+                return (
+                  <div key={sp} style={{
+                    background: "linear-gradient(180deg, #3a0a1a, #1a0510)",
+                    border: `2px solid ${caught ? "#ffd94d" : "#e11d48"}`,
+                    borderRadius: 8, padding: 8, textAlign: "center",
+                    boxShadow: caught ? "0 0 10px #ffd94d55" : "0 0 8px #e11d4844",
+                  }}>
+                    <div style={{ fontSize: 9, color: "#ff6b8a", fontWeight: 800, letterSpacing: 1 }}>
+                      Nº {String(i + 1).padStart(3, "0")}
+                    </div>
+                    {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 56, height: 56, imageRendering: "pixelated" }} />}
+                    <div style={{ fontSize: 11, marginTop: 2, color: "#fff", fontWeight: 700 }}>
+                      {sp.replace(/_/g, " ").toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: 9, marginTop: 4, color: caught ? "#ffd94d" : "#ff6b8a", fontWeight: 800 }}>
+                      {caught ? "★ CAPTURADO" : "✓ VISTO"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+
+
+      {tab === "loja" && (
+        <div style={{
+            display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
+            background: "linear-gradient(180deg, #1a0f26, #251638)",
+            border: "1px solid rgba(245,207,107,0.25)", borderRadius: 8,
+            alignItems: "center", justifyContent: "space-around", fontWeight: 800,
+          }}>
+            <span style={{ color: "#f4c430" }}>● Ouro: {fmtK(bank.gold)}</span>
+            <span style={{ color: "#c084fc" }}>💎 Cristais: {Math.floor(bank.crystals)}</span>
+        </div>
+      )}
+
+      {tab === "loja" && (
+        <div>
+          {(() => {
+            const bk = SHOP_BOOKS.find((x) => x.id === "orb_team")!;
+            const owned = items[bk.id] ?? 0;
+            const canBuy = bank.crystals >= bk.price;
+            const activeUntil = buffs.teamOrbUntil ?? 0;
+            const isActive = activeUntil > Date.now();
+            const color = ITEM_COLORS[bk.id] ?? "#ff97e1";
+            return (
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>✦ Destaque da Loja — Orb de Time</h3>
+                <div style={{
+                  display: "grid", gridTemplateColumns: "minmax(92px, 120px) 1fr minmax(180px, 220px)", gap: 14,
+                  alignItems: "center", padding: 16,
+                  background: "linear-gradient(135deg, rgba(255,151,225,0.18), rgba(26,15,38,0.96) 42%, rgba(40,20,58,0.96))",
+                  border: `2px solid ${color}`,
+                  borderRadius: 14,
+                  boxShadow: `0 0 22px ${color}44, inset 0 1px 0 rgba(255,255,255,0.14)`,
+                }}>
+                  <div style={{
+                    width: 92, height: 92, borderRadius: 18,
+                    background: `radial-gradient(circle at 35% 25%, ${color}66, rgba(11,5,16,0.8) 72%)`,
+                    border: `1px solid ${color}99`, display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: `0 0 18px ${color}55, inset 0 0 18px rgba(255,255,255,0.08)`,
+                  }}>
+                    <img src={bk.img} alt="Orb de Time" width={72} height={72} style={{ filter: `drop-shadow(0 0 10px ${color})` }} />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: "#fff0fb", fontSize: 18, fontWeight: 900, letterSpacing: 1 }}>{bk.name}</div>
+                    <div style={{ color: "#eac6df", fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>{bk.desc}</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+                      <span style={{ color: "#c084fc", fontSize: 12, fontWeight: 900 }}>💎 {bk.price} cristais</span>
+                      <span style={{ color: "#8a7a9c", fontSize: 12 }}>Você tem: {owned}</span>
+                      {isActive && <span style={{ color: "#7ef2a2", fontSize: 12, fontWeight: 900 }}>ATIVO</span>}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => onBuyBook(bk)}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "11px 12px", fontWeight: 900, letterSpacing: 1,
+                      background: canBuy ? `linear-gradient(180deg, ${color}, #c84aa4)` : "#3a2a4a",
+                      color: canBuy ? "#120713" : "#6a5a7c",
+                      border: canBuy ? "1px solid #ffd9f5" : "1px solid #4a3a5a",
+                      borderRadius: 8,
+                      cursor: canBuy ? "pointer" : "not-allowed",
+                      boxShadow: canBuy ? `0 0 12px ${color}55` : "none",
+                    }}
+                  >{canBuy ? "COMPRAR ORB" : "SEM CRISTAIS"}</button>
+                </div>
+              </div>
+            );
+          })()}
+
+          <h3 style={{ color: "#6bd4ff", fontSize: 15, margin: "6px 0 10px" }}>Poções — pagas em ouro</h3>
+          <div style={{
+            background: "linear-gradient(160deg, #0f1f2e 0%, #16324a 100%)",
+            border: "1px solid #6bd4ff55", borderRadius: 12, padding: 14, marginBottom: 20,
+            display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+          }}>
+            <div style={{ fontSize: 40 }}>🧪</div>
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div style={{ fontWeight: 800, color: "#eadfe8" }}>Poção</div>
+              <div style={{ fontSize: 11, color: "#b8a8c8" }}>Recupera {Math.round(POTION_HEAL_PCT * 100)}% do HP. Usada no auto quando ativado.</div>
+              <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● {POTION_PRICE} ouro cada</div>
+              <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {items.potion ?? 0}</div>
+            </div>
+            <div style={{ minWidth: 220 }}>
+              <QtyBuy
+                presets={[1, 10, 50, 100]}
+                max={9999}
+                unitLabel="poção"
+                buttonColor="#6bd4ff"
+                canBuyFn={(n) => bank.gold >= POTION_PRICE * n}
+                onBuy={(n) => onBuyPotion(n)}
+                disabledLabel="SEM OURO"
+              />
+            </div>
+          </div>
+
+
+          <h3 style={{ color: "#f5cf6b", fontSize: 15, margin: "6px 0 10px" }}>Pokébolas — pagas em ouro</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 20 }}>
+            {SHOP_BALLS.map((b) => {
+              const owned = items[b.id] ?? 0;
+              const canBuy = bank.gold >= b.price;
+              const color = ITEM_COLORS[b.id] ?? "#f5cf6b";
+              return (
+                <div key={b.id} style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${color}55`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                }}>
+                  <img src={b.img} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 8px ${color}88)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>{b.name}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8" }}>Chance de captura x{b.captureMult}</div>
+                  <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● {b.price} ouro</div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <QtyBuy
+                    presets={[1, 10, 50, 100]}
+                    max={9999}
+                    unitLabel={b.name}
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.gold >= b.price * n}
+                    onBuy={(n) => onBuyBall(b, n)}
+                    disabledLabel="SEM OURO"
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          <h3 style={{ color: "#c084fc", fontSize: 15, margin: "6px 0 10px" }}>Pacote de Ultra Ball — pago em cristais 💎</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
+            {(() => {
+              const COST = 2000, QTY = 20;
+              const owned = items.ultraball ?? 0;
+              const canBuy = bank.crystals >= COST;
+              const color = "#c084fc";
+              return (
+                <div style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                }}>
+                  <img src={ballUltraImg} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 10px ${color}bb)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>Pacote Ultra Ball ×{QTY}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>20 Ultra Ball — captura x3.5</div>
+                  <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned} Ultra Ball</div>
+                  <QtyBuy
+                    presets={[1, 5, 10, 25]}
+                    max={999}
+                    unitLabel="pacote"
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.crystals >= 2000 * n}
+                    onBuy={(n) => onBuyUltraBundle(n)}
+                    disabledLabel="SEM CRISTAIS"
+                  />
+                </div>
+              );
+            })()}
+            {(() => {
+              const COST = 100;
+              const owned = items.scroll_teleport ?? 0;
+              const canBuy = bank.crystals >= COST;
+              const color = "#8ec5ff";
+              return (
+                <div style={{
+                  background: "linear-gradient(160deg, #0f1a2e 0%, #142238 100%)",
+                  border: `1px solid ${color}77`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                }}>
+                  <img src={scrollTeleportUrl} alt="" width={64} height={64}
+                    style={{ filter: `drop-shadow(0 0 10px ${color}bb)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>Pergaminho de Teleporte</div>
+                  <div style={{ fontSize: 11, color: "#b8c8dc", textAlign: "center" }}>Teleporte instantâneo no Mapa Mundi — sem taxa de ouro, sem custo de cristais</div>
+                  <div style={{ fontSize: 12, color, fontWeight: 700 }}>💎 {COST} cristais</div>
+                  <div style={{ fontSize: 11, color: "#8aa0b8" }}>Você tem: {owned}</div>
+                  <QtyBuy
+                    presets={[1, 5, 10, 25]}
+                    max={999}
+                    unitLabel="pergaminho"
+                    buttonColor={color}
+                    canBuyFn={(n) => bank.crystals >= 100 * n}
+                    onBuy={(n) => onBuyTeleportScroll(n)}
+                    disabledLabel="SEM CRISTAIS"
+                  />
+                </div>
+              );
+            })()}
+          </div>
+
+
+
+          <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>🥚 Ovos — chocam Pokémon com raridade aleatória</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
+            {shopEggs.map((e) => {
+              const owned = items[e.id] ?? 0;
+              const canBuy = e.currency === "gold" ? bank.gold >= e.price : bank.crystals >= e.price;
+              return (
+                <div key={e.id} style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${e.color}77`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${e.color}22`,
+                }}>
+                  <div style={{
+                    width: 72, height: 82, borderRadius: "45% / 55%",
+                    background: `radial-gradient(circle at 30% 25%, #fff8, ${e.color} 55%, ${e.color}66 100%)`,
+                    border: `2px solid ${e.color}`,
+                    boxShadow: `0 0 14px ${e.color}88, inset 0 -6px 12px rgba(0,0,0,0.3)`,
+                    position: "relative",
+                  }}>
+                    <div style={{
+                      position: "absolute", top: 20, left: 12, right: 12, height: 3,
+                      background: `${e.color}dd`, opacity: 0.6, borderRadius: 2, transform: "rotate(-8deg)",
+                    }} />
+                    <div style={{
+                      position: "absolute", bottom: 12, right: 12, width: 6, height: 6,
+                      background: "#fff", opacity: 0.4, borderRadius: "50%",
+                    }} />
+                  </div>
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 14 }}>{e.name}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{e.desc}</div>
+                  <div style={{ fontSize: 12, color: e.currency === "gold" ? "#f4c430" : "#c084fc", fontWeight: 700 }}>
+                    {e.currency === "gold" ? `● ${e.price} ouro` : `💎 ${e.price} cristais`}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <button
+                    onClick={() => onBuyEgg(e)}
+                    disabled={!canBuy}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800, fontSize: 12,
+                      background: canBuy ? e.color : "#3a2a4a", color: canBuy ? "#0b0510" : "#6a5a7c",
+                      border: "none", borderRadius: 6, cursor: canBuy ? "pointer" : "not-allowed",
+                    }}
+                  >{canBuy ? "COMPRAR OVO" : e.currency === "gold" ? "SEM OURO" : "SEM CRISTAIS"}</button>
+                </div>
+              );
+            })}
+          </div>
+
+          <h3 style={{ color: "#6bd4ff", fontSize: 15, margin: "6px 0 10px" }}>Amuletos</h3>
+          <div style={{
+            background: "linear-gradient(160deg, #0f1f2e 0%, #16324a 100%)",
+            border: "1px solid #6bd4ff55", borderRadius: 12, padding: 14, marginBottom: 20,
+            display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+          }}>
+            <img src={chestAmuletImg} alt="" width={64} height={64} style={{ imageRendering: "pixelated" }} />
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div style={{ fontWeight: 800, color: "#eadfe8" }}>Amuleto do Caçador de Tesouros</div>
+              <div style={{ fontSize: 11, color: "#b8a8c8" }}>Dobra as recompensas de ouro e cristais ao abrir baús no mapa.</div>
+              <div style={{ fontSize: 12, color: "#f4c430", fontWeight: 700 }}>● 250.000 ouro</div>
+              <div style={{ fontSize: 11, color: "#8a7a9c" }}>Status: {chestAmuletOwned ? "Adquirido ✅" : "Não possuído ❌"}</div>
+            </div>
+            <button
+              onClick={() => onBuyChestAmulet()}
+              disabled={chestAmuletOwned > 0 || bank.gold < 250000}
+              style={{
+                minWidth: 140, padding: "10px 14px", fontWeight: 800, fontSize: 12,
+                background: (chestAmuletOwned === 0 && bank.gold >= 250000) ? "#6bd4ff" : "#3a2a4a",
+                color: (chestAmuletOwned === 0 && bank.gold >= 250000) ? "#0b0510" : "#6a5a7c",
+                border: "none", borderRadius: 6, cursor: (chestAmuletOwned === 0 && bank.gold >= 250000) ? "pointer" : "not-allowed",
+              }}
+            >
+              {chestAmuletOwned ? "JÁ POSSUI" : bank.gold < 250000 ? "SEM OURO" : "COMPRAR AMULETO"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {tab === "loja" && (
+        <div>
+          <h3 style={{ color: "#c084fc", fontSize: 15, margin: "6px 0 10px" }}>Livros de Habilidade — pagos em cristais 💎</h3>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+            {SHOP_BOOKS.map((bk) => {
+              const owned = items[bk.id] ?? 0;
+              const useGold = bk.currency === "gold";
+              const canBuy = useGold ? bank.gold >= bk.price : bank.crystals >= bk.price;
+              const color = ITEM_COLORS[bk.id] ?? "#c084fc";
+              return (
+                <div key={bk.id} style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${color}55`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${color}22`,
+                }}>
+                  <img src={bk.img} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 8px ${color}88)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 13 }}>{bk.name}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{bk.desc}</div>
+                  <div style={{ fontSize: 12, color: useGold ? "#ffd94d" : "#c084fc", fontWeight: 700 }}>{useGold ? "🪙" : "💎"} {bk.price}</div>
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <QtyBuy
+                    presets={[1, 10, 50, 100]}
+                    max={9999}
+                    unitLabel={bk.name}
+                    buttonColor={color}
+                    canBuyFn={(n) => (useGold ? bank.gold >= bk.price * n : bank.crystals >= bk.price * n) && (!bk.priceGold || bank.gold >= bk.priceGold * n)}
+                    onBuy={(n) => onBuyBook(bk, n)}
+                    disabledLabel={useGold ? "SEM OURO" : "SEM CRISTAL"}
+                  />
+
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ═══ Trocador NPC — Orbs de XP por Pokémon capturados ═══ */}
+          <h3 style={{ color: "#ffd94d", fontSize: 15, margin: "22px 0 6px" }}>
+            🧙 Trocador NPC — Orbs de XP
+          </h3>
+          <div style={{ color: "#b8a8c8", fontSize: 11, marginBottom: 10, lineHeight: 1.5 }}>
+            O NPC aceita Pokémon da sua <b>Coleção</b> (não da equipe) em troca de Orbs mais fortes.
+            <b style={{ color: "#ffd94d" }}> Você escolhe</b> quais Pokémon entregar.
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+            {orbTrades.map((t) => {
+              const available = collection.filter((c) =>
+                (c.rarity === t.rarity || (t.rarity === "mythic" && c.rarity === "mythic_shiny"))
+                && !teamUidSet.has(c.uid)
+                && !benchUids.has(c.uid)
+                && !lockedSet.has(c.uid),
+              ).length;
+              const reqOk = !t.requires || (items[t.requires.itemId] ?? 0) >= t.requires.qty;
+              const reqOwned = t.requires ? (items[t.requires.itemId] ?? 0) : 0;
+              const canTrade = available >= t.count && reqOk;
+              const owned = items[t.orbId] ?? 0;
+              return (
+                <div key={`${t.orbId}-${t.rarity}`} style={{
+                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                  border: `1px solid ${t.color}55`, borderRadius: 12, padding: 14,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 ${t.color}22`,
+                }}>
+                  <img src={t.img} alt="" width={64} height={64}
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 10px ${t.color}aa)` }} />
+                  <div style={{ fontWeight: 800, color: "#eadfe8", fontSize: 13 }}>{t.label}</div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", textAlign: "center" }}>{t.desc}</div>
+                  <div style={{ fontSize: 11, color: canTrade ? "#8ae28a" : "#e28a8a" }}>
+                    Coleção {t.rarity.toUpperCase()}: {available} (precisa {t.count})
+                  </div>
+                  {t.requires && (
+                    <div style={{ fontSize: 10, fontWeight: 800, color: reqOk ? "#8ae28a" : "#ff9a6b", background: reqOk ? "#0f2018" : "#2a1620", border: `1px solid ${reqOk ? "#8ae28a55" : "#ff9a6b55"}`, borderRadius: 6, padding: "3px 8px", textAlign: "center" }}>
+                      {reqOk ? "✓" : "🔒"} Requer {t.requires.qty}× {t.requires.label} ({reqOwned}/{t.requires.qty})
+                    </div>
+                  )}
+                  <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
+                  <button
+                    disabled={!canTrade}
+                    onClick={() => {
+                      setOrbPicker({ orbId: t.orbId, rarity: t.rarity, count: t.count, color: t.color, label: t.label });
+                      setOrbPickerSel(new Set());
+                    }}
+                    style={{
+                      width: "100%", padding: "8px 10px", fontWeight: 800,
+                      background: canTrade ? t.color : "#3a2a4a",
+                      color: canTrade ? "#0b0510" : "#6a5a7c",
+                      border: "none", borderRadius: 6,
+                      cursor: canTrade ? "pointer" : "not-allowed",
+                    }}
+                  >{!reqOk ? `FORJE 1 ${t.requires!.label.toUpperCase()} PRIMEIRO` : canTrade ? "ESCOLHER POKÉMON" : `PRECISA DE ${t.count} ${t.rarity.toUpperCase()}`}</button>
+                </div>
+              );
+            })}
+          </div>
+
+          {orbPicker && (() => {
+            const op = orbPicker as NonNullable<typeof orbPicker>;
+            // Exclui Pokémon do time e travados — evita "não consome / orb infinito"
+            // quando o jogador tenta trocar um Pokémon que está em uso.
+            const eligible = collection.filter((c) =>
+              (c.rarity === op.rarity || (op.rarity === "mythic" && c.rarity === "mythic_shiny")) && !teamUidSet.has(c.uid) && !benchUids.has(c.uid) && !lockedSet.has(c.uid),
+            );
+            const selCount = orbPickerSel.size;
+            const canConfirm = selCount === op.count;
+            return (
+              <div
+                onClick={() => setOrbPicker(null)}
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 10000, display: "grid", placeItems: "center", padding: 16 }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: "min(560px, 100%)", maxHeight: "88vh", overflowY: "auto",
+                    background: "linear-gradient(180deg,#1c0f2e,#0b0510)",
+                    border: `2px solid ${op.color}`, borderRadius: 14, padding: 16,
+                    boxShadow: `0 10px 30px rgba(0,0,0,0.7), 0 0 20px ${op.color}55`,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ fontWeight: 900, color: op.color, fontSize: 15 }}>
+                      🧙 Escolha {op.count} Pokémon {op.rarity.toUpperCase()}
+                    </div>
+                    <button onClick={() => setOrbPicker(null)} style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 18 }}>✕</button>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 10 }}>
+                    Selecionados: <b style={{ color: canConfirm ? "#8ae28a" : "#ffd94d" }}>{selCount}/{op.count}</b> — Recompensa: <b>{op.label}</b>
+                  </div>
+                  {eligible.length === 0 ? (
+                    <div style={{ color: "#e28a8a", fontSize: 12, padding: 20, textAlign: "center" }}>
+                      Você não tem Pokémon {op.rarity.toUpperCase()} na coleção.
+                    </div>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
+                      {eligible.map((c) => {
+                        const sel = orbPickerSel.has(c.uid);
+                        const disabled = !sel && selCount >= op.count;
+                        return (
+                          <button
+                            key={c.uid}
+                            disabled={disabled}
+                            onClick={() => {
+                              setOrbPickerSel((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(c.uid)) next.delete(c.uid); else next.add(c.uid);
+                                return next;
+                              });
+                            }}
+                            style={{
+                              background: sel ? `linear-gradient(160deg, ${op.color}55, ${op.color}22)` : "#1a0f26",
+                              border: sel ? `2px solid ${op.color}` : "2px solid #3a2a4a",
+                              borderRadius: 10, padding: 6, cursor: disabled ? "not-allowed" : "pointer",
+                              display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                              opacity: disabled ? 0.4 : 1, position: "relative",
+                            }}
+                          >
+                            {gifMap[c.species] ? (
+                              <img src={gifMap[c.species]} alt="" style={{ width: 54, height: 54, imageRendering: "pixelated" }} />
+                            ) : (
+                              <div style={{ width: 54, height: 54, background: "#2a1638", borderRadius: 8 }} />
+                            )}
+                            <div style={{ fontSize: 10, color: "#eadfe8", fontWeight: 700, textTransform: "capitalize" }}>{c.species.replace(/_/g, " ")}</div>
+                            <div style={{ fontSize: 10, color: "#ffd94d" }}>Lv.{c.level}</div>
+                            {sel && (
+                              <div style={{
+                                position: "absolute", top: 2, right: 2, background: op.color, color: "#0b0510",
+                                width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
+                              }}>✓</div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                    <button
+                      onClick={() => setOrbPicker(null)}
+                      style={{ flex: 1, padding: "10px", background: "#3a2a4a", color: "#eadfe8", border: "none", borderRadius: 8, fontWeight: 800, cursor: "pointer" }}
+                    >CANCELAR</button>
+                    <button
+                      disabled={!canConfirm}
+                      onClick={(e) => {
+                        const btn = e.currentTarget;
+                        if (btn.dataset.busy === "1") return;
+                        btn.dataset.busy = "1";
+                        btn.disabled = true;
+                        const uids = Array.from(orbPickerSel);
+                        setOrbPicker(null);
+                        setOrbPickerSel(new Set());
+                        onTradeOrb(op.orbId, uids, [], op.rarity);
+                      }}
+                      style={{
+                        flex: 2, padding: "10px", fontWeight: 900,
+                        background: canConfirm ? op.color : "#3a2a4a",
+                        color: canConfirm ? "#0b0510" : "#6a5a7c",
+                        border: "none", borderRadius: 8, cursor: canConfirm ? "pointer" : "not-allowed",
+                      }}
+                    >CONFIRMAR TROCA</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+
+      {tab === "melhorias" && (() => {
+        const nowMs = Date.now();
+        const bookActive = !!(idle.buffs?.expMultUntil && nowMs < idle.buffs.expMultUntil);
+        const orbActive = !!(idle.buffs?.orbUntil && nowMs < idle.buffs.orbUntil);
+        const honeyActive = !!(idle.buffs?.honeyUntil && nowMs < idle.buffs.honeyUntil);
+        const honeyRareActive = !!(idle.buffs?.honeyRareUntil && nowMs < idle.buffs.honeyRareUntil);
+        const bookPct = bookActive ? Math.round((idle.buffs?.expMult ?? 0) * 100) : 0;
+        const orbPct = orbActive ? Math.round((idle.buffs?.orbMult ?? 0) * 100) : 0;
+        const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
+        const totalExpPct = bookPct + orbPct + honeyPct;
+        const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
+        const stonesMap: Record<keyof typeof stats, { stone: string, color: string, label: string, desc: string, fail: number }> = {
+          attack: { stone: "stone_fire", color: "#ff5252", label: "ATAQUE", desc: "Aumenta o Dano Total em +5% por nível. Essencial para derrotar Chefes e lendários mais rápido.", fail: 15 },
+          speed: { stone: "stone_electric", color: "#ffd94d", label: "VELO", desc: "Reduz o intervalo de ataque em -0.05s. Quanto mais rápido, mais vezes você ataca por segundo.", fail: 12 },
+          synergy: { stone: "stone_grass", color: "#c084fc", label: "SINERG", desc: "Melhora o bônus de tipo do time em +2%. Fortalece a harmonia entre seus Pokémon.", fail: 20 },
+          resistance: { stone: "stone_water", color: "#4a7bff", label: "RESIST", desc: "Reduz o dano recebido em -3%. Permite que você aguente batalhas contra Pokémon de nível alto.", fail: 10 },
+          mastery: { stone: "stone_dragon", color: "#5ec26a", label: "MASTER", desc: "Aumenta Chance Crítica e Dano Elemental em +1.5%. Maximiza o potencial explosivo do time.", fail: 25 },
+        };
+        const radarPoints = [
+          { label: stonesMap.attack.label, val: 20 + (stats.attack ?? 0) * 8, color: stonesMap.attack.color, key: "attack" as const },
+          { label: stonesMap.speed.label, val: 20 + (stats.speed ?? 0) * 8, color: stonesMap.speed.color, key: "speed" as const },
+          { label: stonesMap.synergy.label, val: 20 + (stats.synergy ?? 0) * 8, color: stonesMap.synergy.color, key: "synergy" as const },
+          { label: stonesMap.resistance.label, val: 20 + (stats.resistance ?? 0) * 8, color: stonesMap.resistance.color, key: "resistance" as const },
+          { label: stonesMap.mastery.label, val: 20 + (stats.mastery ?? 0) * 8, color: stonesMap.mastery.color, key: "mastery" as const },
+        ];
+        const getPolyPoints = (scale = 1) => {
+          return radarPoints.map((p, i) => {
+            const angle = (i * 2 * Math.PI) / radarPoints.length - Math.PI / 2;
+            const r = (Math.min(100, p.val) / 100) * 80 * scale;
+            return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`;
+          }).join(" ");
+        };
+        const upgradeStat = (key: keyof typeof stats) => {
+          const curLv = stats[key] ?? 0;
+          const config = stonesMap[key];
+          const stoneCost = 50 + curLv * 25;
+          const bookCost = 1 + Math.floor(curLv / 2);
+          const hasStones = (idle.items[config.stone] ?? 0) >= stoneCost;
+          const hasBooks = (idle.items.book_atk ?? 0) >= bookCost && (idle.items.book_def ?? 0) >= bookCost;
+          if (!hasStones || !hasBooks) {
+            pushChat(`Falta: ${stoneCost}x ${config.stone.replace("stone_","").toUpperCase()} e ${bookCost}x Livros.`, "info");
+            return;
+          }
+          if (Math.random() * 100 < config.fail) {
+            setIdle((s: any) => {
+              const ni = { ...s.items }; ni[config.stone] = (ni[config.stone] ?? 0) - Math.floor(stoneCost/2);
+              return { ...s, items: ni };
+            });
+            pushChat(`❌ FALHA! Perdido: ${Math.floor(stoneCost/2)}x Stones.`, "info");
+            return;
+          }
+          setIdle((s: any) => {
+            const ni = { ...s.items };
+            ni[config.stone] = (ni[config.stone] ?? 0) - stoneCost;
+            ni.book_atk = (ni.book_atk ?? 0) - bookCost;
+            ni.book_def = (ni.book_def ?? 0) - bookCost;
+            return { ...s, items: ni, globalStats: { ...stats, [key]: curLv + 1 } };
+          });
+          pushChat(`✨ Evoluiu ${config.label} para Nível ${curLv + 1}!`, "cap");
+        };
+
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center", background: "rgba(20,15,35,0.8)", padding: 20, borderRadius: 16, border: "2px solid #f5cf6b33" }}>
+              <div style={{ flex: "0 0 200px", position: "relative" }}>
+                <svg width="200" height="200" viewBox="0 0 200 200" style={{ filter: "drop-shadow(0 0 10px rgba(245,207,107,0.2))" }}>
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="1" />
+                  <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="1" />
+                  <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(245,207,107,0.1)" strokeWidth="1" />
+                  {radarPoints.map((_, i) => {
+                    const angle = (i * 2 * Math.PI) / radarPoints.length - Math.PI / 2;
+                    return <line key={i} x1="100" y1="100" x2={100 + 80 * Math.cos(angle)} y2={100 + 80 * Math.sin(angle)} stroke="rgba(245,207,107,0.2)" strokeWidth="1" />;
+                  })}
+                  <polygon points={getPolyPoints()} fill="rgba(245,207,107,0.3)" stroke="#f5cf6b" strokeWidth="2" strokeLinejoin="round" />
+                </svg>
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                  {radarPoints.map((p, i) => {
+                    const angle = (i * 2 * Math.PI) / radarPoints.length - Math.PI / 2;
+                    return (
+                      <div key={i} style={{
+                        position: "absolute",
+                        left: 100 + 95 * Math.cos(angle),
+                        top: 100 + 95 * Math.sin(angle),
+                        transform: "translate(-50%, -50%)",
+                        fontSize: 9, fontWeight: 900, color: p.color, textShadow: "0 1px 2px #000"
+                      }}>{p.label}</div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div style={{ flex: 1, minWidth: 280 }}>
+                <h3 style={{ color: "#f5cf6b", margin: "0 0 4px 0", fontSize: 18, letterSpacing: 1, textShadow: "0 2px 4px #000" }}>ANATOMIA DA CONTA</h3>
+                <p style={{ fontSize: 10, color: "#a8a0b8", margin: "0 0 12px 0", lineHeight: 1.4 }}>
+                  Evolua os atributos permanentes da sua conta gastando <strong>Stones Elementais</strong> e <strong>Livros</strong>. Cada melhoria ajuda no seu progresso global.
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
+                  {radarPoints.map(p => {
+                    const k = p.key;
+                    const cfg = stonesMap[k];
+                    return (
+                      <div key={p.key} style={{ background: "#1a0f26", border: "1px solid #3a2e58", borderRadius: 10, padding: "8px 12px", display: "flex", gap: 10, alignItems: "center" }}>
+                        <div style={{ width: 36, height: 36, background: "#000", borderRadius: 8, display: "grid", placeItems: "center", border: `1px solid ${cfg.color}44` }}>
+                          <img src={STONE_CHEST[cfg.stone]} alt="" style={{ width: 28, height: 28, imageRendering: "pixelated" }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                            <span style={{ fontSize: 10, color: cfg.color, fontWeight: 900 }}>{p.label} <span style={{ color: "#a8a0b8", fontSize: 9 }}>Lv.{stats[k] ?? 0}</span></span>
+                            <span style={{ fontSize: 9, color: "#ff5252", fontWeight: 700 }}>Falha: {cfg.fail}%</span>
+                          </div>
+                          <div style={{ fontSize: 9, color: "#eadfe8", marginBottom: 4, opacity: 0.8 }}>{cfg.desc}</div>
+                          <button 
+                            onClick={() => upgradeStat(k)}
+                            style={{ width: "100%", padding: "4px", background: `linear-gradient(180deg, ${cfg.color}, ${cfg.color}aa)`, border: "none", borderRadius: 4, fontSize: 10, fontWeight: 900, cursor: "pointer", color: "#000" }}
+                          >MELHORAR (Custo: 50+ Stones)</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((((idle.buffs?.atk ?? 0)) + ((stats.attack ?? 0) * 0.05)) * 100)}%`} color="#ff5252" />
+              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((((idle.buffs?.def ?? 0)) + ((stats.resistance ?? 0) * 0.03)) * 100)}%`} color="#4a7bff" />
+              <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
+            </div>
+
+            <div style={{ position: "relative", width: "100%", height: "180px", background: "rgba(0,0,0,0.5)", borderRadius: 16, border: "2px solid #b9a7ff44", overflow: "hidden", display: "flex", justifyContent: "center", alignItems: "center", boxShadow: "0 0 20px rgba(185, 167, 255, 0.15)" }}>
+              <img 
+                src={assetUrlFromJson(rayquazaShinyBg)} 
+                alt="Rayquaza Shiny" 
+                style={{ 
+                  maxWidth: "95%", 
+                  maxHeight: "95%", 
+                  objectFit: "contain",
+                  filter: "drop-shadow(0 0 15px rgba(185, 167, 255, 0.5))"
+                }} 
+              />
+              <div style={{ 
+                position: "absolute", 
+                bottom: 12, 
+                right: 18, 
+                fontSize: 10, 
+                fontWeight: 900, 
+                color: "#b9a7ff", 
+                textShadow: "0 2px 4px #000",
+                letterSpacing: 1.5,
+                background: "rgba(0,0,0,0.6)",
+                padding: "2px 8px",
+                borderRadius: 4,
+                border: "1px solid #b9a7ff33"
+              }}>
+                ✦ BLACK MITIC PLUS LEGENDARY ✦
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
 
       {tab === "inicio" && (
@@ -14400,13 +15840,13 @@ function TabOverlay({
       )}
 
       {tab === "wallet" && (
-        <WalletScreen
-          bank={idle.bank}
-          items={idle.items}
-          collection={idle.collection}
-          gifMap={GIF}
+        <WalletScreen 
+          bank={bank} 
+          items={items}
+          collection={collection}
+          gifMap={gifMap}
           onOpenColecaoDetail={onOpenColecaoDetail}
-          onExchange={onExchange}
+          onExchange={onExchange} 
         />
       )}
 
