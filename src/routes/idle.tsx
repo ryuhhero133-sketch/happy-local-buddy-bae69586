@@ -10364,29 +10364,29 @@ function IdlePage() {
 
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
-                    const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "neve", x: 19.5, y: 15.5, type: "snow" }, // Montanhas nevadas (Canto Superior Esquerdo)
-                      { id: "arena", x: 44, y: 17, type: "castle" }, // Castelo Central (Floresta Superior)
-                      { id: "terra", x: 38, y: 12, type: "forest" },
-                      { id: "deserto", x: 70, y: 17, type: "desert" }, // Ilha dourada (Superior Direito)
-                      { id: "deserto_purpura", x: 78, y: 22, type: "volcano" },
-                      { id: "caverna", x: 74, y: 12, type: "cave" },
-                      { id: "praia", x: 22, y: 45, type: "beach" }, // Enseada verde (Meio Esquerda)
-                      { id: "vale_rochas", x: 16, y: 40, type: "mountain" },
-                      { id: "n2", x: 28, y: 42, type: "forest" },
-                      { id: "pantano_fogo", x: 46, y: 44, type: "volcano" }, // Centro vulcânico
-                      { id: "venofogo", x: 41, y: 52, type: "volcano" },
-                      { id: "terry", x: 52, y: 48, type: "village" },
-                      { id: "n3", x: 55, y: 42, type: "forest" },
-                      { id: "abismo_gelo", x: 80, y: 40, type: "cave" }, // Ilhas flutuantes (Direita)
-                      { id: "abismo_veneno", x: 85, y: 45, type: "cave" },
-                      { id: "abismo_dragao", x: 92, y: 40, type: "cave" },
-                      { id: "fantasma", x: 15, y: 78, type: "cave" }, // Zona de lava/sombria (Inferior Esquerda)
-                      { id: "cadeia_ab", x: 22, y: 82, type: "cave" },
-                      { id: "cadeia_ab1", x: 26, y: 88, type: "cave" },
-                      { id: "cadeia_f1", x: 28, y: 92, type: "cave" },
-                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event" }] : []),
-                    ];
+                    const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string; order: number }> = [
+                      { id: "neve" as IdleMapId, x: 19.5, y: 15.5, type: "snow", order: 5 },
+                      { id: "arena" as IdleMapId, x: 44, y: 17, type: "castle", order: 2 },
+                      { id: "terra" as IdleMapId, x: 38, y: 12, type: "forest", order: 1 },
+                      { id: "deserto" as IdleMapId, x: 70, y: 17, type: "desert", order: 6 },
+                      { id: "deserto_purpura" as IdleMapId, x: 78, y: 22, type: "volcano", order: 7 },
+                      { id: "caverna" as IdleMapId, x: 74, y: 12, type: "cave", order: 8 },
+                      { id: "praia" as IdleMapId, x: 22, y: 45, type: "beach", order: 3 },
+                      { id: "vale_rochas" as IdleMapId, x: 16, y: 40, type: "mountain", order: 4 },
+                      { id: "n2" as IdleMapId, x: 28, y: 42, type: "forest", order: 9 },
+                      { id: "pantano_fogo" as IdleMapId, x: 46, y: 44, type: "volcano", order: 10 },
+                      { id: "venofogo" as IdleMapId, x: 41, y: 52, type: "volcano", order: 11 },
+                      { id: "terry" as IdleMapId, x: 52, y: 48, type: "village", order: 12 },
+                      { id: "n3" as IdleMapId, x: 55, y: 42, type: "forest", order: 13 },
+                      { id: "abismo_gelo" as IdleMapId, x: 80, y: 40, type: "cave", order: 14 },
+                      { id: "abismo_veneno" as IdleMapId, x: 85, y: 45, type: "cave", order: 15 },
+                      { id: "abismo_dragao" as IdleMapId, x: 92, y: 40, type: "cave", order: 16 },
+                      { id: "fantasma" as IdleMapId, x: 15, y: 78, type: "cave", order: 17 },
+                      { id: "cadeia_ab" as IdleMapId, x: 22, y: 82, type: "cave", order: 18 },
+                      { id: "cadeia_ab1" as IdleMapId, x: 26, y: 88, type: "cave", order: 19 },
+                      { id: "cadeia_f1" as IdleMapId, x: 28, y: 92, type: "cave", order: 20 },
+                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event", order: 100 }] : []),
+                    ].sort((a, b) => a.order - b.order);
                     const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
                       { id: "absol_start" as IdleMapId, x: 45, y: 75, type: "village" },
                       { id: "governante_hall" as IdleMapId, x: 44, y: 17, type: "castle" },
@@ -10510,6 +10510,24 @@ function IdlePage() {
 
                             {/* Novo Mapa Mundi Visual Pixel Art — Integrado e Baseado na Referência */}
                             <div className="world-map-container" style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#1a3c7e", overflow: "hidden" }}>
+                              {/* Canvas para linhas de conexão */}
+                              <svg style={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none", width: "100%", height: "100%" }}>
+                                {WORLD_PINS.map((pin, i) => {
+                                  if (i === 0) return null;
+                                  const prev = WORLD_PINS[i - 1];
+                                  return (
+                                    <line
+                                      key={`line-${pin.id}`}
+                                      x1={`${prev.x}%`} y1={`${prev.y}%`}
+                                      x2={`${pin.x}%`} y2={`${pin.y}%`}
+                                      stroke={activeTab === 4 ? "rgba(160,80,255,0.4)" : "rgba(245,207,107,0.3)"}
+                                      strokeWidth="2"
+                                      strokeDasharray="4 4"
+                                    />
+                                  );
+                                })}
+                              </svg>
+
                               {/* Efeito de Ondas de Água no Fundo */}
                               <div style={{
                                 position: "absolute", inset: 0,
@@ -10665,27 +10683,30 @@ function IdlePage() {
                                       {/* Sombra do Local */}
                                       <div style={{ position: "absolute", bottom: -4, width: "80%", height: "20%", background: "rgba(0,0,0,0.6)", borderRadius: "50%", filter: "blur(3px)" }} />
                                       
-                                      {/* Cristal de Obsidian no centro do portal */}
+                                      {/* Cristal de Obsidian no centro do portal (Glow aprimorado) */}
                                       <div style={{
                                         position: "absolute",
-                                        width: 8, height: 12,
-                                        background: "#1a0f26",
+                                        width: 10, height: 16,
+                                        background: "linear-gradient(135deg, #2a1a3d, #0d0615)",
                                         border: "1px solid #a066ff",
                                         transform: "rotate(45deg)",
-                                        top: "10%",
-                                        boxShadow: "0 0 8px #a066ff",
+                                        top: "5%",
+                                        boxShadow: "0 0 15px #a066ff, inset 0 0 5px rgba(255,255,255,0.2)",
                                         zIndex: 5,
-                                        opacity: 0.9
+                                        opacity: ok ? 1 : 0.4,
+                                        animation: ok ? "obsidianGlow 1.5s infinite alternate ease-in-out" : "none"
                                       }} />
 
                                       {/* Arte Pixel do Local */}
                                       <div style={{
                                         fontSize: current ? 32 : 26,
-                                        filter: !continentUnlocked ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #a066ff)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
+                                        filter: !ok ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #a066ff)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
                                         transform: `scale(${current ? 1.2 : 1})`,
                                         transition: "transform 0.3s ease",
                                         imageRendering: "pixelated",
                                         zIndex: 10,
+                                        opacity: ok ? 1 : 0.6,
+                                        animation: ok ? "obsidianGlow 2s infinite alternate ease-in-out" : "none"
                                       }}>
                                          {/* Representação visual mais robusta do local (pixel-art feeling) */}
                                          <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -10751,6 +10772,7 @@ function IdlePage() {
                           <style>{`
                             @keyframes popIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
                             @keyframes worldPinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+                            @keyframes obsidianGlow { from { filter: brightness(1) drop-shadow(0 0 5px #a066ff); } to { filter: brightness(1.5) drop-shadow(0 0 20px #a066ff); } }
                             @keyframes worldFloating { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
                             @keyframes islandFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(10px, 15px); } }
                             .c4-ring { animation: c4RingRotate 4s linear infinite; }
