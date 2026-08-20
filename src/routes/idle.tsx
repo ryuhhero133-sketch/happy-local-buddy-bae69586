@@ -11737,7 +11737,7 @@ function IdlePage() {
               <div style={{ fontSize: 12, color: "#c8b8d0", marginTop: 4 }}>Colete prêmios incríveis a cada 24 horas!</div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, position: "relative", zIndex: 1 }}>
               {[1, 2, 3, 4, 5, 6, 7].map(day => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
