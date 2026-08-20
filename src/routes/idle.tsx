@@ -11560,18 +11560,29 @@ function IdlePage() {
                       } else if (t.id === "colecao") {
                         manager.openWindow("colecao", "🛡️ Coleção Real", (
                           <CollectionWindowContent 
-                            collection={idle.collection || []}
+                            collection={(idle.collection || []) as any}
                             caughtSpecies={idle.caughtSpecies || []}
                             craftPoints={idle.craftPoints || 0}
-                            lockedUids={idle.lockedUids || []}
-                            onOpenDetail={(uid) => {
-                              const p = (idle.collection || []).find(x => x.uid === uid);
+                            lockedUids={Array.from((window as any).lockedSet || []) as string[]}
+                            onOpenDetail={(uid: string) => {
+                              const p = (idle.collection || []).find((x: any) => x.uid === uid);
                               if (p) setStatsCardPet(p as any);
                             }}
-                            onFragment={(uids) => {
-                              openFragConfirm(uids);
+                            onFragment={(uids: string[]) => {
+                              const entries = uids
+                                .map((uid) => (idle.collection || []).find((e: any) => e.uid === uid))
+                                .filter((e: any): e is any => !!e)
+                                .map((e: any) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: 1 }));
+                              if (entries.length > 0) {
+                                // @ts-ignore
+                                setFragConfirm({ entries, totalGain: entries.reduce((s, e) => s + e.gain, 0) });
+                              }
                             }}
-                            onToggleLock={(uid) => toggleLock(uid)}
+                            onToggleLock={(uid: string) => {
+                              const ls = (window as any).lockedSet || new Set();
+                              if (ls.has(uid)) ls.delete(uid); else ls.add(uid);
+                              (window as any).lockedSet = ls;
+                            }}
                           />
                         ), { width: 450, height: 550 });
                       } else if (t.id === "wallet") {
@@ -11580,12 +11591,22 @@ function IdlePage() {
                             bank={idle.bank} 
                             items={idle.items}
                             collection={idle.collection || []}
-                            gifMap={gifMap}
-                            onOpenColecaoDetail={(uid) => {
-                              const p = (idle.collection || []).find(x => x.uid === uid);
+                            gifMap={GIF}
+                            onOpenColecaoDetail={(uid: string) => {
+                              const p = (idle.collection || []).find((x: any) => x.uid === uid);
                               if (p) setStatsCardPet(p as any);
                             }}
-                            onExchange={(dir, amt) => onExchange(dir, amt)} 
+                            onExchange={(dir: "g2c" | "c2g", amt: number) => {
+                              if (dir === "g2c") {
+                                if (idle.bank.gold >= amt * 1000) {
+                                  setIdle((s: any) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold - amt * 1000, crystals: s.bank.crystals + amt } }));
+                                }
+                              } else {
+                                if (idle.bank.crystals >= amt) {
+                                  setIdle((s: any) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - amt, gold: s.bank.gold + amt * 800 } }));
+                                }
+                              }
+                            }} 
                           />
                         ), { width: 500, height: 600 });
                       }
