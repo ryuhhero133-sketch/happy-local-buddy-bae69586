@@ -10781,7 +10781,15 @@ function IdlePage() {
                                         animation: ok ? "obsidianGlow 2s infinite alternate ease-in-out" : "none"
                                       }}>
                                           {/* Representação visual mais robusta do local (pixel-art feeling) */}
-                                          <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                          <div style={{ 
+                                            position: "relative", 
+                                            width: "100%", 
+                                            height: "100%", 
+                                            display: "flex", 
+                                            alignItems: "center", 
+                                            justifyContent: "center",
+                                            filter: ok ? "none" : "grayscale(1) brightness(0.6)"
+                                          }}>
                                             <MapIconRenderer type={pin.type} name={pin.name} ok={ok} />
                                           </div>
 
