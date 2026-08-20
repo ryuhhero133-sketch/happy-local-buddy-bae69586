@@ -11733,7 +11733,7 @@ function IdlePage() {
                            alt=""
                            style={{ 
                              width: day === 7 ? 32 : 22, height: day === 7 ? 32 : 22, objectFit: "contain",
-                             filter: "drop-shadow(0 0 4px rgba(0,0,0,0.3))",
+                             filter: "none",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
                          />
