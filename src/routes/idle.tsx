@@ -17410,7 +17410,7 @@ function TabOverlay({
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <span style={{ color: item ? (RARITY_COLOR as any)[item.rarity] : "#fff", fontWeight: 900, fontSize: 13 }}>{item.name}</span>
-                          <span style={{ fontSize: 9, opacity: 0.6, color: "#eadfe8" }}>{item ? (RARITY_NAME as any)[item.rarity] : ""}</span>
+                          <span style={{ fontSize: 9, opacity: 0.6, color: "#eadfe8" }}>{item ? item.rarity.toUpperCase() : ""}</span>
                         </div>
                         <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                           {Object.entries(item.stats).map(([stat, val]) => (
