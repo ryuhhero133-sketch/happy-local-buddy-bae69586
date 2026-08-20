@@ -10742,6 +10742,7 @@ function IdlePage() {
                                           </div>
 
 
+
                                       </div>
 
                                       {/* Indicador de Selecionado (Obsidian Purple) */}
