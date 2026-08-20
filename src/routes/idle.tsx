@@ -4349,6 +4349,7 @@ function IdlePage() {
             pushEvent("✦", "RIDER DERROTADO!", `+${xp} EXP · +${gold} ouro`, "#ff5ec7");
             pushChat(`✦ RIDER DERROTADO! +${xp} EXP · +${gold} ouro`, "cap");
           }
+          setIdle(prev => ({ ...prev, totalKills: ((prev as any).totalKills || 0) + 1 }));
 
           pushFxAt(target.x, target.y - 50, `+${xp} EXP`, "xp");
           const bonusParts: string[] = [];
@@ -11754,10 +11755,15 @@ function IdlePage() {
                    </div>
                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       {[
-                        { id: "level_50", title: "Mestre Iniciante", desc: "Alcance Nível 50 de Treinador", target: 50, current: idle.trainerLevel || 1, reward: 50 },
-                        { id: "level_200", title: "Veterano Ruby", desc: "Alcance Nível 200 de Treinador", target: 200, current: idle.trainerLevel || 1, reward: 200 },
-                        { id: "level_500", title: "Lenda Mística", desc: "Alcance Nível 500 de Treinador", target: 500, current: idle.trainerLevel || 1, reward: 500 },
-                        { id: "collect_1000", title: "Colecionador de Pedras", desc: "Acumule 1.000 Stones (Total)", target: 1000, current: Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0), reward: 150 },
+                        { id: "level_50", title: "Mestre Iniciante", desc: "Alcance Nível 50 de Treinador", target: 50, current: idle.trainerLevel || 1, reward: { type: "crystals", amount: 50 } },
+                        { id: "level_200", title: "Veterano Ruby", desc: "Alcance Nível 200 de Treinador", target: 200, current: idle.trainerLevel || 1, reward: { type: "crystals", amount: 200 } },
+                        { id: "level_500", title: "Lenda Mística", desc: "Alcance Nível 500 de Treinador", target: 500, current: idle.trainerLevel || 1, reward: { type: "crystals", amount: 500 } },
+                        { id: "collect_1000", title: "Colecionador de Pedras", desc: "Acumule 1.000 Stones (Total)", target: 1000, current: Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0), reward: { type: "crystals", amount: 150 } },
+                        { id: "kill_1000", title: "Exterminador", desc: "Derrote 1.000 Pokémon", target: 1000, current: (idle as any).totalKills || 0, reward: { type: "item", id: "ball_ultra", amount: 50 } },
+                        { id: "level_1000", title: "Semi-Deus", desc: "Alcance Nível 1.000 de Treinador", target: 1000, current: idle.trainerLevel || 1, reward: { type: "item", id: "egg_legendary", amount: 1 } },
+                        { id: "level_2000", title: "Divindade", desc: "Alcance Nível 2.000 de Treinador", target: 2000, current: idle.trainerLevel || 1, reward: { type: "item", id: "egg_mythic", amount: 1 } },
+                        { id: "level_5000", title: "Absoluto", desc: "Alcance Nível 5.000 de Treinador", target: 5000, current: idle.trainerLevel || 1, reward: { type: "level", amount: 1 } },
+                        { id: "collect_10000", title: "Magnata das Essências", desc: "Acumule 10.000 Stones", target: 10000, current: Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0), reward: { type: "item", id: "ball_poke", amount: 500 } },
                       ].map(q => {
                         const isDone = (forgeQuests.completedIds || []).includes(q.id);
                         const progress = Math.min(100, (q.current / q.target) * 100);
@@ -11769,7 +11775,9 @@ function IdlePage() {
                                    <div style={{ fontSize: 9, color: "#92400e" }}>{q.desc}</div>
                                 </div>
                                 <div style={{ background: "#d97706", color: "#fff", padding: "2px 6px", borderRadius: 6, fontSize: 9, fontWeight: 900 }}>
-                                   {q.reward} 💎
+                                    {q.reward.type === "crystals" ? `${q.reward.amount} 💎` : 
+                                     q.reward.type === "item" ? `${q.reward.amount}x ${q.reward.id?.replace("ball_","").replace("egg_","").toUpperCase()}` :
+                                     `+${q.reward.amount} LV`}
                                 </div>
                              </div>
                              <div style={{ width: "100%", height: 6, background: "#e5e7eb", borderRadius: 3, overflow: "hidden", marginBottom: 4 }}>
@@ -11781,11 +11789,29 @@ function IdlePage() {
                                   q.current >= q.target && (
                                     <button 
                                       onClick={() => {
-                                        setIdle((prev: IdleState) => ({ ...prev, crystals: (prev.crystals || 0) + q.reward }));
-                                        setForgeQuests((prev: any) => ({ ...prev, completedIds: [...(prev.completedIds || []), q.id] }));
+                                        setIdle((prev: IdleState) => {
+                                          const next = { ...prev };
+                                          if (q.reward.type === "crystals") {
+                                            next.crystals = (next.crystals || 0) + q.reward.amount;
+                                          } else if (q.reward.type === "item" && q.reward.id) {
+                                            const nextItems = { ...next.items };
+                                            nextItems[q.reward.id] = (nextItems[q.reward.id] ?? 0) + q.reward.amount;
+                                            next.items = nextItems;
+                                          } else if (q.reward.type === "level") {
+                                            next.trainerLevel = (next.trainerLevel || 1) + q.reward.amount;
+                                          }
+                                          return next;
+                                        });
+                                        setForgeQuests((prev: any) => {
+                                          const next = { ...prev, completedIds: [...(prev.completedIds || []), q.id] };
+                                          localStorage.setItem("rubym.forge.quests", JSON.stringify(next));
+                                          return next;
+                                        });
 
                                         playBonus();
-                                        pushChat(`🎉 Missão Concluída: ${q.title}! +${q.reward} Cristais!`, "cap");
+                                        const rewardText = q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
+                                                          q.reward.type === "item" ? `${q.reward.amount}x ${q.reward.id}` : `+${q.reward.amount} Nível`;
+                                        pushChat(`🎉 Missão Concluída: ${q.title}! Ganhou ${rewardText}!`, "cap");
                                       }}
                                       style={{ background: "#059669", color: "#fff", border: "none", padding: "2px 6px", borderRadius: 4, cursor: "pointer", fontSize: 8 }}
                                     >
@@ -12056,10 +12082,10 @@ function IdlePage() {
                            });
                            setTeam(prev => prev.map((item, i) => {
                               if (i === idx) {
-                                 const nextLv = (item.level ?? 1) + 1;
-                                 pushChat(`🍬 Rare Candy usado em ${item.species.toUpperCase()}! Nível ${nextLv}!`, "cap");
-                                 playLevelUp();
-                                 return { ...item, level: nextLv, xp: 0 };
+                                  const nextLv = Math.min(10000, (item.level ?? 1) + 1);
+                                  pushChat(`🍬 Rare Candy usado em ${item.species.toUpperCase()}! Nível ${nextLv}!`, "cap");
+                                  playLevelUp();
+                                  return { ...item, level: nextLv, xp: 0 };
                               }
                               return item;
                            }));
