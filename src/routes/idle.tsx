@@ -14305,13 +14305,14 @@ function TabOverlay({
 
       {tab === "colecao" && (
         <CollectionWindowContent
-          collection={collection}
+          collection={collection as any}
           maxCollection={MAX_COLLECTION}
           caughtCount={caughtSpecies.length}
           onSelectPokemon={onOpenColecaoDetail}
           teamUids={teamUidSet}
         />
       )}
+
       {tab === "forja" && (
         <div style={{ padding: 20, textAlign: "center", color: "#8a7a9c" }}>
           <h2 style={{ color: "#f5cf6b" }}>SISTEMA DE FORJA</h2>
