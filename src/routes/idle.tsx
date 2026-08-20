@@ -10526,7 +10526,30 @@ function IdlePage() {
                                     />
                                   );
                                 })}
-                              </svg>
+                                </svg>
+10530: 
+10531:                               {/* Efeito de Neve Leve */}
+10532:                               <div style={{ position: "absolute", inset: 0, zIndex: 4, pointerEvents: "none", overflow: "hidden" }}>
+10533:                                 {Array.from({ length: 20 }).map((_, i) => (
+10534:                                   <div
+10535:                                     key={`snow-${i}`}
+10536:                                     style={{
+10537:                                       position: "absolute",
+10538:                                       left: `${Math.random() * 100}%`,
+10539:                                       top: `-10px`,
+10540:                                       width: `${Math.random() * 4 + 2}px`,
+10541:                                       height: `${Math.random() * 4 + 2}px`,
+10542:                                       background: "white",
+10543:                                       borderRadius: "50%",
+10544:                                       opacity: 0.6,
+10545:                                       filter: "blur(1px)",
+10546:                                       animation: `snowFall ${Math.random() * 10 + 10}s linear infinite`,
+10547:                                       animationDelay: `${Math.random() * 10}s`
+10548:                                     }}
+10549:                                   />
+10550:                                 ))}
+10551:                               </div>
+
 
                               {/* Efeito de Ondas de Água no Fundo */}
                               <div style={{
