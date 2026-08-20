@@ -208,7 +208,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
           const { isAdmin: adminStatus } = await checkIsAdmin();
           setIsAdmin(adminStatus);
           
-          if (!adminStatus) {
+          if (!adminStatus && !isBypassed) {
             const { data: { session: currentSess } } = await supabase.auth.getSession();
             if (currentSess) {
               console.log("[Maintenance] Kicking non-admin user");
@@ -238,7 +238,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (maintenance && session?.user) {
       checkIsAdmin().then(({ isAdmin: adminStatus }) => {
         setIsAdmin(adminStatus);
-        if (!adminStatus) {
+        if (!adminStatus && !isBypassed) {
           supabase.auth.signOut().then(() => window.location.reload());
         }
       });
