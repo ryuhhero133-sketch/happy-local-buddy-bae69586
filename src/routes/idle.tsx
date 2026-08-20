@@ -11518,10 +11518,9 @@ function IdlePage() {
           };
         }}
         onClick={(e) => {
-          if (forgeDragRef.current && !forgeDragRef.current.isDragging) {
-            setForgeMinimized(!forgeMinimized);
-            playClick();
-          }
+          // Se não houver drag ou for clique simples, abre/minimiza
+          setForgeMinimized(!forgeMinimized);
+          playClick();
         }}
         style={{
           position: "fixed",
