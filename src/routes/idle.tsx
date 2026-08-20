@@ -11573,18 +11573,21 @@ function IdlePage() {
       {tab === "evento" && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 10000,
-          background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)",
-          display: "grid", placeItems: "center", padding: 20
+          background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)",
+          display: "grid", placeItems: "center", padding: "20px 0"
         }}>
           <div style={{
-            width: "min(600px, 95vw)", background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
-            border: "3px solid #f5cf6b", borderRadius: 20, padding: 20, position: "relative",
-            boxShadow: "0 0 50px rgba(245,207,107,0.3)",
+            width: "min(400px, 95vw)", 
+            maxHeight: "90vh",
+            background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
+            border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
+            boxShadow: "0 0 60px rgba(245,207,107,0.4), 0 0 120px rgba(0,0,0,0.8)",
             backgroundImage: `url(${assetUrlFromJson(mewtwoRewardBgAsset)})`,
             backgroundSize: "cover", backgroundPosition: "center",
-            overflow: "hidden"
+            overflow: "hidden",
+            display: "flex", flexDirection: "column"
           }}>
-            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(1px)", zIndex: 0 }} />
+            <div style={{ position: "absolute", inset: 0, background: "rgba(10,5,20,0.65)", backdropFilter: "blur(2px)", zIndex: 0 }} />
             <button 
               onClick={() => setTab("inicio")}
               style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900, zIndex: 1 }}
