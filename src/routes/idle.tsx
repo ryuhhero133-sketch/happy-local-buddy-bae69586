@@ -1930,7 +1930,12 @@ function IdlePage() {
       setForgePos({ x: forgeDragRef.current.winX + dx, y: forgeDragRef.current.winY + dy });
       forgeDragRef.current.isDragging = true;
     };
-    const mu = () => { forgeDragRef.current = null; };
+    const mu = () => { 
+      if (forgeDragRef.current) {
+        setTimeout(() => { if (forgeDragRef.current) forgeDragRef.current.isDragging = false; }, 50);
+      }
+      forgeDragRef.current = null; 
+    };
     window.addEventListener("mousemove", mm);
     window.addEventListener("mouseup", mu);
     window.addEventListener("touchmove", mm);
