@@ -11459,7 +11459,6 @@ function IdlePage() {
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
-            { id: "evento",   label: "Evento",   img: navInicio,    color: "#ffc107" },
             { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b" },
           ] as const).map((t) => {
 
