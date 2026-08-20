@@ -10629,23 +10629,7 @@ function IdlePage() {
                                   onClick={() => {
                                     if (current) { setWorldMapOpen(false); return; }
                                     playClick();
-                                    const synthGate = {
-                                      key: `world-${pin.id}`,
-                                      target: pin.id,
-                                      x: WORLD_W / 2, y: WORLD_H / 2,
-                                      arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
-                                      color: "#f5cf6b",
-                                    };
-                                    const scrolls = idle.items?.scroll_teleport ?? 0;
-                                    if (scrolls > 0) {
-                                      setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
-                                      setWorldMapOpen(false);
-                                      travelToGate(synthGate);
-                                      pushChat(`📜 Pergaminho consumido — viagem para ${m.name}.`, "cap");
-                                      return;
-                                    }
-                                    setWorldMapOpen(false);
-                                    setPendingGate({ target: pin.id, gate: synthGate, fromBig: false });
+                                    setSelectedMapInfo(pin.id);
                                   }}
                                   style={{
                                     position: "absolute",
