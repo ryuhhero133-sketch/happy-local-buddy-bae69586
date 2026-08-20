@@ -11649,7 +11649,6 @@ function IdlePage() {
                            alt=""
                            style={{ 
                              width: 32, height: 32, objectFit: "contain",
-                             filter: isLocked ? "opacity(0.5)" : "none",
                              animation: canClaim ? "pulse 2s infinite" : "none"
                            }} 
                          />
