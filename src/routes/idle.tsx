@@ -10808,7 +10808,7 @@ function IdlePage() {
                             }}>
                                <div style={{ display: "flex", gap: 16, marginBottom: 12, alignItems: "center" }}>
                                  <div style={{ width: 64, height: 64, flexShrink: 0, background: "rgba(0,0,0,0.5)", borderRadius: 8, border: "2px solid #f5cf6b", padding: 4 }}>
-                                   <MapIconRenderer type={selMap.type} name={selMap.name} ok={true} />
+                                   <MapIconRenderer type={selPin?.type || "castle"} name={selMap.name} ok={true} />
                                  </div>
                                  <div style={{ flex: 1 }}>
                                    <div style={{ color: "#f5cf6b", fontSize: 14 }}>{selMap.name}</div>
