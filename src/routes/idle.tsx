@@ -105,9 +105,8 @@ import raikouAsset from "@/assets/legends/raikou.gif.asset.json";
 import suicuneAsset from "@/assets/legends/suicune.gif.asset.json";
 import suicuneShinyAsset from "@/assets/legends/suicune-shiny.gif.asset.json";
 import luxrayFAsset from "@/assets/legends/luxray-f.gif.asset.json";
-import iconRareCandyAsset from "@/assets/items/icon-rare-candy.png.asset.json";
-import iconEggEpicAsset from "@/assets/items/icon-egg-epic.png.asset.json";
-import iconMasterBallAsset from "@/assets/items/icon-master-ball.png.asset.json";
+import blackMiticPlusEggIcon from "@/assets/black-mitic-plus-egg-icon.png.asset.json";
+
 
 
 const SKINS: { id: string; label: string; url: string | null }[] = [
@@ -11607,92 +11606,126 @@ function IdlePage() {
                 const isVip = !!idle.isVip;
 
                 return (
-                  <div key={day} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    {/* Linha Normal */}
-                    <div style={{
-                      background: "rgba(255,255,255,0.95)", border: `2.5px solid ${isClaimed ? "#22c55e" : (canClaim ? "#f5cf6b" : "#e5e7eb")}`,
-                      borderRadius: 12, padding: 10, display: "flex", alignItems: "center", gap: 10,
-                      opacity: isLocked ? 0.8 : 1, 
-                      boxShadow: canClaim ? "0 0 15px rgba(245,207,107,0.8), inset 0 0 10px rgba(245,207,107,0.3)" : "none",
-                      position: "relative"
-                    }}>
-                       <div style={{ width: 40, height: 40, display: "grid", placeItems: "center" }}>
-                         <img 
-                           src={day === 7 ? assetUrlFromJson(iconCashPackage) : ballPokeImg} 
-                           alt=""
-                           style={{ 
-                             width: 32, height: 32, objectFit: "contain",
-                             filter: isLocked ? "grayscale(1) opacity(0.5)" : "none",
-                             animation: canClaim ? "pulse 2s infinite" : "none"
-                           }} 
-                         />
-                       </div>
-                       <div style={{ flex: 1, fontSize: 10, fontWeight: 900, color: "#1a0f2e" }}>
-                         <div style={{ color: "#f59e0b", fontSize: 9 }}>DIA {day}</div>
-                         {day === 7 ? "2k Gold + 200 Pokeballs + 100 Great" : "500 Gold + 20 Pokeballs"}
-                       </div>
-                       {canClaim && (
-                         <button onClick={() => {
-                           const rewardDay = (idle.dailyRewardDay || 0) + 1;
-                           setIdle(s => {
-                             const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
-                             next.bank = { ...next.bank, gold: (next.bank.gold || 0) + (day === 7 ? 2000 : 500) };
-                             next.items = { ...next.items };
-                             next.items.ball_poke = (next.items.ball_poke || 0) + (day === 7 ? 200 : 20);
-                             if (day === 7) next.items.ball_great = (next.items.ball_great || 0) + 100;
-                             
-                             if (isVip) {
-                               next.bank.crystals = (next.bank.crystals || 0) + 200;
-                               if (day === 7) {
-                                 next.items.master_ball = (next.items.master_ball || 0) + 1;
-                                 const skins = ["pedro", "phone", "goku"];
-                                 const randomSkin = skins[Math.floor(Math.random() * skins.length)];
-                                 next.unlockedSkins = Array.from(new Set([...(next.unlockedSkins || []), randomSkin]));
-                               }
-                             }
-                             return next;
-                           });
-                           pushChat(`🎁 Recompensa do Dia ${day} coletada!${isVip ? " (+Bônus VIP 💎)" : ""}`, "cap");
-                           playBonus();
-                         }} style={{
-                           background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e", border: "none",
-                           padding: "6px 12px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: "pointer",
-                           boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                           animation: "bounce 1s infinite"
-                         }}>RESGATAR</button>
-                       )}
-                       {!canClaim && isClaimed && <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>}
-                       {!canClaim && !isClaimed && <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 900 }}>BLOQUEADO</div>}
-                    </div>
-                    
-                    {/* Linha VIP */}
-                    <div style={{
-                      background: isVip ? "linear-gradient(90deg, rgba(255,255,255,0.95), rgba(245,207,107,0.1))" : "rgba(0,0,0,0.3)",
-                      border: `2px solid ${isVip ? "#f5cf6b" : "#4a5568"}`, borderRadius: 12, padding: 10, display: "flex", alignItems: "center", gap: 10,
-                      color: isVip ? "#1a0f2e" : "#718096", position: "relative", overflow: "hidden",
-                      boxShadow: (isVip && canClaim) ? "0 0 15px rgba(245,207,107,0.6)" : "none"
-                    }}>
-                       {!isVip && (
-                         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.6)", zIndex: 1 }}>
-                           <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b", textShadow: "0 1px 2px #000", letterSpacing: 1 }}>💎 PASSE MESTRE 💎</span>
+                  <div key={day} style={{ display: "flex", flexDirection: "column", gap: 8, background: "rgba(0,0,0,0.2)", padding: 10, borderRadius: 16, border: "1px solid rgba(245,207,107,0.2)" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                      {/* Linha Normal */}
+                      <div style={{
+                        background: "rgba(255,255,255,0.95)", border: `2.5px solid ${isClaimed ? "#22c55e" : (canClaim ? "#f5cf6b" : "#e5e7eb")}`,
+                        borderRadius: 12, padding: 10, display: "flex", alignItems: "center", gap: 10,
+                        opacity: isLocked ? 0.8 : 1, 
+                        boxShadow: canClaim ? "0 0 15px rgba(245,207,107,0.8), inset 0 0 10px rgba(245,207,107,0.3)" : "none",
+                        position: "relative"
+                      }}>
+                         <div style={{ width: 40, height: 40, display: "grid", placeItems: "center" }}>
+                           <img 
+                             src={day === 7 ? assetUrlFromJson(iconCashPackage) : ballPokeImg} 
+                             alt=""
+                             style={{ 
+                               width: 32, height: 32, objectFit: "contain",
+                               filter: isLocked ? "grayscale(1) opacity(0.5)" : "none",
+                               animation: canClaim ? "pulse 2s infinite" : "none"
+                             }} 
+                           />
                          </div>
-                       )}
-                       <div style={{ width: 40, height: 40, display: "grid", placeItems: "center" }}>
-                         <img 
-                           src={day === 7 ? assetUrlFromJson(raichuAsset) : assetUrlFromJson(iconCrystalBlue)} 
-                           alt=""
-                           style={{ 
-                             width: day === 7 ? 40 : 24, height: day === 7 ? 40 : 24, objectFit: "contain",
-                             filter: !isVip ? "grayscale(1) brightness(0.5)" : "none"
-                           }} 
-                         />
-                       </div>
-                       <div style={{ flex: 1, fontSize: 10, fontWeight: 900 }}>
-                         <div style={{ color: "#d97706", fontSize: 9 }}>BÔNUS VIP</div>
-                         {day === 7 ? "+200 CRISTAL + MASTER BALL + SKIN VIP" : "+200 CRISTAL + 5X ITENS"}
-                       </div>
+                         <div style={{ flex: 1, fontSize: 10, fontWeight: 900, color: "#1a0f2e" }}>
+                           <div style={{ color: "#f59e0b", fontSize: 9 }}>DIA {day}</div>
+                           {day === 7 ? "2k Gold + 200 Pokeballs + 100 Great" : "500 Gold + 20 Pokeballs"}
+                         </div>
+                         {canClaim && (
+                           <button onClick={() => {
+                             const rewardDay = (idle.dailyRewardDay || 0) + 1;
+                             setIdle(s => {
+                               const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
+                               next.bank = { ...next.bank, gold: (next.bank.gold || 0) + (day === 7 ? 2000 : 500) };
+                               next.items = { ...next.items };
+                               next.items.ball_poke = (next.items.ball_poke || 0) + (day === 7 ? 200 : 20);
+                               if (day === 7) next.items.ball_great = (next.items.ball_great || 0) + 100;
+                               
+                               if (isVip) {
+                                 next.bank.crystals = (next.bank.crystals || 0) + 200;
+                                 next.items.ball_poke = (next.items.ball_poke || 0) + (day === 7 ? 500 : 100);
+                                 if (day === 7) {
+                                   // Recompensas VIP de Luxo no 7º Dia
+                                   next.items.master_ball = (next.items.master_ball || 0) + 1;
+                                   next.items.rare_candy = (next.items.rare_candy || 0) + 50;
+                                   next.items.egg_epic = (next.items.egg_epic || 0) + 2;
+                                   const skins = ["pedro", "phone", "goku"];
+                                   const randomSkin = skins[Math.floor(Math.random() * skins.length)];
+                                   next.unlockedSkins = Array.from(new Set([...(next.unlockedSkins || []), randomSkin]));
+                                 }
+                               }
+                               return next;
+                             });
+                             pushChat(`🎁 Recompensa do Dia ${day} coletada!${isVip ? " (+Bônus VIP Mestre 💎)" : ""}`, "cap");
+                             playBonus();
+                           }} style={{
+                             background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e", border: "none",
+                             padding: "6px 12px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: "pointer",
+                             boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                             animation: "bounce 1s infinite"
+                           }}>RESGATAR</button>
+                         )}
+                         {!canClaim && isClaimed && <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>}
+                         {!canClaim && !isClaimed && <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 900 }}>BLOQUEADO</div>}
+                      </div>
+                      
+                      {/* Linha VIP Mestre */}
+                      <div style={{
+                        background: isVip 
+                          ? "linear-gradient(135deg, #fff9e6 0%, #fff 100%)" 
+                          : "rgba(255,255,255,0.05)",
+                        border: `2.5px solid ${isVip ? "#f5cf6b" : "rgba(245,207,107,0.2)"}`,
+                        borderRadius: 12, padding: "8px 12px", display: "flex", alignItems: "center", gap: 12,
+                        color: isVip ? "#1a0f2e" : "rgba(255,255,255,0.3)", position: "relative", overflow: "hidden",
+                        boxShadow: isVip ? "0 4px 15px rgba(245,207,107,0.25), inset 0 0 20px rgba(245,207,107,0.1)" : "none",
+                        transition: "all 0.3s ease"
+                      }}>
+                         {!isVip && (
+                           <div style={{ 
+                             position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", 
+                             background: "rgba(0,0,0,0.6)", zIndex: 2, backdropFilter: "blur(2px)" 
+                           }}>
+                             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                               <span style={{ fontSize: 18 }}>🔒</span>
+                               <span style={{ fontSize: 8, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>PASSE MESTRE</span>
+                             </div>
+                           </div>
+                         )}
+                         
+                         {/* Efeito de Brilho Dourado para VIP */}
+                         {isVip && (
+                           <div style={{
+                             position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%",
+                             background: "conic-gradient(from 0deg, transparent, rgba(245,207,107,0.1), transparent)",
+                             animation: "rotate 4s linear infinite", zIndex: 0
+                           }} />
+                         )}
+
+                         <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", position: "relative", zIndex: 1 }}>
+                           <img 
+                             src={day === 7 ? assetUrlFromJson(blackMiticPlusEggIcon) : assetUrlFromJson(iconCrystalBlue)} 
+                             alt=""
+                             style={{ 
+                               width: day === 7 ? 40 : 28, height: day === 7 ? 40 : 28, objectFit: "contain",
+                               filter: !isVip ? "grayscale(1) brightness(0.5)" : "drop-shadow(0 0 5px rgba(245,207,107,0.5))",
+                               animation: isVip ? "float 3s ease-in-out infinite" : "none"
+                             }} 
+                           />
+                         </div>
+                         <div style={{ flex: 1, fontSize: 10, fontWeight: 900, position: "relative", zIndex: 1 }}>
+                           <div style={{ color: "#d97706", fontSize: 9, display: "flex", alignItems: "center", gap: 4 }}>
+                             👑 BÔNUS MESTRE {isVip && <span style={{ color: "#f5cf6b", animation: "pulse 1s infinite" }}>✨</span>}
+                           </div>
+                           <div style={{ lineHeight: 1.2 }}>
+                             {day === 7 
+                               ? "MASTER BALL + 50 RARE CANDY + 2 EGG EPIC + 500 POKEBAL + SKIN" 
+                               : "+200 CRISTAL + 100 POKEBAL + ITENS 5X"}
+                           </div>
+                         </div>
+                      </div>
                     </div>
                   </div>
+
                 );
               })}
             </div>
