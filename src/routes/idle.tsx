@@ -11617,34 +11617,71 @@ function IdlePage() {
                        {canClaim && (
                          <button onClick={() => {
                            const rewardDay = (idle.dailyRewardDay || 0) + 1;
-                           setIdle(s => ({ ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay, bank: { ...s.bank, gold: (s.bank.gold || 0) + (day === 7 ? 2000 : 500) } }));
-                           pushChat(`🎁 Resgatado dia ${day}!`, "cap");
-                         }} style={{ background: "#d97706", color: "#fff", border: "none", padding: "4px 8px", borderRadius: 4, fontSize: 9, fontWeight: 900 }}>OK</button>
+                           setIdle(s => {
+                             const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
+                             next.bank = { ...next.bank, gold: (next.bank.gold || 0) + (day === 7 ? 2000 : 500) };
+                             next.items = { ...next.items };
+                             next.items.ball_poke = (next.items.ball_poke || 0) + (day === 7 ? 200 : 20);
+                             
+                             if (isVip) {
+                               next.bank.crystals = (next.bank.crystals || 0) + 200;
+                               if (day === 7) {
+                                 next.items.master_ball = (next.items.master_ball || 0) + 1;
+                                 const skins = ["pedro", "phone", "goku"];
+                                 const randomSkin = skins[Math.floor(Math.random() * skins.length)];
+                                 next.unlockedSkins = Array.from(new Set([...(next.unlockedSkins || []), randomSkin]));
+                               }
+                             }
+                             return next;
+                           });
+                           pushChat(`🎁 Recompensa do Dia ${day} coletada!${isVip ? " (+Bônus VIP 💎)" : ""}`, "cap");
+                           playBonus();
+                         }} style={{
+                           background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e", border: "none",
+                           padding: "6px 12px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: "pointer",
+                           boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                         }}>RESGATAR</button>
                        )}
+                       {!canClaim && isClaimed && <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>}
+                       {!canClaim && !isClaimed && <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 900 }}>BLOQUEADO</div>}
                     </div>
                     
                     {/* Linha VIP */}
                     <div style={{
-                      background: isVip ? "linear-gradient(90deg, #f5cf6b, #d97706)" : "rgba(0,0,0,0.5)",
-                      border: "2px solid #f5cf6b", borderRadius: 12, padding: 10, display: "flex", alignItems: "center", gap: 10,
-                      color: isVip ? "#1a0f2e" : "#666"
+                      background: isVip ? "linear-gradient(90deg, rgba(245,207,107,0.2), rgba(217,119,6,0.2))" : "rgba(0,0,0,0.3)",
+                      border: `2px solid ${isVip ? "#f5cf6b" : "#4a5568"}`, borderRadius: 12, padding: 10, display: "flex", alignItems: "center", gap: 10,
+                      color: isVip ? "#fff" : "#718096", position: "relative", overflow: "hidden"
                     }}>
-                       <div style={{ fontSize: 18 }}>💎</div>
+                       {!isVip && (
+                         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.4)", zIndex: 1 }}>
+                           <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b", textShadow: "0 1px 2px #000" }}>PASSE MESTRE</span>
+                         </div>
+                       )}
+                       <div style={{ fontSize: 18, filter: isVip ? "none" : "grayscale(1)" }}>💎</div>
                        <div style={{ flex: 1, fontSize: 10, fontWeight: 900 }}>
-                         {day === 7 ? "200 CRISTAL + MASTER BALL + SKIN VIP" : "200 CRISTAL + 5X ITEM EXTRA"}
+                         {day === 7 ? "+200 CRISTAL + MASTER BALL + SKIN VIP" : "+200 CRISTAL + 5X ITENS"}
                        </div>
                     </div>
                   </div>
                 );
               })}
             </div>
-            
-            <button onClick={() => setTab("inicio")} style={{ marginTop: 20, width: "100%", padding: "12px", background: "rgba(245,207,107,0.1)", border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b", fontWeight: 900, fontSize: 12, cursor: "pointer" }}>
-              FECHAR CALENDÁRIO
-            </button>
-          </div>
-        </div>
-      )}
+
+            {/* Cronômetro */}
+            {(() => {
+              const now = Date.now();
+              const lastClaim = idle.lastDailyReward || 0;
+              const nextClaim = lastClaim + 86400000;
+              const diff = nextClaim - now;
+              if (diff <= 0) return null;
+              const hours = Math.floor(diff / 3600000);
+              const mins = Math.floor((diff % 3600000) / 60000);
+              return (
+                <div style={{ textAlign: "center", marginTop: 15, fontSize: 11, color: "#f5cf6b", fontWeight: 800, textShadow: "0 1px 2px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}>
+                  ⏳ PRÓXIMO RESGATE EM: {hours}h {mins}m
+                </div>
+              );
+            })()}
 
       {/* BOTÃO FLUTUANTE DA FORJA */}
       <div
