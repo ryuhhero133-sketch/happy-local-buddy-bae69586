@@ -11709,6 +11709,10 @@ function IdlePage() {
           {identity.name}
         </div>
       )}
+    </div>
+    )}
+  </WindowManager>
+
 
 
 
