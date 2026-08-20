@@ -12070,13 +12070,11 @@ function IdlePage() {
               <div style={{ marginTop: 18, padding: 10, background: "#fef3c7", borderRadius: 10, border: "1px dashed #d97706", fontSize: 10, color: "#92400e", textAlign: "center", lineHeight: 1.4, fontWeight: 600 }}>
                  Forje Rare Candies para subir o nível dos seus Pokémon instantaneamente ou combine fragmentos para novos ovos.
               </div>
-            </div>
-                </>
-              )}
-            </div>
-
+            )}
+          </div>
         )}
       </div>
+
 
 
       <style>{`
