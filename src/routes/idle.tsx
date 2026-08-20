@@ -11682,7 +11682,16 @@ function IdlePage() {
                            fontSize: 24
                          }}>✅</div>
                        )}
-                       <div style={{ color: "#f59e0b", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>DIA {day}</div>
+                       <div style={{ 
+                         color: (day === 7 || day === 10) ? "#f5cf6b" : "#f59e0b", 
+                         fontSize: (day === 7 || day === 10) ? 14 : 11, 
+                         fontWeight: 900, 
+                         letterSpacing: 2, 
+                         textShadow: (day === 7 || day === 10) ? "0 0 10px rgba(245,207,107,0.5)" : "0 1px 2px rgba(0,0,0,0.2)" 
+                       }}>
+                         DIA {day} {(day === 7 || day === 10) && "🌟"}
+                       </div>
+
                        <div style={{ width: 60, height: 60, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.05)", borderRadius: 12, boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)" }}>
                          <img 
                            src={rew.img} 
