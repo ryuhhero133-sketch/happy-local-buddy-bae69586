@@ -121,6 +121,7 @@ const OWNED_EQUIPMENT_KEY = "rubym.trainer.owned_equipment.v1";
 import { EquipmentSlot, EquipmentItem, TRAINER_EQUIPMENT_DATA, RARITY_COLOR } from "@/game/systems";
 
 
+
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
 import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
