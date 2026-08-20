@@ -14293,10 +14293,12 @@ function TabOverlay({
       )}
 
       {tab === "mochila" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, textAlign: "center", padding: 40 }}>
-          A mochila agora é uma janela modular <strong>📦 Mochila MMO</strong>.<br/>
-          Clique no botão "Mochila" na barra inferior para abrir.
-        </div>
+        <BackpackContent
+          items={idle.items}
+          onUseItem={useItem}
+          onSellItem={sellItem}
+          marketSellPrices={MARKET_SELL_PRICE}
+        />
       )}
 
 
