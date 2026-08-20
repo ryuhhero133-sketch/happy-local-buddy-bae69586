@@ -11567,7 +11567,7 @@ function IdlePage() {
                               const p = (idle.collection || []).find((x: any) => x.uid === uid);
                               if (p) setStatsCardPet(p as any);
                             }}
-                            teamUids={new Set(idle.team?.map((p: any) => p.uid) || [])}
+                            teamUids={new Set(idle.activeTeam?.map((p: any) => p.uid) || [])}
                           />
                         ), { width: 450, height: 550 });
                       } else if (t.id === "wallet") {
