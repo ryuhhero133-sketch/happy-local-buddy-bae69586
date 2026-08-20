@@ -12143,10 +12143,10 @@ function IdlePage() {
 
                         <div style={{ fontSize: 14, color: "#fef3c7", fontWeight: 900, marginBottom: 8, textShadow: "0 2px 2px rgba(0,0,0,0.5)" }}>Custo Base & Ingredientes Extras:</div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 15 }}>
-                           <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#fff", padding: "4px 8px", borderRadius: 6, border: "2px solid #c7d2fe", opacity: (idle.items?.safira_verde ?? 0) >= 1 ? 1 : 0.5 }}>
-                              <ItemPixelIcon id="safira_verde" size={16} />
-                              <span style={{ fontSize: 9, fontWeight: 900, color: (idle.items?.safira_verde ?? 0) >= 1 ? "#059669" : "#ef4444" }}>1x Safira</span>
-                           </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,0,0,0.3)", padding: "6px 12px", borderRadius: 8, border: "2px solid #fbbf24", opacity: (idle.items?.safira_verde ?? 0) >= 1 ? 1 : 0.5 }}>
+                               <ItemPixelIcon id="safira_verde" size={20} />
+                               <span style={{ fontSize: 12, fontWeight: 900, color: (idle.items?.safira_verde ?? 0) >= 1 ? "#fff" : "#ef4444" }}>1x Safira</span>
+                            </div>
                            {["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"].map(s => {
                               const baseCount = 200;
                               const extraCount = auraEggDetails?.stonesUsed?.[s] || 0;
