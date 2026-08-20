@@ -11732,7 +11732,7 @@ function IdlePage() {
             >
               ×
             </button>
-            <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <div style={{ textAlign: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
               <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 RECOMPENSA DIÁRIA</div>
               <div style={{ fontSize: 12, color: "#c8b8d0", marginTop: 4 }}>Colete prêmios incríveis a cada 24 horas!</div>
             </div>
