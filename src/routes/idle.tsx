@@ -11687,6 +11687,11 @@ function IdlePage() {
           .idle-grid { grid-template-columns: 170px 1fr 170px !important; }
         }
 
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+
         @keyframes fxpop {
           0% { transform: translateY(0) scale(0.6); opacity: 0; }
           20% { transform: translateY(-6px) scale(1.15); opacity: 1; }
