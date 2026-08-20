@@ -10364,39 +10364,41 @@ function IdlePage() {
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "arena", x: 44, y: 41, type: "castle" }, // Castelo central
-                      { id: "terra", x: 26, y: 19, type: "forest" }, // Floresta norte/oeste
-                      { id: "deserto_purpura", x: 74, y: 28, type: "volcano" }, // Montanhas à direita
-                      { id: "pantano_fogo", x: 50, y: 42, type: "volcano" }, // Vulcão central
-                      { id: "praia", x: 15, y: 48, type: "beach" }, // Enseada esquerda
-                      { id: "venofogo", x: 42, y: 55, type: "volcano" },
-                      { id: "terry", x: 62, y: 52, type: "village" }, // Vilarejo à direita
-                      { id: "n2", x: 58, y: 52, type: "forest" },
-                      { id: "n3", x: 65, y: 55, type: "forest" },
-                      { id: "fantasma", x: 82, y: 82, type: "cave" }, // Dungeon deserto sudeste
-                      { id: "caverna", x: 82, y: 48, type: "cave" },
-                      { id: "vale_rochas", x: 18, y: 72, type: "mountain" },
-                      { id: "neve", x: 70, y: 12, type: "snow" }, // Montanha de neve NE
-                      { id: "deserto", x: 48, y: 22, type: "desert" },
-                      { id: "abismo_gelo", x: 58, y: 72, type: "cave" },
-                      { id: "abismo_veneno", x: 66, y: 76, type: "cave" },
-                      { id: "abismo_dragao", x: 74, y: 78, type: "cave" },
-                      { id: "cadeia_ab", x: 88, y: 42, type: "cave" },
-                      { id: "cadeia_ab1", x: 92, y: 38, type: "cave" },
-                      { id: "cadeia_f1", x: 95, y: 35, type: "cave" },
+                      { id: "neve", x: 19.5, y: 15.5, type: "snow" }, // Montanhas nevadas (Canto Superior Esquerdo)
+                      { id: "arena", x: 44, y: 17, type: "castle" }, // Castelo Central (Floresta Superior)
+                      { id: "terra", x: 38, y: 12, type: "forest" },
+                      { id: "deserto", x: 70, y: 17, type: "desert" }, // Ilha dourada (Superior Direito)
+                      { id: "deserto_purpura", x: 78, y: 22, type: "volcano" },
+                      { id: "caverna", x: 74, y: 12, type: "cave" },
+                      { id: "praia", x: 22, y: 45, type: "beach" }, // Enseada verde (Meio Esquerda)
+                      { id: "vale_rochas", x: 16, y: 40, type: "mountain" },
+                      { id: "n2", x: 28, y: 42, type: "forest" },
+                      { id: "pantano_fogo", x: 46, y: 44, type: "volcano" }, // Centro vulcânico
+                      { id: "venofogo", x: 41, y: 52, type: "volcano" },
+                      { id: "terry", x: 52, y: 48, type: "village" },
+                      { id: "n3", x: 55, y: 42, type: "forest" },
+                      { id: "abismo_gelo", x: 80, y: 40, type: "cave" }, // Ilhas flutuantes (Direita)
+                      { id: "abismo_veneno", x: 85, y: 45, type: "cave" },
+                      { id: "abismo_dragao", x: 92, y: 40, type: "cave" },
+                      { id: "fantasma", x: 15, y: 78, type: "cave" }, // Zona de lava/sombria (Inferior Esquerda)
+                      { id: "cadeia_ab", x: 22, y: 82, type: "cave" },
+                      { id: "cadeia_ab1", x: 26, y: 88, type: "cave" },
+                      { id: "cadeia_f1", x: 28, y: 92, type: "cave" },
+                      { id: "portal_f", x: 92, y: 90, type: "event" }, // Vórtice (Inferior Direita)
+
 
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event" }] : []),
                     ];
                     const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "absol_start" as IdleMapId, x: 20, y: 75, type: "village" },
-                      { id: "governante_hall" as IdleMapId, x: 50, y: 35, type: "castle" },
+                      { id: "absol_start" as IdleMapId, x: 45, y: 75, type: "village" },
+                      { id: "governante_hall" as IdleMapId, x: 44, y: 17, type: "castle" },
                     ];
                     const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "continent3_map1" as IdleMapId, x: 15, y: 40, type: "island" },
-                      { id: "continent3_map2" as IdleMapId, x: 35, y: 45, type: "island" },
-                      { id: "fosso_cristal" as IdleMapId, x: 55, y: 30, type: "cave" },
-                      { id: "vale_ruby" as IdleMapId, x: 75, y: 35, type: "volcano" },
-                      { id: "ilha_safira" as IdleMapId, x: 85, y: 60, type: "beach" },
+                      { id: "continent3_map1" as IdleMapId, x: 80, y: 40, type: "island" },
+                      { id: "continent3_map2" as IdleMapId, x: 85, y: 45, type: "island" },
+                      { id: "fosso_cristal" as IdleMapId, x: 74, y: 12, type: "cave" },
+                      { id: "vale_ruby" as IdleMapId, x: 78, y: 22, type: "volcano" },
+                      { id: "ilha_safira" as IdleMapId, x: 92, y: 40, type: "beach" },
                     ];
                     const activeTab = worldTab;
                     const isC1Unlocked = true; // Continente 1 sempre liberado
@@ -10657,68 +10659,93 @@ function IdlePage() {
                                     zIndex: current ? 20 : 10,
                                     display: "flex", flexDirection: "column", alignItems: "center",
                                   }}
-                                >
-                                   {/* Elemento Visual do Mapa Integrado ao Cenário */}
-                                   <div style={{
-                                     position: "relative",
-                                     width: current ? 48 : 40, height: current ? 48 : 40,
-                                     display: "grid", placeItems: "center",
-                                     animation: current ? "worldPinPulse 2s infinite ease-in-out" : "worldFloating 3s infinite ease-in-out",
-                                     animationDelay: `${(pin.x + pin.y) * 0.05}s`,
-                                   }}>
-                                     {/* Base / Sombra do Prédio */}
-                                     <div style={{ position: "absolute", bottom: -4, width: "80%", height: "20%", background: "rgba(0,0,0,0.4)", borderRadius: "50%", filter: "blur(2px)" }} />
-                                     
-                                     {/* Arte Pixel do Local */}
-                                     <div style={{
-                                       fontSize: current ? 32 : 26,
-                                       filter: !continentUnlocked ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #7ef27a)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
+                                 >
+                                    {/* Elemento Visual do Mapa Integrado ao Cenário */}
+                                    <div style={{
+                                      position: "relative",
+                                      width: current ? 48 : 40, height: current ? 48 : 40,
+                                      display: "grid", placeItems: "center",
+                                      animation: current ? "worldPinPulse 2s infinite ease-in-out" : "worldFloating 3s infinite ease-in-out",
+                                      animationDelay: `${(pin.x + pin.y) * 0.05}s`,
+                                    }}>
+                                      {/* Brilho Obsidian / Portal de fundo (Conforme pedido) */}
+                                      <div style={{
+                                        position: "absolute",
+                                        width: "140%", height: "140%",
+                                        background: "radial-gradient(circle, rgba(160,80,255,0.4) 0%, transparent 70%)",
+                                        borderRadius: "50%",
+                                        boxShadow: "0 0 15px rgba(0,0,0,0.8), 0 0 5px rgba(160,80,255,0.3)",
+                                        zIndex: -1,
+                                        opacity: 0.8
+                                      }} />
 
-                                       transform: `scale(${current ? 1.2 : 1})`,
-                                       transition: "transform 0.3s ease",
-                                       imageRendering: "pixelated",
-                                     }}>
-                                        {/* Representação visual mais robusta do local (pixel-art feeling) */}
-                                        <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                                          {/* Símbolo do local com efeito de profundidade */}
-                                          <div style={{ position: "absolute", inset: 0, opacity: 0.3, filter: "blur(4px)", transform: "translateY(2px)" }}>
-                                            {pin.type === "castle" ? "🏰" : 
-                                             pin.type === "village" ? "🏡" : 
-                                             pin.type === "volcano" ? "🌋" : 
-                                             pin.type === "cave" ? "🕳️" : 
-                                             pin.type === "forest" ? "🌳" : 
-                                             pin.type === "beach" ? "🏖️" : 
-                                             pin.type === "mountain" ? "🏔️" : 
-                                             pin.type === "snow" ? "❄️" : "🏛️"}
-                                          </div>
-                                          <div style={{ position: "relative" }}>
-                                            {pin.type === "castle" ? "🏰" : 
-                                             pin.type === "village" ? "🏡" : 
-                                             pin.type === "volcano" ? "🌋" : 
-                                             pin.type === "cave" ? "🕳️" : 
-                                             pin.type === "forest" ? "🌳" : 
-                                             pin.type === "beach" ? "🏖️" : 
-                                             pin.type === "mountain" ? "🏔️" : 
-                                             pin.type === "snow" ? "❄️" : "🏛️"}
-                                          </div>
-                                        </div>
+                                      {/* Sombra do Local */}
+                                      <div style={{ position: "absolute", bottom: -4, width: "80%", height: "20%", background: "rgba(0,0,0,0.6)", borderRadius: "50%", filter: "blur(3px)" }} />
+                                      
+                                      {/* Cristal de Obsidian no centro do portal */}
+                                      <div style={{
+                                        position: "absolute",
+                                        width: 8, height: 12,
+                                        background: "#1a0f26",
+                                        border: "1px solid #a066ff",
+                                        transform: "rotate(45deg)",
+                                        top: "10%",
+                                        boxShadow: "0 0 8px #a066ff",
+                                        zIndex: 5,
+                                        opacity: 0.9
+                                      }} />
 
-                                     </div>
+                                      {/* Arte Pixel do Local */}
+                                      <div style={{
+                                        fontSize: current ? 32 : 26,
+                                        filter: !continentUnlocked ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #a066ff)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
+                                        transform: `scale(${current ? 1.2 : 1})`,
+                                        transition: "transform 0.3s ease",
+                                        imageRendering: "pixelated",
+                                        zIndex: 10,
+                                      }}>
+                                         {/* Representação visual mais robusta do local (pixel-art feeling) */}
+                                         <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                                           {/* Símbolo do local com efeito de profundidade */}
+                                           <div style={{ position: "absolute", inset: 0, opacity: 0.3, filter: "blur(4px)", transform: "translateY(2px)" }}>
+                                             {pin.type === "castle" ? "🏰" : 
+                                              pin.type === "village" ? "🏡" : 
+                                              pin.type === "volcano" ? "🌋" : 
+                                              pin.type === "cave" ? "🕳️" : 
+                                              pin.type === "forest" ? "🌳" : 
+                                              pin.type === "beach" ? "🏖️" : 
+                                              pin.type === "mountain" ? "🏔️" : 
+                                              pin.type === "snow" ? "❄️" : "🏛️"}
+                                           </div>
+                                           <div style={{ position: "relative" }}>
+                                             {pin.type === "castle" ? "🏰" : 
+                                              pin.type === "village" ? "🏡" : 
+                                              pin.type === "volcano" ? "🌋" : 
+                                              pin.type === "cave" ? "🕳️" : 
+                                              pin.type === "forest" ? "🌳" : 
+                                              pin.type === "beach" ? "🏖️" : 
+                                              pin.type === "mountain" ? "🏔️" : 
+                                              pin.type === "snow" ? "❄️" : "🏛️"}
+                                           </div>
+                                         </div>
 
+                                      </div>
 
-                                     {/* Indicador de Selecionado */}
-                                     {current && (
-                                       <div style={{
-                                         position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
-                                         width: 8, height: 8, background: "#7ef27a", borderRadius: "50%",
-                                         boxShadow: "0 0 10px #7ef27a",
-                                       }} />
-                                     )}
+                                      {/* Indicador de Selecionado (Obsidian Purple) */}
+                                      {current && (
+                                        <div style={{
+                                          position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
+                                          width: 8, height: 8, background: "#a066ff", borderRadius: "50%",
+                                          boxShadow: "0 0 10px #a066ff",
+                                          zIndex: 15
+                                        }} />
+                                      )}
+
                                    </div>
                                    <div className="map-pin-label" style={{
                                      marginTop: 4, padding: "2px 6px",
-                                     background: "rgba(11,5,16,0.9)", border: `1px solid ${current ? "#7ef27a" : "#f5cf6b"}`,
-                                     borderRadius: 4, color: current ? "#7ef27a" : "#ffe08a",
+                                     background: "rgba(11,5,16,0.9)", border: `1px solid ${current ? "#a066ff" : "#f5cf6b"}`,
+                                     borderRadius: 4, color: current ? "#a066ff" : "#ffe08a",
                                      fontSize: 8, fontWeight: 900, whiteSpace: "nowrap",
                                      textShadow: "1px 1px 0 #000",
                                      pointerEvents: "none",
