@@ -1922,6 +1922,7 @@ function IdlePage() {
   useEffect(() => {
     const mm = (e: MouseEvent | TouchEvent) => {
       if (!forgeDragRef.current) return;
+      e.preventDefault(); // Evitar scroll ao arrastar no mobile
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       const dx = clientX - forgeDragRef.current.startX;
