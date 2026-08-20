@@ -83,7 +83,7 @@ export const CraftWindowContent: React.FC<CraftingSystemProps> = ({ items, bank,
                 : 'border-[#1A0F08] bg-[#2D1B0E] hover:bg-[#3E2A1C]'
             }`}
           >
-            <ItemPixelIcon itemId={recipe.result.id} size={24} />
+            <ItemPixelIcon id={recipe.result.id} size={24} />
             <div className="flex flex-col min-w-0">
               <span className="text-[10px] truncate leading-tight">{recipe.name}</span>
             </div>
@@ -110,7 +110,7 @@ export const CraftWindowContent: React.FC<CraftingSystemProps> = ({ items, bank,
                         {ing.id === 'crystal' ? '💎' : '💰'}
                       </div>
                     ) : (
-                      <ItemPixelIcon itemId={ing.id} size={32} />
+                      <ItemPixelIcon id={ing.id} size={32} />
                     )}
                     <div className="absolute -bottom-1 -right-1 bg-[#1A0F08] text-[8px] px-1 rounded border border-[#4A3728]">
                       {ing.qty}
@@ -127,7 +127,7 @@ export const CraftWindowContent: React.FC<CraftingSystemProps> = ({ items, bank,
 
             <div className="flex flex-col items-center gap-1">
               <div className="p-2 rounded-md border-2 border-[#f5cf6b] bg-[#f5cf6b]/10 shadow-[0_0_10px_rgba(245,207,107,0.3)]">
-                <ItemPixelIcon itemId={selectedRecipe.result.id} size={32} />
+                <ItemPixelIcon id={selectedRecipe.result.id} size={32} />
                 <div className="absolute -bottom-1 -right-1 bg-[#1A0F08] text-[8px] px-1 rounded border border-[#4A3728]">
                   x{selectedRecipe.result.qty}
                 </div>
