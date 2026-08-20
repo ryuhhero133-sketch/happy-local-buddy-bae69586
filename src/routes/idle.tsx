@@ -11571,11 +11571,10 @@ function IdlePage() {
                               style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
                             >Coleção (Test)</button>
 
-                            <button 
                               onClick={() => manager.openWindow("forja_test", "⚒️ Forja (TEST)", (
                                 <CraftWindowContent 
                                   items={idle.items}
-                                  craftPoints={idle.craftPoints || 0}
+                                  bank={idle.bank}
                                   onCraft={(id) => pushChat(`Crafting ${id}...`, "info")}
                                 />
                               ), { width: 400, height: 500 })}
