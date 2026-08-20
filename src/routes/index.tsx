@@ -1,5 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
-  component: () => <div>APROVE</div>,
+  beforeLoad: () => {
+    throw redirect({ to: '/idle' })
+  },
+  component: () => null,
 })
