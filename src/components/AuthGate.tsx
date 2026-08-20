@@ -112,6 +112,9 @@ type Mode = "login" | "signup" | "reset";
 /* ───────────────────────────── AUTH GATE ───────────────────────────── */
 
 export function AuthGate({ children }: { children: ReactNode }) {
+  const [maintenance, setMaintenance] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const [mounted, setMounted] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [identity, setIdentity] = useState<LocalIdentity | null>(null);
@@ -120,8 +123,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [bootstrapping, setBootstrapping] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
-  const [maintenance, setMaintenance] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+
 
 
   useEffect(() => {
@@ -191,33 +193,53 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setChecking(false);
     });
 
-    // Check maintenance
+    // Check maintenance immediately and periodically
     const checkMaint = async () => {
-      const { enabled } = await checkMaintenanceMode();
-      setMaintenance(enabled);
-      if (enabled) {
-        const { isAdmin: adminStatus } = await checkIsAdmin();
-        setIsAdmin(adminStatus);
+      try {
+        const { enabled } = await checkMaintenanceMode();
+        setMaintenance(enabled);
         
-        // Se estiver em manutenção e NÃO for admin, desloga
-        if (!adminStatus) {
-          const { data: { session: currentSess } } = await supabase.auth.getSession();
-          if (currentSess) {
-            await supabase.auth.signOut();
-            window.location.reload();
+        if (enabled) {
+          const { isAdmin: adminStatus } = await checkIsAdmin();
+          setIsAdmin(adminStatus);
+          
+          if (!adminStatus) {
+            const { data: { session: currentSess } } = await supabase.auth.getSession();
+            if (currentSess) {
+              console.log("[Maintenance] Kicking non-admin user");
+              await supabase.auth.signOut();
+              window.location.reload();
+            }
           }
         }
+      } catch (err) {
+        console.error("[AuthGate] Maintenance check failed:", err);
       }
     };
+
     checkMaint();
-    const interval = setInterval(checkMaint, 60000); // Check every minute
+    const interval = setInterval(checkMaint, 15000); // Check every 15 seconds for faster kick
 
     return () => {
       sub.subscription.unsubscribe();
       clearInterval(interval);
     };
 
+
   }, []);
+
+  // Effect to handle session changes and re-verify admin status
+  useEffect(() => {
+    if (maintenance && session?.user) {
+      checkIsAdmin().then(({ isAdmin: adminStatus }) => {
+        setIsAdmin(adminStatus);
+        if (!adminStatus) {
+          supabase.auth.signOut().then(() => window.location.reload());
+        }
+      });
+    }
+  }, [session, maintenance]);
+
 
   // Single-session enforcement DESATIVADO — estava causando loop de login
   // no preview (2 iframes / F5) e depois de cadastros. Enquanto o Supabase
@@ -283,25 +305,46 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (maintenance && !isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-black text-red-500 font-mono text-center">
-        <div className="max-w-md space-y-4 border-2 border-red-900 p-8 rounded-lg bg-red-950/20 backdrop-blur-sm">
-          <h1 className="text-2xl font-bold tracking-tighter">SERVIDOR EM MANUTENÇÃO</h1>
-          <p className="text-sm leading-relaxed opacity-80">
-            Ninguém pode jogar agora, apenas administradores.<br/>
-            Por favor, aguarde o retorno das atividades.
+      <div className="min-h-screen flex items-center justify-center p-6 bg-black text-red-500 font-mono text-center relative overflow-hidden">
+        {/* Animated background to show it's active */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-b from-red-900/50 to-transparent animate-pulse" />
+        </div>
+        
+        <div className="relative z-10 max-w-md space-y-6 border-4 border-red-600 p-10 rounded-xl bg-black/90 shadow-[0_0_50px_rgba(185,28,28,0.4)] transform hover:scale-[1.02] transition-transform">
+          <div className="inline-block p-4 border-2 border-red-600 rounded-full animate-bounce">
+            <span className="text-4xl">⚠️</span>
+          </div>
+          <h1 className="text-3xl font-black tracking-[0.2em] uppercase">MANUTENÇÃO</h1>
+          <div className="h-1 w-full bg-red-900 rounded-full overflow-hidden">
+            <div className="h-full bg-red-500 animate-[loading_2s_infinite]" style={{ width: '40%' }} />
+          </div>
+          <p className="text-base leading-relaxed font-bold">
+            ACESSO RESTRITO A ADMINISTRADORES.<br/>
+            VOCÊ FOI DESCONECTADO POR SEGURANÇA.
           </p>
-          <div className="pt-4">
+          <div className="pt-6">
             <button 
               onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-red-900 hover:bg-red-800 text-white text-xs tracking-widest transition-colors"
+              className="w-full px-8 py-4 bg-red-600 hover:bg-red-500 text-white font-black tracking-widest transition-all active:scale-95 shadow-lg shadow-red-900/50"
             >
-              TENTAR NOVAMENTE
+              ATUALIZAR STATUS
             </button>
           </div>
+          <p className="text-[10px] opacity-50 pt-4 uppercase tracking-widest">
+            Servidor em atualização técnica
+          </p>
         </div>
+        <style>{`
+          @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(250%); }
+          }
+        `}</style>
       </div>
     );
   }
+
 
 
 
