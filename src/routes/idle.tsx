@@ -1969,6 +1969,7 @@ function IdlePage() {
 
 
 
+
   // Auto-battle / chat / WASD
   const [auto, setAuto] = useState(true);
   const autoRef = useRef(true);
