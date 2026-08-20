@@ -1933,7 +1933,18 @@ function IdlePage() {
     return { x: window.innerWidth - 380, y: window.innerHeight - 250 };
   });
   const [forgeShowOrbit, setForgeShowOrbit] = useState(false);
+  const [showForgeQuests, setShowForgeQuests] = useState(false);
+  const [forgeQuests, setForgeQuests] = useState(() => {
+    if (typeof window === "undefined") return { collectedStones: 0, levelMilestones: [] };
+    const saved = localStorage.getItem("rubym.forge.quests");
+    return saved ? JSON.parse(saved) : { collectedStones: 0, levelMilestones: [] };
+  });
   const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number; hasMoved: boolean } | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem("rubym.forge.quests", JSON.stringify(forgeQuests));
+  }, [forgeQuests]);
+
 
   useEffect(() => {
     localStorage.setItem("rubym.forge.open", String(forgeWindowOpen));
@@ -11585,7 +11596,7 @@ function IdlePage() {
             {forgeShowOrbit && (
               <>
                 <div 
-                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setForgeShowOrbit(false); playClick(); }}
+                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
                     position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
@@ -11596,7 +11607,7 @@ function IdlePage() {
                   <img src={chestOpenImg} style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
                 </div>
                 <div 
-                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setForgeShowOrbit(false); playClick(); }}
+                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
                     position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
@@ -11606,8 +11617,20 @@ function IdlePage() {
                 >
                   <FlaskConical size={20} color="#d97706" />
                 </div>
+                <div 
+                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(true); setForgeShowOrbit(false); playClick(); }}
+                  style={{
+                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    left: -40, top: 8, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.2s ease-out forwards"
+                  }}
+                >
+                  <Sparkles size={20} color="#d97706" />
+                </div>
               </>
             )}
+
 
             <div
               style={{
@@ -11722,6 +11745,66 @@ function IdlePage() {
             </div>
 
             <div style={{ padding: 16, maxHeight: 400, overflowY: "auto", background: "#fdfbf7" }}>
+              {showForgeQuests ? (
+                <div>
+                   <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                     ✨ Missões da Forja ✨
+                   </div>
+                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {[
+                        { id: "level_50", title: "Mestre Iniciante", desc: "Alcance Nível 50 de Treinador", target: 50, current: idle.trainerLevel || 1, reward: 50 },
+                        { id: "level_200", title: "Veterano Ruby", desc: "Alcance Nível 200 de Treinador", target: 200, current: idle.trainerLevel || 1, reward: 200 },
+                        { id: "level_500", title: "Lenda Mística", desc: "Alcance Nível 500 de Treinador", target: 500, current: idle.trainerLevel || 1, reward: 500 },
+                        { id: "collect_1000", title: "Colecionador de Pedras", desc: "Acumule 1.000 Stones (Total)", target: 1000, current: Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0), reward: 150 },
+                      ].map(q => {
+                        const isDone = (forgeQuests.completedIds || []).includes(q.id);
+                        const progress = Math.min(100, (q.current / q.target) * 100);
+                        return (
+                          <div key={q.id} style={{ background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: 10 }}>
+                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                                <div>
+                                   <div style={{ fontSize: 11, fontWeight: 900, color: "#78350f" }}>{q.title}</div>
+                                   <div style={{ fontSize: 9, color: "#92400e" }}>{q.desc}</div>
+                                </div>
+                                <div style={{ background: "#d97706", color: "#fff", padding: "2px 6px", borderRadius: 6, fontSize: 9, fontWeight: 900 }}>
+                                   {q.reward} 💎
+                                </div>
+                             </div>
+                             <div style={{ width: "100%", height: 6, background: "#e5e7eb", borderRadius: 3, overflow: "hidden", marginBottom: 4 }}>
+                                <div style={{ width: `${progress}%`, height: "100%", background: "#d97706", transition: "width 0.3s" }} />
+                             </div>
+                             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 700, color: "#92400e" }}>
+                                <span>{Math.floor(q.current)} / {q.target}</span>
+                                {isDone ? <span style={{ color: "#059669" }}>CONCLUÍDO</span> : 
+                                  q.current >= q.target && (
+                                    <button 
+                                      onClick={() => {
+                                        setIdle(prev => ({ ...prev, crystals: (prev.crystals || 0) + q.reward }));
+                                        setForgeQuests(prev => ({ ...prev, completedIds: [...(prev.completedIds || []), q.id] }));
+                                        playBonus();
+                                        pushChat(`🎉 Missão Concluída: ${q.title}! +${q.reward} Cristais!`, "cap");
+                                      }}
+                                      style={{ background: "#059669", color: "#fff", border: "none", padding: "2px 6px", borderRadius: 4, cursor: "pointer", fontSize: 8 }}
+                                    >
+                                      RESGATAR
+                                    </button>
+                                  )
+                                }
+                             </div>
+                          </div>
+                        );
+                      })}
+                   </div>
+                   <button 
+                    onClick={() => setShowForgeQuests(false)}
+                    style={{ marginTop: 15, width: "100%", background: "#d97706", color: "#fff", border: "none", padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 10, cursor: "pointer" }}
+                   >
+                     VOLTAR PARA FORJA
+                   </button>
+                </div>
+              ) : (
+                <>
+
               {/* Inventário de Pedras (Essências) */}
               <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
                 ✨ Inventário de Essências ✨
@@ -11796,19 +11879,59 @@ function IdlePage() {
                  </div>
 
 
-                 {/* Ovos (Apenas ver se tem) */}
-                 {Object.entries(idle.items || {})
+                  {/* Ovos & Chocagem */}
+                  {Object.entries(idle.items || {})
                   .filter(([id]) => id.startsWith("egg_"))
-                  .map(([id, n]) => (
-                    <div key={id} style={{
-                      background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "10px 6px",
-                      display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                    }}>
-                      <ItemPixelIcon id={id} size={40} />
-                      <div style={{ fontSize: 10, fontWeight: 800, color: "#78350f", textAlign: "center" }}>{id.replace("egg_","").toUpperCase()} EGG</div>
-                      <div style={{ color: "#d97706", fontSize: 11, fontWeight: 900 }}>Qtd: {n}</div>
-                    </div>
-                   ))}
+                  .map(([id, n]) => {
+                    const eggId = id;
+                    // Preço de chocagem: 100 de cada stone normal, ou 1000 da stone específica se for raro
+                    const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
+                    const isRareEgg = eggId.includes("legendary") || eggId.includes("mythic") || eggId.includes("charizard") || eggId.includes("mew");
+                    const stoneCost = isRareEgg ? 1000 : 100;
+                    
+                    return (
+                      <div key={id} style={{
+                        background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "10px 6px",
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                      }}>
+                        <ItemPixelIcon id={id} size={40} />
+                        <div style={{ fontSize: 10, fontWeight: 800, color: "#78350f", textAlign: "center" }}>{id.replace("egg_","").toUpperCase()} EGG</div>
+                        <div style={{ color: "#d97706", fontSize: 11, fontWeight: 900 }}>Qtd: {n}</div>
+                        <button
+                          onClick={() => {
+                            const hasStones = STONES.every(s => (idle.items[s] ?? 0) >= stoneCost);
+                            if (!hasStones) {
+                              pushChat(`❌ Precisa de ${stoneCost} stones de CADA tipo para chocar!`, "info");
+                              return;
+                            }
+                            
+                            // Lógica de chocagem
+                            setIdle(prev => {
+                              const nextItems = { ...prev.items };
+                              nextItems[eggId] = (nextItems[eggId] ?? 0) - 1;
+                              STONES.forEach(s => nextItems[s] = (nextItems[s] ?? 0) - stoneCost);
+                              return { ...prev, items: nextItems };
+                            });
+
+                            // Simula chocagem e adiciona à coleção
+                            const species = eggId.replace("egg_", "") as Species;
+                            const pet = makePet(species, 1);
+                            setIdle(prev => ({
+                              ...prev,
+                              collection: [...(prev.collection || []), pet]
+                            }));
+                            
+                            playLevelUp();
+                            pushChat(`🐣 O ovo de ${species.toUpperCase()} chocou! Verifique sua coleção.`, "cap");
+                          }}
+                          style={{ background: "#d97706", border: "none", color: "#fff", fontSize: 8, padding: "4px 6px", borderRadius: 6, fontWeight: 900, cursor: "pointer" }}
+                        >
+                          CHOCAR ({stoneCost})
+                        </button>
+                      </div>
+                    );
+                  })}
+
 
                  {/* Incenso de XP 24h e Antídoto */}
                  <div style={{
@@ -11948,7 +12071,10 @@ function IdlePage() {
                  Forje Rare Candies para subir o nível dos seus Pokémon instantaneamente ou combine fragmentos para novos ovos.
               </div>
             </div>
-          </div>
+                </>
+              )}
+            </div>
+
         )}
       </div>
 
