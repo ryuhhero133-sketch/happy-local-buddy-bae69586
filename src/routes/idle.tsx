@@ -11518,16 +11518,7 @@ function IdlePage() {
           };
         }}
         onClick={(e) => {
-          // Clique no container não faz nada, delegamos para os filhos
-        }}
-        onMouseUp={(e) => {
-          if (forgeDragRef.current && !forgeDragRef.current.isDragging) {
-             // Se soltou sem arrastar, alterna minimização
-             setForgeMinimized(!forgeMinimized);
-             playClick();
-          }
-        }}
-        onTouchEnd={(e) => {
+          e.stopPropagation();
           if (forgeDragRef.current && !forgeDragRef.current.isDragging) {
              setForgeMinimized(!forgeMinimized);
              playClick();
