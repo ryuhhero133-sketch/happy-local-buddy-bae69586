@@ -1,6 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
+import { WindowManager } from "@/components/WindowManager";
+import { CraftWindowContent } from "@/components/CraftWindowContent";
+import { Hammer } from "lucide-react";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -7529,6 +7532,8 @@ function IdlePage() {
         </div>
       )}
 
+      <WindowManager>
+        {({ openWindow, closeWindow, isWindowOpen }) => (
       <div className="idle-grid" style={{
         display: "grid",
         gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
