@@ -11492,6 +11492,138 @@ function IdlePage() {
         </div>
       </div>
 
+      {/* RPG MODULAR WINDOWS: FORGE */}
+      {forgeWindowOpen && (
+        <div
+          style={{
+            position: "fixed",
+            left: forgePos.x,
+            top: forgePos.y,
+            zIndex: 3000,
+            width: 320,
+            pointerEvents: "auto",
+          }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(160deg, #1a0d2a 0%, #120820 100%)",
+              border: "3px solid #a855f7",
+              borderRadius: 12,
+              boxShadow: "0 10px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(168,85,247,0.2)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Window Header */}
+            <div
+              onMouseDown={(e) => {
+                forgeDragRef.current = {
+                  isDragging: true,
+                  startX: e.clientX,
+                  startY: e.clientY,
+                  winX: forgePos.x,
+                  winY: forgePos.y,
+                };
+              }}
+              onTouchStart={(e) => {
+                forgeDragRef.current = {
+                  isDragging: true,
+                  startX: e.touches[0].clientX,
+                  startY: e.touches[0].clientY,
+                  winX: forgePos.x,
+                  winY: forgePos.y,
+                };
+              }}
+              style={{
+                background: "linear-gradient(90deg, #a855f7 0%, #5b21b6 100%)",
+                padding: "8px 12px",
+                cursor: "grab",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                userSelect: "none",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <img src="https://rpg-idle-game.lovable.app/assets/items/item_key_ruby.png" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+                <span style={{ color: "#fff", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>FORJA MÍSTICA</span>
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button
+                  onClick={() => setForgeMinimized(!forgeMinimized)}
+                  style={{ background: "rgba(0,0,0,0.3)", border: "none", color: "#fff", padding: "2px 6px", cursor: "pointer", borderRadius: 4 }}
+                >
+                  {forgeMinimized ? "□" : "–"}
+                </button>
+                <button
+                  onClick={() => setForgeWindowOpen(false)}
+                  style={{ background: "#ef4444", border: "none", color: "#fff", padding: "2px 6px", cursor: "pointer", borderRadius: 4 }}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {!forgeMinimized && (
+              <div style={{ padding: 12, maxHeight: 400, overflowY: "auto" }}>
+                <div style={{ fontSize: 11, color: "#d4a2ff", marginBottom: 10, fontWeight: 700, textAlign: "center", textTransform: "uppercase" }}>
+                  Inventário de Pedras Elementais
+                </div>
+                
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {Object.entries(idle.items || {})
+                    .filter(([id]) => id.startsWith("stone_"))
+                    .map(([id, n]) => {
+                      const names: Record<string, string> = {
+                        stone_grass: "Grama", stone_fire: "Fogo",
+                        stone_water: "Água", stone_electric: "Eletro",
+                        stone_dark: "Trevas", stone_dragon: "Dragão"
+                      };
+                      const icons: Record<string, string> = {
+                        stone_grass: "🌿", stone_fire: "🔥",
+                        stone_water: "💧", stone_electric: "⚡",
+                        stone_dark: "🌑", stone_dragon: "🐉"
+                      };
+                      return (
+                        <div key={id} style={{
+                          background: "rgba(0,0,0,0.4)",
+                          border: "1.5px solid rgba(168,85,247,0.3)",
+                          borderRadius: 8,
+                          padding: 8,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: 4
+                        }}>
+                          <div style={{ fontSize: 24 }}>{icons[id] || "💎"}</div>
+                          <div style={{ fontSize: 10, fontWeight: 900, color: "#fff" }}>{names[id] || id.replace("stone_","").toUpperCase()}</div>
+                          <div style={{
+                            background: "#a855f7",
+                            color: "#fff",
+                            fontSize: 10,
+                            padding: "1px 6px",
+                            borderRadius: 4,
+                            fontWeight: 900,
+                            boxShadow: "0 2px 0 #5b21b6"
+                          }}>
+                            {Number(n).toLocaleString()}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                <div style={{ marginTop: 14, padding: 8, background: "rgba(168,85,247,0.1)", borderRadius: 6, border: "1px dashed #a855f7", fontSize: 10, color: "#b39dd8", textAlign: "center" }}>
+                   Use as pedras na aba "Melhorias" para fortalecer seu time.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+
       <style>{`
         /* ===== Layout responsivo ===== */
         @media (max-width: 1400px) {
