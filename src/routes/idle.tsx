@@ -11742,7 +11742,7 @@ function IdlePage() {
                            alt=""
                            style={{ 
                              width: day === 7 ? 38 : 26, height: day === 7 ? 38 : 26, objectFit: "contain",
-                             filter: !isVip ? "grayscale(1) brightness(0.6) opacity(0.5)" : "drop-shadow(0 0 8px rgba(245,207,107,0.4))",
+                             filter: !isVip ? "drop-shadow(0 0 8px rgba(0,0,0,0.5))" : "drop-shadow(0 0 8px rgba(245,207,107,0.4))",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
                          />
