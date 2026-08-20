@@ -10364,26 +10364,28 @@ function IdlePage() {
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "neve", x: 19.5, y: 15.5, type: "snow" }, // Top left snowy mountains
-                      { id: "arena", x: 44, y: 17, type: "castle" }, // Top center green castle
-                      { id: "terra", x: 38, y: 12, type: "forest" }, 
-                      { id: "deserto", x: 70, y: 17, type: "desert" }, // Top right golden island
+                      { id: "neve", x: 19.5, y: 15.5, type: "snow" }, // Montanhas nevadas (Canto Superior Esquerdo)
+                      { id: "arena", x: 44, y: 17, type: "castle" }, // Castelo Central (Floresta Superior)
+                      { id: "terra", x: 38, y: 12, type: "forest" },
+                      { id: "deserto", x: 70, y: 17, type: "desert" }, // Ilha dourada (Superior Direito)
                       { id: "deserto_purpura", x: 78, y: 22, type: "volcano" },
                       { id: "caverna", x: 74, y: 12, type: "cave" },
-                      { id: "praia", x: 22, y: 45, type: "beach" }, // Middle left green/water
+                      { id: "praia", x: 22, y: 45, type: "beach" }, // Enseada verde (Meio Esquerda)
                       { id: "vale_rochas", x: 16, y: 40, type: "mountain" },
                       { id: "n2", x: 28, y: 42, type: "forest" },
-                      { id: "pantano_fogo", x: 46, y: 44, type: "volcano" }, // Center volcanoes/town
+                      { id: "pantano_fogo", x: 46, y: 44, type: "volcano" }, // Centro vulcânico
                       { id: "venofogo", x: 41, y: 52, type: "volcano" },
                       { id: "terry", x: 52, y: 48, type: "village" },
                       { id: "n3", x: 55, y: 42, type: "forest" },
-                      { id: "abismo_gelo", x: 80, y: 40, type: "cave" }, // Right side islands
+                      { id: "abismo_gelo", x: 80, y: 40, type: "cave" }, // Ilhas flutuantes (Direita)
                       { id: "abismo_veneno", x: 85, y: 45, type: "cave" },
                       { id: "abismo_dragao", x: 92, y: 40, type: "cave" },
-                      { id: "fantasma", x: 15, y: 78, type: "cave" }, // Bottom left lava/dark
+                      { id: "fantasma", x: 15, y: 78, type: "cave" }, // Zona de lava/sombria (Inferior Esquerda)
                       { id: "cadeia_ab", x: 22, y: 82, type: "cave" },
                       { id: "cadeia_ab1", x: 26, y: 88, type: "cave" },
                       { id: "cadeia_f1", x: 28, y: 92, type: "cave" },
+                      { id: "portal_f", x: 92, y: 90, type: "event" }, // Vórtice (Inferior Direita)
+
 
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event" }] : []),
                     ];
@@ -10717,8 +10719,8 @@ function IdlePage() {
                                    </div>
                                    <div className="map-pin-label" style={{
                                      marginTop: 4, padding: "2px 6px",
-                                     background: "rgba(11,5,16,0.9)", border: `1px solid ${current ? "#7ef27a" : "#f5cf6b"}`,
-                                     borderRadius: 4, color: current ? "#7ef27a" : "#ffe08a",
+                                     background: "rgba(11,5,16,0.9)", border: `1px solid ${current ? "#a066ff" : "#f5cf6b"}`,
+                                     borderRadius: 4, color: current ? "#a066ff" : "#ffe08a",
                                      fontSize: 8, fontWeight: 900, whiteSpace: "nowrap",
                                      textShadow: "1px 1px 0 #000",
                                      pointerEvents: "none",
