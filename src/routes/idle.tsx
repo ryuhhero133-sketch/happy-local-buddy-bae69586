@@ -1959,6 +1959,39 @@ function IdlePage() {
 
   const skinUrl = SKINS.find((s) => s.id === skinId)?.url ?? null;
 
+  const [skinId, setSkinId] = useState<string>(() => {
+    if (typeof window === "undefined") return "default";
+    try { return localStorage.getItem(SKIN_KEY) || "default"; } catch { return "default"; }
+  });
+  const [equippedItems, setEquippedItems] = useState<Record<EquipmentSlot, string | null>>(() => {
+    if (typeof window === "undefined") return { head: null, body: null, weapon: null, feet: null, necklace: null, ring: null };
+    try { 
+      const saved = localStorage.getItem(EQUIPMENT_KEY);
+      return saved ? JSON.parse(saved) : { head: null, body: null, weapon: null, feet: null, necklace: null, ring: null };
+    } catch { return { head: null, body: null, weapon: null, feet: null, necklace: null, ring: null }; }
+  });
+  const [ownedEquipment, setOwnedEquipment] = useState<string[]>(() => {
+    if (typeof window === "undefined") return ["basic_helmet", "wood_sword", "leather_armor", "old_boots", "simple_ring", "iron_necklace"];
+    try {
+      const saved = localStorage.getItem(OWNED_EQUIPMENT_KEY);
+      return saved ? JSON.parse(saved) : ["basic_helmet", "wood_sword", "leather_armor", "old_boots", "simple_ring", "iron_necklace"];
+    } catch { return ["basic_helmet", "wood_sword", "leather_armor", "old_boots", "simple_ring", "iron_necklace"]; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(SKIN_KEY, skinId); } catch { /* ignore */ }
+  }, [skinId]);
+
+  useEffect(() => {
+    try { localStorage.setItem(EQUIPMENT_KEY, JSON.stringify(equippedItems)); } catch { /* ignore */ }
+  }, [equippedItems]);
+
+  useEffect(() => {
+    try { localStorage.setItem(OWNED_EQUIPMENT_KEY, JSON.stringify(ownedEquipment)); } catch { /* ignore */ }
+  }, [ownedEquipment]);
+
+  const skinUrl = SKINS.find((s) => s.id === skinId)?.url ?? null;
+
 
 
 
