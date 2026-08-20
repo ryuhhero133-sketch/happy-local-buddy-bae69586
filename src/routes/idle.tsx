@@ -11510,12 +11510,13 @@ function IdlePage() {
             
             { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a", isWindow: true },
 
-            { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a", isWindow: false },
+            { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a", isWindow: true },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48", isWindow: false },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff", isWindow: false },
             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true, isWindow: false },
             { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b", isWindow: false },
           ] as const).map((t) => {
+
 
 
             const active = tab === t.id;
