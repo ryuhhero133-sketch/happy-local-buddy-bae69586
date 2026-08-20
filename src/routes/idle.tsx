@@ -8,7 +8,8 @@ import { Hammer } from "lucide-react";
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles, Search } from "lucide-react";
+import { FlaskConical, Sparkles, Search, Hammer as HammerIcon } from "lucide-react";
+import { CraftHUD } from "@/components/CraftHUD";
 import { CollectionWindowContent } from "@/components/CollectionWindowContent";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
@@ -113,6 +114,16 @@ const SKINS: { id: string; label: string; url: string | null }[] = [
   { id: "goku", label: "Goku", url: assetUrlFromJson(skinGokuAsset) },
 ];
 const SKIN_KEY = "rubym.skin.v1";
+
+interface MapInfo {
+  name: string;
+  difficulty: string;
+  element: string;
+  level: number;
+  xpRate: number;
+  type?: string; // Add if missing
+}
+
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
 import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
@@ -8161,38 +8172,33 @@ function IdlePage() {
             display: "flex", flexDirection: "column", gap: 10
           }}>
             <button
-              onClick={() => openWindow("craft", "Forja Ancestral", (
-                <CraftWindowContent 
-                  items={idle.items} 
-                  bank={idle.bank} 
-                  onCraft={(recipeId) => {
-                    console.log("Crafting", recipeId);
-                  }} 
-                />
+              onClick={() => openWindow("craft_hud", "Forja Portátil", (
+                <CraftHUD items={idle.items || {}} />
               ))}
               style={{
                 width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, #1e1e1e, #333)",
-                border: "2px solid #f5cf6b",
-                color: "#f5cf6b",
+                background: "linear-gradient(135deg, #2d1b0e, #4a3728)",
+                border: "2px solid #f3e5ab",
+                color: "#f3e5ab",
                 display: "grid", placeItems: "center",
                 cursor: "pointer",
                 boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-                transition: "all 0.2s ease"
+                transition: "all 0.2s ease",
+                position: 'relative'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #f5cf6b88"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #f3e5ab88"; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
-              title="Abrir Forja Ancestral (CRAFT)"
+              title="Abrir Forja Portátil (CRAFT)"
             >
-              <Hammer size={28} />
-              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>FORJA</span>
+              <HammerIcon size={24} />
+              <span style={{ fontSize: 7, fontWeight: 900, marginTop: 2, textShadow: '0 1px 2px black' }}>CRAFT</span>
             </button>
 
             
             <button
               onClick={() => openWindow("collection_window", "Coleção Real", (
                 <CollectionWindowContent
-                  collection={idle.collection || []}
+                  collection={(idle.collection || []) as any as PetInstance[]}
                   maxCollection={MAX_COLLECTION}
                   caughtCount={idle.caughtSpecies.length}
                   teamUids={new Set(team.map(p => p.uid))}
@@ -8298,9 +8304,9 @@ function IdlePage() {
                   display: "grid", placeItems: "center", overflow: "hidden"
                 }}>
                   <MapIconRenderer 
-                    type={IDLE_MAPS[selectedMapInfo].type} 
+                    type={(IDLE_MAPS[selectedMapInfo] as any).type} 
                     name={IDLE_MAPS[selectedMapInfo].name} 
-                    ok={(idle.trainerLevel ?? 1) >= IDLE_MAPS[selectedMapInfo].level} 
+                    ok={(idle.trainerLevel ?? 1) >= (IDLE_MAPS[selectedMapInfo] as any).level} 
                   />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -8310,7 +8316,7 @@ function IdlePage() {
                         {IDLE_MAPS[selectedMapInfo].name.toUpperCase()}
                       </h3>
                       <div style={{ fontSize: 10, color: "#a066ff", fontWeight: 800, marginTop: 2 }}>
-                        DIFF: {IDLE_MAPS[selectedMapInfo].difficulty} · LV.{IDLE_MAPS[selectedMapInfo].level}+
+                        DIFF: {(IDLE_MAPS[selectedMapInfo] as any).difficulty} · LV.{(IDLE_MAPS[selectedMapInfo] as any).level}+
                       </div>
                     </div>
                     <button 
@@ -8333,18 +8339,18 @@ function IdlePage() {
                           setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
                           setSelectedMapInfo(null);
                         }}
-                        disabled={(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level}
+                        disabled={(idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level}
                         style={{
                           flex: 1, padding: "8px 0", borderRadius: 6,
-                          background: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level 
+                          background: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level 
                             ? "#333" 
                             : "linear-gradient(180deg, #a066ff, #6b28c8)",
                           color: "#fff", fontWeight: 900, fontSize: 12,
-                          border: "none", cursor: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "not-allowed" : "pointer",
-                          boxShadow: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
+                          border: "none", cursor: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "not-allowed" : "pointer",
+                          boxShadow: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
                         }}
                       >
-                        {(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "BLOQUEADO" : "VIAJAR AGORA"}
+                        {(idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "BLOQUEADO" : "VIAJAR AGORA"}
                       </button>
                   </div>
                 </div>
