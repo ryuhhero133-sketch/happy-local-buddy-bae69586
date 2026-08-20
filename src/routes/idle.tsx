@@ -8,8 +8,7 @@ import { Hammer } from "lucide-react";
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles, Search, Hammer as HammerIcon } from "lucide-react";
-import { CraftHUD } from "@/components/CraftHUD";
+import { FlaskConical, Sparkles, Search } from "lucide-react";
 import { CollectionWindowContent } from "@/components/CollectionWindowContent";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
@@ -114,16 +113,6 @@ const SKINS: { id: string; label: string; url: string | null }[] = [
   { id: "goku", label: "Goku", url: assetUrlFromJson(skinGokuAsset) },
 ];
 const SKIN_KEY = "rubym.skin.v1";
-
-interface MapInfo {
-  name: string;
-  difficulty: string;
-  element: string;
-  level: number;
-  xpRate: number;
-  type?: string; // Add if missing
-}
-
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
 import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
@@ -7709,20 +7698,7 @@ function IdlePage() {
                   +{team.length - 1} no banco (minimizado)
                 </div>
               )}
-              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => openWindow("collection_window", "Coleção Real", (
-                <CollectionWindowContent
-                  collection={(idle.collection || []) as any as PetInstance[]}
-                  maxCollection={MAX_COLLECTION}
-                  caughtCount={idle.caughtSpecies.length}
-                  teamUids={new Set(team.map(p => p.uid))}
-                  onSelectPokemon={(uid) => {
-                    const found = (idle.collection || []).find(p => p.uid === uid);
-                    if (found) {
-                      onPickTeamFromColecao(found);
-                    }
-                  }}
-                />
-              ))}>Ver todos</button>
+              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
             </div>
           </Panel>
 
@@ -7912,7 +7888,7 @@ function IdlePage() {
                 </div>
               );
             })()}
-            <button onClick={() => { playClick(); openWindow("config_window", "Configurações", <div className="p-4 text-[#f3e5ab]">Configurações em breve...</div>); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
+            <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
               onClick={() => { playClick(); pushChat("🏆 Ranked temporariamente bloqueado.", "info"); }}
               style={{
@@ -8185,36 +8161,38 @@ function IdlePage() {
             display: "flex", flexDirection: "column", gap: 10
           }}>
             <button
-              onClick={() => {
-                console.log("Opening Craft HUD...");
-                openWindow("craft_hud", "Forja Portátil", (
-                  <CraftHUD items={idle.items || {}} />
-                ));
-              }}
+              onClick={() => openWindow("craft", "Forja Ancestral", (
+                <CraftWindowContent 
+                  items={idle.items} 
+                  bank={idle.bank} 
+                  onCraft={(recipeId) => {
+                    console.log("Crafting", recipeId);
+                  }} 
+                />
+              ))}
               style={{
                 width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, #2d1b0e, #4a3728)",
-                border: "2px solid #f3e5ab",
-                color: "#f3e5ab",
+                background: "linear-gradient(135deg, #1e1e1e, #333)",
+                border: "2px solid #f5cf6b",
+                color: "#f5cf6b",
                 display: "grid", placeItems: "center",
                 cursor: "pointer",
                 boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-                transition: "all 0.2s ease",
-                position: 'relative'
+                transition: "all 0.2s ease"
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #f3e5ab88"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #f5cf6b88"; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
-              title="Abrir Forja Portátil (CRAFT)"
+              title="Abrir Forja Ancestral (CRAFT)"
             >
-              <HammerIcon size={24} />
-              <span style={{ fontSize: 7, fontWeight: 900, marginTop: 2, textShadow: '0 1px 2px black' }}>CRAFT</span>
+              <Hammer size={28} />
+              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>FORJA</span>
             </button>
 
             
             <button
               onClick={() => openWindow("collection_window", "Coleção Real", (
                 <CollectionWindowContent
-                  collection={(idle.collection || []) as any as PetInstance[]}
+                  collection={idle.collection || []}
                   maxCollection={MAX_COLLECTION}
                   caughtCount={idle.caughtSpecies.length}
                   teamUids={new Set(team.map(p => p.uid))}
@@ -8320,9 +8298,9 @@ function IdlePage() {
                   display: "grid", placeItems: "center", overflow: "hidden"
                 }}>
                   <MapIconRenderer 
-                    type={(IDLE_MAPS[selectedMapInfo] as any).type} 
+                    type={IDLE_MAPS[selectedMapInfo].type} 
                     name={IDLE_MAPS[selectedMapInfo].name} 
-                    ok={(idle.trainerLevel ?? 1) >= (IDLE_MAPS[selectedMapInfo] as any).level} 
+                    ok={(idle.trainerLevel ?? 1) >= IDLE_MAPS[selectedMapInfo].level} 
                   />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -8332,7 +8310,7 @@ function IdlePage() {
                         {IDLE_MAPS[selectedMapInfo].name.toUpperCase()}
                       </h3>
                       <div style={{ fontSize: 10, color: "#a066ff", fontWeight: 800, marginTop: 2 }}>
-                        DIFF: {(IDLE_MAPS[selectedMapInfo] as any).difficulty} · LV.{(IDLE_MAPS[selectedMapInfo] as any).level}+
+                        DIFF: {IDLE_MAPS[selectedMapInfo].difficulty} · LV.{IDLE_MAPS[selectedMapInfo].level}+
                       </div>
                     </div>
                     <button 
@@ -8355,18 +8333,18 @@ function IdlePage() {
                           setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
                           setSelectedMapInfo(null);
                         }}
-                        disabled={(idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level}
+                        disabled={(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level}
                         style={{
                           flex: 1, padding: "8px 0", borderRadius: 6,
-                          background: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level 
+                          background: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level 
                             ? "#333" 
                             : "linear-gradient(180deg, #a066ff, #6b28c8)",
                           color: "#fff", fontWeight: 900, fontSize: 12,
-                          border: "none", cursor: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "not-allowed" : "pointer",
-                          boxShadow: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
+                          border: "none", cursor: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "not-allowed" : "pointer",
+                          boxShadow: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
                         }}
                       >
-                        {(idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "BLOQUEADO" : "VIAJAR AGORA"}
+                        {(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "BLOQUEADO" : "VIAJAR AGORA"}
                       </button>
                   </div>
                 </div>
@@ -10441,6 +10419,7 @@ function IdlePage() {
                     transform: "translate(-50%,-50%)",
                     boxShadow: "0 0 8px #6bd4ff",
                   }} />
+
                 </div>
               );
 
@@ -11193,26 +11172,8 @@ function IdlePage() {
                   })()}
                 </div>
               );
-
-              return (
-                <div style={{ position: "relative" }}>
-                  {renderMap(true, false)}
-                  <button
-                    onClick={() => { playClick(); setBigMapOpen(true); }}
-                    title="Abrir mapa grande"
-                    style={{
-                      position: "absolute", top: 4, right: 4,
-                      background: "rgba(11,5,16,0.8)", border: "1px solid #f5cf6b",
-                      color: "#f5cf6b", borderRadius: 4, padding: "2px 6px",
-                      fontSize: 11, fontWeight: 800, cursor: "pointer",
-                      zIndex: 10
-                    }}
-                  >⛶</button>
-                </div>
-              );
             })()}
           </Panel>
-
 
 
           {/* COLETA — logo abaixo do mapa, destaque */}
@@ -15093,8 +15054,14 @@ function TabOverlay({
                 );
               })}
             </div>
+            );
           })()}
+        </div>
+      )}
 
+
+
+      {tab === "pokedex" && (
         <div style={{
           background: "linear-gradient(180deg, #2a0510, #1a0510)",
           border: "2px solid #e11d48",
@@ -15153,7 +15120,6 @@ function TabOverlay({
           )}
         </div>
       )}
-
 
 
 
@@ -16117,9 +16083,6 @@ function TabOverlay({
     </div>
   );
 }
-
-
-
 
 function BuffCell({ img, label, value, color }: { img: string; label: string; value: string; color: string }) {
   return (

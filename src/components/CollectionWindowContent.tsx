@@ -40,8 +40,8 @@ export const CollectionWindowContent: React.FC<CollectionWindowContentProps> = (
       if (sortMode === 'level_desc') return (b.level || 0) - (a.level || 0);
       if (sortMode === 'level_asc') return (a.level || 0) - (b.level || 0);
       if (sortMode === 'rarity') {
-        const tiers: Record<string, number> = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, mythic: 5, mythic_shiny: 6, black_mitic_plus: 7 };
-        return (tiers[b.rarity as string] || 0) - (tiers[a.rarity as string] || 0);
+        const tiers: Record<string, number> = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, mythic: 5, mythic_shiny: 6 };
+        return (tiers[b.rarity] || 0) - (tiers[a.rarity] || 0);
       }
       if (sortMode === 'name') return a.species.localeCompare(b.species);
       return 0; // 'recent' mantido pela ordem original (que costuma ser push no array)
@@ -116,7 +116,7 @@ export const CollectionWindowContent: React.FC<CollectionWindowContentProps> = (
           <div className="grid grid-cols-4 gap-2">
             {filtered.map((p) => {
               const inTeam = teamUids.has(p.uid);
-              const color = (TIER_COLOR as any)[p.rarity] || '#f5cf6b';
+              const color = TIER_COLOR[p.rarity] || '#f5cf6b';
               return (
                 <button
                   key={p.uid}

@@ -1,34 +1,33 @@
-# Small Floating Craft HUD Plan
+# World Map and Modular UI Improvements Plan
 
-Add a new "CRAFT" button that opens a standalone, small, draggable, and minimizable pixel-art crafting HUD. This feature is isolated to avoid touching any existing systems (Mochila, Coleção, Forja, etc.).
+Improve the World Map with clearer progression indicators (red/green lines), grayscale logic for locked areas, and better iconography. Add the "MELHORIAS" (Improvements) and "MOCHILA" (Backpack) as modular windows to complete the new RPG HUD system.
 
 ## Proposed Changes
 
-### 1. Window System Preservation
-- Ensure the `WindowManager` and `GameWindow` components (created in the previous turn) are used only for the NEW Craft HUD.
-- DO NOT convert existing tabs (Forja, Mochila) to this system yet, as per the "LEAVE THEM ALONE" rule.
+### 1. World Map Enhancements (src/routes/idle.tsx)
+- **Visual Progression**: 
+  - Pulsing green lines for unlocked paths (maps where trainer meets level requirements).
+  - Dashed red lines for locked paths.
+  - Apply grayscale(1) brightness(0.6) filter to map icons if level requirement is not met.
+- **Connection Logic**: Ensure isPathUnlocked checks both source and target pin level requirements.
+- **Icon Glows**: Intensify the "Obsidian/RPG" glow for unlocked maps.
 
-### 2. New Craft HUD Component (`src/components/CraftHUD.tsx`)
-- Create a compact crafting interface inspired by the reference image.
-- **UI Elements**: 
-  - Small draggable header with Title, Minimize (-), and Close (X) buttons.
-  - 3 Input Slots for materials (reading from existing `idle.items`).
-  - 1 Result Slot.
-  - A "CRIAR" (Create) button.
-- **Visuals**: Dark brown frames, pixel-art style, compact dimensions.
+### 2. New Modular Windows (src/components/)
+- **Improvements Window (src/components/ImprovementsWindowContent.tsx)**:
+  - Move "Anatomia da Conta" (Radar chart, upgrades for speed, attack, resistance) to a modular window.
+  - Consumes Stones and Books.
+- **Backpack Window (src/components/BackpackWindowContent.tsx)**:
+  - Move the "MOCHILA" inventory UI to a modular window.
+  - Keep the MMO/RPG layout with category filters (Balls, Potions, Books, etc.).
 
-### 3. HUD Integration (`src/routes/idle.tsx`)
-- Add a new "CRAFT" button to the existing HUD sidebar.
-- Use `openWindow` from `WindowManager` to trigger the new `CraftHUD` component.
-- Ensure the button is styled to match the existing RPG buttons but remains distinct.
+### 3. HUD Integration (src/routes/idle.tsx)
+- Add "MELHORIAS" and "MOCHILA" buttons to the sidebar triggers.
+- Configure openWindow to launch these new modular contents.
+- Remove the old inline tab rendering for these sections to free up space and follow the new design pattern.
 
 ## Technical Details
-- Use the existing `WindowManager` context for handling the window state (open, drag, minimize).
-- The `CraftHUD` will receive `idle.items` as props to display available resources in its slots.
-- Dragging logic is already handled by `GameWindow.tsx`.
-
-## Safety Verification
-- Verify `Mochila`, `Coleção`, `Forja`, and `Melhorias` tabs still function as original inline tabs.
-- Verify the new `CRAFT` button only affects its own floating panel.
-- Verify the window is draggable and does not reset player data when closed.
+- Use WindowManager context for state management.
+- Modularize UI components into src/components/ to keep idle.tsx manageable.
+- Maintain localStorage caching for AI-generated icons.
+- Ensure all new windows follow the draggable pixel-art container style defined in GameWindow.tsx.
 
