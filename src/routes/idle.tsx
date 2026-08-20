@@ -11802,11 +11802,11 @@ function IdlePage() {
                            }} 
                          />
                        </div>
-                       <div style={{ fontSize: 8, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.1 }}>
-                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa", textShadow: "0 0 5px rgba(245,207,107,0.5)" }}>
+                       <div style={{ fontSize: 10, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.2 }}>
+                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa", textShadow: "0 0 8px rgba(245,207,107,0.6)" }}>
                            BÔNUS {isVip && "✨"}
                          </div>
-                         <div style={{ opacity: 0.9, color: "#fff" }}>
+                         <div style={{ opacity: 0.95, color: "#fff" }}>
                            {rew.vipLabel}
                          </div>
                        </div>
