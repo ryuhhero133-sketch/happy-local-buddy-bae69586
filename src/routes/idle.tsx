@@ -11713,7 +11713,7 @@ function IdlePage() {
                         display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                         boxShadow: "0 2px 5px rgba(217,119,6,0.1)",
                       }}>
-                        <ItemPixelIcon name={id} size={40} />
+                        <ItemPixelIcon id={id} size={40} />
                         <div style={{ fontSize: 11, fontWeight: 800, color: "#78350f" }}>{stoneNames[id] || id.replace("stone_","").toUpperCase()}</div>
                         <div style={{ background: "#d97706", color: "#fff", fontSize: 11, padding: "2px 8px", borderRadius: 8, fontWeight: 900 }}>
                           {Number(n).toLocaleString()}
@@ -11733,7 +11733,7 @@ function IdlePage() {
                     background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "10px 6px",
                     display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                  }}>
-                   <ItemPixelIcon name="rare_candy" size={40} />
+                   <ItemPixelIcon id="rare_candy" size={40} />
                    <div style={{ fontSize: 11, fontWeight: 800, color: "#78350f" }}>Rare Candy</div>
                    <div style={{ fontSize: 9, color: "#92400e", fontWeight: 700 }}>{Number(idle.items?.rare_candy || 0)} un</div>
                    <button 
@@ -11752,7 +11752,7 @@ function IdlePage() {
                         nextItems[stoneKey] = (nextItems[stoneKey] ?? 0) - cost;
                         nextItems.rare_candy = (nextItems.rare_candy ?? 0) + 1;
                         playBonus();
-                        pushChat(`✨ Forjou 1 Rare Candy usando 50 Stones!`, "success");
+                        pushChat(`✨ Forjou 1 Rare Candy usando 50 Stones!`, "info");
                         return { ...prev, items: nextItems };
                       });
                     }}
@@ -11770,7 +11770,7 @@ function IdlePage() {
                       background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "10px 6px",
                       display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                     }}>
-                      <ItemPixelIcon name={id} size={40} />
+                      <ItemPixelIcon id={id} size={40} />
                       <div style={{ fontSize: 10, fontWeight: 800, color: "#78350f", textAlign: "center" }}>{id.replace("egg_","").toUpperCase()} EGG</div>
                       <div style={{ color: "#d97706", fontSize: 11, fontWeight: 900 }}>Qtd: {n}</div>
                     </div>
