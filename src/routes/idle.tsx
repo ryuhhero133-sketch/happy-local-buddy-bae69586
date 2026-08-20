@@ -11944,7 +11944,138 @@ function IdlePage() {
             </div>
 
             <div style={{ padding: 16, maxHeight: 400, overflowY: "auto", background: "#fdfbf7" }}>
-              {showForgeQuests ? (
+              {showAuraEggDetails ? (
+                <div>
+                   <div style={{ fontSize: 12, color: "#4f46e5", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                     🔮 Forja de Aura Egg 🔮
+                   </div>
+                   
+                   <div style={{ background: "#eef2ff", border: "2px solid #c7d2fe", borderRadius: 12, padding: 15, marginBottom: 15 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                         <div style={{ width: 50, height: 50, background: "#fff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #6366f1" }}>
+                            <FlaskConical size={30} color="#6366f1" />
+                         </div>
+                         <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: "#3730a3" }}>Aura Egg</div>
+                            <div style={{ fontSize: 9, color: "#4f46e5", fontWeight: 700 }}>Um ovo envolto em energia elemental pura.</div>
+                         </div>
+                      </div>
+
+                      <div style={{ fontSize: 10, color: "#3730a3", fontWeight: 800, marginBottom: 8 }}>Probabilidades:</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
+                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
+                            <span style={{ color: "#6b7280" }}>Ovo Comum</span>
+                            <span>50%</span>
+                         </div>
+                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
+                            <span style={{ color: "#3b82f6" }}>Ovo Raro</span>
+                            <span>30%</span>
+                         </div>
+                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
+                            <span style={{ color: "#a855f7" }}>Ovo Épico</span>
+                            <span>10%</span>
+                         </div>
+                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
+                            <span style={{ color: "#ef4444" }}>Falha Crítica</span>
+                            <span>15%</span>
+                         </div>
+                      </div>
+
+                      <div style={{ fontSize: 10, color: "#3730a3", fontWeight: 800, marginBottom: 8 }}>Custo:</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 15 }}>
+                         <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#fff", padding: "4px 8px", borderRadius: 6, border: "1px solid #c7d2fe", opacity: (idle.items?.safira_verde ?? 0) >= 1 ? 1 : 0.5 }}>
+                            <ItemPixelIcon id="safira_verde" size={16} />
+                            <span style={{ fontSize: 9, fontWeight: 900, color: (idle.items?.safira_verde ?? 0) >= 1 ? "#059669" : "#ef4444" }}>1x Safira</span>
+                         </div>
+                         {["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"].map(s => {
+                            const has = (idle.items?.[s] ?? 0) >= 200;
+                            return (
+                               <div key={s} style={{ display: "flex", alignItems: "center", gap: 4, background: "#fff", padding: "4px 8px", borderRadius: 6, border: "1px solid #c7d2fe", opacity: has ? 1 : 0.5 }}>
+                                  <ItemPixelIcon id={s} size={16} />
+                                  <span style={{ fontSize: 9, fontWeight: 900, color: has ? "#059669" : "#ef4444" }}>200x</span>
+                               </div>
+                            );
+                         })}
+                      </div>
+
+                      <button 
+                        disabled={auraEggCrafting?.active}
+                        onClick={() => {
+                          const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
+                          const hasSafira = (idle.items?.safira_verde ?? 0) >= 1;
+                          const hasStones = STONES.every(s => (idle.items?.[s] ?? 0) >= 200);
+                          
+                          if (!hasSafira || !hasStones) {
+                            pushChat("❌ Recursos insuficientes!", "info");
+                            return;
+                          }
+
+                          setIdle(prev => {
+                            const nextItems = { ...prev.items };
+                            nextItems.safira_verde = (nextItems.safira_verde ?? 0) - 1;
+                            STONES.forEach(s => nextItems[s] = (nextItems[s] ?? 0) - 200);
+                            return { ...prev, items: nextItems };
+                          });
+
+                          setAuraEggCrafting({ active: true, progress: 0 });
+                          playClick();
+
+                          const duration = 5000;
+                          const steps = 50;
+                          let currentStep = 0;
+                          const interval = setInterval(() => {
+                            currentStep++;
+                            const progress = (currentStep / steps) * 100;
+                            setAuraEggCrafting(prev => prev ? { ...prev, progress } : null);
+
+                            if (currentStep >= steps) {
+                              clearInterval(interval);
+                              const roll = Math.random();
+                              let resultRarity: Rarity = "common";
+                              if (roll < 0.1) resultRarity = "epic";
+                              else if (roll < 0.4) resultRarity = "rare";
+
+                              const success = Math.random() > 0.15;
+                              if (success) {
+                                const eggId = `egg_${resultRarity}` as any;
+                                setIdle(prev => ({
+                                  ...prev,
+                                  items: { ...prev.items, [eggId]: (prev.items[eggId] ?? 0) + 1 }
+                                }));
+                                pushChat(`✨ Sucesso! Você forjou um Aura Egg (${resultRarity.toUpperCase()})!`, "cap");
+                                playBonus();
+                              } else {
+                                pushChat("💥 A energia instável explodiu! O craft falhou.", "info");
+                              }
+                              setAuraEggCrafting(null);
+                            }
+                          }, duration / steps);
+                        }}
+                        style={{ 
+                          width: "100%", 
+                          background: auraEggCrafting?.active ? "#94a3b8" : "#6366f1", 
+                          color: "#fff", 
+                          border: "none", 
+                          padding: "10px", 
+                          borderRadius: 8, 
+                          fontWeight: 900, 
+                          fontSize: 11, 
+                          cursor: auraEggCrafting?.active ? "not-allowed" : "pointer",
+                          boxShadow: "0 4px 0 #4f46e5"
+                        }}
+                      >
+                        {auraEggCrafting?.active ? `FORJANDO (${Math.floor(auraEggCrafting.progress)}%)` : "INICIAR FORJA MÍSTICA"}
+                      </button>
+                   </div>
+
+                   <button 
+                    onClick={() => setShowAuraEggDetails(false)}
+                    style={{ width: "100%", background: "#4f46e5", color: "#fff", border: "none", padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 10, cursor: "pointer" }}
+                   >
+                     VOLTAR
+                   </button>
+                </div>
+              ) : showForgeQuests ? (
                 <div>
                    <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
                      ✨ Missões da Forja ✨
