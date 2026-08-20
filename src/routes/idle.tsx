@@ -11518,8 +11518,7 @@ function IdlePage() {
           };
         }}
         onClick={(e) => {
-          if (forgeDragRef.current?.isDragging && Math.abs(e.clientX - forgeDragRef.current.startX) < 5) {
-            // Se não arrastou muito, abre/minimiza
+          if (forgeDragRef.current && !forgeDragRef.current.isDragging) {
             setForgeMinimized(!forgeMinimized);
             playClick();
           }
