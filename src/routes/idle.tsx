@@ -11843,7 +11843,8 @@ function IdlePage() {
               style={{
                 marginTop: 20, width: "100%", padding: "12px", background: "rgba(245,207,107,0.1)",
                 border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b",
-                fontWeight: 900, fontSize: 12, cursor: "pointer", transition: "all 0.2s"
+                fontWeight: 900, fontSize: 12, cursor: "pointer", transition: "all 0.2s",
+                position: "relative", zIndex: 1
               }}
             >
               FECHAR CALENDÁRIO
