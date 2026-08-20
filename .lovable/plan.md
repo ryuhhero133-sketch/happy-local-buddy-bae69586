@@ -1,24 +1,36 @@
-# Plan - Overhaul Forge System
+---
+title: Trainer Equipment & Skin System
+description: Implement a pixel-art style equipment and skin selection interface in the "Início" tab, inspired by the provided reference image.
+participants:
+  - Ryuhhero
+---
 
-Implement persistence and new "Orbiting" interaction for the Forge floating window system.
+## Overview
 
-## User Requirements
-- The Forge must persist its position and state (open/minimized) across page reloads.
-- The Forge must open correctly when clicked.
-- Clicking the Forge should reveal secondary "Orbiting" icons (e.g., Crafting) around it.
-- UI Style: RPG/MMO theme with a light beige inventory and specific Elemental Stone icons.
+The "Início" tab will be upgraded to include a dedicated "Equipment & Skins" section. This UI will feature a central trainer preview surrounded by equipment slots (Head, Chest, Weapon, Boots, Necklace, Ring) and a skin selection grid, following a pixel-art aesthetic.
 
 ## Technical Details
-- **Persistence**: Use `localStorage` to save/load `forgePos`, `forgeMinimized`, and `forgeWindowOpen` states.
-- **Interaction Logic**: Refine the drag-vs-click detection to ensure the window opens correctly.
-- **Orbiting UI**: Add a set of secondary action buttons (icons) that appear in a circular pattern around the minimized Forge chest when a toggle/long-press is active or as a context menu.
-- **Styling**: Enhance the "Golden Chest" floating orb and the beige inventory window.
 
-## Proposed Changes
+- **Component:** `src/routes/idle.tsx`
+- **State Management:**
+  - `equipment`: A new state object to track equipped items in each slot.
+  - `equippedSkin`: Existing `skinId` state will be integrated into the new UI.
+- **Visuals:**
+  - Implement a pixelated "Equipment" panel with a central 120x120px character frame.
+  - Add 6 equipment slots with placeholder icons (SVG or Lucide) when empty.
+  - Use golden/brown borders and a dark purple background consistent with the reference image.
+  - Redesign the skin selection list into a more compact, thematic grid below or beside the equipment panel.
+- **Interactions:**
+  - Clicking an equipment slot will open a mini-inventory filter to show compatible items.
+  - Equipping an item will update the trainer's visual (if sprites are available) or just the slot icon.
 
-### `src/routes/idle.tsx`
-- Update state initialization for `forgePos`, `forgeMinimized`, and `forgeWindowOpen` to load from `localStorage`.
-- Add `useEffect` hooks to save these states to `localStorage` whenever they change.
-- Implement `isForgeActionsOpen` state for the orbiting icons.
-- Add a circular layout for "Craft" and "Enhance" icons around the minimized chest.
-- Fix click handlers to ensure `setForgeWindowOpen(true)` and `setForgeMinimized(false)` work reliably.
+## Implementation Steps
+
+1.  **Define Equipment Types:** Add `EquipmentSlot` and `EquipmentItem` types to `game/systems.ts` or local to the component.
+2.  **Redesign "Início" Tab:** Replace the current simple list/grid with a structured "Trainer Profile" layout.
+3.  **Add Equipment Panel:**
+    - Create a `TrainerEquipmentPanel` sub-component or section.
+    - Render the central trainer avatar using the current `skinId`.
+    - Render the 6 slots (Head, Body, Weapon, Feet, Accessory 1, Accessory 2).
+4.  **Integrate Skins:** Move the skin selection logic into this new layout, making it feel like a "Wardrobe" feature.
+5.  **Styling:** Use Tailwind CSS for the layout and custom inline styles for the pixel-art borders/backgrounds to match the `idle.tsx` aesthetic.
