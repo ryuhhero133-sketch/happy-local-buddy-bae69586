@@ -11532,7 +11532,7 @@ function IdlePage() {
                   }
                   playClick();
                   
-                  if (t.isWindow) {
+                  if ((t as any).isWindow) {
                     const manager = (window as any).windowManager;
                     if (manager) {
                       if (t.id === "mochila") {
@@ -11540,9 +11540,13 @@ function IdlePage() {
                           <BackpackWindowContent 
                             items={idle.items}
                             bank={idle.bank}
-                            onUseItem={onUseItem}
-                            onSellItem={onSellItem}
-                            marketSellPrices={marketSellPrices}
+                            onUseItem={(id: string, qty?: number) => {
+                               (window as any).onUseItem?.(id, qty);
+                            }}
+                            onSellItem={(id: string, qty?: number, curr?: any) => {
+                               (window as any).onSellItem?.(id, qty, curr);
+                            }}
+                            marketSellPrices={(window as any).marketSellPrices || {}}
                           />
                         ), { width: 400, height: 500 });
                       } else if (t.id === "melhorias") {
@@ -11551,9 +11555,6 @@ function IdlePage() {
                             stats={idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 }}
                             items={idle.items}
                             onUpgradeStat={(key) => {
-                               // Assuming upgradeStat is available in scope or needs to be passed
-                               // For now, trigger a click on the legacy tab logic if needed, 
-                               // but ideally we call a function directly.
                                pushChat(`Evoluindo ${key}...`, "info");
                             }}
                           />
@@ -11564,6 +11565,7 @@ function IdlePage() {
                   }
                   
                   setTab(t.id as typeof tab);
+
                 }}
 
                 title={isDisabled ? `${t.label} (em breve)` : t.label}
