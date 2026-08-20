@@ -11647,6 +11647,7 @@ function IdlePage() {
                   startY: e.clientY,
                   winX: forgePos.x,
                   winY: forgePos.y,
+                  hasMoved: false,
                 };
               }}
               onTouchStart={(e) => {
@@ -11656,6 +11657,7 @@ function IdlePage() {
                   startY: e.touches[0].clientY,
                   winX: forgePos.x,
                   winY: forgePos.y,
+                  hasMoved: false,
                 };
               }}
               style={{
