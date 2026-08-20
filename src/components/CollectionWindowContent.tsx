@@ -5,6 +5,8 @@ import { TIER_COLOR } from '@/game/traits';
 
 interface CollectionWindowContentProps {
   collection: PetInstance[];
+
+
   maxCollection: number;
   caughtCount: number;
   onSelectPokemon: (uid: string) => void;

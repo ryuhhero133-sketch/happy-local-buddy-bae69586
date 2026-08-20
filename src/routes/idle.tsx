@@ -4,14 +4,15 @@ import { generateMapIcon } from "@/lib/icons.functions";
 import { WindowManager } from "@/components/WindowManager";
 import { CraftWindowContent } from "@/components/CraftWindowContent";
 import { Hammer } from "lucide-react";
+import { BackpackWindowContent } from "@/components/BackpackWindowContent";
+import { CollectionWindowContent } from "@/components/CollectionWindowContent";
+import { ImprovementsWindowContent } from "@/components/ImprovementsWindowContent";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, Search } from "lucide-react";
-import { CollectionWindowContent } from "@/components/CollectionWindowContent";
-import { BackpackWindowContent } from "@/components/BackpackWindowContent";
-import { ImprovementsWindowContent } from "@/components/ImprovementsWindowContent";
+
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 
 import type { LucideIcon } from "lucide-react";
@@ -11506,15 +11507,16 @@ function IdlePage() {
           {([
             { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b", isWindow: false },
             { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252", isWindow: false },
-            { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b", isWindow: true },
+            { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b", isWindow: false },
             
-            { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a", isWindow: true },
+            { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a", isWindow: false },
 
-            { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a", isWindow: true },
+            { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a", isWindow: false },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48", isWindow: false },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff", isWindow: false },
             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true, isWindow: false },
-            { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b", isWindow: true },
+            { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b", isWindow: false },
+            { id: "land",     label: "TEST MENU",   img: navInicio,   color: "#a78bfa", isWindow: true },
           ] as const).map((t) => {
 
 
@@ -11534,67 +11536,67 @@ function IdlePage() {
                   }
                   playClick();
                   
-                  if ((t as any).isWindow) {
+                  if (t.id === "land") {
                     const manager = (window as any).windowManager;
                     if (manager) {
-                      if (t.id === "mochila") {
-                        manager.openWindow("mochila", "📦 Mochila MMO", (
-                          <BackpackWindowContent 
-                            items={idle.items}
-                            bank={idle.bank}
-                            onUseItem={useItem}
-                            onSellItem={sellItem}
-                            marketSellPrices={MARKET_SELL_PRICE || {}}
-                          />
-                        ), { width: 400, height: 500 });
-                      } else if (t.id === "melhorias") {
-                        manager.openWindow("melhorias", "✨ Anatomia da Conta", (
-                          <ImprovementsWindowContent 
-                            stats={idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 }}
-                            items={idle.items}
-                            onUpgradeStat={(key) => {
-                               pushChat(`Evoluindo ${key}...`, "info");
-                            }}
-                          />
-                        ), { width: 350, height: 450 });
-                      } else if (t.id === "colecao") {
-                        manager.openWindow("colecao", "🛡️ Coleção Real", (
-                          <CollectionWindowContent 
-                            collection={(idle.collection || []) as any}
-                            maxCollection={500}
-                            caughtCount={idle.caughtSpecies?.length || 0}
-                            onSelectPokemon={(uid: string) => {
-                              const p = (idle.collection || []).find((x: any) => x.uid === uid);
-                              if (p) setStatsCardPet(p as any);
-                            }}
-                            teamUids={new Set((idle as any).activeTeam?.map((p: any) => p.uid) || [])}
-                          />
-                        ), { width: 450, height: 550 });
-                      } else if (t.id === "wallet") {
-                        manager.openWindow("wallet", "🏦 Banco Medieval", (
-                          <WalletScreen 
-                            bank={idle.bank} 
-                            items={idle.items}
-                            collection={idle.collection || []}
-                            gifMap={GIF}
-                            onOpenColecaoDetail={(uid: string) => {
-                              const p = (idle.collection || []).find((x: any) => x.uid === uid);
-                              if (p) setStatsCardPet(p as any);
-                            }}
-                            onExchange={(dir: "g2c" | "c2g", amt: number) => {
-                              if (dir === "g2c") {
-                                if (idle.bank.gold >= amt * 1000) {
-                                  setIdle((s: any) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold - amt * 1000, crystals: s.bank.crystals + amt } }));
-                                }
-                              } else {
-                                if (idle.bank.crystals >= amt) {
-                                  setIdle((s: any) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - amt, gold: s.bank.gold + amt * 800 } }));
-                                }
-                              }
-                            }} 
-                          />
-                        ), { width: 500, height: 600 });
-                      }
+                      manager.openWindow("land", "🧪 Experimental Test Menu", (
+                        <div style={{ padding: 16, color: "#eadfe8" }}>
+                          <div style={{ fontSize: 13, marginBottom: 12, opacity: 0.8 }}>Use este menu para testar o novo sistema de janelas modulares.</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                            <button 
+                              onClick={() => manager.openWindow("mochila_test", "📦 Mochila (TEST)", (
+                                <BackpackWindowContent 
+                                  items={idle.items}
+                                  bank={idle.bank}
+                                  onUseItem={useItem}
+                                  onSellItem={sellItem}
+                                  marketSellPrices={MARKET_SELL_PRICE || {}}
+                                />
+                              ), { width: 400, height: 500 })}
+                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
+                            >Mochila (Test)</button>
+                            
+                            <button 
+                              onClick={() => manager.openWindow("colecao_test", "🛡️ Coleção (TEST)", (
+                                <CollectionWindowContent 
+                                  collection={(idle.collection || []) as any}
+                                  maxCollection={500}
+                                  caughtCount={idle.caughtSpecies?.length || 0}
+                                  onSelectPokemon={(uid: string) => {
+                                    const p = (idle.collection || []).find((x: any) => x.uid === uid);
+                                    if (p) setStatsCardPet(p as any);
+                                  }}
+                                  teamUids={new Set((idle as any).activeTeam?.map((p: any) => p.uid) || [])}
+                                />
+                              ), { width: 450, height: 550 })}
+                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
+                            >Coleção (Test)</button>
+                            <button 
+                              onClick={() => manager.openWindow("forja_test", "⚒️ Forja (TEST)", (
+                                <CraftWindowContent 
+                                  items={idle.items}
+                                  bank={idle.bank}
+                                  onCraft={(id) => pushChat(`Crafting ${id}...`, "info")}
+                                />
+                              ), { width: 400, height: 500 })}
+                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
+                            >Forja (Test)</button>
+
+                            <button 
+                              onClick={() => manager.openWindow("melhorias_test", "✨ Melhorias (TEST)", (
+                                <ImprovementsWindowContent 
+                                  stats={idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 }}
+                                  items={idle.items}
+                                  onUpgradeStat={(key) => {
+                                     pushChat(`Evoluindo ${key}...`, "info");
+                                  }}
+                                />
+                              ), { width: 350, height: 450 })}
+                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
+                            >Melhorias (Test)</button>
+                          </div>
+                        </div>
+                      ), { width: 400, height: 350 });
                     }
                     return;
                   }
@@ -14292,29 +14294,32 @@ function TabOverlay({
       )}
 
       {tab === "mochila" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, textAlign: "center", padding: 40 }}>
-          A mochila agora é uma janela modular <strong>📦 Mochila MMO</strong>.<br/>
-          Clique no botão "Mochila" na barra inferior para abrir.
-        </div>
+        <BackpackWindowContent
+          items={items}
+          bank={idle.bank}
+          onUseItem={onUseItem}
+          onSellItem={onSellItem}
+          marketSellPrices={marketSellPrices}
+        />
       )}
-
-
 
       {tab === "colecao" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, textAlign: "center", padding: 40 }}>
-          A coleção agora é uma janela modular <strong>🛡️ Coleção Real</strong>.<br/>
-          Clique no botão "Coleção" na barra inferior para abrir.
+        <CollectionWindowContent
+          collection={collection as any}
+          maxCollection={MAX_COLLECTION}
+          caughtCount={caughtSpecies.length}
+          onSelectPokemon={onOpenColecaoDetail}
+          teamUids={teamUidSet}
+        />
+      )}
+
+      {tab === "forja" && (
+        <div style={{ padding: 20, textAlign: "center", color: "#8a7a9c" }}>
+          <h2 style={{ color: "#f5cf6b" }}>SISTEMA DE FORJA</h2>
+          <p>Acesse o Menu de Teste para ver a versão experimental.</p>
         </div>
       )}
 
-
-
-      {tab === "melhorias" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, textAlign: "center", padding: 40 }}>
-          As melhorias agora estão na janela <strong>✨ Anatomia da Conta</strong>.<br/>
-          Clique no botão "Melhorias" na barra inferior para abrir.
-        </div>
-      )}
 
 
 
@@ -14395,10 +14400,14 @@ function TabOverlay({
       )}
 
       {tab === "wallet" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, textAlign: "center", padding: 40 }}>
-          O banco agora é uma janela modular <strong>🏦 Banco Medieval</strong>.<br/>
-          Clique no botão "Banco Medieval" na barra inferior para abrir.
-        </div>
+        <WalletScreen
+          bank={idle.bank}
+          items={idle.items}
+          collection={idle.collection}
+          gifMap={GIF}
+          onOpenColecaoDetail={onOpenColecaoDetail}
+          onExchange={onExchange}
+        />
       )}
 
       {tab === "market" && (
