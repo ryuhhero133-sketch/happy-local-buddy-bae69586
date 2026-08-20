@@ -11527,6 +11527,12 @@ function IdlePage() {
              playClick();
           }
         }}
+        onTouchEnd={(e) => {
+          if (forgeDragRef.current && !forgeDragRef.current.isDragging) {
+             setForgeMinimized(!forgeMinimized);
+             playClick();
+          }
+        }}
         style={{
           position: "fixed",
           left: forgePos.x,
