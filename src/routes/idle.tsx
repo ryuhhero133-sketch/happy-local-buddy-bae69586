@@ -11577,7 +11577,7 @@ function IdlePage() {
           display: "grid", placeItems: "center", padding: "20px 0"
         }}>
           <div style={{
-            width: "min(480px, 95vw)", 
+            width: "min(800px, 95vw)", 
             maxHeight: "85vh",
             background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
             border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
@@ -11600,7 +11600,7 @@ function IdlePage() {
 
             <div style={{ 
               display: "grid", 
-              gridTemplateColumns: "repeat(2, 1fr)",
+              gridTemplateColumns: "repeat(4, 1fr)",
               gap: 12, 
               position: "relative", 
               zIndex: 1, 
