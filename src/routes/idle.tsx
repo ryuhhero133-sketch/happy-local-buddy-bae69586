@@ -11603,7 +11603,17 @@ function IdlePage() {
                       {day === 7 ? "💎" : (isClaimed ? "📦" : "🎁")}
                     </div>
                     <div style={{ fontSize: 8, color: "#fff", textAlign: "center", fontWeight: 700 }}>
-                      {day === 7 ? "50 Cristais" : (
+                      {day === 7 ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                            <img src={ballPokeImg} width={10} style={{ imageRendering: "pixelated" }} /> 200
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                            <img src={ballGreatImg} width={10} style={{ imageRendering: "pixelated" }} /> 100
+                          </div>
+                          <span>1 Rary Cand</span>
+                        </div>
+                      ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                           <span>500 Gold</span>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
@@ -11621,13 +11631,17 @@ function IdlePage() {
                           const rewardDay = (idle.dailyRewardDay || 0) + 1;
                           setIdle(s => {
                             const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
-                            next.bank.gold = (next.bank.gold || 0) + 500;
-                            next.items = { ...next.items };
-                            next.items.ball_poke = (next.items.ball_poke || 0) + 20;
-                            next.items.ball_great = (next.items.ball_great || 0) + 5;
+                            
                             if (day === 7) {
-                              next.bank.crystals = (next.bank.crystals || 0) + 50;
-                              next.crystals = (next.crystals || 0) + 50;
+                              next.items = { ...next.items };
+                              next.items.ball_poke = (next.items.ball_poke || 0) + 200;
+                              next.items.ball_great = (next.items.ball_great || 0) + 100;
+                              next.items.rare_candy = (next.items.rare_candy || 0) + 1;
+                            } else {
+                              next.bank.gold = (next.bank.gold || 0) + 500;
+                              next.items = { ...next.items };
+                              next.items.ball_poke = (next.items.ball_poke || 0) + 20;
+                              next.items.ball_great = (next.items.ball_great || 0) + 5;
                             }
                             return next;
                           });
