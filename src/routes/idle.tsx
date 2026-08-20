@@ -10113,7 +10113,14 @@ function IdlePage() {
               idle={idle}
               setIdle={setIdle}
               pushChat={pushChat}
-
+              equippedItems={equippedItems}
+              setEquippedItems={setEquippedItems}
+              ownedEquipment={ownedEquipment}
+              skinUrl={skinUrl}
+              getTrainerStats={getTrainerStats}
+              equipmentSlotPicker={equipmentSlotPicker}
+              setEquipmentSlotPicker={setEquipmentSlotPicker}
+              onEquipItem={onEquipItem}
 
               onBuyChestAmulet={buyChestAmulet}
               chestAmuletOwned={idle.items?.chest_amulet ?? 0}
