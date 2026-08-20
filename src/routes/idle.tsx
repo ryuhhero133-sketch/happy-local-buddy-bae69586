@@ -12256,15 +12256,19 @@ function IdlePage() {
                         }}
                         style={{ 
                           width: "100%", 
-                          background: auraEggCrafting?.active ? "#94a3b8" : "#6366f1", 
+                          background: auraEggCrafting?.active 
+                            ? "linear-gradient(135deg, #94a3b8, #64748b)" 
+                            : "linear-gradient(135deg, #6366f1, #4f46e5)", 
                           color: "#fff", 
                           border: "none", 
-                          padding: "10px", 
-                          borderRadius: 8, 
+                          padding: "12px", 
+                          borderRadius: 10, 
                           fontWeight: 900, 
-                          fontSize: 11, 
+                          fontSize: 13, 
                           cursor: auraEggCrafting?.active ? "not-allowed" : "pointer",
-                          boxShadow: "0 4px 0 #4f46e5"
+                          boxShadow: auraEggCrafting?.active ? "none" : "0 4px 12px rgba(79, 70, 229, 0.4), inset 0 1px 1px rgba(255,255,255,0.3)",
+                          transition: "all 0.2s ease",
+                          textShadow: "0 1px 2px rgba(0,0,0,0.2)"
                         }}
                       >
                         {auraEggCrafting?.active ? `FORJANDO (${Math.floor(auraEggCrafting.progress)}%)` : "INICIAR FORJA MÍSTICA"}
