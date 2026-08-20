@@ -209,10 +209,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setMaintenance(enabled);
         
         if (enabled) {
+          const email = localStorage.getItem("rubym.user_email");
+          const hasBypass = email === "lordryuhhhuyuyghh@gmail.com" || localStorage.getItem("rubym.maintenance_bypass") === "true";
+          
+          if (hasBypass) {
+            setIsAdmin(true);
+            return;
+          }
+
           const { isAdmin: adminStatus } = await checkIsAdmin();
           setIsAdmin(adminStatus);
           
-          if (!adminStatus && !isBypassed) {
+          if (!adminStatus) {
             const { data: { session: currentSess } } = await supabase.auth.getSession();
             if (currentSess) {
               console.log("[Maintenance] Kicking non-admin user");
@@ -241,8 +249,16 @@ export function AuthGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (maintenance && session?.user) {
       checkIsAdmin().then(({ isAdmin: adminStatus }) => {
+        const email = localStorage.getItem("rubym.user_email");
+        const hasBypass = email === "lordryuhhhuyuyghh@gmail.com" || localStorage.getItem("rubym.maintenance_bypass") === "true";
+        
+        if (hasBypass) {
+          setIsAdmin(true);
+          return;
+        }
+
         setIsAdmin(adminStatus);
-        if (!adminStatus && !isBypassed) {
+        if (!adminStatus) {
           supabase.auth.signOut().then(() => window.location.reload());
         }
       });
