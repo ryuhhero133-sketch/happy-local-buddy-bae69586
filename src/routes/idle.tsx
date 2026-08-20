@@ -11520,6 +11520,13 @@ function IdlePage() {
         onClick={(e) => {
           // Clique no container não faz nada, delegamos para os filhos
         }}
+        onMouseUp={(e) => {
+          if (forgeDragRef.current && !forgeDragRef.current.isDragging) {
+             // Se soltou sem arrastar, alterna minimização
+             setForgeMinimized(!forgeMinimized);
+             playClick();
+          }
+        }}
         style={{
           position: "fixed",
           left: forgePos.x,
