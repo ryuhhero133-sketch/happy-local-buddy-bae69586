@@ -11873,7 +11873,22 @@ function IdlePage() {
               );
             })()}
 
-            <button onClick={() => setTab("inicio")} style={{ marginTop: 20, width: "100%", padding: "12px", background: "rgba(245,207,107,0.1)", border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b", fontWeight: 900, fontSize: 12, cursor: "pointer" }}>
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setTab("inicio");
+              }} 
+              style={{ 
+                marginTop: 20, width: "100%", padding: "14px", 
+                background: "linear-gradient(135deg, rgba(245,207,107,0.2), rgba(245,207,107,0.05))", 
+                border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b", 
+                fontWeight: 900, fontSize: 13, cursor: "pointer", 
+                position: "relative", zIndex: 10,
+                textTransform: "uppercase", letterSpacing: 1,
+                boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
+              }}
+            >
               FECHAR CALENDÁRIO
             </button>
           </div>
