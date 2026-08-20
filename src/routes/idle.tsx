@@ -12397,6 +12397,14 @@ function IdlePage() {
 
               <div style={{ marginTop: 18, padding: 10, background: "#fef3c7", borderRadius: 10, border: "1px dashed #d97706", fontSize: 10, color: "#92400e", textAlign: "center", lineHeight: 1.4, fontWeight: 600 }}>
                  Forje Rare Candies para subir o nível dos seus Pokémon instantaneamente ou combine fragmentos para novos ovos.
+                 {auraEggCrafting?.active && (
+                   <div style={{ marginTop: 10, padding: 8, background: "#fff", borderRadius: 8, border: "1px solid #6366f1" }}>
+                      <div style={{ fontSize: 9, color: "#6366f1", marginBottom: 4, fontWeight: 900 }}>FORJANDO AURA EGG...</div>
+                      <div style={{ width: "100%", height: 6, background: "#e5e7eb", borderRadius: 3, overflow: "hidden" }}>
+                         <div style={{ width: `${auraEggCrafting.progress}%`, height: "100%", background: "#6366f1", transition: "width 0.1s linear" }} />
+                      </div>
+                   </div>
+                 )}
               </div>
                 </>
               )}
