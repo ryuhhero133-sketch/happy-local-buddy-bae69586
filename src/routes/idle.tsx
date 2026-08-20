@@ -11754,44 +11754,48 @@ function IdlePage() {
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
-                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    top: -55, left: -25, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    top: -65, left: -45, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
                     animation: "orbPop 0.3s ease-out forwards"
                   }}
+                  title="Abrir Forja"
                 >
                   <img src={chestOpenImg} style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
                 </div>
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
-                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 70, top: -25, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    left: 55, top: -65, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
                     animation: "orbPop 0.3s 0.1s ease-out forwards"
                   }}
+                  title="Alquimia"
                 >
                   <FlaskConical size={20} color="#d97706" />
                 </div>
                 <div 
                   onClick={(e) => { e.stopPropagation(); setTab("evento"); playClick(); }}
                   style={{
-                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 28, top: -75, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
+                    left: 5, top: -85, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
                     animation: "orbPop 0.3s 0.2s ease-out forwards, orbGlow 2s infinite ease-in-out"
                   }}
+                  title="Calendário de Eventos"
                 >
                   <Calendar size={20} color="#d97706" />
                 </div>
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(true); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
-                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
+                    position: "absolute", width: 42, height: 42, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: -70, top: 15, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    left: -80, top: -5, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
                     animation: "orbPop 0.3s 0.3s ease-out forwards"
                   }}
+                  title="Missões da Forja"
                 >
                   <Sparkles size={20} color="#d97706" />
                 </div>
@@ -11812,21 +11816,23 @@ function IdlePage() {
                     playClick();
                   }}
                   style={{
-                    position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #6366f1", borderRadius: "50%",
+                    position: "absolute", width: 46, height: 46, background: "#0f172a", border: "3px solid #4ade80", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 65, top: 35, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.4s ease-out forwards"
+                    left: 85, top: -5, boxShadow: "0 0 15px rgba(74,222,128,0.5)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.4s ease-out forwards, eggGlowTri 3s linear infinite"
                   }}
+                  title="Forja de Aura Egg"
                 >
-                  <FlaskConical size={20} color={auraEggCrafting?.active ? "#6366f1" : "#4f46e5"} className={auraEggCrafting?.active ? "animate-pulse" : ""} />
+                  <FlaskConical size={24} color="#fff" className={auraEggCrafting?.active ? "animate-pulse" : ""} />
                   {auraEggCrafting?.active && (
                     <div style={{
-                      position: "absolute", bottom: -8, width: "120%", height: 4, background: "#eee", borderRadius: 2, overflow: "hidden", border: "1px solid #6366f1"
+                      position: "absolute", bottom: -12, width: "100%", height: 5, background: "#334155", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)"
                     }}>
-                      <div style={{ width: `${auraEggCrafting.progress}%`, height: "100%", background: "#6366f1" }} />
+                      <div style={{ width: `${auraEggCrafting.progress}%`, height: "100%", background: "linear-gradient(90deg, #4ade80, #60a5fa, #a855f7)" }} />
                     </div>
                   )}
                 </div>
+
               </>
             )}
 
