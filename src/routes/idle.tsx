@@ -1599,6 +1599,9 @@ function IdlePage() {
     },
   });
 
+  const [tab, setTab] = useState<"batalha" | "pokemon" | "mochila" | "tarefas" | "loja" | "colecao" | "inicio" | "melhorias" | "pokedex" | "market" | "wallet" | "evento" | "config">("inicio");
+
+
   // ============= Cloud FULL BLOB (game_saves) =============
   // Hidrata state COMPLETO (items, missões, skins, buffs, party, bench)
   // e sobrescreve o cache local — evita rollback após F5 / trocar de dispositivo.
