@@ -11561,28 +11561,13 @@ function IdlePage() {
                         manager.openWindow("colecao", "🛡️ Coleção Real", (
                           <CollectionWindowContent 
                             collection={(idle.collection || []) as any}
-                            caughtSpecies={idle.caughtSpecies || []}
-                            craftPoints={idle.craftPoints || 0}
-                            lockedUids={Array.from((window as any).lockedSet || []) as string[]}
-                            onOpenDetail={(uid: string) => {
+                            maxCollection={500}
+                            caughtCount={idle.caughtSpecies?.length || 0}
+                            onSelectPokemon={(uid: string) => {
                               const p = (idle.collection || []).find((x: any) => x.uid === uid);
                               if (p) setStatsCardPet(p as any);
                             }}
-                            onFragment={(uids: string[]) => {
-                              const entries = uids
-                                .map((uid) => (idle.collection || []).find((e: any) => e.uid === uid))
-                                .filter((e: any): e is any => !!e)
-                                .map((e: any) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: 1 }));
-                              if (entries.length > 0) {
-                                // @ts-ignore
-                                setFragConfirm({ entries, totalGain: entries.reduce((s, e) => s + e.gain, 0) });
-                              }
-                            }}
-                            onToggleLock={(uid: string) => {
-                              const ls = (window as any).lockedSet || new Set();
-                              if (ls.has(uid)) ls.delete(uid); else ls.add(uid);
-                              (window as any).lockedSet = ls;
-                            }}
+                            teamUids={new Set(idle.team?.map((p: any) => p.uid) || [])}
                           />
                         ), { width: 450, height: 550 });
                       } else if (t.id === "wallet") {
