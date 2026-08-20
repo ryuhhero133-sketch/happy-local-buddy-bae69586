@@ -11573,18 +11573,21 @@ function IdlePage() {
       {tab === "evento" && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 10000,
-          background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)",
-          display: "grid", placeItems: "center", padding: 20
+          background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)",
+          display: "grid", placeItems: "center", padding: "20px 0"
         }}>
           <div style={{
-            width: "min(600px, 95vw)", background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
-            border: "3px solid #f5cf6b", borderRadius: 20, padding: 20, position: "relative",
-            boxShadow: "0 0 50px rgba(245,207,107,0.3)",
+            width: "min(400px, 95vw)", 
+            maxHeight: "90vh",
+            background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
+            border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
+            boxShadow: "0 0 60px rgba(245,207,107,0.4), 0 0 120px rgba(0,0,0,0.8)",
             backgroundImage: `url(${assetUrlFromJson(mewtwoRewardBgAsset)})`,
             backgroundSize: "cover", backgroundPosition: "center",
-            overflow: "hidden"
+            overflow: "hidden",
+            display: "flex", flexDirection: "column"
           }}>
-            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(1px)", zIndex: 0 }} />
+            <div style={{ position: "absolute", inset: 0, background: "rgba(10,5,20,0.65)", backdropFilter: "blur(2px)", zIndex: 0 }} />
             <button 
               onClick={() => setTab("inicio")}
               style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900, zIndex: 1 }}
@@ -11595,7 +11598,7 @@ function IdlePage() {
               <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 15, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, position: "relative", zIndex: 1, overflowY: "auto", paddingRight: 5, flex: 1 }}>
               {[1, 2, 3, 4, 5, 6, 7].map(day => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
@@ -11696,16 +11699,17 @@ function IdlePage() {
                       style={{
                         background: isVip 
                           ? "linear-gradient(135deg, #fff9e6 0%, #fff 100%)" 
-                          : "rgba(0,0,0,0.3)",
+                          : "rgba(255,255,255,0.08)",
                         padding: "10px 15px", 
                         display: "flex", 
                         alignItems: "center", 
                         gap: 12,
-                        color: isVip ? "#1a0f2e" : "rgba(255,255,255,0.4)", 
+                        color: isVip ? "#1a0f2e" : "rgba(255,255,255,0.8)", 
                         position: "relative", 
                         overflow: "hidden",
                         cursor: isVip ? "default" : "help",
-                        transition: "all 0.3s ease"
+                        transition: "all 0.3s ease",
+                        filter: !isVip ? "saturate(1.2)" : "none"
                       }}
                     >
                        {!isVip && (
@@ -11738,7 +11742,7 @@ function IdlePage() {
                            alt=""
                            style={{ 
                              width: day === 7 ? 38 : 26, height: day === 7 ? 38 : 26, objectFit: "contain",
-                             filter: !isVip ? "grayscale(1) brightness(0.6) opacity(0.5)" : "drop-shadow(0 0 8px rgba(245,207,107,0.4))",
+                             filter: !isVip ? "drop-shadow(0 0 8px rgba(0,0,0,0.5))" : "drop-shadow(0 0 8px rgba(245,207,107,0.4))",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
                          />
