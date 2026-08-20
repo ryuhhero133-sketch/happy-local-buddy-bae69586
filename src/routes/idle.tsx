@@ -1955,6 +1955,7 @@ function IdlePage() {
     return saved ? JSON.parse(saved) : { collectedStones: 0, levelMilestones: [] };
   });
   const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number; hasMoved: boolean } | null>(null);
+  const [auraEggCrafting, setAuraEggCrafting] = useState<{ active: boolean; progress: number; rarity?: Rarity } | null>(null);
 
   useEffect(() => {
     localStorage.setItem("rubym.forge.quests", JSON.stringify(forgeQuests));
