@@ -15091,9 +15091,8 @@ function TabOverlay({
                 );
               })}
             </div>
-
-            );
           })()}
+
         <div style={{
           background: "linear-gradient(180deg, #2a0510, #1a0510)",
           border: "2px solid #e11d48",
