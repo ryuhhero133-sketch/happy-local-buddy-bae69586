@@ -11829,11 +11829,11 @@ function IdlePage() {
                            src={rew.vipImg} 
                            alt=""
                            style={{ 
-                            width: (day === 7 || day === 9) ? 75 : (day === 7 ? 55 : 42), 
-                            height: (day === 7 || day === 9) ? 75 : (day === 7 ? 55 : 42), 
-                            objectFit: "contain",
-                            filter: (day === 7 || day === 9) ? "drop-shadow(0 0 12px #f5cf6b)" : "none",
-                            animation: (isVip || day === 7 || day === 9) ? "float 3s ease-in-out infinite" : "none"
+                             width: (day === 10) ? 55 : 42, 
+                             height: (day === 10) ? 55 : 42, 
+                             objectFit: "contain",
+                             filter: (day === 10) ? "drop-shadow(0 0 12px #f5cf6b)" : "none",
+                             animation: (isVip || day === 10) ? "float 3s ease-in-out infinite" : "none"
 
                            }} 
                          />
