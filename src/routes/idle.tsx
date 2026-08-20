@@ -10510,6 +10510,24 @@ function IdlePage() {
 
                             {/* Novo Mapa Mundi Visual Pixel Art — Integrado e Baseado na Referência */}
                             <div className="world-map-container" style={{ position: "absolute", inset: 0, background: activeTab === 4 ? "#0a0514" : "#1a3c7e", overflow: "hidden" }}>
+                              {/* Canvas para linhas de conexão */}
+                              <svg style={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none", width: "100%", height: "100%" }}>
+                                {WORLD_PINS.map((pin, i) => {
+                                  if (i === 0) return null;
+                                  const prev = WORLD_PINS[i - 1];
+                                  return (
+                                    <line
+                                      key={`line-${pin.id}`}
+                                      x1={`${prev.x}%`} y1={`${prev.y}%`}
+                                      x2={`${pin.x}%`} y2={`${pin.y}%`}
+                                      stroke={activeTab === 4 ? "rgba(160,80,255,0.4)" : "rgba(245,207,107,0.3)"}
+                                      strokeWidth="2"
+                                      strokeDasharray="4 4"
+                                    />
+                                  );
+                                })}
+                              </svg>
+
                               {/* Efeito de Ondas de Água no Fundo */}
                               <div style={{
                                 position: "absolute", inset: 0,
