@@ -10364,29 +10364,29 @@ function IdlePage() {
 
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
-                    const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "neve", x: 19.5, y: 15.5, type: "snow" }, // Montanhas nevadas (Canto Superior Esquerdo)
-                      { id: "arena", x: 44, y: 17, type: "castle" }, // Castelo Central (Floresta Superior)
-                      { id: "terra", x: 38, y: 12, type: "forest" },
-                      { id: "deserto", x: 70, y: 17, type: "desert" }, // Ilha dourada (Superior Direito)
-                      { id: "deserto_purpura", x: 78, y: 22, type: "volcano" },
-                      { id: "caverna", x: 74, y: 12, type: "cave" },
-                      { id: "praia", x: 22, y: 45, type: "beach" }, // Enseada verde (Meio Esquerda)
-                      { id: "vale_rochas", x: 16, y: 40, type: "mountain" },
-                      { id: "n2", x: 28, y: 42, type: "forest" },
-                      { id: "pantano_fogo", x: 46, y: 44, type: "volcano" }, // Centro vulcânico
-                      { id: "venofogo", x: 41, y: 52, type: "volcano" },
-                      { id: "terry", x: 52, y: 48, type: "village" },
-                      { id: "n3", x: 55, y: 42, type: "forest" },
-                      { id: "abismo_gelo", x: 80, y: 40, type: "cave" }, // Ilhas flutuantes (Direita)
-                      { id: "abismo_veneno", x: 85, y: 45, type: "cave" },
-                      { id: "abismo_dragao", x: 92, y: 40, type: "cave" },
-                      { id: "fantasma", x: 15, y: 78, type: "cave" }, // Zona de lava/sombria (Inferior Esquerda)
-                      { id: "cadeia_ab", x: 22, y: 82, type: "cave" },
-                      { id: "cadeia_ab1", x: 26, y: 88, type: "cave" },
-                      { id: "cadeia_f1", x: 28, y: 92, type: "cave" },
-                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event" }] : []),
-                    ];
+                    const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string; order: number }> = [
+                      { id: "neve", x: 19.5, y: 15.5, type: "snow", order: 5 },
+                      { id: "arena", x: 44, y: 17, type: "castle", order: 2 },
+                      { id: "terra", x: 38, y: 12, type: "forest", order: 1 },
+                      { id: "deserto", x: 70, y: 17, type: "desert", order: 6 },
+                      { id: "deserto_purpura", x: 78, y: 22, type: "volcano", order: 7 },
+                      { id: "caverna", x: 74, y: 12, type: "cave", order: 8 },
+                      { id: "praia", x: 22, y: 45, type: "beach", order: 3 },
+                      { id: "vale_rochas", x: 16, y: 40, type: "mountain", order: 4 },
+                      { id: "n2", x: 28, y: 42, type: "forest", order: 9 },
+                      { id: "pantano_fogo", x: 46, y: 44, type: "volcano", order: 10 },
+                      { id: "venofogo", x: 41, y: 52, type: "volcano", order: 11 },
+                      { id: "terry", x: 52, y: 48, type: "village", order: 12 },
+                      { id: "n3", x: 55, y: 42, type: "forest", order: 13 },
+                      { id: "abismo_gelo", x: 80, y: 40, type: "cave", order: 14 },
+                      { id: "abismo_veneno", x: 85, y: 45, type: "cave", order: 15 },
+                      { id: "abismo_dragao", x: 92, y: 40, type: "cave", order: 16 },
+                      { id: "fantasma", x: 15, y: 78, type: "cave", order: 17 },
+                      { id: "cadeia_ab", x: 22, y: 82, type: "cave", order: 18 },
+                      { id: "cadeia_ab1", x: 26, y: 88, type: "cave", order: 19 },
+                      { id: "cadeia_f1", x: 28, y: 92, type: "cave", order: 20 },
+                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event", order: 100 }] : []),
+                    ].sort((a, b) => a.order - b.order);
                     const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
                       { id: "absol_start" as IdleMapId, x: 45, y: 75, type: "village" },
                       { id: "governante_hall" as IdleMapId, x: 44, y: 17, type: "castle" },
