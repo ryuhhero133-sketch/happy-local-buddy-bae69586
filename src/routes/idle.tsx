@@ -1388,6 +1388,7 @@ function IdlePage() {
     }
   }, [team]);
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
+  const [selectedMapInfo, setSelectedMapInfo] = useState<IdleMapId | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
   // ============= Server sync (Supabase anti-cheat) =============
