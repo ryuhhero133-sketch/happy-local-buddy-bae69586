@@ -11675,7 +11675,21 @@ function IdlePage() {
                        
                        {canClaim ? (
                          <button onClick={() => {
-                           // ... logic remains same
+                           const now = Date.now();
+                           const lastClaim = idle.lastDailyReward || 0;
+                           if (now - lastClaim < 86400000) {
+                             pushChat("⏳ Você já resgatou sua recompensa hoje! Volte amanhã.", "info");
+                             return;
+                           }
+                           const newGold = (idle.gold || 0) + (day === 7 ? 5000 : 500 * day);
+                           setIdle(prev => ({ 
+                             ...prev, 
+                             gold: newGold,
+                             lastDailyReward: now,
+                             dailyRewardDay: (prev.dailyRewardDay || 0) + 1
+                           }));
+                           if (isVip) pushChat("✨ BÔNUS MESTRE: Recompensas VIP creditadas!", "success");
+                           pushChat(`🎁 Dia ${day} resgatado com sucesso!`, "success");
                          }} style={{
                            width: "100%",
                            background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e", border: "none",
