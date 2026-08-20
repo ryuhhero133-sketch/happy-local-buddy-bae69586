@@ -16114,9 +16114,9 @@ function TabOverlay({
           </div>
         );
       })()}
-    </div>
-  );
+    );
 }
+
 
 
 function BuffCell({ img, label, value, color }: { img: string; label: string; value: string; color: string }) {
