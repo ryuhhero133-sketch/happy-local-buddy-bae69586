@@ -11687,19 +11687,20 @@ function IdlePage() {
                       }}
                       style={{
                         background: isVip 
-                          ? "linear-gradient(135deg, #fff9e6 0%, #fff 100%)" 
-                          : "rgba(255,255,255,0.08)",
+                          ? "linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)" 
+                          : "linear-gradient(135deg, #1a0f2e 0%, #2a1548 100%)",
                         padding: "8px", 
                         display: "flex", 
                         flexDirection: "column",
                         alignItems: "center", 
                         gap: 4,
-                        color: isVip ? "#1a0f2e" : "rgba(255,255,255,0.8)", 
+                        color: "#fff", 
                         position: "relative", 
                         overflow: "hidden",
                         cursor: isVip ? "default" : "help",
                         transition: "all 0.3s ease",
-                        textAlign: "center"
+                        textAlign: "center",
+                        borderTop: isVip ? "1px solid #f5cf6b" : "1px solid rgba(255,255,255,0.1)"
                       }}
                     >
                        {!isVip && (
