@@ -12121,25 +12121,25 @@ function IdlePage() {
                       </div>
 
                       <div style={{ position: "relative", zIndex: 1 }}>
-                        <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900, marginBottom: 8, textShadow: "0 1px 1px white" }}>Probabilidades:</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
-                              <span style={{ color: "#4b5563" }}>Ovo Comum</span>
-                              <span style={{ color: "#1f2937" }}>{Math.floor(50 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
-                           </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
-                              <span style={{ color: "#2563eb" }}>Ovo Raro</span>
-                              <span style={{ color: "#1d4ed8" }}>{Math.floor(30 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
-                           </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
-                              <span style={{ color: "#9333ea" }}>Ovo Épico</span>
-                              <span style={{ color: "#7e22ce" }}>{Math.floor(10 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
-                           </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
-                              <span style={{ color: "#dc2626" }}>Falha Crítica</span>
-                              <span style={{ color: "#b91c1c" }}>{Math.max(1, Math.floor(15 * (1 - (auraEggDetails?.extraChance || 0))))}%</span>
-                           </div>
-                        </div>
+                         <div style={{ fontSize: 14, color: "#fef3c7", fontWeight: 900, marginBottom: 8, textShadow: "0 2px 2px rgba(0,0,0,0.5)" }}>Probabilidades:</div>
+                         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 15, background: "rgba(0,0,0,0.2)", padding: 10, borderRadius: 10 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 900 }}>
+                               <span style={{ color: "#d1d5db" }}>Ovo Comum</span>
+                               <span style={{ color: "#fff" }}>{Math.floor(50 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 900 }}>
+                               <span style={{ color: "#60a5fa" }}>Ovo Raro</span>
+                               <span style={{ color: "#fff" }}>{Math.floor(30 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 900 }}>
+                               <span style={{ color: "#c084fc" }}>Ovo Épico</span>
+                               <span style={{ color: "#fff" }}>{Math.floor(10 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 900 }}>
+                               <span style={{ color: "#f87171" }}>Falha Crítica</span>
+                               <span style={{ color: "#fff" }}>{Math.max(1, Math.floor(15 * (1 - (auraEggDetails?.extraChance || 0))))}%</span>
+                            </div>
+                         </div>
 
                         <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900, marginBottom: 8, textShadow: "0 1px 1px white" }}>Custo Base & Ingredientes Extras:</div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 15 }}>
