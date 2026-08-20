@@ -11518,9 +11518,7 @@ function IdlePage() {
           };
         }}
         onClick={(e) => {
-          // Se não houver drag ou for clique simples, abre/minimiza
-          setForgeMinimized(!forgeMinimized);
-          playClick();
+          // Clique no container não faz nada, delegamos para os filhos
         }}
         style={{
           position: "fixed",
