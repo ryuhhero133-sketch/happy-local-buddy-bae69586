@@ -12082,10 +12082,10 @@ function IdlePage() {
                            });
                            setTeam(prev => prev.map((item, i) => {
                               if (i === idx) {
-                                 const nextLv = (item.level ?? 1) + 1;
-                                 pushChat(`🍬 Rare Candy usado em ${item.species.toUpperCase()}! Nível ${nextLv}!`, "cap");
-                                 playLevelUp();
-                                 return { ...item, level: nextLv, xp: 0 };
+                                  const nextLv = Math.min(10000, (item.level ?? 1) + 1);
+                                  pushChat(`🍬 Rare Candy usado em ${item.species.toUpperCase()}! Nível ${nextLv}!`, "cap");
+                                  playLevelUp();
+                                  return { ...item, level: nextLv, xp: 0 };
                               }
                               return item;
                            }));
