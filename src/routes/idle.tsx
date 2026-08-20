@@ -10659,63 +10659,88 @@ function IdlePage() {
                                     zIndex: current ? 20 : 10,
                                     display: "flex", flexDirection: "column", alignItems: "center",
                                   }}
-                                >
-                                   {/* Elemento Visual do Mapa Integrado ao Cenário */}
-                                   <div style={{
-                                     position: "relative",
-                                     width: current ? 48 : 40, height: current ? 48 : 40,
-                                     display: "grid", placeItems: "center",
-                                     animation: current ? "worldPinPulse 2s infinite ease-in-out" : "worldFloating 3s infinite ease-in-out",
-                                     animationDelay: `${(pin.x + pin.y) * 0.05}s`,
-                                   }}>
-                                     {/* Base / Sombra do Prédio */}
-                                     <div style={{ position: "absolute", bottom: -4, width: "80%", height: "20%", background: "rgba(0,0,0,0.4)", borderRadius: "50%", filter: "blur(2px)" }} />
-                                     
-                                     {/* Arte Pixel do Local */}
-                                     <div style={{
-                                       fontSize: current ? 32 : 26,
-                                       filter: !continentUnlocked ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #7ef27a)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
+                                 >
+                                    {/* Elemento Visual do Mapa Integrado ao Cenário */}
+                                    <div style={{
+                                      position: "relative",
+                                      width: current ? 48 : 40, height: current ? 48 : 40,
+                                      display: "grid", placeItems: "center",
+                                      animation: current ? "worldPinPulse 2s infinite ease-in-out" : "worldFloating 3s infinite ease-in-out",
+                                      animationDelay: `${(pin.x + pin.y) * 0.05}s`,
+                                    }}>
+                                      {/* Brilho Obsidian / Portal de fundo (Conforme pedido) */}
+                                      <div style={{
+                                        position: "absolute",
+                                        width: "140%", height: "140%",
+                                        background: "radial-gradient(circle, rgba(160,80,255,0.4) 0%, transparent 70%)",
+                                        borderRadius: "50%",
+                                        boxShadow: "0 0 15px rgba(0,0,0,0.8), 0 0 5px rgba(160,80,255,0.3)",
+                                        zIndex: -1,
+                                        opacity: 0.8
+                                      }} />
 
-                                       transform: `scale(${current ? 1.2 : 1})`,
-                                       transition: "transform 0.3s ease",
-                                       imageRendering: "pixelated",
-                                     }}>
-                                        {/* Representação visual mais robusta do local (pixel-art feeling) */}
-                                        <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                                          {/* Símbolo do local com efeito de profundidade */}
-                                          <div style={{ position: "absolute", inset: 0, opacity: 0.3, filter: "blur(4px)", transform: "translateY(2px)" }}>
-                                            {pin.type === "castle" ? "🏰" : 
-                                             pin.type === "village" ? "🏡" : 
-                                             pin.type === "volcano" ? "🌋" : 
-                                             pin.type === "cave" ? "🕳️" : 
-                                             pin.type === "forest" ? "🌳" : 
-                                             pin.type === "beach" ? "🏖️" : 
-                                             pin.type === "mountain" ? "🏔️" : 
-                                             pin.type === "snow" ? "❄️" : "🏛️"}
-                                          </div>
-                                          <div style={{ position: "relative" }}>
-                                            {pin.type === "castle" ? "🏰" : 
-                                             pin.type === "village" ? "🏡" : 
-                                             pin.type === "volcano" ? "🌋" : 
-                                             pin.type === "cave" ? "🕳️" : 
-                                             pin.type === "forest" ? "🌳" : 
-                                             pin.type === "beach" ? "🏖️" : 
-                                             pin.type === "mountain" ? "🏔️" : 
-                                             pin.type === "snow" ? "❄️" : "🏛️"}
-                                          </div>
-                                        </div>
+                                      {/* Sombra do Local */}
+                                      <div style={{ position: "absolute", bottom: -4, width: "80%", height: "20%", background: "rgba(0,0,0,0.6)", borderRadius: "50%", filter: "blur(3px)" }} />
+                                      
+                                      {/* Cristal de Obsidian no centro do portal */}
+                                      <div style={{
+                                        position: "absolute",
+                                        width: 8, height: 12,
+                                        background: "#1a0f26",
+                                        border: "1px solid #a066ff",
+                                        transform: "rotate(45deg)",
+                                        top: "10%",
+                                        boxShadow: "0 0 8px #a066ff",
+                                        zIndex: 5,
+                                        opacity: 0.9
+                                      }} />
 
-                                     </div>
+                                      {/* Arte Pixel do Local */}
+                                      <div style={{
+                                        fontSize: current ? 32 : 26,
+                                        filter: !continentUnlocked ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #a066ff)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
+                                        transform: `scale(${current ? 1.2 : 1})`,
+                                        transition: "transform 0.3s ease",
+                                        imageRendering: "pixelated",
+                                        zIndex: 10,
+                                      }}>
+                                         {/* Representação visual mais robusta do local (pixel-art feeling) */}
+                                         <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                                           {/* Símbolo do local com efeito de profundidade */}
+                                           <div style={{ position: "absolute", inset: 0, opacity: 0.3, filter: "blur(4px)", transform: "translateY(2px)" }}>
+                                             {pin.type === "castle" ? "🏰" : 
+                                              pin.type === "village" ? "🏡" : 
+                                              pin.type === "volcano" ? "🌋" : 
+                                              pin.type === "cave" ? "🕳️" : 
+                                              pin.type === "forest" ? "🌳" : 
+                                              pin.type === "beach" ? "🏖️" : 
+                                              pin.type === "mountain" ? "🏔️" : 
+                                              pin.type === "snow" ? "❄️" : "🏛️"}
+                                           </div>
+                                           <div style={{ position: "relative" }}>
+                                             {pin.type === "castle" ? "🏰" : 
+                                              pin.type === "village" ? "🏡" : 
+                                              pin.type === "volcano" ? "🌋" : 
+                                              pin.type === "cave" ? "🕳️" : 
+                                              pin.type === "forest" ? "🌳" : 
+                                              pin.type === "beach" ? "🏖️" : 
+                                              pin.type === "mountain" ? "🏔️" : 
+                                              pin.type === "snow" ? "❄️" : "🏛️"}
+                                           </div>
+                                         </div>
 
+                                      </div>
 
-                                     {/* Indicador de Selecionado */}
-                                     {current && (
-                                       <div style={{
-                                         position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
-                                         width: 8, height: 8, background: "#7ef27a", borderRadius: "50%",
-                                         boxShadow: "0 0 10px #7ef27a",
-                                       }} />
-                                     )}
+                                      {/* Indicador de Selecionado (Obsidian Purple) */}
+                                      {current && (
+                                        <div style={{
+                                          position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
+                                          width: 8, height: 8, background: "#a066ff", borderRadius: "50%",
+                                          boxShadow: "0 0 10px #a066ff",
+                                          zIndex: 15
+                                        }} />
+                                      )}
+
                                    </div>
                                    <div className="map-pin-label" style={{
                                      marginTop: 4, padding: "2px 6px",
