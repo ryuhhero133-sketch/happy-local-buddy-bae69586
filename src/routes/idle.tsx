@@ -14314,22 +14314,13 @@ function TabOverlay({
           teamUids={teamUidSet}
         />
       )}
-
-
-
-      {tab === "melhorias" && (
-        <ImprovementsWindowContent
-          stats={{
-            attack: idle.upgrades?.atk || 0,
-            speed: idle.upgrades?.speed || 0,
-            synergy: idle.upgrades?.synergy || 0,
-            resistance: idle.upgrades?.resistance || 0,
-            mastery: idle.upgrades?.mastery || 0
-          }}
-          items={items}
-          onUpgradeStat={onUpgrade}
-        />
+      {tab === "forja" && (
+        <div style={{ padding: 20, textAlign: "center", color: "#8a7a9c" }}>
+          <h2 style={{ color: "#f5cf6b" }}>SISTEMA DE FORJA</h2>
+          <p>Acesse o Menu de Teste para ver a versão experimental.</p>
+        </div>
       )}
+
 
 
 
