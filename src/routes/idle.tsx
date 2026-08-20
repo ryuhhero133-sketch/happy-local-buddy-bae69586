@@ -10683,17 +10683,18 @@ function IdlePage() {
                                       {/* Sombra do Local */}
                                       <div style={{ position: "absolute", bottom: -4, width: "80%", height: "20%", background: "rgba(0,0,0,0.6)", borderRadius: "50%", filter: "blur(3px)" }} />
                                       
-                                      {/* Cristal de Obsidian no centro do portal */}
+                                      {/* Cristal de Obsidian no centro do portal (Glow aprimorado) */}
                                       <div style={{
                                         position: "absolute",
-                                        width: 8, height: 12,
-                                        background: "#1a0f26",
+                                        width: 10, height: 16,
+                                        background: "linear-gradient(135deg, #2a1a3d, #0d0615)",
                                         border: "1px solid #a066ff",
                                         transform: "rotate(45deg)",
-                                        top: "10%",
-                                        boxShadow: "0 0 8px #a066ff",
+                                        top: "5%",
+                                        boxShadow: "0 0 15px #a066ff, inset 0 0 5px rgba(255,255,255,0.2)",
                                         zIndex: 5,
-                                        opacity: 0.9
+                                        opacity: ok ? 1 : 0.4,
+                                        animation: ok ? "obsidianGlow 1.5s infinite alternate ease-in-out" : "none"
                                       }} />
 
                                       {/* Arte Pixel do Local */}
