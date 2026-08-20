@@ -11781,8 +11781,9 @@ function IdlePage() {
                                   q.current >= q.target && (
                                     <button 
                                       onClick={() => {
-                                        setIdle(prev => ({ ...prev, crystals: (prev.crystals || 0) + q.reward }));
-                                        setForgeQuests(prev => ({ ...prev, completedIds: [...(prev.completedIds || []), q.id] }));
+                                        setIdle((prev: IdleState) => ({ ...prev, crystals: (prev.crystals || 0) + q.reward }));
+                                        setForgeQuests((prev: any) => ({ ...prev, completedIds: [...(prev.completedIds || []), q.id] }));
+
                                         playBonus();
                                         pushChat(`🎉 Missão Concluída: ${q.title}! +${q.reward} Cristais!`, "cap");
                                       }}
