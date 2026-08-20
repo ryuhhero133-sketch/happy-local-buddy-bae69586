@@ -11861,7 +11861,7 @@ function IdlePage() {
 
                                       playBonus();
                                       const rewardText = q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
-                                                        q.reward.type === "item" ? `${q.reward.amount}x ${q.reward.id}` : `+${q.reward.amount} Nível`;
+                                                        q.reward.type === "item" ? `${q.reward.amount}x ${(q.reward as any).id}` : `+${q.reward.amount} Nível`;
                                       pushChat(`🎉 Missão Concluída: ${q.title}! Ganhou ${rewardText}!`, "cap");
                                     }}
                                     style={{ background: q.current >= q.target ? "#059669" : "#ccc", color: "#fff", border: "none", padding: "2px 6px", borderRadius: 4, cursor: q.current >= q.target ? "pointer" : "default", fontSize: 8 }}
