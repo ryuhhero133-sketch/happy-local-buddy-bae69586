@@ -15059,6 +15059,11 @@ function TabOverlay({
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; }}
                       title={inTeam ? "No time — não pode fragmentar" : locked ? "Travado — destrave para fragmentar" : `Fragmentar por +${gain} pts de craft`}
                     >
+                      {inTeam ? (
+                        <span style={{ fontWeight: 900 }}>★ NO TIME</span>
+                      ) : locked ? (
+                        <span style={{ fontWeight: 900 }}>🔒 TRAVADO</span>
+                      ) : (
                         <div>
                           <span style={{
                             display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -15082,6 +15087,7 @@ function TabOverlay({
                 );
               })}
             </div>
+
             );
           })()}
         <div style={{
