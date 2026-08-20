@@ -11708,14 +11708,18 @@ function IdlePage() {
                            boxShadow: "0 2px 0 #b45309",
                            animation: "bounce 1s infinite",
                            textTransform: "uppercase",
-                           marginTop: 4
+                           marginTop: 4,
+                           zIndex: 6
                          }}>RESGATAR</button>
-                       ) : isClaimed ? (
-                         <div style={{ fontSize: 9, color: "#22c55e", fontWeight: 900, marginTop: 4 }}>
-                           ✓ COLETADO
-                         </div>
                        ) : (
-                         <div style={{ fontSize: 9, color: "#94a3b8", fontWeight: 900, marginTop: 4 }}>BLOQUEADO</div>
+                         <div style={{
+                           fontSize: 8, fontWeight: 900, color: isClaimed ? "#059669" : "#6b7280",
+                           background: isClaimed ? "rgba(16,185,129,0.1)" : "rgba(0,0,0,0.05)",
+                           padding: "2px 8px", borderRadius: 4, textTransform: "uppercase",
+                           marginTop: 4
+                         }}>
+                           {isClaimed ? "Coletado" : isLocked ? "Bloqueado" : "Aguarde"}
+                         </div>
                        )}
                     </div>
                     
