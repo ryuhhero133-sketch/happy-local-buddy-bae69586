@@ -1911,7 +1911,11 @@ function IdlePage() {
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
 
   // --- RPG MODULAR WINDOWS ---
-  const [forgeWindowOpen, setForgeWindowOpen] = useState(true);
+  const [forgeWindowOpen, setForgeWindowOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const saved = localStorage.getItem("rubym.forge.open");
+    return saved === null ? true : saved === "true";
+  });
   const [forgeMinimized, setForgeMinimized] = useState(() => {
     if (typeof window === "undefined") return true;
     const saved = localStorage.getItem("rubym.forge.minimized");
@@ -1919,7 +1923,13 @@ function IdlePage() {
   });
   const [forgePos, setForgePos] = useState(() => {
     if (typeof window === "undefined") return { x: 1000, y: 600 };
-    // Reseta sempre para o padrão ao atualizar (solicitado pelo usuário)
+    const saved = localStorage.getItem("rubym.forge.pos");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.x === 'number' && typeof parsed.y === 'number') return parsed;
+      } catch(e) {}
+    }
     return { x: window.innerWidth - 380, y: window.innerHeight - 250 };
   });
   const [forgeShowOrbit, setForgeShowOrbit] = useState(false);
@@ -1928,8 +1938,8 @@ function IdlePage() {
   useEffect(() => {
     localStorage.setItem("rubym.forge.open", String(forgeWindowOpen));
     localStorage.setItem("rubym.forge.minimized", String(forgeMinimized));
-    // Removemos o salvamento da posição para que ela não persista no F5
-  }, [forgeWindowOpen, forgeMinimized]);
+    localStorage.setItem("rubym.forge.pos", JSON.stringify(forgePos));
+  }, [forgeWindowOpen, forgeMinimized, forgePos]);
 
   useEffect(() => {
     const mm = (e: MouseEvent | TouchEvent) => {
@@ -11557,7 +11567,7 @@ function IdlePage() {
           zIndex: 4000,
           cursor: "grab",
           transition: "none",
-          display: forgeWindowOpen ? "block" : "none",
+          display: "block",
         }}
       >
         {forgeMinimized ? (
@@ -11698,8 +11708,10 @@ function IdlePage() {
                  <button
                    onClick={(e) => { 
                      e.stopPropagation(); 
-                     setForgeWindowOpen(false); 
-                     setForgeMinimized(true); // Garante que ao fechar, ele "resete" para o modo minimizado (chest) no lugar padrão
+                     setForgeMinimized(true); 
+                     setForgeShowOrbit(false);
+                     // Reseta posição para o padrão ao fechar
+                     setForgePos({ x: window.innerWidth - 380, y: window.innerHeight - 250 });
                      playClick(); 
                    }}
                    style={{ background: "#ef4444", border: "none", color: "#fff", padding: "4px 8px", cursor: "pointer", borderRadius: 6, fontWeight: 900 }}
