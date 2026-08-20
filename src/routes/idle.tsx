@@ -5309,7 +5309,26 @@ function IdlePage() {
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `EXP +${pct}% · 1h`, "capture");
       pushChat(`Livro de EXP usado (+${pct}% EXP por 1 hora).`, "cap");
-    } else if (id === "orb_xp_minor" || id === "orb_xp_major" || id === "orb_xp_supreme" || id === "orb_xp_supreme_24h") {
+    } else if (id === "antidoto") {
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, antidoto: (s.items.antidoto ?? 0) - 1 },
+      }));
+      // Remove buffs negativos como veneno
+      poisonUntilRef.current = 0;
+      atkDebuffUntilRef.current = 0;
+      pushChat("🧪 Antídoto usado! Status negativos removidos.", "cap");
+      playBonus();
+    } else if (id === "orb_xp_minor" || id === "orb_xp_major" || id === "orb_xp_supreme" || id === "orb_xp_supreme_24h" || id === "incenso_xp_24h") {
+      const add = id === "orb_xp_minor" ? 0.10 : id === "orb_xp_major" ? 0.20 : (id === "incenso_xp_24h" ? 0.50 : 0.30);
+      const pct = Math.round(add * 100);
+      const is24 = id === "orb_xp_supreme_24h" || id === "incenso_xp_24h";
+      const label = id === "orb_xp_minor" ? "Orb Menor" : id === "orb_xp_major" ? "Orb Maior" : id === "incenso_xp_24h" ? "Incenso de XP 24h" : is24 ? "Orb Supremo 24h" : "Orb Supremo";
+      const nowT = Date.now();
+      if ((idle.buffs.orbUntil ?? 0) > nowT) {
+        pushChat(`Já há um Orb/Incenso de EXP ativo. Só 1 pode ficar ativo por vez.`, "info");
+        return;
+      }
       const add = id === "orb_xp_minor" ? 0.10 : id === "orb_xp_major" ? 0.20 : 0.30;
       const pct = Math.round(add * 100);
       const is24 = id === "orb_xp_supreme_24h";
@@ -11576,7 +11595,7 @@ function IdlePage() {
                   <img src={chestOpenImg} style={{ width: 24, height: 24, imageRendering: "pixelated" }} />
                 </div>
                 <div 
-                  onClick={(e) => { e.stopPropagation(); playClick(); /* Ação de craft */ }}
+                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
                     position: "absolute", width: 40, height: 40, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
@@ -11685,12 +11704,17 @@ function IdlePage() {
                 >
                   _
                 </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setForgeWindowOpen(false); playClick(); }}
-                  style={{ background: "#ef4444", border: "none", color: "#fff", padding: "4px 8px", cursor: "pointer", borderRadius: 6, fontWeight: 900 }}
-                >
-                  ×
-                </button>
+                 <button
+                   onClick={(e) => { 
+                     e.stopPropagation(); 
+                     setForgeWindowOpen(false); 
+                     setForgeMinimized(true); // Garante que ao fechar, ele "resete" para o modo minimizado (chest) no lugar padrão
+                     playClick(); 
+                   }}
+                   style={{ background: "#ef4444", border: "none", color: "#fff", padding: "4px 8px", cursor: "pointer", borderRadius: 6, fontWeight: 900 }}
+                 >
+                   ×
+                 </button>
               </div>
             </div>
 
@@ -11781,7 +11805,82 @@ function IdlePage() {
                       <div style={{ fontSize: 10, fontWeight: 800, color: "#78350f", textAlign: "center" }}>{id.replace("egg_","").toUpperCase()} EGG</div>
                       <div style={{ color: "#d97706", fontSize: 11, fontWeight: 900 }}>Qtd: {n}</div>
                     </div>
-                  ))}
+                   ))}
+
+                 {/* Incenso de XP 24h e Antídoto */}
+                 <div style={{
+                    background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "10px 6px",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                 }}>
+                   <FlaskConical size={32} color="#6366f1" />
+                   <div style={{ fontSize: 10, fontWeight: 800, color: "#78350f", textAlign: "center" }}>Incenso XP (24h)</div>
+                   <div style={{ fontSize: 8, color: "#92400e", textAlign: "center" }}>+50% XP por 24h</div>
+                   <div style={{ fontSize: 9, color: "#d97706", fontWeight: 900 }}>{Number(idle.items?.incenso_xp_24h || 0)} un</div>
+                   <button 
+                    onClick={() => {
+                      const cost = 100;
+                      const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
+                      const hasAll = STONES.every(k => (idle.items[k] ?? 0) >= cost);
+                      if (!hasAll) { pushChat("❌ Precisa de 100 stones de CADA tipo!", "info"); return; }
+                      
+                      setIdle(prev => {
+                        const nextItems = { ...prev.items };
+                        STONES.forEach(k => nextItems[k] = (nextItems[k] ?? 0) - cost);
+                        
+                        // 20% de chance de falha
+                        if (Math.random() < 0.20) {
+                          pushChat("💥 O craft falhou! As stones foram perdidas.", "info");
+                          playFail(); // assume playFail existe ou ignore
+                          return { ...prev, items: nextItems };
+                        }
+
+                        nextItems.incenso_xp_24h = (nextItems.incenso_xp_24h ?? 0) + 1;
+                        playBonus();
+                        pushChat(`✨ Forjou 1 Incenso de XP (24h)!`, "info");
+                        return { ...prev, items: nextItems };
+                      });
+                    }}
+                    style={{ background: "#6366f1", border: "none", color: "#fff", fontSize: 9, padding: "4px 6px", borderRadius: 6, fontWeight: 900, cursor: "pointer" }}
+                   >
+                     FORJAR (100)
+                   </button>
+                 </div>
+
+                 <div style={{
+                    background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "10px 6px",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                 }}>
+                   <FlaskConical size={32} color="#10b981" />
+                   <div style={{ fontSize: 10, fontWeight: 800, color: "#78350f", textAlign: "center" }}>Antídoto</div>
+                   <div style={{ fontSize: 8, color: "#92400e", textAlign: "center" }}>Limpa Status Negativos</div>
+                   <div style={{ fontSize: 9, color: "#d97706", fontWeight: 900 }}>{Number(idle.items?.antidoto || 0)} un</div>
+                   <button 
+                    onClick={() => {
+                      const cost = 50;
+                      const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
+                      const hasAll = STONES.every(k => (idle.items[k] ?? 0) >= cost);
+                      if (!hasAll) { pushChat("❌ Precisa de 50 stones de CADA tipo!", "info"); return; }
+                      
+                      setIdle(prev => {
+                        const nextItems = { ...prev.items };
+                        STONES.forEach(k => nextItems[k] = (nextItems[k] ?? 0) - cost);
+                        
+                        if (Math.random() < 0.10) { // 10% chance falha
+                          pushChat("💥 O craft falhou!", "info");
+                          return { ...prev, items: nextItems };
+                        }
+
+                        nextItems.antidoto = (nextItems.antidoto ?? 0) + 1;
+                        playBonus();
+                        pushChat(`✨ Forjou 1 Antídoto!`, "info");
+                        return { ...prev, items: nextItems };
+                      });
+                    }}
+                    style={{ background: "#10b981", border: "none", color: "#fff", fontSize: 9, padding: "4px 6px", borderRadius: 6, fontWeight: 900, cursor: "pointer" }}
+                   >
+                     FORJAR (50)
+                   </button>
+                 </div>
               </div>
 
               {/* Inventário de Rare Candy e Ação */}
