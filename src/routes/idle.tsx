@@ -10411,7 +10411,7 @@ function IdlePage() {
 
                     const continentUnlocked = activeTab === 1 ? isC1Unlocked : activeTab === 2 ? isC2Unlocked : activeTab === 3 ? isC3Unlocked : isC4Unlocked;
 
-                    const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type?: "crystal" | "ruby" | "safira"; name?: string; lv?: string; desc?: string; boss?: string }> = [
+                    const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type: string; name?: string; lv?: string; desc?: string; boss?: string }> = [
                       { id: "mapa_c4_1" as IdleMapId, x: 15, y: 25, type: "crystal", name: "Catedral de Cristal", lv: "Lv 10.000+", desc: "Torres de cristal puro ecoam cânticos antigos.", boss: "Guardião Prismático" },
                       { id: "mapa_c4_2" as IdleMapId, x: 25, y: 20, type: "crystal", name: "Veias Congeladas", lv: "Lv 10.500+", desc: "Rios de cristal líquido cortam a rocha.", boss: "Serpente de Quartzo" },
                       { id: "mapa_c4_3" as IdleMapId, x: 20, y: 35, type: "crystal", name: "Abóbada Prismática", lv: "Lv 11.000+", desc: "Uma cúpula que reflete infinitas versões do treinador.", boss: "Eco Espelhado" },
