@@ -4,9 +4,9 @@ import { generateMapIcon } from "@/lib/icons.functions";
 import { WindowManager } from "@/components/WindowManager";
 import { CraftWindowContent } from "@/components/CraftWindowContent";
 import { Hammer } from "lucide-react";
-import { BackpackContent } from "@/components/BackpackContent";
-import { ColecaoContent } from "@/components/ColecaoContent";
-import { MelhoriasContent } from "@/components/MelhoriasContent";
+import { BackpackWindowContent } from "@/components/BackpackWindowContent";
+import { CollectionWindowContent } from "@/components/CollectionWindowContent";
+import { ImprovementsWindowContent } from "@/components/ImprovementsWindowContent";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -14296,48 +14296,39 @@ function TabOverlay({
       )}
 
       {tab === "mochila" && (
-        <BackpackContent
+        <BackpackWindowContent
           items={items}
+          bank={idle.bank}
           onUseItem={onUseItem}
           onSellItem={onSellItem}
           marketSellPrices={marketSellPrices}
         />
       )}
 
-
-
       {tab === "colecao" && (
-        <ColecaoContent
+        <CollectionWindowContent
           collection={collection}
           maxCollection={MAX_COLLECTION}
           caughtCount={caughtSpecies.length}
           onSelectPokemon={onOpenColecaoDetail}
           teamUids={teamUidSet}
-          lockedSet={lockedSet}
-          onToggleLock={toggleLock}
-          colFilterRarity={colFilterRarity}
-          setColFilterRarity={setColFilterRarity}
-          colFilterName={colFilterName}
-          setColFilterName={setColFilterName}
-          colSort={colSort}
-          setColSort={setColSort}
-          colOnlyLocked={colOnlyLocked}
-          setColOnlyLocked={setColOnlyLocked}
-          bulkMode={bulkMode}
-          setBulkMode={setBulkMode}
-          bulkSel={bulkSel}
-          toggleBulk={toggleBulk}
-          onFragmentBulk={() => openFragConfirm([...bulkSel])}
         />
       )}
 
 
 
       {tab === "melhorias" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, textAlign: "center", padding: 40 }}>
-          As melhorias agora estão na janela <strong>✨ Anatomia da Conta</strong>.<br/>
-          Clique no botão "Melhorias" na barra inferior para abrir.
-        </div>
+        <ImprovementsWindowContent
+          stats={{
+            attack: idle.upgrades?.atk || 0,
+            speed: idle.upgrades?.speed || 0,
+            synergy: idle.upgrades?.synergy || 0,
+            resistance: idle.upgrades?.resistance || 0,
+            mastery: idle.upgrades?.mastery || 0
+          }}
+          items={items}
+          onUpgradeStat={onUpgrade}
+        />
       )}
 
 
