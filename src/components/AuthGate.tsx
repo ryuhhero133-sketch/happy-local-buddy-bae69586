@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode, type FormEvent } from "rea
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
+import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
+
 const loginBgAsset = { url: "/login-bg.png" };
 
 export const IDENTITY_KEY = "rubym.identity.v1";
@@ -118,6 +120,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [bootstrapping, setBootstrapping] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
+  const [maintenance, setMaintenance] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
 
   useEffect(() => {
     setMounted(true);
@@ -186,7 +191,32 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setChecking(false);
     });
 
-    return () => sub.subscription.unsubscribe();
+    // Check maintenance
+    const checkMaint = async () => {
+      const { enabled } = await checkMaintenanceMode();
+      setMaintenance(enabled);
+      if (enabled) {
+        const { isAdmin: adminStatus } = await checkIsAdmin();
+        setIsAdmin(adminStatus);
+        
+        // Se estiver em manutenção e NÃO for admin, desloga
+        if (!adminStatus) {
+          const { data: { session: currentSess } } = await supabase.auth.getSession();
+          if (currentSess) {
+            await supabase.auth.signOut();
+            window.location.reload();
+          }
+        }
+      }
+    };
+    checkMaint();
+    const interval = setInterval(checkMaint, 60000); // Check every minute
+
+    return () => {
+      sub.subscription.unsubscribe();
+      clearInterval(interval);
+    };
+
   }, []);
 
   // Single-session enforcement DESATIVADO — estava causando loop de login
@@ -250,6 +280,29 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
+
+  if (maintenance && !isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-black text-red-500 font-mono text-center">
+        <div className="max-w-md space-y-4 border-2 border-red-900 p-8 rounded-lg bg-red-950/20 backdrop-blur-sm">
+          <h1 className="text-2xl font-bold tracking-tighter">SERVIDOR EM MANUTENÇÃO</h1>
+          <p className="text-sm leading-relaxed opacity-80">
+            Ninguém pode jogar agora, apenas administradores.<br/>
+            Por favor, aguarde o retorno das atividades.
+          </p>
+          <div className="pt-4">
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-red-900 hover:bg-red-800 text-white text-xs tracking-widest transition-colors"
+            >
+              TENTAR NOVAMENTE
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
 
 
   if (recoveryMode) {
