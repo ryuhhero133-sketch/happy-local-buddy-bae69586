@@ -11720,8 +11720,12 @@ function IdlePage() {
           <div style={{
             width: "min(500px, 95vw)", background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
             border: "3px solid #f5cf6b", borderRadius: 20, padding: 20, position: "relative",
-            boxShadow: "0 0 50px rgba(245,207,107,0.3)"
+            boxShadow: "0 0 50px rgba(245,207,107,0.3)",
+            backgroundImage: `url(${assetUrlFromJson(mewtwoRewardBgAsset)})`,
+            backgroundSize: "cover", backgroundPosition: "center",
+            overflow: "hidden"
           }}>
+            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(1px)", zIndex: 0 }} />
             <button 
               onClick={() => setTab("inicio")}
               style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900 }}
