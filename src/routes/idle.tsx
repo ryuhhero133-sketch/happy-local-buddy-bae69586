@@ -10370,14 +10370,14 @@ function IdlePage() {
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string; order: number }> = [
+                      { id: "arena" as IdleMapId, x: 44, y: 17, type: "castle", order: 1 },
+                      { id: "terra" as IdleMapId, x: 38, y: 12, type: "forest", order: 2 },
+                      { id: "praia" as IdleMapId, x: 22, y: 45, type: "beach", order: 3 },
+                      { id: "vale_rochas" as IdleMapId, x: 16, y: 40, type: "mountain", order: 4 },
                       { id: "neve" as IdleMapId, x: 19.5, y: 15.5, type: "snow", order: 5 },
-                      { id: "arena" as IdleMapId, x: 44, y: 17, type: "castle", order: 2 },
-                      { id: "terra" as IdleMapId, x: 38, y: 12, type: "forest", order: 1 },
                       { id: "deserto" as IdleMapId, x: 70, y: 17, type: "desert", order: 6 },
                       { id: "deserto_purpura" as IdleMapId, x: 78, y: 22, type: "volcano", order: 7 },
                       { id: "caverna" as IdleMapId, x: 74, y: 12, type: "cave", order: 8 },
-                      { id: "praia" as IdleMapId, x: 22, y: 45, type: "beach", order: 3 },
-                      { id: "vale_rochas" as IdleMapId, x: 16, y: 40, type: "mountain", order: 4 },
                       { id: "n2" as IdleMapId, x: 28, y: 42, type: "forest", order: 9 },
                       { id: "pantano_fogo" as IdleMapId, x: 46, y: 44, type: "volcano", order: 10 },
                       { id: "venofogo" as IdleMapId, x: 41, y: 52, type: "volcano", order: 11 },
@@ -10525,7 +10525,7 @@ function IdlePage() {
                                   const targetMap = IDLE_MAPS[pin.id];
                                   const prevMap = IDLE_MAPS[prev.id];
                                   
-                                  // Lógica de liberação baseada em nível (exemplo simplificado)
+                                  // Lógica de liberação baseada em nível
                                   const isPinUnlocked = (idle.trainerLevel ?? 1) >= (targetMap?.minLevel ?? 0);
                                   const isPrevUnlocked = (idle.trainerLevel ?? 1) >= (prevMap?.minLevel ?? 0);
                                   const isPathUnlocked = isPinUnlocked && isPrevUnlocked;
@@ -10708,9 +10708,9 @@ function IdlePage() {
                               }
 
                               if (!m) return null;
-                              const ok = true;
-                              const current = idle.currentMap === pin.id;
                               const targetMap = m;
+                              const ok = (idle.trainerLevel ?? 1) >= (targetMap?.minLevel ?? 0);
+                              const current = idle.currentMap === pin.id;
 
                               return (
                                 <button
@@ -10781,7 +10781,15 @@ function IdlePage() {
                                         animation: ok ? "obsidianGlow 2s infinite alternate ease-in-out" : "none"
                                       }}>
                                           {/* Representação visual mais robusta do local (pixel-art feeling) */}
-                                          <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                          <div style={{ 
+                                            position: "relative", 
+                                            width: "100%", 
+                                            height: "100%", 
+                                            display: "flex", 
+                                            alignItems: "center", 
+                                            justifyContent: "center",
+                                            filter: ok ? "none" : "grayscale(1) brightness(0.6)"
+                                          }}>
                                             <MapIconRenderer type={pin.type} name={pin.name} ok={ok} />
                                           </div>
 
