@@ -1956,8 +1956,6 @@ function IdlePage() {
 
   const skinUrl = SKINS.find((s) => s.id === skinId)?.url ?? null;
 
-
-  const skinUrl = SKINS.find((s) => s.id === skinId)?.url ?? null;
   // Auto-battle / chat / WASD
   const [auto, setAuto] = useState(true);
   const autoRef = useRef(true);
