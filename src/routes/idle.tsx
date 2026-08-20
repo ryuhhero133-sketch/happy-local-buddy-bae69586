@@ -3400,10 +3400,12 @@ function IdlePage() {
       const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       if (e.key === "Escape") {
+        if (selectedMapInfo) { setSelectedMapInfo(null); return; }
         if (worldMapOpen) { setWorldMapOpen(false); return; }
         if (rankOpen) { setRankOpen(false); return; }
         return;
       }
+
       const k = e.key.toLowerCase();
       if (k === "m") { e.preventDefault(); setWorldMapOpen((v) => !v); return; }
       if (k === "r") { e.preventDefault(); pushChat("🏆 Ranked temporariamente bloqueado.", "info"); return; }
