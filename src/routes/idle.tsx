@@ -17066,105 +17066,103 @@ function TabOverlay({
           </div>
 
           {/* TRAINER EQUIPMENT PANEL */}
-          {(() => {
-            const currentSkinUrl = SKINS.find((s) => s.id === skinId)?.url ?? null;
-            return (
-              <div style={{
-                background: "linear-gradient(160deg, #2a1f3d 0%, #1a0f26 100%)",
-                border: "4px solid #8b5e3c",
-                borderRadius: 12,
-                padding: "20px 10px",
-                position: "relative",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(139, 94, 60, 0.2)",
-                display: "grid",
-                gridTemplateColumns: "1fr 140px 1fr",
-                alignItems: "center",
-                gap: 15,
-                imageRendering: "pixelated"
-              }}>
-                {/* Header */}
-                <div style={{
-                  position: "absolute",
-                  top: -15,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  background: "#8b5e3c",
-                  padding: "4px 20px",
-                  borderRadius: 20,
-                  border: "2px solid #d4a373",
-                  color: "#fff",
-                  fontSize: 14,
-                  fontWeight: 900,
-                  letterSpacing: 2,
-                  whiteSpace: "nowrap",
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.5)"
-                }}>EQUIPAMENTO</div>
+          <div style={{
+            background: "linear-gradient(160deg, #2a1f3d 0%, #1a0f26 100%)",
+            border: "4px solid #8b5e3c",
+            borderRadius: 12,
+            padding: "20px 10px",
+            position: "relative",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(139, 94, 60, 0.2)",
+            display: "grid",
+            gridTemplateColumns: "1fr 140px 1fr",
+            alignItems: "center",
+            gap: 15,
+            imageRendering: "pixelated"
+          }}>
+            {/* Header */}
+            <div style={{
+              position: "absolute",
+              top: -15,
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "#8b5e3c",
+              padding: "4px 20px",
+              borderRadius: 20,
+              border: "2px solid #d4a373",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 900,
+              letterSpacing: 2,
+              whiteSpace: "nowrap",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.5)"
+            }}>EQUIPAMENTO</div>
 
-                {/* Left Slots */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-end" }}>
-                  {(["head", "body", "weapon"] as const).map(slot => {
-                    const item = equippedItems[slot] ? TRAINER_EQUIPMENT_DATA[equippedItems[slot]!] : null;
-                    return (
-                      <div key={slot} style={{
-                        width: 50, height: 50,
-                        background: "rgba(0,0,0,0.4)",
-                        border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
-                        borderRadius: 8,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        cursor: "pointer",
-                        position: "relative",
-                        boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
-                      }}>
-                        {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
-                        {item && <div style={{ fontSize: 24 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
-                        <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Left Slots */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-end" }}>
+              {(["head", "body", "weapon"] as const).map(slot => {
+                const itemKey = equippedItems[slot];
+                const item = itemKey ? TRAINER_EQUIPMENT_DATA[itemKey as keyof typeof TRAINER_EQUIPMENT_DATA] : null;
+                return (
+                  <div key={slot} style={{
+                    width: 50, height: 50,
+                    background: "rgba(0,0,0,0.4)",
+                    border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
+                    borderRadius: 8,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer",
+                    position: "relative",
+                    boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
+                  }}>
+                    {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
+                    {item && <div style={{ fontSize: 24 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
+                    <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
+                  </div>
+                );
+              })}
+            </div>
 
-                {/* Center: Trainer Preview */}
-                <div style={{
-                  width: 130, height: 160,
-                  background: "rgba(0,0,0,0.2)",
-                  borderRadius: 12,
-                  border: "2px solid #5c4033",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  position: "relative",
-                  overflow: "hidden"
-                }}>
-                  {currentSkinUrl ? (
-                    <img src={currentSkinUrl} alt="Trainer" style={{ width: 100, height: 100, imageRendering: "pixelated", objectFit: "contain" }} />
-                  ) : (
-                    <div style={{ fontSize: 60 }}>🧢</div>
-                  )}
-                </div>
+            {/* Center: Trainer Preview */}
+            <div style={{
+              width: 130, height: 160,
+              background: "rgba(0,0,0,0.2)",
+              borderRadius: 12,
+              border: "2px solid #5c4033",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              position: "relative",
+              overflow: "hidden"
+            }}>
+              {skinUrl ? (
+                <img src={skinUrl} alt="Trainer" style={{ width: 100, height: 100, imageRendering: "pixelated", objectFit: "contain" }} />
+              ) : (
+                <div style={{ fontSize: 60 }}>🧢</div>
+              )}
+            </div>
 
-                {/* Right Slots */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-start" }}>
-                  {(["necklace", "ring", "feet"] as const).map(slot => {
-                    const item = equippedItems[slot] ? TRAINER_EQUIPMENT_DATA[equippedItems[slot]!] : null;
-                    return (
-                      <div key={slot} style={{
-                        width: 50, height: 50,
-                        background: "rgba(0,0,0,0.4)",
-                        border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
-                        borderRadius: 8,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        cursor: "pointer",
-                        position: "relative",
-                        boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
-                      }}>
-                        {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
-                        {item && <div style={{ fontSize: 24 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
-                        <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })()}
+            {/* Right Slots */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-start" }}>
+              {(["necklace", "ring", "feet"] as const).map(slot => {
+                const itemKey = equippedItems[slot];
+                const item = itemKey ? TRAINER_EQUIPMENT_DATA[itemKey as keyof typeof TRAINER_EQUIPMENT_DATA] : null;
+                return (
+                  <div key={slot} style={{
+                    width: 50, height: 50,
+                    background: "rgba(0,0,0,0.4)",
+                    border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
+                    borderRadius: 8,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer",
+                    position: "relative",
+                    boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
+                  }}>
+                    {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
+                    {item && <div style={{ fontSize: 24 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
+                    <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
 
           {/* SKINS SECTION */}
           <div>
