@@ -11705,16 +11705,16 @@ function IdlePage() {
                     >
                        {!isVip && (
                          <div style={{ 
-                           position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "flex-end", 
-                           background: "rgba(0,0,0,0.1)", zIndex: 2, paddingRight: 20
+                           position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", 
+                           background: "rgba(0,0,0,0.2)", zIndex: 2
                          }}>
                            <div style={{ 
-                             display: "flex", alignItems: "center", gap: 6,
-                             background: "rgba(0,0,0,0.6)", padding: "4px 10px", borderRadius: 20,
-                             border: "1px solid rgba(245,207,107,0.3)", backdropFilter: "blur(2px)"
+                             display: "flex", alignItems: "center", gap: 4,
+                             background: "rgba(0,0,0,0.7)", padding: "2px 8px", borderRadius: 12,
+                             border: "1px solid rgba(245,207,107,0.3)"
                            }}>
-                             <span style={{ fontSize: 14 }}>🔒</span>
-                             <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b", letterSpacing: 0.5 }}>PASSE MESTRE</span>
+                             <span style={{ fontSize: 12 }}>🔒</span>
+                             <span style={{ fontSize: 8, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
                            </div>
                          </div>
                        )}
@@ -11726,26 +11726,24 @@ function IdlePage() {
                            animation: "rotate 6s linear infinite", zIndex: 0
                          }} />
                        )}
- 
-                       <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.05)", borderRadius: 10 }}>
+  
+                       <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.05)", borderRadius: 8 }}>
                          <img 
                            src={day === 7 ? assetUrlFromJson(blackMiticPlusEggIcon) : assetUrlFromJson(iconCrystalBlue)} 
                            alt=""
                            style={{ 
-                             width: day === 7 ? 38 : 26, height: day === 7 ? 38 : 26, objectFit: "contain",
-                             filter: !isVip ? "drop-shadow(0 0 8px rgba(0,0,0,0.5))" : "drop-shadow(0 0 8px rgba(245,207,107,0.4))",
+                             width: day === 7 ? 32 : 22, height: day === 7 ? 32 : 22, objectFit: "contain",
+                             filter: "drop-shadow(0 0 4px rgba(0,0,0,0.3))",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
                          />
                        </div>
-                       <div style={{ flex: 1, fontSize: 11, fontWeight: 900, position: "relative", zIndex: 1 }}>
-                         <div style={{ color: isVip ? "#d97706" : "inherit", fontSize: 9, display: "flex", alignItems: "center", gap: 4, letterSpacing: 0.5 }}>
-                           👑 BÔNUS MESTRE {isVip && <span style={{ color: "#f5cf6b", animation: "pulse 1s infinite" }}>✨</span>}
+                       <div style={{ fontSize: 8, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.1 }}>
+                         <div style={{ color: isVip ? "#d97706" : "#f5cf6b" }}>
+                           BÔNUS {isVip && "✨"}
                          </div>
-                         <div style={{ lineHeight: 1.2, fontSize: 10 }}>
-                           {day === 7 
-                             ? "MASTER BALL + 50 RARE CANDY + 2 EGG EPIC + 500 POKEBAL + SKIN" 
-                             : "+200 CRISTAL + 100 POKEBAL + ITENS 5X"}
+                         <div style={{ opacity: 0.9 }}>
+                           {day === 7 ? "Master Ball + Egg + Skin" : "200💎 + 100◓"}
                          </div>
                        </div>
                     </div>
