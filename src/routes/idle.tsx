@@ -8,7 +8,8 @@ import { Hammer } from "lucide-react";
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles } from "lucide-react";
+import { FlaskConical, Sparkles, Search } from "lucide-react";
+import { CollectionWindowContent } from "@/components/CollectionWindowContent";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -8163,11 +8164,9 @@ function IdlePage() {
               onClick={() => openWindow("craft", "Forja Ancestral", (
                 <CraftWindowContent 
                   items={idle.items} 
-                  bank={idle.totals} 
-                  onCraft={(itemId, cost) => {
-                    // Implementação básica p/ evitar erro de compilação; o ideal é usar as funções de craft já existentes
-                    console.log("Crafting", itemId, cost);
-                    // Aqui você chamaria a lógica de craft real do jogo
+                  bank={idle.bank} 
+                  onCraft={(recipeId) => {
+                    console.log("Crafting", recipeId);
                   }} 
                 />
               ))}
@@ -8191,7 +8190,20 @@ function IdlePage() {
 
             
             <button
-              onClick={() => openWindow("collection_window", "Coleção Real", null)}
+              onClick={() => openWindow("collection_window", "Coleção Real", (
+                <CollectionWindowContent
+                  collection={idle.collection || []}
+                  maxCollection={MAX_COLLECTION}
+                  caughtCount={idle.caughtSpecies.length}
+                  teamUids={new Set(team.map(p => p.uid))}
+                  onSelectPokemon={(uid) => {
+                    const found = (idle.collection || []).find(p => p.uid === uid);
+                    if (found) {
+                      onPickTeamFromColecao(found);
+                    }
+                  }}
+                />
+              ))}
               style={{
                 width: 52, height: 52, borderRadius: 12,
                 background: "linear-gradient(135deg, #1e1e1e, #333)",
@@ -8286,19 +8298,19 @@ function IdlePage() {
                   display: "grid", placeItems: "center", overflow: "hidden"
                 }}>
                   <MapIconRenderer 
-                    type={selectedMapInfo.type} 
-                    name={selectedMapInfo.name} 
-                    ok={idle.trainerLevel >= selectedMapInfo.level} 
+                    type={IDLE_MAPS[selectedMapInfo].type} 
+                    name={IDLE_MAPS[selectedMapInfo].name} 
+                    ok={(idle.trainerLevel ?? 1) >= IDLE_MAPS[selectedMapInfo].level} 
                   />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
                       <h3 style={{ margin: 0, color: "#f5cf6b", fontSize: 16, fontWeight: 900, letterSpacing: 1 }}>
-                        {selectedMapInfo.name.toUpperCase()}
+                        {IDLE_MAPS[selectedMapInfo].name.toUpperCase()}
                       </h3>
                       <div style={{ fontSize: 10, color: "#a066ff", fontWeight: 800, marginTop: 2 }}>
-                        DIFF: {selectedMapInfo.difficulty} · LV.{selectedMapInfo.level}+
+                        DIFF: {IDLE_MAPS[selectedMapInfo].difficulty} · LV.{IDLE_MAPS[selectedMapInfo].level}+
                       </div>
                     </div>
                     <button 
@@ -8308,24 +8320,32 @@ function IdlePage() {
                   </div>
                   
                   <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                    <button
-                      onClick={() => {
-                        handleTravel(selectedMapInfo.id);
-                        setSelectedMapInfo(null);
-                      }}
-                      disabled={idle.trainerLevel < selectedMapInfo.level}
-                      style={{
-                        flex: 1, padding: "8px 0", borderRadius: 6,
-                        background: idle.trainerLevel < selectedMapInfo.level 
-                          ? "#333" 
-                          : "linear-gradient(180deg, #a066ff, #6b28c8)",
-                        color: "#fff", fontWeight: 900, fontSize: 12,
-                        border: "none", cursor: idle.trainerLevel < selectedMapInfo.level ? "not-allowed" : "pointer",
-                        boxShadow: idle.trainerLevel < selectedMapInfo.level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
-                      }}
-                    >
-                      {idle.trainerLevel < selectedMapInfo.level ? "BLOQUEADO" : "VIAJAR AGORA"}
-                    </button>
+                      <button
+                        onClick={() => {
+                          const pinId = selectedMapInfo;
+                          const synthGate = {
+                            key: `world-${pinId}`,
+                            target: pinId,
+                            x: WORLD_W / 2, y: WORLD_H / 2,
+                            arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
+                            color: "#f5cf6b",
+                          };
+                          setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
+                          setSelectedMapInfo(null);
+                        }}
+                        disabled={(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level}
+                        style={{
+                          flex: 1, padding: "8px 0", borderRadius: 6,
+                          background: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level 
+                            ? "#333" 
+                            : "linear-gradient(180deg, #a066ff, #6b28c8)",
+                          color: "#fff", fontWeight: 900, fontSize: 12,
+                          border: "none", cursor: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "not-allowed" : "pointer",
+                          boxShadow: (idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
+                        }}
+                      >
+                        {(idle.trainerLevel ?? 1) < IDLE_MAPS[selectedMapInfo].level ? "BLOQUEADO" : "VIAJAR AGORA"}
+                      </button>
                   </div>
                 </div>
               </div>

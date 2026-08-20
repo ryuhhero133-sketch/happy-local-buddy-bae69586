@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, ChevronDown, Trash2, ArrowUpCircle } from 'lucide-react';
 import type { PetInstance, Rarity } from '@/game/systems';
-import { SPECIES_BASE, TIER_COLOR } from '@/game/traits';
+import { TIER_COLOR } from '@/game/traits';
 
 interface CollectionWindowContentProps {
   collection: PetInstance[];
