@@ -320,8 +320,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
             <div className="h-full bg-red-500 animate-[loading_2s_infinite]" style={{ width: '40%' }} />
           </div>
           <p className="text-base leading-relaxed font-bold">
-            ACESSO RESTRITO A ADMINISTRADORES.<br/>
-            VOCÊ FOI DESCONECTADO POR SEGURANÇA.
+            liberar para entrar ok
           </p>
           <div className="pt-6">
             <button 
