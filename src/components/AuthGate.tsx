@@ -115,7 +115,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [maintenance, setMaintenance] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [bypassCode, setBypassCode] = useState("");
-  const [isBypassed, setIsBypassed] = useState(false);
+  const [isBypassed, setIsBypassed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("rubym.maintenance_bypass") === "true";
+  });
 
   const [mounted, setMounted] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
@@ -335,6 +338,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
                 onChange={(e) => setBypassCode(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && bypassCode === "ryuh333") {
+                    localStorage.setItem("rubym.maintenance_bypass", "true");
                     setIsBypassed(true);
                   }
                 }}
@@ -342,7 +346,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
               />
               {bypassCode === "ryuh333" && (
                 <button
-                  onClick={() => setIsBypassed(true)}
+                  onClick={() => {
+                    localStorage.setItem("rubym.maintenance_bypass", "true");
+                    setIsBypassed(true);
+                  }}
                   className="w-full mt-2 py-2 bg-red-600 text-white font-black hover:bg-red-500 transition-colors"
                 >
                   ACESSAR AGORA
