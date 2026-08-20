@@ -8271,43 +8271,12 @@ function IdlePage() {
               <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>FORJA</span>
             </button>
 
-            <button
-              onClick={() => openWindow("collection_window", "Coleção Real", (
-                <CollectionWindowContent
-                  collection={((idle.collection || []) as any[]).map(p => ({ ...p, hp: 100, maxHp: 100, fome: 100, lealdade: 100 })) as any}
-                  maxCollection={MAX_COLLECTION}
-                  caughtCount={idle.caughtSpecies.length}
-                  teamUids={new Set(team.map(p => p.uid))}
-                  onSelectPokemon={(uid) => {
-                    const found = (idle.collection || []).find(p => p.uid === uid);
-                    if (found) {
-                      onPickTeamFromColecao(found);
-                    }
-                  }}
-                />
-              ))}
-              style={{
-                width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, #1e1e1e, #333)",
-                border: "2px solid #a066ff",
-                color: "#a066ff",
-                display: "grid", placeItems: "center",
-                cursor: "pointer",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-                transition: "all 0.2s ease"
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #a066ff88"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
-              title="Abrir Coleção Real"
-            >
-              <Package size={28} />
-              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>COLEÇÃO</span>
-            </button>
+            {/* O botão legado "Coleção Real" foi removido em favor da nova janela modular abaixo */}
 
             <button
               onClick={() => openWindow("colecao_window", "Coleção de Pokémon", (
                 <CollectionWindowContent
-                  collection={idle.collection || []}
+                  collection={((idle.collection || []) as any[]).map(p => ({ ...p, hp: 100, maxHp: 100, fome: 100, lealdade: 100 })) as any}
                   maxCollection={500}
                   caughtCount={idle.caughtSpecies.length}
                   teamUids={new Set(team.map(p => p.uid))}
