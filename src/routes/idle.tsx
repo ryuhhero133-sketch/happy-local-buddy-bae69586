@@ -17369,15 +17369,15 @@ function TabOverlay({
                       <div style={{ 
                         width: 40, height: 40, 
                         background: "rgba(0,0,0,0.4)", 
-                        border: `1px solid ${RARITY_COLOR[item.rarity]}`,
+                        border: `1px solid ${item ? (RARITY_COLOR as any)[item.rarity] : "#ccc"}`,
                         borderRadius: 6, display: "grid", placeItems: "center", fontSize: 20 
                       }}>
                         {item.slot === "head" ? "🪖" : item.slot === "body" ? "🛡️" : item.slot === "weapon" ? "⚔️" : item.slot === "necklace" ? "📿" : item.slot === "ring" ? "💍" : "🥾"}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ color: RARITY_COLOR[item.rarity], fontWeight: 900, fontSize: 13 }}>{item.name}</span>
-                          <span style={{ fontSize: 9, opacity: 0.6, color: "#eadfe8" }}>{RARITY_NAME[item.rarity]}</span>
+                          <span style={{ color: item ? (RARITY_COLOR as any)[item.rarity] : "#fff", fontWeight: 900, fontSize: 13 }}>{item.name}</span>
+                          <span style={{ fontSize: 9, opacity: 0.6, color: "#eadfe8" }}>{item ? (RARITY_NAME as any)[item.rarity] : ""}</span>
                         </div>
                         <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                           {Object.entries(item.stats).map(([stat, val]) => (
