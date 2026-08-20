@@ -12121,7 +12121,7 @@ function IdlePage() {
                       </div>
 
                       <div style={{ position: "relative", zIndex: 1 }}>
-                        <div style={{ fontSize: 10, color: "#3730a3", fontWeight: 800, marginBottom: 8 }}>Probabilidades:</div>
+                        <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900, marginBottom: 8, textShadow: "0 1px 1px white" }}>Probabilidades:</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
                               <span style={{ color: "#6b7280" }}>Ovo Comum</span>
