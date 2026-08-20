@@ -934,6 +934,7 @@ type IdleState = {
   craftPoints?: number;
   items: Record<string, number>;
   bank: { gold: number; crystals: number };
+  crystals?: number; // Moeda premium (diamante)
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number };
   globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
   autoHeal: { enabled: boolean; threshold: number };
@@ -947,6 +948,7 @@ type IdleState = {
   grassOddishCaptured?: number;
   grassOddishReturnMap?: IdleMapId;
 };
+
 
 export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
 
@@ -11916,10 +11918,24 @@ function IdlePage() {
                             // Simula chocagem e adiciona à coleção
                             const species = eggId.replace("egg_", "") as Species;
                             const pet = makePet(species, 1);
-                            setIdle(prev => ({
-                              ...prev,
-                              collection: [...(prev.collection || []), pet]
-                            }));
+                            setIdle(prev => {
+                              const species = eggId.replace("egg_", "") as Species;
+                              const pet = makePet(species, 1);
+                              const entry: CollectionEntry = {
+                                uid: pet.uid,
+                                species: pet.species,
+                                level: pet.level,
+                                xp: pet.xp,
+                                rarity: pet.rarity,
+                                capturedAt: Date.now(),
+                                traits: pet.traits ?? [],
+                              };
+                              return {
+                                ...prev,
+                                collection: [...(prev.collection || []), entry]
+                              };
+                            });
+
                             
                             playLevelUp();
                             pushChat(`🐣 O ovo de ${species.toUpperCase()} chocou! Verifique sua coleção.`, "cap");
