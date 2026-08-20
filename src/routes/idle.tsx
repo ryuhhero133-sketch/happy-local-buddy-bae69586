@@ -1911,9 +1911,9 @@ function IdlePage() {
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
 
   // --- RPG MODULAR WINDOWS ---
-  const [forgeWindowOpen, setForgeWindowOpen] = useState(false);
+  const [forgeWindowOpen, setForgeWindowOpen] = useState(true);
   const [forgeMinimized, setForgeMinimized] = useState(true);
-  const [forgePos, setForgePos] = useState({ x: window.innerWidth - 100, y: window.innerHeight - 200 });
+  const [forgePos, setForgePos] = useState({ x: 1000, y: 600 });
   const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number } | null>(null);
 
   useEffect(() => {
