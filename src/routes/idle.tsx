@@ -10365,13 +10365,10 @@ function IdlePage() {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
                       { id: "neve", x: 19.5, y: 15.5, type: "snow" }, // Top left snowy mountains
-                      { id: "neve_val", x: 15.5, y: 25, type: "snow" },
-                      { id: "neve_gelo", x: 23, y: 20, type: "snow" },
                       { id: "arena", x: 44, y: 17, type: "castle" }, // Top center green castle
                       { id: "terra", x: 38, y: 12, type: "forest" }, 
-                      { id: "floresta_secreta", x: 48, y: 10, type: "forest" },
                       { id: "deserto", x: 70, y: 17, type: "desert" }, // Top right golden island
-                      { id: "deserto_purpura", x: 78, y: 22, type: "desert" },
+                      { id: "deserto_purpura", x: 78, y: 22, type: "volcano" },
                       { id: "caverna", x: 74, y: 12, type: "cave" },
                       { id: "praia", x: 22, y: 45, type: "beach" }, // Middle left green/water
                       { id: "vale_rochas", x: 16, y: 40, type: "mountain" },
@@ -10384,15 +10381,9 @@ function IdlePage() {
                       { id: "abismo_veneno", x: 85, y: 45, type: "cave" },
                       { id: "abismo_dragao", x: 92, y: 40, type: "cave" },
                       { id: "fantasma", x: 15, y: 78, type: "cave" }, // Bottom left lava/dark
-                      { id: "volcao_abissal", x: 10, y: 70, type: "volcano" },
                       { id: "cadeia_ab", x: 22, y: 82, type: "cave" },
                       { id: "cadeia_ab1", x: 26, y: 88, type: "cave" },
                       { id: "cadeia_f1", x: 28, y: 92, type: "cave" },
-                      { id: "ferry_ab", x: 50, y: 85, type: "village" }, // Bottom center island
-                      { id: "jardim_ab", x: 45, y: 75, type: "forest" },
-                      { id: "montanha_m", x: 78, y: 75, type: "mountain" }, // Bottom right peaks
-                      { id: "neve_end", x: 85, y: 70, type: "snow" },
-                      { id: "portal_f", x: 92, y: 90, type: "event" }, // Bottom right whirlpool area
 
                       ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event" }] : []),
                     ];
