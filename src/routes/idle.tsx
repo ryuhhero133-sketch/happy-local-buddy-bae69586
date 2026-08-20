@@ -1923,7 +1923,8 @@ function IdlePage() {
     if (typeof window === "undefined") return { x: 1000, y: 600 };
     const saved = localStorage.getItem("rubym.forge.pos");
     if (saved) try { return JSON.parse(saved); } catch { }
-    return { x: window.innerWidth - 80, y: window.innerHeight - 150 };
+    // Padrão: Perto do automático (inferior direito)
+    return { x: window.innerWidth - 380, y: window.innerHeight - 250 };
   });
   const [forgeShowOrbit, setForgeShowOrbit] = useState(false);
   const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number; hasMoved: boolean } | null>(null);
@@ -11693,57 +11694,28 @@ function IdlePage() {
             </div>
 
             <div style={{ padding: 16, maxHeight: 400, overflowY: "auto", background: "#fdfbf7" }}>
+              {/* Inventário de Pedras (Essências) */}
               <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
                 ✨ Inventário de Essências ✨
               </div>
-              
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
                 {Object.entries(idle.items || {})
                   .filter(([id]) => id.startsWith("stone_"))
                   .map(([id, n]) => {
-                    const names: Record<string, string> = {
+                    const stoneNames: Record<string, string> = {
                       stone_grass: "Grama", stone_fire: "Fogo",
                       stone_water: "Água", stone_electric: "Eletro",
                       stone_dark: "Trevas", stone_dragon: "Dragão"
                     };
-                    // Usar as imagens originais que o usuário pediu ("igual tem na bag")
-                    const stoneImgs: Record<string, string> = {
-                      stone_grass: chestGrassImg,
-                      stone_fire: chestFireImg,
-                      stone_water: chestWaterImg,
-                      stone_electric: chestElectricImg,
-                      stone_dark: chestDarkImg,
-                      stone_dragon: chestDragonImg
-                    };
-                    
                     return (
                       <div key={id} style={{
-                        background: "#fff9eb",
-                        border: "2px solid #fde68a",
-                        borderRadius: 12,
-                        padding: "10px 6px",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 6,
+                        background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "10px 6px",
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                         boxShadow: "0 2px 5px rgba(217,119,6,0.1)",
-                        transition: "transform 0.2s",
                       }}>
-                        <img 
-                          src={stoneImgs[id] || chestClosedImg} 
-                          alt={id}
-                          style={{ width: 40, height: 40, imageRendering: "pixelated", filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.15))" }}
-                        />
-                        <div style={{ fontSize: 11, fontWeight: 800, color: "#78350f" }}>{names[id] || id.replace("stone_","").toUpperCase()}</div>
-                        <div style={{
-                          background: "#d97706",
-                          color: "#fff",
-                          fontSize: 11,
-                          padding: "2px 8px",
-                          borderRadius: 8,
-                          fontWeight: 900,
-                          boxShadow: "0 2px 0 #92400e"
-                        }}>
+                        <ItemPixelIcon name={id} size={40} />
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#78350f" }}>{stoneNames[id] || id.replace("stone_","").toUpperCase()}</div>
+                        <div style={{ background: "#d97706", color: "#fff", fontSize: 11, padding: "2px 8px", borderRadius: 8, fontWeight: 900 }}>
                           {Number(n).toLocaleString()}
                         </div>
                       </div>
@@ -11751,8 +11723,62 @@ function IdlePage() {
                   })}
               </div>
 
+              {/* Inventário de Itens Especiais / Crafting */}
+              <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                🔨 Forjáveis & Especiais 🔨
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                 {/* Rare Candy */}
+                 <div style={{
+                    background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "10px 6px",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                 }}>
+                   <ItemPixelIcon name="rare_candy" size={40} />
+                   <div style={{ fontSize: 11, fontWeight: 800, color: "#78350f" }}>Rare Candy</div>
+                   <div style={{ fontSize: 9, color: "#92400e", fontWeight: 700 }}>{Number(idle.items?.rare_candy || 0)} un</div>
+                   <button 
+                    onClick={() => {
+                      const cost = 50;
+                      const hasAny = Object.keys(idle.items || {}).some(k => k.startsWith("stone_") && (idle.items[k] ?? 0) >= cost);
+                      if (!hasAny) {
+                        pushChat("❌ Você precisa de pelo menos 50 stones de um tipo para forjar Rare Candy!", "info");
+                        return;
+                      }
+                      setIdle(prev => {
+                        const nextItems = { ...prev.items };
+                        // Consome 50 de qualquer stone que o player tenha em abundância
+                        const stoneKey = Object.keys(nextItems).find(k => k.startsWith("stone_") && (nextItems[k] ?? 0) >= cost);
+                        if (!stoneKey) return prev;
+                        nextItems[stoneKey] = (nextItems[stoneKey] ?? 0) - cost;
+                        nextItems.rare_candy = (nextItems.rare_candy ?? 0) + 1;
+                        playBonus();
+                        pushChat(`✨ Forjou 1 Rare Candy usando 50 Stones!`, "success");
+                        return { ...prev, items: nextItems };
+                      });
+                    }}
+                    style={{ background: "#d97706", border: "none", color: "#fff", fontSize: 10, padding: "4px 8px", borderRadius: 6, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
+                   >
+                     FORJAR (50 St)
+                   </button>
+                 </div>
+
+                 {/* Ovos (Apenas ver se tem) */}
+                 {Object.entries(idle.items || {})
+                  .filter(([id]) => id.startsWith("egg_"))
+                  .map(([id, n]) => (
+                    <div key={id} style={{
+                      background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "10px 6px",
+                      display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                    }}>
+                      <ItemPixelIcon name={id} size={40} />
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "#78350f", textAlign: "center" }}>{id.replace("egg_","").toUpperCase()} EGG</div>
+                      <div style={{ color: "#d97706", fontSize: 11, fontWeight: 900 }}>Qtd: {n}</div>
+                    </div>
+                  ))}
+              </div>
+
               <div style={{ marginTop: 18, padding: 10, background: "#fef3c7", borderRadius: 10, border: "1px dashed #d97706", fontSize: 10, color: "#92400e", textAlign: "center", lineHeight: 1.4, fontWeight: 600 }}>
-                 Utilize estas pedras raras no painel de <b>Melhorias</b> para transcender o poder da sua equipe.
+                 Forje Rare Candies para subir o nível dos seus Pokémon instantaneamente ou combine fragmentos para novos ovos.
               </div>
             </div>
           </div>
