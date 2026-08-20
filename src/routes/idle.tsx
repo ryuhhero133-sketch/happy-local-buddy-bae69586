@@ -11784,6 +11784,64 @@ function IdlePage() {
                   ))}
               </div>
 
+              {/* Inventário de Rare Candy e Ação */}
+              <div style={{ fontSize: 12, color: "#92400e", marginTop: 20, marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                💊 Uso de Rare Candy 💊
+              </div>
+              <div style={{ background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                   <ItemPixelIcon id="rare_candy" size={44} />
+                   <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 900, color: "#78350f" }}>Rare Candy</div>
+                      <div style={{ fontSize: 10, color: "#92400e", fontWeight: 700 }}>Bônus: +1 Nível Permanente</div>
+                   </div>
+                   <div style={{ background: "#d97706", color: "#fff", padding: "4px 10px", borderRadius: 10, fontWeight: 900, fontSize: 12 }}>
+                      {Number(idle.items?.rare_candy || 0)}
+                   </div>
+                </div>
+                
+                <div style={{ fontSize: 10, color: "#92400e", marginBottom: 8, fontWeight: 800 }}>Escolha um Pokémon do time para upar:</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                   {team.map((p, idx) => (
+                      <button 
+                        key={p.uid}
+                        disabled={(idle.items?.rare_candy ?? 0) <= 0 || p.level >= 10000}
+                        onClick={() => {
+                           if ((idle.items?.rare_candy ?? 0) <= 0) return;
+                           setIdle(prev => {
+                              const nextItems = { ...prev.items };
+                              nextItems.rare_candy = (nextItems.rare_candy ?? 0) - 1;
+                              return { ...prev, items: nextItems };
+                           });
+                           setTeam(prev => prev.map((item, i) => {
+                              if (i === idx) {
+                                 const nextLv = (item.level ?? 1) + 1;
+                                 pushChat(`🍬 Rare Candy usado em ${item.species.toUpperCase()}! Nível ${nextLv}!`, "success");
+                                 playLevelUp();
+                                 return { ...item, level: nextLv, xp: 0 };
+                              }
+                              return item;
+                           }));
+                        }}
+                        style={{ 
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          padding: "6px 10px", borderRadius: 8, border: "1px solid #fde68a",
+                          background: (idle.items?.rare_candy ?? 0) > 0 ? "#fff" : "#f3f4f6",
+                          cursor: (idle.items?.rare_candy ?? 0) > 0 ? "pointer" : "not-allowed",
+                          fontSize: 11, fontWeight: 800, color: "#78350f"
+                        }}
+                      >
+                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <img src={GIF[p.species]} style={{ width: 20, height: 20, imageRendering: "pixelated" }} />
+                            <span>{p.species.replace(/_/g," ").toUpperCase()}</span>
+                         </div>
+                         <div style={{ color: "#d97706" }}>Lv.{p.level} → {p.level + 1}</div>
+                      </button>
+                   ))}
+                </div>
+              </div>
+
+
               <div style={{ marginTop: 18, padding: 10, background: "#fef3c7", borderRadius: 10, border: "1px dashed #d97706", fontSize: 10, color: "#92400e", textAlign: "center", lineHeight: 1.4, fontWeight: 600 }}>
                  Forje Rare Candies para subir o nível dos seus Pokémon instantaneamente ou combine fragmentos para novos ovos.
               </div>
