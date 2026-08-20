@@ -11780,7 +11780,7 @@ function IdlePage() {
                            src={rew.vipImg} 
                            alt=""
                            style={{ 
-                             width: day === 7 ? 32 : 24, height: day === 7 ? 32 : 24, objectFit: "contain",
+                             width: day === 7 ? 40 : 30, height: day === 7 ? 40 : 30, objectFit: "contain",
                              filter: "none",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
