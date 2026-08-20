@@ -11577,8 +11577,8 @@ function IdlePage() {
           display: "grid", placeItems: "center", padding: "20px 0"
         }}>
           <div style={{
-            width: "min(800px, 95vw)", 
-            maxHeight: "85vh",
+            width: "min(950px, 98vw)", 
+            maxHeight: "92vh",
             background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
             border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
             boxShadow: "0 0 60px rgba(245,207,107,0.4), 0 0 120px rgba(0,0,0,0.8)",
@@ -11595,13 +11595,13 @@ function IdlePage() {
               ×
             </button>
             <div style={{ textAlign: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
+              <div style={{ fontSize: 26, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, textShadow: "0 0 10px rgba(245,207,107,0.5)" }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
             </div>
 
             <div style={{ 
               display: "grid", 
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 12, 
+              gridTemplateColumns: "repeat(5, 1fr)",
+              gap: 15, 
               position: "relative", 
               zIndex: 1, 
               overflowY: "auto", 
@@ -11641,13 +11641,22 @@ function IdlePage() {
                     gap: 0, 
                     background: isLocked ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.08)", 
                     borderRadius: 16, 
-                    border: canClaim ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.3)",
+                    border: isClaimed 
+                      ? "2px solid #10b981" 
+                      : canClaim 
+                        ? "2px solid #f5cf6b" 
+                        : "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
-                    boxShadow: canClaim ? "0 0 25px rgba(245,207,107,0.4)" : "none",
-                    gridColumn: (day === 7 || day === 10) ? "span 4" : "span 1",
-                    height: 210,
+                    boxShadow: isClaimed 
+                      ? "0 0 15px rgba(16,185,129,0.3)" 
+                      : canClaim 
+                        ? "0 0 25px rgba(245,207,107,0.4)" 
+                        : "none",
+                    gridColumn: (day === 7 || day === 10) ? "span 2" : "span 1",
+                    height: 240,
                     transition: "all 0.3s ease",
-                    transform: canClaim ? "scale(1.02)" : "none"
+                    transform: canClaim ? "scale(1.02)" : "none",
+                    position: "relative"
                   }}>
                     <div style={{
                       background: isClaimed 
@@ -11672,18 +11681,18 @@ function IdlePage() {
                            fontSize: 24
                          }}>✅</div>
                        )}
-                       <div style={{ color: "#f59e0b", fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>DIA {day}</div>
-                       <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.03)", borderRadius: 10 }}>
+                       <div style={{ color: "#f59e0b", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>DIA {day}</div>
+                       <div style={{ width: 60, height: 60, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.05)", borderRadius: 12, boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)" }}>
                          <img 
                            src={rew.img} 
                            alt=""
                            style={{ 
-                             width: 32, height: 32, objectFit: "contain",
+                             width: 48, height: 48, objectFit: "contain",
                              animation: canClaim ? "pulse 2s infinite" : "none"
                            }} 
                          />
                        </div>
-                       <div style={{ fontSize: 9, fontWeight: 900, color: "#1a0f2e", opacity: 0.8, lineHeight: 1.1, minHeight: 22 }}>
+                       <div style={{ fontSize: 11, fontWeight: 900, color: "#1a0f2e", opacity: 0.9, lineHeight: 1.2, minHeight: 28, padding: "0 4px" }}>
                          {rew.label}
                        </div>
                        
@@ -11737,13 +11746,13 @@ function IdlePage() {
                         background: isVip 
                           ? "linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)" 
                           : "linear-gradient(135deg, #2a1045 0%, #3b1660 100%)",
-                        padding: "8px", 
-                        height: 95,
+                        padding: "10px", 
+                        height: 110,
                         display: "flex", 
                         flexDirection: "column",
                         alignItems: "center", 
                         justifyContent: "center",
-                        gap: 4,
+                        gap: 6,
                         color: "#fff", 
                         position: "relative", 
                         overflow: "hidden",
@@ -11755,17 +11764,17 @@ function IdlePage() {
                     >
                        {!isVip && (
                          <div style={{ 
-                           position: "absolute", top: 4, right: 4, display: "flex", alignItems: "center", justifyContent: "center", 
+                           position: "absolute", top: 6, left: 6, display: "flex", alignItems: "center", justifyContent: "center", 
                            zIndex: 10
                          }}>
                            <div style={{ 
                              display: "flex", alignItems: "center", gap: 3,
-                             background: "rgba(0,0,0,0.85)", padding: "2px 6px", borderRadius: 8,
-                             border: "1px solid rgba(245,207,107,0.5)",
-                             boxShadow: "0 0 10px rgba(245,207,107,0.3)"
+                             background: "rgba(0,0,0,0.85)", padding: "3px 8px", borderRadius: 8,
+                             border: "1px solid rgba(245,207,107,0.6)",
+                             boxShadow: "0 0 10px rgba(245,207,107,0.4)"
                            }}>
-                             <span style={{ fontSize: 10 }}>🔒</span>
-                             <span style={{ fontSize: 8, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
+                             <span style={{ fontSize: 12 }}>🔒</span>
+                             <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
                            </div>
                          </div>
                        )}
@@ -11782,22 +11791,22 @@ function IdlePage() {
                          animation: "rotate 4s linear infinite", zIndex: 0
                        }} />
   
-                       <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.2)" : "rgba(255,255,255,0.05)", borderRadius: 8 }}>
+                       <div style={{ width: 50, height: 50, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.3)" : "rgba(255,255,255,0.08)", borderRadius: 10 }}>
                          <img 
                            src={rew.vipImg} 
                            alt=""
                            style={{ 
-                             width: day === 7 ? 40 : 30, height: day === 7 ? 40 : 30, objectFit: "contain",
+                             width: day === 7 ? 55 : 42, height: day === 7 ? 55 : 42, objectFit: "contain",
                              filter: "none",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
                          />
                        </div>
-                       <div style={{ fontSize: 8, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.1 }}>
-                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa", textShadow: "0 0 5px rgba(245,207,107,0.5)" }}>
+                       <div style={{ fontSize: 10, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.2 }}>
+                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa", textShadow: "0 0 8px rgba(245,207,107,0.6)" }}>
                            BÔNUS {isVip && "✨"}
                          </div>
-                         <div style={{ opacity: 0.9, color: "#fff" }}>
+                         <div style={{ opacity: 0.95, color: "#fff" }}>
                            {rew.vipLabel}
                          </div>
                        </div>
