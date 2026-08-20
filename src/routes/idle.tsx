@@ -1956,6 +1956,7 @@ function IdlePage() {
   });
   const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number; hasMoved: boolean } | null>(null);
   const [auraEggCrafting, setAuraEggCrafting] = useState<{ active: boolean; progress: number; rarity?: Rarity } | null>(null);
+  const [showAuraEggDetails, setShowAuraEggDetails] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("rubym.forge.quests", JSON.stringify(forgeQuests));
