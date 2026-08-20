@@ -1909,6 +1909,35 @@ function IdlePage() {
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
+
+  // --- RPG MODULAR WINDOWS ---
+  const [forgeWindowOpen, setForgeWindowOpen] = useState(false);
+  const [forgeMinimized, setForgeMinimized] = useState(false);
+  const [forgePos, setForgePos] = useState({ x: 100, y: 100 });
+  const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number } | null>(null);
+
+  useEffect(() => {
+    const mm = (e: MouseEvent | TouchEvent) => {
+      if (!forgeDragRef.current) return;
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const dx = clientX - forgeDragRef.current.startX;
+      const dy = clientY - forgeDragRef.current.startY;
+      setForgePos({ x: forgeDragRef.current.winX + dx, y: forgeDragRef.current.winY + dy });
+    };
+    const mu = () => { forgeDragRef.current = null; };
+    window.addEventListener("mousemove", mm);
+    window.addEventListener("mouseup", mu);
+    window.addEventListener("touchmove", mm);
+    window.addEventListener("touchend", mu);
+    return () => {
+      window.removeEventListener("mousemove", mm);
+      window.removeEventListener("mouseup", mu);
+      window.removeEventListener("touchmove", mm);
+      window.removeEventListener("touchend", mu);
+    };
+  }, []);
+
   // Acumula XP/ouro/kills por mapa e anuncia no chat só a cada ~30s (evita spam e sobrecarga).
   const xpAccumRef = useRef({ xp: 0, gold: 0, kills: 0, map: "" as string });
   useEffect(() => {
@@ -11353,9 +11382,10 @@ function IdlePage() {
             { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
             { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
             { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b" },
-            
+            { id: "forge_win",label: "Forja",    img: "https://rpg-idle-game.lovable.app/assets/items/item_key_ruby.png", color: "#a855f7", isWindow: true },
             { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a" },
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
+
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
@@ -11376,19 +11406,23 @@ function IdlePage() {
                     return;
                   }
                   playClick();
-                  setTab(t.id as typeof tab);
+                  if ((t as any).isWindow) {
+                    if (t.id === "forge_win") setForgeWindowOpen(prev => !prev);
+                  } else {
+                    setTab(t.id as typeof tab);
+                  }
                 }}
                 title={isDisabled ? `${t.label} (em breve)` : t.label}
                 style={{
                   flex: 1, maxWidth: 130,
-                  background: showActive ? `linear-gradient(180deg, ${color}33 0%, ${color}11 100%)` : "transparent",
-                  color: isDisabled ? "#6a5a70" : (showActive ? color : "#c8b8d0"),
-                  border: showActive ? `1px solid ${color}88` : "1px solid transparent",
+                  background: ((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? `linear-gradient(180deg, ${color}33 0%, ${color}11 100%)` : "transparent",
+                  color: isDisabled ? "#6a5a70" : (((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? color : "#c8b8d0"),
+                  border: ((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? `1px solid ${color}88` : "1px solid transparent",
                   padding: "8px 6px", cursor: isDisabled ? "not-allowed" : "pointer",
                   borderRadius: 10, display: "flex", flexDirection: "column",
                   alignItems: "center", gap: 4, fontSize: 11, position: "relative",
                   transition: "background 150ms, color 150ms, border-color 150ms",
-                  boxShadow: showActive ? `0 0 14px ${color}66, inset 0 1px 0 ${color}44` : "none",
+                  boxShadow: ((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? `0 0 14px ${color}66, inset 0 1px 0 ${color}44` : "none",
                   opacity: isDisabled ? 0.55 : 1,
                 }}
               >
@@ -11401,13 +11435,14 @@ function IdlePage() {
                     width: 34, height: 34, imageRendering: "pixelated",
                     filter: isDisabled
                       ? "grayscale(1) brightness(0.7) drop-shadow(0 2px 2px rgba(0,0,0,0.6))"
-                      : (showActive
+                      : (((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen))
                         ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 2px 2px rgba(0,0,0,0.5))`
                         : "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) saturate(0.85) brightness(0.9)"),
-                    transform: active ? "translateY(-2px) scale(1.08)" : "none",
+                    transform: ((! (t as any).isWindow && tab === t.id) || ((t as any).isWindow && t.id === "forge_win" && forgeWindowOpen)) ? "translateY(-2px) scale(1.08)" : "none",
                     transition: "transform 150ms, filter 150ms",
                   }}
                 />
+
                 <span style={{ fontWeight: showActive ? 700 : 500, letterSpacing: 0.3 }}>
                   {t.label}
                 </span>
@@ -11456,6 +11491,138 @@ function IdlePage() {
           </button>
         </div>
       </div>
+
+      {/* RPG MODULAR WINDOWS: FORGE */}
+      {forgeWindowOpen && (
+        <div
+          style={{
+            position: "fixed",
+            left: forgePos.x,
+            top: forgePos.y,
+            zIndex: 3000,
+            width: 320,
+            pointerEvents: "auto",
+          }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(160deg, #1a0d2a 0%, #120820 100%)",
+              border: "3px solid #a855f7",
+              borderRadius: 12,
+              boxShadow: "0 10px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(168,85,247,0.2)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Window Header */}
+            <div
+              onMouseDown={(e) => {
+                forgeDragRef.current = {
+                  isDragging: true,
+                  startX: e.clientX,
+                  startY: e.clientY,
+                  winX: forgePos.x,
+                  winY: forgePos.y,
+                };
+              }}
+              onTouchStart={(e) => {
+                forgeDragRef.current = {
+                  isDragging: true,
+                  startX: e.touches[0].clientX,
+                  startY: e.touches[0].clientY,
+                  winX: forgePos.x,
+                  winY: forgePos.y,
+                };
+              }}
+              style={{
+                background: "linear-gradient(90deg, #a855f7 0%, #5b21b6 100%)",
+                padding: "8px 12px",
+                cursor: "grab",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                userSelect: "none",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <img src="https://rpg-idle-game.lovable.app/assets/items/item_key_ruby.png" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+                <span style={{ color: "#fff", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>FORJA MÍSTICA</span>
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button
+                  onClick={() => setForgeMinimized(!forgeMinimized)}
+                  style={{ background: "rgba(0,0,0,0.3)", border: "none", color: "#fff", padding: "2px 6px", cursor: "pointer", borderRadius: 4 }}
+                >
+                  {forgeMinimized ? "□" : "–"}
+                </button>
+                <button
+                  onClick={() => setForgeWindowOpen(false)}
+                  style={{ background: "#ef4444", border: "none", color: "#fff", padding: "2px 6px", cursor: "pointer", borderRadius: 4 }}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {!forgeMinimized && (
+              <div style={{ padding: 12, maxHeight: 400, overflowY: "auto" }}>
+                <div style={{ fontSize: 11, color: "#d4a2ff", marginBottom: 10, fontWeight: 700, textAlign: "center", textTransform: "uppercase" }}>
+                  Inventário de Pedras Elementais
+                </div>
+                
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {Object.entries(idle.items || {})
+                    .filter(([id]) => id.startsWith("stone_"))
+                    .map(([id, n]) => {
+                      const names: Record<string, string> = {
+                        stone_grass: "Grama", stone_fire: "Fogo",
+                        stone_water: "Água", stone_electric: "Eletro",
+                        stone_dark: "Trevas", stone_dragon: "Dragão"
+                      };
+                      const icons: Record<string, string> = {
+                        stone_grass: "🌿", stone_fire: "🔥",
+                        stone_water: "💧", stone_electric: "⚡",
+                        stone_dark: "🌑", stone_dragon: "🐉"
+                      };
+                      return (
+                        <div key={id} style={{
+                          background: "rgba(0,0,0,0.4)",
+                          border: "1.5px solid rgba(168,85,247,0.3)",
+                          borderRadius: 8,
+                          padding: 8,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: 4
+                        }}>
+                          <div style={{ fontSize: 24 }}>{icons[id] || "💎"}</div>
+                          <div style={{ fontSize: 10, fontWeight: 900, color: "#fff" }}>{names[id] || id.replace("stone_","").toUpperCase()}</div>
+                          <div style={{
+                            background: "#a855f7",
+                            color: "#fff",
+                            fontSize: 10,
+                            padding: "1px 6px",
+                            borderRadius: 4,
+                            fontWeight: 900,
+                            boxShadow: "0 2px 0 #5b21b6"
+                          }}>
+                            {Number(n).toLocaleString()}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                <div style={{ marginTop: 14, padding: 8, background: "rgba(168,85,247,0.1)", borderRadius: 6, border: "1px dashed #a855f7", fontSize: 10, color: "#b39dd8", textAlign: "center" }}>
+                   Use as pedras na aba "Melhorias" para fortalecer seu time.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
 
       <style>{`
         /* ===== Layout responsivo ===== */
