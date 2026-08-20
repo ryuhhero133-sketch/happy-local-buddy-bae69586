@@ -10708,9 +10708,9 @@ function IdlePage() {
                               }
 
                               if (!m) return null;
-                              const ok = true;
-                              const current = idle.currentMap === pin.id;
                               const targetMap = m;
+                              const ok = (idle.trainerLevel ?? 1) >= (targetMap?.minLevel ?? 0);
+                              const current = idle.currentMap === pin.id;
 
                               return (
                                 <button
