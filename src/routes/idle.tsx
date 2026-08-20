@@ -1958,6 +1958,28 @@ function IdlePage() {
   }, [ownedEquipment]);
 
   const skinUrl = SKINS.find((s) => s.id === skinId)?.url ?? null;
+  const [equipmentSlotPicker, setEquipmentSlotPicker] = useState<EquipmentSlot | null>(null);
+
+  const getTrainerStats = useCallback(() => {
+    const stats = { xpBonus: 0, goldBonus: 0, dropRate: 0, speed: 0 };
+    (Object.entries(equippedItems) as [EquipmentSlot, string | null][]).forEach(([_, itemId]) => {
+      if (!itemId) return;
+      const item = TRAINER_EQUIPMENT_DATA[itemId];
+      if (!item) return;
+      if (item.stats.xpBonus) stats.xpBonus += item.stats.xpBonus;
+      if (item.stats.goldBonus) stats.goldBonus += item.stats.goldBonus;
+      if (item.stats.dropRate) stats.dropRate += item.stats.dropRate;
+      if (item.stats.speed) stats.speed += item.stats.speed;
+    });
+    return stats;
+  }, [equippedItems]);
+
+  const onEquipItem = (slot: EquipmentSlot, itemId: string | null) => {
+    setEquippedItems(prev => ({ ...prev, [slot]: itemId }));
+    setEquipmentSlotPicker(null);
+    playClick();
+  };
+
 
 
 
