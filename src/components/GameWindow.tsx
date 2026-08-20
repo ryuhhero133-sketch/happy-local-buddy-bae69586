@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Maximize2, Move } from 'lucide-react';
+import { X, Minus, Maximize2 } from 'lucide-react';
 
 export interface WindowState {
   id: string;
@@ -74,7 +74,6 @@ export const GameWindow: React.FC<GameWindowProps> = ({
   return (
     <motion.div
       drag={!isMinimized}
-      dragHandleClassName="window-header"
       dragMomentum={false}
       onDragStart={() => {
         setIsDragging(true);
@@ -97,12 +96,12 @@ export const GameWindow: React.FC<GameWindowProps> = ({
       }}
       className="flex flex-col rounded-lg border-2 border-[#4A3728] bg-[#2D1B0E] shadow-[0_8px_0_0_#1A0F08,0_12px_24px_rgba(0,0,0,0.5)] overflow-hidden font-pixel"
     >
-      {/* Header */}
+      {/* Header - The whole header is the drag handle by default for framer-motion drag={true} */}
       <div 
         className="window-header flex items-center justify-between px-3 py-2 bg-[#4A3728] cursor-move select-none border-b-2 border-[#1A0F08]"
         onMouseDown={onFocus}
       >
-        <div className="flex items-center gap-2 overflow-hidden">
+        <div className="flex items-center gap-2 overflow-hidden pointer-events-none">
           {icon && <div className="flex-shrink-0">{icon}</div>}
           <span className="text-[#F3E5AB] text-sm truncate uppercase tracking-wider drop-shadow-md">
             {title}
@@ -111,12 +110,14 @@ export const GameWindow: React.FC<GameWindowProps> = ({
         
         <div className="flex items-center gap-1">
           <button 
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onMinimize(); }}
             className="p-1 hover:bg-[#5C4533] rounded transition-colors text-[#F3E5AB]"
           >
             {isMinimized ? <Maximize2 size={14} /> : <Minus size={14} />}
           </button>
           <button 
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onClose(); }}
             className="p-1 hover:bg-red-900 rounded transition-colors text-[#F3E5AB]"
           >
