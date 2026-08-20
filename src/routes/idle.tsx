@@ -1,17 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
-import { WindowManager } from "@/components/WindowManager";
-import { CraftWindowContent, RECIPES } from "@/components/CraftWindowContent";
-import { Hammer, Package, TrendingUp, LayoutGrid } from "lucide-react";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles, Search } from "lucide-react";
-import { CollectionWindowContent } from "@/components/CollectionWindowContent";
-import { BackpackWindowContent } from "@/components/BackpackWindowContent";
-import { ImprovementsWindowContent } from "@/components/ImprovementsWindowContent";
+import { FlaskConical, Sparkles } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
@@ -6628,51 +6622,6 @@ function IdlePage() {
 
 
 
-  const STONES_MAP = {
-    attack: { stone: "stone_fire", color: "#ff5252", label: "Poder Ígneo", desc: "Aumenta o dano base do time.", fail: 15 },
-    speed: { stone: "stone_electric", color: "#ffd94d", label: "Circuito Flash", desc: "Reduz o intervalo entre ataques.", fail: 12 },
-    synergy: { stone: "stone_grass", color: "#5ec26a", label: "Essência Vital", desc: "Melhora a cura e bônus de time.", fail: 18 },
-    resistance: { stone: "stone_water", color: "#4a7bff", label: "Barreira Fluida", desc: "Reduz o dano recebido.", fail: 15 },
-    mastery: { stone: "stone_dragon", color: "#c084fc", label: "Domínio Dracônico", desc: "Aumenta a chance de acertos críticos.", fail: 22 },
-  };
-
-  const onUpgradeBook = (key: string) => {
-    const cfg = (STONES_MAP as any)[key];
-    if (!cfg) return;
-
-    setIdle((s) => {
-      const stats = s.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
-      const lv = (stats as any)[key] || 0;
-      const stoneCost = 50 + lv * 25;
-      const bookCost = 1 + Math.floor(lv / 2);
-
-      if ((s.items[cfg.stone] || 0) < stoneCost) {
-        pushChat(`Stones insuficientes (${stoneCost} necessárias).`, "info");
-        return s;
-      }
-      if ((s.items.book_atk || 0) < bookCost || (s.items.book_def || 0) < bookCost) {
-        pushChat(`Livros insuficientes (${bookCost} de cada necessários).`, "info");
-        return s;
-      }
-
-      const success = Math.random() * 100 > cfg.fail;
-      const nextItems = { ...s.items };
-      nextItems[cfg.stone] -= stoneCost;
-      nextItems.book_atk -= bookCost;
-      nextItems.book_def -= bookCost;
-
-      if (!success) {
-        pushChat(`✗ Falha na melhoria de ${cfg.label}! Materiais consumidos.`, "info");
-        return { ...s, items: nextItems };
-      }
-
-      const nextStats = { ...stats, [key]: lv + 1 };
-      pushChat(`★ Sucesso! ${cfg.label} subiu para Lv.${lv + 1}.`, "cap");
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "UPGRADE!", "capture");
-
-      return { ...s, items: nextItems, globalStats: nextStats };
-    });
-  };
 
   // ===== UPGRADE de Livros =====
   // Regras: junta livros iguais para forjar o próximo nível. Exige nível de treinador.
@@ -7580,10 +7529,6 @@ function IdlePage() {
         </div>
       )}
 
-      <WindowManager>
-        {({ openWindow, closeWindow, isWindowOpen }) => (
-          <>
-
       <div className="idle-grid" style={{
         display: "grid",
         gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
@@ -8202,177 +8147,7 @@ function IdlePage() {
 
 
 
-          {/* Botões do WindowManager (LAND, CRAFT, etc) */}
-          <div style={{
-            position: "absolute", bottom: 80, left: 12, zIndex: 60,
-            display: "flex", flexDirection: "column", gap: 10
-          }}>
-            <button
-              onClick={() => openWindow("craft", "Forja Ancestral", (
-                <CraftWindowContent 
-                  items={idle.items} 
-                  bank={{ gold: idle.bank.gold, crystals: idle.bank.crystals }} 
-                  onCraft={(recipeId) => {
-                    const recipe = (RECIPES as any[]).find(r => r.id === recipeId);
-                    if (!recipe) return;
-                    
-                    const canCraft = recipe.ingredients.every((ing: any) => {
-                      if (ing.isCurrency) {
-                        if (ing.id === 'crystal') return idle.bank.crystals >= ing.qty;
-                        if (ing.id === 'gold') return idle.bank.gold >= ing.qty;
-                        return false;
-                      }
-                      return (idle.items[ing.id] || 0) >= ing.qty;
-                    });
-
-                    if (!canCraft) {
-                      pushChat("Materiais insuficientes para forjar este item.", "info");
-                      return;
-                    }
-
-                    setIdle(s => {
-                      const nextItems = { ...s.items };
-                      const nextBank = { ...s.bank };
-                      
-                      recipe.ingredients.forEach((ing: any) => {
-                        if (ing.isCurrency) {
-                          if (ing.id === 'crystal') nextBank.crystals -= ing.qty;
-                          if (ing.id === 'gold') nextBank.gold -= ing.qty;
-                        } else {
-                          nextItems[ing.id] = (nextItems[ing.id] || 0) - ing.qty;
-                        }
-                      });
-
-                      nextItems[recipe.result.id] = (nextItems[recipe.result.id] || 0) + recipe.result.qty;
-                      
-                      return { ...s, items: nextItems, bank: nextBank };
-                    });
-
-                    pushChat(`⚒️ Item forjado com sucesso: ${recipe.name}!`, "cap");
-                    pushFxAt(trainerPosRef.current.x, trainerPosRef.current.y - 40, "FORJADO!", "capture");
-                  }}
-                />
-              ))}
-              style={{
-                width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, #4a3010, #8b6a30)",
-                border: "2px solid #f5cf6b",
-                color: "#f5cf6b",
-                display: "grid", placeItems: "center",
-                cursor: "pointer",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-                transition: "all 0.2s ease"
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #f5cf6b88"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
-              title="Abrir Forja Ancestral (CRAFT)"
-            >
-              <Hammer size={28} />
-              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>FORJA</span>
-            </button>
-
-            {/* O botão legado "Coleção Real" foi removido em favor da nova janela modular abaixo */}
-
-            <button
-              onClick={() => openWindow("colecao_window", "Coleção de Pokémon", (
-                <CollectionWindowContent
-                  collection={((idle.collection || []) as any[]).map(p => ({ ...p, hp: 100, maxHp: 100, fome: 100, lealdade: 100 })) as any}
-                  maxCollection={500}
-                  caughtCount={idle.caughtSpecies.length}
-                  teamUids={new Set(team.map(p => p.uid))}
-                  onSelectPokemon={(uid) => {
-                    const entry = (idle.collection || []).find(e => e.uid === uid);
-                    if (entry) setStatsCardPet(entry as any);
-                  }}
-                  onRetireFromTeam={(uid) => {
-                    setTeam((prev) => prev.filter((x) => x.uid !== uid));
-                  }}
-                />
-              ))}
-              style={{
-                width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, #2a1638, #1a0f26)",
-                border: "2px solid #c084fc",
-                color: "#c084fc",
-                display: "grid", placeItems: "center",
-                cursor: "pointer",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-                transition: "all 0.2s ease"
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #c084fc88"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
-              title="Coleção de Pokémon"
-            >
-              <LayoutGrid size={28} />
-              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>COLEÇÃO</span>
-            </button>
-
-            <button
-              onClick={() => openWindow("mochila_window", "Mochila de Aventura", (
-                <BackpackWindowContent
-                  items={idle.items}
-                  bank={{ gold: idle.bank.gold, crystals: idle.bank.crystals }}
-                  onUseItem={(id, q) => useItem(id, q)}
-                  onSellItem={(id, q, cur) => sellItem(id, q, cur)}
-                  marketSellPrices={MARKET_SELL_PRICE}
-                />
-              ))}
-              style={{
-                width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, #3d2b0f, #241503)",
-                border: "2px solid #ff9d3d",
-                color: "#ff9d3d",
-                display: "grid", placeItems: "center",
-                cursor: "pointer",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-                transition: "all 0.2s ease"
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #ff9d3d88"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
-              title="Abrir Mochila"
-            >
-              <Package size={28} />
-              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>MOCHILA</span>
-            </button>
-
-            <button
-              onClick={() => openWindow("melhorias_window", "Anatomia da Conta", (
-                <ImprovementsWindowContent
-                  stats={idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 }}
-                  items={idle.items}
-                  onUpgrade={(key) => onUpgradeBook(key as string)}
-                  stonesMap={STONES_MAP}
-                  stoneImgs={{
-                    stone_grass: assetUrlFromJson(fxGrassImg as any),
-                    stone_fire: assetUrlFromJson(fxFireImg as any),
-                    stone_water: assetUrlFromJson(fxWaterImg as any),
-                    stone_electric: assetUrlFromJson(fxElectricImg as any),
-                    stone_dark: assetUrlFromJson(fxPoisonImg as any),
-                    stone_dragon: assetUrlFromJson(fxPsychicImg as any)
-                  }}
-                />
-              ))}
-              style={{
-                width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, #0f1a26, #1a2f46)",
-                border: "2px solid #5cd3ff",
-                color: "#5cd3ff",
-                display: "grid", placeItems: "center",
-                cursor: "pointer",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-                transition: "all 0.2s ease"
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #5cd3ff88"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
-              title="Melhorias de Conta"
-            >
-              <TrendingUp size={28} />
-              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>TREINAR</span>
-            </button>
-          </div>
-
           {/* Clima estilo pixel-RPG */}
-
           {weather !== "clear" && (
             <div style={{
               position: "absolute", inset: 0, zIndex: 40,
@@ -8428,78 +8203,7 @@ function IdlePage() {
           )}
 
 
-          {/* HUD Target / Selecionado no Topo */}
-          {selectedMapInfo && (
-            <div style={{
-              position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)",
-              zIndex: 70, width: "min(400px, 90vw)",
-              background: "rgba(10,5,15,0.95)",
-              border: "2px solid #a066ff", borderRadius: 12,
-              boxShadow: "0 0 25px rgba(160,102,255,0.4), inset 0 0 10px rgba(0,0,0,0.8)",
-              padding: 12, overflow: "hidden"
-            }}>
-              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                <div style={{
-                  width: 64, height: 64, borderRadius: 10,
-                  background: "rgba(30,15,45,0.8)",
-                  border: "1px solid #a066ff55",
-                  display: "grid", placeItems: "center", overflow: "hidden"
-                }}>
-                  <MapIconRenderer 
-                    type={(IDLE_MAPS[selectedMapInfo] as any).type} 
-                    name={IDLE_MAPS[selectedMapInfo].name} 
-                    ok={(idle.trainerLevel ?? 1) >= (IDLE_MAPS[selectedMapInfo] as any).level} 
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div>
-                      <h3 style={{ margin: 0, color: "#f5cf6b", fontSize: 16, fontWeight: 900, letterSpacing: 1 }}>
-                        {IDLE_MAPS[selectedMapInfo].name.toUpperCase()}
-                      </h3>
-                      <div style={{ fontSize: 10, color: "#a066ff", fontWeight: 800, marginTop: 2 }}>
-                        DIFF: {(IDLE_MAPS[selectedMapInfo] as any).difficulty} · LV.{(IDLE_MAPS[selectedMapInfo] as any).level}+
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => setSelectedMapInfo(null)}
-                      style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 16 }}
-                    >✕</button>
-                  </div>
-                  
-                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                      <button
-                        onClick={() => {
-                          const pinId = selectedMapInfo;
-                          const synthGate = {
-                            key: `world-${pinId}`,
-                            target: pinId,
-                            x: WORLD_W / 2, y: WORLD_H / 2,
-                            arriveX: WORLD_W / 2, arriveY: WORLD_H / 2,
-                            color: "#f5cf6b",
-                          };
-                          setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
-                          setSelectedMapInfo(null);
-                        }}
-                        disabled={(idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level}
-                        style={{
-                          flex: 1, padding: "8px 0", borderRadius: 6,
-                          background: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level 
-                            ? "#333" 
-                            : "linear-gradient(180deg, #a066ff, #6b28c8)",
-                          color: "#fff", fontWeight: 900, fontSize: 12,
-                          border: "none", cursor: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "not-allowed" : "pointer",
-                          boxShadow: (idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "none" : "0 4px 10px rgba(107,40,200,0.4)"
-                        }}
-                      >
-                        {(idle.trainerLevel ?? 1) < (IDLE_MAPS[selectedMapInfo] as any).level ? "BLOQUEADO" : "VIAJAR AGORA"}
-                      </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
+            {/* Contador de jogadores online removido a pedido do usuário */}
 
 
 
@@ -12000,11 +11704,6 @@ function IdlePage() {
           {identity.name}
         </div>
       )}
-          </>
-        )}
-      </WindowManager>
-
-
 
 
 
@@ -13445,9 +13144,10 @@ function IdlePage() {
         }}
       />
     </div>
+
+
   );
 }
-
 
 
 // ============ Componentes visuais ============
@@ -13900,16 +13600,18 @@ function TabOverlay({
   pushChat: (msg: string, tone?: any) => void;
 
 }) {
+
+
   const title =
     tab === "pokemon"   ? "MEU POKÉMON" :
-    tab === "mochila"   ? "MOCHILA (LEGACY)" :
-    tab === "colecao"   ? "COLEÇÃO (LEGACY)" :
+    tab === "mochila"   ? "MOCHILA" :
+    tab === "colecao"   ? "COLEÇÃO" :
     tab === "pokedex"   ? "POKÉDEX" :
     tab === "loja"      ? "LOJA" :
     tab === "wallet"    ? "BANCO MEDIEVAL" :
     tab === "market"    ? "MERCADO BLOQUEADO" :
 
-    tab === "melhorias" ? "MELHORIAS (LEGACY)" :
+    tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
@@ -14885,9 +14587,7 @@ function TabOverlay({
           boxShadow: "inset 0 0 24px rgba(184,134,42,0.25), 0 4px 18px rgba(0,0,0,0.4)",
         }}>
           {/* HUD topo da coleção */}
-          {/* Início Coleção (Removido daqui para janelas se desejado, mas mantido para fallback) */}
           <div style={{
-
             display: "flex", justifyContent: "space-between", alignItems: "center",
             marginBottom: 14, paddingBottom: 12,
             borderBottom: "2px solid rgba(184,134,42,0.5)",

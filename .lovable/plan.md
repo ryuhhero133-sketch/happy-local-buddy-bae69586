@@ -1,30 +1,18 @@
-# Modular RPG HUD and Forja Improvement
+# Implementation Plan - BMP Aura and UI Consolidation
 
-Refactor the Forja (Craft) system into a more professional, beige/brown RPG-style modular window, remove the redundant button under "FORJA", and enhance the Craft window content to include a mini-inventory view of stones and fragments.
+Consolidate aura effects for all Black Mitic Plus Pokémon and improve the World Map visual cues.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> - The buttons in the left sidebar will be cleaned up.
-> - The "FORJA" window will change color from the current dark theme to a "beige/brown" RPG style.
-> - A stone inventory will be added directly inside the Forja window.
+> The current world map reference image is used for all continents. This plan will add visual filters (grayscale) to represent locked continents while maintaining the single background asset.
 
-## Proposed Changes
-
-### HUD Cleanup
-- Remove the redundant button located directly under the main "FORJA" button in the sidebar.
-- Ensure the sidebar trigger only opens the modular `GameWindow`.
-
-### Craft System Enhancement
-- Modify `src/components/CraftWindowContent.tsx`:
-    - Update the UI to a "beige/brown" palette.
-    - Add a "Stones Inventory" section showing quantities of `stone_fire`, `stone_grass`, `stone_water`, `stone_electric`, `stone_dark`, `stone_dragon` and their fragments.
-    - Improve the recipe layout for better readability.
-
-### Modular Window Styling
-- Update `src/components/GameWindow.tsx` (or pass props) to support the "Beige/Brown" theme requested for the Forja.
+- **BMP Aura Consistency**: Ensure all `black_mitic_plus` Pokémon share the same purple aura effect across Team HUD, Collection, and Market.
+- **World Map Cues**: Improve the "grayscale to color" transition on the world map to clearly show progress across Continents I, II, III, and IV.
+- **UI Polish**: Minor adjustments to the bottom navigation to ensure "Salvar" and other icons are perfectly aligned.
 
 ## Technical Details
-- **WindowManager Integration**: Use the existing `WindowManager` to handle the Forja window.
-- **Styling**: Use Tailwind classes for the new beige (`bg-[#F5E6C8]`) and brown (`border-[#B8862A]`) theme.
-- **Component Splitting**: Move detailed craft logic into `CraftWindowContent` to keep `idle.tsx` lean.
+
+- **Aura Component**: Extract the aura logic into a reusable style or component if possible, or ensure the condition `rarity === 'black_mitic_plus'` triggers the purple drop-shadow/glow in all relevant mapping loops.
+- **Map Filters**: Update the `filter` property on the `worldMapRefAsset` container based on `continentUnlocked` and `activeTab`.
+- **Navigation Layout**: Adjust the flex-basis and padding of the navigation buttons to prevent text wrapping on smaller screens.
