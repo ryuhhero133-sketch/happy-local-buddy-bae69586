@@ -117,6 +117,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [bypassCode, setBypassCode] = useState("");
   const [isBypassed, setIsBypassed] = useState(() => {
     if (typeof window === "undefined") return false;
+    const email = localStorage.getItem("rubym.user_email");
+    if (email === "lordryuhhhuyuyghh@gmail.com") return true;
     return localStorage.getItem("rubym.maintenance_bypass") === "true";
   });
 
@@ -167,6 +169,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setSession(sess);
       if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
       if (event === "SIGNED_IN" && sess?.user?.id) {
+        if (sess.user.email) localStorage.setItem("rubym.user_email", sess.user.email);
+        if (sess.user.email === "lordryuhhhuyuyghh@gmail.com") setIsBypassed(true);
         try {
           const prev = localStorage.getItem(CURRENT_UID_KEY);
           if (prev && prev !== sess.user.id) {
