@@ -12123,21 +12123,21 @@ function IdlePage() {
                       <div style={{ position: "relative", zIndex: 1 }}>
                         <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900, marginBottom: 8, textShadow: "0 1px 1px white" }}>Probabilidades:</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
-                              <span style={{ color: "#6b7280" }}>Ovo Comum</span>
-                              <span>{Math.floor(50 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
+                              <span style={{ color: "#4b5563" }}>Ovo Comum</span>
+                              <span style={{ color: "#1f2937" }}>{Math.floor(50 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
                            </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
-                              <span style={{ color: "#3b82f6" }}>Ovo Raro</span>
-                              <span>{Math.floor(30 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
+                              <span style={{ color: "#2563eb" }}>Ovo Raro</span>
+                              <span style={{ color: "#1d4ed8" }}>{Math.floor(30 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
                            </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
-                              <span style={{ color: "#a855f7" }}>Ovo Épico</span>
-                              <span>{Math.floor(10 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
+                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
+                              <span style={{ color: "#9333ea" }}>Ovo Épico</span>
+                              <span style={{ color: "#7e22ce" }}>{Math.floor(10 * (1 + (auraEggDetails?.extraChance || 0)))}%</span>
                            </div>
-                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 700 }}>
-                              <span style={{ color: "#ef4444" }}>Falha Crítica</span>
-                              <span>{Math.max(1, Math.floor(15 * (1 - (auraEggDetails?.extraChance || 0))))}%</span>
+                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
+                              <span style={{ color: "#dc2626" }}>Falha Crítica</span>
+                              <span style={{ color: "#b91c1c" }}>{Math.max(1, Math.floor(15 * (1 - (auraEggDetails?.extraChance || 0))))}%</span>
                            </div>
                         </div>
 
