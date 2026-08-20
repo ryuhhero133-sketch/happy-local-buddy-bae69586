@@ -11641,11 +11641,10 @@ function IdlePage() {
                     gap: 0, 
                     background: isLocked ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.08)", 
                     borderRadius: 16, 
-                    border: isClaimed 
-                      ? "2px solid #10b981" 
-                      : canClaim 
-                        ? "2px solid #f5cf6b" 
-                        : "1px solid rgba(245,207,107,0.3)",
+                     border: (day === 7 || day === 10) 
+                       ? "3px solid #f5cf6b" 
+                       : (isClaimed ? "2px solid #10b981" : (canClaim ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.3)")),
+
                     overflow: "hidden",
                     boxShadow: (day === 7 || day === 10) 
                       ? "0 0 40px rgba(245,207,107,0.6), inset 0 0 20px rgba(245,207,107,0.3)" 
