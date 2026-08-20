@@ -10700,11 +10700,13 @@ function IdlePage() {
                                       {/* Arte Pixel do Local */}
                                       <div style={{
                                         fontSize: current ? 32 : 26,
-                                        filter: !continentUnlocked ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #a066ff)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
+                                        filter: !ok ? "grayscale(1) brightness(0.5)" : (current ? "drop-shadow(0 0 10px #a066ff)" : "drop-shadow(0 4px 6px rgba(0,0,0,0.6))"),
                                         transform: `scale(${current ? 1.2 : 1})`,
                                         transition: "transform 0.3s ease",
                                         imageRendering: "pixelated",
                                         zIndex: 10,
+                                        opacity: ok ? 1 : 0.6,
+                                        animation: ok ? "obsidianGlow 2s infinite alternate ease-in-out" : "none"
                                       }}>
                                          {/* Representação visual mais robusta do local (pixel-art feeling) */}
                                          <div style={{ position: "relative", width: "100%", height: "100%" }}>
