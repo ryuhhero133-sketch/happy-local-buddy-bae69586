@@ -924,17 +924,16 @@ type IdleState = {
   startedAt: number;
   lastTickAt: number;
   pending: { gold: number; rubies: number; crystals: number };
-  totals: { gold: number; captured: number; kills?: number };
+  totals: { gold: number; captured: number; kills: number };
   currentMap: IdleMapId;
   tasks: Task[];
   mapsUnlocked: number;
   caughtSpecies: Species[];
   seenSpecies: Species[];
   collection?: CollectionEntry[];
-  craftPoints?: number;
   items: Record<string, number>;
   bank: { gold: number; crystals: number };
-  crystals?: number; // Moeda premium (diamante)
+  crystals?: number;
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number };
   globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
   autoHeal: { enabled: boolean; threshold: number };
@@ -942,11 +941,11 @@ type IdleState = {
   trainerLevel?: number;
   trainerXp?: number;
   unlockedSkins?: string[];
-  hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   redeemedCodes?: Record<string, boolean>;
-  blackMiticPlusPending?: number;
-  grassOddishCaptured?: number;
-  grassOddishReturnMap?: IdleMapId;
+  totalKills?: number;
+  lastQuestReset?: number;
+  lastDailyReward?: number;
+  dailyRewardDay?: number;
 };
 
 
