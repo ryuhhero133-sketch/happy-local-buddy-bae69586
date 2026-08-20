@@ -11764,17 +11764,17 @@ function IdlePage() {
                     >
                        {!isVip && (
                          <div style={{ 
-                           position: "absolute", top: 4, right: 4, display: "flex", alignItems: "center", justifyContent: "center", 
+                           position: "absolute", top: 6, left: 6, display: "flex", alignItems: "center", justifyContent: "center", 
                            zIndex: 10
                          }}>
                            <div style={{ 
                              display: "flex", alignItems: "center", gap: 3,
-                             background: "rgba(0,0,0,0.85)", padding: "2px 6px", borderRadius: 8,
-                             border: "1px solid rgba(245,207,107,0.5)",
-                             boxShadow: "0 0 10px rgba(245,207,107,0.3)"
+                             background: "rgba(0,0,0,0.85)", padding: "3px 8px", borderRadius: 8,
+                             border: "1px solid rgba(245,207,107,0.6)",
+                             boxShadow: "0 0 10px rgba(245,207,107,0.4)"
                            }}>
-                             <span style={{ fontSize: 10 }}>🔒</span>
-                             <span style={{ fontSize: 8, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
+                             <span style={{ fontSize: 12 }}>🔒</span>
+                             <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
                            </div>
                          </div>
                        )}
