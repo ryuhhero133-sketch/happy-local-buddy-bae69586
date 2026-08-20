@@ -11598,7 +11598,7 @@ function IdlePage() {
               <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 15, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, position: "relative", zIndex: 1, overflowY: "auto", paddingRight: 5, flex: 1 }}>
               {[1, 2, 3, 4, 5, 6, 7].map(day => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
