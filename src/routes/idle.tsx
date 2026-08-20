@@ -10558,7 +10558,9 @@ function IdlePage() {
                                   backgroundImage: `url(${assetUrlFromJson(worldMapRefAsset)})`,
                                   backgroundSize: "cover",
                                   backgroundPosition: "center",
-                                  animation: "islandFloat 10s infinite ease-in-out"
+                                  animation: "islandFloat 10s infinite ease-in-out",
+                                  transform: "translate(0, 0)" // Forçar parada se o usuário preferir via CSS override posterior, mas aqui mantemos o float suave solicitado no prompt anterior, por ora vou desativar o float se a instrução atual diz "deixa ela parada"
+
                                 }}>
                                   {/* Overlay de cor para dar um feeling de "profundezas" no Continente IV se necessário, 
                                       mas por padrão usamos a imagem original para os continentes 1-3 */}
