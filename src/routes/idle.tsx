@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
+import { Calendar, Gift, Clock } from "lucide-react";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -924,17 +925,16 @@ type IdleState = {
   startedAt: number;
   lastTickAt: number;
   pending: { gold: number; rubies: number; crystals: number };
-  totals: { gold: number; captured: number; kills?: number };
+  totals: { gold: number; captured: number; kills: number };
   currentMap: IdleMapId;
   tasks: Task[];
   mapsUnlocked: number;
   caughtSpecies: Species[];
   seenSpecies: Species[];
   collection?: CollectionEntry[];
-  craftPoints?: number;
   items: Record<string, number>;
   bank: { gold: number; crystals: number };
-  crystals?: number; // Moeda premium (diamante)
+  crystals?: number;
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number };
   globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
   autoHeal: { enabled: boolean; threshold: number };
@@ -942,11 +942,17 @@ type IdleState = {
   trainerLevel?: number;
   trainerXp?: number;
   unlockedSkins?: string[];
-  hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   redeemedCodes?: Record<string, boolean>;
-  blackMiticPlusPending?: number;
-  grassOddishCaptured?: number;
+  totalKills?: number;
+  lastQuestReset?: number;
+  lastDailyReward?: number;
+  dailyRewardDay?: number;
+  // Propriedades restauradas para corrigir erros de build
+  craftPoints?: number;
+  hives?: Record<string, { slots: Array<{ uid: string; startedAt: number } | null> }>;
   grassOddishReturnMap?: IdleMapId;
+  grassOddishCaptured?: number;
+  blackMiticPlusPending?: number;
 };
 
 
@@ -1121,7 +1127,6 @@ function freshIdle(): IdleState {
     caughtSpecies: [],
     seenSpecies: [],
     collection: [],
-    craftPoints: 0,
     items: { premium_box: 1 },
     bank: { gold: 0, crystals: 30 },
     buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0, honeyRareUntil: 0, orbMult: 0, orbUntil: 0, orbId: "", teamOrbUntil: 0 },
@@ -1132,6 +1137,12 @@ function freshIdle(): IdleState {
     trainerXp: 0,
     unlockedSkins: ["default"],
     redeemedCodes: {},
+    lastQuestReset: 0,
+    lastDailyReward: 0,
+    dailyRewardDay: 0,
+    totalKills: 0,
+    craftPoints: 0,
+    hives: {},
   };
 }
 function saveIdle(s: IdleState) {
@@ -1588,6 +1599,8 @@ function IdlePage() {
     },
   });
 
+
+
   // ============= Cloud FULL BLOB (game_saves) =============
   // Hidrata state COMPLETO (items, missões, skins, buffs, party, bench)
   // e sobrescreve o cache local — evita rollback após F5 / trocar de dispositivo.
@@ -1897,7 +1910,7 @@ function IdlePage() {
   const enemyIdRef = useRef(1);
   const chestIdRef = useRef(1);
   const fxIdRef = useRef(1);
-  const [tab, setTab] = useState<"inicio" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas">("batalha");
+  const [tab, setTab] = useState<"inicio" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento">("inicio");
   const [skinId, setSkinId] = useState<string>(() => {
     if (typeof window === "undefined") return "default";
     try { return localStorage.getItem(SKIN_KEY) || "default"; } catch { return "default"; }
@@ -11446,6 +11459,7 @@ function IdlePage() {
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
             { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
+            { id: "evento",   label: "Evento",   img: navInicio,    color: "#ffc107" },
             { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b" },
           ] as const).map((t) => {
 
@@ -11544,6 +11558,116 @@ function IdlePage() {
           </button>
         </div>
       </div>
+
+      {/* CALENDÁRIO DIÁRIO */}
+      {tab === "evento" && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 10000,
+          background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)",
+          display: "grid", placeItems: "center", padding: 20
+        }}>
+          <div style={{
+            width: "min(500px, 95vw)", background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
+            border: "3px solid #f5cf6b", borderRadius: 20, padding: 20, position: "relative",
+            boxShadow: "0 0 50px rgba(245,207,107,0.3)"
+          }}>
+            <button 
+              onClick={() => setTab("inicio")}
+              style={{ position: "absolute", top: 10, right: 15, background: "none", border: "none", color: "#f5cf6b", fontSize: 24, cursor: "pointer", fontWeight: 900 }}
+            >
+              ×
+            </button>
+            <div style={{ textAlign: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 RECOMPENSA DIÁRIA</div>
+              <div style={{ fontSize: 12, color: "#c8b8d0", marginTop: 4 }}>Colete prêmios incríveis a cada 24 horas!</div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+              {[1, 2, 3, 4, 5, 6, 7].map(day => {
+                const now = Date.now();
+                const lastClaim = idle.lastDailyReward || 0;
+                const currentDay = idle.dailyRewardDay || 0;
+                const canClaim = (now - lastClaim) >= 86400000 && (currentDay % 7) + 1 === day;
+                const isClaimed = (currentDay % 7) >= day;
+                const isLocked = !canClaim && !isClaimed;
+
+                return (
+                  <div key={day} style={{
+                    background: isClaimed ? "rgba(34,197,94,0.2)" : (canClaim ? "rgba(245,207,107,0.15)" : "rgba(255,255,255,0.05)"),
+                    border: `2px solid ${isClaimed ? "#22c55e" : (canClaim ? "#f5cf6b" : "#4a3b5c")}`,
+                    borderRadius: 12, padding: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                    opacity: isLocked ? 0.6 : 1, transition: "all 0.2s"
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 900, color: isClaimed ? "#22c55e" : "#f5cf6b" }}>DIA {day}</div>
+                    <div style={{ fontSize: 20 }}>{day === 7 ? "💎" : "🎁"}</div>
+                    <div style={{ fontSize: 8, color: "#fff", textAlign: "center", fontWeight: 700 }}>
+                      {day === 7 ? "50 Cristais" : "500 Gold\n20 Pokéballs\n5 Great Balls"}
+                    </div>
+                    {canClaim ? (
+                      <button 
+                        onClick={() => {
+                          const rewardDay = (idle.dailyRewardDay || 0) + 1;
+                          setIdle(s => {
+                            const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
+                            next.bank.gold = (next.bank.gold || 0) + 500;
+                            next.items = { ...next.items };
+                            next.items.ball_poke = (next.items.ball_poke || 0) + 20;
+                            next.items.ball_great = (next.items.ball_great || 0) + 5;
+                            if (day === 7) {
+                              next.bank.crystals = (next.bank.crystals || 0) + 50;
+                              next.crystals = (next.crystals || 0) + 50;
+                            }
+                            return next;
+                          });
+                          pushChat(`🎁 Recompensa do Dia ${day} coletada!`, "cap");
+                          playBonus();
+                        }}
+                        style={{
+                          marginTop: 5, width: "100%", background: "#f5cf6b", color: "#1a0f2e",
+                          border: "none", borderRadius: 6, fontSize: 8, fontWeight: 900, padding: "4px 0", cursor: "pointer"
+                        }}
+                      >
+                        RESGATAR
+                      </button>
+                    ) : isClaimed ? (
+                      <div style={{ marginTop: 5, fontSize: 8, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>
+                    ) : (
+                      <div style={{ marginTop: 5, fontSize: 8, color: "#4a3b5c", fontWeight: 900 }}>BLOQUEADO</div>
+                    )}
+                  </div>
+                );
+              })}
+              
+              {/* Informações de Tempo */}
+              {(() => {
+                const now = Date.now();
+                const lastClaim = idle.lastDailyReward || 0;
+                const nextClaim = lastClaim + 86400000;
+                const diff = nextClaim - now;
+                if (diff <= 0) return null;
+                const hours = Math.floor(diff / 3600000);
+                const mins = Math.floor((diff % 3600000) / 60000);
+                return (
+                  <div style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: 10, fontSize: 10, color: "#f5cf6b", fontWeight: 700 }}>
+                    ⏳ Próximo resgate em: {hours}h {mins}m
+                  </div>
+                );
+              })()}
+            </div>
+            
+            <button 
+              onClick={() => setTab("inicio")}
+              style={{
+                marginTop: 20, width: "100%", padding: "12px", background: "rgba(245,207,107,0.1)",
+                border: "2px solid #f5cf6b", borderRadius: 12, color: "#f5cf6b",
+                fontWeight: 900, fontSize: 12, cursor: "pointer", transition: "all 0.2s"
+              }}
+            >
+              FECHAR CALENDÁRIO
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* BOTÃO FLUTUANTE DA FORJA */}
       <div
@@ -11753,77 +11877,122 @@ function IdlePage() {
                    <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
                      ✨ Missões da Forja ✨
                    </div>
-                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      {[
-                        { id: "level_50", title: "Mestre Iniciante", desc: "Alcance Nível 50 de Treinador", target: 50, current: idle.trainerLevel || 1, reward: { type: "crystals", amount: 50 } },
-                        { id: "level_200", title: "Veterano Ruby", desc: "Alcance Nível 200 de Treinador", target: 200, current: idle.trainerLevel || 1, reward: { type: "crystals", amount: 200 } },
-                        { id: "level_500", title: "Lenda Mística", desc: "Alcance Nível 500 de Treinador", target: 500, current: idle.trainerLevel || 1, reward: { type: "crystals", amount: 500 } },
-                        { id: "collect_1000", title: "Colecionador de Pedras", desc: "Acumule 1.000 Stones (Total)", target: 1000, current: Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0), reward: { type: "crystals", amount: 150 } },
-                        { id: "kill_1000", title: "Exterminador", desc: "Derrote 1.000 Pokémon", target: 1000, current: (idle as any).totalKills || 0, reward: { type: "item", id: "ball_ultra", amount: 50 } },
-                        { id: "level_1000", title: "Semi-Deus", desc: "Alcance Nível 1.000 de Treinador", target: 1000, current: idle.trainerLevel || 1, reward: { type: "item", id: "egg_legendary", amount: 1 } },
-                        { id: "level_2000", title: "Divindade", desc: "Alcance Nível 2.000 de Treinador", target: 2000, current: idle.trainerLevel || 1, reward: { type: "item", id: "egg_mythic", amount: 1 } },
-                        { id: "level_5000", title: "Absoluto", desc: "Alcance Nível 5.000 de Treinador", target: 5000, current: idle.trainerLevel || 1, reward: { type: "level", amount: 1 } },
-                        { id: "collect_10000", title: "Magnata das Essências", desc: "Acumule 10.000 Stones", target: 10000, current: Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0), reward: { type: "item", id: "ball_poke", amount: 500 } },
-                      ].map(q => {
-                        const isDone = (forgeQuests.completedIds || []).includes(q.id);
-                        const progress = Math.min(100, (q.current / q.target) * 100);
-                        return (
-                          <div key={q.id} style={{ background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: 10 }}>
-                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                                <div>
-                                   <div style={{ fontSize: 11, fontWeight: 900, color: "#78350f" }}>{q.title}</div>
-                                   <div style={{ fontSize: 9, color: "#92400e" }}>{q.desc}</div>
-                                </div>
-                                <div style={{ background: "#d97706", color: "#fff", padding: "2px 6px", borderRadius: 6, fontSize: 9, fontWeight: 900 }}>
-                                    {q.reward.type === "crystals" ? `${q.reward.amount} 💎` : 
-                                     q.reward.type === "item" ? `${q.reward.amount}x ${q.reward.id?.replace("ball_","").replace("egg_","").toUpperCase()}` :
-                                     `+${q.reward.amount} LV`}
-                                </div>
-                             </div>
-                             <div style={{ width: "100%", height: 6, background: "#e5e7eb", borderRadius: 3, overflow: "hidden", marginBottom: 4 }}>
-                                <div style={{ width: `${progress}%`, height: "100%", background: "#d97706", transition: "width 0.3s" }} />
-                             </div>
-                             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 700, color: "#92400e" }}>
-                                <span>{Math.floor(q.current)} / {q.target}</span>
-                                {isDone ? <span style={{ color: "#059669" }}>CONCLUÍDO</span> : 
-                                  q.current >= q.target && (
-                                    <button 
-                                      onClick={() => {
-                                        setIdle((prev: IdleState) => {
-                                          const next = { ...prev };
-                                          if (q.reward.type === "crystals") {
-                                            next.crystals = (next.crystals || 0) + q.reward.amount;
-                                          } else if (q.reward.type === "item" && q.reward.id) {
-                                            const nextItems = { ...next.items };
-                                            nextItems[q.reward.id] = (nextItems[q.reward.id] ?? 0) + q.reward.amount;
-                                            next.items = nextItems;
-                                          } else if (q.reward.type === "level") {
-                                            next.trainerLevel = (next.trainerLevel || 1) + q.reward.amount;
-                                          }
-                                          return next;
-                                        });
-                                        setForgeQuests((prev: any) => {
-                                          const next = { ...prev, completedIds: [...(prev.completedIds || []), q.id] };
-                                          localStorage.setItem("rubym.forge.quests", JSON.stringify(next));
-                                          return next;
-                                        });
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {(() => {
+                        const now = Date.now();
+                        const lastReset = idle.lastQuestReset || 0;
+                        const needsReset = (now - lastReset) > 86400000;
+                        
+                        const currentStoneCount = Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0);
+                        
+                        // Quests dinâmicas
+                        const quests = [
+                          // Tier de Nível (Static)
+                          ...Array.from({ length: Math.floor((idle.trainerLevel || 1) / 50) + 1 }).map((_, i) => ({
+                            id: `lv_tier_${i}`,
+                            title: `Mestre Tier ${i + 1}`,
+                            desc: `Alcance Nível ${(i + 1) * 50}`,
+                            target: (i + 1) * 50,
+                            current: idle.trainerLevel || 1,
+                            reward: { type: "crystals", amount: 50 * (i + 1) },
+                            category: "static"
+                          })),
+                          // Kill Daily (Daily)
+                          { 
+                            id: "kill_daily", 
+                            title: "Caçador Diário", 
+                            desc: "Derrote 100 Pokémon hoje", 
+                            target: 100, 
+                            current: (idle.totalKills || 0) % 100, 
+                            reward: { type: "item", id: "ball_great", amount: 10 }, 
+                            category: "daily" 
+                          },
+                          // Collect Stones (Static)
+                          { 
+                            id: "collect_stones", 
+                            title: "Magnata", 
+                            desc: "Acumule 5.000 Stones (Total)", 
+                            target: 5000, 
+                            current: currentStoneCount, 
+                            reward: { type: "item", id: "egg_epic", amount: 1 }, 
+                            category: "static" 
+                          }
+                        ];
 
-                                        playBonus();
-                                        const rewardText = q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
-                                                          q.reward.type === "item" ? `${q.reward.amount}x ${q.reward.id}` : `+${q.reward.amount} Nível`;
-                                        pushChat(`🎉 Missão Concluída: ${q.title}! Ganhou ${rewardText}!`, "cap");
-                                      }}
-                                      style={{ background: "#059669", color: "#fff", border: "none", padding: "2px 6px", borderRadius: 4, cursor: "pointer", fontSize: 8 }}
-                                    >
-                                      RESGATAR
-                                    </button>
-                                  )
-                                }
-                             </div>
-                          </div>
-                        );
-                      })}
-                   </div>
+                        return quests.filter(q => {
+                          const isDone = (forgeQuests.completedIds || []).includes(q.id);
+                          if (q.category === "daily") {
+                             return needsReset ? true : !isDone;
+                          }
+                          return !isDone;
+                        }).map(q => {
+                          const progress = Math.min(100, (q.current / q.target) * 100);
+                          return (
+                            <div key={q.id} style={{ background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: 10 }}>
+                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                                  <div>
+                                     <div style={{ fontSize: 11, fontWeight: 900, color: "#78350f" }}>{q.title}</div>
+                                     <div style={{ fontSize: 9, color: "#92400e" }}>{q.desc}</div>
+                                  </div>
+                                  <div style={{ background: "#d97706", color: "#fff", padding: "2px 6px", borderRadius: 6, fontSize: 9, fontWeight: 900 }}>
+                                      {q.reward.type === "crystals" ? `${q.reward.amount} 💎` : 
+                                       q.reward.type === "item" ? `${q.reward.amount}x ${(q.reward as any).id?.replace("ball_","").replace("egg_","").toUpperCase()}` :
+                                       `+${q.reward.amount} LV`}
+                                  </div>
+                               </div>
+                               <div style={{ width: "100%", height: 6, background: "#e5e7eb", borderRadius: 3, overflow: "hidden", marginBottom: 4 }}>
+                                  <div style={{ width: `${progress}%`, height: "100%", background: "#d97706", transition: "width 0.3s" }} />
+                               </div>
+                               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 700, color: "#92400e" }}>
+                                  <span>{Math.floor(q.current)} / {q.target}</span>
+                                  <button 
+                                    disabled={q.current < q.target}
+                                    onClick={() => {
+                                      if (q.current < q.target) return;
+                                      setIdle((prev: IdleState) => {
+                                        const next = { ...prev };
+                                        if (q.category === "daily" && needsReset) {
+                                           next.lastQuestReset = now;
+                                           // Ao resetar daily, limpa os IDs antigos de daily da lista de completados
+                                           setForgeQuests((fq: any) => ({
+                                              ...fq,
+                                              completedIds: (fq.completedIds || []).filter((id: string) => !id.endsWith("_daily"))
+                                           }));
+                                        }
+                                        
+                                        if (q.reward.type === "crystals") {
+                                          next.crystals = (next.crystals || 0) + q.reward.amount;
+                                          next.bank = { ...next.bank, crystals: (next.bank.crystals || 0) + q.reward.amount };
+                                        } else if (q.reward.type === "item" && (q.reward as any).id) {
+                                          const rid = (q.reward as any).id;
+                                          next.items = { ...next.items, [rid]: (next.items[rid] ?? 0) + q.reward.amount };
+                                        } else if (q.reward.type === "level") {
+                                          next.trainerLevel = (next.trainerLevel || 1) + q.reward.amount;
+                                        }
+                                        return next;
+                                      });
+                                      
+                                      setForgeQuests((prev: any) => {
+                                        const next = { ...prev, completedIds: [...(prev.completedIds || []), q.id] };
+                                        localStorage.setItem("rubym.forge.quests", JSON.stringify(next));
+                                        return next;
+                                      });
+
+                                      playBonus();
+                                      const rewardText = q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
+                                                        q.reward.type === "item" ? `${q.reward.amount}x ${(q.reward as any).id}` : `+${q.reward.amount} Nível`;
+                                      pushChat(`🎉 Missão Concluída: ${q.title}! Ganhou ${rewardText}!`, "cap");
+                                    }}
+                                    style={{ background: q.current >= q.target ? "#059669" : "#ccc", color: "#fff", border: "none", padding: "2px 6px", borderRadius: 4, cursor: q.current >= q.target ? "pointer" : "default", fontSize: 8 }}
+                                  >
+                                    RESGATAR
+                                  </button>
+                               </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
                    <button 
                     onClick={() => setShowForgeQuests(false)}
                     style={{ marginTop: 15, width: "100%", background: "#d97706", color: "#fff", border: "none", padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 10, cursor: "pointer" }}
