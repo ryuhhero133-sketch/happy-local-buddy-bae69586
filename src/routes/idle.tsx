@@ -11632,28 +11632,30 @@ function IdlePage() {
                     {/* Linha Normal */}
                     <div style={{
                       background: "rgba(255,255,255,0.95)", 
-                      padding: "10px 15px", 
+                      padding: "10px", 
                       display: "flex", 
+                      flexDirection: "column",
                       alignItems: "center", 
-                      gap: 12,
+                      gap: 4,
                       opacity: isLocked ? 0.8 : 1,
                       borderBottom: "1px solid rgba(0,0,0,0.05)",
-                      position: "relative"
+                      position: "relative",
+                      textAlign: "center"
                     }}>
+                       <div style={{ color: "#f59e0b", fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>DIA {day}</div>
                        <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.03)", borderRadius: 10 }}>
                          <img 
                            src={day === 7 ? assetUrlFromJson(iconCashPackage) : ballPokeImg} 
                            alt=""
                            style={{ 
                              width: 32, height: 32, objectFit: "contain",
-                             filter: isLocked ? "grayscale(1) opacity(0.5)" : "none",
+                             filter: isLocked ? "opacity(0.5)" : "none",
                              animation: canClaim ? "pulse 2s infinite" : "none"
                            }} 
                          />
                        </div>
-                       <div style={{ flex: 1, fontSize: 11, fontWeight: 900, color: "#1a0f2e" }}>
-                         <div style={{ color: "#f59e0b", fontSize: 9, letterSpacing: 1 }}>DIA {day}</div>
-                         <div style={{ opacity: 0.8 }}>{day === 7 ? "2k Gold + 200 Pokeballs + 100 Great" : "500 Gold + 20 Pokeballs"}</div>
+                       <div style={{ fontSize: 9, fontWeight: 900, color: "#1a0f2e", opacity: 0.8, lineHeight: 1.1 }}>
+                         {day === 7 ? "2k Gold + 200 Pokeballs + 100 Great" : "500 Gold + 20 Pokeballs"}
                        </div>
                        
                        {canClaim ? (
