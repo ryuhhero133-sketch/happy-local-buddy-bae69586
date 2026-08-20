@@ -11641,13 +11641,22 @@ function IdlePage() {
                     gap: 0, 
                     background: isLocked ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.08)", 
                     borderRadius: 16, 
-                    border: canClaim ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.3)",
+                    border: isClaimed 
+                      ? "2px solid #10b981" 
+                      : canClaim 
+                        ? "2px solid #f5cf6b" 
+                        : "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
-                    boxShadow: canClaim ? "0 0 25px rgba(245,207,107,0.4)" : "none",
-                    gridColumn: (day === 7 || day === 10) ? "span 4" : "span 1",
-                    height: 210,
+                    boxShadow: isClaimed 
+                      ? "0 0 15px rgba(16,185,129,0.3)" 
+                      : canClaim 
+                        ? "0 0 25px rgba(245,207,107,0.4)" 
+                        : "none",
+                    gridColumn: (day === 7 || day === 10) ? "span 2" : "span 1",
+                    height: 240,
                     transition: "all 0.3s ease",
-                    transform: canClaim ? "scale(1.02)" : "none"
+                    transform: canClaim ? "scale(1.02)" : "none",
+                    position: "relative"
                   }}>
                     <div style={{
                       background: isClaimed 
