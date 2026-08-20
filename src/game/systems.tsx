@@ -162,6 +162,8 @@ export type Species =
 
 
 
+export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "mythic_shiny";
+
 export const RARITY_COLOR: Record<Rarity, string> = {
   common: "#9bbc0f",
   uncommon: "#3aa655",
@@ -180,6 +182,7 @@ export const RARITY_NAME: Record<Rarity, string> = {
   mythic: "MITICO",
   mythic_shiny: "MITICO BRILHANTE",
 };
+
 
 
 export type EquipmentSlot = "head" | "body" | "weapon" | "feet" | "necklace" | "ring";
