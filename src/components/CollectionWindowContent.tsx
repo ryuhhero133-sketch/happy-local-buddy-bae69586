@@ -128,7 +128,14 @@ export const CollectionWindowContent: React.FC<CollectionWindowContentProps> = (
                 >
                   {/* Portrait Placeholder - Assuming GIF mapping or similar is handled by parent/globals */}
                   <div className="w-full aspect-square bg-[#0b0510] rounded border border-[#3a2a4a] mb-1 overflow-hidden flex items-center justify-center">
-                    <span className="text-[10px] opacity-20">{p.species.charAt(0).toUpperCase()}</span>
+                    <img 
+                      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${(p as any).apiId || 1}.gif`}
+                      alt=""
+                      className="w-10 h-10 image-pixelated"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${(p as any).apiId || 1}.png`;
+                      }}
+                    />
                   </div>
                   
                   <div className="text-[7px] font-bold truncate w-full text-center" style={{ color }}>

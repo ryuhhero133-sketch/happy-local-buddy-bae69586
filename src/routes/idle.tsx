@@ -8305,6 +8305,41 @@ function IdlePage() {
             </button>
 
             <button
+              onClick={() => openWindow("colecao_window", "Coleção de Pokémon", (
+                <CollectionWindowContent
+                  collection={idle.collection}
+                  maxCollection={500}
+                  caughtCount={idle.caughtSpecies.length}
+                  teamUids={new Set(team.map(p => p.uid))}
+                  onSelectPokemon={(uid) => {
+                    const entry = idle.collection.find(e => e.uid === uid);
+                    if (entry) setStatsCardPet(entry);
+                  }}
+                  onRetireFromTeam={(uid) => {
+                    const next = team.filter((x) => x.uid !== uid);
+                    onReorderTeam(next);
+                  }}
+                />
+              ))}
+              style={{
+                width: 52, height: 52, borderRadius: 12,
+                background: "linear-gradient(135deg, #2a1638, #1a0f26)",
+                border: "2px solid #c084fc",
+                color: "#c084fc",
+                display: "grid", placeItems: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #c084fc88"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
+              title="Coleção de Pokémon"
+            >
+              <LayoutGrid size={28} />
+              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>COLEÇÃO</span>
+            </button>
+
+            <button
               onClick={() => openWindow("mochila_window", "Mochila de Aventura", (
                 <BackpackWindowContent
                   items={idle.items}
