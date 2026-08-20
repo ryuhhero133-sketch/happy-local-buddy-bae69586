@@ -14304,10 +14304,28 @@ function TabOverlay({
 
 
       {tab === "colecao" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, textAlign: "center", padding: 40 }}>
-          A coleção agora é uma janela modular <strong>🛡️ Coleção Real</strong>.<br/>
-          Clique no botão "Coleção" na barra inferior para abrir.
-        </div>
+        <ColecaoContent
+          collection={collection}
+          maxCollection={MAX_COLLECTION}
+          caughtCount={caughtSpecies.length}
+          onSelectPokemon={onOpenColecaoDetail}
+          teamUids={teamUidSet}
+          lockedSet={lockedSet}
+          onToggleLock={toggleLock}
+          colFilterRarity={colFilterRarity}
+          setColFilterRarity={setColFilterRarity}
+          colFilterName={colFilterName}
+          setColFilterName={setColFilterName}
+          colSort={colSort}
+          setColSort={setColSort}
+          colOnlyLocked={colOnlyLocked}
+          setColOnlyLocked={setColOnlyLocked}
+          bulkMode={bulkMode}
+          setBulkMode={setBulkMode}
+          bulkSel={bulkSel}
+          toggleBulk={toggleBulk}
+          onFragmentBulk={() => openFragConfirm([...bulkSel])}
+        />
       )}
 
 
