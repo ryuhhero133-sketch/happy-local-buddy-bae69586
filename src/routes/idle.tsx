@@ -11577,8 +11577,8 @@ function IdlePage() {
           display: "grid", placeItems: "center", padding: "20px 0"
         }}>
           <div style={{
-            width: "min(800px, 95vw)", 
-            maxHeight: "85vh",
+            width: "min(950px, 98vw)", 
+            maxHeight: "92vh",
             background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
             border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
             boxShadow: "0 0 60px rgba(245,207,107,0.4), 0 0 120px rgba(0,0,0,0.8)",
@@ -11595,13 +11595,13 @@ function IdlePage() {
               ×
             </button>
             <div style={{ textAlign: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
+              <div style={{ fontSize: 26, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, textShadow: "0 0 10px rgba(245,207,107,0.5)" }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
             </div>
 
             <div style={{ 
               display: "grid", 
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 12, 
+              gridTemplateColumns: "repeat(5, 1fr)",
+              gap: 15, 
               position: "relative", 
               zIndex: 1, 
               overflowY: "auto", 
