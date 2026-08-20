@@ -11746,13 +11746,13 @@ function IdlePage() {
                         background: isVip 
                           ? "linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)" 
                           : "linear-gradient(135deg, #2a1045 0%, #3b1660 100%)",
-                        padding: "8px", 
-                        height: 95,
+                        padding: "10px", 
+                        height: 110,
                         display: "flex", 
                         flexDirection: "column",
                         alignItems: "center", 
                         justifyContent: "center",
-                        gap: 4,
+                        gap: 6,
                         color: "#fff", 
                         position: "relative", 
                         overflow: "hidden",
