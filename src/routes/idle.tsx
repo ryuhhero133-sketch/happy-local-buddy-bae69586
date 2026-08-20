@@ -10,7 +10,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, Search } from "lucide-react";
 import { CollectionWindowContent } from "@/components/CollectionWindowContent";
+import { BackpackWindowContent } from "@/components/BackpackWindowContent";
+import { ImprovementsWindowContent } from "@/components/ImprovementsWindowContent";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
+
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
 import navPokemon from "@/assets/icons/nav-pokemon.png";
@@ -11500,9 +11503,10 @@ function IdlePage() {
           {([
             { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
             { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
-            { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b" },
+            { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b", isWindow: true },
             
-            { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a" },
+            { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a", isWindow: true },
+
             { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
             { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
             { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
@@ -11520,12 +11524,45 @@ function IdlePage() {
                 onClick={() => {
                   if (isDisabled) {
                     playClick();
-                     pushChat("🛒 Mercado temporariamente bloqueado.", "info");
+                    pushChat("🛒 Mercado temporariamente bloqueado.", "info");
                     return;
                   }
                   playClick();
+                  
+                  if (t.isWindow) {
+                    const manager = (window as any).windowManager;
+                    if (manager) {
+                      if (t.id === "mochila") {
+                        manager.openWindow("mochila", "📦 Mochila MMO", (
+                          <BackpackWindowContent 
+                            items={idle.items}
+                            bank={idle.bank}
+                            onUseItem={onUseItem}
+                            onSellItem={onSellItem}
+                            marketSellPrices={marketSellPrices}
+                          />
+                        ), { width: 400, height: 500 });
+                      } else if (t.id === "melhorias") {
+                        manager.openWindow("melhorias", "✨ Anatomia da Conta", (
+                          <ImprovementsWindowContent 
+                            stats={idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 }}
+                            items={idle.items}
+                            onUpgradeStat={(key) => {
+                               // Assuming upgradeStat is available in scope or needs to be passed
+                               // For now, trigger a click on the legacy tab logic if needed, 
+                               // but ideally we call a function directly.
+                               pushChat(`Evoluindo ${key}...`, "info");
+                            }}
+                          />
+                        ), { width: 350, height: 450 });
+                      }
+                    }
+                    return;
+                  }
+                  
                   setTab(t.id as typeof tab);
                 }}
+
                 title={isDisabled ? `${t.label} (em breve)` : t.label}
                 style={{
                   flex: 1, maxWidth: 130,
