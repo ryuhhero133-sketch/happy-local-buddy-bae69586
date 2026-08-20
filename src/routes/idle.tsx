@@ -10126,6 +10126,7 @@ function IdlePage() {
               setEquipmentSlotPicker={setEquipmentSlotPicker}
               onEquipItem={onEquipItem}
 
+
               onBuyChestAmulet={buyChestAmulet}
               chestAmuletOwned={idle.items?.chest_amulet ?? 0}
               autoHeal={idle.autoHeal}
@@ -15036,6 +15037,7 @@ function TabOverlay({
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
   idle, setIdle, pushChat,
   equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem
+
 }: {
 
   tab: string;
@@ -15098,6 +15100,15 @@ function TabOverlay({
   idle: any;
   setIdle: React.Dispatch<React.SetStateAction<any>>;
   pushChat: (msg: string, tone?: any) => void;
+  equippedItems: Record<EquipmentSlot, string | null>;
+  setEquippedItems: React.Dispatch<React.SetStateAction<Record<EquipmentSlot, string | null>>>;
+  ownedEquipment: string[];
+  skinUrl: string | null;
+  getTrainerStats: () => { xpBonus: number; goldBonus: number; dropRate: number; speed: number };
+  equipmentSlotPicker: EquipmentSlot | null;
+  setEquipmentSlotPicker: React.Dispatch<React.SetStateAction<EquipmentSlot | null>>;
+  onEquipItem: (slot: EquipmentSlot, itemId: string | null) => void;
+
   equippedItems: Record<EquipmentSlot, string | null>;
   setEquippedItems: React.Dispatch<React.SetStateAction<Record<EquipmentSlot, string | null>>>;
   ownedEquipment: string[];
