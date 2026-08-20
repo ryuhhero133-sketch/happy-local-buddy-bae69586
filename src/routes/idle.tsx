@@ -15109,14 +15109,6 @@ function TabOverlay({
   setEquipmentSlotPicker: React.Dispatch<React.SetStateAction<EquipmentSlot | null>>;
   onEquipItem: (slot: EquipmentSlot, itemId: string | null) => void;
 
-  equippedItems: Record<EquipmentSlot, string | null>;
-  setEquippedItems: React.Dispatch<React.SetStateAction<Record<EquipmentSlot, string | null>>>;
-  ownedEquipment: string[];
-  skinUrl: string | null;
-  getTrainerStats: () => { xpBonus: number; goldBonus: number; dropRate: number; speed: number };
-  equipmentSlotPicker: EquipmentSlot | null;
-  setEquipmentSlotPicker: React.Dispatch<React.SetStateAction<EquipmentSlot | null>>;
-  onEquipItem: (slot: EquipmentSlot, itemId: string | null) => void;
 }) {
 
 
