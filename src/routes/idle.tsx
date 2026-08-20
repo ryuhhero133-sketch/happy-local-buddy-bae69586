@@ -11733,9 +11733,9 @@ function IdlePage() {
                       style={{
                         background: isVip 
                           ? "linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)" 
-                          : "linear-gradient(135deg, #1a0f2e 0%, #2a1548 100%)",
+                          : "linear-gradient(135deg, #2a1045 0%, #3b1660 100%)",
                         padding: "8px", 
-                        height: 90,
+                        height: 95,
                         display: "flex", 
                         flexDirection: "column",
                         alignItems: "center", 
@@ -11747,7 +11747,7 @@ function IdlePage() {
                         cursor: isVip ? "default" : "help",
                         transition: "all 0.3s ease",
                         textAlign: "center",
-                        borderTop: isVip ? "1px solid #f5cf6b" : "1px solid rgba(255,255,255,0.1)"
+                        borderTop: isVip ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.2)"
                       }}
                     >
                        {!isVip && (
