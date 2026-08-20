@@ -11647,7 +11647,9 @@ function IdlePage() {
                     transform: canClaim ? "scale(1.02)" : "none"
                   }}>
                     <div style={{
-                      background: "rgba(255,255,255,0.95)", 
+                      background: isClaimed 
+                        ? "linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%)" 
+                        : "rgba(255,255,255,0.95)", 
                       padding: "10px", 
                       flex: 1,
                       display: "flex", 
@@ -11655,11 +11657,18 @@ function IdlePage() {
                       alignItems: "center", 
                       justifyContent: "space-between",
                       gap: 4,
-                      opacity: isLocked ? 0.8 : 1,
-                      borderBottom: "1px solid rgba(0,0,0,0.05)",
+                      opacity: isLocked ? 0.7 : 1,
+                      borderBottom: "1px solid rgba(0,0,0,0.1)",
                       position: "relative",
                       textAlign: "center"
                     }}>
+                       {isClaimed && (
+                         <div style={{
+                           position: "absolute", inset: 0, background: "rgba(255,255,255,0.4)",
+                           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5,
+                           fontSize: 24
+                         }}>✅</div>
+                       )}
                        <div style={{ color: "#f59e0b", fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>DIA {day}</div>
                        <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.03)", borderRadius: 10 }}>
                          <img 
