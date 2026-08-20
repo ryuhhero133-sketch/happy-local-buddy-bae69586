@@ -1854,12 +1854,18 @@ function IdlePage() {
   useEffect(() => {
     const iv = setInterval(() => {
       if (!(autoBattleRef.current?.enabled)) return;
+      
+      const tStats = getTrainerStats();
+      const speedMult = 1 + (tStats.speed / 100);
+
       setTeam((tm) => {
         if (tm.length === 0) return tm;
         const now = Date.now();
         const leader = tm[0] as PetEnergyExt;
-        const drain = energyDrainPerSec(leader.rarity);
-        if (drain <= 0) return tm; // míticos não cansam
+        
+        const drain = energyDrainPerSec(leader.rarity) * speedMult;
+        
+        if (drain <= 0) return tm; 
         if (leader.azulRestUntil && leader.azulRestUntil > now) return tm;
         const cur = petCurrentEnergy(leader, now, { active: true });
         if (cur <= 0) return tm;
@@ -6984,14 +6990,18 @@ function IdlePage() {
         let bonusBall = 0;
         let bonusKey = 0;
         let emptyDrop = false;
-        if (roll < 0.20) {
+
+        const tStats = getTrainerStats();
+        const dropMult = 1 + tStats.dropRate;
+
+        if (roll < 0.20 / dropMult) {
           emptyDrop = true;
         } else if (roll < 0.45) {
           bonusKey = 1;
         } else if (roll < 0.65) {
           bonusBall = 1;
         } else if (roll < 0.90) {
-          gain = 150 + Math.floor(Math.random() * 250);
+          gain = Math.floor((150 + Math.floor(Math.random() * 250)) * (1 + tStats.goldBonus));
         } else {
           bonusCrystal = 1;
         }
