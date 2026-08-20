@@ -11683,26 +11683,26 @@ function IdlePage() {
                          }}>✅</div>
                        )}
                        <div style={{ 
-                         color: (day === 7 || day === 10) ? "#f5cf6b" : "#f59e0b", 
-                         fontSize: (day === 7 || day === 10) ? 14 : 11, 
+                         color: (day === 7 || day === 9) ? "#f5cf6b" : "#f59e0b", 
+                         fontSize: (day === 7 || day === 9) ? 14 : 11, 
                          fontWeight: 900, 
                          letterSpacing: 2, 
-                         textShadow: (day === 7 || day === 10) ? "0 0 10px rgba(245,207,107,0.5)" : "0 1px 2px rgba(0,0,0,0.2)" 
+                         textShadow: (day === 7 || day === 9) ? "0 0 10px rgba(245,207,107,0.5)" : "0 1px 2px rgba(0,0,0,0.2)" 
                        }}>
-                         DIA {day} {(day === 7 || day === 10) && "🌟"}
+                         DIA {day} {(day === 7 || day === 9) && "🌟"}
                        </div>
 
                        <div style={{ 
-                         width: (day === 7 || day === 10) ? 90 : 60, 
-                         height: (day === 7 || day === 10) ? 90 : 60, 
+                         width: (day === 7 || day === 9) ? 90 : 60, 
+                         height: (day === 7 || day === 9) ? 90 : 60, 
                          display: "grid", 
                          placeItems: "center", 
-                         background: (day === 7 || day === 10) ? "radial-gradient(circle, rgba(245,207,107,0.2) 0%, rgba(0,0,0,0.1) 70%)" : "rgba(0,0,0,0.05)", 
-                         borderRadius: (day === 7 || day === 10) ? 20 : 12, 
-                         boxShadow: (day === 7 || day === 10) ? "0 0 20px rgba(245,207,107,0.3), inset 0 0 10px rgba(0,0,0,0.1)" : "inset 0 0 10px rgba(0,0,0,0.05)",
+                         background: (day === 7 || day === 9) ? "radial-gradient(circle, rgba(245,207,107,0.2) 0%, rgba(0,0,0,0.1) 70%)" : "rgba(0,0,0,0.05)", 
+                         borderRadius: (day === 7 || day === 9) ? 20 : 12, 
+                         boxShadow: (day === 7 || day === 9) ? "0 0 20px rgba(245,207,107,0.3), inset 0 0 10px rgba(0,0,0,0.1)" : "inset 0 0 10px rgba(0,0,0,0.05)",
                          position: "relative"
                        }}>
-                         {(day === 7 || day === 10) && (
+                         {(day === 7 || day === 9) && (
                            <div style={{
                              position: "absolute", inset: -10,
                              border: "2px solid #f5cf6b", borderRadius: 25,
@@ -11715,11 +11715,11 @@ function IdlePage() {
                            src={rew.img} 
                            alt=""
                            style={{ 
-                             width: (day === 7 || day === 10) ? 75 : 48, 
-                             height: (day === 7 || day === 10) ? 75 : 48, 
+                             width: (day === 7 || day === 9) ? 75 : 48, 
+                             height: (day === 7 || day === 9) ? 75 : 48, 
                              objectFit: "contain",
-                             animation: (day === 7 || day === 10) ? "float 3s ease-in-out infinite" : (canClaim ? "pulse 2s infinite" : "none"),
-                             filter: (day === 7 || day === 10) ? "drop-shadow(0 0 8px rgba(245,207,107,0.6))" : "none"
+                             animation: (day === 7 || day === 9) ? "float 3s ease-in-out infinite" : (canClaim ? "pulse 2s infinite" : "none"),
+                             filter: (day === 7 || day === 9) ? "drop-shadow(0 0 8px rgba(245,207,107,0.6))" : "none"
 
                            }} 
                          />
