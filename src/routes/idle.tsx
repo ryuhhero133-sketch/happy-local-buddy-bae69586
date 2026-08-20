@@ -11608,7 +11608,7 @@ function IdlePage() {
               paddingRight: 5, 
               flex: 1 
             }}>
-              {[1, 2, 3, 4, 5, 6, 7].map(day => {
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(day => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
                 const currentDay = idle.dailyRewardDay || 0;
@@ -11626,6 +11626,9 @@ function IdlePage() {
                     case 5: return { img: premiumBoxImg, label: "2.5k Gold + Premium Box", vipImg: assetUrlFromJson(iceBallIconAsset), vipLabel: "200💎 + Master Ball" };
                     case 6: return { img: chestAmuletImg, label: "3k Gold + Amulet Chest", vipImg: catEggsUrl, vipLabel: "200💎 + Ovo Roxo" };
                     case 7: return { img: assetUrlFromJson(iconCashPackage), label: "5k Gold + Super Pack", vipImg: assetUrlFromJson(blackMiticPlusEggIcon), vipLabel: "Master Ball + Egg + Skin" };
+                    case 8: return { img: ballPokeImg, label: "1k Gold + 20 Great Balls", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "250💎 + 50 Ultra" };
+                    case 9: return { img: ballGreatImg, label: "2k Gold + 5 Ultra Balls", vipImg: bookExpImg, vipLabel: "250💎 + 2 Livros XP" };
+                    case 10: return { img: premiumBoxImg, label: "???", vipImg: premiumBoxImg, vipLabel: "Bau Premium VIP" };
                     default: return { img: ballPokeImg, label: "Reward", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "VIP Bonus" };
                   }
                 };
@@ -11641,7 +11644,7 @@ function IdlePage() {
                     border: canClaim ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
                     boxShadow: canClaim ? "0 0 25px rgba(245,207,107,0.4)" : "none",
-                    gridColumn: day === 7 ? "span 4" : "span 1",
+                    gridColumn: (day === 7 || day === 10) ? "span 4" : "span 1",
                     height: 210,
                     transition: "all 0.3s ease",
                     transform: canClaim ? "scale(1.02)" : "none"
@@ -11752,28 +11755,32 @@ function IdlePage() {
                     >
                        {!isVip && (
                          <div style={{ 
-                           position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", 
-                           background: "rgba(0,0,0,0.3)", zIndex: 2
+                           position: "absolute", top: 4, right: 4, display: "flex", alignItems: "center", justifyContent: "center", 
+                           zIndex: 10
                          }}>
                            <div style={{ 
-                             display: "flex", alignItems: "center", gap: 4,
-                             background: "rgba(0,0,0,0.85)", padding: "4px 10px", borderRadius: 12,
+                             display: "flex", alignItems: "center", gap: 3,
+                             background: "rgba(0,0,0,0.85)", padding: "2px 6px", borderRadius: 8,
                              border: "1px solid rgba(245,207,107,0.5)",
                              boxShadow: "0 0 10px rgba(245,207,107,0.3)"
                            }}>
-                             <span style={{ fontSize: 12 }}>🔒</span>
-                             <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
+                             <span style={{ fontSize: 10 }}>🔒</span>
+                             <span style={{ fontSize: 8, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
                            </div>
                          </div>
                        )}
                        
-                       {isVip && (
-                         <div style={{
-                           position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%",
-                           background: "conic-gradient(from 0deg, transparent, rgba(245,207,107,0.2), transparent)",
-                           animation: "rotate 6s linear infinite", zIndex: 0
-                         }} />
-                       )}
+                       <div style={{
+                         position: "absolute", inset: 0,
+                         background: "radial-gradient(circle at center, rgba(245,207,107,0.1) 0%, transparent 70%)",
+                         animation: "pulse 2s infinite alternate", zIndex: 0
+                       }} />
+                       
+                       <div style={{
+                         position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%",
+                         background: "conic-gradient(from 0deg, transparent, rgba(245,207,107,0.15), transparent)",
+                         animation: "rotate 4s linear infinite", zIndex: 0
+                       }} />
   
                        <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.2)" : "rgba(255,255,255,0.05)", borderRadius: 8 }}>
                          <img 
