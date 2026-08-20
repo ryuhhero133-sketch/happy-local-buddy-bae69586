@@ -11706,9 +11706,11 @@ function IdlePage() {
                           ? "linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)" 
                           : "linear-gradient(135deg, #1a0f2e 0%, #2a1548 100%)",
                         padding: "8px", 
+                        height: 90,
                         display: "flex", 
                         flexDirection: "column",
                         alignItems: "center", 
+                        justifyContent: "center",
                         gap: 4,
                         color: "#fff", 
                         position: "relative", 
@@ -11722,15 +11724,16 @@ function IdlePage() {
                        {!isVip && (
                          <div style={{ 
                            position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", 
-                           background: "rgba(0,0,0,0.2)", zIndex: 2
+                           background: "rgba(0,0,0,0.3)", zIndex: 2
                          }}>
                            <div style={{ 
                              display: "flex", alignItems: "center", gap: 4,
-                             background: "rgba(0,0,0,0.7)", padding: "2px 8px", borderRadius: 12,
-                             border: "1px solid rgba(245,207,107,0.3)"
+                             background: "rgba(0,0,0,0.85)", padding: "4px 10px", borderRadius: 12,
+                             border: "1px solid rgba(245,207,107,0.5)",
+                             boxShadow: "0 0 10px rgba(245,207,107,0.3)"
                            }}>
                              <span style={{ fontSize: 12 }}>🔒</span>
-                             <span style={{ fontSize: 8, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
+                             <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
                            </div>
                          </div>
                        )}
@@ -11738,28 +11741,28 @@ function IdlePage() {
                        {isVip && (
                          <div style={{
                            position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%",
-                           background: "conic-gradient(from 0deg, transparent, rgba(245,207,107,0.15), transparent)",
+                           background: "conic-gradient(from 0deg, transparent, rgba(245,207,107,0.2), transparent)",
                            animation: "rotate 6s linear infinite", zIndex: 0
                          }} />
                        )}
   
-                       <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.05)", borderRadius: 8 }}>
+                       <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.2)" : "rgba(255,255,255,0.05)", borderRadius: 8 }}>
                          <img 
-                           src={day === 7 ? assetUrlFromJson(blackMiticPlusEggIcon) : assetUrlFromJson(iconCrystalBlue)} 
+                           src={rew.vipImg} 
                            alt=""
                            style={{ 
-                             width: day === 7 ? 32 : 22, height: day === 7 ? 32 : 22, objectFit: "contain",
+                             width: day === 7 ? 32 : 24, height: day === 7 ? 32 : 24, objectFit: "contain",
                              filter: "none",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
                          />
                        </div>
                        <div style={{ fontSize: 8, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.1 }}>
-                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa" }}>
+                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa", textShadow: "0 0 5px rgba(245,207,107,0.5)" }}>
                            BÔNUS {isVip && "✨"}
                          </div>
-                         <div style={{ opacity: 0.9 }}>
-                           {day === 7 ? "Master Ball + Egg + Skin" : "200💎 + 100◓"}
+                         <div style={{ opacity: 0.9, color: "#fff" }}>
+                           {rew.vipLabel}
                          </div>
                        </div>
                     </div>
