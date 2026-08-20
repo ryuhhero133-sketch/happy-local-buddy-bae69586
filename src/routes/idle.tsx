@@ -11549,7 +11549,7 @@ function IdlePage() {
           top: forgePos.y,
           zIndex: 4000,
           cursor: "grab",
-          transition: !forgeDragRef.current?.isDragging ? "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
+          transition: "none",
           display: forgeWindowOpen ? "block" : "none",
         }}
       >
