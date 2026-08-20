@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
 import { WindowManager } from "@/components/WindowManager";
 import { CraftWindowContent, RECIPES } from "@/components/CraftWindowContent";
-import { Hammer, Package, TrendingUp } from "lucide-react";
+import { Hammer, Package, TrendingUp, LayoutGrid } from "lucide-react";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -8274,7 +8274,7 @@ function IdlePage() {
             <button
               onClick={() => openWindow("collection_window", "Coleção Real", (
                 <CollectionWindowContent
-                  collection={(idle.collection || []).map(p => ({ ...p, hp: 100, maxHp: 100, fome: 100, lealdade: 100 })) as any}
+                  collection={((idle.collection || []) as any[]).map(p => ({ ...p, hp: 100, maxHp: 100, fome: 100, lealdade: 100 })) as any}
                   maxCollection={MAX_COLLECTION}
                   caughtCount={idle.caughtSpecies.length}
                   teamUids={new Set(team.map(p => p.uid))}
@@ -8307,17 +8307,16 @@ function IdlePage() {
             <button
               onClick={() => openWindow("colecao_window", "Coleção de Pokémon", (
                 <CollectionWindowContent
-                  collection={idle.collection}
+                  collection={idle.collection || []}
                   maxCollection={500}
                   caughtCount={idle.caughtSpecies.length}
                   teamUids={new Set(team.map(p => p.uid))}
                   onSelectPokemon={(uid) => {
-                    const entry = idle.collection.find(e => e.uid === uid);
-                    if (entry) setStatsCardPet(entry);
+                    const entry = (idle.collection || []).find(e => e.uid === uid);
+                    if (entry) setStatsCardPet(entry as any);
                   }}
                   onRetireFromTeam={(uid) => {
-                    const next = team.filter((x) => x.uid !== uid);
-                    onReorderTeam(next);
+                    setTeam((prev) => prev.filter((x) => x.uid !== uid));
                   }}
                 />
               ))}
