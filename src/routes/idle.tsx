@@ -4,6 +4,9 @@ import { generateMapIcon } from "@/lib/icons.functions";
 import { WindowManager } from "@/components/WindowManager";
 import { CraftWindowContent } from "@/components/CraftWindowContent";
 import { Hammer } from "lucide-react";
+import { BackpackContent } from "@/components/BackpackContent";
+import { ColecaoContent } from "@/components/ColecaoContent";
+import { MelhoriasContent } from "@/components/MelhoriasContent";
 
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
