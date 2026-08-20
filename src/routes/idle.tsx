@@ -8,7 +8,8 @@ import { Hammer } from "lucide-react";
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles, Search } from "lucide-react";
+import { FlaskConical, Sparkles, Search, Hammer as HammerIcon } from "lucide-react";
+import { CraftHUD } from "@/components/CraftHUD";
 import { CollectionWindowContent } from "@/components/CollectionWindowContent";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import type { LucideIcon } from "lucide-react";
@@ -8171,31 +8172,26 @@ function IdlePage() {
             display: "flex", flexDirection: "column", gap: 10
           }}>
             <button
-              onClick={() => openWindow("craft", "Forja Ancestral", (
-                <CraftWindowContent 
-                  items={idle.items} 
-                  bank={idle.bank} 
-                  onCraft={(recipeId) => {
-                    console.log("Crafting", recipeId);
-                  }} 
-                />
+              onClick={() => openWindow("craft_hud", "Forja Portátil", (
+                <CraftHUD items={idle.items || {}} />
               ))}
               style={{
                 width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, #1e1e1e, #333)",
-                border: "2px solid #f5cf6b",
-                color: "#f5cf6b",
+                background: "linear-gradient(135deg, #2d1b0e, #4a3728)",
+                border: "2px solid #f3e5ab",
+                color: "#f3e5ab",
                 display: "grid", placeItems: "center",
                 cursor: "pointer",
                 boxShadow: "0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-                transition: "all 0.2s ease"
+                transition: "all 0.2s ease",
+                position: 'relative'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #f5cf6b88"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 0 15px #f3e5ab88"; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)"; }}
-              title="Abrir Forja Ancestral (CRAFT)"
+              title="Abrir Forja Portátil (CRAFT)"
             >
-              <Hammer size={28} />
-              <span style={{ fontSize: 9, fontWeight: 900, marginTop: -2 }}>FORJA</span>
+              <HammerIcon size={24} />
+              <span style={{ fontSize: 7, fontWeight: 900, marginTop: 2, textShadow: '0 1px 2px black' }}>CRAFT</span>
             </button>
 
             
