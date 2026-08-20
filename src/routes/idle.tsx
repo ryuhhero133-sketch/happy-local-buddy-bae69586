@@ -11535,67 +11535,68 @@ function IdlePage() {
                   }
                   playClick();
                   
-                  if ((t as any).isWindow) {
+                  if (t.id === "land") {
                     const manager = (window as any).windowManager;
                     if (manager) {
-                      if (t.id === "mochila") {
-                        manager.openWindow("mochila", "📦 Mochila MMO", (
-                          <BackpackWindowContent 
-                            items={idle.items}
-                            bank={idle.bank}
-                            onUseItem={useItem}
-                            onSellItem={sellItem}
-                            marketSellPrices={MARKET_SELL_PRICE || {}}
-                          />
-                        ), { width: 400, height: 500 });
-                      } else if (t.id === "melhorias") {
-                        manager.openWindow("melhorias", "✨ Anatomia da Conta", (
-                          <ImprovementsWindowContent 
-                            stats={idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 }}
-                            items={idle.items}
-                            onUpgradeStat={(key) => {
-                               pushChat(`Evoluindo ${key}...`, "info");
-                            }}
-                          />
-                        ), { width: 350, height: 450 });
-                      } else if (t.id === "colecao") {
-                        manager.openWindow("colecao", "🛡️ Coleção Real", (
-                          <CollectionWindowContent 
-                            collection={(idle.collection || []) as any}
-                            maxCollection={500}
-                            caughtCount={idle.caughtSpecies?.length || 0}
-                            onSelectPokemon={(uid: string) => {
-                              const p = (idle.collection || []).find((x: any) => x.uid === uid);
-                              if (p) setStatsCardPet(p as any);
-                            }}
-                            teamUids={new Set((idle as any).activeTeam?.map((p: any) => p.uid) || [])}
-                          />
-                        ), { width: 450, height: 550 });
-                      } else if (t.id === "wallet") {
-                        manager.openWindow("wallet", "🏦 Banco Medieval", (
-                          <WalletScreen 
-                            bank={idle.bank} 
-                            items={idle.items}
-                            collection={idle.collection || []}
-                            gifMap={GIF}
-                            onOpenColecaoDetail={(uid: string) => {
-                              const p = (idle.collection || []).find((x: any) => x.uid === uid);
-                              if (p) setStatsCardPet(p as any);
-                            }}
-                            onExchange={(dir: "g2c" | "c2g", amt: number) => {
-                              if (dir === "g2c") {
-                                if (idle.bank.gold >= amt * 1000) {
-                                  setIdle((s: any) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold - amt * 1000, crystals: s.bank.crystals + amt } }));
-                                }
-                              } else {
-                                if (idle.bank.crystals >= amt) {
-                                  setIdle((s: any) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - amt, gold: s.bank.gold + amt * 800 } }));
-                                }
-                              }
-                            }} 
-                          />
-                        ), { width: 500, height: 600 });
-                      }
+                      manager.openWindow("land", "🧪 Experimental Test Menu", (
+                        <div style={{ padding: 16, color: "#eadfe8" }}>
+                          <div style={{ fontSize: 13, marginBottom: 12, opacity: 0.8 }}>Use este menu para testar o novo sistema de janelas modulares.</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                            <button 
+                              onClick={() => manager.openWindow("mochila_test", "📦 Mochila (TEST)", (
+                                <BackpackWindowContent 
+                                  items={idle.items}
+                                  bank={idle.bank}
+                                  onUseItem={useItem}
+                                  onSellItem={sellItem}
+                                  marketSellPrices={MARKET_SELL_PRICE || {}}
+                                />
+                              ), { width: 400, height: 500 })}
+                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
+                            >Mochila (Test)</button>
+                            
+                            <button 
+                              onClick={() => manager.openWindow("colecao_test", "🛡️ Coleção (TEST)", (
+                                <CollectionWindowContent 
+                                  collection={(idle.collection || []) as any}
+                                  maxCollection={500}
+                                  caughtCount={idle.caughtSpecies?.length || 0}
+                                  onSelectPokemon={(uid: string) => {
+                                    const p = (idle.collection || []).find((x: any) => x.uid === uid);
+                                    if (p) setStatsCardPet(p as any);
+                                  }}
+                                  teamUids={new Set((idle as any).activeTeam?.map((p: any) => p.uid) || [])}
+                                />
+                              ), { width: 450, height: 550 })}
+                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
+                            >Coleção (Test)</button>
+
+                            <button 
+                              onClick={() => manager.openWindow("forja_test", "⚒️ Forja (TEST)", (
+                                <CraftWindowContent 
+                                  items={idle.items}
+                                  craftPoints={idle.craftPoints || 0}
+                                  onCraft={(id) => pushChat(`Crafting ${id}...`, "info")}
+                                />
+                              ), { width: 400, height: 500 })}
+                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
+                            >Forja (Test)</button>
+
+                            <button 
+                              onClick={() => manager.openWindow("melhorias_test", "✨ Melhorias (TEST)", (
+                                <ImprovementsWindowContent 
+                                  stats={idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 }}
+                                  items={idle.items}
+                                  onUpgradeStat={(key) => {
+                                     pushChat(`Evoluindo ${key}...`, "info");
+                                  }}
+                                />
+                              ), { width: 350, height: 450 })}
+                              style={{ padding: 10, background: "#3a1f5c", color: "#f5cf6b", border: "1px solid #6b3fb0", borderRadius: 8, cursor: "pointer", fontWeight: 800 }}
+                            >Melhorias (Test)</button>
+                          </div>
+                        </div>
+                      ), { width: 400, height: 350 });
                     }
                     return;
                   }
