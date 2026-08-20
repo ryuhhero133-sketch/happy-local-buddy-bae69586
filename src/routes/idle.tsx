@@ -11604,35 +11604,44 @@ function IdlePage() {
 
                 return (
                   <div key={day} style={{
-                    background: isClaimed ? "rgba(34,197,94,0.3)" : (canClaim ? "rgba(245,207,107,0.3)" : "rgba(0,0,0,0.5)"),
-                    border: `2px solid ${isClaimed ? "#22c55e" : (canClaim ? "#f5cf6b" : "#4a3b5c")}`,
-                    borderRadius: 12, padding: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                    background: isClaimed ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.95)",
+                    border: `2.5px solid ${isClaimed ? "#22c55e" : "#f5cf6b"}`,
+                    borderRadius: 16, padding: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                     opacity: isLocked ? 0.8 : 1, transition: "all 0.2s",
-                    boxShadow: canClaim ? "0 0 15px rgba(245,207,107,0.6)" : "none",
+                    boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.7)" : "0 4px 10px rgba(0,0,0,0.1)",
+                    position: "relative",
                   }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, color: isClaimed ? "#22c55e" : "#f5cf6b" }}>DIA {day}</div>
-                    <div style={{ fontSize: 24, filter: isClaimed ? "grayscale(0.5)" : "none" }}>
-                      {day === 7 ? "💎" : (isClaimed ? "📦" : "🎁")}
-                    </div>
-                    <div style={{ fontSize: 8, color: "#fff", textAlign: "center", fontWeight: 700 }}>
+                    <div style={{ fontSize: 10, fontWeight: 900, color: isClaimed ? "#22c55e" : "#d97706" }}>DIA {day}</div>
+                    <div style={{ 
+                      width: 50, height: 50, display: "grid", placeItems: "center",
+                      background: "radial-gradient(circle, rgba(245,207,107,0.1) 0%, transparent 70%)",
+                      filter: isClaimed ? "grayscale(0.6)" : "none" 
+                    }}>
                       {day === 7 ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
-                            <img src={ballPokeImg} width={10} style={{ imageRendering: "pixelated" }} /> 200
+                        <img src={assetUrlFromJson(iconCashPackage)} width={42} height={42} style={{ objectFit: "contain", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }} />
+                      ) : (
+                        <div style={{ fontSize: 28 }}>{isClaimed ? "📦" : "🎁"}</div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 9, color: "#1a0f2e", textAlign: "center", fontWeight: 800 }}>
+                      {day === 7 ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
+                            <img src={ballPokeImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 200
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
-                            <img src={ballGreatImg} width={10} style={{ imageRendering: "pixelated" }} /> 100
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
+                            <img src={ballGreatImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 100
                           </div>
-                          <span>1 Rary Cand</span>
+                          <span style={{ color: "#7c3aed" }}>1 Rary Cand</span>
                         </div>
                       ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                           <span>500 Gold</span>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
-                            <img src={ballPokeImg} width={10} style={{ imageRendering: "pixelated" }} /> 20
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
+                            <img src={ballPokeImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 20
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
-                            <img src={ballGreatImg} width={10} style={{ imageRendering: "pixelated" }} /> 5
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
+                            <img src={ballGreatImg} width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }} /> 5
                           </div>
                         </div>
                       )}
@@ -11661,17 +11670,17 @@ function IdlePage() {
                           playBonus();
                         }}
                         style={{
-                          marginTop: 5, width: "100%", background: "#f5cf6b", color: "#1a0f2e",
-                          border: "none", borderRadius: 6, fontSize: 8, fontWeight: 900, padding: "4px 0", cursor: "pointer",
-                          animation: "pulseGlow 1.5s infinite"
+                          marginTop: 5, width: "100%", background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e",
+                          border: "none", borderRadius: 8, fontSize: 9, fontWeight: 900, padding: "5px 0", cursor: "pointer",
+                          animation: "pulseGlow 1.5s infinite", boxShadow: "0 2px 6px rgba(217,119,6,0.4)"
                         }}
                       >
                         RESGATAR
                       </button>
                     ) : isClaimed ? (
-                      <div style={{ marginTop: 5, fontSize: 8, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>
+                      <div style={{ marginTop: 5, fontSize: 9, color: "#22c55e", fontWeight: 900 }}>COLETADO</div>
                     ) : (
-                      <div style={{ marginTop: 5, fontSize: 8, color: "#4a3b5c", fontWeight: 900 }}>BLOQUEADO</div>
+                      <div style={{ marginTop: 5, fontSize: 9, color: "#94a3b8", fontWeight: 900 }}>BLOQUEADO</div>
                     )}
                   </div>
                 );
