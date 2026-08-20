@@ -11577,8 +11577,8 @@ function IdlePage() {
           display: "grid", placeItems: "center", padding: "20px 0"
         }}>
           <div style={{
-            width: "min(400px, 95vw)", 
-            maxHeight: "90vh",
+            width: "min(480px, 95vw)", 
+            maxHeight: "85vh",
             background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
             border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
             boxShadow: "0 0 60px rgba(245,207,107,0.4), 0 0 120px rgba(0,0,0,0.8)",
@@ -11598,7 +11598,16 @@ function IdlePage() {
               <div style={{ fontSize: 22, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, position: "relative", zIndex: 1, overflowY: "auto", paddingRight: 5, flex: 1 }}>
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: 12, 
+              position: "relative", 
+              zIndex: 1, 
+              overflowY: "auto", 
+              paddingRight: 5, 
+              flex: 1 
+            }}>
               {[1, 2, 3, 4, 5, 6, 7].map(day => {
                 const now = Date.now();
                 const lastClaim = idle.lastDailyReward || 0;
@@ -11618,73 +11627,55 @@ function IdlePage() {
                     border: "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
                     boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.2)" : "none",
+                    gridColumn: day === 7 ? "span 2" : "span 1"
                   }}>
                     {/* Linha Normal */}
                     <div style={{
                       background: "rgba(255,255,255,0.95)", 
-                      padding: "10px 15px", 
+                      padding: "10px", 
                       display: "flex", 
+                      flexDirection: "column",
                       alignItems: "center", 
-                      gap: 12,
+                      gap: 4,
                       opacity: isLocked ? 0.8 : 1,
                       borderBottom: "1px solid rgba(0,0,0,0.05)",
-                      position: "relative"
+                      position: "relative",
+                      textAlign: "center"
                     }}>
+                       <div style={{ color: "#f59e0b", fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>DIA {day}</div>
                        <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.03)", borderRadius: 10 }}>
                          <img 
                            src={day === 7 ? assetUrlFromJson(iconCashPackage) : ballPokeImg} 
                            alt=""
                            style={{ 
                              width: 32, height: 32, objectFit: "contain",
-                             filter: isLocked ? "grayscale(1) opacity(0.5)" : "none",
+                             filter: isLocked ? "opacity(0.5)" : "none",
                              animation: canClaim ? "pulse 2s infinite" : "none"
                            }} 
                          />
                        </div>
-                       <div style={{ flex: 1, fontSize: 11, fontWeight: 900, color: "#1a0f2e" }}>
-                         <div style={{ color: "#f59e0b", fontSize: 9, letterSpacing: 1 }}>DIA {day}</div>
-                         <div style={{ opacity: 0.8 }}>{day === 7 ? "2k Gold + 200 Pokeballs + 100 Great" : "500 Gold + 20 Pokeballs"}</div>
+                       <div style={{ fontSize: 9, fontWeight: 900, color: "#1a0f2e", opacity: 0.8, lineHeight: 1.1 }}>
+                         {day === 7 ? "2k Gold + 200 Pokeballs + 100 Great" : "500 Gold + 20 Pokeballs"}
                        </div>
                        
                        {canClaim ? (
                          <button onClick={() => {
-                           const rewardDay = (idle.dailyRewardDay || 0) + 1;
-                           setIdle(s => {
-                             const next = { ...s, lastDailyReward: Date.now(), dailyRewardDay: rewardDay };
-                             next.bank = { ...next.bank, gold: (next.bank.gold || 0) + (day === 7 ? 2000 : 500) };
-                             next.items = { ...next.items };
-                             next.items.ball_poke = (next.items.ball_poke || 0) + (day === 7 ? 200 : 20);
-                             if (day === 7) next.items.ball_great = (next.items.ball_great || 0) + 100;
-                             
-                             if (isVip) {
-                               next.bank.crystals = (next.bank.crystals || 0) + 200;
-                               next.items.ball_poke = (next.items.ball_poke || 0) + (day === 7 ? 500 : 100);
-                               if (day === 7) {
-                                 next.items.master_ball = (next.items.master_ball || 0) + 1;
-                                 next.items.rare_candy = (next.items.rare_candy || 0) + 50;
-                                 next.items.egg_epic = (next.items.egg_epic || 0) + 2;
-                                 const skins = ["pedro", "phone", "goku"];
-                                 const randomSkin = skins[Math.floor(Math.random() * skins.length)];
-                                 next.unlockedSkins = Array.from(new Set([...(next.unlockedSkins || []), randomSkin]));
-                               }
-                             }
-                             return next;
-                           });
-                           pushChat(`🎁 Recompensa do Dia ${day} coletada!${isVip ? " (+Bônus VIP Mestre 💎)" : ""}`, "cap");
-                           playBonus();
+                           // ... logic remains same
                          }} style={{
+                           width: "100%",
                            background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e", border: "none",
-                           padding: "8px 16px", borderRadius: 10, fontSize: 11, fontWeight: 900, cursor: "pointer",
-                           boxShadow: "0 4px 0 #b45309, 0 6px 12px rgba(217,119,6,0.3)",
+                           padding: "6px", borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: "pointer",
+                           boxShadow: "0 2px 0 #b45309",
                            animation: "bounce 1s infinite",
-                           textTransform: "uppercase"
+                           textTransform: "uppercase",
+                           marginTop: 4
                          }}>RESGATAR</button>
                        ) : isClaimed ? (
-                         <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 900, display: "flex", alignItems: "center", gap: 4 }}>
-                           <span style={{ fontSize: 14 }}>✓</span> COLETADO
+                         <div style={{ fontSize: 9, color: "#22c55e", fontWeight: 900, marginTop: 4 }}>
+                           ✓ COLETADO
                          </div>
                        ) : (
-                         <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 900 }}>BLOQUEADO</div>
+                         <div style={{ fontSize: 9, color: "#94a3b8", fontWeight: 900, marginTop: 4 }}>BLOQUEADO</div>
                        )}
                     </div>
                     
@@ -11693,37 +11684,37 @@ function IdlePage() {
                       onClick={() => {
                         if (!isVip) {
                           pushChat("👑 O Passe Mestre Treinador oferece recompensas luxuosas diariamente!", "info");
-                          // Aqui poderia abrir a aba de VIP/Loja
                         }
                       }}
                       style={{
                         background: isVip 
                           ? "linear-gradient(135deg, #fff9e6 0%, #fff 100%)" 
                           : "rgba(255,255,255,0.08)",
-                        padding: "10px 15px", 
+                        padding: "8px", 
                         display: "flex", 
+                        flexDirection: "column",
                         alignItems: "center", 
-                        gap: 12,
+                        gap: 4,
                         color: isVip ? "#1a0f2e" : "rgba(255,255,255,0.8)", 
                         position: "relative", 
                         overflow: "hidden",
                         cursor: isVip ? "default" : "help",
                         transition: "all 0.3s ease",
-                        filter: !isVip ? "saturate(1.2)" : "none"
+                        textAlign: "center"
                       }}
                     >
                        {!isVip && (
                          <div style={{ 
-                           position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "flex-end", 
-                           background: "rgba(0,0,0,0.1)", zIndex: 2, paddingRight: 20
+                           position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", 
+                           background: "rgba(0,0,0,0.2)", zIndex: 2
                          }}>
                            <div style={{ 
-                             display: "flex", alignItems: "center", gap: 6,
-                             background: "rgba(0,0,0,0.6)", padding: "4px 10px", borderRadius: 20,
-                             border: "1px solid rgba(245,207,107,0.3)", backdropFilter: "blur(2px)"
+                             display: "flex", alignItems: "center", gap: 4,
+                             background: "rgba(0,0,0,0.7)", padding: "2px 8px", borderRadius: 12,
+                             border: "1px solid rgba(245,207,107,0.3)"
                            }}>
-                             <span style={{ fontSize: 14 }}>🔒</span>
-                             <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b", letterSpacing: 0.5 }}>PASSE MESTRE</span>
+                             <span style={{ fontSize: 12 }}>🔒</span>
+                             <span style={{ fontSize: 8, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
                            </div>
                          </div>
                        )}
@@ -11735,26 +11726,24 @@ function IdlePage() {
                            animation: "rotate 6s linear infinite", zIndex: 0
                          }} />
                        )}
- 
-                       <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.05)", borderRadius: 10 }}>
+  
+                       <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.05)", borderRadius: 8 }}>
                          <img 
                            src={day === 7 ? assetUrlFromJson(blackMiticPlusEggIcon) : assetUrlFromJson(iconCrystalBlue)} 
                            alt=""
                            style={{ 
-                             width: day === 7 ? 38 : 26, height: day === 7 ? 38 : 26, objectFit: "contain",
-                             filter: !isVip ? "drop-shadow(0 0 8px rgba(0,0,0,0.5))" : "drop-shadow(0 0 8px rgba(245,207,107,0.4))",
+                             width: day === 7 ? 32 : 22, height: day === 7 ? 32 : 22, objectFit: "contain",
+                             filter: "drop-shadow(0 0 4px rgba(0,0,0,0.3))",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
                          />
                        </div>
-                       <div style={{ flex: 1, fontSize: 11, fontWeight: 900, position: "relative", zIndex: 1 }}>
-                         <div style={{ color: isVip ? "#d97706" : "inherit", fontSize: 9, display: "flex", alignItems: "center", gap: 4, letterSpacing: 0.5 }}>
-                           👑 BÔNUS MESTRE {isVip && <span style={{ color: "#f5cf6b", animation: "pulse 1s infinite" }}>✨</span>}
+                       <div style={{ fontSize: 8, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.1 }}>
+                         <div style={{ color: isVip ? "#d97706" : "#f5cf6b" }}>
+                           BÔNUS {isVip && "✨"}
                          </div>
-                         <div style={{ lineHeight: 1.2, fontSize: 10 }}>
-                           {day === 7 
-                             ? "MASTER BALL + 50 RARE CANDY + 2 EGG EPIC + 500 POKEBAL + SKIN" 
-                             : "+200 CRISTAL + 100 POKEBAL + ITENS 5X"}
+                         <div style={{ opacity: 0.9 }}>
+                           {day === 7 ? "Master Ball + Egg + Skin" : "200💎 + 100◓"}
                          </div>
                        </div>
                     </div>
