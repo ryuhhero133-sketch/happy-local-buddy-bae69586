@@ -10441,9 +10441,13 @@ function IdlePage() {
                     transform: "translate(-50%,-50%)",
                     boxShadow: "0 0 8px #6bd4ff",
                   }} />
-
+                </div>
               );
 
+              return (
+                <div>
+                  <div style={{ position: "relative" }}>
+                    {renderMap(true, false)}
                     <button
                       onClick={() => { playClick(); setBigMapOpen(true); }}
                       title="Abrir mapa grande"
