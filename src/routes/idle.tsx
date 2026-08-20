@@ -1,4 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { generateMapIcon } from "@/lib/icons.functions";
+
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -3397,10 +3400,12 @@ function IdlePage() {
       const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       if (e.key === "Escape") {
+        if (selectedMapInfo) { setSelectedMapInfo(null); return; }
         if (worldMapOpen) { setWorldMapOpen(false); return; }
         if (rankOpen) { setRankOpen(false); return; }
         return;
       }
+
       const k = e.key.toLowerCase();
       if (k === "m") { e.preventDefault(); setWorldMapOpen((v) => !v); return; }
       if (k === "r") { e.preventDefault(); pushChat("🏆 Ranked temporariamente bloqueado.", "info"); return; }
@@ -10406,7 +10411,7 @@ function IdlePage() {
 
                     const continentUnlocked = activeTab === 1 ? isC1Unlocked : activeTab === 2 ? isC2Unlocked : activeTab === 3 ? isC3Unlocked : isC4Unlocked;
 
-                    const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type?: "crystal" | "ruby" | "safira"; name?: string; lv?: string; desc?: string; boss?: string }> = [
+                    const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type: string; name?: string; lv?: string; desc?: string; boss?: string }> = [
                       { id: "mapa_c4_1" as IdleMapId, x: 15, y: 25, type: "crystal", name: "Catedral de Cristal", lv: "Lv 10.000+", desc: "Torres de cristal puro ecoam cânticos antigos.", boss: "Guardião Prismático" },
                       { id: "mapa_c4_2" as IdleMapId, x: 25, y: 20, type: "crystal", name: "Veias Congeladas", lv: "Lv 10.500+", desc: "Rios de cristal líquido cortam a rocha.", boss: "Serpente de Quartzo" },
                       { id: "mapa_c4_3" as IdleMapId, x: 20, y: 35, type: "crystal", name: "Abóbada Prismática", lv: "Lv 11.000+", desc: "Uma cúpula que reflete infinitas versões do treinador.", boss: "Eco Espelhado" },
@@ -10420,7 +10425,9 @@ function IdlePage() {
                     ];
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
                     const c4Sel = activeTab === 4 ? (WORLD_PINS_C4.find((p) => String(p.id) === c4Pin) ?? null) : null;
+                    const selPin = selectedMapInfo ? WORLD_PINS.find(p => p.id === selectedMapInfo) : null;
                     const selMap = selectedMapInfo ? IDLE_MAPS[selectedMapInfo] : null;
+
 
                     // const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
                     const tabTitle = activeTab === 1 ? "📜 THE FLOATING KINGDOMS · CONTINENTE I" : activeTab === 2 ? "👑 TEMPLO DO GOVERNANTE · CONTINENTE II" : activeTab === 3 ? "🌋 NOVAS FRONTEIRAS · CONTINENTE III" : "🌌 PROFUNDEZAS ABISSAIS · CONTINENTE IV";
@@ -10733,46 +10740,12 @@ function IdlePage() {
                                         opacity: ok ? 1 : 0.6,
                                         animation: ok ? "obsidianGlow 2s infinite alternate ease-in-out" : "none"
                                       }}>
-                                         {/* Representação visual mais robusta do local (pixel-art feeling) */}
-                                          <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                                            {/* Símbolo do local com efeito de profundidade e brilho RPG */}
-                                            <div style={{ position: "absolute", inset: 0, opacity: 0.5, filter: "blur(8px)", transform: "translateY(2px)" }}>
-                                              {pin.type === "castle" ? "🏰" :
-                                               pin.type === "village" ? "🏡" :
-                                               pin.type === "volcano" ? "🌋" :
-                                               pin.type === "cave" ? "💎" :
-                                               pin.type === "forest" ? "🌿" :
-                                               pin.type === "beach" ? "🐚" :
-                                               pin.type === "mountain" ? "🗻" :
-                                               pin.type === "snow" ? "❄️" :
-                                               pin.type === "island" ? "🏝️" : "📍"}
-                                            </div>
-                                            <div style={{ 
-                                              position: "relative",
-                                              filter: ok ? "drop-shadow(0 0 12px rgba(245,207,107,0.6))" : "none",
-                                              transition: "all 0.4s ease"
-                                            }}>
-                                              {pin.type === "castle" ? (
-                                                <div style={{ fontSize: 32, filter: "drop-shadow(0 0 5px gold)" }}>🏰</div>
-                                              ) : pin.type === "village" ? (
-                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 5px #7ef27a)" }}>🏡</div>
-                                              ) : pin.type === "volcano" ? (
-                                                <div style={{ fontSize: 32, filter: "drop-shadow(0 0 8px #ff4d4d)" }}>🌋</div>
-                                              ) : pin.type === "cave" ? (
-                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 10px #70d2ff)" }}>💎</div>
-                                              ) : pin.type === "forest" ? (
-                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 8px #4ade80)" }}>🌿</div>
-                                              ) : pin.type === "beach" ? (
-                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 8px #38bdf8)" }}>🐚</div>
-                                              ) : pin.type === "mountain" ? (
-                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 5px #94a3b8)" }}>🗻</div>
-                                              ) : pin.type === "snow" ? (
-                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 8px #e0f2fe)" }}>❄️</div>
-                                              ) : pin.type === "island" ? (
-                                                <div style={{ fontSize: 30, filter: "drop-shadow(0 0 10px #fbbf24)" }}>🏝️</div>
-                                              ) : "📍"}
-                                            </div>
+                                          {/* Representação visual mais robusta do local (pixel-art feeling) */}
+                                          <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                            <MapIconRenderer type={pin.type} name={pin.name} ok={ok} />
                                           </div>
+
+
 
                                       </div>
 
@@ -10833,10 +10806,17 @@ function IdlePage() {
                               fontFamily: "'Press Start 2P', monospace", color: "#e6dcf5",
                               animation: "popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)"
                             }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-                                <div style={{ color: "#f5cf6b", fontSize: 14 }}>{selMap.name}</div>
-                                <button onClick={() => setSelectedMapInfo(null)} style={{ color: "#ff4d4d", background: "none", border: "none", cursor: "pointer", fontSize: 16 }}>✕</button>
-                              </div>
+                               <div style={{ display: "flex", gap: 16, marginBottom: 12, alignItems: "center" }}>
+                                 <div style={{ width: 64, height: 64, flexShrink: 0, background: "rgba(0,0,0,0.5)", borderRadius: 8, border: "2px solid #f5cf6b", padding: 4 }}>
+                                   <MapIconRenderer type={selPin?.type || "castle"} name={selMap.name} ok={true} />
+                                 </div>
+                                 <div style={{ flex: 1 }}>
+                                   <div style={{ color: "#f5cf6b", fontSize: 14 }}>{selMap.name}</div>
+                                   <div style={{ color: "#8a7a9c", fontSize: 7, marginTop: 4 }}>PONTO DE INTERESSE</div>
+                                 </div>
+                                 <button onClick={() => setSelectedMapInfo(null)} style={{ color: "#ff4d4d", background: "none", border: "none", cursor: "pointer", fontSize: 16, alignSelf: "flex-start" }}>✕</button>
+                               </div>
+
 
                               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 8, marginBottom: 16 }}>
                                 <div style={{ background: "rgba(255,255,255,0.05)", padding: 8, borderRadius: 6 }}>
@@ -16840,6 +16820,87 @@ function GovernanteDialog(props: {
     document.body
   );
 }
+
+// Componente auxiliar para renderizar ícones gerados ou fallback robusto
+function MapIconRenderer({ type, name, ok }: { type: string; name: string; ok: boolean }) {
+  const generateIcon = useServerFn(generateMapIcon);
+  const [svg, setSvg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!ok) return;
+    const cacheKey = `map-icon-${type}-${name}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      setSvg(cached);
+      return;
+    }
+
+    setLoading(true);
+    generateIcon({ data: { type, name } })
+      .then(res => {
+        if (res.svg) {
+          setSvg(res.svg);
+          localStorage.setItem(cacheKey, res.svg);
+        }
+      })
+      .catch(err => console.error("Icon generation error:", err))
+      .finally(() => setLoading(false));
+  }, [type, name, ok]);
+
+  if (svg && ok) {
+    return (
+      <div 
+        dangerouslySetInnerHTML={{ __html: svg }} 
+        style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
+      />
+    );
+  }
+
+  // Fallback visual RPG (Original melhorado)
+  const getEmoji = () => {
+    switch(type) {
+      case "castle": return "🏰";
+      case "village": return "🏡";
+      case "volcano": return "🌋";
+      case "cave": return "💎";
+      case "forest": return "🌿";
+      case "beach": return "🐚";
+      case "mountain": return "🗻";
+      case "snow": return "❄️";
+      case "island": return "🏝️";
+      default: return "📍";
+    }
+  };
+
+  const getColor = () => {
+    switch(type) {
+      case "castle": return "gold";
+      case "village": return "#7ef27a";
+      case "volcano": return "#ff4d4d";
+      case "cave": return "#70d2ff";
+      case "forest": return "#4ade80";
+      case "beach": return "#38bdf8";
+      case "mountain": return "#94a3b8";
+      case "snow": return "#e0f2fe";
+      default: return "#f5cf6b";
+    }
+  };
+
+  return (
+    <div style={{ 
+      position: "relative",
+      filter: ok ? `drop-shadow(0 0 12px ${getColor()})` : "none",
+      transition: "all 0.4s ease",
+      opacity: loading ? 0.5 : 1
+    }}>
+      <div style={{ fontSize: 32, filter: `drop-shadow(0 0 5px ${getColor()})` }}>
+        {getEmoji()}
+      </div>
+    </div>
+  );
+}
+
 
 
 
