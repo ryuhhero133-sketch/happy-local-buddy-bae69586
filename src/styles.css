@@ -514,7 +514,7 @@ html, body, #root {
   opacity: 0.5;
 }
 
-
+.xp-bar-fill {
   box-shadow: 0 0 8px rgba(74,222,128,0.7), inset 0 1px 0 rgba(255,255,255,0.5);
   transition: width 0.6s cubic-bezier(.2,.9,.3,1.1);
 }
