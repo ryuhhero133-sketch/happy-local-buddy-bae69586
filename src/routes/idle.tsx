@@ -11681,18 +11681,18 @@ function IdlePage() {
                            fontSize: 24
                          }}>✅</div>
                        )}
-                       <div style={{ color: "#f59e0b", fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>DIA {day}</div>
-                       <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.03)", borderRadius: 10 }}>
+                       <div style={{ color: "#f59e0b", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>DIA {day}</div>
+                       <div style={{ width: 60, height: 60, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.05)", borderRadius: 12, boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)" }}>
                          <img 
                            src={rew.img} 
                            alt=""
                            style={{ 
-                             width: 32, height: 32, objectFit: "contain",
+                             width: 48, height: 48, objectFit: "contain",
                              animation: canClaim ? "pulse 2s infinite" : "none"
                            }} 
                          />
                        </div>
-                       <div style={{ fontSize: 9, fontWeight: 900, color: "#1a0f2e", opacity: 0.8, lineHeight: 1.1, minHeight: 22 }}>
+                       <div style={{ fontSize: 11, fontWeight: 900, color: "#1a0f2e", opacity: 0.9, lineHeight: 1.2, minHeight: 28, padding: "0 4px" }}>
                          {rew.label}
                        </div>
                        
