@@ -4349,6 +4349,7 @@ function IdlePage() {
             pushEvent("✦", "RIDER DERROTADO!", `+${xp} EXP · +${gold} ouro`, "#ff5ec7");
             pushChat(`✦ RIDER DERROTADO! +${xp} EXP · +${gold} ouro`, "cap");
           }
+          setIdle(prev => ({ ...prev, totalKills: (prev.totalKills || 0) + 1 }));
 
           pushFxAt(target.x, target.y - 50, `+${xp} EXP`, "xp");
           const bonusParts: string[] = [];
