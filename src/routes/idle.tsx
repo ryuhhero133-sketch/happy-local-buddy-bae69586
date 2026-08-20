@@ -17180,23 +17180,25 @@ function TabOverlay({
                 const itemKey = equippedItems[slot];
                 const item = itemKey ? (TRAINER_EQUIPMENT_DATA as any)[itemKey] : null;
                 return (
-
-                  <div key={slot} style={{
-                    width: 50, height: 50,
-                    background: "rgba(0,0,0,0.4)",
-                    border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
-                    borderRadius: 8,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer",
-                    position: "relative",
-                    boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
-                  }}>
+                  <div key={slot} 
+                    onClick={() => setEquipmentSlotPicker(slot)}
+                    style={{
+                      width: 50, height: 50,
+                      background: "rgba(0,0,0,0.4)",
+                      border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
+                      borderRadius: 8,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer",
+                      position: "relative",
+                      boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
+                    }}>
                     {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
                     {item && <div style={{ fontSize: 24 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
                     <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
                   </div>
                 );
               })}
+
             </div>
           </div>
 
