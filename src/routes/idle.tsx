@@ -11541,9 +11541,9 @@ function IdlePage() {
                           <BackpackWindowContent 
                             items={idle.items}
                             bank={idle.bank}
-                            onUseItem={onUseItem}
-                            onSellItem={onSellItem}
-                            marketSellPrices={marketSellPrices || {}}
+                            onUseItem={useItem}
+                            onSellItem={sellItem}
+                            marketSellPrices={MARKET_SELL_PRICE || {}}
                           />
                         ), { width: 400, height: 500 });
                       } else if (t.id === "melhorias") {
@@ -11560,6 +11560,7 @@ function IdlePage() {
                     }
                     return;
                   }
+
 
                   
                   setTab(t.id as typeof tab);
