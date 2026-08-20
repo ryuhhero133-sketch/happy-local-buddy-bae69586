@@ -11636,13 +11636,15 @@ function IdlePage() {
                     display: "flex", 
                     flexDirection: "column", 
                     gap: 0, 
-                    background: "rgba(255,255,255,0.05)", 
+                    background: isLocked ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.08)", 
                     borderRadius: 16, 
-                    border: "1px solid rgba(245,207,107,0.3)",
+                    border: canClaim ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
-                    boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.2)" : "none",
+                    boxShadow: canClaim ? "0 0 25px rgba(245,207,107,0.4)" : "none",
                     gridColumn: day === 7 ? "span 4" : "span 1",
-                    height: 195
+                    height: 210,
+                    transition: "all 0.3s ease",
+                    transform: canClaim ? "scale(1.02)" : "none"
                   }}>
                     <div style={{
                       background: "rgba(255,255,255,0.95)", 
