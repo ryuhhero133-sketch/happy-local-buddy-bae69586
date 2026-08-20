@@ -1854,12 +1854,18 @@ function IdlePage() {
   useEffect(() => {
     const iv = setInterval(() => {
       if (!(autoBattleRef.current?.enabled)) return;
+      
+      const tStats = getTrainerStats();
+      const speedMult = 1 + (tStats.speed / 100);
+
       setTeam((tm) => {
         if (tm.length === 0) return tm;
         const now = Date.now();
         const leader = tm[0] as PetEnergyExt;
-        const drain = energyDrainPerSec(leader.rarity);
-        if (drain <= 0) return tm; // míticos não cansam
+        
+        const drain = energyDrainPerSec(leader.rarity) * speedMult;
+        
+        if (drain <= 0) return tm; 
         if (leader.azulRestUntil && leader.azulRestUntil > now) return tm;
         const cur = petCurrentEnergy(leader, now, { active: true });
         if (cur <= 0) return tm;
@@ -1958,6 +1964,28 @@ function IdlePage() {
   }, [ownedEquipment]);
 
   const skinUrl = SKINS.find((s) => s.id === skinId)?.url ?? null;
+  const [equipmentSlotPicker, setEquipmentSlotPicker] = useState<EquipmentSlot | null>(null);
+
+  const getTrainerStats = useCallback(() => {
+    const stats = { xpBonus: 0, goldBonus: 0, dropRate: 0, speed: 0 };
+    (Object.entries(equippedItems) as [EquipmentSlot, string | null][]).forEach(([_, itemId]) => {
+      if (!itemId) return;
+      const item = TRAINER_EQUIPMENT_DATA[itemId];
+      if (!item) return;
+      if (item.stats.xpBonus) stats.xpBonus += item.stats.xpBonus;
+      if (item.stats.goldBonus) stats.goldBonus += item.stats.goldBonus;
+      if (item.stats.dropRate) stats.dropRate += item.stats.dropRate;
+      if (item.stats.speed) stats.speed += item.stats.speed;
+    });
+    return stats;
+  }, [equippedItems]);
+
+  const onEquipItem = (slot: EquipmentSlot, itemId: string | null) => {
+    setEquippedItems(prev => ({ ...prev, [slot]: itemId }));
+    setEquipmentSlotPicker(null);
+    playClick();
+  };
+
 
 
 
@@ -4821,8 +4849,12 @@ function IdlePage() {
             const capPenalty = overCap > 0 ? Math.max(0.05, 1 - overCap * 0.2) : 1;
             const finalScale = lvScale * capPenalty;
             const mythEvKillMult = idle.currentMap === "evento_myth" ? 6 : 1;
-            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult));
-            const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3)) : 0;
+            
+            const tStats = getTrainerStats();
+            const trXpMult = 1 + tStats.xpBonus;
+
+            const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult * trXpMult));
+            const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3 * trXpMult)) : 0;
             const totalTrainerXp = killTrainerXp + captureTrainerXp;
             const applied = applyTrainerXp(s, totalTrainerXp);
             if (applied.leveledTo != null) {
@@ -4860,8 +4892,8 @@ function IdlePage() {
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + gold, crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 ? 1 : 0) },
-              totals: { gold: s.totals.gold + gold, captured: s.totals.captured + capturedInc, kills: newKills },
+              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 * (1 + getTrainerStats().dropRate) ? 1 : 0) },
+              totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
               items: itemsWithBalls,
@@ -6962,14 +6994,18 @@ function IdlePage() {
         let bonusBall = 0;
         let bonusKey = 0;
         let emptyDrop = false;
-        if (roll < 0.20) {
+
+        const tStats = getTrainerStats();
+        const dropMult = 1 + tStats.dropRate;
+
+        if (roll < 0.20 / dropMult) {
           emptyDrop = true;
         } else if (roll < 0.45) {
           bonusKey = 1;
         } else if (roll < 0.65) {
           bonusBall = 1;
         } else if (roll < 0.90) {
-          gain = 150 + Math.floor(Math.random() * 250);
+          gain = Math.floor((150 + Math.floor(Math.random() * 250)) * (1 + tStats.goldBonus));
         } else {
           bonusCrystal = 1;
         }
@@ -10081,6 +10117,14 @@ function IdlePage() {
               idle={idle}
               setIdle={setIdle}
               pushChat={pushChat}
+              equippedItems={equippedItems}
+              setEquippedItems={setEquippedItems}
+              ownedEquipment={ownedEquipment}
+              skinUrl={skinUrl}
+              getTrainerStats={getTrainerStats}
+              equipmentSlotPicker={equipmentSlotPicker}
+              setEquipmentSlotPicker={setEquipmentSlotPicker}
+              onEquipItem={onEquipItem}
 
 
               onBuyChestAmulet={buyChestAmulet}
@@ -14991,10 +15035,11 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-  idle, setIdle, pushChat
-
+  idle, setIdle, pushChat,
+  equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem
 
 }: {
+
   tab: string;
   onClose: () => void;
   leader: PetInstance | undefined;
@@ -15055,6 +15100,14 @@ function TabOverlay({
   idle: any;
   setIdle: React.Dispatch<React.SetStateAction<any>>;
   pushChat: (msg: string, tone?: any) => void;
+  equippedItems: Record<EquipmentSlot, string | null>;
+  setEquippedItems: React.Dispatch<React.SetStateAction<Record<EquipmentSlot, string | null>>>;
+  ownedEquipment: string[];
+  skinUrl: string | null;
+  getTrainerStats: () => { xpBonus: number; goldBonus: number; dropRate: number; speed: number };
+  equipmentSlotPicker: EquipmentSlot | null;
+  setEquipmentSlotPicker: React.Dispatch<React.SetStateAction<EquipmentSlot | null>>;
+  onEquipItem: (slot: EquipmentSlot, itemId: string | null) => void;
 
 }) {
 
@@ -17113,18 +17166,21 @@ function TabOverlay({
             <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-end" }}>
               {(["head", "body", "weapon"] as const).map(slot => {
                 const itemKey = equippedItems[slot];
-                const item = itemKey ? TRAINER_EQUIPMENT_DATA[itemKey as keyof typeof TRAINER_EQUIPMENT_DATA] : null;
+                const item = itemKey ? (TRAINER_EQUIPMENT_DATA as any)[itemKey] : null;
+                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "#5c4033";
                 return (
-                  <div key={slot} style={{
-                    width: 50, height: 50,
-                    background: "rgba(0,0,0,0.4)",
-                    border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
-                    borderRadius: 8,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer",
-                    position: "relative",
-                    boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
-                  }}>
+                  <div key={slot} 
+                    onClick={() => setEquipmentSlotPicker(slot)}
+                    style={{
+                      width: 50, height: 50,
+                      background: "rgba(0,0,0,0.4)",
+                      border: `2px solid ${rColor}`,
+                      borderRadius: 8,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer",
+                      position: "relative",
+                      boxShadow: item ? `0 0 10px ${rColor}33` : "none"
+                    }}>
                     {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
                     {item && <div style={{ fontSize: 24 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
                     <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
@@ -17148,24 +17204,45 @@ function TabOverlay({
               ) : (
                 <div style={{ fontSize: 60 }}>🧢</div>
               )}
+              
+              {/* Stats Summary Float */}
+              {(() => {
+                const ts = getTrainerStats();
+                const hasAny = ts.xpBonus || ts.goldBonus || ts.dropRate || ts.speed;
+                if (!hasAny) return null;
+                return (
+                  <div style={{
+                    position: "absolute", bottom: 0, left: 0, right: 0,
+                    background: "rgba(0,0,0,0.7)", padding: "2px 4px",
+                    display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6,
+                    borderTop: "1px solid rgba(139, 94, 60, 0.3)"
+                  }}>
+                    {ts.xpBonus > 0 && <span style={{ color: "#4ade80", fontSize: 8, fontWeight: 900 }}>XP+{Math.round(ts.xpBonus*100)}%</span>}
+                    {ts.goldBonus > 0 && <span style={{ color: "#fbbf24", fontSize: 8, fontWeight: 900 }}>$+{Math.round(ts.goldBonus*100)}%</span>}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Right Slots */}
             <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-start" }}>
               {(["necklace", "ring", "feet"] as const).map(slot => {
                 const itemKey = equippedItems[slot];
-                const item = itemKey ? TRAINER_EQUIPMENT_DATA[itemKey as keyof typeof TRAINER_EQUIPMENT_DATA] : null;
+                const item = itemKey ? (TRAINER_EQUIPMENT_DATA as any)[itemKey] : null;
+                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "#5c4033";
                 return (
-                  <div key={slot} style={{
-                    width: 50, height: 50,
-                    background: "rgba(0,0,0,0.4)",
-                    border: `2px solid ${item ? RARITY_COLOR[item.rarity] : "#5c4033"}`,
-                    borderRadius: 8,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer",
-                    position: "relative",
-                    boxShadow: item ? `0 0 10px ${RARITY_COLOR[item.rarity]}33` : "none"
-                  }}>
+                  <div key={slot} 
+                    onClick={() => setEquipmentSlotPicker(slot)}
+                    style={{
+                      width: 50, height: 50,
+                      background: "rgba(0,0,0,0.4)",
+                      border: `2px solid ${rColor}`,
+                      borderRadius: 8,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer",
+                      position: "relative",
+                      boxShadow: item ? `0 0 10px ${rColor}33` : "none"
+                    }}>
                     {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
                     {item && <div style={{ fontSize: 24 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
                     <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
@@ -17259,8 +17336,109 @@ function TabOverlay({
 
 
 
+      {/* EQUIPMENT PICKER MODAL */}
+      {equipmentSlotPicker && (
+        <div 
+          onClick={() => setEquipmentSlotPicker(null)}
+          style={{ 
+            position: "fixed", inset: 0, zIndex: 10002, 
+            background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 20
+          }}
+        >
+          <div 
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 400,
+              background: "#1a0f26",
+              border: "4px solid #8b5e3c",
+              borderRadius: 16,
+              padding: 20,
+              boxShadow: "0 20px 50px rgba(0,0,0,0.8)",
+              imageRendering: "pixelated"
+            }}
+          >
+            <div style={{ 
+              display: "flex", justifyContent: "space-between", alignItems: "center", 
+              marginBottom: 20, borderBottom: "2px solid #5c4033", paddingBottom: 10 
+            }}>
+              <h2 style={{ margin: 0, color: "#f5cf6b", fontSize: 18, fontWeight: 900, textTransform: "uppercase" }}>
+                Selecionar {equipmentSlotPicker}
+              </h2>
+              <button 
+                onClick={() => setEquipmentSlotPicker(null)}
+                style={{ background: "none", border: "none", color: "#8a7a9c", cursor: "pointer", fontSize: 20 }}
+              >✕</button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 400, overflowY: "auto", paddingRight: 5 }}>
+              {/* Unequip option */}
+              <div 
+                onClick={() => onEquipItem(equipmentSlotPicker, null)}
+                style={{
+                  padding: 12, background: "rgba(0,0,0,0.3)", border: "1px solid #5c4033",
+                  borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
+                  transition: "background 0.2s"
+                }}
+              >
+                <div style={{ width: 40, height: 40, background: "rgba(255,255,255,0.05)", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 20 }}>∅</div>
+                <div>
+                  <div style={{ color: "#eadfe8", fontWeight: 700, fontSize: 14 }}>Desequipar</div>
+                  <div style={{ color: "#8a7a9c", fontSize: 11 }}>Remover item atual</div>
+                </div>
+              </div>
+
+              {ownedEquipment
+                .map(id => (TRAINER_EQUIPMENT_DATA as any)[id])
+                .filter(item => item && item.slot === equipmentSlotPicker)
+                .map(item => {
+                  const isEquipped = equippedItems[equipmentSlotPicker] === item.id;
+                  return (
+                    <div 
+                      key={item.id}
+                      onClick={() => onEquipItem(equipmentSlotPicker, item.id)}
+                      style={{
+                        padding: 12, 
+                        background: isEquipped ? "rgba(107,212,255,0.1)" : "rgba(255,255,255,0.03)", 
+                        border: `1px solid ${isEquipped ? "#3b82f6" : "#5c4033"}`,
+                        borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      <div style={{ 
+                        width: 40, height: 40, 
+                        background: "rgba(0,0,0,0.4)", 
+                        border: `1px solid ${item ? (RARITY_COLOR as any)[item.rarity] : "#ccc"}`,
+                        borderRadius: 6, display: "grid", placeItems: "center", fontSize: 20 
+                      }}>
+                        {item.slot === "head" ? "🪖" : item.slot === "body" ? "🛡️" : item.slot === "weapon" ? "⚔️" : item.slot === "necklace" ? "📿" : item.slot === "ring" ? "💍" : "🥾"}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ color: item ? (RARITY_COLOR as any)[item.rarity] : "#fff", fontWeight: 900, fontSize: 13 }}>{item.name}</span>
+                          <span style={{ fontSize: 9, opacity: 0.6, color: "#eadfe8" }}>{item ? item.rarity.toUpperCase() : ""}</span>
+                        </div>
+                        <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                          {Object.entries(item.stats).map(([stat, val]) => (
+                            <div key={stat} style={{ fontSize: 10, color: "#4ade80", fontWeight: 700 }}>
+                              {stat === "xpBonus" ? "XP" : stat === "goldBonus" ? "GOLD" : stat === "dropRate" ? "DROP" : "AGI"} +{Math.round((val as number) * 100)}%
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          </div>
+        </div>
+      )}
+
       {tab === "config" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 520 }}>
+
           <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.5 }}>
             Ajuste os sons e a música do jogo. A música toca em loop de fundo enquanto você joga.
           </div>
