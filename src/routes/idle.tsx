@@ -10525,10 +10525,10 @@ function IdlePage() {
                                   const targetMap = IDLE_MAPS[pin.id];
                                   const prevMap = IDLE_MAPS[prev.id];
                                   
-                                  // Lógica de liberação baseada em nível (exemplo simplificado)
+                                  // Lógica de liberação baseada em nível
                                   const isPinUnlocked = (idle.trainerLevel ?? 1) >= (targetMap?.minLevel ?? 0);
                                   const isPrevUnlocked = (idle.trainerLevel ?? 1) >= (prevMap?.minLevel ?? 0);
-                                  const isPathUnlocked = isPinUnlocked && isPrevUnlocked;
+                                  const isPathUnlocked = isPinUnlocked || isPrevUnlocked;
 
                                   return (
                                     <g key={`line-group-${pin.id}`}>
