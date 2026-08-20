@@ -11617,35 +11617,62 @@ function IdlePage() {
                 const isLocked = !canClaim && !isClaimed;
                 const isVip = !!idle.isVip;
 
+                const getDailyReward = (d: number) => {
+                  switch(d) {
+                    case 1: return { img: ballPokeImg, label: "500 Gold + 20 Pokeballs", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "200💎 + 100◓" };
+                    case 2: return { img: ballGreatImg, label: "1k Gold + 10 Great Balls", vipImg: bookExpImg, vipLabel: "200💎 + Livro XP" };
+                    case 3: return { img: ballUltraImg, label: "1.5k Gold + 5 Ultra Balls", vipImg: orbXpSupremeUrl, vipLabel: "200💎 + Incenso 24h" };
+                    case 4: return { img: bookExpImg, label: "2k Gold + 1 Livro EXP", vipImg: assetUrlFromJson(raikouAsset), vipLabel: "200💎 + Pokemon Épico" };
+                    case 5: return { img: premiumBoxImg, label: "2.5k Gold + Premium Box", vipImg: assetUrlFromJson(iceBallIconAsset), vipLabel: "200💎 + Master Ball" };
+                    case 6: return { img: chestAmuletImg, label: "3k Gold + Amulet Chest", vipImg: catEggsUrl, vipLabel: "200💎 + Ovo Roxo" };
+                    case 7: return { img: assetUrlFromJson(iconCashPackage), label: "5k Gold + Super Pack", vipImg: assetUrlFromJson(blackMiticPlusEggIcon), vipLabel: "Master Ball + Egg + Skin" };
+                    default: return { img: ballPokeImg, label: "Reward", vipImg: assetUrlFromJson(iconCrystalBlue), vipLabel: "VIP Bonus" };
+                  }
+                };
+                const rew = getDailyReward(day);
+
                 return (
                   <div key={day} style={{ 
                     display: "flex", 
                     flexDirection: "column", 
                     gap: 0, 
-                    background: "rgba(255,255,255,0.05)", 
+                    background: isLocked ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.08)", 
                     borderRadius: 16, 
-                    border: "1px solid rgba(245,207,107,0.3)",
+                    border: canClaim ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
-                    boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.2)" : "none",
-                    gridColumn: day === 7 ? "span 4" : "span 1"
+                    boxShadow: canClaim ? "0 0 25px rgba(245,207,107,0.4)" : "none",
+                    gridColumn: day === 7 ? "span 4" : "span 1",
+                    height: 210,
+                    transition: "all 0.3s ease",
+                    transform: canClaim ? "scale(1.02)" : "none"
                   }}>
-                    {/* Linha Normal */}
                     <div style={{
-                      background: "rgba(255,255,255,0.95)", 
+                      background: isClaimed 
+                        ? "linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%)" 
+                        : "rgba(255,255,255,0.95)", 
                       padding: "10px", 
+                      flex: 1,
                       display: "flex", 
                       flexDirection: "column",
                       alignItems: "center", 
+                      justifyContent: "space-between",
                       gap: 4,
-                      opacity: isLocked ? 0.8 : 1,
-                      borderBottom: "1px solid rgba(0,0,0,0.05)",
+                      opacity: isLocked ? 0.7 : 1,
+                      borderBottom: "1px solid rgba(0,0,0,0.1)",
                       position: "relative",
                       textAlign: "center"
                     }}>
+                       {isClaimed && (
+                         <div style={{
+                           position: "absolute", inset: 0, background: "rgba(255,255,255,0.4)",
+                           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5,
+                           fontSize: 24
+                         }}>✅</div>
+                       )}
                        <div style={{ color: "#f59e0b", fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>DIA {day}</div>
                        <div style={{ width: 44, height: 44, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.03)", borderRadius: 10 }}>
                          <img 
-                           src={day === 7 ? assetUrlFromJson(iconCashPackage) : ballPokeImg} 
+                           src={rew.img} 
                            alt=""
                            style={{ 
                              width: 32, height: 32, objectFit: "contain",
@@ -11653,13 +11680,27 @@ function IdlePage() {
                            }} 
                          />
                        </div>
-                       <div style={{ fontSize: 9, fontWeight: 900, color: "#1a0f2e", opacity: 0.8, lineHeight: 1.1 }}>
-                         {day === 7 ? "2k Gold + 200 Pokeballs + 100 Great" : "500 Gold + 20 Pokeballs"}
+                       <div style={{ fontSize: 9, fontWeight: 900, color: "#1a0f2e", opacity: 0.8, lineHeight: 1.1, minHeight: 22 }}>
+                         {rew.label}
                        </div>
                        
                        {canClaim ? (
                          <button onClick={() => {
-                           // ... logic remains same
+                           const now = Date.now();
+                           const lastClaim = idle.lastDailyReward || 0;
+                           if (now - lastClaim < 86400000) {
+                             pushChat("⏳ Você já resgatou sua recompensa hoje! Volte amanhã.", "info");
+                             return;
+                           }
+                           const newGold = (idle.bank?.gold || 0) + (day === 7 ? 5000 : 500 * day);
+                           setIdle(prev => ({ 
+                             ...prev, 
+                             bank: { ...prev.bank, gold: newGold },
+                             lastDailyReward: now,
+                             dailyRewardDay: (prev.dailyRewardDay || 0) + 1
+                           }));
+                           if (isVip) pushChat("✨ BÔNUS MESTRE: Recompensas VIP creditadas!", "info");
+                           pushChat(`🎁 Dia ${day} resgatado com sucesso!`, "info");
                          }} style={{
                            width: "100%",
                            background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e", border: "none",
@@ -11667,14 +11708,18 @@ function IdlePage() {
                            boxShadow: "0 2px 0 #b45309",
                            animation: "bounce 1s infinite",
                            textTransform: "uppercase",
-                           marginTop: 4
+                           marginTop: 4,
+                           zIndex: 6
                          }}>RESGATAR</button>
-                       ) : isClaimed ? (
-                         <div style={{ fontSize: 9, color: "#22c55e", fontWeight: 900, marginTop: 4 }}>
-                           ✓ COLETADO
-                         </div>
                        ) : (
-                         <div style={{ fontSize: 9, color: "#94a3b8", fontWeight: 900, marginTop: 4 }}>BLOQUEADO</div>
+                         <div style={{
+                           fontSize: 8, fontWeight: 900, color: isClaimed ? "#059669" : "#6b7280",
+                           background: isClaimed ? "rgba(16,185,129,0.1)" : "rgba(0,0,0,0.05)",
+                           padding: "2px 8px", borderRadius: 4, textTransform: "uppercase",
+                           marginTop: 4
+                         }}>
+                           {isClaimed ? "Coletado" : isLocked ? "Bloqueado" : "Aguarde"}
+                         </div>
                        )}
                     </div>
                     
@@ -11688,11 +11733,13 @@ function IdlePage() {
                       style={{
                         background: isVip 
                           ? "linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)" 
-                          : "linear-gradient(135deg, #1a0f2e 0%, #2a1548 100%)",
+                          : "linear-gradient(135deg, #2a1045 0%, #3b1660 100%)",
                         padding: "8px", 
+                        height: 95,
                         display: "flex", 
                         flexDirection: "column",
                         alignItems: "center", 
+                        justifyContent: "center",
                         gap: 4,
                         color: "#fff", 
                         position: "relative", 
@@ -11700,21 +11747,22 @@ function IdlePage() {
                         cursor: isVip ? "default" : "help",
                         transition: "all 0.3s ease",
                         textAlign: "center",
-                        borderTop: isVip ? "1px solid #f5cf6b" : "1px solid rgba(255,255,255,0.1)"
+                        borderTop: isVip ? "2px solid #f5cf6b" : "1px solid rgba(245,207,107,0.2)"
                       }}
                     >
                        {!isVip && (
                          <div style={{ 
                            position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", 
-                           background: "rgba(0,0,0,0.2)", zIndex: 2
+                           background: "rgba(0,0,0,0.3)", zIndex: 2
                          }}>
                            <div style={{ 
                              display: "flex", alignItems: "center", gap: 4,
-                             background: "rgba(0,0,0,0.7)", padding: "2px 8px", borderRadius: 12,
-                             border: "1px solid rgba(245,207,107,0.3)"
+                             background: "rgba(0,0,0,0.85)", padding: "4px 10px", borderRadius: 12,
+                             border: "1px solid rgba(245,207,107,0.5)",
+                             boxShadow: "0 0 10px rgba(245,207,107,0.3)"
                            }}>
                              <span style={{ fontSize: 12 }}>🔒</span>
-                             <span style={{ fontSize: 8, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
+                             <span style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
                            </div>
                          </div>
                        )}
@@ -11722,28 +11770,28 @@ function IdlePage() {
                        {isVip && (
                          <div style={{
                            position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%",
-                           background: "conic-gradient(from 0deg, transparent, rgba(245,207,107,0.15), transparent)",
+                           background: "conic-gradient(from 0deg, transparent, rgba(245,207,107,0.2), transparent)",
                            animation: "rotate 6s linear infinite", zIndex: 0
                          }} />
                        )}
   
-                       <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.1)" : "rgba(255,255,255,0.05)", borderRadius: 8 }}>
+                       <div style={{ width: 36, height: 36, display: "grid", placeItems: "center", position: "relative", zIndex: 1, background: isVip ? "rgba(245,207,107,0.2)" : "rgba(255,255,255,0.05)", borderRadius: 8 }}>
                          <img 
-                           src={day === 7 ? assetUrlFromJson(blackMiticPlusEggIcon) : assetUrlFromJson(iconCrystalBlue)} 
+                           src={rew.vipImg} 
                            alt=""
                            style={{ 
-                             width: day === 7 ? 32 : 22, height: day === 7 ? 32 : 22, objectFit: "contain",
+                             width: day === 7 ? 40 : 30, height: day === 7 ? 40 : 30, objectFit: "contain",
                              filter: "none",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
                          />
                        </div>
                        <div style={{ fontSize: 8, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.1 }}>
-                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa" }}>
+                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa", textShadow: "0 0 5px rgba(245,207,107,0.5)" }}>
                            BÔNUS {isVip && "✨"}
                          </div>
-                         <div style={{ opacity: 0.9 }}>
-                           {day === 7 ? "Master Ball + Egg + Skin" : "200💎 + 100◓"}
+                         <div style={{ opacity: 0.9, color: "#fff" }}>
+                           {rew.vipLabel}
                          </div>
                        </div>
                     </div>
