@@ -1,18 +1,11 @@
-# Implementation Plan - BMP Aura and UI Consolidation
+## Modular Game HUD System
 
-Consolidate aura effects for all Black Mitic Plus Pokémon and improve the World Map visual cues.
+We will implement a reusable `GameWindow` component and a `WindowManager` state to handle floating, draggable panels. The first implementation will be a "FORGE" mini-inventory for Elemental Stones.
 
-## User Review Required
+### Technical Details
 
-> [!IMPORTANT]
-> The current world map reference image is used for all continents. This plan will add visual filters (grayscale) to represent locked continents while maintaining the single background asset.
-
-- **BMP Aura Consistency**: Ensure all `black_mitic_plus` Pokémon share the same purple aura effect across Team HUD, Collection, and Market.
-- **World Map Cues**: Improve the "grayscale to color" transition on the world map to clearly show progress across Continents I, II, III, and IV.
-- **UI Polish**: Minor adjustments to the bottom navigation to ensure "Salvar" and other icons are perfectly aligned.
-
-## Technical Details
-
-- **Aura Component**: Extract the aura logic into a reusable style or component if possible, or ensure the condition `rarity === 'black_mitic_plus'` triggers the purple drop-shadow/glow in all relevant mapping loops.
-- **Map Filters**: Update the `filter` property on the `worldMapRefAsset` container based on `continentUnlocked` and `activeTab`.
-- **Navigation Layout**: Adjust the flex-basis and padding of the navigation buttons to prevent text wrapping on smaller screens.
+- **State Management**: Add `forgeWindowOpen`, `forgePos`, and `forgeMinimized` to `src/routes/idle.tsx`.
+- **Component**: Create a `GameWindow` functional component within `src/routes/idle.tsx` that uses `framer-motion` (or standard React state) for dragging.
+- **Trigger**: Add an "ABRIR FORJA" button in the `mochila` (Backpack) tab or a dedicated HUD icon.
+- **Content**: The Forge window will display `idle.items` filtered for `stone_` prefixes, showing icons, counts, and a compact RPG layout.
+- **Safety**: No changes to existing Supabase schemas or backpack logic. This is a purely visual/additive overlay.
