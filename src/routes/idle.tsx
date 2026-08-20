@@ -11577,7 +11577,7 @@ function IdlePage() {
           display: "grid", placeItems: "center", padding: "20px 0"
         }}>
           <div style={{
-            width: "min(480px, 95vw)", 
+            width: "min(800px, 95vw)", 
             maxHeight: "85vh",
             background: "linear-gradient(180deg, #1a0f2e 0%, #2a1548 100%)",
             border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
@@ -11600,7 +11600,7 @@ function IdlePage() {
 
             <div style={{ 
               display: "grid", 
-              gridTemplateColumns: "repeat(2, 1fr)",
+              gridTemplateColumns: "repeat(4, 1fr)",
               gap: 12, 
               position: "relative", 
               zIndex: 1, 
@@ -11627,7 +11627,7 @@ function IdlePage() {
                     border: "1px solid rgba(245,207,107,0.3)",
                     overflow: "hidden",
                     boxShadow: canClaim ? "0 0 20px rgba(245,207,107,0.2)" : "none",
-                    gridColumn: day === 7 ? "span 2" : "span 1"
+                    gridColumn: day === 7 ? "span 4" : "span 1"
                   }}>
                     {/* Linha Normal */}
                     <div style={{
@@ -11649,7 +11649,6 @@ function IdlePage() {
                            alt=""
                            style={{ 
                              width: 32, height: 32, objectFit: "contain",
-                             filter: isLocked ? "opacity(0.5)" : "none",
                              animation: canClaim ? "pulse 2s infinite" : "none"
                            }} 
                          />
@@ -11688,19 +11687,20 @@ function IdlePage() {
                       }}
                       style={{
                         background: isVip 
-                          ? "linear-gradient(135deg, #fff9e6 0%, #fff 100%)" 
-                          : "rgba(255,255,255,0.08)",
+                          ? "linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)" 
+                          : "linear-gradient(135deg, #1a0f2e 0%, #2a1548 100%)",
                         padding: "8px", 
                         display: "flex", 
                         flexDirection: "column",
                         alignItems: "center", 
                         gap: 4,
-                        color: isVip ? "#1a0f2e" : "rgba(255,255,255,0.8)", 
+                        color: "#fff", 
                         position: "relative", 
                         overflow: "hidden",
                         cursor: isVip ? "default" : "help",
                         transition: "all 0.3s ease",
-                        textAlign: "center"
+                        textAlign: "center",
+                        borderTop: isVip ? "1px solid #f5cf6b" : "1px solid rgba(255,255,255,0.1)"
                       }}
                     >
                        {!isVip && (
@@ -11733,13 +11733,13 @@ function IdlePage() {
                            alt=""
                            style={{ 
                              width: day === 7 ? 32 : 22, height: day === 7 ? 32 : 22, objectFit: "contain",
-                             filter: "drop-shadow(0 0 4px rgba(0,0,0,0.3))",
+                             filter: "none",
                              animation: isVip ? "float 3s ease-in-out infinite" : "none"
                            }} 
                          />
                        </div>
                        <div style={{ fontSize: 8, fontWeight: 900, position: "relative", zIndex: 1, lineHeight: 1.1 }}>
-                         <div style={{ color: isVip ? "#d97706" : "#f5cf6b" }}>
+                         <div style={{ color: isVip ? "#f5cf6b" : "#a78bfa" }}>
                            BÔNUS {isVip && "✨"}
                          </div>
                          <div style={{ opacity: 0.9 }}>
