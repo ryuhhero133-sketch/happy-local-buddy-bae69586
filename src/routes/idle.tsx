@@ -11557,7 +11557,25 @@ function IdlePage() {
                             }}
                           />
                         ), { width: 350, height: 450 });
+                      } else if (t.id === "colecao") {
+                        manager.openWindow("colecao", "🛡️ Coleção Real", (
+                          <CollectionWindowContent 
+                            collection={idle.collection || []}
+                            caughtSpecies={idle.caughtSpecies || []}
+                            craftPoints={idle.craftPoints || 0}
+                            lockedUids={idle.lockedUids || []}
+                            onOpenDetail={(uid) => {
+                              const p = (idle.collection || []).find(x => x.uid === uid);
+                              if (p) setStatsCardPet(p as any);
+                            }}
+                            onFragment={(uids) => {
+                              openFragConfirm(uids);
+                            }}
+                            onToggleLock={(uid) => toggleLock(uid)}
+                          />
+                        ), { width: 450, height: 550 });
                       }
+
                     }
                     return;
                   }
