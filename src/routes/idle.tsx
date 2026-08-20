@@ -6628,6 +6628,51 @@ function IdlePage() {
 
 
 
+  const STONES_MAP = {
+    attack: { stone: "stone_fire", color: "#ff5252", label: "Poder Ígneo", desc: "Aumenta o dano base do time.", fail: 15 },
+    speed: { stone: "stone_electric", color: "#ffd94d", label: "Circuito Flash", desc: "Reduz o intervalo entre ataques.", fail: 12 },
+    synergy: { stone: "stone_grass", color: "#5ec26a", label: "Essência Vital", desc: "Melhora a cura e bônus de time.", fail: 18 },
+    resistance: { stone: "stone_water", color: "#4a7bff", label: "Barreira Fluida", desc: "Reduz o dano recebido.", fail: 15 },
+    mastery: { stone: "stone_dragon", color: "#c084fc", label: "Domínio Dracônico", desc: "Aumenta a chance de acertos críticos.", fail: 22 },
+  };
+
+  const onUpgradeBook = (key: string) => {
+    const cfg = (STONES_MAP as any)[key];
+    if (!cfg) return;
+
+    setIdle((s) => {
+      const stats = s.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
+      const lv = (stats as any)[key] || 0;
+      const stoneCost = 50 + lv * 25;
+      const bookCost = 1 + Math.floor(lv / 2);
+
+      if ((s.items[cfg.stone] || 0) < stoneCost) {
+        pushChat(`Stones insuficientes (${stoneCost} necessárias).`, "info");
+        return s;
+      }
+      if ((s.items.book_atk || 0) < bookCost || (s.items.book_def || 0) < bookCost) {
+        pushChat(`Livros insuficientes (${bookCost} de cada necessários).`, "info");
+        return s;
+      }
+
+      const success = Math.random() * 100 > cfg.fail;
+      const nextItems = { ...s.items };
+      nextItems[cfg.stone] -= stoneCost;
+      nextItems.book_atk -= bookCost;
+      nextItems.book_def -= bookCost;
+
+      if (!success) {
+        pushChat(`✗ Falha na melhoria de ${cfg.label}! Materiais consumidos.`, "info");
+        return { ...s, items: nextItems };
+      }
+
+      const nextStats = { ...stats, [key]: lv + 1 };
+      pushChat(`★ Sucesso! ${cfg.label} subiu para Lv.${lv + 1}.`, "cap");
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "UPGRADE!", "capture");
+
+      return { ...s, items: nextItems, globalStats: nextStats };
+    });
+  };
 
   // ===== UPGRADE de Livros =====
   // Regras: junta livros iguais para forjar o próximo nível. Exige nível de treinador.
@@ -8264,9 +8309,9 @@ function IdlePage() {
                 <BackpackWindowContent
                   items={idle.items}
                   bank={{ gold: idle.bank.gold, crystals: idle.bank.crystals }}
-                  onUseItem={(id) => useItem(id)}
-                  onSellItem={(id) => onSellItem(id)}
-                  marketSellPrices={marketSellPrices}
+                  onUseItem={(id, q) => useItem(id, q)}
+                  onSellItem={(id, q, cur) => sellItem(id, q, cur)}
+                  marketSellPrices={MARKET_SELL_PRICE}
                 />
               ))}
               style={{
@@ -8290,13 +8335,7 @@ function IdlePage() {
             <button
               onClick={() => openWindow("melhorias_window", "Anatomia da Conta", (
                 <ImprovementsWindowContent
-                  stats={{
-                    attack: idle.buffs.atk || 0,
-                    speed: idle.buffs.speed || 0,
-                    synergy: idle.buffs.synergy || 0,
-                    resistance: idle.buffs.def || 0,
-                    mastery: idle.buffs.mastery || 0
-                  }}
+                  stats={idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 }}
                   items={idle.items}
                   onUpgrade={(key) => onUpgradeBook(key as string)}
                   stonesMap={STONES_MAP}
@@ -13858,18 +13897,16 @@ function TabOverlay({
   pushChat: (msg: string, tone?: any) => void;
 
 }) {
-
-
   const title =
     tab === "pokemon"   ? "MEU POKÉMON" :
-    tab === "mochila"   ? "MOCHILA" :
-    tab === "colecao"   ? "COLEÇÃO" :
+    tab === "mochila"   ? "MOCHILA (LEGACY)" :
+    tab === "colecao"   ? "COLEÇÃO (LEGACY)" :
     tab === "pokedex"   ? "POKÉDEX" :
     tab === "loja"      ? "LOJA" :
     tab === "wallet"    ? "BANCO MEDIEVAL" :
     tab === "market"    ? "MERCADO BLOQUEADO" :
 
-    tab === "melhorias" ? "MELHORIAS" :
+    tab === "melhorias" ? "MELHORIAS (LEGACY)" :
     tab === "config"    ? "CONFIGURAÇÕES" :
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
