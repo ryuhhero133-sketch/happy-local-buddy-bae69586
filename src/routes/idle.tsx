@@ -11534,7 +11534,8 @@ function IdlePage() {
       >
         {forgeMinimized ? (
           <div
-            onClick={() => {
+            onClick={(e) => {
+               e.stopPropagation();
                setForgeMinimized(false);
                playClick();
             }}
