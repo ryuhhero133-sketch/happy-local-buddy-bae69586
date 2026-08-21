@@ -87,6 +87,7 @@ import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudS
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
+import { TYPE_COLOR } from "@/game/movesets";
 import { computeTeamSynergies, computePower } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
@@ -97,6 +98,7 @@ import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
 import skinGokuAsset from "@/assets/skins/goku.webp.asset.json";
+import trainerCapAsset from "@/assets/trainer_cap.png.asset.json";
 import virizionAsset from "@/assets/legends/virizion.gif.asset.json";
 import mewtwoRewardBgAsset from "@/assets/mewtwo-reward-bg.png.asset.json";
 
@@ -15262,6 +15264,27 @@ function TabOverlay({
                 </div>
 
                 <SynergyPanel team={team} />
+                <div style={{ marginTop: 10, padding: 8, background: "rgba(0,0,0,0.3)", borderRadius: 10, border: "1px solid rgba(245,207,107,0.1)" }}>
+                   <div style={{ color: "#f5cf6b", fontSize: 10, fontWeight: 900, marginBottom: 4, textAlign: "center", letterSpacing: 1 }}>MINI DASHBOARD DE SINERGIA</div>
+                   <div style={{ display: "flex", justifyContent: "space-around", alignItems: "flex-end", height: 30, gap: 2 }}>
+                      {(() => {
+                        const synergies = computeTeamSynergies(team) as any;
+                        const types = Object.keys(synergies);
+                        if (types.length === 0) return <div style={{ color: "#8a7a9c", fontSize: 9 }}>Sem bônus ativos</div>;
+                        return types.map(t => {
+                          const val = synergies[t] || 0;
+                          const height = Math.min(100, (val / 5) * 100);
+                          const typeCol = (TYPE_COLOR as any)[t] || "#ccc";
+                          return (
+                            <div key={t} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                               <div style={{ width: "100%", height: `${height}%`, background: typeCol, borderRadius: 2, minHeight: 4, boxShadow: `0 0 5px ${typeCol}aa` }} />
+                               <div style={{ fontSize: 7, fontWeight: 900, color: typeCol }}>{t.slice(0,3).toUpperCase()}</div>
+                            </div>
+                          );
+                        });
+                      })()}
+                   </div>
+                </div>
 
 
 
@@ -17182,7 +17205,13 @@ function TabOverlay({
                       boxShadow: item ? `0 0 10px ${rColor}33` : "none"
                     }}>
                     {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
-                    {item && <div style={{ fontSize: 24 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
+                    {item && (
+                      slot === "head" ? (
+                        <img src={assetUrlFromJson(trainerCapAsset)} alt="Cap" style={{ width: 40, height: 40, imageRendering: "pixelated", objectFit: "contain" }} />
+                      ) : (
+                        <div style={{ fontSize: 24 }}>{slot === "body" ? "🛡️" : "⚔️"}</div>
+                      )
+                    )}
                     <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
                   </div>
                 );
@@ -17213,15 +17242,45 @@ function TabOverlay({
                 return (
                   <div style={{
                     position: "absolute", bottom: 0, left: 0, right: 0,
-                    background: "rgba(0,0,0,0.7)", padding: "2px 4px",
-                    display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6,
-                    borderTop: "1px solid rgba(139, 94, 60, 0.3)"
+                    background: "rgba(0,0,0,0.85)", padding: "4px 6px",
+                    display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8,
+                    borderTop: "1px solid rgba(245, 207, 107, 0.4)",
+                    boxShadow: "0 -4px 10px rgba(0,0,0,0.5)"
                   }}>
-                    {ts.xpBonus > 0 && <span style={{ color: "#4ade80", fontSize: 8, fontWeight: 900 }}>XP+{Math.round(ts.xpBonus*100)}%</span>}
-                    {ts.goldBonus > 0 && <span style={{ color: "#fbbf24", fontSize: 8, fontWeight: 900 }}>$+{Math.round(ts.goldBonus*100)}%</span>}
+                    {ts.xpBonus > 0 && <span style={{ color: "#4ade80", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>XP+{Math.round(ts.xpBonus*100)}%</span>}
+                    {ts.goldBonus > 0 && <span style={{ color: "#fbbf24", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>OURO+{Math.round(ts.goldBonus*100)}%</span>}
+                    {ts.dropRate > 0 && <span style={{ color: "#6bd4ff", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>DROP+{Math.round(ts.dropRate*100)}%</span>}
+                    {ts.speed > 0 && <span style={{ color: "#c084fc", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>SPD+{Math.round(ts.speed*100)}%</span>}
                   </div>
                 );
               })()}
+            </div>
+
+            {/* Trainer Info Mini Dashboard */}
+            <div style={{
+              position: "absolute",
+              top: 50,
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "rgba(0,0,0,0.7)",
+              border: "1px solid #f5cf6b55",
+              borderRadius: 8,
+              padding: "4px 8px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+              zIndex: 5,
+              pointerEvents: "none",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ color: "#f5cf6b", fontSize: 10, fontWeight: 900, letterSpacing: 1 }}>LV. {trainerLevel}</div>
+              {leader && (
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 5px #4ade80" }} />
+                  <div style={{ color: "#eadfe8", fontSize: 9, fontWeight: 700 }}>{leader.species.replace(/_/g, " ").toUpperCase()}</div>
+                </div>
+              )}
             </div>
 
             {/* Right Slots */}
