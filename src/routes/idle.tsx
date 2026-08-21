@@ -17292,10 +17292,10 @@ function TabOverlay({
               {/* Account Stats Panel */}
               <div style={{
                 width: "100%",
-                background: "rgba(0,0,0,0.3)",
+                background: "rgba(255,255,255,0.6)",
                 borderRadius: 12,
                 padding: "10px 14px",
-                border: "1px solid rgba(245,207,107,0.2)",
+                border: "1px solid rgba(0,0,0,0.1)",
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
                 gap: 8
@@ -17307,7 +17307,7 @@ function TabOverlay({
                   { icon: "⚔️", label: "Poder Total", value: team.reduce((acc, p) => acc + computePower(p), 0).toLocaleString(), color: "#4ea8ff" }
                 ].map((stat, i) => (
                   <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <div style={{ fontSize: 9, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase" }}>{stat.label}</div>
+                    <div style={{ fontSize: 9, color: "#4b5563", fontWeight: 700, textTransform: "uppercase" }}>{stat.label}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       <span style={{ fontSize: 12 }}>{stat.icon}</span>
                       <span style={{ fontSize: 13, fontWeight: 900, color: stat.color }}>{stat.value}</span>
@@ -17319,10 +17319,10 @@ function TabOverlay({
               {/* RPG Stats Dashboard */}
               <div style={{
                 width: "100%",
-                background: "rgba(0,0,0,0.4)",
+                background: "rgba(255,255,255,0.8)",
                 padding: "8px 12px",
                 borderRadius: 16,
-                border: "1px solid rgba(245,207,107,0.2)",
+                border: "1px solid rgba(0,0,0,0.1)",
                 display: "flex",
                 flexDirection: "column",
                 gap: 6
@@ -17337,11 +17337,11 @@ function TabOverlay({
                   ];
                   return statsData.map(s => (
                     <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 900, color: "#8a7a9c" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 900, color: "#4b5563" }}>
                         <span>{s.icon} {s.label}</span>
                         <span style={{ color: s.color }}>+{Math.round(s.val * 100)}%</span>
                       </div>
-                      <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ height: 4, background: "rgba(0,0,0,0.1)", borderRadius: 2, overflow: "hidden" }}>
                         <div style={{ 
                           height: "100%", 
                           width: `${Math.min(100, s.val * 100)}%`, 
@@ -17366,8 +17366,8 @@ function TabOverlay({
                     onClick={() => setEquipmentSlotPicker(slot)}
                     style={{
                       width: 54, height: 54,
-                      background: item ? "rgba(0,0,0,0.6)" : "rgba(245,207,107,0.05)",
-                      border: `2px solid ${item ? rColor : "rgba(245,207,107,0.2)"}`,
+                      background: item ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.05)",
+                      border: `2px solid ${item ? rColor : "rgba(0,0,0,0.1)"}`,
                       borderRadius: 14,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       cursor: "pointer",
