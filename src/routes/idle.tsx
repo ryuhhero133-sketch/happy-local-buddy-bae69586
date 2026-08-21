@@ -11186,7 +11186,7 @@ function IdlePage() {
                   })()}
 
 
-                  {activeTab === 1 && (
+                  {worldTab === 1 && (
                     <div style={{
                       position: "absolute", bottom: 20, right: 20, zIndex: 100,
                       background: "rgba(0,0,0,0.8)", border: "2px solid #f5cf6b",
