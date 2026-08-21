@@ -17205,12 +17205,14 @@ function TabOverlay({
                       transition: "all 0.2s ease"
                     }}>
                     {!item && (
-                      <div style={{ width: 28, height: 28, opacity: 0.3, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {slot === "head" ? "🧢" : slot === "body" ? "🛡️" : "⚔️"}
+                      <div style={{ width: 28, height: 28, opacity: 0.3, display: "flex", alignItems: "center", justifyContent: "center", filter: "grayscale(1)" }}>
+                        {slot === "head" ? "🧢" : slot === "body" ? "🛡️" : slot === "weapon" ? <img src={assetUrlFromJson(trainerGloveAsset)} style={{ width: 28, height: 28, imageRendering: "pixelated", filter: "grayscale(1)" }} /> : "⚔️"}
                       </div>
                     )}
                     {item && (
-                      <div style={{ fontSize: 28 }}>{slot === "head" ? "🧢" : slot === "body" ? "🛡️" : "⚔️"}</div>
+                      <div style={{ fontSize: 28, filter: "grayscale(1)" }}>
+                        {slot === "head" ? "🧢" : slot === "body" ? "🛡️" : slot === "weapon" ? <img src={assetUrlFromJson(trainerGloveAsset)} style={{ width: 28, height: 28, imageRendering: "pixelated" }} /> : "⚔️"}
+                      </div>
                     )}
                     <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
                   </div>
