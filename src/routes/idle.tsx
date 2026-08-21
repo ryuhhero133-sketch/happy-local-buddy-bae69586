@@ -10369,6 +10369,31 @@ function IdlePage() {
                 cadeia_ab: [],
                 cadeia_ab1: [],
                 cadeia_f1: [],
+                venofogo: [
+                  { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
+                ],
+                fantasma: [
+                  { key: "to-terra", target: "terra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9873a" },
+                ],
+                praia: [
+                  { key: "to-arena",   target: "arena",   x: WORLD_W - 60, y: 60,          arriveX: 100,           arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-deserto", target: "deserto", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#f5b25c" },
+                ],
+                neve: [
+                  { key: "to-arena",   target: "arena",   x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#7ef27a" },
+                  { key: "to-caverna", target: "caverna", x: 60,          y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
+                ],
+                deserto: [
+                  { key: "to-praia",    target: "praia",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#5cd3ff" },
+                ],
+                caverna: [
+                  { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
+                ],
+                vale_rochas: [
+                  { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
+                  { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
+                ],
+                evento_myth: [],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
