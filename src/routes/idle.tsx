@@ -17205,17 +17205,11 @@ function TabOverlay({
                     }}>
                     {!item && (
                       <div style={{ width: 28, height: 28, opacity: 0.3, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {slot === "head" ? (
-                          <img src={assetUrlFromJson(trainerCapAsset)} alt="Cap Icon" style={{ width: "100%", height: "100%", filter: "brightness(0) invert(1)" }} />
-                        ) : slot === "body" ? "🛡️" : "⚔️"}
+                        {slot === "head" ? "🧢" : slot === "body" ? "🛡️" : "⚔️"}
                       </div>
                     )}
                     {item && (
-                      slot === "head" ? (
-                        <img src={assetUrlFromJson(trainerCapAsset)} alt="Cap" style={{ width: 44, height: 44, imageRendering: "pixelated", objectFit: "contain" }} />
-                      ) : (
-                        <div style={{ fontSize: 28 }}>{slot === "body" ? "🛡️" : "⚔️"}</div>
-                      )
+                      <div style={{ fontSize: 28 }}>{slot === "head" ? "🧢" : slot === "body" ? "🛡️" : "⚔️"}</div>
                     )}
                     <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
                   </div>
@@ -17237,7 +17231,7 @@ function TabOverlay({
                 {skinUrl ? (
                   <img src={skinUrl} alt="Trainer" style={{ width: 110, height: 110, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
                 ) : (
-                  <div style={{ fontSize: 70, filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }}>🧢</div>
+                  <img src={assetUrlFromJson(trainerCapAsset)} alt="Trainer Profile" style={{ width: 110, height: 110, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
                 )}
                 
                 {/* Level Badge */}
