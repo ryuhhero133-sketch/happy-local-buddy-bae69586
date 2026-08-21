@@ -2266,12 +2266,16 @@ function IdlePage() {
     let timer: ReturnType<typeof setTimeout>;
     const cycle = (phase: "snow" | "clear") => {
       if (cancelled) return;
+      
+      // Se estiver na casa, sempre força clima limpo e não anuncia nevasca
+      if (idleRef.current.currentMap === "casa_do_treinador") {
+        setWeather("clear");
+        // Tenta iniciar o ciclo novamente em 10 segundos para ver se o jogador saiu
+        timer = setTimeout(() => cycle(phase), 10000);
+        return;
+      }
+
       if (phase === "snow") {
-        if (idleRef.current.currentMap === "casa_do_treinador") {
-          setWeather("clear");
-          timer = setTimeout(() => cycle("snow"), 10000); // Check again in 10s
-          return;
-        }
         setWeather("snow");
         pushChat("❄ Uma nevasca começou a cair sobre a região...", "info");
         timer = setTimeout(() => cycle("clear"), SNOW_MS);
@@ -2281,7 +2285,7 @@ function IdlePage() {
         timer = setTimeout(() => cycle("snow"), CLEAR_MS);
       }
     };
-    cycle("snow");
+    cycle("clear");
     // Aviso a cada 30 minutos sobre criaturas poderosas
     const warn = setInterval(() => {
       pushChat("⚠ Criaturas MUITO PODEROSAS foram avistadas por perto... fique alerta!", "info");
