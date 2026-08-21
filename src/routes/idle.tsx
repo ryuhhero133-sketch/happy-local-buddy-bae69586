@@ -17273,7 +17273,7 @@ function TabOverlay({
             }}>
               <div style={{
                 width: 150, height: 150,
-                background: "rgba(0,0,0,0.4)",
+                background: trainerTheme === "dark" ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.6)",
                 borderRadius: "50%",
                 border: "4px solid #f5cf6b",
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -17320,10 +17320,10 @@ function TabOverlay({
               {/* Account Stats Panel */}
               <div style={{
                 width: "100%",
-                background: "rgba(0,0,0,0.3)",
+                background: trainerTheme === "dark" ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.5)",
                 borderRadius: 12,
                 padding: "10px 14px",
-                border: "1px solid rgba(245,207,107,0.2)",
+                border: trainerTheme === "dark" ? "1px solid rgba(245,207,107,0.2)" : "1px solid rgba(212,163,115,0.3)",
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
                 gap: 8
@@ -17347,10 +17347,10 @@ function TabOverlay({
               {/* RPG Stats Dashboard */}
               <div style={{
                 width: "100%",
-                background: "rgba(0,0,0,0.4)",
+                background: trainerTheme === "dark" ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.6)",
                 padding: "8px 12px",
                 borderRadius: 16,
-                border: "1px solid rgba(245,207,107,0.2)",
+                border: trainerTheme === "dark" ? "1px solid rgba(245,207,107,0.2)" : "1px solid rgba(212,163,115,0.3)",
                 display: "flex",
                 flexDirection: "column",
                 gap: 6
