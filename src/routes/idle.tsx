@@ -1362,6 +1362,15 @@ function IdlePage() {
   const identity = loadIdentity();
   const navigate = useNavigate();
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
+  const [trainerTheme, setTrainerTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "dark";
+    return (localStorage.getItem("rubym.trainer.theme.v1") as "light" | "dark") || "dark";
+  });
+  const toggleTrainerTheme = () => {
+    const next = trainerTheme === "dark" ? "light" : "dark";
+    setTrainerTheme(next);
+    localStorage.setItem("rubym.trainer.theme.v1", next);
+  };
   // Pokémon fora do time enquanto descansam na Casa Azul (voltam ao time cheios)
   const [restingBench, setRestingBench] = useState<PetInstance[]>([]);
   // HP atual do meu pokémon (o líder toma dano dos inimigos)
