@@ -158,6 +158,7 @@ import mapSnowAsset from "@/assets/map-snow-valley.png.asset.json";
 import mapDesertAsset from "@/assets/map-desert.png.asset.json";
 import mapCaveAsset from "@/assets/map-cave1.png.asset.json";
 import mapStoneAsset from "@/assets/map-stone.jpg.asset.json";
+import idleMonHouseAsset from "@/assets/idle_mon_house.png.asset.json";
 import mapTerraAsset from "@/assets/map-terra-hornet.jpg.asset.json";
 import mapDesertoPurpuraAsset from "@/assets/map-deserto-purpura.jpg.asset.json";
 import mapTerryAsset from "@/assets/map-terry.png.asset.json";
@@ -237,6 +238,7 @@ const stalagmiteUrl = assetUrlFromJson(stalagmiteAsset);
 const caveCrystalUrl = assetUrlFromJson(caveCrystalAsset);
 
 const crystalClusterUrl = assetUrlFromJson(crystalClusterAsset);
+const idleMonHouseUrl = assetUrlFromJson(idleMonHouseAsset);
 
 // Pokemon GIFs (reusa os que já existem no projeto)
 import charizardGif from "@/assets/charizard.gif";
@@ -513,6 +515,7 @@ type IdleMapDef = {
   raid?: boolean;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
+  casa_do_treinador: { name: "Casa do Treinador", diff: "Seguro", bg: idleMonHouseUrl, rate: 1.0, minLevel: 1, maxLevel: 10000, element: "Normal", stars: 1 },
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
   deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
@@ -581,6 +584,14 @@ const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
     { key: `${c.to}->${c.from}`, from: c.to, to: c.from, x: 200, y: 1660, arriveX: 1700, arriveY: 260, color: "#94a3b8", label: `↩ ${fromName}` },
   ];
 });
+
+// Portal da Casa
+const HOUSE_PORTALS: WorldPortalDef[] = [
+  { key: "casa->arena", from: "casa_do_treinador", to: "arena", x: 1000, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b", label: "Partir para Aventura" },
+  { key: "arena->casa", from: "arena", to: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 400, color: "#8b5a2b", label: "Ir para Casa" },
+];
+
+WORLD_PORTALS.push(...HOUSE_PORTALS);
 
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
