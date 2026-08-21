@@ -588,8 +588,8 @@ const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
 
 // Portal da Casa
 const HOUSE_PORTALS: WorldPortalDef[] = [
-  { key: "casa->arena", from: "casa_do_treinador", to: "arena", x: 1000, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b", label: "Partir para Aventura" },
-  { key: "arena->casa", from: "arena", to: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 400, color: "#8b5a2b", label: "Ir para Casa" },
+  { key: "casa->arena", from: "casa_do_treinador", to: "arena", x: 1000, y: 700, arriveX: 500, arriveY: 500, color: "#f5cf6b", label: "Partir para Aventura" },
+  { key: "arena->casa", from: "arena", to: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 700, color: "#8b5a2b", label: "Ir para Casa" },
 ];
 
 WORLD_PORTALS.push(...HOUSE_PORTALS);
@@ -758,10 +758,13 @@ type Obstacle = {
   collideR: number;          // raio de colisão em px (a partir da base)
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
-function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
-  // PRNG determinístico simples
-  let seed = mapId === "terra" ? 98765 : mapId === "fantasma" ? 66613 : 12345;
-  const rand = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
+   // Casa do Treinador: mapa limpo e sem obstáculos
+   if (mapId === "casa_do_treinador") return [];
+
+   // PRNG determinístico simples
+   let seed = mapId === "terra" ? 98765 : mapId === "fantasma" ? 66613 : 12345;
+   const rand = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
 
   // Cemitério Assombrado (fantasma): mesma composição do Ninho de Marimbondo,
   // porém re-tematizado — lápides gigantes no lugar dos casulos, árvores mortas ao redor.
@@ -2471,8 +2474,8 @@ function IdlePage() {
   }, []);
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 1100 : 1920;
+  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 800 : 1920;
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
@@ -5934,8 +5937,8 @@ function IdlePage() {
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
-    // Continente do Governante — zona sagrada, sem spawns.
-    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return null;
+    // Zonas sagradas ou seguras, sem spawns.
+    if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return null;
     const leaderLv = team[0]?.level ?? 10;
     const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
     const MIN_DIST = 220;
@@ -10274,7 +10277,7 @@ function IdlePage() {
               // Fluxo: arena → praia → neve → deserto → caverna
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 casa_do_treinador: [
-                  { key: "casa-to-adventure", target: "arena", x: 1000, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
+                  { key: "casa-to-adventure", target: "arena", x: 1000, y: 700, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
                 ],
                 arena: [
                   { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 400, color: "#8b5a2b" },
