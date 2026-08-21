@@ -10384,13 +10384,6 @@ function IdlePage() {
                   { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
                   { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
                 ],
-                abismo_gelo: [],
-                abismo_veneno: [],
-                abismo_raio: [],
-                abismo_sombra: [],
-                abismo_dragao: [],
-                cadeia_ab: [],
-                cadeia_ab1: [],
                 evento_myth: [],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
