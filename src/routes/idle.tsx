@@ -7829,7 +7829,7 @@ function IdlePage() {
                 }}>
                   <div style={{
                     width: "100%", height: "100%", borderRadius: "50%",
-                    background: "radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)",
+                    background: `url(${assetUrlFromJson(pikachuBgAsset)}) center/cover no-repeat, radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)`,
                     display: "grid", placeItems: "center", overflow: "hidden",
                     border: "1.5px solid #0b0510",
                     boxShadow: "inset 0 0 6px rgba(0,0,0,0.8)",
@@ -7837,7 +7837,7 @@ function IdlePage() {
                     <img
                       src={assetUrlFromJson(trainerAvatarAsset)}
                       alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }}
                     />
                   </div>
                   {/* Selo de nível — pendurado no medalhão */}
