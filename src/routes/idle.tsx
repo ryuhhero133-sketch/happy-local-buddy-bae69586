@@ -11945,25 +11945,25 @@ function IdlePage() {
                       }}
                     >
                        {!isVip && (
-                         <div style={{ 
-                           position: "absolute", top: 6, left: 6, display: "flex", alignItems: "center", justifyContent: "center", 
-                           zIndex: 10
-                         }}>
+                         <>
                            <div style={{ 
-                             display: "flex", alignItems: "center", gap: 3,
-                             background: "rgba(0,0,0,0.85)", padding: "3px 8px", borderRadius: 8,
-                             border: "1px solid rgba(245,207,107,0.6)",
-                             boxShadow: "0 0 10px rgba(245,207,107,0.4)"
+                             position: "absolute", top: 6, left: 6, display: "flex", alignItems: "center", justifyContent: "center", 
+                             zIndex: 10
                            }}>
-                             <span style={{ fontSize: 12 }}>🔒</span>
-                             <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
+                             <div style={{ 
+                               display: "flex", alignItems: "center", gap: 3,
+                               background: "rgba(0,0,0,0.85)", padding: "3px 8px", borderRadius: 8,
+                               border: "1px solid rgba(245,207,107,0.6)",
+                               boxShadow: "0 0 10px rgba(245,207,107,0.4)"
+                             }}>
+                               <span style={{ fontSize: 12 }}>🔒</span>
+                               <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
+                             </div>
                            </div>
-                            </div>
-                          {!isVip && (
-                            <div style={{ position: "absolute", bottom: 4, right: 4, color: "#f5cf6b", fontSize: 9, opacity: 0.8, fontWeight: "bold", textShadow: "0 0 4px #000" }}>
-                              caso o treinador n for vip, mostrar  para atrair o pessoal a ter vip ne..
-                            </div>
-                          )}
+                           <div style={{ position: "absolute", bottom: 4, right: 4, color: "#f5cf6b", fontSize: 9, opacity: 0.8, fontWeight: "bold", textShadow: "0 0 4px #000", zIndex: 10 }}>
+                             caso o treinador n for vip, mostrar  para atrair o pessoal a ter vip ne..
+                           </div>
+                         </>
                        )}
                        
                        <div style={{
