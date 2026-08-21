@@ -105,6 +105,7 @@ import mewtwoRewardBgAsset from "@/assets/mewtwo-reward-bg.png.asset.json";
 
 import auraEggBgAsset from "@/assets/aura-egg-bg.png.asset.json";
 import worldMapBgContinent1Asset from "@/assets/world-map-bg-continent1.png.asset.json";
+import pikachuBgAsset from "@/assets/pikachu-bg.png.asset.json";
 import raikouAsset from "@/assets/legends/raikou.gif.asset.json";
 import suicuneAsset from "@/assets/legends/suicune.gif.asset.json";
 import suicuneShinyAsset from "@/assets/legends/suicune-shiny.gif.asset.json";
