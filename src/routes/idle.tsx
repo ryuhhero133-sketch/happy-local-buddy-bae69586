@@ -15263,6 +15263,26 @@ function TabOverlay({
                 </div>
 
                 <SynergyPanel team={team} />
+                <div style={{ marginTop: 10, padding: 8, background: "rgba(0,0,0,0.3)", borderRadius: 10, border: "1px solid rgba(245,207,107,0.1)" }}>
+                   <div style={{ color: "#f5cf6b", fontSize: 10, fontWeight: 900, marginBottom: 4, textAlign: "center", letterSpacing: 1 }}>MINI DASHBOARD DE SINERGIA</div>
+                   <div style={{ display: "flex", justifyContent: "space-around", alignItems: "flex-end", height: 30, gap: 2 }}>
+                      {(() => {
+                        const synergies = computeTeamSynergies(team);
+                        const types = Object.keys(synergies);
+                        if (types.length === 0) return <div style={{ color: "#8a7a9c", fontSize: 9 }}>Sem bônus ativos</div>;
+                        return types.map(t => {
+                          const val = synergies[t] || 0;
+                          const height = Math.min(100, (val / 5) * 100);
+                          return (
+                            <div key={t} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                               <div style={{ width: "100%", height: `${height}%`, background: (TYPE_COLOR as any)[t] || "#ccc", borderRadius: 2, minHeight: 4, boxShadow: `0 0 5px ${(TYPE_COLOR as any)[t]}aa` }} />
+                               <div style={{ fontSize: 7, fontWeight: 900, color: (TYPE_COLOR as any)[t] }}>{t.slice(0,3).toUpperCase()}</div>
+                            </div>
+                          );
+                        });
+                      })()}
+                   </div>
+                </div>
 
 
 
