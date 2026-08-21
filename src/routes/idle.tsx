@@ -1810,6 +1810,14 @@ function IdlePage() {
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
   const [, setAnimTick] = useState(0);
+  const [trainerTheme, setTrainerTheme] = useState<"light" | "dark">(() => {
+    return (localStorage.getItem("rubym.trainer.theme.v1") as "light" | "dark") || "dark";
+  });
+  const toggleTrainerTheme = () => {
+    const next = trainerTheme === "dark" ? "light" : "dark";
+    setTrainerTheme(next);
+    localStorage.setItem("rubym.trainer.theme.v1", next);
+  };
   const attackAnimIdRef = useRef(1);
   useEffect(() => {
     if (!attackAnim && !enemyAttackAnim && !captureAnim) return;
