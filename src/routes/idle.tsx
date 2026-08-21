@@ -10345,16 +10345,12 @@ function IdlePage() {
                 oddish_o2: [],
                 oddish_o3: [],
                 grass_oddish: [],
-                vale_planta: [],
-                vale_gelo: [],
-                vale_veneno: [],
-                vale_fogo: [],
-                vulcao_ativo: [],
-                nucleo_primordial: [],
-                gelius1: [],
-                gelius2: [],
-                continent3_map1: [],
-                continent3_map2: [],
+                absol_start: [
+                  { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
+                ],
+                governante_hall: [
+                  { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
+                ],
                 abismo_gelo: [],
                 abismo_veneno: [],
                 abismo_raio: [],
@@ -10363,12 +10359,6 @@ function IdlePage() {
                 cadeia_ab: [],
                 cadeia_ab1: [],
                 cadeia_f1: [],
-                absol_start: [
-                  { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
-                ],
-                governante_hall: [
-                  { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
-                ],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
