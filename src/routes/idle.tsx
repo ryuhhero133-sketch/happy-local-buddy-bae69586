@@ -10137,6 +10137,8 @@ function IdlePage() {
               equipmentSlotPicker={equipmentSlotPicker}
               setEquipmentSlotPicker={setEquipmentSlotPicker}
               onEquipItem={onEquipItem}
+              trainerTheme={trainerTheme}
+              toggleTrainerTheme={toggleTrainerTheme}
 
 
               onBuyChestAmulet={buyChestAmulet}
