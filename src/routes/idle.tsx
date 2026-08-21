@@ -17175,12 +17175,12 @@ function TabOverlay({
 
           {/* TRAINER EQUIPMENT PANEL */}
           <div style={{
-            background: "linear-gradient(160deg, #1e1b2e 0%, #0f0d1a 100%)",
-            border: "2px solid #f5cf6b",
+            background: "linear-gradient(160deg, #f3f4f6 0%, #e5e7eb 100%)",
+            border: "2px solid #d1d5db",
             borderRadius: 24,
             padding: "24px 16px",
             position: "relative",
-            boxShadow: "0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(245, 207, 107, 0.05)",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.1), inset 0 0 30px rgba(255, 255, 255, 0.5)",
             display: "grid",
             gridTemplateColumns: "1fr 160px 1fr",
             alignItems: "center",
@@ -17192,10 +17192,10 @@ function TabOverlay({
               position: "absolute",
               top: -14,
               left: 30,
-              background: "linear-gradient(180deg, #f5cf6b, #d4a373)",
+              background: "linear-gradient(180deg, #4b5563, #374151)",
               padding: "2px 16px",
               borderRadius: 8,
-              color: "#3e2723",
+              color: "#f9fafb",
               fontSize: 11,
               fontWeight: 900,
               letterSpacing: 1.5,
@@ -17214,8 +17214,8 @@ function TabOverlay({
                     onClick={() => setEquipmentSlotPicker(slot)}
                     style={{
                       width: 54, height: 54,
-                      background: item ? "rgba(0,0,0,0.6)" : "rgba(245,207,107,0.05)",
-                      border: `2px solid ${item ? rColor : "rgba(245,207,107,0.2)"}`,
+                      background: item ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.05)",
+                      border: `2px solid ${item ? rColor : "rgba(0,0,0,0.1)"}`,
                       borderRadius: 14,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       cursor: "pointer",
@@ -17245,9 +17245,9 @@ function TabOverlay({
             }}>
               <div style={{
                 width: 150, height: 150,
-                background: "rgba(0,0,0,0.4)",
+                background: "rgba(255,255,255,0.5)",
                 borderRadius: "50%",
-                border: "4px solid #f5cf6b",
+                border: "4px solid #9ca3af",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 position: "relative",
                 overflow: "hidden",
