@@ -1,3 +1,7 @@
+/**
+ * onde tem status de treinador, add fundo beg. ou branco algo que combine .. melho que preto..
+ * coloque esse img tipo de fundo transparente
+ */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
@@ -105,6 +109,7 @@ import mewtwoRewardBgAsset from "@/assets/mewtwo-reward-bg.png.asset.json";
 
 import auraEggBgAsset from "@/assets/aura-egg-bg.png.asset.json";
 import worldMapBgContinent1Asset from "@/assets/world-map-bg-continent1.png.asset.json";
+import pikachuBgAsset from "@/assets/pikachu-bg.png.asset.json";
 import raikouAsset from "@/assets/legends/raikou.gif.asset.json";
 import suicuneAsset from "@/assets/legends/suicune.gif.asset.json";
 import suicuneShinyAsset from "@/assets/legends/suicune-shiny.gif.asset.json";
@@ -7828,7 +7833,7 @@ function IdlePage() {
                 }}>
                   <div style={{
                     width: "100%", height: "100%", borderRadius: "50%",
-                    background: "radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)",
+                    background: `url(${assetUrlFromJson(pikachuBgAsset)}) center/cover no-repeat, radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)`,
                     display: "grid", placeItems: "center", overflow: "hidden",
                     border: "1.5px solid #0b0510",
                     boxShadow: "inset 0 0 6px rgba(0,0,0,0.8)",
@@ -7836,7 +7841,7 @@ function IdlePage() {
                     <img
                       src={assetUrlFromJson(trainerAvatarAsset)}
                       alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }}
                     />
                   </div>
                   {/* Selo de nível — pendurado no medalhão */}
