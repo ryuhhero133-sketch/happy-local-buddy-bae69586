@@ -17233,7 +17233,7 @@ function TabOverlay({
                         {slot === "head" ? "🧢" : slot === "body" ? "🛡️" : slot === "weapon" ? <img src={assetUrlFromJson(trainerGloveAsset)} style={{ width: 28, height: 28, imageRendering: "pixelated" }} /> : "⚔️"}
                       </div>
                     )}
-                    <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
+                    <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#4b5563", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
                   </div>
                 );
               })}
@@ -17377,7 +17377,7 @@ function TabOverlay({
                     }}>
                     {!item && <div style={{ fontSize: 24, opacity: 0.3, filter: "grayscale(1)" }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
                     {item && <div style={{ fontSize: 28, filter: "grayscale(1)" }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
-                    <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
+                    <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#4b5563", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
                   </div>
                 );
               })}
