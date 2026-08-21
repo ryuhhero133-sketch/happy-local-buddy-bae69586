@@ -86,7 +86,8 @@ import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync"
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
-import { SPECIES_BASE, makePet, calcMaxHp, TYPE_COLOR } from "@/game/systems";
+import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
+import { TYPE_COLOR } from "@/game/movesets";
 import { computeTeamSynergies, computePower } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
@@ -15267,7 +15268,7 @@ function TabOverlay({
                    <div style={{ color: "#f5cf6b", fontSize: 10, fontWeight: 900, marginBottom: 4, textAlign: "center", letterSpacing: 1 }}>MINI DASHBOARD DE SINERGIA</div>
                    <div style={{ display: "flex", justifyContent: "space-around", alignItems: "flex-end", height: 30, gap: 2 }}>
                       {(() => {
-                        const synergies = computeTeamSynergies(team) as Record<string, number>;
+                        const synergies = computeTeamSynergies(team) as any;
                         const types = Object.keys(synergies);
                         if (types.length === 0) return <div style={{ color: "#8a7a9c", fontSize: 9 }}>Sem bônus ativos</div>;
                         return types.map(t => {
