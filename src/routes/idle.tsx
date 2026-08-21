@@ -1,3 +1,7 @@
+/**
+ * onde tem status de treinador, add fundo beg. ou branco algo que combine .. melho que preto..
+ * coloque esse img tipo de fundo transparente
+ */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
