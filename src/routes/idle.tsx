@@ -10344,11 +10344,6 @@ function IdlePage() {
                 oddish_o1: [],
                 oddish_o2: [],
                 oddish_o3: [],
-                vale_planta: [],
-                vale_gelo: [],
-                vale_veneno: [],
-                vale_fogo: [],
-                vulcao_ativo: [],
                 grass_oddish: [],
                 absol_start: [
                   { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
