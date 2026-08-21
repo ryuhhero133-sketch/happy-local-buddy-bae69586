@@ -1362,6 +1362,15 @@ function IdlePage() {
   const identity = loadIdentity();
   const navigate = useNavigate();
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
+  const [trainerTheme, setTrainerTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "dark";
+    return (localStorage.getItem("rubym.trainer.theme.v1") as "light" | "dark") || "dark";
+  });
+  const toggleTrainerTheme = () => {
+    const next = trainerTheme === "dark" ? "light" : "dark";
+    setTrainerTheme(next);
+    localStorage.setItem("rubym.trainer.theme.v1", next);
+  };
   // Pokémon fora do time enquanto descansam na Casa Azul (voltam ao time cheios)
   const [restingBench, setRestingBench] = useState<PetInstance[]>([]);
   // HP atual do meu pokémon (o líder toma dano dos inimigos)
@@ -10128,6 +10137,8 @@ function IdlePage() {
               equipmentSlotPicker={equipmentSlotPicker}
               setEquipmentSlotPicker={setEquipmentSlotPicker}
               onEquipItem={onEquipItem}
+              trainerTheme={trainerTheme}
+              toggleTrainerTheme={toggleTrainerTheme}
 
 
               onBuyChestAmulet={buyChestAmulet}
@@ -15044,7 +15055,8 @@ function TabOverlay({
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
   idle, setIdle, pushChat,
-  equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem
+  equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem,
+  trainerTheme, toggleTrainerTheme
 
 }: {
 
@@ -15116,6 +15128,8 @@ function TabOverlay({
   equipmentSlotPicker: EquipmentSlot | null;
   setEquipmentSlotPicker: React.Dispatch<React.SetStateAction<EquipmentSlot | null>>;
   onEquipItem: (slot: EquipmentSlot, itemId: string | null) => void;
+  trainerTheme: "light" | "dark";
+  toggleTrainerTheme: () => void;
 
 }) {
 
@@ -17161,17 +17175,22 @@ function TabOverlay({
 
           {/* TRAINER EQUIPMENT PANEL */}
           <div style={{
-            background: "linear-gradient(160deg, #1e1b2e 0%, #0f0d1a 100%)",
-            border: "2px solid #f5cf6b",
+            background: trainerTheme === "dark" 
+              ? "linear-gradient(160deg, #1e1b2e 0%, #0f0d1a 100%)" 
+              : "linear-gradient(160deg, #fdfbf7 0%, #f5f0e6 100%)",
+            border: trainerTheme === "dark" ? "2px solid #f5cf6b" : "2px solid #d4a373",
             borderRadius: 24,
             padding: "24px 16px",
             position: "relative",
-            boxShadow: "0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(245, 207, 107, 0.05)",
+            boxShadow: trainerTheme === "dark"
+              ? "0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(245, 207, 107, 0.05)"
+              : "0 10px 30px rgba(0,0,0,0.1), inset 0 0 20px rgba(255, 255, 255, 0.5)",
             display: "grid",
             gridTemplateColumns: "1fr 160px 1fr",
             alignItems: "center",
             gap: 20,
-            imageRendering: "pixelated"
+            imageRendering: "pixelated",
+            transition: "all 0.3s ease"
           }}>
             {/* Header */}
             <div style={{
@@ -17188,6 +17207,34 @@ function TabOverlay({
               textTransform: "uppercase",
               boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
             }}>STATUS DO TREINADOR</div>
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTrainerTheme}
+              style={{
+                position: "absolute",
+                top: -14,
+                right: 30,
+                background: trainerTheme === "dark" 
+                  ? "linear-gradient(180deg, #1e1b2e, #0f0d1a)" 
+                  : "linear-gradient(180deg, #fdfbf7, #f5f0e6)",
+                border: "1px solid #f5cf6b",
+                padding: "2px 8px",
+                borderRadius: 8,
+                color: trainerTheme === "dark" ? "#f5cf6b" : "#d4a373",
+                fontSize: 10,
+                fontWeight: 900,
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                transition: "all 0.2s ease",
+                zIndex: 10
+              }}
+            >
+              {trainerTheme === "dark" ? "🌙 DARK" : "☀️ LIGHT"}
+            </button>
 
             {/* Left Slots */}
             <div style={{ display: "flex", flexDirection: "column", gap: 18, alignItems: "flex-end" }}>
@@ -17231,7 +17278,7 @@ function TabOverlay({
             }}>
               <div style={{
                 width: 150, height: 150,
-                background: "rgba(0,0,0,0.4)",
+                background: trainerTheme === "dark" ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.6)",
                 borderRadius: "50%",
                 border: "4px solid #f5cf6b",
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -17278,10 +17325,10 @@ function TabOverlay({
               {/* Account Stats Panel */}
               <div style={{
                 width: "100%",
-                background: "rgba(0,0,0,0.3)",
+                background: trainerTheme === "dark" ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.5)",
                 borderRadius: 12,
                 padding: "10px 14px",
-                border: "1px solid rgba(245,207,107,0.2)",
+                border: trainerTheme === "dark" ? "1px solid rgba(245,207,107,0.2)" : "1px solid rgba(212,163,115,0.3)",
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
                 gap: 8
@@ -17305,10 +17352,10 @@ function TabOverlay({
               {/* RPG Stats Dashboard */}
               <div style={{
                 width: "100%",
-                background: "rgba(0,0,0,0.4)",
+                background: trainerTheme === "dark" ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.6)",
                 padding: "8px 12px",
                 borderRadius: 16,
-                border: "1px solid rgba(245,207,107,0.2)",
+                border: trainerTheme === "dark" ? "1px solid rgba(245,207,107,0.2)" : "1px solid rgba(212,163,115,0.3)",
                 display: "flex",
                 flexDirection: "column",
                 gap: 6
