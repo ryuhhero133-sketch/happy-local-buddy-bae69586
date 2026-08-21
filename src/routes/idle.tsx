@@ -17222,7 +17222,7 @@ function TabOverlay({
 
             {/* Center: Trainer Preview & Stats Dashboard */}
             <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 12
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 16
             }}>
               <div style={{
                 width: 150, height: 150,
@@ -17232,12 +17232,12 @@ function TabOverlay({
                 display: "flex", alignItems: "center", justifyContent: "center",
                 position: "relative",
                 overflow: "hidden",
-                boxShadow: "0 0 20px rgba(245,207,107,0.3), inset 0 0 15px rgba(0,0,0,0.6)"
+                boxShadow: "0 0 25px rgba(245,207,107,0.4), inset 0 0 20px rgba(0,0,0,0.7)"
               }}>
                 {skinUrl ? (
-                  <img src={skinUrl} alt="Trainer" style={{ width: 110, height: 110, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
+                  <img src={skinUrl} alt="Trainer" style={{ width: "100%", height: "100%", imageRendering: "pixelated", objectFit: "cover", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
                 ) : (
-                  <img src={assetUrlFromJson(trainerCapAsset)} alt="Trainer Profile" style={{ width: 110, height: 110, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
+                  <img src={assetUrlFromJson(trainerCapAsset)} alt="Trainer Profile" style={{ width: "100%", height: "100%", imageRendering: "pixelated", objectFit: "cover", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
                 )}
                 
                 {/* XP Bar Overlay */}
@@ -17245,8 +17245,8 @@ function TabOverlay({
                   position: "absolute",
                   bottom: 0,
                   width: "100%",
-                  height: 10,
-                  background: "rgba(0,0,0,0.6)",
+                  height: 12,
+                  background: "rgba(0,0,0,0.7)",
                   display: "flex",
                   alignItems: "center"
                 }}>
@@ -17254,19 +17254,47 @@ function TabOverlay({
                     width: `${Math.min(100, (idle.xp / (idle.level * 100)) * 100)}%`,
                     height: "100%",
                     background: "linear-gradient(90deg, #4ade80, #22c55e)",
-                    boxShadow: "0 0 5px #4ade80"
+                    boxShadow: "0 0 8px #4ade80"
                   }} />
                 </div>
 
                 {/* Level Badge */}
                 <div style={{
-                  position: "absolute", top: 10, right: 10,
-                  background: "#f5cf6b", color: "#3e2723",
-                  padding: "2px 6px", borderRadius: 6,
-                  fontSize: 10, fontWeight: 900,
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+                  position: "absolute", top: 12, right: 12,
+                  background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e",
+                  padding: "3px 8px", borderRadius: 8,
+                  fontSize: 11, fontWeight: 900,
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.5)",
+                  border: "1px solid #fff",
                   zIndex: 2
                 }}>LV. {trainerLevel}</div>
+              </div>
+
+              {/* Account Stats Panel */}
+              <div style={{
+                width: "100%",
+                background: "rgba(0,0,0,0.3)",
+                borderRadius: 12,
+                padding: "10px 14px",
+                border: "1px solid rgba(245,207,107,0.2)",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 8
+              }}>
+                {[
+                  { icon: "🔘", label: "Pokébolas", value: idle.items.pokeball || 0, color: "#ff8080" },
+                  { icon: "🏆", label: "Vitórias", value: idle.totalKills || 0, color: "#f5cf6b" },
+                  { icon: "🪙", label: "Ouro Total", value: fmtK(idle.bank.gold), color: "#ffd66b" },
+                  { icon: "⚔️", label: "Poder Total", value: team.reduce((acc, p) => acc + computePower(p), 0).toLocaleString(), color: "#4ea8ff" }
+                ].map((stat, i) => (
+                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <div style={{ fontSize: 9, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase" }}>{stat.label}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ fontSize: 12 }}>{stat.icon}</span>
+                      <span style={{ fontSize: 13, fontWeight: 900, color: stat.color }}>{stat.value}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* RPG Stats Dashboard */}
