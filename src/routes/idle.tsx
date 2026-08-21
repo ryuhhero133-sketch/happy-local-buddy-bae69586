@@ -99,6 +99,7 @@ import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
 import skinGokuAsset from "@/assets/skins/goku.webp.asset.json";
 import trainerCapAsset from "@/assets/trainer_cap.png.asset.json";
+import trainerGloveAsset from "@/assets/trainer_glove.png.asset.json";
 import virizionAsset from "@/assets/legends/virizion.gif.asset.json";
 import mewtwoRewardBgAsset from "@/assets/mewtwo-reward-bg.png.asset.json";
 
