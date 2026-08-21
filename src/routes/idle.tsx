@@ -485,6 +485,7 @@ const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
+  | "casa_do_treinador"
   | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "pantano_fogo" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   | "gelius1" | "gelius2"
   // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
@@ -1150,7 +1151,7 @@ function freshIdle(): IdleState {
     startedAt: now, lastTickAt: now,
     pending: { gold: 0, rubies: 0, crystals: 0 },
     totals: { gold: 0, captured: 0, kills: 0 },
-    currentMap: "arena",
+    currentMap: "casa_do_treinador",
     tasks: DEFAULT_TASKS(),
     mapsUnlocked: 3,
     caughtSpecies: [],
