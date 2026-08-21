@@ -1,31 +1,19 @@
-# Plano: Sistema de Equipamentos do Treinador
+# Plano: Modo Noturno no Painel do Treinador
 
-Implementar a lógica de interação para o painel de equipamentos, incluindo o modal de seleção de itens e a aplicação dos bônus de status (XP, Gold, Drop, Velocidade).
+Implementar a funcionalidade de alternar entre o modo claro (normal) e escuro (noturno) especificamente para o painel de status do treinador, atendendo à solicitação do usuário para melhor visibilidade.
 
-## Tarefas
+## Alterações
 
-### 1. Preparação da Interface (idle.tsx)
-- Criar estado para controlar qual slot está sendo editado (`equipmentSlotPicker: EquipmentSlot | null`).
-- Criar função `onEquipItem(slot, itemId)` para atualizar o estado de equipamentos.
-
-### 2. Modal de Seleção de Equipamento
-- Implementar um modal RPG elegante que mostre os itens disponíveis para o slot selecionado.
-- Exibir nome, raridade e bônus de cada item.
-- Adicionar som de clique ao equipar.
-
-### 3. Aplicação de Bônus (Cálculos de Jogo)
-- Criar um hook ou função utilitária `getTrainerStats()` que some todos os bônus dos itens equipados.
-- Integrar esses bônus nos sistemas de:
-    - Ganho de XP (Pokémon e Treinador).
-    - Drop de Ouro.
-    - Taxa de captura/Drop de itens.
-    - Velocidade de ataque/movimentação.
-
-### 4. Refinamento Visual
-- Adicionar tooltips ao passar o mouse nos slots equipados.
-- Garantir que o "Guarda-Roupa" (Skins) e "Equipamento" coexistam harmoniosamente na aba Início.
+### Frontend
+- **Adição de Estado**: Criar o estado `trainerTheme` (com valores "light" ou "dark") no componente `Idle` em `src/routes/idle.tsx`.
+- **Persistência**: Salvar a preferência do tema no `localStorage` para que a escolha seja mantida após recarregar a página.
+- **Interface de Alternância**: Adicionar um botão discreto (ícone de Lua/Sol) no cabeçalho do painel "STATUS DO TREINADOR" para trocar o tema.
+- **Estilização Dinâmica**:
+  - Ajustar o background do painel principal (hoje gradiente escuro fixo).
+  - Ajustar as cores de texto e bordas dos cards de estatísticas (`Account Stats Panel` e `RPG Stats Dashboard`).
+  - Garantir que no "Modo Normal" (Claro) a visibilidade seja otimizada com contrastes adequados.
 
 ## Detalhes Técnicos
-- O estado `equippedItems` já está persistindo no `localStorage`.
-- Utilizar os dados de `TRAINER_EQUIPMENT_DATA` definidos em `systems.tsx`.
-- Cores de raridade vindas de `RARITY_COLOR`.
+- O tema afetará apenas o container do painel de equipamentos e status.
+- Uso de `rgba` dinâmico baseado no estado `trainerTheme`.
+- Ícones da Lucide (`Moon`, `Sun`) para o botão de toggle.
