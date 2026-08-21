@@ -17155,156 +17155,163 @@ function TabOverlay({
 
           {/* TRAINER EQUIPMENT PANEL */}
           <div style={{
-            background: "linear-gradient(160deg, #2a1f3d 0%, #1a0f26 100%)",
-            border: "4px solid #8b5e3c",
-            borderRadius: 12,
-            padding: "20px 10px",
+            background: "linear-gradient(160deg, #1e1b2e 0%, #0f0d1a 100%)",
+            border: "2px solid #f5cf6b",
+            borderRadius: 24,
+            padding: "24px 16px",
             position: "relative",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(139, 94, 60, 0.2)",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(245, 207, 107, 0.05)",
             display: "grid",
-            gridTemplateColumns: "1fr 140px 1fr",
+            gridTemplateColumns: "1fr 160px 1fr",
             alignItems: "center",
-            gap: 15,
+            gap: 20,
             imageRendering: "pixelated"
           }}>
             {/* Header */}
             <div style={{
               position: "absolute",
-              top: -15,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "#8b5e3c",
-              padding: "4px 20px",
-              borderRadius: 20,
-              border: "2px solid #d4a373",
-              color: "#fff",
-              fontSize: 14,
+              top: -14,
+              left: 30,
+              background: "linear-gradient(180deg, #f5cf6b, #d4a373)",
+              padding: "2px 16px",
+              borderRadius: 8,
+              color: "#3e2723",
+              fontSize: 11,
               fontWeight: 900,
-              letterSpacing: 2,
-              whiteSpace: "nowrap",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.5)"
-            }}>EQUIPAMENTO</div>
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
+            }}>STATUS DO TREINADOR</div>
 
             {/* Left Slots */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-end" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 18, alignItems: "flex-end" }}>
               {(["head", "body", "weapon"] as const).map(slot => {
                 const itemKey = equippedItems[slot];
                 const item = itemKey ? (TRAINER_EQUIPMENT_DATA as any)[itemKey] : null;
-                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "#5c4033";
+                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "rgba(245,207,107,0.1)";
                 return (
                   <div key={slot} 
                     onClick={() => setEquipmentSlotPicker(slot)}
                     style={{
-                      width: 50, height: 50,
-                      background: "rgba(0,0,0,0.4)",
-                      border: `2px solid ${rColor}`,
-                      borderRadius: 8,
+                      width: 54, height: 54,
+                      background: item ? "rgba(0,0,0,0.6)" : "rgba(245,207,107,0.05)",
+                      border: `2px solid ${item ? rColor : "rgba(245,207,107,0.2)"}`,
+                      borderRadius: 14,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       cursor: "pointer",
                       position: "relative",
-                      boxShadow: item ? `0 0 10px ${rColor}33` : "none"
+                      boxShadow: item ? `0 0 15px ${rColor}44` : "none",
+                      transition: "all 0.2s ease"
                     }}>
-                    {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "head" ? "🪖" : slot === "body" ? "🛡️" : "⚔️"}</div>}
+                    {!item && (
+                      <div style={{ width: 28, height: 28, opacity: 0.3, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {slot === "head" ? (
+                          <img src={assetUrlFromJson(trainerCapAsset)} alt="Cap Icon" style={{ width: "100%", height: "100%", filter: "brightness(0) invert(1)" }} />
+                        ) : slot === "body" ? "🛡️" : "⚔️"}
+                      </div>
+                    )}
                     {item && (
                       slot === "head" ? (
-                        <img src={assetUrlFromJson(trainerCapAsset)} alt="Cap" style={{ width: 40, height: 40, imageRendering: "pixelated", objectFit: "contain" }} />
+                        <img src={assetUrlFromJson(trainerCapAsset)} alt="Cap" style={{ width: 44, height: 44, imageRendering: "pixelated", objectFit: "contain" }} />
                       ) : (
-                        <div style={{ fontSize: 24 }}>{slot === "body" ? "🛡️" : "⚔️"}</div>
+                        <div style={{ fontSize: 28 }}>{slot === "body" ? "🛡️" : "⚔️"}</div>
                       )
                     )}
-                    <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
+                    <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Center: Trainer Preview */}
+            {/* Center: Trainer Preview & Stats Dashboard */}
             <div style={{
-              width: 130, height: 160,
-              background: "rgba(0,0,0,0.2)",
-              borderRadius: 12,
-              border: "2px solid #5c4033",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              position: "relative",
-              overflow: "hidden"
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 12
             }}>
-              {skinUrl ? (
-                <img src={skinUrl} alt="Trainer" style={{ width: 100, height: 100, imageRendering: "pixelated", objectFit: "contain" }} />
-              ) : (
-                <div style={{ fontSize: 60 }}>🧢</div>
-              )}
-              
-              {/* Stats Summary Float */}
-              {(() => {
-                const ts = getTrainerStats();
-                const hasAny = ts.xpBonus || ts.goldBonus || ts.dropRate || ts.speed;
-                if (!hasAny) return null;
-                return (
-                  <div style={{
-                    position: "absolute", bottom: 0, left: 0, right: 0,
-                    background: "rgba(0,0,0,0.85)", padding: "4px 6px",
-                    display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8,
-                    borderTop: "1px solid rgba(245, 207, 107, 0.4)",
-                    boxShadow: "0 -4px 10px rgba(0,0,0,0.5)"
-                  }}>
-                    {ts.xpBonus > 0 && <span style={{ color: "#4ade80", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>XP+{Math.round(ts.xpBonus*100)}%</span>}
-                    {ts.goldBonus > 0 && <span style={{ color: "#fbbf24", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>OURO+{Math.round(ts.goldBonus*100)}%</span>}
-                    {ts.dropRate > 0 && <span style={{ color: "#6bd4ff", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>DROP+{Math.round(ts.dropRate*100)}%</span>}
-                    {ts.speed > 0 && <span style={{ color: "#c084fc", fontSize: 9, fontWeight: 900, textShadow: "0 1px 2px #000" }}>SPD+{Math.round(ts.speed*100)}%</span>}
-                  </div>
-                );
-              })()}
-            </div>
+              <div style={{
+                width: 150, height: 150,
+                background: "radial-gradient(circle, rgba(245,207,107,0.15) 0%, transparent 70%)",
+                borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                position: "relative",
+              }}>
+                {skinUrl ? (
+                  <img src={skinUrl} alt="Trainer" style={{ width: 110, height: 110, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
+                ) : (
+                  <div style={{ fontSize: 70, filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }}>🧢</div>
+                )}
+                
+                {/* Level Badge */}
+                <div style={{
+                  position: "absolute", top: 0, right: 0,
+                  background: "#f5cf6b", color: "#3e2723",
+                  padding: "4px 8px", borderRadius: 8,
+                  fontSize: 10, fontWeight: 900,
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.3)"
+                }}>LV. {trainerLevel}</div>
+              </div>
 
-            {/* Trainer Info Mini Dashboard */}
-            <div style={{
-              position: "absolute",
-              top: 50,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "rgba(0,0,0,0.7)",
-              border: "1px solid #f5cf6b55",
-              borderRadius: 8,
-              padding: "4px 8px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 2,
-              zIndex: 5,
-              pointerEvents: "none",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.5)"
-            }}>
-              <div style={{ color: "#f5cf6b", fontSize: 10, fontWeight: 900, letterSpacing: 1 }}>LV. {trainerLevel}</div>
-              {leader && (
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 5px #4ade80" }} />
-                  <div style={{ color: "#eadfe8", fontSize: 9, fontWeight: 700 }}>{leader.species.replace(/_/g, " ").toUpperCase()}</div>
-                </div>
-              )}
+              {/* RPG Stats Dashboard */}
+              <div style={{
+                width: "100%",
+                background: "rgba(0,0,0,0.4)",
+                padding: "8px 12px",
+                borderRadius: 16,
+                border: "1px solid rgba(245,207,107,0.2)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 6
+              }}>
+                {(() => {
+                  const ts = getTrainerStats();
+                  const statsData = [
+                    { label: "EXPERIÊNCIA", val: ts.xpBonus, color: "#4ade80", icon: "✦" },
+                    { label: "OURO EXTRA", val: ts.goldBonus, color: "#fbbf24", icon: "💰" },
+                    { label: "DROP RATE", val: ts.dropRate, color: "#6bd4ff", icon: "📦" },
+                    { label: "AGILIDADE", val: ts.speed, color: "#c084fc", icon: "⚡" },
+                  ];
+                  return statsData.map(s => (
+                    <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 900, color: "#8a7a9c" }}>
+                        <span>{s.icon} {s.label}</span>
+                        <span style={{ color: s.color }}>+{Math.round(s.val * 100)}%</span>
+                      </div>
+                      <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                        <div style={{ 
+                          height: "100%", 
+                          width: `${Math.min(100, s.val * 100)}%`, 
+                          background: s.color,
+                          boxShadow: `0 0 8px ${s.color}66`
+                        }} />
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
             </div>
 
             {/* Right Slots */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-start" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 18, alignItems: "flex-start" }}>
               {(["necklace", "ring", "feet"] as const).map(slot => {
                 const itemKey = equippedItems[slot];
                 const item = itemKey ? (TRAINER_EQUIPMENT_DATA as any)[itemKey] : null;
-                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "#5c4033";
+                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "rgba(245,207,107,0.1)";
                 return (
                   <div key={slot} 
                     onClick={() => setEquipmentSlotPicker(slot)}
                     style={{
-                      width: 50, height: 50,
-                      background: "rgba(0,0,0,0.4)",
-                      border: `2px solid ${rColor}`,
-                      borderRadius: 8,
+                      width: 54, height: 54,
+                      background: item ? "rgba(0,0,0,0.6)" : "rgba(245,207,107,0.05)",
+                      border: `2px solid ${item ? rColor : "rgba(245,207,107,0.2)"}`,
+                      borderRadius: 14,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       cursor: "pointer",
                       position: "relative",
-                      boxShadow: item ? `0 0 10px ${rColor}33` : "none"
+                      boxShadow: item ? `0 0 15px ${rColor}44` : "none",
+                      transition: "all 0.2s ease"
                     }}>
-                    {!item && <div style={{ fontSize: 20, opacity: 0.2 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
-                    {item && <div style={{ fontSize: 24 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
-                    <div style={{ position: "absolute", bottom: -12, fontSize: 8, color: "#8a7a9c", textTransform: "uppercase" }}>{slot}</div>
+                    {!item && <div style={{ fontSize: 24, opacity: 0.3 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
+                    {item && <div style={{ fontSize: 28 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
+                    <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
                   </div>
                 );
               })}
