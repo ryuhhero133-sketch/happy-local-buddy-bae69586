@@ -11958,7 +11958,12 @@ function IdlePage() {
                              <span style={{ fontSize: 12 }}>🔒</span>
                              <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b" }}>VIP</span>
                            </div>
-                         </div>
+                            </div>
+                          {!isVip && (
+                            <div style={{ position: "absolute", bottom: 4, right: 4, color: "#f5cf6b", fontSize: 9, opacity: 0.8, fontWeight: "bold", textShadow: "0 0 4px #000" }}>
+                              caso o treinador n for vip, mostrar  para atrair o pessoal a ter vip ne..
+                            </div>
+                          )}
                        )}
                        
                        <div style={{
