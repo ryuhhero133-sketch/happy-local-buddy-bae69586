@@ -2474,8 +2474,8 @@ function IdlePage() {
   }, []);
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 1100 : 1920;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 800 : 1920;
+  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 800 : 1920;
+  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 600 : 1920;
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
