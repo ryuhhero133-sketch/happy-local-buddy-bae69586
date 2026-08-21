@@ -17169,17 +17169,22 @@ function TabOverlay({
 
           {/* TRAINER EQUIPMENT PANEL */}
           <div style={{
-            background: "linear-gradient(160deg, #1e1b2e 0%, #0f0d1a 100%)",
-            border: "2px solid #f5cf6b",
+            background: trainerTheme === "dark" 
+              ? "linear-gradient(160deg, #1e1b2e 0%, #0f0d1a 100%)" 
+              : "linear-gradient(160deg, #fdfbf7 0%, #f5f0e6 100%)",
+            border: trainerTheme === "dark" ? "2px solid #f5cf6b" : "2px solid #d4a373",
             borderRadius: 24,
             padding: "24px 16px",
             position: "relative",
-            boxShadow: "0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(245, 207, 107, 0.05)",
+            boxShadow: trainerTheme === "dark"
+              ? "0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(245, 207, 107, 0.05)"
+              : "0 10px 30px rgba(0,0,0,0.1), inset 0 0 20px rgba(255, 255, 255, 0.5)",
             display: "grid",
             gridTemplateColumns: "1fr 160px 1fr",
             alignItems: "center",
             gap: 20,
-            imageRendering: "pixelated"
+            imageRendering: "pixelated",
+            transition: "all 0.3s ease"
           }}>
             {/* Header */}
             <div style={{
