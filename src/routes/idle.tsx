@@ -86,7 +86,7 @@ import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync"
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
-import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
+import { SPECIES_BASE, makePet, calcMaxHp, TYPE_COLOR } from "@/game/systems";
 import { computeTeamSynergies, computePower } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
@@ -15267,16 +15267,17 @@ function TabOverlay({
                    <div style={{ color: "#f5cf6b", fontSize: 10, fontWeight: 900, marginBottom: 4, textAlign: "center", letterSpacing: 1 }}>MINI DASHBOARD DE SINERGIA</div>
                    <div style={{ display: "flex", justifyContent: "space-around", alignItems: "flex-end", height: 30, gap: 2 }}>
                       {(() => {
-                        const synergies = computeTeamSynergies(team);
+                        const synergies = computeTeamSynergies(team) as Record<string, number>;
                         const types = Object.keys(synergies);
                         if (types.length === 0) return <div style={{ color: "#8a7a9c", fontSize: 9 }}>Sem bônus ativos</div>;
                         return types.map(t => {
                           const val = synergies[t] || 0;
                           const height = Math.min(100, (val / 5) * 100);
+                          const typeCol = (TYPE_COLOR as any)[t] || "#ccc";
                           return (
                             <div key={t} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                               <div style={{ width: "100%", height: `${height}%`, background: (TYPE_COLOR as any)[t] || "#ccc", borderRadius: 2, minHeight: 4, boxShadow: `0 0 5px ${(TYPE_COLOR as any)[t]}aa` }} />
-                               <div style={{ fontSize: 7, fontWeight: 900, color: (TYPE_COLOR as any)[t] }}>{t.slice(0,3).toUpperCase()}</div>
+                               <div style={{ width: "100%", height: `${height}%`, background: typeCol, borderRadius: 2, minHeight: 4, boxShadow: `0 0 5px ${typeCol}aa` }} />
+                               <div style={{ fontSize: 7, fontWeight: 900, color: typeCol }}>{t.slice(0,3).toUpperCase()}</div>
                             </div>
                           );
                         });
