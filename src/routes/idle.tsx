@@ -10367,7 +10367,6 @@ function IdlePage() {
                 abismo_dragao: [],
                 cadeia_ab: [],
                 cadeia_ab1: [],
-                evento_myth: [],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
