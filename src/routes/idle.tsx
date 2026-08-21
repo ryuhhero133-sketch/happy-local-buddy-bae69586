@@ -17328,8 +17328,8 @@ function TabOverlay({
                       boxShadow: item ? `0 0 15px ${rColor}44` : "none",
                       transition: "all 0.2s ease"
                     }}>
-                    {!item && <div style={{ fontSize: 24, opacity: 0.3 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
-                    {item && <div style={{ fontSize: 28 }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
+                    {!item && <div style={{ fontSize: 24, opacity: 0.3, filter: "grayscale(1)" }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
+                    {item && <div style={{ fontSize: 28, filter: "grayscale(1)" }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
                     <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
                   </div>
                 );
