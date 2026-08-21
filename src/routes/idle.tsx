@@ -158,6 +158,7 @@ import mapSnowAsset from "@/assets/map-snow-valley.png.asset.json";
 import mapDesertAsset from "@/assets/map-desert.png.asset.json";
 import mapCaveAsset from "@/assets/map-cave1.png.asset.json";
 import mapStoneAsset from "@/assets/map-stone.jpg.asset.json";
+import idleMonHouseAsset from "@/assets/idle_mon_house.png.asset.json";
 import mapTerraAsset from "@/assets/map-terra-hornet.jpg.asset.json";
 import mapDesertoPurpuraAsset from "@/assets/map-deserto-purpura.jpg.asset.json";
 import mapTerryAsset from "@/assets/map-terry.png.asset.json";
@@ -237,6 +238,7 @@ const stalagmiteUrl = assetUrlFromJson(stalagmiteAsset);
 const caveCrystalUrl = assetUrlFromJson(caveCrystalAsset);
 
 const crystalClusterUrl = assetUrlFromJson(crystalClusterAsset);
+const idleMonHouseUrl = assetUrlFromJson(idleMonHouseAsset);
 
 // Pokemon GIFs (reusa os que já existem no projeto)
 import charizardGif from "@/assets/charizard.gif";
@@ -483,6 +485,7 @@ const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
+  | "casa_do_treinador"
   | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "pantano_fogo" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   | "gelius1" | "gelius2"
   // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
@@ -513,6 +516,7 @@ type IdleMapDef = {
   raid?: boolean;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
+  casa_do_treinador: { name: "Casa do Treinador", diff: "Seguro", bg: idleMonHouseUrl, rate: 1.0, minLevel: 1, maxLevel: 10000, element: "Normal", stars: 1 },
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
   deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
@@ -581,6 +585,14 @@ const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
     { key: `${c.to}->${c.from}`, from: c.to, to: c.from, x: 200, y: 1660, arriveX: 1700, arriveY: 260, color: "#94a3b8", label: `↩ ${fromName}` },
   ];
 });
+
+// Portal da Casa
+const HOUSE_PORTALS: WorldPortalDef[] = [
+  { key: "casa->arena", from: "casa_do_treinador", to: "arena", x: 1000, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b", label: "Partir para Aventura" },
+  { key: "arena->casa", from: "arena", to: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 400, color: "#8b5a2b", label: "Ir para Casa" },
+];
+
+WORLD_PORTALS.push(...HOUSE_PORTALS);
 
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
@@ -1139,7 +1151,7 @@ function freshIdle(): IdleState {
     startedAt: now, lastTickAt: now,
     pending: { gold: 0, rubies: 0, crystals: 0 },
     totals: { gold: 0, captured: 0, kills: 0 },
-    currentMap: "arena",
+    currentMap: "casa_do_treinador",
     tasks: DEFAULT_TASKS(),
     mapsUnlocked: 3,
     caughtSpecies: [],
@@ -1362,6 +1374,10 @@ function IdlePage() {
   const identity = loadIdentity();
   const navigate = useNavigate();
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
+  const [mapId, setMapId] = useState<IdleMapId>(() => {
+    const s = loadIdle();
+    return s.currentMap || "casa_do_treinador";
+  });
   const [trainerTheme, setTrainerTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "dark";
     return (localStorage.getItem("rubym.trainer.theme.v1") as "light" | "dark") || "dark";
@@ -2242,7 +2258,7 @@ function IdlePage() {
   const playChestOpen = () => playSfx(sfxChestOpenUrl);
 
   // Weather cycle: 20 min de NEVE → 30 min limpo → repete
-  const [weather, setWeather] = useState<"rain" | "snow" | "clear">("snow");
+  const [weather, setWeather] = useState<"rain" | "snow" | "clear">("clear");
   useEffect(() => {
     const SNOW_MS = 20 * 60 * 1000;
     const CLEAR_MS = 30 * 60 * 1000;
@@ -2250,6 +2266,15 @@ function IdlePage() {
     let timer: ReturnType<typeof setTimeout>;
     const cycle = (phase: "snow" | "clear") => {
       if (cancelled) return;
+      
+      // Se estiver na casa, sempre força clima limpo e não anuncia nevasca
+      if (idleRef.current.currentMap === "casa_do_treinador") {
+        setWeather("clear");
+        // Tenta iniciar o ciclo novamente em 10 segundos para ver se o jogador saiu
+        timer = setTimeout(() => cycle(phase), 10000);
+        return;
+      }
+
       if (phase === "snow") {
         setWeather("snow");
         pushChat("❄ Uma nevasca começou a cair sobre a região...", "info");
@@ -2260,7 +2285,7 @@ function IdlePage() {
         timer = setTimeout(() => cycle("snow"), CLEAR_MS);
       }
     };
-    cycle("snow");
+    cycle("clear");
     // Aviso a cada 30 minutos sobre criaturas poderosas
     const warn = setInterval(() => {
       pushChat("⚠ Criaturas MUITO PODEROSAS foram avistadas por perto... fique alerta!", "info");
@@ -10248,7 +10273,11 @@ function IdlePage() {
               };
               // Fluxo: arena → praia → neve → deserto → caverna
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
+                casa_do_treinador: [
+                  { key: "casa-to-adventure", target: "arena", x: 1000, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
+                ],
                 arena: [
+                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 400, color: "#8b5a2b" },
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
@@ -10311,17 +10340,9 @@ function IdlePage() {
                 cadeia_f1: [
                   { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
                 ],
-                evento_myth: [],
-                oddish_o1: [
-                  { key: "o1-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
-                ],
-                oddish_o2: [
-                  { key: "o2-o3", target: "oddish_o3", x: WORLD_W - 80, y: 80, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#c084fc" },
-                ],
-                oddish_o3: [
-                  { key: "o3-o1", target: "oddish_o1", x: 80, y: WORLD_H - 100, arriveX: WORLD_W - 120, arriveY: 120, color: "#7ef27a" },
-                  { key: "o3-o2", target: "oddish_o2", x: WORLD_W - 80, y: WORLD_H - 100, arriveX: 120, arriveY: 120, color: "#7ef27a" },
-                ],
+                oddish_o1: [],
+                oddish_o2: [],
+                oddish_o3: [],
                 grass_oddish: [],
                 absol_start: [
                   { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
@@ -10329,6 +10350,16 @@ function IdlePage() {
                 governante_hall: [
                   { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
                 ],
+                vale_planta: [],
+                vale_gelo: [],
+                vale_veneno: [],
+                vale_fogo: [],
+                vulcao_ativo: [],
+                nucleo_primordial: [],
+                gelius1: [],
+                gelius2: [],
+                continent3_map1: [],
+                continent3_map2: [],
                 venofogo: [
                   { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
                 ],
@@ -10349,50 +10380,11 @@ function IdlePage() {
                 caverna: [
                   { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
                 ],
-                // ═══ Cadeia endgame — portais visíveis; ao entrar, exige nível ═══
                 vale_rochas: [
                   { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
                   { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
                 ],
-                vale_planta: [
-                  { key: "vp-back", target: "vale_rochas", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#a08770" },
-                  { key: "vp-next", target: "vale_gelo",   x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ce6ff" },
-                ],
-                vale_gelo: [
-                  { key: "vg-back", target: "vale_planta", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#7ef27a" },
-                  { key: "vg-next", target: "vale_veneno", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
-                ],
-                vale_veneno: [
-                  { key: "vv-back", target: "vale_gelo",  x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#8ce6ff" },
-                  { key: "vv-next", target: "vale_fogo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff5f2d" },
-                ],
-                vale_fogo: [
-                  { key: "vf-back", target: "vale_veneno",   x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#b45adc" },
-                  { key: "vf-next", target: "vulcao_ativo",  x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
-                ],
-                vulcao_ativo: [
-                  { key: "va-back", target: "vale_fogo",         x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#ff5f2d" },
-                  { key: "va-next", target: "nucleo_primordial", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffd94d" },
-                ],
-                nucleo_primordial: [
-                  { key: "np-back",  target: "vulcao_ativo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9a2d" },
-                  { key: "np-arena", target: "arena",        x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,   color: "#7ef27a" },
-                  { key: "np-c3",    target: "continent3_map1", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#f0abfc" },
-                ],
-                // Evento Gelius: entrada é feita pelo botão do pinguim (auto-switch/leave)
-                gelius1: [
-                  { key: "g1-next", target: "gelius2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#7fd8ff" },
-                ],
-                gelius2: [
-                  { key: "g2-back", target: "arena", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                continent3_map1: [
-                  { key: "c3m1-back", target: "nucleo_primordial", x: 60, y: WORLD_H / 2, arriveX: WORLD_W / 2, arriveY: WORLD_H - 120, color: "#f0abfc" },
-                  { key: "c3m1-next", target: "continent3_map2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#b45adc" },
-                ],
-                continent3_map2: [
-                  { key: "c3m2-back", target: "continent3_map1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#ff5f2d" },
-                ],
+                evento_myth: [],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
