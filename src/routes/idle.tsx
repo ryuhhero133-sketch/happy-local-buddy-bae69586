@@ -2474,8 +2474,8 @@ function IdlePage() {
   }, []);
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 1100 : 1920;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 800 : 1920;
+  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 800 : 1920;
+  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 600 : 1920;
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
@@ -10277,10 +10277,10 @@ function IdlePage() {
               // Fluxo: arena → praia → neve → deserto → caverna
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 casa_do_treinador: [
-                  { key: "casa-to-adventure", target: "arena", x: 1000, y: 700, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
+                  { key: "casa-to-adventure", target: "arena", x: 700, y: 500, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
                 ],
                 arena: [
-                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 400, color: "#8b5a2b" },
+                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 650, arriveY: 300, color: "#8b5a2b" },
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
