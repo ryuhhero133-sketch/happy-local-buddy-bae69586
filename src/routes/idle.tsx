@@ -10340,7 +10340,6 @@ function IdlePage() {
                 cadeia_f1: [
                   { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
                 ],
-                evento_myth: [],
                 oddish_o1: [],
                 oddish_o2: [],
                 oddish_o3: [],
