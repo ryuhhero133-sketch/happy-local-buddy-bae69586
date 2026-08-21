@@ -17224,10 +17224,13 @@ function TabOverlay({
             }}>
               <div style={{
                 width: 150, height: 150,
-                background: "radial-gradient(circle, rgba(245,207,107,0.15) 0%, transparent 70%)",
+                background: "rgba(0,0,0,0.4)",
                 borderRadius: "50%",
+                border: "4px solid #f5cf6b",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 position: "relative",
+                overflow: "hidden",
+                boxShadow: "0 0 20px rgba(245,207,107,0.3), inset 0 0 15px rgba(0,0,0,0.6)"
               }}>
                 {skinUrl ? (
                   <img src={skinUrl} alt="Trainer" style={{ width: 110, height: 110, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
@@ -17235,13 +17238,32 @@ function TabOverlay({
                   <img src={assetUrlFromJson(trainerCapAsset)} alt="Trainer Profile" style={{ width: 110, height: 110, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
                 )}
                 
+                {/* XP Bar Overlay */}
+                <div style={{
+                  position: "absolute",
+                  bottom: 0,
+                  width: "100%",
+                  height: 10,
+                  background: "rgba(0,0,0,0.6)",
+                  display: "flex",
+                  alignItems: "center"
+                }}>
+                  <div style={{
+                    width: `${Math.min(100, (idle.xp / (idle.level * 100)) * 100)}%`,
+                    height: "100%",
+                    background: "linear-gradient(90deg, #4ade80, #22c55e)",
+                    boxShadow: "0 0 5px #4ade80"
+                  }} />
+                </div>
+
                 {/* Level Badge */}
                 <div style={{
-                  position: "absolute", top: 0, right: 0,
+                  position: "absolute", top: 10, right: 10,
                   background: "#f5cf6b", color: "#3e2723",
-                  padding: "4px 8px", borderRadius: 8,
+                  padding: "2px 6px", borderRadius: 6,
                   fontSize: 10, fontWeight: 900,
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.3)"
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+                  zIndex: 2
                 }}>LV. {trainerLevel}</div>
               </div>
 
