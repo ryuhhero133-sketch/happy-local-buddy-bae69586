@@ -17203,6 +17203,34 @@ function TabOverlay({
               boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
             }}>STATUS DO TREINADOR</div>
 
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTrainerTheme}
+              style={{
+                position: "absolute",
+                top: -14,
+                right: 30,
+                background: trainerTheme === "dark" 
+                  ? "linear-gradient(180deg, #1e1b2e, #0f0d1a)" 
+                  : "linear-gradient(180deg, #fdfbf7, #f5f0e6)",
+                border: "1px solid #f5cf6b",
+                padding: "2px 8px",
+                borderRadius: 8,
+                color: trainerTheme === "dark" ? "#f5cf6b" : "#d4a373",
+                fontSize: 10,
+                fontWeight: 900,
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                transition: "all 0.2s ease",
+                zIndex: 10
+              }}
+            >
+              {trainerTheme === "dark" ? "🌙 DARK" : "☀️ LIGHT"}
+            </button>
+
             {/* Left Slots */}
             <div style={{ display: "flex", flexDirection: "column", gap: 18, alignItems: "flex-end" }}>
               {(["head", "body", "weapon"] as const).map(slot => {
