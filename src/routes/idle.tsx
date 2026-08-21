@@ -104,7 +104,6 @@ import virizionAsset from "@/assets/legends/virizion.gif.asset.json";
 import mewtwoRewardBgAsset from "@/assets/mewtwo-reward-bg.png.asset.json";
 
 import auraEggBgAsset from "@/assets/aura-egg-bg.png.asset.json";
-import worldMapBgContinent1Asset from "@/assets/world-map-bg-continent1.png.asset.json";
 import raikouAsset from "@/assets/legends/raikou.gif.asset.json";
 import suicuneAsset from "@/assets/legends/suicune.gif.asset.json";
 import suicuneShinyAsset from "@/assets/legends/suicune-shiny.gif.asset.json";
@@ -10626,7 +10625,6 @@ function IdlePage() {
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string; order: number }> = [
-                      { id: "grass_oddish" as IdleMapId, x: 50, y: 50, type: "village", order: 0 },
                       { id: "arena" as IdleMapId, x: 44, y: 17, type: "castle", order: 1 },
                       { id: "terra" as IdleMapId, x: 38, y: 12, type: "forest", order: 2 },
                       { id: "praia" as IdleMapId, x: 22, y: 45, type: "beach", order: 3 },
@@ -10882,7 +10880,7 @@ function IdlePage() {
                                 {/* Imagem de Referência do Mapa (Asset oficial do projeto agora) */}
                                 <div style={{
                                   position: "absolute", inset: 0,
-                                  backgroundImage: `url(${assetUrlFromJson(activeTab === 1 ? worldMapBgContinent1Asset : worldMapRefAsset)})`,
+                                  backgroundImage: `url(${assetUrlFromJson(worldMapRefAsset)})`,
                                   backgroundSize: "cover",
                                   backgroundPosition: "center",
                                   animation: "islandFloat 10s infinite ease-in-out",
@@ -11185,18 +11183,6 @@ function IdlePage() {
                     );
                   })()}
 
-
-                  {worldTab === 1 && (
-                    <div style={{
-                      position: "absolute", bottom: 20, right: 20, zIndex: 100,
-                      background: "rgba(0,0,0,0.8)", border: "2px solid #f5cf6b",
-                      borderRadius: 8, padding: "8px 12px", color: "#f5cf6b",
-                      fontSize: 10, fontWeight: 900, pointerEvents: "none",
-                      boxShadow: "0 0 15px rgba(245,207,107,0.3)"
-                    }}>
-                      add esse mapa no primeiro continent, gratis para mover sem restricao de nivel
-                    </div>
-                  )}
 
                   {pendingGate && (() => {
                     const tm = IDLE_MAPS[pendingGate.target as keyof typeof IDLE_MAPS];
