@@ -2258,7 +2258,7 @@ function IdlePage() {
   const playChestOpen = () => playSfx(sfxChestOpenUrl);
 
   // Weather cycle: 20 min de NEVE → 30 min limpo → repete
-  const [weather, setWeather] = useState<"rain" | "snow" | "clear">("snow");
+  const [weather, setWeather] = useState<"rain" | "snow" | "clear">("clear");
   useEffect(() => {
     const SNOW_MS = 20 * 60 * 1000;
     const CLEAR_MS = 30 * 60 * 1000;
@@ -2267,6 +2267,11 @@ function IdlePage() {
     const cycle = (phase: "snow" | "clear") => {
       if (cancelled) return;
       if (phase === "snow") {
+        if (idleRef.current.currentMap === "casa_do_treinador") {
+          setWeather("clear");
+          timer = setTimeout(() => cycle("snow"), 10000); // Check again in 10s
+          return;
+        }
         setWeather("snow");
         pushChat("❄ Uma nevasca começou a cair sobre a região...", "info");
         timer = setTimeout(() => cycle("clear"), SNOW_MS);
