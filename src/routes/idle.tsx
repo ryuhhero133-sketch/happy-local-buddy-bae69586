@@ -967,6 +967,7 @@ type IdleState = {
   collection?: CollectionEntry[];
   items: Record<string, number>;
   bank: { gold: number; crystals: number };
+  gold?: number;
   crystals?: number;
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number };
   globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
