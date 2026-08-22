@@ -1400,7 +1400,7 @@ function IdlePage() {
     return l ? Math.max(l.hp ?? 0, calcIdleMaxHp(l)) : 0;
   });
   const [leveledAt, setLeveledAt] = useState<number>(0);
-  const [levelToast, setLevelToast] = useState<{ level: number; gains: string[]; bonus: string; ts: number } | null>(null);
+  const [levelToast, setLevelToast] = useState<{ level: number; gains?: string[]; bonus?: string; ts: number; type: "trainer" | "pokemon" } | null>(null);
   const prevLevelRef = useRef<number>(0);
   useEffect(() => {
     if (!levelToast) return;
