@@ -16426,9 +16426,9 @@ function TabOverlay({
                         borderRadius: 12, padding: 10, textAlign: "center",
                        position: "relative",
                        overflow: "hidden",
-                       boxShadow: isBMP
-                         ? `0 4px 14px rgba(0,0,0,0.6), 0 0 22px ${bmpAccent}88, inset 0 0 26px ${bmpAccent}33`
-                         : `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(124,58,237,0.7)" : ""}`,
+                        boxShadow: isBMP
+                          ? `0 4px 14px rgba(0,0,0,0.6), 0 0 22px ${bmpAccent}88, inset 0 0 26px ${bmpAccent}33`
+                          : `0 4px 14px rgba(0,0,0,0.4), 0 0 15px rgba(192,132,252,0.25), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(255,217,77,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(192,132,252,0.7)" : ""}`,
                        display: "grid",
                        gridTemplateRows: "auto auto auto auto 36px",
                        gap: 4,
