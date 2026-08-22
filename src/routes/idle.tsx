@@ -16340,8 +16340,8 @@ function TabOverlay({
               style={{
                 padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
                 border: "1px solid #6b21a8", cursor: "pointer",
-                background: bulkMode ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#f3e8ff",
-                color: bulkMode ? "#fff" : "#5b21b6",
+                background: bulkMode ? "linear-gradient(180deg,#c084fc,#6b21a8)" : "#1a0f26",
+                color: bulkMode ? "#fff" : "#c084fc",
                 boxShadow: bulkMode ? "0 0 10px rgba(167,139,250,0.6)" : "none",
               }}
               title="Selecionar vários para fragmentar de uma vez"
