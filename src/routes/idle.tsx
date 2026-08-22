@@ -11690,41 +11690,7 @@ function IdlePage() {
 
         </div>
         
-        {/* HUD de Energia de Baú */}
-        <div style={{
-          gridColumn: "1 / -1",
-          margin: "10px 16px 0",
-          background: "linear-gradient(180deg, rgba(26,15,38,0.9), rgba(15,5,30,0.9))",
-          border: "1px solid rgba(245,207,107,0.3)",
-          borderRadius: 12,
-          padding: "8px 14px",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          boxShadow: "0 4px 15px rgba(0,0,0,0.4)"
-        }}>
-          <div style={{ fontSize: 20 }}>⚡</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-              <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>ENERGIA DE BAÚ</span>
-              <span style={{ fontSize: 10, fontWeight: 900, color: "#fff" }}>{(idle.chestEnergy ?? 200)} / 200</span>
-            </div>
-            <div style={{ height: 6, background: "rgba(0,0,0,0.5)", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <div style={{ 
-                width: `${Math.min(100, ((idle.chestEnergy ?? 200) / 200) * 100)}%`, 
-                height: "100%", 
-                background: "linear-gradient(90deg, #f5cf6b, #ff9d3d)",
-                boxShadow: "0 0 8px rgba(245,207,107,0.5)"
-              }} />
-            </div>
-          </div>
-          <div style={{ textAlign: "right", minWidth: 80 }}>
-            <div style={{ fontSize: 9, color: "#a78bfa", fontWeight: 700 }}>DIÁRIO</div>
-            <div style={{ fontSize: 12, fontWeight: 900, color: (idle.dailyChestsOpened ?? 0) >= 1000 ? "#ff5252" : "#fff" }}>
-              {(idle.dailyChestsOpened ?? 0)} / 1000
-            </div>
-          </div>
-        </div>
+        {/* HUD de Energia de Baú removido daqui e movido para o perfil */}
 
 
 
@@ -17549,7 +17515,42 @@ function TabOverlay({
                 );
               })}
             </div>
-          </div>
+              </div>
+              
+              {/* Painel de Energia de Baú (Nova Localização no Perfil) */}
+              <div style={{
+                width: "100%",
+                background: trainerTheme === "dark" ? "rgba(245,207,107,0.05)" : "rgba(245,207,107,0.15)",
+                padding: "10px 14px",
+                borderRadius: 16,
+                border: "1px solid rgba(245,207,107,0.3)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 16 }}>⚡</span>
+                      <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b", letterSpacing: 0.5 }}>ENERGIA DE BAÚ</span>
+                   </div>
+                   <span style={{ fontSize: 11, fontWeight: 900, color: "#fff" }}>{(idle.chestEnergy ?? 200)} / 200</span>
+                </div>
+                <div style={{ height: 8, background: "rgba(0,0,0,0.4)", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ 
+                    width: `${Math.min(100, ((idle.chestEnergy ?? 200) / 200) * 100)}%`, 
+                    height: "100%", 
+                    background: "linear-gradient(90deg, #f5cf6b, #ff9d3d)",
+                    boxShadow: "0 0 10px rgba(245,207,107,0.4)"
+                  }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+                   <span style={{ fontSize: 9, color: "#8a7a9c", fontWeight: 700 }}>LIMITE DIÁRIO</span>
+                   <span style={{ fontSize: 11, fontWeight: 900, color: (idle.dailyChestsOpened ?? 0) >= 1000 ? "#ff5252" : "#f5cf6b" }}>
+                      {(idle.dailyChestsOpened ?? 0)} / 1000
+                   </span>
+                </div>
+              </div>
 
 
           {/* SKINS SECTION */}
