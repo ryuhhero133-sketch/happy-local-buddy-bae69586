@@ -1147,6 +1147,8 @@ function loadIdle(): IdleState {
       if (!uskins.includes("default")) uskins.unshift("default");
       s.unlockedSkins = uskins;
       // Sanitiza mapa removido (Pedreira Antiga)
+      // Força spawn na Casa do Treinador ao logar
+      s.currentMap = "casa_do_treinador";
       if (!IDLE_MAPS[s.currentMap]) s.currentMap = "arena";
       return s;
     }
@@ -9016,9 +9018,10 @@ function IdlePage() {
 
 
 
-            {/* Prédios do mundo — Laboratório e Lar (SVG estilizado) */}
+            {/* Prédios do mundo — Casa do Treinador e Lar (SVG estilizado) */}
             {visibleBuildings.map((b) => {
               const active = nearBuilding === b.key;
+              const bLabel = b.key === "lab" ? "Casa do Treinador" : b.label;
               return (
                 <div
                   key={`bld-${b.key}`}
@@ -9037,7 +9040,7 @@ function IdlePage() {
                 >
                   <img
                     src={b.key === "lab" ? houseLabImg : houseLarImg}
-                    alt={b.label}
+                    alt={bLabel}
                     width={b.w}
                     height={b.h}
                     style={{
@@ -9061,7 +9064,7 @@ function IdlePage() {
                     padding: "2px 8px", fontSize: 11, fontWeight: 800, letterSpacing: 1,
                     whiteSpace: "nowrap",
                   }}>
-                    {b.emoji} {b.label.toUpperCase()}
+                    {b.emoji} {bLabel.toUpperCase()}
                   </div>
                 </div>
               );
@@ -9986,13 +9989,13 @@ function IdlePage() {
           {nearBuilding && (() => {
             const bColor = nearBuilding === "lab" ? "#c084fc" : nearBuilding === "azul" ? "#4a9eff" : "#5ec26a";
             const bEmoji = nearBuilding === "lab" ? "🔬" : nearBuilding === "azul" ? "🏡" : "🏠";
-            const bLabel = nearBuilding === "lab" ? "Laboratório" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
+            const bLabel = nearBuilding === "lab" ? "Casa do Treinador" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
             const bDesc = nearBuilding === "lab"
-              ? "Resetar sua jornada"
+              ? "Sua residência oficial"
               : nearBuilding === "azul"
                 ? "Restaura energia em 5 min"
                 : "Descansar (leva 1 hora)";
-            const bAction = nearBuilding === "lab" ? "RESETAR" : "DESCANSAR";
+            const bAction = nearBuilding === "lab" ? "ENTRAR" : "DESCANSAR";
             return (
               <div style={{
                 position: "absolute", bottom: 78, left: "50%", transform: "translateX(-50%)",
@@ -10010,7 +10013,7 @@ function IdlePage() {
                 </div>
                 <button
                   onClick={() => {
-                    if (nearBuilding === "lab") resetAccount();
+                    if (nearBuilding === "lab") { setIdle(s => ({ ...s, currentMap: "casa_do_treinador" })); setTrainerPos({ x: 950, y: 700 }); pushChat("Você entrou na Casa do Treinador.", "info"); }
                     else if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
                     else restAtHome("lar");
                   }}
@@ -10362,10 +10365,10 @@ function IdlePage() {
               // Fluxo: arena → praia → neve → deserto → caverna
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 casa_do_treinador: [
-                  { key: "casa-to-adventure", target: "arena", x: 700, y: 500, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
+                  { key: "casa-to-adventure", target: "arena", x: 1000, y: 700, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
                 ],
                 arena: [
-                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 650, arriveY: 300, color: "#8b5a2b" },
+                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 700, color: "#8b5a2b" },
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
