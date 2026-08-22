@@ -4902,7 +4902,7 @@ function IdlePage() {
               // level up de treinador — chat + fx (fora do setState via microtask)
               queueMicrotask(() => {
                 pushChat(`🎓 TREINADOR subiu para o nível ${applied.leveledTo}!`, "lv");
-                setLevelToast({ level: applied.leveledTo, ts: Date.now(), type: "trainer" });
+                setLevelToast({ level: applied.leveledTo || 0, ts: Date.now(), type: "trainer" });
                 // Salva imediatamente no banco — nível de treinador não pode dar rollback
                 void serverSync.pushNow();
               });
