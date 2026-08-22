@@ -16259,11 +16259,19 @@ function TabOverlay({
 
       {tab === "colecao" && (
         <div style={{
-          background: "linear-gradient(180deg, #f5e6c8 0%, #e8d4a8 100%)",
-          border: "3px solid #b8862a",
+          background: "linear-gradient(180deg, #1a0f26 0%, #251638 100%)",
+          border: "3px solid #c084fc",
           borderRadius: 14, padding: 18,
-          boxShadow: "inset 0 0 24px rgba(184,134,42,0.25), 0 4px 18px rgba(0,0,0,0.4)",
+          boxShadow: "inset 0 0 24px rgba(192,132,252,0.15), 0 4px 18px rgba(0,0,0,0.4), 0 0 20px rgba(192,132,252,0.2)",
+          position: "relative",
+          overflow: "hidden"
         }}>
+          {/* Brilho Arcano de Fundo */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(circle at 12% 10%, rgba(192,132,252,0.1), transparent 45%), radial-gradient(circle at 88% 90%, rgba(255,151,225,0.08), transparent 45%)",
+            opacity: 0.6
+          }} />
           {/* HUD topo da coleção */}
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
