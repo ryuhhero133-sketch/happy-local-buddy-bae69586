@@ -12643,7 +12643,7 @@ function IdlePage() {
                             desc: "Derrote 100 Pokémon hoje", 
                             target: 100, 
                             current: (idle.totalKills || 0) % 100, 
-                            reward: { type: "item", id: "ball_great", amount: 10 }, 
+                            reward: { type: "gold", amount: 500 }, // Mudado de item para ouro 
                             category: "daily" 
                           },
                           // Collect Stones (Static)
