@@ -416,11 +416,12 @@ export const pushInitialState = createServerFn({ method: "POST" })
       .eq("user_id", userId).maybeSingle();
 
     const hasProgress = cur && (
-      Number(cur.gold) > 0 || Number(cur.crystal) > 0 ||
-      cur.trainer_level > 1 || Number(cur.trainer_xp) > 0 ||
-      Number(cur.kill_count) > 0
+      Number(cur.gold) > 5000 || Number(cur.crystal) > 100 ||
+      cur.trainer_level > 5 || Number(cur.trainer_xp) > 1000 ||
+      Number(cur.kill_count) > 50
     );
     if (hasProgress) return { ok: true, applied: false, reason: "server_has_progress" };
+
 
     // Upsert estado do treinador com o snapshot local.
     await supabase.from("trainer_state").upsert({

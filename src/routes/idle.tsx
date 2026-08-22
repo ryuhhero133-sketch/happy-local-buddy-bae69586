@@ -3,8 +3,31 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
 import { Calendar, Gift, Clock } from "lucide-react";
 
+// DevTools discouragement & basic security
+if (typeof window !== "undefined") {
+  // Disable context menu
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  // Disable common hack keys
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.key === "F12" ||
+      (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+      (e.ctrlKey && e.key === "U")
+    ) {
+      e.preventDefault();
+    }
+  });
+
+  // Debugger trap (anti-cheat)
+  setInterval(() => {
+    // Function("debugger")(); 
+  }, 1000);
+}
+
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";

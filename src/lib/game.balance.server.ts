@@ -103,3 +103,13 @@ export function pickWeighted<T extends { weight: number }>(entries: T[]): T {
 // Bônus de matar 100 mobs = 10 pokébolas.
 export const KILL_MILESTONE = 100;
 export const KILL_MILESTONE_REWARD_BALLS = 10;
+
+// Caps máximos para evitar exploits
+export const MAX_STATS = {
+  trainer_level: 10000,
+  pokemon_level: 10000,
+  gold: 50_000_000,
+  crystal: 1_000_000,
+  collection_slots: 500
+};
+
