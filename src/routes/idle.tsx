@@ -3,15 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
 import { Calendar, Gift, Clock } from "lucide-react";
 
-import { useEffect } from "react";
-
 // DevTools discouragement & basic security
 if (typeof window !== "undefined") {
-  // Clear console periodically
-  setInterval(() => {
-    // console.clear(); // User might want logs, but hackers hate clear
-  }, 5000);
-
   // Disable context menu
   document.addEventListener("contextmenu", (e) => e.preventDefault());
 
@@ -26,15 +19,15 @@ if (typeof window !== "undefined") {
     }
   });
 
-  // Debugger trap
+  // Debugger trap (anti-cheat)
   setInterval(() => {
-    // Function("debugger")(); // This pauses the app if DevTools is open
+    // Function("debugger")(); 
   }, 1000);
 }
 
-
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
