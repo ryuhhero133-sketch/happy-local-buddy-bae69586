@@ -6569,7 +6569,11 @@ function IdlePage() {
     // Stones elementais — valem bastante ouro (também alimentam ovos Black Mítico)
     stone_grass: 12000, stone_fire: 12000, stone_water: 12000,
     stone_electric: 12000, stone_dark: 15000, stone_dragon: 18000,
+    book_atk: 500, book_def: 500, book_exp: 200,
+    book_atk_purple: 2500, book_def_purple: 2500,
+    book_atk_gold: 8000, book_def_gold: 8000,
   };
+
   // ===== Mercado P2P (Supabase) =====
   const isVip = () => {
     const until = idle.buffs?.goldMultUntil ?? 0;
