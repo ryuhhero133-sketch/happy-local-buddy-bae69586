@@ -927,12 +927,13 @@ export function ShopOverlay({
 // ====== Market Overlay (Safira+) ======
 export function MarketOverlay({
   gold, crystal, market, onClose, onBuy,
-  team, inventory, onPost,
+  team, inventory, onPost, isVip,
 }: {
   gold: number; crystal: number; market: MarketListing[];
   onClose: () => void; onBuy: (l: MarketListing) => void;
   team: PetInstance[]; inventory: Record<string, number>;
   onPost: (l: MarketListing, sourceUid?: string, srcItem?: { id: string; qty: number }) => void;
+  isVip: boolean;
 }) {
   type Tab = "buy" | "sell";
   const [tab, setTab] = useState<Tab>("buy");
