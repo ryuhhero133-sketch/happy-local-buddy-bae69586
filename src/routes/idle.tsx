@@ -16304,7 +16304,7 @@ function TabOverlay({
               value={colFilterName}
               onChange={(e) => setColFilterName(e.target.value)}
               placeholder="🔍 Buscar por nome..."
-              style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}
+              style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid #c084fc", background: "#1a0f26", color: "#eadfe8" }}
             />
             <select value={colFilterRarity} onChange={(e) => setColFilterRarity(e.target.value as "all" | Rarity)}
               style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #c084fc", background: "#1a0f26", color: "#eadfe8" }}>
