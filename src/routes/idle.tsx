@@ -16448,18 +16448,18 @@ function TabOverlay({
                       #{String(i + 1).padStart(3, "0")}
                     </div>
                     {inTeam && (
-                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#3d7a4a", zIndex: 2 }}>★ TIME</div>
+                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#6bd4ff", zIndex: 2, textShadow: "0 0 6px #6bd4ff" }}>★ TIME</div>
                     )}
                     {/* Checkbox de bulk select */}
                     {bulkMode && canBulkPick && (
                       <div style={{
                         position: "absolute", top: 6, left: 26,
                         width: 22, height: 22, borderRadius: 6,
-                        border: `2px solid ${isSelected ? "#7c3aed" : "#8b6a30"}`,
-                        background: isSelected ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#fff8e5",
+                        border: `2px solid ${isSelected ? "#c084fc" : "#c084fc"}`,
+                        background: isSelected ? "linear-gradient(180deg,#c084fc,#6b21a8)" : "#1a0f26",
                         color: "#fff", fontSize: 14, fontWeight: 900,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        boxShadow: isSelected ? "0 0 8px rgba(124,58,237,0.7)" : "none",
+                        boxShadow: isSelected ? "0 0 8px rgba(192,132,252,0.7)" : "none",
                         zIndex: 3,
                       }}>{isSelected ? "✓" : ""}</div>
                     )}
@@ -16470,10 +16470,11 @@ function TabOverlay({
                       style={{
                         position: "absolute", top: 22, right: 4,
                         width: 24, height: 24, borderRadius: "50%",
-                        border: "1px solid #b8862a", cursor: "pointer",
-                        background: locked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
-                        color: locked ? "#4a3010" : "#8b6a30",
+                        border: "1px solid #c084fc", cursor: "pointer",
+                        background: locked ? "linear-gradient(180deg,#ffd94d,#b8862a)" : "#1a0f26",
+                        color: locked ? "#0b0510" : "#c084fc",
                         fontSize: 12, fontWeight: 900, padding: 0, zIndex: 2,
+                        boxShadow: locked ? "0 0 8px #ffd94d88" : "none"
                       }}
                     >{locked ? "🔒" : "🔓"}</button>
 
