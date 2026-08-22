@@ -16279,10 +16279,10 @@ function TabOverlay({
             borderBottom: "2px solid rgba(184,134,42,0.5)",
           }}>
             <div>
-              <div style={{ color: "#6b4a10", fontSize: 20, fontWeight: 900, letterSpacing: 3, fontFamily: "Georgia, serif" }}>
+              <div style={{ color: "#c084fc", fontSize: 20, fontWeight: 900, letterSpacing: 3, fontFamily: "inherit", textShadow: "0 0 10px rgba(192,132,252,0.6)" }}>
                 ✦ COLEÇÃO ✦
               </div>
-              <div style={{ color: "#8b6a30", fontSize: 12, marginTop: 2, fontStyle: "italic" }}>
+              <div style={{ color: "#b39dd8", fontSize: 12, marginTop: 2, fontStyle: "italic" }}>
                 Registro particular do treinador
               </div>
             </div>
