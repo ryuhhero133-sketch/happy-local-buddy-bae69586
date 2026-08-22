@@ -585,12 +585,12 @@ export function isFainted(pet: PetInstance) {
 // ===== Balls =====
 export type BallId = "pokeball" | "greatball" | "fastball" | "ultraball" | "safariball" | "masterball";
 export const BALLS: Record<BallId, { name: string; price: number; baseRate: number; icon: string }> = {
-  pokeball:   { name: "POKEBALL",    price: 50,   baseRate: 0.45, icon: "🔴" },
-  greatball:  { name: "GREAT BALL",  price: 150,  baseRate: 0.60, icon: "🔵" },
-  fastball:   { name: "FAST BALL",   price: 220,  baseRate: 0.70, icon: "🟡" },
-  ultraball:  { name: "ULTRA BALL",  price: 900,  baseRate: 0.92, icon: "⚫" },
-  safariball: { name: "SAFARI BALL", price: 600,  baseRate: 0.80, icon: "🟢" },
-  masterball: { name: "MASTER BALL", price: 50,   baseRate: 1.00, icon: "🟣" },
+  pokeball:   { name: "POKEBALL",    price: 80,   baseRate: 0.35, icon: "🔴" },
+  greatball:  { name: "GREAT BALL",  price: 250,  baseRate: 0.50, icon: "🔵" },
+  fastball:   { name: "FAST BALL",   price: 450,  baseRate: 0.65, icon: "🟡" },
+  ultraball:  { name: "ULTRA BALL",  price: 1500, baseRate: 0.85, icon: "⚫" },
+  safariball: { name: "SAFARI BALL", price: 1200, baseRate: 0.75, icon: "🟢" },
+  masterball: { name: "MASTER BALL", price: 100,  baseRate: 1.00, icon: "🟣" },
 };
 // Mythic-tier wild only allows ultraball+ (and safari/master). pokeball/greatball/fastball fail.
 export const BALL_BLOCK_MYTHIC: Record<BallId, boolean> = {
