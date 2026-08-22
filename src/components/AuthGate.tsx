@@ -69,7 +69,7 @@ async function ensureProfile(userId: string): Promise<string | null> {
     return (sel.data.username as string | null) ?? null;
   }
   log("ensureProfile: inserting row (trigger ausente?)");
-  const ins = await sb.from("profiles").insert({ id: userId, username: null });
+  const ins = await sb.from("profiles").upsert({ id: userId, username: null }, { onConflict: "id" });
   if (ins.error) {
     // Race: outra aba/trigger criou. Re-leitura.
     warn("ensureProfile insert error (tentando re-ler)", ins.error);
