@@ -12634,7 +12634,7 @@ function IdlePage() {
                             desc: `Alcance Nível ${(i + 1) * 50}`,
                             target: (i + 1) * 50,
                             current: idle.trainerLevel || 1,
-                            reward: { type: "gold", amount: 1000 * (i + 1) }, // Mudado de cristais para ouro
+                            reward: { type: "gold", amount: 1000 * (i + 1) },
                             category: "static"
                           })),
                           // Kill Daily (Daily)
@@ -12644,8 +12644,28 @@ function IdlePage() {
                             desc: "Derrote 100 Pokémon hoje", 
                             target: 100, 
                             current: (idle.totalKills || 0) % 100, 
-                            reward: { type: "gold", amount: 500 }, // Mudado de item para ouro 
+                            reward: { type: "item", id: "pokeball", amount: 10 }, 
                             category: "daily" 
+                          },
+                          // Daily Crystals (Daily) - Pequena quantia
+                          {
+                            id: "crystal_daily",
+                            title: "Brilho Diário",
+                            desc: "Derrote 250 Pokémon hoje",
+                            target: 250,
+                            current: (idle.totalKills || 0) % 250,
+                            reward: { type: "crystals", amount: 5 },
+                            category: "daily"
+                          },
+                          // Stone Collector (Daily)
+                          {
+                            id: "stone_daily",
+                            title: "Coletor de Essências",
+                            desc: "Abra 50 baús hoje",
+                            target: 50,
+                            current: (idle.dailyChestsOpened || 0),
+                            reward: { type: "item", id: "greatball", amount: 5 },
+                            category: "daily"
                           },
                           // Collect Stones (Static)
                           { 
@@ -12654,7 +12674,7 @@ function IdlePage() {
                             desc: "Acumule 5.000 Stones (Total)", 
                             target: 5000, 
                             current: currentStoneCount, 
-                            reward: { type: "gold", amount: 5000 }, // Mudado de item para ouro 
+                            reward: { type: "gold", amount: 5000 },
                             category: "static" 
                           }
                         ];
