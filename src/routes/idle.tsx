@@ -540,7 +540,7 @@ type IdleMapDef = {
   raid?: boolean;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
-  casa_do_treinador: { name: "Casa do Treinador", diff: "Seguro", bg: idleMonHouseUrl, rate: 1.0, minLevel: 1, maxLevel: 10000, element: "Normal", stars: 1 },
+  casa_do_treinador: { name: "Casa do Treinador", diff: "Seguro", bg: idleMonHouseUrl, rate: 0, minLevel: 1, maxLevel: 10000, element: "Normal", stars: 1 },
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
   deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
@@ -3602,6 +3602,8 @@ function IdlePage() {
 
 
   const fakeMapPlayers = useMemo<RemotePlayer[]>(() => {
+    if (idle.currentMap === "casa_do_treinador") return [];
+
     const names = [
       "Luna", "Ryu", "Mika", "Theo", "Nina", "Kai", "Yuri", "Lia", "Noah", "Iris",
       "Bento", "Akira", "Tina", "Kiko", "Maya", "Zeca", "Lipe", "Sora", "Neko", "Ruby",
