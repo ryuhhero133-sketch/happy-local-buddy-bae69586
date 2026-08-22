@@ -109,6 +109,7 @@ import suicuneAsset from "@/assets/legends/suicune.gif.asset.json";
 import suicuneShinyAsset from "@/assets/legends/suicune-shiny.gif.asset.json";
 import luxrayFAsset from "@/assets/legends/luxray-f.gif.asset.json";
 import blackMiticPlusEggIcon from "@/assets/black-mitic-plus-egg-icon.png.asset.json";
+const levelUpGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6OXFwNnpqYTN6eGphYTN6eGphYTN6eGphYTN6eGphYTN6eGphJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKMGpxP5O01F3xe/giphy.gif";
 
 
 
