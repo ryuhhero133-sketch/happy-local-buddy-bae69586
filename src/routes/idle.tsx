@@ -5057,7 +5057,7 @@ function IdlePage() {
       pushFxAt(trainerPos.x, trainerPos.y - 70, `LV ${lv}!`, "xp");
       pushFxAt(trainerPos.x, trainerPos.y - 100, `✨ BÔNUS +${statLabel[bonusStat]}`, "gold");
       pushChat(`⬆ Nível ${lv}! Atributos ganhos: ${randomSummary.join(", ")}`, "lv");
-      setLevelToast({ level: lv, gains: randomSummary, bonus: statLabel[bonusStat], ts: Date.now() });
+      setLevelToast({ level: lv, gains: randomSummary, bonus: statLabel[bonusStat], ts: Date.now(), type: "pokemon" });
       playLevelUp();
       pushEvent("⬆", `NÍVEL ${lv} ALCANÇADO`, `+${statLabel[bonusStat]} bônus · ${randomSummary.join(", ")}`, "#ffd66b");
 
