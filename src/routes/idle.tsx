@@ -1095,14 +1095,16 @@ const ALL_BALLS: ShopBall[] = [
 
 type ShopBook = { id: "book_atk" | "book_def" | "book_atk_purple" | "book_def_purple" | "book_atk_gold" | "book_def_gold" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
 const SHOP_BOOKS: ShopBook[] = [
-  { id: "book_atk", name: "Livro de Ataque", desc: "+3% de dano permanente por uso", price: 100, img: bookAtkImg },
-  { id: "book_def", name: "Livro de Defesa", desc: "-3% de dano recebido por uso",  price: 100, img: bookDefImg },
-  
-  { id: "book_atk_purple", name: "Livro de Ataque Arcano", desc: "+8% de dano permanente", price: 350, img: bookAtkImg, currency: "crystals" },
-  { id: "book_def_purple", name: "Livro de Defesa Arcana", desc: "-8% de dano recebido",  price: 350, img: bookDefImg, currency: "crystals" },
+  { id: "book_atk", name: "Livro de Ataque", desc: "Use em 'Melhorias' (+3% dano)", price: 100, img: bookAtkImg },
+  { id: "book_def", name: "Livro de Defesa", desc: "Use em 'Melhorias' (-3% dano)",  price: 100, img: bookDefImg },
 
-  { id: "book_atk_gold", name: "Tratado de Guerra Real", desc: "+15% de dano permanente", price: 1200, img: bookAtkImg, currency: "crystals" },
-  { id: "book_def_gold", name: "Tratado de Defesa Real", desc: "-15% de dano recebido",  price: 1200, img: bookDefImg, currency: "crystals" },
+  
+  { id: "book_atk_purple", name: "Livro de Ataque Arcano", desc: "Use em 'Melhorias' (+8% dano)", price: 350, img: bookAtkImg, currency: "crystals" },
+  { id: "book_def_purple", name: "Livro de Defesa Arcana", desc: "Use em 'Melhorias' (-8% dano)",  price: 350, img: bookDefImg, currency: "crystals" },
+
+  { id: "book_atk_gold", name: "Tratado de Guerra Real", desc: "Use em 'Melhorias' (+15% dano)", price: 1200, img: bookAtkImg, currency: "crystals" },
+  { id: "book_def_gold", name: "Tratado de Defesa Real", desc: "Use em 'Melhorias' (-15% dano)",  price: 1200, img: bookDefImg, currency: "crystals" },
+
 
   { id: "book_exp", name: "Livro de EXP",    desc: "+30% EXP em batalhas por 1 hora",   price: 30, img: bookExpImg },
 
@@ -5529,6 +5531,9 @@ function IdlePage() {
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty }, buffs: { ...s.buffs, def: s.buffs.def + gain } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `DEF +${Math.round(gain*100)}%`, "capture");
       pushChat(`Usou ${useQty}× Livro de Defesa (-${Math.round(gain*100)}% dano recebido).`, "cap");
+    } else if (id === "book_atk_purple" || id === "book_def_purple" || id === "book_atk_gold" || id === "book_def_gold") {
+      pushChat(`Estes livros são usados na aba "Melhorias" para evoluir sua conta permanentemente.`, "info");
+
 
     } else if (id === "book_exp" || id === "book_exp_big" || id === "book_exp_max") {
       const add = id === "book_exp" ? 0.30 : id === "book_exp_big" ? 0.50 : 1.00;
@@ -6566,7 +6571,11 @@ function IdlePage() {
     // Stones elementais — valem bastante ouro (também alimentam ovos Black Mítico)
     stone_grass: 12000, stone_fire: 12000, stone_water: 12000,
     stone_electric: 12000, stone_dark: 15000, stone_dragon: 18000,
+    book_atk: 500, book_def: 500, book_exp: 200,
+    book_atk_purple: 2500, book_def_purple: 2500,
+    book_atk_gold: 8000, book_def_gold: 8000,
   };
+
   // ===== Mercado P2P (Supabase) =====
   const isVip = () => {
     const until = idle.buffs?.goldMultUntil ?? 0;
