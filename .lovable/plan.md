@@ -1,19 +1,28 @@
-# Plano: Modo Noturno no Painel do Treinador
+# Security Enhancement Plan
 
-Implementar a funcionalidade de alternar entre o modo claro (normal) e escuro (noturno) especificamente para o painel de status do treinador, atendendo à solicitação do usuário para melhor visibilidade.
+Improve server-side authority and client-side protection to prevent hacking and concurrent sessions.
 
-## Alterações
+## 1. Concurrent Session Protection
+- Update `profiles` table (via server function) to store an `active_session_token`.
+- When a user logs in, generate and save a new token.
+- In `AuthGate.tsx`, periodically check if the local token matches the database token. If not, logout and show "Kicked" message.
 
-### Frontend
-- **Adição de Estado**: Criar o estado `trainerTheme` (com valores "light" ou "dark") no componente `Idle` em `src/routes/idle.tsx`.
-- **Persistência**: Salvar a preferência do tema no `localStorage` para que a escolha seja mantida após recarregar a página.
-- **Interface de Alternância**: Adicionar um botão discreto (ícone de Lua/Sol) no cabeçalho do painel "STATUS DO TREINADOR" para trocar o tema.
-- **Estilização Dinâmica**:
-  - Ajustar o background do painel principal (hoje gradiente escuro fixo).
-  - Ajustar as cores de texto e bordas dos cards de estatísticas (`Account Stats Panel` e `RPG Stats Dashboard`).
-  - Garantir que no "Modo Normal" (Claro) a visibilidade seja otimizada com contrastes adequados.
+## 2. Server-Side Authority Hardening
+- **Deprecate `syncClientState`**: This function is a security risk as it allows the client to push state updates to the server. 
+- **Move all logic to Server Functions**:
+    - Ensure `gold`, `crystal`, and `level` are *never* updated directly from the client.
+    - Resources must only change as a result of a validated server function (e.g., `reportKill`, `openChest`, `buyItem`).
+- **Input Validation**: Add stricter Zod schemas and server-side checks for resource availability before purchases.
 
-## Detalhes Técnicos
-- O tema afetará apenas o container do painel de equipamentos e status.
-- Uso de `rgba` dinâmico baseado no estado `trainerTheme`.
-- Ícones da Lucide (`Moon`, `Sun`) para o botão de toggle.
+## 3. Client-Side Anti-Cheat
+- **DevTools Discouragement**: Add a script to detect F12 / DevTools opening and clear the console or debugger-loop to slow down hackers.
+- **Context Menu / Key Blocking**: Disable right-click and common shortcut keys (F12, Ctrl+Shift+I).
+
+## 4. Database Integrity
+- Ensure `profiles` and `trainer_state` tables have RLS policies that prevent users from writing to their own `gold` or `level` columns directly via the client SDK.
+
+## Technical Details
+- Use `crypto.randomUUID()` for session tokens.
+- Add `checkActiveSession` server function.
+- Update `AuthGate.tsx` to handle the kick logic.
+- Update `src/lib/game.functions.server.ts` to remove/restrict `syncClientState_handler`.
