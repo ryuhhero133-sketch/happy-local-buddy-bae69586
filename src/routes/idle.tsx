@@ -16501,7 +16501,7 @@ function TabOverlay({
                      </div>
 
                      {/* Nível */}
-                     <div style={{ fontSize: 11, color: isBMP ? "#f5cf6b" : "#6b4a10", fontWeight: 900, position: "relative", zIndex: 1, textShadow: isBMP ? "0 1px 2px #000" : undefined }}>
+                     <div style={{ fontSize: 11, color: isBMP ? "#f5cf6b" : "#c084fc", fontWeight: 900, position: "relative", zIndex: 1, textShadow: "0 1px 2px #000" }}>
                        Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
                      </div>
 
