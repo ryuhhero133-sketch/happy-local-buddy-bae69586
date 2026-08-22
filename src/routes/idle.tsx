@@ -967,6 +967,7 @@ type IdleState = {
   collection?: CollectionEntry[];
   items: Record<string, number>;
   bank: { gold: number; crystals: number };
+  gold?: number;
   crystals?: number;
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number };
   globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
@@ -12633,7 +12634,7 @@ function IdlePage() {
                             desc: `Alcance Nível ${(i + 1) * 50}`,
                             target: (i + 1) * 50,
                             current: idle.trainerLevel || 1,
-                            reward: { type: "crystals", amount: 50 * (i + 1) },
+                            reward: { type: "gold", amount: 1000 * (i + 1) }, // Mudado de cristais para ouro
                             category: "static"
                           })),
                           // Kill Daily (Daily)
@@ -12643,7 +12644,7 @@ function IdlePage() {
                             desc: "Derrote 100 Pokémon hoje", 
                             target: 100, 
                             current: (idle.totalKills || 0) % 100, 
-                            reward: { type: "item", id: "ball_great", amount: 10 }, 
+                            reward: { type: "gold", amount: 500 }, // Mudado de item para ouro 
                             category: "daily" 
                           },
                           // Collect Stones (Static)
@@ -12653,7 +12654,7 @@ function IdlePage() {
                             desc: "Acumule 5.000 Stones (Total)", 
                             target: 5000, 
                             current: currentStoneCount, 
-                            reward: { type: "item", id: "egg_epic", amount: 1 }, 
+                            reward: { type: "gold", amount: 5000 }, // Mudado de item para ouro 
                             category: "static" 
                           }
                         ];
@@ -12674,7 +12675,8 @@ function IdlePage() {
                                      <div style={{ fontSize: 9, color: "#92400e" }}>{q.desc}</div>
                                   </div>
                                   <div style={{ background: "#d97706", color: "#fff", padding: "2px 6px", borderRadius: 6, fontSize: 9, fontWeight: 900 }}>
-                                      {q.reward.type === "crystals" ? `${q.reward.amount} 💎` : 
+                                      {q.reward.type === "gold" ? `${q.reward.amount.toLocaleString()} 🪙` :
+                                       q.reward.type === "crystals" ? `${q.reward.amount} 💎` : 
                                        q.reward.type === "item" ? `${q.reward.amount}x ${(q.reward as any).id?.replace("ball_","").replace("egg_","").toUpperCase()}` :
                                        `+${q.reward.amount} LV`}
                                   </div>
@@ -12698,8 +12700,10 @@ function IdlePage() {
                                               completedIds: (fq.completedIds || []).filter((id: string) => !id.endsWith("_daily"))
                                            }));
                                         }
-                                        
-                                        if (q.reward.type === "crystals") {
+                                        if (q.reward.type === "gold") {
+                                          next.gold = (next.gold || 0) + q.reward.amount;
+                                          next.bank = { ...next.bank, gold: (next.bank.gold || 0) + q.reward.amount };
+                                        } else if (q.reward.type === "crystals") {
                                           next.crystals = (next.crystals || 0) + q.reward.amount;
                                           next.bank = { ...next.bank, crystals: (next.bank.crystals || 0) + q.reward.amount };
                                         } else if (q.reward.type === "item" && (q.reward as any).id) {
@@ -12718,7 +12722,8 @@ function IdlePage() {
                                       });
 
                                       playBonus();
-                                      const rewardText = q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
+                                      const rewardText = q.reward.type === "gold" ? `${q.reward.amount} Ouro` :
+                                                        q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
                                                         q.reward.type === "item" ? `${q.reward.amount}x ${(q.reward as any).id}` : `+${q.reward.amount} Nível`;
                                       pushChat(`🎉 Missão Concluída: ${q.title}! Ganhou ${rewardText}!`, "cap");
                                     }}
