@@ -7682,73 +7682,119 @@ function IdlePage() {
           background: "linear-gradient(90deg, transparent, #d4af5a, transparent)",
         });
         return levelToast && (
+          <div
+            key={levelToast.ts}
+            style={{
+              position: "fixed",
+              top: levelToast.type === "trainer" ? "50%" : 72,
+              left: "50%",
+              zIndex: 9999,
+              pointerEvents: "none",
+              transform: levelToast.type === "trainer" ? "translate(-50%, -50%)" : "translateX(-50%)",
+              animation: levelToast.type === "trainer" 
+                ? "lvTrainerIn 600ms cubic-bezier(.2,.9,.25,1) forwards, lvToastOut 500ms ease-in 4.4s forwards"
+                : "lvToastIn 420ms cubic-bezier(.2,.9,.25,1) forwards, lvToastOut 500ms ease-in 2.4s forwards",
+              transformOrigin: "center center",
+            }}
+          >
+            {levelToast.type === "trainer" ? (
+              <div style={{ position: "relative", textAlign: "center" }}>
+                <style>{`
+                  @keyframes lvTrainerIn {
+                    from { opacity: 0; transform: translate(-50%, -40%) scale(0.8); }
+                    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                  }
+                  @keyframes lvTrainerGlow {
+                    0%, 100% { filter: drop-shadow(0 0 20px rgba(255,215,0,0.4)); }
+                    50% { filter: drop-shadow(0 0 40px rgba(255,215,0,0.8)); }
+                  }
+                `}</style>
+                <img 
+                  src={levelUpGif} 
+                  alt="Level Up!" 
+                  style={{ 
+                    width: 320, 
+                    height: "auto", 
+                    borderRadius: 20,
+                    animation: "lvTrainerGlow 2s ease-in-out infinite"
+                  }} 
+                />
+                <div style={{
+                  position: "absolute",
+                  bottom: 20,
+                  left: 0,
+                  right: 0,
+                  fontSize: 28,
+                  fontWeight: 900,
+                  color: "#ffd700",
+                  textShadow: "0 0 10px #000, 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000",
+                  letterSpacing: 2,
+                  fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
+                }}>
+                  TREINADOR NÍVEL {levelToast.level}
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                position: "relative",
+                padding: "10px 22px 11px",
+                minWidth: 240,
+                textAlign: "center",
+                background: "linear-gradient(180deg, #1a1220 0%, #0d0810 100%)",
+                border: "1px solid rgba(212,175,90,0.55)",
+                borderRadius: 4,
+                boxShadow:
+                  "0 0 0 1px rgba(0,0,0,0.6), 0 10px 28px rgba(0,0,0,0.55), 0 0 24px rgba(212,175,90,0.18)",
+                fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
+              }}>
+                <span style={cornerOrn("tl")} /><span style={cornerOrn("tr")} />
+                <span style={cornerOrn("bl")} /><span style={cornerOrn("br")} />
+                <span style={{
+                  position: "absolute", inset: 0, overflow: "hidden", borderRadius: 4, pointerEvents: "none",
+                }}>
+                  <span style={{
+                    position: "absolute", top: 0, bottom: 0, width: 60,
+                    background: "linear-gradient(90deg, transparent, rgba(255,235,180,0.22), transparent)",
+                    transform: "skewX(-20deg)",
+                    animation: "lvShine 1.4s ease-out 0.15s 1",
+                  }} />
+                </span>
 
-        <div
-          key={levelToast.ts}
-          style={{
-            position: "fixed", top: 72, left: "50%",
-            zIndex: 9999, pointerEvents: "none",
-            animation: "lvToastIn 420ms cubic-bezier(.2,.9,.25,1) forwards, lvToastOut 500ms ease-in 2.4s forwards",
-            transformOrigin: "top center",
-          }}
-        >
-          <div style={{
-            position: "relative",
-            padding: "10px 22px 11px",
-            minWidth: 240,
-            textAlign: "center",
-            background: "linear-gradient(180deg, #1a1220 0%, #0d0810 100%)",
-            border: "1px solid rgba(212,175,90,0.55)",
-            borderRadius: 4,
-            boxShadow:
-              "0 0 0 1px rgba(0,0,0,0.6), 0 10px 28px rgba(0,0,0,0.55), 0 0 24px rgba(212,175,90,0.18)",
-            fontFamily: "'Cinzel', 'Trajan Pro', Georgia, serif",
-          }}>
-            {/* gold corner ornaments */}
-            <span style={cornerOrn("tl")} /><span style={cornerOrn("tr")} />
-            <span style={cornerOrn("bl")} /><span style={cornerOrn("br")} />
-            {/* shine sweep */}
-            <span style={{
-              position: "absolute", inset: 0, overflow: "hidden", borderRadius: 4, pointerEvents: "none",
-            }}>
-              <span style={{
-                position: "absolute", top: 0, bottom: 0, width: 60,
-                background: "linear-gradient(90deg, transparent, rgba(255,235,180,0.22), transparent)",
-                transform: "skewX(-20deg)",
-                animation: "lvShine 1.4s ease-out 0.15s 1",
-              }} />
-            </span>
-
-            <div style={{
-              fontSize: 10, letterSpacing: 4, color: "#d4af5a",
-              textTransform: "uppercase", marginBottom: 2, opacity: 0.9,
-            }}>
-              Ascensão
-            </div>
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-              color: "#f4e4b8", fontSize: 18, fontWeight: 700, letterSpacing: 2,
-              textShadow: "0 1px 0 #000, 0 0 12px rgba(212,175,90,0.35)",
-            }}>
-              <span style={goldRule()} />
-              <span>NÍVEL {levelToast.level}</span>
-              <span style={goldRule()} />
-            </div>
-            <div style={{
-              marginTop: 6, fontSize: 11, letterSpacing: 0.5,
-              color: "#c9c0a8", fontFamily: "'Trebuchet MS', system-ui, sans-serif",
-            }}>
-              {levelToast.gains.join(" · ")}
-            </div>
-            <div style={{
-              marginTop: 3, fontSize: 10.5, color: "#e8c76a",
-              fontFamily: "'Trebuchet MS', system-ui, sans-serif",
-            }}>
-              ✦ Bônus <strong style={{ color: "#fff2c2" }}>+{levelToast.bonus}</strong>
-            </div>
+                <div style={{
+                  fontSize: 10, letterSpacing: 4, color: "#d4af5a",
+                  textTransform: "uppercase", marginBottom: 2, opacity: 0.9,
+                }}>
+                  Ascensão
+                </div>
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                  color: "#f4e4b8", fontSize: 18, fontWeight: 700, letterSpacing: 2,
+                  textShadow: "0 1px 0 #000, 0 0 12px rgba(212,175,90,0.35)",
+                }}>
+                  <span style={goldRule()} />
+                  <span>NÍVEL {levelToast.level}</span>
+                  <span style={goldRule()} />
+                </div>
+                {levelToast.gains && (
+                  <div style={{
+                    marginTop: 6, fontSize: 11, letterSpacing: 0.5,
+                    color: "#c9c0a8", fontFamily: "'Trebuchet MS', system-ui, sans-serif",
+                  }}>
+                    {levelToast.gains.join(" · ")}
+                  </div>
+                )}
+                {levelToast.bonus && (
+                  <div style={{
+                    marginTop: 3, fontSize: 10.5, color: "#e8c76a",
+                    fontFamily: "'Trebuchet MS', system-ui, sans-serif",
+                  }}>
+                    ✦ Bônus <strong style={{ color: "#fff2c2" }}>+{levelToast.bonus}</strong>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      );
+        );
       })()}
 
       {/* ⚡ ZAPDOS ANNOUNCEMENT — some após 8s */}
