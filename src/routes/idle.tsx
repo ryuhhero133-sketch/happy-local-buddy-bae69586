@@ -16287,13 +16287,13 @@ function TabOverlay({
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "#b8862a", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.5)" }}>
+              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "#c084fc", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(192,132,252,0.5)" }}>
                 {collection.length} / {MAX_COLLECTION} NA COLEÇÃO
               </div>
-              <div style={{ background: "#8b6a30", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
+              <div style={{ background: "#6b21a8", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
                 {caughtSpecies.length} ESPÉCIES
               </div>
-              <div style={{ background: "linear-gradient(180deg,#7c3aed,#4f26a4)", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(124,58,237,0.5)" }}>
+              <div style={{ background: "linear-gradient(180deg,#c084fc,#8b5cf6)", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(192,132,252,0.5)" }}>
                 ⚒️ {craftPoints} PTS CRAFT
               </div>
             </div>
