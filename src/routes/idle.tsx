@@ -16307,7 +16307,7 @@ function TabOverlay({
               style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}
             />
             <select value={colFilterRarity} onChange={(e) => setColFilterRarity(e.target.value as "all" | Rarity)}
-              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #c084fc", background: "#1a0f26", color: "#eadfe8" }}>
               <option value="all">Todas raridades</option>
               <option value="common">Comum</option>
               <option value="uncommon">Incomum</option>
@@ -16318,7 +16318,7 @@ function TabOverlay({
               <option value="mythic_shiny">Mítico Brilhante</option>
             </select>
             <select value={colSort} onChange={(e) => setColSort(e.target.value as typeof colSort)}
-              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #c084fc", background: "#1a0f26", color: "#eadfe8" }}>
               <option value="recent">Mais recentes</option>
               <option value="level_desc">Nível ↓</option>
               <option value="level_asc">Nível ↑</option>
