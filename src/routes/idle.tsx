@@ -989,7 +989,7 @@ type IdleState = {
   blackMiticPlusPending?: number;
   chestEnergy?: number;
   dailyChestsOpened?: number;
-  lastChestReset?: number;
+  lastReset?: number;
 };
 
 
@@ -1182,7 +1182,7 @@ function freshIdle(): IdleState {
     hives: {},
     chestEnergy: 200,
     dailyChestsOpened: 0,
-    lastChestReset: Date.now(),
+    lastReset: Date.now(),
   };
 }
 function saveIdle(s: IdleState) {
@@ -7006,13 +7006,22 @@ function IdlePage() {
   // detecta proximidade e abre baú
   useEffect(() => {
     const iv = setInterval(() => {
+      const now = Date.now();
+      const lastReset = idle.lastReset || 0;
+      const isNewDay = (now - lastReset) > 24 * 60 * 60 * 1000;
+
       const openedRef: { c: Chest | null } = { c: null };
       setChests((prev) => {
+        // Se a energia for 0 e não for um novo dia, não abre nada
+        if ((idle.chestEnergy ?? 0) <= 0 && !isNewDay) return prev;
+        // Limite de 1000 baús por dia
+        if ((idle.dailyChestsOpened ?? 0) >= 1000 && !isNewDay) return prev;
+
         const next = prev.map((c) => {
           if (c.opened) return c;
           if (Math.hypot(c.x - trainerPos.x, c.y - trainerPos.y) < 46) {
             openedRef.c = c;
-            return { ...c, opened: true, openedAt: Date.now() };
+            return { ...c, opened: true, openedAt: now };
           }
           return c;
         });
@@ -7065,16 +7074,38 @@ function IdlePage() {
         pushFxAt(oc.x, oc.y - 50, parts.join(" · "), "gold");
         pushChat(`Baú aberto! ${parts.join(" · ")}`, "chest");
         playChestOpen();
-        setIdle((s) => ({
-          ...s,
-          bank: { ...s.bank, gold: s.bank.gold + gain, crystals: s.bank.crystals + bonusCrystal },
-          totals: { ...s.totals, gold: s.totals.gold + gain },
-          items: {
-            ...s.items,
-            pokeball: (s.items.pokeball ?? 0) + bonusBall,
-            chest_key: (s.items.chest_key ?? 0) + bonusKey,
-          },
-        }));
+        setIdle((s) => {
+          const now = Date.now();
+          const lastReset = s.lastReset || 0;
+          const isNewDay = (now - lastReset) > 24 * 60 * 60 * 1000;
+          
+          let newEnergy = (s.chestEnergy ?? 200);
+          let newDaily = (s.dailyChestsOpened ?? 0);
+          let newReset = lastReset;
+
+          if (isNewDay) {
+            newDaily = 0;
+            newReset = now;
+            // O contador não reseta a energia sozinho, apenas o limite diário
+          }
+
+          newEnergy = Math.max(0, newEnergy - 1);
+          newDaily += 1;
+
+          return {
+            ...s,
+            chestEnergy: newEnergy,
+            dailyChestsOpened: newDaily,
+            lastReset: newReset,
+            bank: { ...s.bank, gold: s.bank.gold + gain, crystals: s.bank.crystals + bonusCrystal },
+            totals: { ...s.totals, gold: s.totals.gold + gain },
+            items: {
+              ...s.items,
+              pokeball: (s.items.pokeball ?? 0) + bonusBall,
+              chest_key: (s.items.chest_key ?? 0) + bonusKey,
+            },
+          };
+        });
       }
     }, 300);
     return () => clearInterval(iv);
@@ -11689,8 +11720,8 @@ function IdlePage() {
           </div>
           <div style={{ textAlign: "right", minWidth: 80 }}>
             <div style={{ fontSize: 9, color: "#a78bfa", fontWeight: 700 }}>DIÁRIO</div>
-            <div style={{ fontSize: 12, fontWeight: 900, color: (idle.dailyChestsOpened ?? 0) >= 200 ? "#ff5252" : "#fff" }}>
-              {(idle.dailyChestsOpened ?? 0)} / 200
+            <div style={{ fontSize: 12, fontWeight: 900, color: (idle.dailyChestsOpened ?? 0) >= 1000 ? "#ff5252" : "#fff" }}>
+              {(idle.dailyChestsOpened ?? 0)} / 1000
             </div>
           </div>
         </div>
