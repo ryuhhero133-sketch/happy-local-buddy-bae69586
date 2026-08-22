@@ -1091,10 +1091,17 @@ const ALL_BALLS: ShopBall[] = [
   { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
 ];
 
-type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
+type ShopBook = { id: "book_atk" | "book_def" | "book_atk_purple" | "book_def_purple" | "book_atk_gold" | "book_def_gold" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
 const SHOP_BOOKS: ShopBook[] = [
-  { id: "book_atk", name: "Livro de Ataque", desc: "+10% de dano permanente por uso", price: 100, img: bookAtkImg },
-  { id: "book_def", name: "Livro de Defesa", desc: "-10% de dano recebido por uso",  price: 100, img: bookDefImg },
+  { id: "book_atk", name: "Livro de Ataque", desc: "+3% de dano permanente por uso", price: 100, img: bookAtkImg },
+  { id: "book_def", name: "Livro de Defesa", desc: "-3% de dano recebido por uso",  price: 100, img: bookDefImg },
+  
+  { id: "book_atk_purple", name: "Livro de Ataque Arcano", desc: "+8% de dano permanente", price: 350, img: bookAtkImg, currency: "crystals" },
+  { id: "book_def_purple", name: "Livro de Defesa Arcana", desc: "-8% de dano recebido",  price: 350, img: bookDefImg, currency: "crystals" },
+
+  { id: "book_atk_gold", name: "Tratado de Guerra Real", desc: "+15% de dano permanente", price: 1200, img: bookAtkImg, currency: "crystals" },
+  { id: "book_def_gold", name: "Tratado de Defesa Real", desc: "-15% de dano recebido",  price: 1200, img: bookDefImg, currency: "crystals" },
+
   { id: "book_exp", name: "Livro de EXP",    desc: "+30% EXP em batalhas por 1 hora",   price: 30, img: bookExpImg },
 
   { id: "book_vip_30", name: "Livro VIP 30d ✦✦", desc: "+30% ouro e +30% EXP por 30 DIAS", price: 500, img: bookExpImg },
