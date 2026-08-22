@@ -3602,6 +3602,8 @@ function IdlePage() {
 
 
   const fakeMapPlayers = useMemo<RemotePlayer[]>(() => {
+    if (idle.currentMap === "casa_do_treinador") return [];
+
     const names = [
       "Luna", "Ryu", "Mika", "Theo", "Nina", "Kai", "Yuri", "Lia", "Noah", "Iris",
       "Bento", "Akira", "Tina", "Kiko", "Maya", "Zeca", "Lipe", "Sora", "Neko", "Ruby",
