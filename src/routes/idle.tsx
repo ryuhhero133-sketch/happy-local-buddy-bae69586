@@ -16422,8 +16422,8 @@ function TabOverlay({
                         background: isBMP
                           ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
                           : "linear-gradient(180deg, #1a0f26, #251638)",
-                       border: `2.5px solid ${isBMP ? bmpAccent : (isSelected ? "#7c3aed" : locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a"))}`,
-                       borderRadius: 12, padding: 10, textAlign: "center",
+                        border: `2.5px solid ${isBMP ? bmpAccent : (isSelected ? "#c084fc" : locked ? "#ffd94d" : (isCurrent ? "#5ec26a" : "#c084fc"))}`,
+                        borderRadius: 12, padding: 10, textAlign: "center",
                        position: "relative",
                        overflow: "hidden",
                        boxShadow: isBMP
