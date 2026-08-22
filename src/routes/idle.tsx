@@ -16386,7 +16386,7 @@ function TabOverlay({
               return a.species.localeCompare(b.species);
             });
             if (filtered.length === 0) {
-              return <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
+              return <div style={{ color: "#b39dd8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
             return (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
