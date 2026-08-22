@@ -12633,7 +12633,7 @@ function IdlePage() {
                             desc: `Alcance Nível ${(i + 1) * 50}`,
                             target: (i + 1) * 50,
                             current: idle.trainerLevel || 1,
-                            reward: { type: "crystals", amount: 50 * (i + 1) },
+                            reward: { type: "gold", amount: 1000 * (i + 1) }, // Mudado de cristais para ouro
                             category: "static"
                           })),
                           // Kill Daily (Daily)
