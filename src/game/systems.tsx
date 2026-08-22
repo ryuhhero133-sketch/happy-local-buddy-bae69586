@@ -957,6 +957,10 @@ export function MarketOverlay({
 
   const post = () => {
     if (!target) return;
+    if (!isVip) {
+      alert("⚠️ Marketplace exclusivo para jogadores com Passe de Mestre (VIP)!");
+      return;
+    }
     if (pickKind === "pet") {
       const pet = sellablePets.find((p) => p.uid === target);
       if (!pet || pet.locked) return;
