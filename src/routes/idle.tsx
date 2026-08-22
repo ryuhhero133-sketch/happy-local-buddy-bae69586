@@ -987,6 +987,9 @@ type IdleState = {
   grassOddishReturnMap?: IdleMapId;
   grassOddishCaptured?: number;
   blackMiticPlusPending?: number;
+  chestEnergy?: number;
+  dailyChestsOpened?: number;
+  lastChestReset?: number;
 };
 
 
@@ -16189,7 +16192,7 @@ function TabOverlay({
                               pushChat("🍬 Você precisa de 2 Rare Candy para restaurar 100 de energia.", "info");
                               return;
                             }
-                            setIdle(s => ({
+                            setIdle((s: IdleState) => ({
                               ...s,
                               chestEnergy: Math.min(200, (s.chestEnergy ?? 0) + 100),
                               items: { ...s.items, [id]: count - 2 }
