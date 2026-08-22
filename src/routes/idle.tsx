@@ -11334,10 +11334,10 @@ function IdlePage() {
                                 </span>
                               </div>
                             )}
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${goldOk ? "#f5cf6b" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid #7ef27a`, borderRadius: 8, padding: "8px 12px" }}>
                               <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🪙 Taxa de teleporte</span>
-                              <span style={{ color: goldOk ? "#f5cf6b" : "#ff8888", fontWeight: 900 }}>
-                                {gold} ouro {goldOk ? "" : `(você: ${idle.bank.gold})`}
+                              <span style={{ color: "#7ef27a", fontWeight: 900 }}>
+                                GRÁTIS ✓
                               </span>
                             </div>
                             {tm.raid ? (
