@@ -11690,41 +11690,7 @@ function IdlePage() {
 
         </div>
         
-        {/* HUD de Energia de Baú */}
-        <div style={{
-          gridColumn: "1 / -1",
-          margin: "10px 16px 0",
-          background: "linear-gradient(180deg, rgba(26,15,38,0.9), rgba(15,5,30,0.9))",
-          border: "1px solid rgba(245,207,107,0.3)",
-          borderRadius: 12,
-          padding: "8px 14px",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          boxShadow: "0 4px 15px rgba(0,0,0,0.4)"
-        }}>
-          <div style={{ fontSize: 20 }}>⚡</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-              <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>ENERGIA DE BAÚ</span>
-              <span style={{ fontSize: 10, fontWeight: 900, color: "#fff" }}>{(idle.chestEnergy ?? 200)} / 200</span>
-            </div>
-            <div style={{ height: 6, background: "rgba(0,0,0,0.5)", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <div style={{ 
-                width: `${Math.min(100, ((idle.chestEnergy ?? 200) / 200) * 100)}%`, 
-                height: "100%", 
-                background: "linear-gradient(90deg, #f5cf6b, #ff9d3d)",
-                boxShadow: "0 0 8px rgba(245,207,107,0.5)"
-              }} />
-            </div>
-          </div>
-          <div style={{ textAlign: "right", minWidth: 80 }}>
-            <div style={{ fontSize: 9, color: "#a78bfa", fontWeight: 700 }}>DIÁRIO</div>
-            <div style={{ fontSize: 12, fontWeight: 900, color: (idle.dailyChestsOpened ?? 0) >= 1000 ? "#ff5252" : "#fff" }}>
-              {(idle.dailyChestsOpened ?? 0)} / 1000
-            </div>
-          </div>
-        </div>
+        {/* HUD de Energia de Baú removido daqui e movido para o perfil */}
 
 
 
