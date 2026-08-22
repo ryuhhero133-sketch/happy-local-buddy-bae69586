@@ -1177,6 +1177,9 @@ function freshIdle(): IdleState {
     totalKills: 0,
     craftPoints: 0,
     hives: {},
+    chestEnergy: 200,
+    dailyChestsOpened: 0,
+    lastChestReset: Date.now(),
   };
 }
 function saveIdle(s: IdleState) {
@@ -11652,6 +11655,42 @@ function IdlePage() {
           {/* Guia do Prof. Carvalho removido a pedido do usuário */}
 
         </div>
+        
+        {/* HUD de Energia de Baú */}
+        <div style={{
+          gridColumn: "1 / -1",
+          margin: "10px 16px 0",
+          background: "linear-gradient(180deg, rgba(26,15,38,0.9), rgba(15,5,30,0.9))",
+          border: "1px solid rgba(245,207,107,0.3)",
+          borderRadius: 12,
+          padding: "8px 14px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          boxShadow: "0 4px 15px rgba(0,0,0,0.4)"
+        }}>
+          <div style={{ fontSize: 20 }}>⚡</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+              <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b", letterSpacing: 1 }}>ENERGIA DE BAÚ</span>
+              <span style={{ fontSize: 10, fontWeight: 900, color: "#fff" }}>{(idle.chestEnergy ?? 200)} / 200</span>
+            </div>
+            <div style={{ height: 6, background: "rgba(0,0,0,0.5)", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <div style={{ 
+                width: `${Math.min(100, ((idle.chestEnergy ?? 200) / 200) * 100)}%`, 
+                height: "100%", 
+                background: "linear-gradient(90deg, #f5cf6b, #ff9d3d)",
+                boxShadow: "0 0 8px rgba(245,207,107,0.5)"
+              }} />
+            </div>
+          </div>
+          <div style={{ textAlign: "right", minWidth: 80 }}>
+            <div style={{ fontSize: 9, color: "#a78bfa", fontWeight: 700 }}>DIÁRIO</div>
+            <div style={{ fontSize: 12, fontWeight: 900, color: (idle.dailyChestsOpened ?? 0) >= 200 ? "#ff5252" : "#fff" }}>
+              {(idle.dailyChestsOpened ?? 0)} / 200
+            </div>
+          </div>
+        </div>
 
 
 
@@ -16140,13 +16179,34 @@ function TabOverlay({
                     }}>{desc}</div>
                     <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                       {!isEgg && count > 0 && (
-                        <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
+                        <button onClick={() => { 
+                          if (id === "rare_candy") {
+                            if ((idle.chestEnergy ?? 0) >= 200) {
+                              pushChat("⚡ Energia já está cheia!", "info");
+                              return;
+                            }
+                            if (count < 2) {
+                              pushChat("🍬 Você precisa de 2 Rare Candy para restaurar 100 de energia.", "info");
+                              return;
+                            }
+                            setIdle(s => ({
+                              ...s,
+                              chestEnergy: Math.min(200, (s.chestEnergy ?? 0) + 100),
+                              items: { ...s.items, [id]: count - 2 }
+                            }));
+                            pushChat("🍬 Energia restaurada em 100 pontos!", "cap");
+                            setItemDetail(null);
+                          } else {
+                            onUseItem(id, 1); 
+                            setItemDetail(null); 
+                          }
+                        }} style={{
                           flex: 1, padding: "9px 10px", fontSize: 12, fontWeight: 900,
                           background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
                           color: P.ink, border: `1.5px solid ${P.goldDark}`,
                           borderRadius: 8, cursor: "pointer", letterSpacing: 0.5,
                           boxShadow: `0 2px 0 ${P.goldDark}`,
-                        }}>USAR</button>
+                        }}>{id === "rare_candy" ? "RESTAURAR ⚡" : "USAR"}</button>
                       )}
                       {isEgg && count > 0 && (
                         <button onClick={() => { onUseItem(id, 1); setItemDetail(null); }} style={{
