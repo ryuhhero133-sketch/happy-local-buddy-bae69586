@@ -1147,6 +1147,8 @@ function loadIdle(): IdleState {
       if (!uskins.includes("default")) uskins.unshift("default");
       s.unlockedSkins = uskins;
       // Sanitiza mapa removido (Pedreira Antiga)
+      // Força spawn na Casa do Treinador ao logar
+      s.currentMap = "casa_do_treinador";
       if (!IDLE_MAPS[s.currentMap]) s.currentMap = "arena";
       return s;
     }
