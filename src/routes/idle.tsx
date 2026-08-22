@@ -12653,7 +12653,7 @@ function IdlePage() {
                             desc: "Acumule 5.000 Stones (Total)", 
                             target: 5000, 
                             current: currentStoneCount, 
-                            reward: { type: "item", id: "egg_epic", amount: 1 }, 
+                            reward: { type: "gold", amount: 5000 }, // Mudado de item para ouro 
                             category: "static" 
                           }
                         ];
