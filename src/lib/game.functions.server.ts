@@ -29,10 +29,14 @@ export async function syncClientState_handler({ data, context }: { data: any, co
   let clamped = false;
   const clamp = (prev: number, next: number, maxGain: number) => {
     if (next <= prev) return next;
-    const gain = Math.min(next - prev, maxGain);
-    if (gain < next - prev) clamped = true;
-    return prev + gain;
+    // CRITICAL: Force server authority for major resources
+    // Client should not be able to "sync" an increase in Gold/Crystal/Level
+    // This function should eventually be removed or only handle non-critical UI state.
+    const gain = 0; // Disable client-side gains via sync for gold/crystal/xp
+    clamped = true;
+    return prev;
   };
+
 
   const newGold  = clamp(Number(cur.gold),  data.gold,  CAP_GAIN.gold);
   const newCry   = clamp(Number(cur.crystal), data.crystal, CAP_GAIN.crystal);

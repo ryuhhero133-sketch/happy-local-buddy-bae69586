@@ -3,6 +3,36 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
 import { Calendar, Gift, Clock } from "lucide-react";
 
+import { useEffect } from "react";
+
+// DevTools discouragement & basic security
+if (typeof window !== "undefined") {
+  // Clear console periodically
+  setInterval(() => {
+    // console.clear(); // User might want logs, but hackers hate clear
+  }, 5000);
+
+  // Disable context menu
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  // Disable common hack keys
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.key === "F12" ||
+      (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+      (e.ctrlKey && e.key === "U")
+    ) {
+      e.preventDefault();
+    }
+  });
+
+  // Debugger trap
+  setInterval(() => {
+    // Function("debugger")(); // This pauses the app if DevTools is open
+  }, 1000);
+}
+
+
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";

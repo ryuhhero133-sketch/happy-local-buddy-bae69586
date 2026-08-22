@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
+import { updateActiveSession, getActiveSessionToken } from "@/lib/session.functions";
+
 
 const loginBgAsset = { url: "/login-bg.png" };
 
@@ -266,10 +268,42 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [session, maintenance]);
 
 
-  // Single-session enforcement DESATIVADO — estava causando loop de login
-  // no preview (2 iframes / F5) e depois de cadastros. Enquanto o Supabase
-  // Realtime estiver sob quota, mantemos o login estável sem auto-kick.
-  const [kicked] = useState(false);
+  // Single-session enforcement
+  const [kicked, setKicked] = useState(false);
+  const sessionTokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const token = crypto.randomUUID();
+    sessionTokenRef.current = token;
+
+    const initSession = async () => {
+      try {
+        await updateActiveSession({ data: { token } });
+      } catch (e) {
+        console.error("Failed to update active session", e);
+      }
+    };
+    initSession();
+
+    const checkSession = async () => {
+      try {
+        const { token: serverToken } = await getActiveSessionToken();
+        if (serverToken && serverToken !== sessionTokenRef.current) {
+          console.warn("[AuthGate] Multiple logins detected, kicking...");
+          setKicked(true);
+          await supabase.auth.signOut();
+        }
+      } catch (e) {
+        // ignore errors during check
+      }
+    };
+
+    const interval = setInterval(checkSession, 10000); // Check every 10s
+    return () => clearInterval(interval);
+  }, [session?.user?.id]);
+
 
 
   // Quando logado: garante profile, decide se precisa criar treinador,
