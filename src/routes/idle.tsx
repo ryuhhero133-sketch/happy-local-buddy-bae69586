@@ -1052,6 +1052,8 @@ const ITEM_COLORS: Record<string, string> = {
   chest_amulet: "#f5cf6b",
   revive: "#ff5b8a", berry: "#4a7bff", key: "#f5cf6b",
   book_atk: "#ff5252", book_def: "#4a7bff", book_exp: "#5ec26a",
+  book_atk_purple: "#a066ff", book_def_purple: "#a066ff",
+  book_atk_gold: "#ffd94d", book_def_gold: "#ffd94d",
   book_exp_big: "#8bffb0", book_exp_max: "#ffd94d", book_vip: "#ffb347",
 };
 const ITEM_IMG: Record<string, string> = {
@@ -1091,10 +1093,17 @@ const ALL_BALLS: ShopBall[] = [
   { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
 ];
 
-type ShopBook = { id: "book_atk" | "book_def" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
+type ShopBook = { id: "book_atk" | "book_def" | "book_atk_purple" | "book_def_purple" | "book_atk_gold" | "book_def_gold" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
 const SHOP_BOOKS: ShopBook[] = [
-  { id: "book_atk", name: "Livro de Ataque", desc: "+10% de dano permanente por uso", price: 100, img: bookAtkImg },
-  { id: "book_def", name: "Livro de Defesa", desc: "-10% de dano recebido por uso",  price: 100, img: bookDefImg },
+  { id: "book_atk", name: "Livro de Ataque", desc: "+3% de dano permanente por uso", price: 100, img: bookAtkImg },
+  { id: "book_def", name: "Livro de Defesa", desc: "-3% de dano recebido por uso",  price: 100, img: bookDefImg },
+  
+  { id: "book_atk_purple", name: "Livro de Ataque Arcano", desc: "+8% de dano permanente", price: 350, img: bookAtkImg, currency: "crystals" },
+  { id: "book_def_purple", name: "Livro de Defesa Arcana", desc: "-8% de dano recebido",  price: 350, img: bookDefImg, currency: "crystals" },
+
+  { id: "book_atk_gold", name: "Tratado de Guerra Real", desc: "+15% de dano permanente", price: 1200, img: bookAtkImg, currency: "crystals" },
+  { id: "book_def_gold", name: "Tratado de Defesa Real", desc: "-15% de dano recebido",  price: 1200, img: bookDefImg, currency: "crystals" },
+
   { id: "book_exp", name: "Livro de EXP",    desc: "+30% EXP em batalhas por 1 hora",   price: 30, img: bookExpImg },
 
   { id: "book_vip_30", name: "Livro VIP 30d ✦✦", desc: "+30% ouro e +30% EXP por 30 DIAS", price: 500, img: bookExpImg },
@@ -1106,8 +1115,8 @@ const SHOP_BOOKS: ShopBook[] = [
 ];
 
 
-const POTION_PRICE = 100;
-const POTION_HEAL_PCT = 0.5;
+const POTION_PRICE = 250;
+const POTION_HEAL_PCT = 0.35;
 
 // Espécies desbloqueadas por nível do líder — spawn cresce com o progresso
 const LEVEL_UNLOCKS: { minLv: number; species: Species[] }[] = [
@@ -11177,7 +11186,7 @@ function IdlePage() {
                           <div style={{ marginTop: 8, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", fontSize: 10, color: "#c8b8d0", fontFamily: "monospace" }}>
                             <span>📍 Você está em <b style={{ color: "#7ef27a" }}>{map.name}</b></span>
                             <span>🎖 Lv <b style={{ color: "#f5cf6b" }}>{trainerLv}</b></span>
-                            <span style={{ color: "#8a7a9c" }}>Selecione uma ilha para viajar via Portal (🪙 1000 + 💎 taxa).</span>
+                            <span style={{ color: "#8a7a9c" }}>Selecione uma ilha para viajar via Portal (💎 taxa de teleporte).</span>
                           </div>
 
                           <style>{`
@@ -11281,11 +11290,11 @@ function IdlePage() {
                   {pendingGate && (() => {
                     const tm = IDLE_MAPS[pendingGate.target as keyof typeof IDLE_MAPS];
                     const trainerLv = idle.trainerLevel ?? 1;
-                    const lvOk = true; // Ignora requisito de nível conforme pedido do usuário
+                    const lvOk = trainerLv >= tm.minLevel;
                     const cost = tm.entryCrystals ?? 0;
-                    const gold = 1000;
+                    const gold = 0; // Taxa de ouro removida
                     const crystalOk = cost === 0 || idle.bank.crystals >= cost;
-                    const goldOk = idle.bank.gold >= gold;
+                    const goldOk = true;
                     const canGo = crystalOk;
                     const close = () => setPendingGate(null);
                     return (
@@ -11325,10 +11334,10 @@ function IdlePage() {
                                 </span>
                               </div>
                             )}
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${goldOk ? "#f5cf6b" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid #7ef27a`, borderRadius: 8, padding: "8px 12px" }}>
                               <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🪙 Taxa de teleporte</span>
-                              <span style={{ color: goldOk ? "#f5cf6b" : "#ff8888", fontWeight: 900 }}>
-                                {gold} ouro {goldOk ? "" : `(você: ${idle.bank.gold})`}
+                              <span style={{ color: "#7ef27a", fontWeight: 900 }}>
+                                GRÁTIS ✓
                               </span>
                             </div>
                             {tm.raid ? (
@@ -11353,8 +11362,12 @@ function IdlePage() {
                                 const g = pendingGate.gate;
                                 const wasBig = pendingGate.fromBig;
                                 setPendingGate(null);
-                                travelToGate(g);
-                                if (wasBig) setBigMapOpen(false);
+                                 setIdle((s: any) => ({
+                                   ...s,
+                                   bank: { ...s.bank, crystals: Math.max(0, s.bank.crystals - cost) }
+                                 }));
+                                 travelToGate(g);
+                                 if (wasBig) setBigMapOpen(false);
                               }}
                               style={{
                                 flex: 2,
@@ -17172,10 +17185,23 @@ function TabOverlay({
           const bookCost = 1 + Math.floor(curLv / 2);
           const hasStones = (idle.items[config.stone] ?? 0) >= stoneCost;
           const hasBooks = (idle.items.book_atk ?? 0) >= bookCost && (idle.items.book_def ?? 0) >= bookCost;
-          if (!hasStones || !hasBooks) {
-            pushChat(`Falta: ${stoneCost}x ${config.stone.replace("stone_","").toUpperCase()} e ${bookCost}x Livros.`, "info");
+          const hasPurple = (idle.items.book_atk_purple ?? 0) >= bookCost && (idle.items.book_def_purple ?? 0) >= bookCost;
+          const hasGold = (idle.items.book_atk_gold ?? 0) >= bookCost && (idle.items.book_def_gold ?? 0) >= bookCost;
+
+          // Se tiver livros reais, prioriza; depois purple, depois normais
+          const useGold = hasGold && curLv >= 10;
+          const usePurple = !useGold && hasPurple && curLv >= 5;
+          const useNormal = !useGold && !usePurple && hasBooks;
+
+          if (!hasStones || (!useNormal && !usePurple && !useGold)) {
+            let msg = `Falta: ${stoneCost}x Stones`;
+            if (curLv >= 10) msg += " e Livros Reais (Gold)";
+            else if (curLv >= 5) msg += " e Livros Arcanos (Purple)";
+            else msg += " e Livros Básicos";
+            pushChat(msg, "info");
             return;
           }
+
           if (Math.random() * 100 < config.fail) {
             setIdle((s: any) => {
               const ni = { ...s.items }; ni[config.stone] = (ni[config.stone] ?? 0) - Math.floor(stoneCost/2);
@@ -17187,8 +17213,16 @@ function TabOverlay({
           setIdle((s: any) => {
             const ni = { ...s.items };
             ni[config.stone] = (ni[config.stone] ?? 0) - stoneCost;
-            ni.book_atk = (ni.book_atk ?? 0) - bookCost;
-            ni.book_def = (ni.book_def ?? 0) - bookCost;
+            if (useGold) {
+              ni.book_atk_gold = (ni.book_atk_gold ?? 0) - bookCost;
+              ni.book_def_gold = (ni.book_def_gold ?? 0) - bookCost;
+            } else if (usePurple) {
+              ni.book_atk_purple = (ni.book_atk_purple ?? 0) - bookCost;
+              ni.book_def_purple = (ni.book_def_purple ?? 0) - bookCost;
+            } else {
+              ni.book_atk = (ni.book_atk ?? 0) - bookCost;
+              ni.book_def = (ni.book_def ?? 0) - bookCost;
+            }
             return { ...s, items: ni, globalStats: { ...stats, [key]: curLv + 1 } };
           });
           pushChat(`✨ Evoluiu ${config.label} para Nível ${curLv + 1}!`, "cap");
