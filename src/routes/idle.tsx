@@ -1115,8 +1115,8 @@ const SHOP_BOOKS: ShopBook[] = [
 ];
 
 
-const POTION_PRICE = 100;
-const POTION_HEAL_PCT = 0.5;
+const POTION_PRICE = 250;
+const POTION_HEAL_PCT = 0.35;
 
 // Espécies desbloqueadas por nível do líder — spawn cresce com o progresso
 const LEVEL_UNLOCKS: { minLv: number; species: Species[] }[] = [
