@@ -16419,13 +16419,9 @@ function TabOverlay({
                        toggleBulk(entry.uid);
                      }}
                      style={{
-                       background: isBMP
-                         ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
-                         : locked
-                         ? "linear-gradient(180deg, #fff4c8, #f7dc9a)"
-                         : isSelected
-                           ? "linear-gradient(180deg, #ede9fe, #c4b5fd)"
-                           : "linear-gradient(180deg, #fff8e5, #f5e6c8)",
+                        background: isBMP
+                          ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
+                          : "linear-gradient(180deg, #1a0f26, #251638)",
                        border: `2.5px solid ${isBMP ? bmpAccent : (isSelected ? "#7c3aed" : locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a"))}`,
                        borderRadius: 12, padding: 10, textAlign: "center",
                        position: "relative",
