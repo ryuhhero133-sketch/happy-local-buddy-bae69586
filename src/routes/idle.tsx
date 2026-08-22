@@ -9018,9 +9018,10 @@ function IdlePage() {
 
 
 
-            {/* Prédios do mundo — Laboratório e Lar (SVG estilizado) */}
+            {/* Prédios do mundo — Casa do Treinador e Lar (SVG estilizado) */}
             {visibleBuildings.map((b) => {
               const active = nearBuilding === b.key;
+              const bLabel = b.key === "lab" ? "Casa do Treinador" : b.label;
               return (
                 <div
                   key={`bld-${b.key}`}
@@ -9039,7 +9040,7 @@ function IdlePage() {
                 >
                   <img
                     src={b.key === "lab" ? houseLabImg : houseLarImg}
-                    alt={b.label}
+                    alt={bLabel}
                     width={b.w}
                     height={b.h}
                     style={{
@@ -9063,7 +9064,7 @@ function IdlePage() {
                     padding: "2px 8px", fontSize: 11, fontWeight: 800, letterSpacing: 1,
                     whiteSpace: "nowrap",
                   }}>
-                    {b.emoji} {b.label.toUpperCase()}
+                    {b.emoji} {bLabel.toUpperCase()}
                   </div>
                 </div>
               );
