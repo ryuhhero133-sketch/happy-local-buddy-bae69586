@@ -9986,13 +9986,13 @@ function IdlePage() {
           {nearBuilding && (() => {
             const bColor = nearBuilding === "lab" ? "#c084fc" : nearBuilding === "azul" ? "#4a9eff" : "#5ec26a";
             const bEmoji = nearBuilding === "lab" ? "🔬" : nearBuilding === "azul" ? "🏡" : "🏠";
-            const bLabel = nearBuilding === "lab" ? "Laboratório" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
+            const bLabel = nearBuilding === "lab" ? "Casa do Treinador" : nearBuilding === "azul" ? "Casa Azul" : "Lar";
             const bDesc = nearBuilding === "lab"
-              ? "Resetar sua jornada"
+              ? "Sua residência oficial"
               : nearBuilding === "azul"
                 ? "Restaura energia em 5 min"
                 : "Descansar (leva 1 hora)";
-            const bAction = nearBuilding === "lab" ? "RESETAR" : "DESCANSAR";
+            const bAction = nearBuilding === "lab" ? "ENTRAR" : "DESCANSAR";
             return (
               <div style={{
                 position: "absolute", bottom: 78, left: "50%", transform: "translateX(-50%)",
@@ -10010,7 +10010,7 @@ function IdlePage() {
                 </div>
                 <button
                   onClick={() => {
-                    if (nearBuilding === "lab") resetAccount();
+                    if (nearBuilding === "lab") { setIdle(s => ({ ...s, currentMap: "casa_do_treinador" })); setTrainerPos({ x: 950, y: 700 }); pushChat("Você entrou na Casa do Treinador.", "info"); }
                     else if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
                     else restAtHome("lar");
                   }}
