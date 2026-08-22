@@ -11292,9 +11292,9 @@ function IdlePage() {
                     const trainerLv = idle.trainerLevel ?? 1;
                     const lvOk = true; // Ignora requisito de nível conforme pedido do usuário
                     const cost = tm.entryCrystals ?? 0;
-                    const gold = 1000;
+                    const gold = 0; // Taxa de ouro removida
                     const crystalOk = cost === 0 || idle.bank.crystals >= cost;
-                    const goldOk = idle.bank.gold >= gold;
+                    const goldOk = true;
                     const canGo = crystalOk;
                     const close = () => setPendingGate(null);
                     return (
