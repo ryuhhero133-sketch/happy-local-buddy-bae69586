@@ -12699,8 +12699,10 @@ function IdlePage() {
                                               completedIds: (fq.completedIds || []).filter((id: string) => !id.endsWith("_daily"))
                                            }));
                                         }
-                                        
-                                        if (q.reward.type === "crystals") {
+                                        if (q.reward.type === "gold") {
+                                          next.gold = (next.gold || 0) + q.reward.amount;
+                                          next.bank = { ...next.bank, gold: (next.bank.gold || 0) + q.reward.amount };
+                                        } else if (q.reward.type === "crystals") {
                                           next.crystals = (next.crystals || 0) + q.reward.amount;
                                           next.bank = { ...next.bank, crystals: (next.bank.crystals || 0) + q.reward.amount };
                                         } else if (q.reward.type === "item" && (q.reward as any).id) {
