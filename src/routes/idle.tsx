@@ -17181,10 +17181,23 @@ function TabOverlay({
           const bookCost = 1 + Math.floor(curLv / 2);
           const hasStones = (idle.items[config.stone] ?? 0) >= stoneCost;
           const hasBooks = (idle.items.book_atk ?? 0) >= bookCost && (idle.items.book_def ?? 0) >= bookCost;
-          if (!hasStones || !hasBooks) {
-            pushChat(`Falta: ${stoneCost}x ${config.stone.replace("stone_","").toUpperCase()} e ${bookCost}x Livros.`, "info");
+          const hasPurple = (idle.items.book_atk_purple ?? 0) >= bookCost && (idle.items.book_def_purple ?? 0) >= bookCost;
+          const hasGold = (idle.items.book_atk_gold ?? 0) >= bookCost && (idle.items.book_def_gold ?? 0) >= bookCost;
+
+          // Se tiver livros reais, prioriza; depois purple, depois normais
+          const useGold = hasGold && curLv >= 10;
+          const usePurple = !useGold && hasPurple && curLv >= 5;
+          const useNormal = !useGold && !usePurple && hasBooks;
+
+          if (!hasStones || (!useNormal && !usePurple && !useGold)) {
+            let msg = `Falta: ${stoneCost}x Stones`;
+            if (curLv >= 10) msg += " e Livros Reais (Gold)";
+            else if (curLv >= 5) msg += " e Livros Arcanos (Purple)";
+            else msg += " e Livros Básicos";
+            pushChat(msg, "info");
             return;
           }
+
           if (Math.random() * 100 < config.fail) {
             setIdle((s: any) => {
               const ni = { ...s.items }; ni[config.stone] = (ni[config.stone] ?? 0) - Math.floor(stoneCost/2);
@@ -17196,8 +17209,16 @@ function TabOverlay({
           setIdle((s: any) => {
             const ni = { ...s.items };
             ni[config.stone] = (ni[config.stone] ?? 0) - stoneCost;
-            ni.book_atk = (ni.book_atk ?? 0) - bookCost;
-            ni.book_def = (ni.book_def ?? 0) - bookCost;
+            if (useGold) {
+              ni.book_atk_gold = (ni.book_atk_gold ?? 0) - bookCost;
+              ni.book_def_gold = (ni.book_def_gold ?? 0) - bookCost;
+            } else if (usePurple) {
+              ni.book_atk_purple = (ni.book_atk_purple ?? 0) - bookCost;
+              ni.book_def_purple = (ni.book_def_purple ?? 0) - bookCost;
+            } else {
+              ni.book_atk = (ni.book_atk ?? 0) - bookCost;
+              ni.book_def = (ni.book_def ?? 0) - bookCost;
+            }
             return { ...s, items: ni, globalStats: { ...stats, [key]: curLv + 1 } };
           });
           pushChat(`✨ Evoluiu ${config.label} para Nível ${curLv + 1}!`, "cap");
