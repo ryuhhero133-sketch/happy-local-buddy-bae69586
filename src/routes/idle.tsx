@@ -11362,8 +11362,12 @@ function IdlePage() {
                                 const g = pendingGate.gate;
                                 const wasBig = pendingGate.fromBig;
                                 setPendingGate(null);
-                                travelToGate(g);
-                                if (wasBig) setBigMapOpen(false);
+                                 setIdle((s: any) => ({
+                                   ...s,
+                                   bank: { ...s.bank, crystals: Math.max(0, s.bank.crystals - cost) }
+                                 }));
+                                 travelToGate(g);
+                                 if (wasBig) setBigMapOpen(false);
                               }}
                               style={{
                                 flex: 2,
