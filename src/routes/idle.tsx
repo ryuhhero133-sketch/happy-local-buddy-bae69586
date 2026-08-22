@@ -12719,7 +12719,8 @@ function IdlePage() {
                                       });
 
                                       playBonus();
-                                      const rewardText = q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
+                                      const rewardText = q.reward.type === "gold" ? `${q.reward.amount} Ouro` :
+                                                        q.reward.type === "crystals" ? `${q.reward.amount} Cristais` : 
                                                         q.reward.type === "item" ? `${q.reward.amount}x ${(q.reward as any).id}` : `+${q.reward.amount} Nível`;
                                       pushChat(`🎉 Missão Concluída: ${q.title}! Ganhou ${rewardText}!`, "cap");
                                     }}
