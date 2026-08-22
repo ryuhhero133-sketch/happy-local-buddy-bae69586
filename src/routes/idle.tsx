@@ -1052,6 +1052,8 @@ const ITEM_COLORS: Record<string, string> = {
   chest_amulet: "#f5cf6b",
   revive: "#ff5b8a", berry: "#4a7bff", key: "#f5cf6b",
   book_atk: "#ff5252", book_def: "#4a7bff", book_exp: "#5ec26a",
+  book_atk_purple: "#a066ff", book_def_purple: "#a066ff",
+  book_atk_gold: "#ffd94d", book_def_gold: "#ffd94d",
   book_exp_big: "#8bffb0", book_exp_max: "#ffd94d", book_vip: "#ffb347",
 };
 const ITEM_IMG: Record<string, string> = {
