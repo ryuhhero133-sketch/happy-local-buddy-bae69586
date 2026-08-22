@@ -16259,11 +16259,19 @@ function TabOverlay({
 
       {tab === "colecao" && (
         <div style={{
-          background: "linear-gradient(180deg, #f5e6c8 0%, #e8d4a8 100%)",
-          border: "3px solid #b8862a",
+          background: "linear-gradient(180deg, #1a0f26 0%, #251638 100%)",
+          border: "3px solid #c084fc",
           borderRadius: 14, padding: 18,
-          boxShadow: "inset 0 0 24px rgba(184,134,42,0.25), 0 4px 18px rgba(0,0,0,0.4)",
+          boxShadow: "inset 0 0 24px rgba(192,132,252,0.15), 0 4px 18px rgba(0,0,0,0.4), 0 0 20px rgba(192,132,252,0.2)",
+          position: "relative",
+          overflow: "hidden"
         }}>
+          {/* Brilho Arcano de Fundo */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(circle at 12% 10%, rgba(192,132,252,0.1), transparent 45%), radial-gradient(circle at 88% 90%, rgba(255,151,225,0.08), transparent 45%)",
+            opacity: 0.6
+          }} />
           {/* HUD topo da coleção */}
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -16271,21 +16279,21 @@ function TabOverlay({
             borderBottom: "2px solid rgba(184,134,42,0.5)",
           }}>
             <div>
-              <div style={{ color: "#6b4a10", fontSize: 20, fontWeight: 900, letterSpacing: 3, fontFamily: "Georgia, serif" }}>
+              <div style={{ color: "#c084fc", fontSize: 20, fontWeight: 900, letterSpacing: 3, fontFamily: "inherit", textShadow: "0 0 10px rgba(192,132,252,0.6)" }}>
                 ✦ COLEÇÃO ✦
               </div>
-              <div style={{ color: "#8b6a30", fontSize: 12, marginTop: 2, fontStyle: "italic" }}>
+              <div style={{ color: "#b39dd8", fontSize: 12, marginTop: 2, fontStyle: "italic" }}>
                 Registro particular do treinador
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "#b8862a", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(184,134,42,0.5)" }}>
+              <div style={{ background: collection.length >= MAX_COLLECTION ? "#c0392b" : "#c084fc", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(192,132,252,0.5)" }}>
                 {collection.length} / {MAX_COLLECTION} NA COLEÇÃO
               </div>
-              <div style={{ background: "#8b6a30", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
+              <div style={{ background: "#6b21a8", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12 }}>
                 {caughtSpecies.length} ESPÉCIES
               </div>
-              <div style={{ background: "linear-gradient(180deg,#7c3aed,#4f26a4)", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(124,58,237,0.5)" }}>
+              <div style={{ background: "linear-gradient(180deg,#c084fc,#8b5cf6)", color: "#fff9e8", fontWeight: 900, padding: "8px 14px", borderRadius: 20, fontSize: 12, boxShadow: "0 2px 8px rgba(192,132,252,0.5)" }}>
                 ⚒️ {craftPoints} PTS CRAFT
               </div>
             </div>
@@ -16296,10 +16304,10 @@ function TabOverlay({
               value={colFilterName}
               onChange={(e) => setColFilterName(e.target.value)}
               placeholder="🔍 Buscar por nome..."
-              style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}
+              style={{ flex: "1 1 160px", minWidth: 140, padding: "6px 10px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "1px solid #c084fc", background: "#1a0f26", color: "#eadfe8" }}
             />
             <select value={colFilterRarity} onChange={(e) => setColFilterRarity(e.target.value as "all" | Rarity)}
-              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #c084fc", background: "#1a0f26", color: "#eadfe8" }}>
               <option value="all">Todas raridades</option>
               <option value="common">Comum</option>
               <option value="uncommon">Incomum</option>
@@ -16310,7 +16318,7 @@ function TabOverlay({
               <option value="mythic_shiny">Mítico Brilhante</option>
             </select>
             <select value={colSort} onChange={(e) => setColSort(e.target.value as typeof colSort)}
-              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #b8862a", background: "#fff8e5", color: "#4a3010" }}>
+              style={{ padding: "6px 10px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "1px solid #c084fc", background: "#1a0f26", color: "#eadfe8" }}>
               <option value="recent">Mais recentes</option>
               <option value="level_desc">Nível ↓</option>
               <option value="level_asc">Nível ↑</option>
@@ -16322,8 +16330,8 @@ function TabOverlay({
               style={{
                 padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
                 border: "1px solid #b8862a", cursor: "pointer",
-                background: colOnlyLocked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
-                color: colOnlyLocked ? "#4a3010" : "#8b6a30",
+                background: colOnlyLocked ? "linear-gradient(180deg,#ffd94d,#b8862a)" : "#1a0f26",
+                color: colOnlyLocked ? "#0b0510" : "#c084fc",
               }}
               title="Mostrar somente Pokémon travados"
             >🔒 {colOnlyLocked ? "SÓ TRAVADOS" : "TRAVADOS"}</button>
@@ -16332,8 +16340,8 @@ function TabOverlay({
               style={{
                 padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
                 border: "1px solid #6b21a8", cursor: "pointer",
-                background: bulkMode ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#f3e8ff",
-                color: bulkMode ? "#fff" : "#5b21b6",
+                background: bulkMode ? "linear-gradient(180deg,#c084fc,#6b21a8)" : "#1a0f26",
+                color: bulkMode ? "#fff" : "#c084fc",
                 boxShadow: bulkMode ? "0 0 10px rgba(167,139,250,0.6)" : "none",
               }}
               title="Selecionar vários para fragmentar de uma vez"
@@ -16356,7 +16364,7 @@ function TabOverlay({
           </div>
 
           {collection.length === 0 ? (
-            <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
+            <div style={{ color: "#b39dd8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
               Nenhum Pokémon capturado ainda. Continue a jornada — a taxa de captura é baixa (5%).
             </div>
           ) : (() => {
@@ -16378,7 +16386,7 @@ function TabOverlay({
               return a.species.localeCompare(b.species);
             });
             if (filtered.length === 0) {
-              return <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
+              return <div style={{ color: "#b39dd8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>Nenhum Pokémon corresponde aos filtros.</div>;
             }
             return (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
@@ -16411,20 +16419,16 @@ function TabOverlay({
                        toggleBulk(entry.uid);
                      }}
                      style={{
-                       background: isBMP
-                         ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
-                         : locked
-                         ? "linear-gradient(180deg, #fff4c8, #f7dc9a)"
-                         : isSelected
-                           ? "linear-gradient(180deg, #ede9fe, #c4b5fd)"
-                           : "linear-gradient(180deg, #fff8e5, #f5e6c8)",
-                       border: `2.5px solid ${isBMP ? bmpAccent : (isSelected ? "#7c3aed" : locked ? "#eab308" : (isCurrent ? "#5ec26a" : "#b8862a"))}`,
-                       borderRadius: 12, padding: 10, textAlign: "center",
+                        background: isBMP
+                          ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
+                          : "linear-gradient(180deg, #1a0f26, #251638)",
+                        border: `2.5px solid ${isBMP ? bmpAccent : (isSelected ? "#c084fc" : locked ? "#ffd94d" : (isCurrent ? "#5ec26a" : "#c084fc"))}`,
+                        borderRadius: 12, padding: 10, textAlign: "center",
                        position: "relative",
                        overflow: "hidden",
-                       boxShadow: isBMP
-                         ? `0 4px 14px rgba(0,0,0,0.6), 0 0 22px ${bmpAccent}88, inset 0 0 26px ${bmpAccent}33`
-                         : `0 2px 8px rgba(0,0,0,0.15), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(234,179,8,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(124,58,237,0.7)" : ""}`,
+                        boxShadow: isBMP
+                          ? `0 4px 14px rgba(0,0,0,0.6), 0 0 22px ${bmpAccent}88, inset 0 0 26px ${bmpAccent}33`
+                          : `0 4px 14px rgba(0,0,0,0.4), 0 0 15px rgba(192,132,252,0.25), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(255,217,77,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(192,132,252,0.7)" : ""}`,
                        display: "grid",
                        gridTemplateRows: "auto auto auto auto 36px",
                        gap: 4,
@@ -16444,18 +16448,18 @@ function TabOverlay({
                       #{String(i + 1).padStart(3, "0")}
                     </div>
                     {inTeam && (
-                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#3d7a4a", zIndex: 2 }}>★ TIME</div>
+                      <div style={{ position: "absolute", top: 4, right: 6, fontSize: 9, fontWeight: 900, color: "#6bd4ff", zIndex: 2, textShadow: "0 0 6px #6bd4ff" }}>★ TIME</div>
                     )}
                     {/* Checkbox de bulk select */}
                     {bulkMode && canBulkPick && (
                       <div style={{
                         position: "absolute", top: 6, left: 26,
                         width: 22, height: 22, borderRadius: 6,
-                        border: `2px solid ${isSelected ? "#7c3aed" : "#8b6a30"}`,
-                        background: isSelected ? "linear-gradient(180deg,#a78bfa,#5b21b6)" : "#fff8e5",
+                        border: `2px solid ${isSelected ? "#c084fc" : "#c084fc"}`,
+                        background: isSelected ? "linear-gradient(180deg,#c084fc,#6b21a8)" : "#1a0f26",
                         color: "#fff", fontSize: 14, fontWeight: 900,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        boxShadow: isSelected ? "0 0 8px rgba(124,58,237,0.7)" : "none",
+                        boxShadow: isSelected ? "0 0 8px rgba(192,132,252,0.7)" : "none",
                         zIndex: 3,
                       }}>{isSelected ? "✓" : ""}</div>
                     )}
@@ -16466,10 +16470,11 @@ function TabOverlay({
                       style={{
                         position: "absolute", top: 22, right: 4,
                         width: 24, height: 24, borderRadius: "50%",
-                        border: "1px solid #b8862a", cursor: "pointer",
-                        background: locked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
-                        color: locked ? "#4a3010" : "#8b6a30",
+                        border: "1px solid #c084fc", cursor: "pointer",
+                        background: locked ? "linear-gradient(180deg,#ffd94d,#b8862a)" : "#1a0f26",
+                        color: locked ? "#0b0510" : "#c084fc",
                         fontSize: 12, fontWeight: 900, padding: 0, zIndex: 2,
+                        boxShadow: locked ? "0 0 8px #ffd94d88" : "none"
                       }}
                     >{locked ? "🔒" : "🔓"}</button>
 
@@ -16480,7 +16485,7 @@ function TabOverlay({
                        title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
                      >
                        {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
-                       <div style={{ fontSize: 11, marginTop: 2, color: isBMP ? "#f7ecff" : "#4a3010", fontWeight: 800, textAlign: "center", textShadow: isBMP ? "0 1px 3px #000" : undefined }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
+                       <div style={{ fontSize: 11, marginTop: 2, color: isBMP ? "#f7ecff" : "#eadfe8", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                      </button>
 
                      {/* Raridade / Badge BMP */}
@@ -16496,7 +16501,7 @@ function TabOverlay({
                      </div>
 
                      {/* Nível */}
-                     <div style={{ fontSize: 11, color: isBMP ? "#f5cf6b" : "#6b4a10", fontWeight: 900, position: "relative", zIndex: 1, textShadow: isBMP ? "0 1px 2px #000" : undefined }}>
+                     <div style={{ fontSize: 11, color: isBMP ? "#f5cf6b" : "#c084fc", fontWeight: 900, position: "relative", zIndex: 1, textShadow: "0 1px 2px #000" }}>
                        Nv. {displayLevel}{inTeam && teamPet && teamPet.level !== entry.level ? ` (cap. Nv.${entry.level})` : ""}
                      </div>
 
