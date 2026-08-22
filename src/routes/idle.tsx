@@ -16330,8 +16330,8 @@ function TabOverlay({
               style={{
                 padding: "6px 12px", fontSize: 12, fontWeight: 900, borderRadius: 8,
                 border: "1px solid #b8862a", cursor: "pointer",
-                background: colOnlyLocked ? "linear-gradient(180deg,#facc15,#b8862a)" : "#fff8e5",
-                color: colOnlyLocked ? "#4a3010" : "#8b6a30",
+                background: colOnlyLocked ? "linear-gradient(180deg,#ffd94d,#b8862a)" : "#1a0f26",
+                color: colOnlyLocked ? "#0b0510" : "#c084fc",
               }}
               title="Mostrar somente Pokémon travados"
             >🔒 {colOnlyLocked ? "SÓ TRAVADOS" : "TRAVADOS"}</button>
