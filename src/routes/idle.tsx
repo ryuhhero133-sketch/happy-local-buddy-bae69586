@@ -16364,7 +16364,7 @@ function TabOverlay({
           </div>
 
           {collection.length === 0 ? (
-            <div style={{ color: "#8b6a30", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
+            <div style={{ color: "#b39dd8", fontSize: 13, padding: 30, textAlign: "center", fontStyle: "italic" }}>
               Nenhum Pokémon capturado ainda. Continue a jornada — a taxa de captura é baixa (5%).
             </div>
           ) : (() => {
