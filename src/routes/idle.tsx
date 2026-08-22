@@ -5529,6 +5529,9 @@ function IdlePage() {
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty }, buffs: { ...s.buffs, def: s.buffs.def + gain } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `DEF +${Math.round(gain*100)}%`, "capture");
       pushChat(`Usou ${useQty}× Livro de Defesa (-${Math.round(gain*100)}% dano recebido).`, "cap");
+    } else if (id === "book_atk_purple" || id === "book_def_purple" || id === "book_atk_gold" || id === "book_def_gold") {
+      pushChat(`Estes livros são usados na aba "Melhorias" para evoluir sua conta permanentemente.`, "info");
+
 
     } else if (id === "book_exp" || id === "book_exp_big" || id === "book_exp_max") {
       const add = id === "book_exp" ? 0.30 : id === "book_exp_big" ? 0.50 : 1.00;
