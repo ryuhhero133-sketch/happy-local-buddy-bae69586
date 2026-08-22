@@ -989,7 +989,7 @@ type IdleState = {
   blackMiticPlusPending?: number;
   chestEnergy?: number;
   dailyChestsOpened?: number;
-  lastChestReset?: number;
+  lastReset?: number;
 };
 
 
