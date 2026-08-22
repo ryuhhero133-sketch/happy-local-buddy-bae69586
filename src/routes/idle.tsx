@@ -11186,7 +11186,7 @@ function IdlePage() {
                           <div style={{ marginTop: 8, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", fontSize: 10, color: "#c8b8d0", fontFamily: "monospace" }}>
                             <span>📍 Você está em <b style={{ color: "#7ef27a" }}>{map.name}</b></span>
                             <span>🎖 Lv <b style={{ color: "#f5cf6b" }}>{trainerLv}</b></span>
-                            <span style={{ color: "#8a7a9c" }}>Selecione uma ilha para viajar via Portal (🪙 1000 + 💎 taxa).</span>
+                            <span style={{ color: "#8a7a9c" }}>Selecione uma ilha para viajar via Portal (💎 taxa de teleporte).</span>
                           </div>
 
                           <style>{`
