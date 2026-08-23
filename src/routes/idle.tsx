@@ -10417,7 +10417,7 @@ function IdlePage() {
                   { key: "casa-to-adventure", target: "arena", x: 600, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
                 ],
                 arena: [
-                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 700, color: "#8b5a2b" },
+                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 550, arriveY: 350, color: "#8b5a2b" },
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
