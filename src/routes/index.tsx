@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      HABBILITAR MODO PVP NO JOGO ENTRE TREIANDORES, atacar pokemon no mapa do treinador em modo automatrico e poder ver os outrtos treinadores nio mapa
+      n kero que drop cristal dos pokemons ao matar.... so conseguir atravez das quest
     </div>
   ),
 })
