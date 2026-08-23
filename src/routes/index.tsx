@@ -5,8 +5,22 @@ export const Route = createFileRoute('/')({
     throw redirect({ to: '/idle' })
   },
   component: () => (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      agora so podemos ver pokemons epico no mapa apartir do nivel 50 ok, e outra coisa, os jogadores podem se ver, E PODEM SE MATAR NO MAPA, QUANDO O MAPA TIVER EM MODO PERICULOSo.. MODO PACIFICO N ATK, E PÁRA O TRINADOR ATACAR O OUTRO BASTA CLICAR NO TARGET DELE.
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
+      1. JOGADORES EM TEMPO REAL
+
+      Atualmente os jogadores não conseguem se ver no mapa.
+
+      Implementar sincronização em tempo real da posição dos jogadores.
+
+      Cada jogador conectado deve:
+
+      aparecer visualmente no mapa para os outros jogadores;
+
+      atualizar sua posição ao se movimentar;
+
+      ver outros jogadores entrando e saindo;
+
+      mostrar nome acima do personagem;
     </div>
   ),
 })
