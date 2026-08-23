@@ -2734,6 +2734,61 @@ function IdlePage() {
       return;
     }
 
+    // ===== Códigos únicos: 10× Ovo Black Mítico PLUS (6 traits, pokémon aleatório) =====
+    const BLACK_EGG_CODES = [
+      "BLACKMITIC01", "BLACKMITIC02", "BLACKMITIC03", "BLACKMITIC04", "BLACKMITIC05",
+      "BLACKMITIC06", "BLACKMITIC07", "BLACKMITIC08", "BLACKMITIC09", "BLACKMITIC10",
+    ];
+    if (BLACK_EGG_CODES.includes(raw)) {
+      const base = idleRef.current;
+      const eggs = base.items?.black_mitic_egg ?? 0;
+      if (eggs >= 6) {
+        setCodeMsg({ kind: "err", text: "Você já tem 6 Black Mitic Plus Eggs (limite). Choque um antes de resgatar." });
+        return;
+      }
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, black_mitic_egg: eggs + 1 },
+        blackMiticPlusPending: (base.blackMiticPlusPending ?? 0) + 1,
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: "✦ 1× Black Mitic PLUS Egg entregue! Ao chocar nasce um pokémon aleatório com 6 traits." });
+      setCodeInput("");
+      pushChat(`🥚 Código ${raw}: 1× Black Mitic PLUS Egg ✦ (pokémon aleatório com 6 traits).`, "cap");
+      return;
+    }
+
+    // ===== Códigos únicos de Cristal: 10× 10k e 10× 50k =====
+    const CRYSTAL_10K_CODES = [
+      "CRYSTAL10K01", "CRYSTAL10K02", "CRYSTAL10K03", "CRYSTAL10K04", "CRYSTAL10K05",
+      "CRYSTAL10K06", "CRYSTAL10K07", "CRYSTAL10K08", "CRYSTAL10K09", "CRYSTAL10K10",
+    ];
+    const CRYSTAL_50K_CODES = [
+      "CRYSTAL50K01", "CRYSTAL50K02", "CRYSTAL50K03", "CRYSTAL50K04", "CRYSTAL50K05",
+      "CRYSTAL50K06", "CRYSTAL50K07", "CRYSTAL50K08", "CRYSTAL50K09", "CRYSTAL50K10",
+    ];
+    const crystalAmount = CRYSTAL_10K_CODES.includes(raw) ? 10_000 : CRYSTAL_50K_CODES.includes(raw) ? 50_000 : 0;
+    if (crystalAmount > 0) {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, crystals: Math.min(1_000_000, base.bank.crystals + crystalAmount) },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: `💎 +${crystalAmount.toLocaleString("pt-BR")} Cristais entregues!` });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: +${crystalAmount.toLocaleString("pt-BR")} 💎 Cristais.`, "cap");
+      return;
+    }
+
+
+
 
 
     if (raw === "MYTHVIP30") {
