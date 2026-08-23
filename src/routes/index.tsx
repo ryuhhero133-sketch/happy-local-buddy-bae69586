@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      n kero que drop cristal dos pokemons ao matar.... so conseguir atravez das quest
+      TA DEMORANDO NASCER OS POKEMONS NO MAPA, E SE EU DER RESFRESH EU KERO QUE PERMANECA OS POKEMONS QUE TAOO NO MAPA E N RESET SPAWN ETC.
     </div>
   ),
 })
