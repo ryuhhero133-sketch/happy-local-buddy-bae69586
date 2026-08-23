@@ -9071,7 +9071,7 @@ function IdlePage() {
 
 
             {/* Prédios do mundo — Casa do Treinador e Lar (SVG estilizado) */}
-            {visibleBuildings.map((b) => {
+            {visibleBuildings.filter(b => b.key !== 'lab' || idle.currentMap !== 'casa_do_treinador').map((b) => {
               const active = nearBuilding === b.key;
               const bLabel = b.key === "lab" ? "Casa do Treinador" : b.label;
               return (
