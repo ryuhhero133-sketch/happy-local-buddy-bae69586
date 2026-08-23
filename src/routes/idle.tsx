@@ -4270,6 +4270,13 @@ function IdlePage() {
         const placed = alive.map((e) => ({ x: e.x, y: e.y }));
         const ne = spawnOneEnemy(placed);
         if (!ne) return prev;
+        // spawn extra: enche o mapa mais rápido
+        const extras: Enemy[] = [];
+        if (alive.length + 1 < ENEMY_TARGET) {
+          placed.push({ x: ne.x, y: ne.y });
+          const ne2 = spawnOneEnemy(placed);
+          if (ne2) extras.push(ne2);
+        }
         // Anúncio quando um raro+ ou RIDER aparece via top-up
         if (ne.rider) {
           pushEvent("✦", "POKÉMON RIDER!", `${ne.sp.replace(/_/g, " ").toUpperCase()} Lv.${ne.level} apareceu — recompensa massiva!`, "#ff5ec7");
