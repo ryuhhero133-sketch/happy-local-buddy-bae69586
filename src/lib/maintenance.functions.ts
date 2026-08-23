@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const checkMaintenanceMode = createServerFn({ method: "GET" })
   .handler(async () => {
+    // SERVIDOR LIBERADO PARA TODOS — manutenção desativada.
+    return { enabled: false };
+    // eslint-disable-next-line no-unreachable
     try {
       // Usamos o public-publishable client para ler uma configuração global
       // Note: No Supabase, se value for JSONB, data.value pode vir como string "true" ou booleano true
