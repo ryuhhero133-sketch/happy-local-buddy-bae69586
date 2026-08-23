@@ -10690,8 +10690,8 @@ function IdlePage() {
                         }}
                         style={{
                           position: "absolute",
-                          left: `${(nx / WORLD_W) * 100}%`,
-                          top: `${(ny / WORLD_H) * 100}%`,
+                          left: `${(nx / (idle.currentMap === 'casa_do_treinador' ? 800 : WORLD_W)) * 100}%`,
+                          top: `${(ny / (idle.currentMap === 'casa_do_treinador' ? 600 : WORLD_H)) * 100}%`,
                           width: big ? 48 : 24,
                           height: big ? 48 : 24,
                           transform: "translate(-50%, -50%)",
