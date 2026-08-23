@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      NAO PODE APARECER POKEMON NEM BAU NA CASDA DO TREINADOR
+      proibido aparecer spawn de pokemon na casa do treinador nem bau
     </div>
   ),
 })
