@@ -10414,7 +10414,7 @@ function IdlePage() {
               // Fluxo: arena → praia → neve → deserto → caverna
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 casa_do_treinador: [
-                  { key: "casa-to-adventure", target: "arena", x: 1000, y: 700, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
+                  { key: "casa-to-adventure", target: "arena", x: 600, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
                 ],
                 arena: [
                   { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 700, color: "#8b5a2b" },
