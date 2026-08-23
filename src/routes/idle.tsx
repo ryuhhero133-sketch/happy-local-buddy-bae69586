@@ -7047,7 +7047,7 @@ function IdlePage() {
 
   // spawna baús no início; respawna a cada 10 min mantendo até `chestTarget` no mapa
   useEffect(() => {
-    const initial = idle.currentMap === "casa_do_treinador" ? [] : spawnChests(Math.min(chestTarget, 2));
+    const initial = (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") ? [] : spawnChests(Math.min(chestTarget, 2));
     setChests(initial);
     const iv = setInterval(() => {
       setChests((prev) => {
