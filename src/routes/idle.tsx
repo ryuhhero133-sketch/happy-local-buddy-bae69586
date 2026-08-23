@@ -613,8 +613,8 @@ const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
 
 // Portal da Casa
 const HOUSE_PORTALS: WorldPortalDef[] = [
-  { key: "casa->arena", from: "casa_do_treinador", to: "arena", x: 1000, y: 700, arriveX: 500, arriveY: 500, color: "#f5cf6b", label: "Partir para Aventura" },
-  { key: "arena->casa", from: "arena", to: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 700, color: "#8b5a2b", label: "Ir para Casa" },
+  { key: "casa->arena", from: "casa_do_treinador", to: "arena", x: 600, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b", label: "Partir para Aventura" },
+  { key: "arena->casa", from: "arena", to: "casa_do_treinador", x: 500, y: 400, arriveX: 550, arriveY: 350, color: "#8b5a2b", label: "Ir para Casa" },
 ];
 
 WORLD_PORTALS.push(...HOUSE_PORTALS);
@@ -1968,7 +1968,7 @@ function IdlePage() {
   const [governanteOpen, setGovernanteOpen] = useState(false);
   useEffect(() => {
     // Zona sagrada — limpa qualquer inimigo que tenha ficado do mapa anterior.
-    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall" || idle.currentMap === "casa_do_treinador") {
       setEnemies([]);
     }
     if (idle.currentMap !== "governante_hall") return;
@@ -10414,10 +10414,10 @@ function IdlePage() {
               // Fluxo: arena → praia → neve → deserto → caverna
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 casa_do_treinador: [
-                  { key: "casa-to-adventure", target: "arena", x: 1000, y: 700, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
+                  { key: "casa-to-adventure", target: "arena", x: 600, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
                 ],
                 arena: [
-                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 950, arriveY: 700, color: "#8b5a2b" },
+                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 550, arriveY: 350, color: "#8b5a2b" },
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
