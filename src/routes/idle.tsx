@@ -3867,7 +3867,7 @@ function IdlePage() {
       const rate = IDLE_MAPS[prev.currentMap].rate * lvFactor;
       const goldGain = (elapsed / 1000) * 0.8 * rate;
       const rubyGain = (elapsed / 1000) * 0.02 * rate;
-      const crystalGain = (elapsed / 1000) * 0.01 * rate;
+      const crystalGain = 0; // Disabled drop from idle, crystals only from quests
       const next: IdleState = {
         ...prev,
         lastTickAt: Date.now(),
@@ -5682,7 +5682,7 @@ function IdlePage() {
         { label: "50× Stone Elemental aleatória", weight: 8, apply: (it) => { const s = pickStone(); return { items: { ...it, [s]: (it[s] ?? 0) + 50 } }; } },
         { label: "10× Stone Elemental aleatória", weight: 10, apply: (it) => { const s = pickStone(); return { items: { ...it, [s]: (it[s] ?? 0) + 10 } }; } },
         { label: "5× de cada Stone Elemental", weight: 6, apply: (it) => { const next = { ...it }; for (const s of STONES) next[s] = (next[s] ?? 0) + 5; return { items: next }; } },
-        { label: "2.500 Cristais 💎", weight: 8, apply: (it) => ({ items: it, crystals: 2500 }) },
+        { label: "100.000 Ouro 🪙 (Extra)", weight: 8, apply: (it) => ({ items: it, gold: 100000 }) },
         { label: "150× Poção", weight: 8, apply: (it) => ({ items: { ...it, potion: (it.potion ?? 0) + 150 } }) },
         { label: "15× Incenso de Mel Raro 🍯", weight: 6, apply: (it) => ({ items: { ...it, incenso_mel_raro: (it.incenso_mel_raro ?? 0) + 15 } }) },
         { label: "1× Ovo Épico ✦✦", weight: 4, apply: (it) => ({ items: { ...it, egg_epic: (it.egg_epic ?? 0) + 1 } }) },
