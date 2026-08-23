@@ -5993,7 +5993,10 @@ function IdlePage() {
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
     // Zonas sagradas ou seguras, sem spawns.
-    if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return null;
+    if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+      if (enemies.length > 0) setEnemies([]);
+      return null;
+    }
     const leaderLv = team[0]?.level ?? 10;
     const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
     const MIN_DIST = 220;
@@ -9068,7 +9071,7 @@ function IdlePage() {
 
 
             {/* Prédios do mundo — Casa do Treinador e Lar (SVG estilizado) */}
-            {visibleBuildings.map((b) => {
+            {visibleBuildings.filter(b => b.key !== 'lab' || idle.currentMap !== 'casa_do_treinador').map((b) => {
               const active = nearBuilding === b.key;
               const bLabel = b.key === "lab" ? "Casa do Treinador" : b.label;
               return (
@@ -10687,8 +10690,8 @@ function IdlePage() {
                         }}
                         style={{
                           position: "absolute",
-                          left: `${(nx / WORLD_W) * 100}%`,
-                          top: `${(ny / WORLD_H) * 100}%`,
+                          left: `${(nx / (idle.currentMap === 'casa_do_treinador' ? 800 : WORLD_W)) * 100}%`,
+                          top: `${(ny / (idle.currentMap === 'casa_do_treinador' ? 600 : WORLD_H)) * 100}%`,
                           width: big ? 48 : 24,
                           height: big ? 48 : 24,
                           transform: "translate(-50%, -50%)",
