@@ -4259,6 +4259,9 @@ function IdlePage() {
       if (!starterChosenRef.current) return;
       if (restingRef.current) return;
       setEnemies((prev) => {
+        if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+          return prev.length > 0 ? [] : prev;
+        }
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length >= ENEMY_TARGET) return prev;
         const placed = alive.map((e) => ({ x: e.x, y: e.y }));
@@ -5994,7 +5997,6 @@ function IdlePage() {
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
     // Zonas sagradas ou seguras, sem spawns.
     if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
-      if (enemies.length > 0) setEnemies([]);
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
