@@ -6455,7 +6455,7 @@ function IdlePage() {
     if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "grass_oddish";
-    const initial = isGrassOddish ? 18 + Math.floor(Math.random() * 5) : 6 + Math.floor(Math.random() * 3); // Grass Oddish: 18-22, outros: 6-8
+    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : 16 + Math.floor(Math.random() * 5); // Grass Oddish: 28-33, outros: 16-20
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
