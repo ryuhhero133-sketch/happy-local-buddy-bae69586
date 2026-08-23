@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      EM ALQUIMIA ONDE TEM A FORJA AGORA SERA UMA LOJA DE COMRPAR POKEMON OVOS BLACK MITICO PLUS, COM 6 TRATIS, VAI VIM ALEATORIO O POKEMON QND EU COMPRAR OK. CUSTANDO 10 DIAMANTE NEGRO CADA
+      NAO PODE APARECER POKEMON NEM BAU NA CASDA DO TREINADOR
     </div>
   ),
 })
