@@ -4247,6 +4247,9 @@ function IdlePage() {
           changed = true;
           return { ...ne, x: nx, y: ny, face: (dx >= 0 ? "right" : "left") as "left" | "right" };
         });
+        if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+          return prev.length > 0 ? [] : prev;
+        }
         return changed ? next : prev;
       });
     }, 60);
