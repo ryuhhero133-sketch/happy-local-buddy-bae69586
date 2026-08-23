@@ -4270,6 +4270,13 @@ function IdlePage() {
         const placed = alive.map((e) => ({ x: e.x, y: e.y }));
         const ne = spawnOneEnemy(placed);
         if (!ne) return prev;
+        // spawn extra: enche o mapa mais rápido
+        const extras: Enemy[] = [];
+        if (alive.length + 1 < ENEMY_TARGET) {
+          placed.push({ x: ne.x, y: ne.y });
+          const ne2 = spawnOneEnemy(placed);
+          if (ne2) extras.push(ne2);
+        }
         // Anúncio quando um raro+ ou RIDER aparece via top-up
         if (ne.rider) {
           pushEvent("✦", "POKÉMON RIDER!", `${ne.sp.replace(/_/g, " ").toUpperCase()} Lv.${ne.level} apareceu — recompensa massiva!`, "#ff5ec7");
@@ -4280,9 +4287,9 @@ function IdlePage() {
           pushEvent("★", `${label} À VISTA!`, `${ne.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
           
         }
-        return [...prev, ne];
+        return [...prev, ne, ...extras];
       });
-    }, 2000 + Math.floor(Math.random() * 1500)); // 2-3.5s entre spawns (rápido, evita mapa vazio)
+    }, 900 + Math.floor(Math.random() * 700)); // 0.9-1.6s entre spawns (mapa sempre cheio)
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
@@ -6449,13 +6456,13 @@ function IdlePage() {
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 32 : 16;
+  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 48 : 30;
 
   function spawnEnemies(): Enemy[] {
     if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "grass_oddish";
-    const initial = isGrassOddish ? 18 + Math.floor(Math.random() * 5) : 6 + Math.floor(Math.random() * 3); // Grass Oddish: 18-22, outros: 6-8
+    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : 16 + Math.floor(Math.random() * 5); // Grass Oddish: 28-33, outros: 16-20
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
