@@ -6,8 +6,6 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      1. JOGADORES EM TEMPO REAL
-
       Atualmente os jogadores não conseguem se ver no mapa.
 
       Implementar sincronização em tempo real da posição dos jogadores.
