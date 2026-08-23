@@ -4978,7 +4978,7 @@ function IdlePage() {
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 * (1 + getTrainerStats().dropRate) ? 1 : 0) },
+              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), crystals: s.pending.crystals + 0 },
               totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
@@ -4997,7 +4997,7 @@ function IdlePage() {
       setIdle((s) => {
         const lvFactor = 1 + ((leader?.level ?? 5) / 40);
         const rate = IDLE_MAPS[s.currentMap].rate * lvFactor;
-        const inc = { g: 0.8 * rate, r: 0.02 * rate, c: 0.01 * rate };
+        const inc = { g: 0.8 * rate, r: 0.02 * rate, c: 0 };
         const ns: IdleState = {
           ...s,
           lastTickAt: Date.now(),
