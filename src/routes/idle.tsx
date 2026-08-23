@@ -6496,7 +6496,7 @@ function IdlePage() {
           localStorage.setItem("rubym.save.v2", JSON.stringify(save));
         }
       } catch { /* ignore */ }
-      pushFxAt(trainerPos.x, trainerPos.y - 60, `+${gold} ouro · +${crystals} 💎`, "gold");
+      pushFxAt(trainerPos.x, trainerPos.y - 60, `+${gold} ouro` + (crystals > 0 ? ` · +${crystals} 💎` : ""), "gold");
       return {
         ...s,
         pending: { gold: 0, rubies: 0, crystals: 0 },
