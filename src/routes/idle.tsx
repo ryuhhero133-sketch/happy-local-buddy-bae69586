@@ -6449,7 +6449,7 @@ function IdlePage() {
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 32 : 16;
+  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 48 : 30;
 
   function spawnEnemies(): Enemy[] {
     if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
