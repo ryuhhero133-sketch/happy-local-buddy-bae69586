@@ -3908,7 +3908,7 @@ function IdlePage() {
           if (snap.atkDebuffUntil > now) atkDebuffUntilRef.current = snap.atkDebuffUntil;
           if (snap.poisonUntil > now) poisonUntilRef.current = snap.poisonUntil;
         } else {
-          setEnemies(spawnEnemies());
+          setEnemies(idle.currentMap === "casa_do_treinador" ? [] : spawnEnemies());
         }
       } catch {
         setEnemies(spawnEnemies());
@@ -4247,6 +4247,9 @@ function IdlePage() {
           changed = true;
           return { ...ne, x: nx, y: ny, face: (dx >= 0 ? "right" : "left") as "left" | "right" };
         });
+        if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+          return prev.length > 0 ? [] : prev;
+        }
         return changed ? next : prev;
       });
     }, 60);
@@ -4259,6 +4262,9 @@ function IdlePage() {
       if (!starterChosenRef.current) return;
       if (restingRef.current) return;
       setEnemies((prev) => {
+        if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+          return prev.length > 0 ? [] : prev;
+        }
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length >= ENEMY_TARGET) return prev;
         const placed = alive.map((e) => ({ x: e.x, y: e.y }));
@@ -5994,7 +6000,6 @@ function IdlePage() {
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
     // Zonas sagradas ou seguras, sem spawns.
     if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
-      if (enemies.length > 0) setEnemies([]);
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
@@ -6447,6 +6452,7 @@ function IdlePage() {
   const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 32 : 16;
 
   function spawnEnemies(): Enemy[] {
+    if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "grass_oddish";
     const initial = isGrassOddish ? 18 + Math.floor(Math.random() * 5) : 6 + Math.floor(Math.random() * 3); // Grass Oddish: 18-22, outros: 6-8
@@ -7042,12 +7048,13 @@ function IdlePage() {
 
   // spawna baús no início; respawna a cada 10 min mantendo até `chestTarget` no mapa
   useEffect(() => {
-    const initial = spawnChests(Math.min(chestTarget, 2));
+    const initial = (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") ? [] : spawnChests(Math.min(chestTarget, 2));
     setChests(initial);
     const iv = setInterval(() => {
       setChests((prev) => {
         const remaining = prev.filter((c) => !c.opened || (Date.now() - (c.openedAt ?? 0) < 4000));
         const active = remaining.filter((c) => !c.opened);
+        if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return remaining.length > 0 ? [] : remaining;
         if (active.length >= chestTarget) return remaining;
         const news = spawnChests(1);
         if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
