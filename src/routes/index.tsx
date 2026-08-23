@@ -6,19 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      Atualmente os jogadores não conseguem se ver no mapa.
-
-      Implementar sincronização em tempo real da posição dos jogadores.
-
-      Cada jogador conectado deve:
-
-      aparecer visualmente no mapa para os outros jogadores;
-
-      atualizar sua posição ao se movimentar;
-
-      ver outros jogadores entrando e saindo;
-
-      mostrar nome acima do personagem;
+      HABBILITAR MODO PVP NO JOGO ENTRE TREIANDORES, atacar pokemon no mapa do treinador em modo automatrico e poder ver os outrtos treinadores nio mapa
     </div>
   ),
 })
