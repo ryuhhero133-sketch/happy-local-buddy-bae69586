@@ -1968,7 +1968,7 @@ function IdlePage() {
   const [governanteOpen, setGovernanteOpen] = useState(false);
   useEffect(() => {
     // Zona sagrada — limpa qualquer inimigo que tenha ficado do mapa anterior.
-    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall" || idle.currentMap === "casa_do_treinador") {
       setEnemies([]);
     }
     if (idle.currentMap !== "governante_hall") return;
