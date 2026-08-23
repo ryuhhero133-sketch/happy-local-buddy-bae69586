@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      LIBERAR JOGO PARA TODOS PODER ENTRAR
+      liberar jogo pra todos entrar e remover manutencao
     </div>
   ),
 })
