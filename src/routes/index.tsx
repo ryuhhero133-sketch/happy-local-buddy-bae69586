@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      TA DEMORANDO NASCER OS POKEMONS NO MAPA, E SE EU DER RESFRESH EU KERO QUE PERMANECA OS POKEMONS QUE TAOO NO MAPA E N RESET SPAWN ETC.
+      ainda ta aprecendo pokemon na casa do treinador,e eu kero que remova os jogador fake plaeer, e habilite modo pvp em mapas.
     </div>
   ),
 })
