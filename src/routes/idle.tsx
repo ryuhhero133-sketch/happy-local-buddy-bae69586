@@ -7053,7 +7053,7 @@ function IdlePage() {
       setChests((prev) => {
         const remaining = prev.filter((c) => !c.opened || (Date.now() - (c.openedAt ?? 0) < 4000));
         const active = remaining.filter((c) => !c.opened);
-        if (idle.currentMap === "casa_do_treinador") return remaining.length > 0 ? [] : remaining;
+        if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return remaining.length > 0 ? [] : remaining;
         if (active.length >= chestTarget) return remaining;
         const news = spawnChests(1);
         if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
