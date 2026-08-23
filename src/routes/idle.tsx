@@ -6452,6 +6452,7 @@ function IdlePage() {
   const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 32 : 16;
 
   function spawnEnemies(): Enemy[] {
+    if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "grass_oddish";
     const initial = isGrassOddish ? 18 + Math.floor(Math.random() * 5) : 6 + Math.floor(Math.random() * 3); // Grass Oddish: 18-22, outros: 6-8
