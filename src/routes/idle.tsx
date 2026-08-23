@@ -7042,13 +7042,13 @@ function IdlePage() {
 
   // spawna baús no início; respawna a cada 10 min mantendo até `chestTarget` no mapa
   useEffect(() => {
-    const initial = spawnChests(Math.min(chestTarget, 2));
+    const initial = idle.currentMap === "casa_do_treinador" ? [] : spawnChests(Math.min(chestTarget, 2));
     setChests(initial);
     const iv = setInterval(() => {
       setChests((prev) => {
         const remaining = prev.filter((c) => !c.opened || (Date.now() - (c.openedAt ?? 0) < 4000));
         const active = remaining.filter((c) => !c.opened);
-        if (active.length >= chestTarget) return remaining;
+        if (active.length >= chestTarget || idle.currentMap === "casa_do_treinador") return remaining;
         const news = spawnChests(1);
         if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
         return [...remaining, ...news];
