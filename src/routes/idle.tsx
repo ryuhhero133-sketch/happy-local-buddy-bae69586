@@ -3867,7 +3867,7 @@ function IdlePage() {
       const rate = IDLE_MAPS[prev.currentMap].rate * lvFactor;
       const goldGain = (elapsed / 1000) * 0.8 * rate;
       const rubyGain = (elapsed / 1000) * 0.02 * rate;
-      const crystalGain = (elapsed / 1000) * 0.01 * rate;
+      const crystalGain = 0; // Disabled drop from idle, crystals only from quests
       const next: IdleState = {
         ...prev,
         lastTickAt: Date.now(),
@@ -4978,7 +4978,7 @@ function IdlePage() {
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), crystals: s.pending.crystals + ((idle.currentMap === "gelius1" || idle.currentMap === "gelius2") && Math.random() < 0.35 * (1 + getTrainerStats().dropRate) ? 1 : 0) },
+              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), crystals: s.pending.crystals + 0 },
               totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
@@ -4997,7 +4997,7 @@ function IdlePage() {
       setIdle((s) => {
         const lvFactor = 1 + ((leader?.level ?? 5) / 40);
         const rate = IDLE_MAPS[s.currentMap].rate * lvFactor;
-        const inc = { g: 0.8 * rate, r: 0.02 * rate, c: 0.01 * rate };
+        const inc = { g: 0.8 * rate, r: 0.02 * rate, c: 0 };
         const ns: IdleState = {
           ...s,
           lastTickAt: Date.now(),
@@ -5682,7 +5682,7 @@ function IdlePage() {
         { label: "50× Stone Elemental aleatória", weight: 8, apply: (it) => { const s = pickStone(); return { items: { ...it, [s]: (it[s] ?? 0) + 50 } }; } },
         { label: "10× Stone Elemental aleatória", weight: 10, apply: (it) => { const s = pickStone(); return { items: { ...it, [s]: (it[s] ?? 0) + 10 } }; } },
         { label: "5× de cada Stone Elemental", weight: 6, apply: (it) => { const next = { ...it }; for (const s of STONES) next[s] = (next[s] ?? 0) + 5; return { items: next }; } },
-        { label: "2.500 Cristais 💎", weight: 8, apply: (it) => ({ items: it, crystals: 2500 }) },
+        { label: "100.000 Ouro 🪙 (Extra)", weight: 8, apply: (it) => ({ items: it, gold: 100000 }) },
         { label: "150× Poção", weight: 8, apply: (it) => ({ items: { ...it, potion: (it.potion ?? 0) + 150 } }) },
         { label: "15× Incenso de Mel Raro 🍯", weight: 6, apply: (it) => ({ items: { ...it, incenso_mel_raro: (it.incenso_mel_raro ?? 0) + 15 } }) },
         { label: "1× Ovo Épico ✦✦", weight: 4, apply: (it) => ({ items: { ...it, egg_epic: (it.egg_epic ?? 0) + 1 } }) },
@@ -6496,7 +6496,7 @@ function IdlePage() {
           localStorage.setItem("rubym.save.v2", JSON.stringify(save));
         }
       } catch { /* ignore */ }
-      pushFxAt(trainerPos.x, trainerPos.y - 60, `+${gold} ouro · +${crystals} 💎`, "gold");
+      pushFxAt(trainerPos.x, trainerPos.y - 60, `+${gold} ouro` + (crystals > 0 ? ` · +${crystals} 💎` : ""), "gold");
       return {
         ...s,
         pending: { gold: 0, rubies: 0, crystals: 0 },
