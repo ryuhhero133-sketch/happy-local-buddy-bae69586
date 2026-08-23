@@ -3908,7 +3908,7 @@ function IdlePage() {
           if (snap.atkDebuffUntil > now) atkDebuffUntilRef.current = snap.atkDebuffUntil;
           if (snap.poisonUntil > now) poisonUntilRef.current = snap.poisonUntil;
         } else {
-          setEnemies(spawnEnemies());
+          setEnemies(idle.currentMap === "casa_do_treinador" ? [] : spawnEnemies());
         }
       } catch {
         setEnemies(spawnEnemies());
