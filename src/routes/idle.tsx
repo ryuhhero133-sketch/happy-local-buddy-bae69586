@@ -4287,9 +4287,9 @@ function IdlePage() {
           pushEvent("★", `${label} À VISTA!`, `${ne.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
           
         }
-        return [...prev, ne];
+        return [...prev, ne, ...extras];
       });
-    }, 2000 + Math.floor(Math.random() * 1500)); // 2-3.5s entre spawns (rápido, evita mapa vazio)
+    }, 900 + Math.floor(Math.random() * 700)); // 0.9-1.6s entre spawns (mapa sempre cheio)
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
