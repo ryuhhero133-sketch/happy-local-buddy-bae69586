@@ -1,28 +1,44 @@
-# Security Enhancement Plan
+---
+title: Trainer's House & Scientist NPC
+description: Implemented the Scientist NPC in the trainer's house, removed fake players from the map, and ensured no spawns in the house.
+technical_details:
+- Replaced NPC Elyra with a new Scientist NPC using the uploaded sprite sheet.
+- Implemented sprite sheet animation and movement for the Scientist NPC.
+- Filtered `visibleMapPlayers` to remove `fakeMapPlayers` from the map view.
+- Enforced zero spawns in the `casa_do_treinador` map by hardening the spawn logic.
+- Added interaction dialogue for the Scientist NPC.
+---
 
-Improve server-side authority and client-side protection to prevent hacking and concurrent sessions.
+# Plan - Trainer's House & Scientist NPC
 
-## 1. Concurrent Session Protection
-- Update `profiles` table (via server function) to store an `active_session_token`.
-- When a user logs in, generate and save a new token.
-- In `AuthGate.tsx`, periodically check if the local token matches the database token. If not, logout and show "Kicked" message.
+Reorganizing the trainer's house to be a private, safe zone with a new interactive NPC.
 
-## 2. Server-Side Authority Hardening
-- **Deprecate `syncClientState`**: This function is a security risk as it allows the client to push state updates to the server. 
-- **Move all logic to Server Functions**:
-    - Ensure `gold`, `crystal`, and `level` are *never* updated directly from the client.
-    - Resources must only change as a result of a validated server function (e.g., `reportKill`, `openChest`, `buyItem`).
-- **Input Validation**: Add stricter Zod schemas and server-side checks for resource availability before purchases.
+## User Review Required
 
-## 3. Client-Side Anti-Cheat
-- **DevTools Discouragement**: Add a script to detect F12 / DevTools opening and clear the console or debugger-loop to slow down hackers.
-- **Context Menu / Key Blocking**: Disable right-click and common shortcut keys (F12, Ctrl+Shift+I).
+> [!IMPORTANT]
+> The Scientist NPC has been added to your house. She will move around and talk to you when approached. "Fake" players have been removed from your view to keep the experience private.
 
-## 4. Database Integrity
-- Ensure `profiles` and `trainer_state` tables have RLS policies that prevent users from writing to their own `gold` or `level` columns directly via the client SDK.
+- **NPC Change**: Elyra has been replaced by the Scientist.
+- **Privacy**: Other "fake" players are no longer visible on your map.
+- **Safety**: No Pokémon will spawn inside the house.
 
-## Technical Details
-- Use `crypto.randomUUID()` for session tokens.
-- Add `checkActiveSession` server function.
-- Update `AuthGate.tsx` to handle the kick logic.
-- Update `src/lib/game.functions.server.ts` to remove/restrict `syncClientState_handler`.
+## Proposed Changes
+
+### Assets
+- Create asset pointer for `user-uploads://NPC_055_Scientist_F.png` at `src/assets/npc-scientist-f.png.asset.json`.
+
+### Game Logic & UI (`src/routes/idle.tsx`)
+- Import the new scientist asset.
+- Update `visibleMapPlayers` to only include real `remotePlayers`, effectively removing `fakeMapPlayers`.
+- Add the Scientist NPC to the `casa_do_treinador` map with movement and dialogue logic.
+- Ensure the spawn loop strictly respects the `rate: 0` for the house map.
+
+## Verification Plan
+
+### Automated Tests
+- Build check: `bun run build` to ensure no import errors.
+
+### Manual Verification
+- Enter the Trainer's House and verify the new Scientist NPC is present and moving.
+- Confirm no Pokémon spawn in the house.
+- Confirm no "fake" players appear on the map.
