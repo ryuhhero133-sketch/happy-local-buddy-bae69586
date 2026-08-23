@@ -25,6 +25,7 @@ if (typeof window !== "undefined") {
   }, 1000);
 }
 
+import npcScientistFAsset from "@/assets/npc-scientist-f.png.asset.json";
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -3649,7 +3650,12 @@ function IdlePage() {
     return all.filter((p) => p.mapId === idle.currentMap);
   }, [idle.currentMap, energyTick]);
 
-  const visibleMapPlayers = useMemo(() => [...remotePlayers, ...fakeMapPlayers], [remotePlayers, fakeMapPlayers]);
+  const visibleMapPlayers = useMemo(() => {
+    // Na casa do treinador, não mostra outros jogadores (privado)
+    if (idle.currentMap === "casa_do_treinador") return [];
+    // Remove fakeMapPlayers do jogo conforme pedido
+    return remotePlayers;
+  }, [remotePlayers, idle.currentMap]);
 
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -10663,6 +10669,50 @@ function IdlePage() {
                     transform: "translate(-50%,-50%)",
                     boxShadow: "0 0 8px #6bd4ff",
                   }} />
+
+                  {/* Cientista na Casa do Treinador */}
+                  {idle.currentMap === "casa_do_treinador" && (() => {
+                    const t = Math.floor(Date.now() / 150);
+                    const walkCycle = [0, 1, 2, 3];
+                    const frame = walkCycle[t % 4];
+                    // Posição fixa ou leve movimento
+                    const nx = 400 + Math.sin(t * 0.05) * 20;
+                    const ny = 350;
+                    
+                    return (
+                      <div
+                        onClick={() => {
+                          pushChat("🔬 Cientista: 'Bem-vindo de volta! Estou analisando os dados das suas capturas. Continue assim!'", "info");
+                          playClick();
+                        }}
+                        style={{
+                          position: "absolute",
+                          left: `${(nx / WORLD_W) * 100}%`,
+                          top: `${(ny / WORLD_H) * 100}%`,
+                          width: big ? 48 : 24,
+                          height: big ? 48 : 24,
+                          transform: "translate(-50%, -50%)",
+                          cursor: interactive ? "pointer" : "default",
+                          zIndex: 100,
+                        }}
+                      >
+                        <div style={{
+                          width: "100%", height: "100%",
+                          backgroundImage: `url(${assetUrlFromJson(npcScientistFAsset)})`,
+                          backgroundSize: "400% 400%",
+                          backgroundPosition: `${frame * 33.33}% 0%`, // Linha 0 = down (olhando pra frente)
+                          imageRendering: "pixelated",
+                        }} />
+                        {interactive && (
+                          <div style={{
+                            position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)",
+                            background: "rgba(0,0,0,0.7)", color: "#fff", padding: "2px 6px",
+                            borderRadius: 4, fontSize: 8, whiteSpace: "nowrap", pointerEvents: "none"
+                          }}>CIENTISTA</div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                 </div>
               );
