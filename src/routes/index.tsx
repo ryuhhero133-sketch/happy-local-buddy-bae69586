@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      POKEMON E BAU AINDA TA APARECENMDO NA CASA DO TREINADOR
+      troque o npc elyra a trocadora , para o npc cientista ,
     </div>
   ),
 })
