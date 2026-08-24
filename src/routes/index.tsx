@@ -6,7 +6,8 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line', backgroundColor: '#f0fff0', border: '2px solid green' }}>
-      {`O problema é que o atacante consegue modificar os valores dos stats no JS/JSON client-side e depois enviar esses valores para a API.
+      {`ME INFORME
+O problema é que o atacante consegue modificar os valores dos stats no JS/JSON client-side e depois enviar esses valores para a API.
 
 Corrija definitivamente:
 
