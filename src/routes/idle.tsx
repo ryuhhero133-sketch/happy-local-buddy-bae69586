@@ -1707,6 +1707,7 @@ function IdlePage() {
     let cancelled = false;
     (async () => {
       try {
+        log("cloudBlob hydration start");
         // Wait for session
         let session = null;
         let attempts = 0;
@@ -1719,13 +1720,26 @@ function IdlePage() {
         }
 
         const uid = session?.user?.id;
-        if (!uid) return;
+        if (!uid) {
+          log("cloudBlob: no session found after attempts");
+          return;
+        }
         
+        log("cloudBlob: fetching for", uid);
         const blob = (await fetchCloudSave(uid)) as
           | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
           | null;
-        if (cancelled || !blob) return;
         
+        if (cancelled) return;
+        
+        if (!blob) {
+          log("cloudBlob: no blob found for user");
+          setCloudBlobReady(true);
+          cloudBlobHydratedRef.current = true;
+          return;
+        }
+        
+        log("cloudBlob: blob retrieved, hydrating...");
         cloudBlobHydratedRef.current = true;
         
         if (blob.idle) {
