@@ -3738,9 +3738,16 @@ function IdlePage() {
       if (!p || p.id === identity.id) return;
       
       const safe = String(p.text).toLowerCase();
-      const forbidden = ["hacker", "invadir", "hack", "admin", "owner", "script", "exploit"];
+      const forbidden = ["hacker", "invadir", "hack", "admin", "owner", "script", "exploit", "subestimar"];
+      
+      // Bloqueio de termos proibidos (anti-invasão)
       if (forbidden.some(word => safe.includes(word))) {
         return;
+      }
+
+      // Mensagem especial de proteção/presença (verbatim conforme solicitado)
+      if (safe.includes("tem dev sim aqui")) {
+        pushChat("🛡️ SISTEMA: Proteção ativa. Tem dev sim aqui e não subestimem o projeto.", "cap");
       }
       
       pushChat(`💬 ${p.name}: ${String(p.text).slice(0, 140)}`, "info");
