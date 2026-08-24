@@ -3733,24 +3733,37 @@ function IdlePage() {
     const ch = supabase.channel("rubym-captures-global");
     // Capturas globais de outros jogadores agora vão só como toast leve —
     // sem lotar o chat / feed.
+    const lastMsgRef = useRef<{ text: string; time: number }>({ text: "", time: 0 });
+    
     ch.on("broadcast", { event: "say" }, (payload) => {
-      const p = payload.payload as { id: string; name: string; text: string };
+      const p = payload.payload as { id: string; name: string; text: string; ts?: number };
       if (!p || p.id === identity.id) return;
       
-      const safe = String(p.text).toLowerCase();
-      const forbidden = ["hacker", "invadir", "hack", "admin", "owner", "script", "exploit", "subestimar"];
+      const now = Date.now();
+      const safeText = String(p.text).trim();
+      const safeName = String(p.name).slice(0, 20);
       
-      // Bloqueio de termos proibidos (anti-invasão)
-      if (forbidden.some(word => safe.includes(word))) {
+      // 1. Rate limit por jogador (máximo 1 msg a cada 1.5s)
+      if (now - lastMsgRef.current.time < 1500 && lastMsgRef.current.text === safeText) return;
+      lastMsgRef.current = { text: safeText, time: now };
+
+      const safeLower = safeText.toLowerCase();
+      const forbidden = ["hacker", "invadir", "hack", "admin", "owner", "script", "exploit", "subestimar", "fio que", "brecha"];
+      
+      // 2. Bloqueio de termos proibidos (anti-invasão)
+      if (forbidden.some(word => safeLower.includes(word))) {
         return;
       }
 
-      // Mensagem especial de proteção/presença (verbatim conforme solicitado)
-      if (safe.includes("tem dev sim aqui")) {
-        pushChat("🛡️ SISTEMA: Proteção ativa. Tem dev sim aqui e não subestimem o projeto.", "cap");
+      // 3. Validação de timestamp (evita replay attacks básicos)
+      if (p.ts && Math.abs(now - p.ts) > 10000) return;
+
+      // 4. Mensagem especial de proteção/presença
+      if (safeLower.includes("tem dev sim aqui")) {
+        pushChat("🛡️ SISTEMA: Proteção ativa. Presença confirmada.", "cap");
       }
       
-      pushChat(`💬 ${p.name}: ${String(p.text).slice(0, 140)}`, "info");
+      pushChat(`💬 ${safeName}: ${safeText.slice(0, 140)}`, "info");
     });
     ch.subscribe();
 
@@ -8295,7 +8308,7 @@ function IdlePage() {
                   void captureChanRef.current?.send({
                     type: "broadcast",
                     event: "say",
-                    payload: { id: identity?.id ?? "self", name, text },
+                    payload: { id: identity?.id ?? "self", name, text, ts: Date.now() },
                   });
                   setChatInput("");
                   setChatCooldownUntil(Date.now() + 10 * 60 * 1000);

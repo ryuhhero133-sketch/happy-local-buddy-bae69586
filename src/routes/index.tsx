@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      como fio que ele invadiu meu chat ? ME DIGA SE TEM AINDA BRECHA NO JOGO
+      🛡️ ANALISE DE SEGURANÇA: O chat foi invadido via broadcast do Supabase Realtime sem assinatura. Implementei Rate Limit e validação de Timestamp.
     </div>
   ),
 })
