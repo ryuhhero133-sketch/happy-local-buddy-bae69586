@@ -13,6 +13,29 @@ let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingData: unknown = null;
 let lastCloudSaveError: string | null = null;
 
+/**
+ * Trava de segurança contra perda de progresso:
+ * se o carregamento do save da nuvem falhar, NENHUM push é permitido —
+ * assim um estado vazio/default nunca sobrescreve o save correto.
+ */
+let saveWritesBlocked = false;
+let blockReason: string | null = null;
+
+export function blockCloudSaveWrites(reason: string) {
+  saveWritesBlocked = true;
+  blockReason = reason;
+  console.warn("[cloudSave] escrita bloqueada:", reason);
+}
+
+export function allowCloudSaveWrites() {
+  saveWritesBlocked = false;
+  blockReason = null;
+}
+
+export function isCloudSaveBlocked() {
+  return saveWritesBlocked ? (blockReason ?? "bloqueado") : null;
+}
+
 export function getCloudSaveLastError() {
   return lastCloudSaveError;
 }
@@ -22,6 +45,7 @@ function isFullCloudSave(data: unknown): data is { idle: unknown; team: unknown;
   const value = data as { idle?: unknown; team?: unknown; restingBench?: unknown };
   return Boolean(value.idle && Array.isArray(value.team) && Array.isArray(value.restingBench));
 }
+
 
 async function getAuthedRestHeaders() {
   const { data: sess } = await supabase.auth.getSession();
