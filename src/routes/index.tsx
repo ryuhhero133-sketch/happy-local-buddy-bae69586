@@ -455,8 +455,6 @@ Eggs
 
 Rewards
 
-
-
 FASE 10 — TESTE DE ATAQUE
 
 Depois de aplicar o bloqueio, teste o próprio projeto.
@@ -529,21 +527,8 @@ gold: BLOQUEADO / NÃO BLOQUEADO
 crystal: BLOQUEADO / NÃO BLOQUEADO
 pokemon level: BLOQUEADO / NÃO BLOQUEADO
 pokemon XP: BLOQUEADO / NÃO BLOQUEADO
-ranked: BLOQUEADO / NÃO BLOQUEADO
-
-
-
-IMPORTANTE:
-
-NÃO invente resultados.
-
-Não diga que está protegido sem testar.
-
-NÃO apague game_saves, jogadores ou progresso.
-
-Faça backup lógico antes de migrations destrutivas.
-
-A priority absoluta é PARAR O EXPLOIT ATIVO.`}
+ranked: BLOQUEADO / NÃO BLOQUEADO`}
     </div>
+
   ),
 })
