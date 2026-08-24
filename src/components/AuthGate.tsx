@@ -4,7 +4,6 @@ import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
 import { updateActiveSession, getActiveSessionToken } from "@/lib/session.functions";
-import { bootstrapGameState } from "@/lib/game.functions";
 
 
 const loginBgAsset = { url: "/login-bg.png" };
@@ -325,17 +324,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setBootstrapping(true);
       const uid = currentUid;
       try {
-        log("bootstrap: starting for", uid);
-        await bootstrapGameState({});
         const username = await ensureProfile(uid);
         if (cancelled) return;
 
         if (username && username.trim().length > 0) {
-          try {
-            await preloadCloudSave(uid);
-          } catch (pe) {
-            warn("preloadCloudSave falhou (não fatal)", pe);
-          }
+          await preloadCloudSave(uid);
           if (cancelled) return;
           setIdentity(writeIdentity(uid, username));
           setNeedsChar(false);
@@ -353,22 +346,12 @@ export function AuthGate({ children }: { children: ReactNode }) {
           setIdentity(null);
           setNeedsChar(true);
         }
-      } catch (e: any) {
+      } catch (e) {
         warn("bootstrap falhou", e);
-        // Se falhou por RLS (403) ou Tabela não encontrada (404), pode ser um novo usuário
-        // que ainda não tem perfil ou um erro temporário.
-        // Não resetamos status aqui para não prender o usuário se o Supabase responder erro.
-        if (e?.status === 403 || e?.code === 'PGRST116') {
-          setNeedsChar(true);
-        } else {
-          // Em outros erros, tentamos seguir como novo usuário para não travar
-          setNeedsChar(true);
-        }
+        setIdentity(null);
+        setNeedsChar(true);
       } finally {
-        if (!cancelled) {
-          setBootstrapping(false);
-          setChecking(false);
-        }
+        if (!cancelled) setBootstrapping(false);
       }
     })();
     return () => {
@@ -377,9 +360,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [currentUid, recoveryMode]);
 
 
-  if (!mounted) return null;
-  
-  if (checking) return <SplashScreen label="Conectando ao servidor..." />;
+  if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
 
   if (maintenance && !isAdmin && !isBypassed) {
     return (

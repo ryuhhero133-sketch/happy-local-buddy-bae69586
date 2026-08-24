@@ -52,24 +52,16 @@ export const bootstrapGameState = createServerFn({ method: "POST" })
     const supabase = context.supabase as any;
     const userId = context.userId;
 
-    try {
-      // Garantir linha em trainer_state
-      const { error: tsErr } = await supabase
-        .from("trainer_state")
-        .upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
-      if (tsErr) console.warn("[bootstrap] trainer_state upsert error:", tsErr);
+    await supabase
+      .from("trainer_state")
+      .upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
 
-      // Garantir linha em pokeballs
-      const { error: pbErr } = await supabase
-        .from("pokeballs")
-        .upsert(
-          { user_id: userId, ball_type: "pokeball", qty: 5 },
-          { onConflict: "user_id,ball_type", ignoreDuplicates: true },
-        );
-      if (pbErr) console.warn("[bootstrap] pokeballs upsert error:", pbErr);
-    } catch (e) {
-      console.error("[bootstrap] unexpected error:", e);
-    }
+    await supabase
+      .from("pokeballs")
+      .upsert(
+        { user_id: userId, ball_type: "pokeball", qty: 5 },
+        { onConflict: "user_id,ball_type", ignoreDuplicates: true },
+      );
 
     return { ok: true };
   });
@@ -601,12 +593,7 @@ const CAP_GAIN = {
 export const syncClientState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => SyncSchema.parse(data))
-  .handler(async ({ data, context }) => {
-    try {
-      return await syncClientState_handler({ data, context });
-    } catch (e: any) {
-      console.error("[syncClientState] handler error:", e);
-      return { ok: false, clamped: false, error: e?.message };
-    }
+  .handler(async (args) => {
+    return syncClientState_handler(args);
   });
 
