@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      {`aprove
+      {`approve
 🚨 EMERGÊNCIA DE SEGURANÇA — IDLE MON ESTÁ SENDO EXPLORADO
 
 Jogadores estão conseguindo alterar dados do jogo diretamente.
