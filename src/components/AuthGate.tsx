@@ -324,11 +324,17 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setBootstrapping(true);
       const uid = currentUid;
       try {
+        log("bootstrap: starting for", uid);
+        await bootstrapGameState({});
         const username = await ensureProfile(uid);
         if (cancelled) return;
 
         if (username && username.trim().length > 0) {
-          await preloadCloudSave(uid);
+          try {
+            await preloadCloudSave(uid);
+          } catch (pe) {
+            warn("preloadCloudSave falhou (não fatal)", pe);
+          }
           if (cancelled) return;
           setIdentity(writeIdentity(uid, username));
           setNeedsChar(false);
@@ -358,7 +364,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
           setNeedsChar(true);
         }
       } finally {
-        if (!cancelled) setBootstrapping(false);
+        if (!cancelled) {
+          setBootstrapping(false);
+          setChecking(false);
+        }
       }
     })();
     return () => {

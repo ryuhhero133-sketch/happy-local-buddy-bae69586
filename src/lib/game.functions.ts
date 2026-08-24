@@ -52,16 +52,24 @@ export const bootstrapGameState = createServerFn({ method: "POST" })
     const supabase = context.supabase as any;
     const userId = context.userId;
 
-    await supabase
-      .from("trainer_state")
-      .upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
+    try {
+      // Garantir linha em trainer_state
+      const { error: tsErr } = await supabase
+        .from("trainer_state")
+        .upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
+      if (tsErr) console.warn("[bootstrap] trainer_state upsert error:", tsErr);
 
-    await supabase
-      .from("pokeballs")
-      .upsert(
-        { user_id: userId, ball_type: "pokeball", qty: 5 },
-        { onConflict: "user_id,ball_type", ignoreDuplicates: true },
-      );
+      // Garantir linha em pokeballs
+      const { error: pbErr } = await supabase
+        .from("pokeballs")
+        .upsert(
+          { user_id: userId, ball_type: "pokeball", qty: 5 },
+          { onConflict: "user_id,ball_type", ignoreDuplicates: true },
+        );
+      if (pbErr) console.warn("[bootstrap] pokeballs upsert error:", pbErr);
+    } catch (e) {
+      console.error("[bootstrap] unexpected error:", e);
+    }
 
     return { ok: true };
   });
