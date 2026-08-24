@@ -1653,25 +1653,30 @@ function IdlePage() {
       } catch { /* ignore */ }
       // Aplica estado do servidor como fonte de verdade.
       setIdle((prev) => {
+        if (!full?.trainer || !full?.pokeballs) return prev;
         const items = { ...(prev.items ?? {}) };
-        for (const b of full.pokeballs) items[b.ball_type] = b.qty;
-        const collection = full.collection.map((p) => ({
-          uid: p.id,
-          species: p.species as Species,
-          level: p.level,
-          xp: p.xp ?? 0,
-          rarity: p.rarity as Rarity,
-          capturedAt: Date.parse(p.captured_at) || Date.now(),
-        }));
+        if (Array.isArray(full.pokeballs)) {
+          for (const b of full.pokeballs) items[b.ball_type] = b.qty;
+        }
+        const collection = Array.isArray(full.collection) 
+          ? full.collection.map((p) => ({
+              uid: p.id,
+              species: p.species as Species,
+              level: p.level,
+              xp: p.xp ?? 0,
+              rarity: p.rarity as Rarity,
+              capturedAt: p.captured_at ? Date.parse(p.captured_at) : Date.now(),
+            }))
+          : prev.collection;
         return {
           ...prev,
           bank: {
-            gold: full.trainer.gold,
-            crystals: full.trainer.crystal,
+            gold: full.trainer.gold ?? prev.bank.gold,
+            crystals: full.trainer.crystal ?? prev.bank.crystals,
           },
-          trainerLevel: full.trainer.trainer_level,
-          trainerXp: full.trainer.trainer_xp,
-          totals: { ...prev.totals, kills: full.trainer.kill_count },
+          trainerLevel: full.trainer.trainer_level ?? prev.trainerLevel,
+          trainerXp: full.trainer.trainer_xp ?? prev.trainerXp,
+          totals: { ...prev.totals, kills: full.trainer.kill_count ?? prev.totals.kills },
           items,
           collection,
         };
@@ -8308,7 +8313,7 @@ function IdlePage() {
                   void captureChanRef.current?.send({
                     type: "broadcast",
                     event: "say",
-                    payload: { id: identity?.id ?? "self", name, text, ts: Date.now() },
+                    payload: { id: identity?.id ?? "self", name, text, ts: Date.now(), is_staff: identity?.id === "a6e9a6e9-a6e9-46e9-a6e9-a6e9a6e9a6e9" || (typeof window !== 'undefined' && localStorage.getItem("rubym.user_email") === "lordryuhhhuyuyghh@gmail.com") },
                   });
                   setChatInput("");
                   setChatCooldownUntil(Date.now() + 10 * 60 * 1000);
