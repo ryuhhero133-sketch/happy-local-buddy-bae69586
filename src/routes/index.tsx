@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      🛡️ ANALISE DE SEGURANÇA: O chat foi invadido via broadcast do Supabase Realtime sem assinatura. Implementei Rate Limit e validação de Timestamp.
+      verificar RLS para que n aaja nenhuma alteeracao de nivel gold, xp , xp de pokemon. etc. nem no ranked nem marketplace OK
     </div>
   ),
 })
