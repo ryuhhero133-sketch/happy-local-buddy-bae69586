@@ -2378,6 +2378,9 @@ function IdlePage() {
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const chatIdRef = useRef(1);
   const pushChat = (text: string, kind: ChatMsg["kind"] = "info") => {
+    // Anti-spam global preventivo
+    if (text.length > 500) return;
+    
     setChat((prev) => {
       const next = [...prev, { id: chatIdRef.current++, text, kind }];
       return next.slice(-40);
@@ -3733,8 +3736,21 @@ function IdlePage() {
     ch.on("broadcast", { event: "say" }, (payload) => {
       const p = payload.payload as { id: string; name: string; text: string };
       if (!p || p.id === identity.id) return;
-      const safe = String(p.text).slice(0, 140);
-      pushChat(`💬 ${p.name}: ${safe}`, "info");
+      
+      const safe = String(p.text).toLowerCase();
+      const forbidden = ["hacker", "invadir", "hack", "admin", "owner", "script", "exploit", "subestimar"];
+      
+      // Bloqueio de termos proibidos (anti-invasão)
+      if (forbidden.some(word => safe.includes(word))) {
+        return;
+      }
+
+      // Mensagem especial de proteção/presença (verbatim conforme solicitado)
+      if (safe.includes("tem dev sim aqui")) {
+        pushChat("🛡️ SISTEMA: Proteção ativa. Tem dev sim aqui e não subestimem o projeto.", "cap");
+      }
+      
+      pushChat(`💬 ${p.name}: ${String(p.text).slice(0, 140)}`, "info");
     });
     ch.subscribe();
 

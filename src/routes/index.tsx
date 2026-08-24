@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      liberar jogo pra todos entrar e remover manutencao
+      estao invadindo o chat do jogo... pórfavor proteja o chat do jogo e coloqe uma msg tem dev sim aqui .. e coloquye algo pra eles n subestimar nos AGORA PROJETE NOSSO JOGO
     </div>
   ),
 })
