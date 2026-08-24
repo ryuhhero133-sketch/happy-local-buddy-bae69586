@@ -1419,6 +1419,7 @@ export const Route = createFileRoute("/idle")({
 
 // ============ Page ============
 function IdlePage() {
+  const log = (...args: any[]) => console.log("[IdlePage]", ...args);
   const identity = loadIdentity();
   const navigate = useNavigate();
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
