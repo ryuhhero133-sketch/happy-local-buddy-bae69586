@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      como fio que ele invadiu meu chat ? ME DIGA SE TEM AINDA BRECHA NO JOGO
+      FAÇA UMA ANALISE NO CHAT ,E COMO O JOGO ESTA SEND INVADIDO,
     </div>
   ),
 })
