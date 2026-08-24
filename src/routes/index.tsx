@@ -6,7 +6,10 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      {`FINAL SECURITY AUDIT — IDLE MON
+      {`APPROVED FOR PRODUCTION
+
+FINAL SECURITY AUDIT — IDLE MON
+
 
 HIGH LEVELS ARE LEGITIMATE, BUT MUST NEVER BE FORGED
 
