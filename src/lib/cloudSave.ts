@@ -2,6 +2,7 @@
 // Fonte de verdade para tudo que não está nas tabelas normalizadas
 // (items, missões, skins, party, restingBench, buffs, etc.).
 import { supabase } from "@/integrations/supabase/client";
+import { securePushSave } from "./game.functions";
 
 export const SAVE_KEY = "rubym.save.v2";
 
