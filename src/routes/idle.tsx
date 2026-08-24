@@ -1507,22 +1507,30 @@ function IdlePage() {
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
-    const byUid = new Map<string, CollectionEntry>();
-    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry);
-    for (const pet of [...team, ...restingBench]) {
-      const current = byUid.get(pet.uid);
-      byUid.set(pet.uid, {
-        uid: pet.uid,
-        species: pet.species,
-        level: Math.max(current?.level ?? 1, pet.level ?? 1),
-        xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
-        rarity: pet.rarity,
-        capturedAt: current?.capturedAt ?? Date.now(),
-        traits: current?.traits ?? pet.traits ?? [],
-        event: current?.event ?? pet.event,
-      });
+    try {
+      const byUid = new Map<string, CollectionEntry>();
+      for (const entry of (idle.collection ?? [])) {
+        if (entry && entry.uid) byUid.set(entry.uid, entry);
+      }
+      for (const pet of [...team, ...restingBench]) {
+        if (!pet || !pet.uid) continue;
+        const current = byUid.get(pet.uid);
+        byUid.set(pet.uid, {
+          uid: pet.uid,
+          species: pet.species,
+          level: Math.max(current?.level ?? 1, pet.level ?? 1),
+          xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
+          rarity: pet.rarity,
+          capturedAt: current?.capturedAt ?? Date.now(),
+          traits: current?.traits ?? pet.traits ?? [],
+          event: current?.event ?? pet.event,
+        });
+      }
+      return [...byUid.values()];
+    } catch (e) {
+      console.warn("[collectionForDisplay] compute failed", e);
+      return [];
     }
-    return [...byUid.values()];
   }, [idle.collection, restingBench, team]);
   // UIDs intencionalmente consumidos (fragmentar/trocador) — impede reconciliação
   // de re-adicioná-los à coleção quando ainda estão em team/bench mid-cleanup.
