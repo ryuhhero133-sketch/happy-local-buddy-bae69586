@@ -346,10 +346,17 @@ export function AuthGate({ children }: { children: ReactNode }) {
           setIdentity(null);
           setNeedsChar(true);
         }
-      } catch (e) {
+      } catch (e: any) {
         warn("bootstrap falhou", e);
-        setIdentity(null);
-        setNeedsChar(true);
+        // Se falhou por RLS (403) ou Tabela não encontrada (404), pode ser um novo usuário
+        // que ainda não tem perfil ou um erro temporário.
+        // Não resetamos status aqui para não prender o usuário se o Supabase responder erro.
+        if (e?.status === 403 || e?.code === 'PGRST116') {
+          setNeedsChar(true);
+        } else {
+          // Em outros erros, tentamos seguir como novo usuário para não travar
+          setNeedsChar(true);
+        }
       } finally {
         if (!cancelled) setBootstrapping(false);
       }
@@ -360,7 +367,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [currentUid, recoveryMode]);
 
 
-  if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
+  if (!mounted) return null;
+  
+  if (checking) return <SplashScreen label="Conectando ao servidor..." />;
 
   if (maintenance && !isAdmin && !isBypassed) {
     return (

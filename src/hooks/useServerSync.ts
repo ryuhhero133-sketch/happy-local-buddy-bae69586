@@ -62,8 +62,13 @@ export function useServerSync(opts: {
         // Wait for session to be established via supabase.auth.onAuthStateChange in AuthGate
         let session = null;
         let attempts = 0;
-        while (!session && attempts < 20) {
-          const { data } = await supabase.auth.getSession();
+        const maxAttempts = 30; // ~6 segundos
+        
+        while (!session && attempts < maxAttempts) {
+          const { data, error: sessErr } = await supabase.auth.getSession();
+          if (sessErr) {
+             console.error("[useServerSync] getSession error:", sessErr);
+          }
           session = data.session;
           if (session) break;
           await new Promise(r => setTimeout(r, 200));
@@ -71,7 +76,11 @@ export function useServerSync(opts: {
         }
 
         if (!session) {
-          throw new Error("Sessão não encontrada. Por favor, faça login novamente.");
+          // Se falhou após 6s, tentamos uma última vez com getUser() que é mais rigoroso
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            throw new Error("Sessão expirada ou não encontrada. Por favor, faça login novamente.");
+          }
         }
 
         if (cancelled) return;
