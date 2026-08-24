@@ -593,7 +593,12 @@ const CAP_GAIN = {
 export const syncClientState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => SyncSchema.parse(data))
-  .handler(async (args) => {
-    return syncClientState_handler(args);
+  .handler(async ({ data, context }) => {
+    try {
+      return await syncClientState_handler({ data, context });
+    } catch (e: any) {
+      console.error("[syncClientState] handler error:", e);
+      return { ok: false, clamped: false, error: e?.message };
+    }
   });
 
