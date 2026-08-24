@@ -73,3 +73,29 @@ CREATE TRIGGER tr_validate_trainer_progression
 BEFORE UPDATE ON public.trainer_state
 FOR EACH ROW EXECUTE FUNCTION public.validate_trainer_progression();
 
+
+-- 4. Lockdown game_saves table (Authenticated users can only SELECT)
+DROP POLICY IF EXISTS "Users can update own game saves" ON public.game_saves;
+DROP POLICY IF EXISTS "Users can insert own game saves" ON public.game_saves;
+
+-- Users can only READ their own save. Updates MUST happen via server functions.
+CREATE POLICY "Users can select own game saves" ON public.game_saves FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+-- 5. Trigger to prevent game_saves manipulation if we were to allow updates (currently blocked)
+CREATE OR REPLACE FUNCTION public.enforce_game_save_caps()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_level INTEGER;
+BEGIN
+  v_level := (NEW.data->>'trainerLevel')::INTEGER;
+  IF v_level > 10000 THEN
+    RAISE EXCEPTION 'Level cap exceeded';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS tr_game_save_caps ON public.game_saves;
+CREATE TRIGGER tr_game_save_caps BEFORE INSERT OR UPDATE ON public.game_saves
+FOR EACH ROW EXECUTE FUNCTION public.enforce_game_save_caps();
+
