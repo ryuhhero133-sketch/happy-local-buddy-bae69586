@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      porfavor nalaisar erro que n permiti o jogador logar apos entrar com login e senha
+      testar entrando no jogo normal n funfa
     </div>
   ),
 })
