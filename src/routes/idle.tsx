@@ -1419,6 +1419,7 @@ export const Route = createFileRoute("/idle")({
 
 // ============ Page ============
 function IdlePage() {
+  const log = (...args: any[]) => console.log("[IdlePage]", ...args);
   const identity = loadIdentity();
   const navigate = useNavigate();
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
@@ -1484,7 +1485,9 @@ function IdlePage() {
       leaderUidRef.current = uid;
       // Remove inimigos fora da faixa; se o mapa ficar vazio de válidos, respawna.
       setEnemies((prev) => {
+        if (!Array.isArray(prev)) return spawnEnemies();
         const kept = prev.filter((e) => {
+          if (!e) return false;
           const el = e.level ?? lv;
           return el <= lv + 10 && el >= lv - 5;
         });
@@ -1506,22 +1509,30 @@ function IdlePage() {
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
-    const byUid = new Map<string, CollectionEntry>();
-    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry);
-    for (const pet of [...team, ...restingBench]) {
-      const current = byUid.get(pet.uid);
-      byUid.set(pet.uid, {
-        uid: pet.uid,
-        species: pet.species,
-        level: Math.max(current?.level ?? 1, pet.level ?? 1),
-        xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
-        rarity: pet.rarity,
-        capturedAt: current?.capturedAt ?? Date.now(),
-        traits: current?.traits ?? pet.traits ?? [],
-        event: current?.event ?? pet.event,
-      });
+    try {
+      const byUid = new Map<string, CollectionEntry>();
+      for (const entry of (idle.collection ?? [])) {
+        if (entry && entry.uid) byUid.set(entry.uid, entry);
+      }
+      for (const pet of [...team, ...restingBench]) {
+        if (!pet || !pet.uid) continue;
+        const current = byUid.get(pet.uid);
+        byUid.set(pet.uid, {
+          uid: pet.uid,
+          species: pet.species,
+          level: Math.max(current?.level ?? 1, pet.level ?? 1),
+          xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
+          rarity: pet.rarity,
+          capturedAt: current?.capturedAt ?? Date.now(),
+          traits: current?.traits ?? pet.traits ?? [],
+          event: current?.event ?? pet.event,
+        });
+      }
+      return [...byUid.values()];
+    } catch (e) {
+      console.warn("[collectionForDisplay] compute failed", e);
+      return [];
     }
-    return [...byUid.values()];
   }, [idle.collection, restingBench, team]);
   // UIDs intencionalmente consumidos (fragmentar/trocador) — impede reconciliação
   // de re-adicioná-los à coleção quando ainda estão em team/bench mid-cleanup.
@@ -1530,26 +1541,31 @@ function IdlePage() {
   // ===== Regen passiva por sinergia Planta/Fada =====
   useEffect(() => {
     const iv = setInterval(() => {
-      const t = teamRef.current;
-      if (!t || t.length === 0) return;
-      const syn = computeTeamSynergies(t);
-      if (syn.regenPct <= 0) return;
-      // Cura líder
-      setLeaderHp((h) => {
-        const leader = t[0];
-        if (!leader) return h;
-        const max = calcIdleMaxHp(leader);
-        if (h >= max || h <= 0) return h;
-        return Math.min(max, h + max * syn.regenPct);
-      });
-      // Cura pets do time (não-líder)
-      setTeam((tm) => tm.map((p, i) => {
-        if (i === 0) return p;
-        const max = calcIdleMaxHp(p);
-        const cur = p.hp ?? max;
-        if (cur >= max || cur <= 0) return p;
-        return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
-      }));
+      try {
+        const t = teamRef.current;
+        if (!t || t.length === 0) return;
+        const syn = computeTeamSynergies(t);
+        if (syn.regenPct <= 0) return;
+        // Cura líder
+        setLeaderHp((h) => {
+          const leader = t[0];
+          if (!leader) return h;
+          const max = calcIdleMaxHp(leader);
+          if (h >= max || h <= 0) return h;
+          return Math.min(max, h + max * syn.regenPct);
+        });
+        // Cura pets do time (não-líder)
+        setTeam((tm) => (tm || []).map((p, i) => {
+          if (!p) return p;
+          if (i === 0) return p;
+          const max = calcIdleMaxHp(p);
+          const cur = p.hp ?? max;
+          if (cur >= max || cur <= 0) return p;
+          return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
+        }));
+      } catch (e) {
+        console.warn("[SynergyRegen] failed", e);
+      }
     }, 3000);
     return () => clearInterval(iv);
   }, []);
@@ -1646,10 +1662,14 @@ function IdlePage() {
       };
     },
     onHydrate: (full) => {
+      console.log("[useServerSync] onHydrate triggered", !!full);
       try {
         // Se o blob completo já foi pré-carregado do Supabase, ele é a fonte de verdade.
         // O sync normalizado antigo não pode sobrescrever com trainer_state/pokemon_collection defasados.
-        if (localStorage.getItem(CLOUD_PRELOADED_KEY)) return;
+        if (localStorage.getItem(CLOUD_PRELOADED_KEY)) {
+          console.log("[useServerSync] Hydration skipped: cloud preloaded key exists");
+          return;
+        }
       } catch { /* ignore */ }
       // Aplica estado do servidor como fonte de verdade.
       setIdle((prev) => {
@@ -1707,6 +1727,7 @@ function IdlePage() {
     let cancelled = false;
     (async () => {
       try {
+        log("cloudBlob hydration start");
         // Wait for session
         let session = null;
         let attempts = 0;
@@ -1719,13 +1740,26 @@ function IdlePage() {
         }
 
         const uid = session?.user?.id;
-        if (!uid) return;
+        if (!uid) {
+          log("cloudBlob: no session found after attempts");
+          return;
+        }
         
+        log("cloudBlob: fetching for", uid);
         const blob = (await fetchCloudSave(uid)) as
           | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
           | null;
-        if (cancelled || !blob) return;
         
+        if (cancelled) return;
+        
+        if (!blob) {
+          log("cloudBlob: no blob found for user");
+          setCloudBlobReady(true);
+          cloudBlobHydratedRef.current = true;
+          return;
+        }
+        
+        log("cloudBlob: blob retrieved, hydrating...");
         cloudBlobHydratedRef.current = true;
         
         if (blob.idle) {
@@ -1792,18 +1826,23 @@ function IdlePage() {
   // empurra snapshot pro banco quase na hora para evitar rollback ao fechar a aba.
   const lastPokemonLevelSyncKeyRef = useRef("");
   useEffect(() => {
-    const all = [...team, ...restingBench, ...(idle.collection ?? [])];
-    const key = all
-      .map((p) => `${p.uid}:${Math.max(1, p.level ?? 1)}`)
-      .sort()
-      .join("|");
-    if (!key || lastPokemonLevelSyncKeyRef.current === key) return;
-    const hadPrevious = lastPokemonLevelSyncKeyRef.current !== "";
-    lastPokemonLevelSyncKeyRef.current = key;
-    if (!hadPrevious || serverSync.status !== "ready") return;
-    const latestSave = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
-    saveNow({ ...latestSave, party: [...team, ...restingBench] });
-    void serverSync.pushNow();
+    try {
+      const all = [...team, ...restingBench, ...(idle.collection ?? [])];
+      if (all.length === 0) return;
+      const key = all
+        .map((p) => `${p?.uid}:${Math.max(1, p?.level ?? 1)}`)
+        .sort()
+        .join("|");
+      if (!key || lastPokemonLevelSyncKeyRef.current === key) return;
+      const hadPrevious = lastPokemonLevelSyncKeyRef.current !== "";
+      lastPokemonLevelSyncKeyRef.current = key;
+      if (!hadPrevious || serverSync.status !== "ready") return;
+      const latestSave = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+      saveNow({ ...latestSave, party: [...team, ...restingBench] });
+      void serverSync.pushNow();
+    } catch (e) {
+      console.warn("[PokemonLevelSync] failed", e);
+    }
   }, [team, restingBench, idle.collection, serverSync.status, serverSync.pushNow]);
 
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
