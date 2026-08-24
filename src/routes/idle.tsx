@@ -1811,18 +1811,23 @@ function IdlePage() {
   // empurra snapshot pro banco quase na hora para evitar rollback ao fechar a aba.
   const lastPokemonLevelSyncKeyRef = useRef("");
   useEffect(() => {
-    const all = [...team, ...restingBench, ...(idle.collection ?? [])];
-    const key = all
-      .map((p) => `${p.uid}:${Math.max(1, p.level ?? 1)}`)
-      .sort()
-      .join("|");
-    if (!key || lastPokemonLevelSyncKeyRef.current === key) return;
-    const hadPrevious = lastPokemonLevelSyncKeyRef.current !== "";
-    lastPokemonLevelSyncKeyRef.current = key;
-    if (!hadPrevious || serverSync.status !== "ready") return;
-    const latestSave = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
-    saveNow({ ...latestSave, party: [...team, ...restingBench] });
-    void serverSync.pushNow();
+    try {
+      const all = [...team, ...restingBench, ...(idle.collection ?? [])];
+      if (all.length === 0) return;
+      const key = all
+        .map((p) => `${p?.uid}:${Math.max(1, p?.level ?? 1)}`)
+        .sort()
+        .join("|");
+      if (!key || lastPokemonLevelSyncKeyRef.current === key) return;
+      const hadPrevious = lastPokemonLevelSyncKeyRef.current !== "";
+      lastPokemonLevelSyncKeyRef.current = key;
+      if (!hadPrevious || serverSync.status !== "ready") return;
+      const latestSave = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+      saveNow({ ...latestSave, party: [...team, ...restingBench] });
+      void serverSync.pushNow();
+    } catch (e) {
+      console.warn("[PokemonLevelSync] failed", e);
+    }
   }, [team, restingBench, idle.collection, serverSync.status, serverSync.pushNow]);
 
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
