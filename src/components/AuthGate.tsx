@@ -297,26 +297,33 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [session, maintenance]);
 
 
-  // Single-session enforcement
+  // Single-session enforcement.
+  // Só derruba a sessão se conseguimos REGISTRAR nosso token no servidor e,
+  // depois, o servidor passou a apontar outro token. Se o registro falhar,
+  // nunca derrubamos (senão o jogador ficava preso na tela de login).
   const [kicked, setKicked] = useState(false);
   const sessionTokenRef = useRef<string | null>(null);
+  const tokenRegisteredRef = useRef(false);
 
   useEffect(() => {
     if (!session?.user?.id) return;
 
     const token = crypto.randomUUID();
     sessionTokenRef.current = token;
+    tokenRegisteredRef.current = false;
+    let stopped = false;
 
-    const initSession = async () => {
+    (async () => {
       try {
         await updateActiveSession({ data: { token } });
+        if (!stopped) tokenRegisteredRef.current = true;
       } catch (e) {
-        console.error("Failed to update active session", e);
+        warn("não foi possível registrar a sessão ativa (kick desativado)", e);
       }
-    };
-    initSession();
+    })();
 
     const checkSession = async () => {
+      if (!tokenRegisteredRef.current) return;
       try {
         const { token: serverToken } = await getActiveSessionToken();
         if (serverToken && serverToken !== sessionTokenRef.current) {
@@ -324,13 +331,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
           setKicked(true);
           await supabase.auth.signOut();
         }
-      } catch (e) {
-        // ignore errors during check
+      } catch {
+        // erro de rede não derruba ninguém
       }
     };
 
     const interval = setInterval(checkSession, 10000); // Check every 10s
-    return () => clearInterval(interval);
+    return () => { stopped = true; clearInterval(interval); };
   }, [session?.user?.id]);
 
 
@@ -343,6 +350,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
   // o save da nuvem por cima do estado atual (parecia um "refresh").
   const bootstrappedUidRef = useRef<string | null>(null);
   const currentUid = session?.user?.id ?? null;
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryTick, setRetryTick] = useState(0);
   useEffect(() => {
     if (!currentUid) { bootstrappedUidRef.current = null; return; }
     if (recoveryMode) return;
@@ -351,42 +360,70 @@ export function AuthGate({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       setBootstrapping(true);
+      setLoadError(null);
       const uid = currentUid;
-      try {
-        const username = await ensureProfile(uid);
-        if (cancelled) return;
 
-        if (username && username.trim().length > 0) {
-          await preloadCloudSave(uid);
-          if (cancelled) return;
-          setIdentity(writeIdentity(uid, username));
-          setNeedsChar(false);
-          // last_login best-effort
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          void (supabase as any)
-            .from("profiles")
-            .update({ last_login: new Date().toISOString() })
-            .eq("id", uid)
-            .then(({ error }: { error: unknown }) => {
-              if (error) warn("update last_login falhou", error);
-            });
-        } else {
-          log("usuário sem username — exibindo CreateCharacterScreen");
-          setIdentity(null);
-          setNeedsChar(true);
-        }
+      // 1) Perfil — com 1 retry, porque uma falha de rede aqui NÃO significa
+      //    que o jogador precisa criar um personagem novo.
+      let username: string | null = null;
+      try {
+        username = await ensureProfile(uid);
       } catch (e) {
-        warn("bootstrap falhou", e);
+        warn("ensureProfile falhou, tentando de novo", e);
+        try {
+          await new Promise((r) => setTimeout(r, 1200));
+          username = await ensureProfile(uid);
+        } catch (e2) {
+          if (cancelled) return;
+          warn("ensureProfile falhou definitivamente", e2);
+          blockCloudSaveWrites("não foi possível carregar o perfil");
+          bootstrappedUidRef.current = null;
+          setLoadError("Não foi possível carregar seu perfil. Seu progresso está seguro — tente novamente.");
+          setBootstrapping(false);
+          return;
+        }
+      }
+      if (cancelled) return;
+
+      if (!username || username.trim().length === 0) {
+        log("usuário sem username — exibindo CreateCharacterScreen");
         setIdentity(null);
         setNeedsChar(true);
-      } finally {
-        if (!cancelled) setBootstrapping(false);
+        setBootstrapping(false);
+        return;
       }
+
+      // 2) Save da nuvem — se falhar, NÃO entramos no jogo com estado vazio.
+      try {
+        await preloadCloudSave(uid);
+      } catch {
+        if (cancelled) return;
+        bootstrappedUidRef.current = null;
+        setLoadError("Não foi possível carregar seu save. Nada foi sobrescrito — tente novamente.");
+        setBootstrapping(false);
+        return;
+      }
+      if (cancelled) return;
+
+      setIdentity(writeIdentity(uid, username));
+      setNeedsChar(false);
+      setBootstrapping(false);
+      // last_login best-effort
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      void (supabase as any)
+        .from("profiles")
+        .update({ last_login: new Date().toISOString() })
+        .eq("id", uid)
+        .then(({ error }: { error: unknown }) => {
+          if (error) warn("update last_login falhou", error);
+        });
     })();
     return () => {
       cancelled = true;
     };
-  }, [currentUid, recoveryMode]);
+  }, [currentUid, recoveryMode, retryTick]);
+
+
 
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
