@@ -511,6 +511,31 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
 
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[#0b0510] text-[#f3e5c5] font-mono text-center">
+        <div className="max-w-sm space-y-5 border-2 border-[#c084fc] rounded-lg p-8 bg-black/60">
+          <div className="text-2xl">🛡️</div>
+          <p className="text-sm leading-relaxed">{loadError}</p>
+          <button
+            onClick={() => { setLoadError(null); setRetryTick((t) => t + 1); }}
+            className="w-full py-3 bg-[#c084fc] text-[#0b0510] font-bold rounded"
+          >
+            TENTAR NOVAMENTE
+          </button>
+          <button
+            onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }}
+            className="w-full py-2 border border-[#6bd4ff] text-[#6bd4ff] rounded text-xs"
+          >
+            VOLTAR AO LOGIN
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+
+
   if (needsChar || !identity) {
     return (
       <CreateCharacterScreen
