@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      jogo ainda n esta logando
+      https://idles3-local-buddy.nissanfinance22.workers.dev/idle VERIFICAR PORQUE GAME N TA LOGANDO DPS DE LOGAR MINHA CONTA
     </div>
   ),
 })
