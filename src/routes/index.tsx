@@ -527,8 +527,22 @@ gold: BLOQUEADO / NÃO BLOQUEADO
 crystal: BLOQUEADO / NÃO BLOQUEADO
 pokemon level: BLOQUEADO / NÃO BLOQUEADO
 pokemon XP: BLOQUEADO / NÃO BLOQUEADO
-ranked: BLOQUEADO / NÃO BLOQUEADO`}
-    </div>
+ranked: BLOQUEADO / NÃO BLOQUEADO
 
+
+
+IMPORTANTE:
+
+NÃO invente resultados.
+
+Não diga que está protegido sem testar.
+
+NÃO apague game_saves, jogadores ou progresso.
+
+Faça backup lógico antes de migrations destrutivas.
+
+A prioridade absoluta é PARAR O EXPLOIT ATIVO.`}
+    </div>
   ),
 })
+
