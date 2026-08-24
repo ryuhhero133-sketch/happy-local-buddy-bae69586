@@ -236,58 +236,37 @@ async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
 }
 
 /** Envia/atualiza score do jogador na temporada corrente. */
-export async function recordRankedScore(level: number, craftPoints: number, guildName?: string | null) {
-  const trainerLevel = Math.max(1, Math.min(10000, Math.floor(level || 1)));
-  const craft = Math.max(0, Math.floor(craftPoints || 0));
+export async function recordRankedScore() {
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth?.user?.id;
+  if (!userId) return;
 
-  const upsertDirectBackup = async () => {
-    const { data: auth } = await supabase.auth.getUser();
-    const user = auth?.user;
-    if (!user) return;
-    const username = (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string;
+  // Busca valores reais no banco (Service Role ou SECURITY DEFINER RPC)
+  // Como recordRankedScore roda no client, chamamos a RPC que deve ser segura.
+  try {
+    const { data: state } = await supabase.from("trainer_state")
+      .select("trainer_level, kill_count")
+      .eq("user_id", userId)
+      .single();
 
-    // Tabela legacy/publica usada pelo ranking global. Mantém nível REAL atual.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const legacy = await (supabase as any).from("ranked_scores").upsert({
-      user_id: user.id,
-      username,
-      trainer_level: trainerLevel,
-      pokedex_count: craft,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
-    if (legacy.error) {
-      // Compatibilidade com setup antigo que só tinha score/season.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fallback = await (supabase as any).from("ranked_scores").upsert({
-        user_id: user.id,
-        username,
-        score: trainerLevel * 100 + craft,
-        season: 1,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id,season" });
-      if (fallback.error) console.warn("[ranked] score upsert:", fallback.error.message);
-    }
+    if (!state) return;
 
-    // Backup direto também na tabela de temporada, para não depender só da RPC.
-    try {
-      const season = await fetchCurrentSeason();
-      if (!season) return;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any).from("ranked_leaderboard").upsert({
-        season_id: season.id,
-        user_id: user.id,
-        username,
-        trainer_level: trainerLevel,
-        craft_points: craft,
-        guild_name: guildName ?? null,
-        score: trainerLevel * 100 + craft,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "season_id,user_id" });
-      if (error) console.warn("[ranked] leaderboard backup:", error.message);
-    } catch (e) {
-      console.warn("[ranked] leaderboard backup exc:", e);
-    }
-  };
+    const { error } = await (supabase as any).rpc("record_ranked_score", {
+      _level: state.trainer_level,
+      _craft_points: state.kill_count, // Usando kills como craft points por enquanto
+      _guild_name: null,
+    });
+    
+    if (error) console.warn("[ranked] score rpc:", error.message);
+  } catch (e) {
+    console.warn("[ranked] record error:", e);
+  }
+};
+
+// Mantendo compatibilidade de assinatura se necessário, mas ignorando inputs
+async function _legacy_recordRankedScore(level: number, craftPoints: number, guildName?: string | null) {
+  return recordRankedScore();
+}
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

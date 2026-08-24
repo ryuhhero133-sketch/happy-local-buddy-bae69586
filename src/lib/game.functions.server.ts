@@ -95,21 +95,12 @@ export async function syncClientState_handler({ data, context }: { data: any, co
       const current = p.id ? byId.get(p.id) : byCombo.get(comboKey(p.species, p.rarity));
       if (current) {
         const currentLevel = Number(current.level ?? 1);
-        const incomingLevel = p.level;
-        const level = Math.max(currentLevel, incomingLevel);
-        const xp = incomingLevel > currentLevel
-          ? (p.xp ?? 0)
-          : incomingLevel === currentLevel
-            ? Math.max(Number(current.xp ?? 0), p.xp ?? 0)
-            : Number(current.xp ?? 0);
-        const hp = 20 + level * 4;
+        // O servidor NUNCA confia no nível vindo do cliente.
+        // O cliente só pode diminuir vida ou mudar slot, não ganhar XP/Level via sync.
+        const hp = 20 + currentLevel * 4;
         await supabase.from("pokemon_collection").update({
-          level,
-          xp,
-          rarity: p.rarity,
-          hp_max: Math.max(Number(current.hp_max ?? 0), hp),
-          hp_current: Math.max(Number(current.hp_current ?? 0), hp),
           team_slot: p.team_slot ?? null,
+          hp_current: Math.min(Number(current.hp_max ?? hp), p.hp_current ?? hp),
         }).eq("user_id", userId).eq("id", current.id);
       } else {
         news.push(p);

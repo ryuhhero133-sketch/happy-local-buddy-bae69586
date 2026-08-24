@@ -470,15 +470,16 @@ export const pushInitialState = createServerFn({ method: "POST" })
     }
 
     // Espelha ranked_scores
+    const { data: finalState } = await supabase.from("trainer_state")
+      .select("trainer_level, kill_count")
+      .eq("user_id", userId).single();
+
     const username = (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador";
-    const { count: pokedexCount } = await supabase.from("pokemon_collection")
-      .select("id", { count: "exact", head: true }).eq("user_id", userId);
     await supabase.from("ranked_scores").upsert({
       user_id: userId,
       username,
-      trainer_level: data.trainer_level,
-      pokedex_count: pokedexCount ?? 0,
-      total_kills: data.kill_count,
+      trainer_level: finalState.trainer_level,
+      total_kills: finalState.kill_count,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
