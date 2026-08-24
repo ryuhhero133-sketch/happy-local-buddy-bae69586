@@ -52,17 +52,13 @@ async function parseRestError(response: Response) {
   }
 }
 
-async function upsert(uid: string, snapshot: unknown) {
-  const { headers } = await getAuthedRestHeaders();
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`, {
-    method: "POST",
-    headers: {
-      ...headers,
-      Prefer: "resolution=merge-duplicates,return=minimal",
-    },
-    body: JSON.stringify({ user_id: uid, data: snapshot, updated_at: new Date().toISOString() }),
-  });
-  if (!response.ok) throw new Error(await parseRestError(response));
+async function upsert(_uid: string, snapshot: any) {
+  try {
+    const res = await securePushSave({ data: snapshot });
+    if (!res.ok) throw new Error((res as any).reason || "Erro desconhecido no servidor");
+  } catch (e) {
+    throw e;
+  }
 }
 
 /** Debounced push (1.5s) — usar durante gameplay. */
