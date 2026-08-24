@@ -214,11 +214,24 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     // Em F5 não desloga: a sessão ativa é necessária para reidratar/salvar no Supabase
     // antes de qualquer cache local ser usado. Logout manual continua limpando tudo.
-    supabase.auth.getSession().then(({ data }) => {
-      log("initial session", data.session?.user?.id ?? null);
-      setSession(data.session);
+    // Timeout de 8s: se o Supabase não responder, mostramos a tela de login
+    // em vez de travar para sempre em "Conectando ao servidor...".
+    const failSafe = setTimeout(() => {
+      warn("getSession demorou demais — liberando a tela");
       setChecking(false);
-    });
+    }, 8000);
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        log("initial session", data.session?.user?.id ?? null);
+        setSession(data.session);
+      })
+      .catch((e) => warn("getSession falhou", e))
+      .finally(() => {
+        clearTimeout(failSafe);
+        setChecking(false);
+      });
+
 
     // Check maintenance immediately and periodically
     const checkMaint = async () => {
