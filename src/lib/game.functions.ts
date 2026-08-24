@@ -459,6 +459,101 @@ export const pushInitialState = createServerFn({ method: "POST" })
       await supabase.from("pokemon_collection").insert({
         user_id: userId,
         species: first.species,
+        level: 1, // Força Nível 1 no inicial
+        rarity: first.rarity,
+        hp_current: hp,
+        hp_max: hp,
+        energy: 100,
+        team_slot: 0,
+      });
+    }
+
+    return { ok: true, applied: true };
+  });
+
+// ---- Salvar estado (JSON) de forma segura ------------------------------------
+
+const SaveSchema = z.object({
+  data: z.object({
+    idle: z.any(),
+    team: z.array(z.any()),
+    restingBench: z.array(z.any()),
+    savedAt: z.number(),
+  }),
+});
+
+export const securePushSave = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => SaveSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const userId = context.userId;
+
+    // 1. Busca os valores autoritativos do banco
+    const { data: authoritative } = await supabase.from("trainer_state")
+      .select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count")
+      .eq("user_id", userId).maybeSingle();
+
+    if (!authoritative) return { ok: false, reason: "no_state" };
+
+    // 2. Valida a Coleção / Bank
+    // Verifica se todos os pokémons no time/banco realmente existem e pertencem ao usuário
+    const allIncomingUids = [...data.data.team, ...data.data.restingBench]
+      .map(p => p.uid).filter(Boolean);
+    
+    const { data: validPokemons } = await supabase.from("pokemon_collection")
+      .select("id, species, level, rarity, hp_max, team_slot")
+      .eq("user_id", userId)
+      .in("id", allIncomingUids);
+
+    const validUidMap = new Map(validPokemons?.map(p => [p.id, p]));
+
+    // Reconstrói o time e banco apenas com pokémons válidos e stats do banco
+    const secureTeam = data.data.team.map((p: any) => {
+      const db = validUidMap.get(p.uid);
+      if (!db) return null;
+      return { ...p, ...db }; // Sobrescreve stats com as do banco
+    }).filter(Boolean);
+
+    const secureBench = data.data.restingBench.map((p: any) => {
+      const db = validUidMap.get(p.uid);
+      if (!db) return null;
+      return { ...p, ...db };
+    }).filter(Boolean);
+
+    // 3. Sobrescreve a economia no JSON com os valores do banco
+    const secureSave = {
+      ...data.data,
+      idle: {
+        ...data.data.idle,
+        bank: {
+          gold: Number(authoritative.gold),
+          crystals: Number(authoritative.crystal),
+          ruby: Number(authoritative.ruby),
+        },
+        trainer: {
+          ...data.data.idle.trainer,
+          level: authoritative.trainer_level,
+          xp: Number(authoritative.trainer_xp),
+        }
+      },
+      team: secureTeam,
+      restingBench: secureBench,
+    };
+
+    // 4. Salva o blob final
+    const { error } = await supabase.from("game_saves").upsert({
+      user_id: userId,
+      data: secureSave,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+
+    if (error) throw error;
+
+    return { ok: true };
+  });
+
+        species: first.species,
         level: 1,
         xp: 0,
         rarity: first.rarity,
