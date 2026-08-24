@@ -1415,6 +1415,25 @@ export const Route = createFileRoute("/idle")({
       <IdlePage />
     </AuthGate>
   ),
+  errorComponent: ({ error, reset }) => {
+    console.error("Idle Route Error:", error);
+    return (
+      <div className="min-h-screen bg-black text-red-500 p-10 font-mono flex flex-col items-center justify-center gap-4 text-center">
+        <h1 className="text-2xl font-bold">ERRO AO CARREGAR JOGO</h1>
+        <p className="opacity-70 max-w-md">{error instanceof Error ? error.message : "Erro desconhecido"}</p>
+        <button 
+          onClick={() => {
+            window.localStorage.removeItem("rubym.cloud.preloaded.v1");
+            reset();
+            window.location.reload();
+          }}
+          className="px-6 py-2 bg-red-900 border border-red-600 hover:bg-red-800 transition-colors"
+        >
+          LIMPAR CACHE E TENTAR NOVAMENTE
+        </button>
+      </div>
+    );
+  }
 });
 
 // ============ Page ============
