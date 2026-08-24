@@ -27,14 +27,18 @@ export async function syncClientState_handler({ data, context }: { data: any, co
   }
 
   let clamped = false;
-  const clamp = (prev: number, next: number, maxGain: number) => {
+  const clamp = (prev: number, next: number, maxGain: number, resourceName: string) => {
     if (next <= prev) return next;
-    // CRITICAL: Force server authority for major resources
-    // Client should not be able to "sync" an increase in Gold/Crystal/Level
-    // This function should eventually be removed or only handle non-critical UI state.
-    const gain = 0; // Disable client-side gains via sync for gold/crystal/xp
-    clamped = true;
-    return prev;
+    
+    // Log suspicious jumps if we were to allow them (but we block them)
+    if (next > prev + maxGain) {
+      console.warn(`[SECURITY] Suspicious ${resourceName} jump for ${userId}: ${prev} -> ${next} (max ${maxGain})`);
+      clamped = true;
+    }
+    
+    // For critical resources, we ONLY allow server-driven updates via specific actions (reportKill).
+    // The sync function should NOT increase these values based on client state.
+    return prev; 
   };
 
 
