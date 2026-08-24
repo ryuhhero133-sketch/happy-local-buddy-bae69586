@@ -553,17 +553,6 @@ export const securePushSave = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-        species: first.species,
-        level: 1,
-        xp: 0,
-        rarity: first.rarity,
-        hp_current: hp,
-        hp_max: hp,
-        energy: 100,
-        team_slot: 0,
-      });
-    }
-
     // Espelha ranked_scores
     const { data: finalState } = await supabase.from("trainer_state")
       .select("trainer_level, kill_count")
