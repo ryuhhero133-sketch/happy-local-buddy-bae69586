@@ -8308,7 +8308,7 @@ function IdlePage() {
                   void captureChanRef.current?.send({
                     type: "broadcast",
                     event: "say",
-                    payload: { id: identity?.id ?? "self", name, text },
+                    payload: { id: identity?.id ?? "self", name, text, ts: Date.now() },
                   });
                   setChatInput("");
                   setChatCooldownUntil(Date.now() + 10 * 60 * 1000);

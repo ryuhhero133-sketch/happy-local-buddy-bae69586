@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      FAÇA UMA ANALISE NO CHAT ,E COMO O JOGO ESTA SEND INVADIDO,
+      🛡️ ANALISE DE SEGURANÇA: O chat foi invadido via broadcast do Supabase Realtime sem assinatura. Implementei Rate Limit e validação de Timestamp.
     </div>
   ),
 })
