@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      🚨 EMERGÊNCIA DE SEGURANÇA — IDLE MON ESTÁ SENDO EXPLORADO
+      {`🚨 EMERGÊNCIA DE SEGURANÇA — IDLE MON ESTÁ SENDO EXPLORADO
 
 Jogadores estão conseguindo alterar dados do jogo diretamente.
 
@@ -543,7 +543,7 @@ NÃO apague game_saves, jogadores ou progresso.
 
 Faça backup lógico antes de migrations destrutivas.
 
-A prioridade absoluta é PARAR O EXPLOIT ATIVO.
+A priority absoluta é PARAR O EXPLOIT ATIVO.`}
     </div>
   ),
 })
