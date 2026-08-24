@@ -6,99 +6,326 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      {`aprove
-RELATÓRIO DE SEGURANÇA (IDLE MON)
+      {`🚨 CRITICAL SECURITY LOCKDOWN — IDLE MON
 
-1. BRECHAS ENCONTRADAS
-- src/lib/game.functions.server.ts: syncClientState_handler aceitava Gold/Level/XP do cliente.
-- src/lib/game.functions.ts: pushInitialState permitia iniciar conta com stats arbitrários.
-- src/lib/rankedApi.ts: recordRankedScore aceitava level/points do cliente e fazia upsert direto.
-- RLS Policies: Permitiam UPDATE/INSERT direto em trainer_state, pokemon_collection, game_saves e ranked_scores.
+Players have been exploiting the game by modifying frontend state, localStorage, DevTools, or direct Supabase requests.
 
-2. QUAL ERA A PIOR BRECHA
-O uso de REST direto (.update/.upsert) no frontend permitia que qualquer jogador autenticado usasse o console do navegador (F12) para definir gold = 999999999 ou trainer_level = 10000 e o banco aceitava sem contestar, pois a RLS apenas verificava se o user_id era do próprio jogador.
+Previously, the database accepted manipulated values such as:
 
-3. O QUE FOI BLOQUEADO
-- Migration: Revogadas permissões de INSERT/UPDATE para usuários autenticados em todas as tabelas sensíveis.
-- Migration: Criadas tabelas security_events e suspected_exploits.
-- Migration: Criados triggers de validação (max jump level/gold).
-- Server Functions: syncClientState_handler agora ignora ganhos de recursos vindos do cliente.
-- Server Functions: pushInitialState agora força um "Starter Pack" nível 1 fixo.
-- Frontend: Removidas passagens de parâmetros sensíveis para recordRankedScore; agora a função busca dados oficiais no banco.
-- game_saves: Bloqueada escrita direta; o save agora só pode ser lido pelo cliente (escrita será migrada para server function).
+Trainer Level
 
-4. TESTE COMO UM JOGADOR NORMAL
-TESTE: ALTERAR trainer_level PARA 10000
-RESULTADO: FALHA
-ERRO RETORNADO: new row violates row-level security policy for table "trainer_state"
-BLOQUEADO? SIM
+Trainer XP
 
-TESTE: ALTERAR Gold PARA 999999999
-RESULTADO: FALHA
-ERRO RETORNADO: new row violates row-level security policy for table "trainer_state"
-BLOQUEADO? SIM
+Gold
 
-TESTE: ALTERAR nível de Pokémon PARA 999
-RESULTADO: FALHA
-ERRO RETORNADO: new row violates row-level security policy for table "pokemon_collection"
-BLOQUEADO? SIM
+Crystal
 
-TESTE: ALTERAR Ranked score PARA 999999999
-RESULTADO: FALHA
-ERRO RETORNADO: new row violates row-level security policy for table "ranked_scores"
-BLOQUEADO? SIM
+Ruby / currencies
 
-5. TESTE O JOGO NORMAL
-AÇÃO: entrar no jogo / carregar save
-FUNCIONOU? SIM
-COMO FOI PROCESSADA: SELECT (Permitido)
-FRONTEND DIRETO OU SERVER-SIDE: FRONTEND (SELECT)
+Pokémon Level
 
-AÇÃO: ganhar XP / subir de nível / ganhar Gold
-FUNCIONOU? SIM
-COMO FOI PROCESSADA: reportKill (Server Function)
-FRONTEND DIRETO OU SERVER-SIDE: SERVER-SIDE (Service Role)
+Pokémon XP and stats
 
-AÇÃO: capturar Pokémon
-FUNCIONOU? SIM
-COMO FOI PROCESSADA: attemptCapture (Server Function)
-FRONTEND DIRETO OU SERVER-SIDE: SERVER-SIDE
+Craft Points
 
-6. ANALISE AS PERMISSÕES (ESTADO FINAL)
-Tabela: trainer_state, players, pokeballs, pokemon_collection, ranked_scores, game_saves
-SELECT: authenticated (Próprio UID)
-INSERT: service_role apenas
-UPDATE: service_role apenas
-DELETE: service_role apenas
+Ranked score and progression
 
-7. VERIFIQUE RPC SECURITY
-RPC: record_ranked_score
-Quem pode chamar? Authenticated
-Parâmetros: _level, _craft_points, _guild_name
-Segurança: A RPC ignora os parâmetros e lê o Lv/Kills direto da trainer_state vinculada ao auth.uid() antes de gravar. (VALIDADO)
+Inventory quantities
 
-8. TESTE DE DUPLA EXECUÇÃO / CONCORRÊNCIA
-Ações reportKill e openChest utilizam transações atômicas no servidor e logs de expiração (rate limit) para evitar duplicação.
+CORE RULE
 
-SECURITY STATUS
+The frontend must never be trusted.
 
-Sistema Status
-Trainer Level 🟢
-Trainer XP 🟢
-Gold 🟢
-Crystal 🟢
-Pokémon Level 🟢
-Pokémon XP 🟢
-Ranked 🟢
-Inventory 🟢
-Rewards 🟢
-Market 🟢
-Admin 🟢
-Game Saves 🟢
+Frontend / LocalStorage / React State = UNTRUSTED
+Supabase Database + Server-side logic = SOURCE OF TRUTH
 
-PRODUÇÃO
 
-APROVADO PARA PRODUÇÃO`}
+
+A player may change any value in their browser, but they must never be able to make the database accept that manipulated value.
+
+YOUR TASK
+
+Audit the entire project and implement a complete security lockdown.
+
+1. Find all direct database writes
+
+Search the entire project for:
+
+supabase.from()
+.insert()
+.update()
+.upsert()
+.delete()
+.rpc()
+
+
+
+Identify every place where the client can send or modify:
+
+level
+
+XP
+
+Gold
+
+Crystal
+
+Ruby
+
+currencies
+
+Pokémon data
+
+inventory
+
+Ranked
+
+rewards
+
+ownership
+
+2. Lock down Supabase RLS and permissions
+
+A normal authenticated player must NOT be able to directly INSERT, UPDATE, or DELETE sensitive game values.
+
+Do not use insecure policies such as:
+
+USING (true)
+WITH CHECK (true)
+
+
+
+Also remember:
+
+auth.uid() = user_id
+
+
+
+is NOT enough if the player can still update their own:
+
+gold = 999999999
+trainer_level = max
+pokemon.level = max
+
+
+
+The player must not be able to directly set sensitive values, even on their own account.
+
+3. Make the server authoritative
+
+The client must request an ACTION, not send the final result.
+
+❌ NEVER allow:
+
+set_gold(999999999)
+set_trainer_level(10000)
+set_pokemon_level(999)
+set_ranked_score(999999999)
+
+
+
+✅ Instead:
+
+complete_battle(battle_id)
+claim_reward(reward_id)
+complete_mission(mission_id)
+hatch_egg(egg_id)
+
+
+
+The server/database must:
+
+Identify the user with auth.uid()
+
+Validate the action
+
+Verify ownership and state
+
+Prevent duplicate/replayed actions
+
+Calculate XP, levels, Gold, Crystal, rewards, etc. server-side
+
+Update the official database values atomically
+
+4. Protect these systems completely
+
+Make these values server-authoritative:
+
+TRAINER
+- level
+- XP
+- craft points
+
+ECONOMY
+- Gold
+- Crystal
+- Ruby
+- all currencies/resources
+
+POKÉMON
+- level
+- XP
+- stats
+- rarity
+- ownership
+
+RANKED
+- score
+- rank
+- rewards
+
+INVENTORY
+- item quantities
+- ownership
+
+REWARDS / EGGS
+- reward amount
+- claimed state
+- hatch results
+
+MARKET
+- price
+- ownership
+- purchases
+- transfers
+
+ADMIN
+- roles
+- gifts
+- bans
+- server configuration
+
+
+
+5. Audit game_saves
+
+This is critical.
+
+If the client can send a full JSON save like:
+
+{
+  "trainerLevel": 10000,
+  "gold": 999999999,
+  "crystal": 999999999
+}
+
+
+
+the database must NOT blindly accept it.
+
+Do not delete existing saves or player progress.
+
+Keep the save system working, but separate untrusted client/cache data from authoritative progression and economic data.
+
+6. Add database protection
+
+Use the appropriate combination of:
+
+RLS
+
+REVOKE permissions
+
+secure RPC functions
+
+PostgreSQL validation
+
+CHECK constraints
+
+triggers where appropriate
+
+atomic transactions
+
+unique constraints/idempotency for rewards
+
+The database must reject impossible or manipulated states.
+
+7. Test the exploit
+
+After the changes, test as a normal authenticated user.
+
+Attempt direct manipulation of:
+
+trainer_level = 10000
+trainer_xp = 999999999
+gold = 999999999
+crystal = 999999999
+pokemon.level = maximum/arbitrary
+pokemon.xp = 999999999
+pokemon.stats = arbitrary
+ranked_score = 999999999
+inventory.quantity = 999999
+
+
+
+Also test:
+
+repeated reward requests
+
+simultaneous requests
+
+duplicate purchases
+
+modifying another player's data
+
+calling RPCs directly with manipulated parameters
+
+All exploit attempts must be rejected.
+
+IMPORTANT
+
+Do NOT break legitimate gameplay.
+
+Normal players must still be able to:
+
+login
+
+load/save
+
+gain XP
+
+level up
+
+earn Gold/Crystal
+
+level up Pokémon
+
+receive rewards
+
+update Ranked
+
+manage inventory
+
+use eggs
+
+buy/sell where applicable
+
+But these changes must happen only through validated server-side logic.
+
+FINAL REPORT
+
+After implementation, provide:
+
+Vulnerabilities found
+
+Files and database tables changed
+
+RLS/permission changes
+
+Server-side RPCs/functions created or changed
+
+Exploit test results
+
+Any remaining vulnerabilities
+
+Finish with exactly one:
+
+APPROVED FOR PRODUCTION
+
+or
+
+NOT APPROVED — SECURITY GAPS REMAIN
+
+Do not claim the game is secure without actually testing direct database manipulation as a normal authenticated player.`}
     </div>
   ),
 })
