@@ -132,23 +132,32 @@ export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
   }
 }
 
+/**
+ * Lê o save da nuvem. Diferencia "não existe save" (null) de "falha ao ler"
+ * (lança erro) — quem chama precisa saber para não sobrescrever nada.
+ */
+export async function fetchCloudSaveStrict(userId: string): Promise<unknown | null> {
+  const { headers } = await getAuthedRestHeaders();
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+    { headers },
+  );
+  if (!response.ok) throw new Error(await parseRestError(response));
+  const rows = (await response.json()) as Array<{ data?: unknown }>;
+  lastCloudSaveError = null;
+  return rows[0]?.data ?? null;
+}
+
 export async function fetchCloudSave(userId: string): Promise<unknown | null> {
   try {
-    const { headers } = await getAuthedRestHeaders();
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
-      { headers },
-    );
-    if (!response.ok) throw new Error(await parseRestError(response));
-    const rows = (await response.json()) as Array<{ data?: unknown }>;
-    lastCloudSaveError = null;
-    return rows[0]?.data ?? null;
+    return await fetchCloudSaveStrict(userId);
   } catch (e) {
     lastCloudSaveError = e instanceof Error ? e.message : String(e);
     console.warn("[cloudSave] fetch failed", e);
     return null;
   }
 }
+
 
 export async function deleteCloudSave(userId: string): Promise<void> {
   const { headers } = await getAuthedRestHeaders();
