@@ -100,7 +100,10 @@ export function useServerSync(opts: {
         }
 
         if (cancelled) return;
-        opts.onHydrate(full);
+        if (full) {
+          opts.onHydrate(full);
+        }
+
         readyRef.current = true;
         setStatus("ready");
       } catch (e: any) {
