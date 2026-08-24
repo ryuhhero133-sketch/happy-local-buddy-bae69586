@@ -8313,7 +8313,7 @@ function IdlePage() {
                   void captureChanRef.current?.send({
                     type: "broadcast",
                     event: "say",
-                    payload: { id: identity?.id ?? "self", name, text, ts: Date.now(), is_staff: identity?.email === "lordryuhhhuyuyghh@gmail.com" },
+                    payload: { id: identity?.id ?? "self", name, text, ts: Date.now(), is_staff: identity?.id === "a6e9a6e9-a6e9-46e9-a6e9-a6e9a6e9a6e9" || (typeof window !== 'undefined' && localStorage.getItem("rubym.user_email") === "lordryuhhhuyuyghh@gmail.com") },
                   });
                   setChatInput("");
                   setChatCooldownUntil(Date.now() + 10 * 60 * 1000);
