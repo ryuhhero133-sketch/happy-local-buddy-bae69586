@@ -1539,26 +1539,31 @@ function IdlePage() {
   // ===== Regen passiva por sinergia Planta/Fada =====
   useEffect(() => {
     const iv = setInterval(() => {
-      const t = teamRef.current;
-      if (!t || t.length === 0) return;
-      const syn = computeTeamSynergies(t);
-      if (syn.regenPct <= 0) return;
-      // Cura líder
-      setLeaderHp((h) => {
-        const leader = t[0];
-        if (!leader) return h;
-        const max = calcIdleMaxHp(leader);
-        if (h >= max || h <= 0) return h;
-        return Math.min(max, h + max * syn.regenPct);
-      });
-      // Cura pets do time (não-líder)
-      setTeam((tm) => tm.map((p, i) => {
-        if (i === 0) return p;
-        const max = calcIdleMaxHp(p);
-        const cur = p.hp ?? max;
-        if (cur >= max || cur <= 0) return p;
-        return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
-      }));
+      try {
+        const t = teamRef.current;
+        if (!t || t.length === 0) return;
+        const syn = computeTeamSynergies(t);
+        if (syn.regenPct <= 0) return;
+        // Cura líder
+        setLeaderHp((h) => {
+          const leader = t[0];
+          if (!leader) return h;
+          const max = calcIdleMaxHp(leader);
+          if (h >= max || h <= 0) return h;
+          return Math.min(max, h + max * syn.regenPct);
+        });
+        // Cura pets do time (não-líder)
+        setTeam((tm) => (tm || []).map((p, i) => {
+          if (!p) return p;
+          if (i === 0) return p;
+          const max = calcIdleMaxHp(p);
+          const cur = p.hp ?? max;
+          if (cur >= max || cur <= 0) return p;
+          return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
+        }));
+      } catch (e) {
+        console.warn("[SynergyRegen] failed", e);
+      }
     }, 3000);
     return () => clearInterval(iv);
   }, []);
