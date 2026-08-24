@@ -1485,7 +1485,9 @@ function IdlePage() {
       leaderUidRef.current = uid;
       // Remove inimigos fora da faixa; se o mapa ficar vazio de válidos, respawna.
       setEnemies((prev) => {
+        if (!Array.isArray(prev)) return spawnEnemies();
         const kept = prev.filter((e) => {
+          if (!e) return false;
           const el = e.level ?? lv;
           return el <= lv + 10 && el >= lv - 5;
         });
