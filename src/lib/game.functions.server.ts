@@ -63,7 +63,7 @@ export async function syncClientState_handler({ data, context }: { data: any, co
 
   for (const [bt, qty] of Object.entries(data.pokeballs)) {
     const prev = curMap[bt] ?? 0;
-    const nxt = clamp(prev, qty as number, CAP_GAIN.ball_per_type);
+    const nxt = clamp(prev, qty as number, CAP_GAIN.ball_per_type, `ball:${bt}`);
     if (nxt !== prev) {
       await supabase.from("pokeballs").upsert(
         { user_id: userId, ball_type: bt, qty: nxt },
