@@ -1002,18 +1002,8 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
         </div>
 
         {/* O MODO CONVIDADO FOI REMOVIDO PARA GARANTIR A SEGURANÇA E PERSISTÊNCIA NO SUPABASE */}
-                localStorage.setItem(IDENTITY_KEY, JSON.stringify(guest));
-                localStorage.setItem(GUEST_KEY, "1");
-                window.location.reload();
-              } catch { /* ignore */ }
-            }}
-            className="w-full mt-2 py-2 text-[11px] tracking-[2px] underline"
-            style={{ color: "#fde68a" }}
-          >
-            MODO CONVIDADO
-          </button>
-        )}
       </form>
+
     </PanelShell>
   );
 }
