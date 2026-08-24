@@ -77,13 +77,13 @@ async function parseRestError(response: Response) {
 }
 
 async function upsert(_uid: string, snapshot: any) {
-  try {
-    const res = await securePushSave({ data: snapshot });
-    if (!res.ok) throw new Error((res as any).reason || "Erro desconhecido no servidor");
-  } catch (e) {
-    throw e;
+  if (saveWritesBlocked) {
+    throw new Error(`save bloqueado (${blockReason ?? "carregamento falhou"})`);
   }
+  const res = await securePushSave({ data: snapshot });
+  if (!res.ok) throw new Error((res as any).reason || "Erro desconhecido no servidor");
 }
+
 
 /** Debounced push (1.5s) — usar durante gameplay. */
 export function scheduleCloudSync(data: unknown) {
