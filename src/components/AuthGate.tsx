@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
+import {
+  fetchCloudSaveStrict,
+  blockCloudSaveWrites,
+  allowCloudSaveWrites,
+  SAVE_KEY,
+} from "@/lib/cloudSave";
+
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
 import { updateActiveSession, getActiveSessionToken } from "@/lib/session.functions";
@@ -82,32 +88,42 @@ async function ensureProfile(userId: string): Promise<string | null> {
   return null;
 }
 
+/**
+ * Traz o save da nuvem para o localStorage.
+ * Se a leitura FALHAR, bloqueia qualquer escrita na nuvem — nunca
+ * sobrescrevemos um save válido com estado vazio/default.
+ */
 async function preloadCloudSave(userId: string) {
+  log("preloadCloudSave start", userId);
+  let cloud: unknown = null;
   try {
-    log("preloadCloudSave start", userId);
-    const cloud = await fetchCloudSave(userId);
-    if (isCloudBlob(cloud)) {
-      if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
-      const party = Array.isArray(cloud.party)
-        ? cloud.party
-        : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
-      if (party.length > 0) {
-        localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
-        // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
-        // não pode reabrir o modal de starter em outro navegador/F5.
-        try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
-      }
-      localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
-      log("preloadCloudSave: save restaurado do servidor");
-    } else {
-      localStorage.removeItem(CLOUD_PRELOADED_KEY);
-      log("preloadCloudSave: nenhum save remoto");
-    }
+    cloud = await fetchCloudSaveStrict(userId);
   } catch (e) {
-    try { localStorage.removeItem(CLOUD_PRELOADED_KEY); } catch { /* ignore */ }
-    warn("preloadCloudSave falhou", e);
+    warn("preloadCloudSave falhou — escrita na nuvem bloqueada", e);
+    blockCloudSaveWrites("falha ao carregar o save da nuvem");
+    throw e;
   }
+
+  if (isCloudBlob(cloud)) {
+    if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
+    const party = Array.isArray(cloud.party)
+      ? cloud.party
+      : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
+    if (party.length > 0) {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+      // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
+      // não pode reabrir o modal de starter em outro navegador/F5.
+      try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
+    }
+    localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
+    log("preloadCloudSave: save restaurado do servidor");
+  } else {
+    try { localStorage.removeItem(CLOUD_PRELOADED_KEY); } catch { /* ignore */ }
+    log("preloadCloudSave: conta nova, nenhum save remoto");
+  }
+  allowCloudSaveWrites();
 }
+
 
 type Mode = "login" | "signup" | "reset";
 
@@ -198,11 +214,24 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     // Em F5 não desloga: a sessão ativa é necessária para reidratar/salvar no Supabase
     // antes de qualquer cache local ser usado. Logout manual continua limpando tudo.
-    supabase.auth.getSession().then(({ data }) => {
-      log("initial session", data.session?.user?.id ?? null);
-      setSession(data.session);
+    // Timeout de 8s: se o Supabase não responder, mostramos a tela de login
+    // em vez de travar para sempre em "Conectando ao servidor...".
+    const failSafe = setTimeout(() => {
+      warn("getSession demorou demais — liberando a tela");
       setChecking(false);
-    });
+    }, 8000);
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        log("initial session", data.session?.user?.id ?? null);
+        setSession(data.session);
+      })
+      .catch((e) => warn("getSession falhou", e))
+      .finally(() => {
+        clearTimeout(failSafe);
+        setChecking(false);
+      });
+
 
     // Check maintenance immediately and periodically
     const checkMaint = async () => {
@@ -268,26 +297,33 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [session, maintenance]);
 
 
-  // Single-session enforcement
+  // Single-session enforcement.
+  // Só derruba a sessão se conseguimos REGISTRAR nosso token no servidor e,
+  // depois, o servidor passou a apontar outro token. Se o registro falhar,
+  // nunca derrubamos (senão o jogador ficava preso na tela de login).
   const [kicked, setKicked] = useState(false);
   const sessionTokenRef = useRef<string | null>(null);
+  const tokenRegisteredRef = useRef(false);
 
   useEffect(() => {
     if (!session?.user?.id) return;
 
     const token = crypto.randomUUID();
     sessionTokenRef.current = token;
+    tokenRegisteredRef.current = false;
+    let stopped = false;
 
-    const initSession = async () => {
+    (async () => {
       try {
         await updateActiveSession({ data: { token } });
+        if (!stopped) tokenRegisteredRef.current = true;
       } catch (e) {
-        console.error("Failed to update active session", e);
+        warn("não foi possível registrar a sessão ativa (kick desativado)", e);
       }
-    };
-    initSession();
+    })();
 
     const checkSession = async () => {
+      if (!tokenRegisteredRef.current) return;
       try {
         const { token: serverToken } = await getActiveSessionToken();
         if (serverToken && serverToken !== sessionTokenRef.current) {
@@ -295,13 +331,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
           setKicked(true);
           await supabase.auth.signOut();
         }
-      } catch (e) {
-        // ignore errors during check
+      } catch {
+        // erro de rede não derruba ninguém
       }
     };
 
     const interval = setInterval(checkSession, 10000); // Check every 10s
-    return () => clearInterval(interval);
+    return () => { stopped = true; clearInterval(interval); };
   }, [session?.user?.id]);
 
 
@@ -314,6 +350,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
   // o save da nuvem por cima do estado atual (parecia um "refresh").
   const bootstrappedUidRef = useRef<string | null>(null);
   const currentUid = session?.user?.id ?? null;
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryTick, setRetryTick] = useState(0);
   useEffect(() => {
     if (!currentUid) { bootstrappedUidRef.current = null; return; }
     if (recoveryMode) return;
@@ -322,42 +360,70 @@ export function AuthGate({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       setBootstrapping(true);
+      setLoadError(null);
       const uid = currentUid;
-      try {
-        const username = await ensureProfile(uid);
-        if (cancelled) return;
 
-        if (username && username.trim().length > 0) {
-          await preloadCloudSave(uid);
-          if (cancelled) return;
-          setIdentity(writeIdentity(uid, username));
-          setNeedsChar(false);
-          // last_login best-effort
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          void (supabase as any)
-            .from("profiles")
-            .update({ last_login: new Date().toISOString() })
-            .eq("id", uid)
-            .then(({ error }: { error: unknown }) => {
-              if (error) warn("update last_login falhou", error);
-            });
-        } else {
-          log("usuário sem username — exibindo CreateCharacterScreen");
-          setIdentity(null);
-          setNeedsChar(true);
-        }
+      // 1) Perfil — com 1 retry, porque uma falha de rede aqui NÃO significa
+      //    que o jogador precisa criar um personagem novo.
+      let username: string | null = null;
+      try {
+        username = await ensureProfile(uid);
       } catch (e) {
-        warn("bootstrap falhou", e);
+        warn("ensureProfile falhou, tentando de novo", e);
+        try {
+          await new Promise((r) => setTimeout(r, 1200));
+          username = await ensureProfile(uid);
+        } catch (e2) {
+          if (cancelled) return;
+          warn("ensureProfile falhou definitivamente", e2);
+          blockCloudSaveWrites("não foi possível carregar o perfil");
+          bootstrappedUidRef.current = null;
+          setLoadError("Não foi possível carregar seu perfil. Seu progresso está seguro — tente novamente.");
+          setBootstrapping(false);
+          return;
+        }
+      }
+      if (cancelled) return;
+
+      if (!username || username.trim().length === 0) {
+        log("usuário sem username — exibindo CreateCharacterScreen");
         setIdentity(null);
         setNeedsChar(true);
-      } finally {
-        if (!cancelled) setBootstrapping(false);
+        setBootstrapping(false);
+        return;
       }
+
+      // 2) Save da nuvem — se falhar, NÃO entramos no jogo com estado vazio.
+      try {
+        await preloadCloudSave(uid);
+      } catch {
+        if (cancelled) return;
+        bootstrappedUidRef.current = null;
+        setLoadError("Não foi possível carregar seu save. Nada foi sobrescrito — tente novamente.");
+        setBootstrapping(false);
+        return;
+      }
+      if (cancelled) return;
+
+      setIdentity(writeIdentity(uid, username));
+      setNeedsChar(false);
+      setBootstrapping(false);
+      // last_login best-effort
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      void (supabase as any)
+        .from("profiles")
+        .update({ last_login: new Date().toISOString() })
+        .eq("id", uid)
+        .then(({ error }: { error: unknown }) => {
+          if (error) warn("update last_login falhou", error);
+        });
     })();
     return () => {
       cancelled = true;
     };
-  }, [currentUid, recoveryMode]);
+  }, [currentUid, recoveryMode, retryTick]);
+
+
 
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
@@ -444,6 +510,31 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (!session) return <AuthScreen kickedMessage={kicked ? "Sua conta foi conectada em outro dispositivo. Você foi desconectado." : null} />;
 
   if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[#0b0510] text-[#f3e5c5] font-mono text-center">
+        <div className="max-w-sm space-y-5 border-2 border-[#c084fc] rounded-lg p-8 bg-black/60">
+          <div className="text-2xl">🛡️</div>
+          <p className="text-sm leading-relaxed">{loadError}</p>
+          <button
+            onClick={() => { setLoadError(null); setRetryTick((t) => t + 1); }}
+            className="w-full py-3 bg-[#c084fc] text-[#0b0510] font-bold rounded"
+          >
+            TENTAR NOVAMENTE
+          </button>
+          <button
+            onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }}
+            className="w-full py-2 border border-[#6bd4ff] text-[#6bd4ff] rounded text-xs"
+          >
+            VOLTAR AO LOGIN
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+
 
   if (needsChar || !identity) {
     return (
