@@ -506,7 +506,7 @@ export const securePushSave = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .in("id", allIncomingUids);
 
-    const validUidMap = new Map(validPokemons?.map(p => [p.id, p]));
+    const validUidMap = new Map(validPokemons?.map((p: any) => [p.id, p]));
 
     // Reconstrói o time e banco apenas com pokémons válidos e stats do banco
     const secureTeam = data.data.team.map((p: any) => {
