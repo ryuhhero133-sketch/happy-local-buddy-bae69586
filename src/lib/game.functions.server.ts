@@ -27,27 +27,23 @@ export async function syncClientState_handler({ data, context }: { data: any, co
   }
 
   let clamped = false;
-  const clamp = (prev: number, next: number, maxGain: number, resourceName: string) => {
+  const clamp = (prev: number, next: number, maxGain: number) => {
     if (next <= prev) return next;
-    
-    // Log suspicious jumps if we were to allow them (but we block them)
-    if (next > prev + maxGain) {
-      console.warn(`[SECURITY] Suspicious ${resourceName} jump for ${userId}: ${prev} -> ${next} (max ${maxGain})`);
-      clamped = true;
-    }
-    
-    // For critical resources, we ONLY allow server-driven updates via specific actions (reportKill).
-    // The sync function should NOT increase these values based on client state.
-    return prev; 
+    // CRITICAL: Force server authority for major resources
+    // Client should not be able to "sync" an increase in Gold/Crystal/Level
+    // This function should eventually be removed or only handle non-critical UI state.
+    const gain = 0; // Disable client-side gains via sync for gold/crystal/xp
+    clamped = true;
+    return prev;
   };
 
 
-  const newGold  = clamp(Number(cur.gold),  data.gold,  CAP_GAIN.gold, "gold");
-  const newCry   = clamp(Number(cur.crystal), data.crystal, CAP_GAIN.crystal, "crystal");
-  const newRuby  = clamp(Number(cur.ruby ?? 0), data.ruby, 1000, "ruby");
-  const newLevel = clamp(cur.trainer_level, data.trainer_level, CAP_GAIN.trainer_level, "level");
-  const newXp    = clamp(Number(cur.trainer_xp), data.trainer_xp, CAP_GAIN.trainer_xp, "xp");
-  const newKills = clamp(Number(cur.kill_count), data.kill_count, CAP_GAIN.kill_count, "kills");
+  const newGold  = clamp(Number(cur.gold),  data.gold,  CAP_GAIN.gold);
+  const newCry   = clamp(Number(cur.crystal), data.crystal, CAP_GAIN.crystal);
+  const newRuby  = clamp(Number(cur.ruby ?? 0), data.ruby, 1000);
+  const newLevel = clamp(cur.trainer_level, data.trainer_level, CAP_GAIN.trainer_level);
+  const newXp    = clamp(Number(cur.trainer_xp), data.trainer_xp, CAP_GAIN.trainer_xp);
+  const newKills = clamp(Number(cur.kill_count), data.kill_count, CAP_GAIN.kill_count);
 
   await supabase.from("trainer_state").update({
     gold: newGold, crystal: newCry, ruby: newRuby,
@@ -63,7 +59,7 @@ export async function syncClientState_handler({ data, context }: { data: any, co
 
   for (const [bt, qty] of Object.entries(data.pokeballs)) {
     const prev = curMap[bt] ?? 0;
-    const nxt = clamp(prev, qty as number, CAP_GAIN.ball_per_type, `ball:${bt}`);
+    const nxt = clamp(prev, qty as number, CAP_GAIN.ball_per_type);
     if (nxt !== prev) {
       await supabase.from("pokeballs").upsert(
         { user_id: userId, ball_type: bt, qty: nxt },
@@ -95,12 +91,21 @@ export async function syncClientState_handler({ data, context }: { data: any, co
       const current = p.id ? byId.get(p.id) : byCombo.get(comboKey(p.species, p.rarity));
       if (current) {
         const currentLevel = Number(current.level ?? 1);
-        // O servidor NUNCA confia no nível vindo do cliente.
-        // O cliente só pode diminuir vida ou mudar slot, não ganhar XP/Level via sync.
-        const hp = 20 + currentLevel * 4;
+        const incomingLevel = p.level;
+        const level = Math.max(currentLevel, incomingLevel);
+        const xp = incomingLevel > currentLevel
+          ? (p.xp ?? 0)
+          : incomingLevel === currentLevel
+            ? Math.max(Number(current.xp ?? 0), p.xp ?? 0)
+            : Number(current.xp ?? 0);
+        const hp = 20 + level * 4;
         await supabase.from("pokemon_collection").update({
+          level,
+          xp,
+          rarity: p.rarity,
+          hp_max: Math.max(Number(current.hp_max ?? 0), hp),
+          hp_current: Math.max(Number(current.hp_current ?? 0), hp),
           team_slot: p.team_slot ?? null,
-          hp_current: Math.min(Number(current.hp_max ?? hp), p.hp_current ?? hp),
         }).eq("user_id", userId).eq("id", current.id);
       } else {
         news.push(p);

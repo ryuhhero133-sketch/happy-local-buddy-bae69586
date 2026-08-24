@@ -1419,7 +1419,6 @@ export const Route = createFileRoute("/idle")({
 
 // ============ Page ============
 function IdlePage() {
-  const log = (...args: any[]) => console.log("[IdlePage]", ...args);
   const identity = loadIdentity();
   const navigate = useNavigate();
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
@@ -1485,9 +1484,7 @@ function IdlePage() {
       leaderUidRef.current = uid;
       // Remove inimigos fora da faixa; se o mapa ficar vazio de válidos, respawna.
       setEnemies((prev) => {
-        if (!Array.isArray(prev)) return spawnEnemies();
         const kept = prev.filter((e) => {
-          if (!e) return false;
           const el = e.level ?? lv;
           return el <= lv + 10 && el >= lv - 5;
         });
@@ -1509,30 +1506,22 @@ function IdlePage() {
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
-    try {
-      const byUid = new Map<string, CollectionEntry>();
-      for (const entry of (idle.collection ?? [])) {
-        if (entry && entry.uid) byUid.set(entry.uid, entry);
-      }
-      for (const pet of [...team, ...restingBench]) {
-        if (!pet || !pet.uid) continue;
-        const current = byUid.get(pet.uid);
-        byUid.set(pet.uid, {
-          uid: pet.uid,
-          species: pet.species,
-          level: Math.max(current?.level ?? 1, pet.level ?? 1),
-          xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
-          rarity: pet.rarity,
-          capturedAt: current?.capturedAt ?? Date.now(),
-          traits: current?.traits ?? pet.traits ?? [],
-          event: current?.event ?? pet.event,
-        });
-      }
-      return [...byUid.values()];
-    } catch (e) {
-      console.warn("[collectionForDisplay] compute failed", e);
-      return [];
+    const byUid = new Map<string, CollectionEntry>();
+    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry);
+    for (const pet of [...team, ...restingBench]) {
+      const current = byUid.get(pet.uid);
+      byUid.set(pet.uid, {
+        uid: pet.uid,
+        species: pet.species,
+        level: Math.max(current?.level ?? 1, pet.level ?? 1),
+        xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
+        rarity: pet.rarity,
+        capturedAt: current?.capturedAt ?? Date.now(),
+        traits: current?.traits ?? pet.traits ?? [],
+        event: current?.event ?? pet.event,
+      });
     }
+    return [...byUid.values()];
   }, [idle.collection, restingBench, team]);
   // UIDs intencionalmente consumidos (fragmentar/trocador) — impede reconciliação
   // de re-adicioná-los à coleção quando ainda estão em team/bench mid-cleanup.
@@ -1541,31 +1530,26 @@ function IdlePage() {
   // ===== Regen passiva por sinergia Planta/Fada =====
   useEffect(() => {
     const iv = setInterval(() => {
-      try {
-        const t = teamRef.current;
-        if (!t || t.length === 0) return;
-        const syn = computeTeamSynergies(t);
-        if (syn.regenPct <= 0) return;
-        // Cura líder
-        setLeaderHp((h) => {
-          const leader = t[0];
-          if (!leader) return h;
-          const max = calcIdleMaxHp(leader);
-          if (h >= max || h <= 0) return h;
-          return Math.min(max, h + max * syn.regenPct);
-        });
-        // Cura pets do time (não-líder)
-        setTeam((tm) => (tm || []).map((p, i) => {
-          if (!p) return p;
-          if (i === 0) return p;
-          const max = calcIdleMaxHp(p);
-          const cur = p.hp ?? max;
-          if (cur >= max || cur <= 0) return p;
-          return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
-        }));
-      } catch (e) {
-        console.warn("[SynergyRegen] failed", e);
-      }
+      const t = teamRef.current;
+      if (!t || t.length === 0) return;
+      const syn = computeTeamSynergies(t);
+      if (syn.regenPct <= 0) return;
+      // Cura líder
+      setLeaderHp((h) => {
+        const leader = t[0];
+        if (!leader) return h;
+        const max = calcIdleMaxHp(leader);
+        if (h >= max || h <= 0) return h;
+        return Math.min(max, h + max * syn.regenPct);
+      });
+      // Cura pets do time (não-líder)
+      setTeam((tm) => tm.map((p, i) => {
+        if (i === 0) return p;
+        const max = calcIdleMaxHp(p);
+        const cur = p.hp ?? max;
+        if (cur >= max || cur <= 0) return p;
+        return { ...p, hp: Math.min(max, cur + max * syn.regenPct) };
+      }));
     }, 3000);
     return () => clearInterval(iv);
   }, []);
@@ -1662,41 +1646,32 @@ function IdlePage() {
       };
     },
     onHydrate: (full) => {
-      console.log("[useServerSync] onHydrate triggered", !!full);
       try {
         // Se o blob completo já foi pré-carregado do Supabase, ele é a fonte de verdade.
         // O sync normalizado antigo não pode sobrescrever com trainer_state/pokemon_collection defasados.
-        if (localStorage.getItem(CLOUD_PRELOADED_KEY)) {
-          console.log("[useServerSync] Hydration skipped: cloud preloaded key exists");
-          return;
-        }
+        if (localStorage.getItem(CLOUD_PRELOADED_KEY)) return;
       } catch { /* ignore */ }
       // Aplica estado do servidor como fonte de verdade.
       setIdle((prev) => {
-        if (!full?.trainer || !full?.pokeballs) return prev;
         const items = { ...(prev.items ?? {}) };
-        if (Array.isArray(full.pokeballs)) {
-          for (const b of full.pokeballs) items[b.ball_type] = b.qty;
-        }
-        const collection = Array.isArray(full.collection) 
-          ? full.collection.map((p) => ({
-              uid: p.id,
-              species: p.species as Species,
-              level: p.level,
-              xp: p.xp ?? 0,
-              rarity: p.rarity as Rarity,
-              capturedAt: p.captured_at ? Date.parse(p.captured_at) : Date.now(),
-            }))
-          : prev.collection;
+        for (const b of full.pokeballs) items[b.ball_type] = b.qty;
+        const collection = full.collection.map((p) => ({
+          uid: p.id,
+          species: p.species as Species,
+          level: p.level,
+          xp: p.xp ?? 0,
+          rarity: p.rarity as Rarity,
+          capturedAt: Date.parse(p.captured_at) || Date.now(),
+        }));
         return {
           ...prev,
           bank: {
-            gold: full.trainer.gold ?? prev.bank.gold,
-            crystals: full.trainer.crystal ?? prev.bank.crystals,
+            gold: full.trainer.gold,
+            crystals: full.trainer.crystal,
           },
-          trainerLevel: full.trainer.trainer_level ?? prev.trainerLevel,
-          trainerXp: full.trainer.trainer_xp ?? prev.trainerXp,
-          totals: { ...prev.totals, kills: full.trainer.kill_count ?? prev.totals.kills },
+          trainerLevel: full.trainer.trainer_level,
+          trainerXp: full.trainer.trainer_xp,
+          totals: { ...prev.totals, kills: full.trainer.kill_count },
           items,
           collection,
         };
@@ -1727,7 +1702,6 @@ function IdlePage() {
     let cancelled = false;
     (async () => {
       try {
-        log("cloudBlob hydration start");
         // Wait for session
         let session = null;
         let attempts = 0;
@@ -1740,26 +1714,13 @@ function IdlePage() {
         }
 
         const uid = session?.user?.id;
-        if (!uid) {
-          log("cloudBlob: no session found after attempts");
-          return;
-        }
+        if (!uid) return;
         
-        log("cloudBlob: fetching for", uid);
         const blob = (await fetchCloudSave(uid)) as
           | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
           | null;
+        if (cancelled || !blob) return;
         
-        if (cancelled) return;
-        
-        if (!blob) {
-          log("cloudBlob: no blob found for user");
-          setCloudBlobReady(true);
-          cloudBlobHydratedRef.current = true;
-          return;
-        }
-        
-        log("cloudBlob: blob retrieved, hydrating...");
         cloudBlobHydratedRef.current = true;
         
         if (blob.idle) {
@@ -1826,23 +1787,18 @@ function IdlePage() {
   // empurra snapshot pro banco quase na hora para evitar rollback ao fechar a aba.
   const lastPokemonLevelSyncKeyRef = useRef("");
   useEffect(() => {
-    try {
-      const all = [...team, ...restingBench, ...(idle.collection ?? [])];
-      if (all.length === 0) return;
-      const key = all
-        .map((p) => `${p?.uid}:${Math.max(1, p?.level ?? 1)}`)
-        .sort()
-        .join("|");
-      if (!key || lastPokemonLevelSyncKeyRef.current === key) return;
-      const hadPrevious = lastPokemonLevelSyncKeyRef.current !== "";
-      lastPokemonLevelSyncKeyRef.current = key;
-      if (!hadPrevious || serverSync.status !== "ready") return;
-      const latestSave = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
-      saveNow({ ...latestSave, party: [...team, ...restingBench] });
-      void serverSync.pushNow();
-    } catch (e) {
-      console.warn("[PokemonLevelSync] failed", e);
-    }
+    const all = [...team, ...restingBench, ...(idle.collection ?? [])];
+    const key = all
+      .map((p) => `${p.uid}:${Math.max(1, p.level ?? 1)}`)
+      .sort()
+      .join("|");
+    if (!key || lastPokemonLevelSyncKeyRef.current === key) return;
+    const hadPrevious = lastPokemonLevelSyncKeyRef.current !== "";
+    lastPokemonLevelSyncKeyRef.current = key;
+    if (!hadPrevious || serverSync.status !== "ready") return;
+    const latestSave = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+    saveNow({ ...latestSave, party: [...team, ...restingBench] });
+    void serverSync.pushNow();
   }, [team, restingBench, idle.collection, serverSync.status, serverSync.pushNow]);
 
   // ===== Incenso de Mel (buff temporário do Ninho de Marimbondo) =====
@@ -2422,9 +2378,6 @@ function IdlePage() {
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const chatIdRef = useRef(1);
   const pushChat = (text: string, kind: ChatMsg["kind"] = "info") => {
-    // Anti-spam global preventivo
-    if (text.length > 500) return;
-    
     setChat((prev) => {
       const next = [...prev, { id: chatIdRef.current++, text, kind }];
       return next.slice(-40);
@@ -3777,37 +3730,11 @@ function IdlePage() {
     const ch = supabase.channel("rubym-captures-global");
     // Capturas globais de outros jogadores agora vão só como toast leve —
     // sem lotar o chat / feed.
-    const lastMsgRef = useRef<{ text: string; time: number }>({ text: "", time: 0 });
-    
     ch.on("broadcast", { event: "say" }, (payload) => {
-      const p = payload.payload as { id: string; name: string; text: string; ts?: number };
+      const p = payload.payload as { id: string; name: string; text: string };
       if (!p || p.id === identity.id) return;
-      
-      const now = Date.now();
-      const safeText = String(p.text).trim();
-      const safeName = String(p.name).slice(0, 20);
-      
-      // 1. Rate limit por jogador (máximo 1 msg a cada 1.5s)
-      if (now - lastMsgRef.current.time < 1500 && lastMsgRef.current.text === safeText) return;
-      lastMsgRef.current = { text: safeText, time: now };
-
-      const safeLower = safeText.toLowerCase();
-      const forbidden = ["hacker", "invadir", "hack", "admin", "owner", "script", "exploit", "subestimar", "fio que", "brecha"];
-      
-      // 2. Bloqueio de termos proibidos (anti-invasão)
-      if (forbidden.some(word => safeLower.includes(word))) {
-        return;
-      }
-
-      // 3. Validação de timestamp (evita replay attacks básicos)
-      if (p.ts && Math.abs(now - p.ts) > 10000) return;
-
-      // 4. Mensagem especial de proteção/presença
-      if (safeLower.includes("tem dev sim aqui")) {
-        pushChat("🛡️ SISTEMA: Proteção ativa. Presença confirmada.", "cap");
-      }
-      
-      pushChat(`💬 ${safeName}: ${safeText.slice(0, 140)}`, "info");
+      const safe = String(p.text).slice(0, 140);
+      pushChat(`💬 ${p.name}: ${safe}`, "info");
     });
     ch.subscribe();
 
@@ -3900,7 +3827,7 @@ function IdlePage() {
         guild_name: null,
       });
       try {
-        await recordRankedScore();
+        await recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
         const top = await fetchTopRanked(200);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
@@ -3952,7 +3879,7 @@ function IdlePage() {
       const collection = idle.collection ?? [];
       const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
       const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
-      void recordRankedScore();
+      void recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
     }, 4500);
     return () => clearTimeout(t);
   }, [idle.trainerLevel, idle.craftPoints, idle.collection]);
@@ -8352,7 +8279,7 @@ function IdlePage() {
                   void captureChanRef.current?.send({
                     type: "broadcast",
                     event: "say",
-                    payload: { id: identity?.id ?? "self", name, text, ts: Date.now(), is_staff: identity?.id === "a6e9a6e9-a6e9-46e9-a6e9-a6e9a6e9a6e9" || (typeof window !== 'undefined' && localStorage.getItem("rubym.user_email") === "lordryuhhhuyuyghh@gmail.com") },
+                    payload: { id: identity?.id ?? "self", name, text },
                   });
                   setChatInput("");
                   setChatCooldownUntil(Date.now() + 10 * 60 * 1000);

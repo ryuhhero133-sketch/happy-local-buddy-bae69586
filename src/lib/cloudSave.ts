@@ -2,7 +2,6 @@
 // Fonte de verdade para tudo que não está nas tabelas normalizadas
 // (items, missões, skins, party, restingBench, buffs, etc.).
 import { supabase } from "@/integrations/supabase/client";
-import { securePushSave } from "./game.functions";
 
 export const SAVE_KEY = "rubym.save.v2";
 
@@ -13,29 +12,6 @@ let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingData: unknown = null;
 let lastCloudSaveError: string | null = null;
 
-/**
- * Trava de segurança contra perda de progresso:
- * se o carregamento do save da nuvem falhar, NENHUM push é permitido —
- * assim um estado vazio/default nunca sobrescreve o save correto.
- */
-let saveWritesBlocked = false;
-let blockReason: string | null = null;
-
-export function blockCloudSaveWrites(reason: string) {
-  saveWritesBlocked = true;
-  blockReason = reason;
-  console.warn("[cloudSave] escrita bloqueada:", reason);
-}
-
-export function allowCloudSaveWrites() {
-  saveWritesBlocked = false;
-  blockReason = null;
-}
-
-export function isCloudSaveBlocked() {
-  return saveWritesBlocked ? (blockReason ?? "bloqueado") : null;
-}
-
 export function getCloudSaveLastError() {
   return lastCloudSaveError;
 }
@@ -45,7 +21,6 @@ function isFullCloudSave(data: unknown): data is { idle: unknown; team: unknown;
   const value = data as { idle?: unknown; team?: unknown; restingBench?: unknown };
   return Boolean(value.idle && Array.isArray(value.team) && Array.isArray(value.restingBench));
 }
-
 
 async function getAuthedRestHeaders() {
   const { data: sess } = await supabase.auth.getSession();
@@ -76,14 +51,18 @@ async function parseRestError(response: Response) {
   }
 }
 
-async function upsert(_uid: string, snapshot: any) {
-  if (saveWritesBlocked) {
-    throw new Error(`save bloqueado (${blockReason ?? "carregamento falhou"})`);
-  }
-  const res = await securePushSave({ data: snapshot });
-  if (!res.ok) throw new Error((res as any).reason || "Erro desconhecido no servidor");
+async function upsert(uid: string, snapshot: unknown) {
+  const { headers } = await getAuthedRestHeaders();
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`, {
+    method: "POST",
+    headers: {
+      ...headers,
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify({ user_id: uid, data: snapshot, updated_at: new Date().toISOString() }),
+  });
+  if (!response.ok) throw new Error(await parseRestError(response));
 }
-
 
 /** Debounced push (1.5s) — usar durante gameplay. */
 export function scheduleCloudSync(data: unknown) {
@@ -132,32 +111,23 @@ export async function pushCloudSaveNow(data: unknown): Promise<boolean> {
   }
 }
 
-/**
- * Lê o save da nuvem. Diferencia "não existe save" (null) de "falha ao ler"
- * (lança erro) — quem chama precisa saber para não sobrescrever nada.
- */
-export async function fetchCloudSaveStrict(userId: string): Promise<unknown | null> {
-  const { headers } = await getAuthedRestHeaders();
-  const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
-    { headers },
-  );
-  if (!response.ok) throw new Error(await parseRestError(response));
-  const rows = (await response.json()) as Array<{ data?: unknown }>;
-  lastCloudSaveError = null;
-  return rows[0]?.data ?? null;
-}
-
 export async function fetchCloudSave(userId: string): Promise<unknown | null> {
   try {
-    return await fetchCloudSaveStrict(userId);
+    const { headers } = await getAuthedRestHeaders();
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/game_saves?select=data&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+      { headers },
+    );
+    if (!response.ok) throw new Error(await parseRestError(response));
+    const rows = (await response.json()) as Array<{ data?: unknown }>;
+    lastCloudSaveError = null;
+    return rows[0]?.data ?? null;
   } catch (e) {
     lastCloudSaveError = e instanceof Error ? e.message : String(e);
     console.warn("[cloudSave] fetch failed", e);
     return null;
   }
 }
-
 
 export async function deleteCloudSave(userId: string): Promise<void> {
   const { headers } = await getAuthedRestHeaders();

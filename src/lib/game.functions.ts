@@ -423,137 +423,70 @@ export const pushInitialState = createServerFn({ method: "POST" })
     if (hasProgress) return { ok: true, applied: false, reason: "server_has_progress" };
 
 
-    // Upsert estado do treinador com valores iniciais seguros, NÃO o que o cliente enviou.
-    // Se o servidor não tem progresso, damos o "Starter Pack".
-    const starterGold = 1000;
-    const starterCry = 50;
-    const starterLevel = 1;
-
+    // Upsert estado do treinador com o snapshot local.
     await supabase.from("trainer_state").upsert({
       user_id: userId,
-      gold: starterGold,
-      crystal: starterCry,
-      ruby: 0,
-      trainer_level: starterLevel,
-      trainer_xp: 0,
-      kill_count: 0,
+      gold: data.gold,
+      crystal: data.crystal,
+      ruby: data.ruby,
+      trainer_level: data.trainer_level,
+      trainer_xp: data.trainer_xp,
+      kill_count: data.kill_count,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
-    // Pokébolas iniciais
-    const initialBalls = { pokeball: 20, greatball: 0, ultraball: 0, masterball: 0 };
-    for (const [bt, qty] of Object.entries(initialBalls)) {
-      await supabase.from("pokeballs").upsert({
-        user_id: userId, ball_type: bt, qty,
-      }, { onConflict: "user_id,ball_type" });
+    // Pokébolas
+    const ballTypes = ["pokeball","greatball","ultraball","masterball"] as const;
+    for (const bt of ballTypes) {
+      const qty = data.pokeballs[bt] ?? 0;
+      if (qty > 0) {
+        await supabase.from("pokeballs").upsert({
+          user_id: userId, ball_type: bt, qty,
+        }, { onConflict: "user_id,ball_type" });
+      }
     }
 
-    // Coleção inicial: Se vazio, damos um inicial aleatório (ou o que o cliente pediu, mas NÍVEL 1)
+    // Coleção — só insere se a tabela estiver vazia pro user.
     const { count: colCount } = await supabase.from("pokemon_collection")
       .select("id", { count: "exact", head: true }).eq("user_id", userId);
-    
     if ((colCount ?? 0) === 0 && data.collection.length > 0) {
-      // Pega o primeiro pokémon da lista do cliente como "inicial", mas força Nível 1.
-      const first = data.collection[0];
-      const hp = 24; // Base HP para nível 1
-      await supabase.from("pokemon_collection").insert({
-        user_id: userId,
-        species: first.species,
-        level: 1, // Força Nível 1 no inicial
-        rarity: first.rarity,
-        hp_current: hp,
-        hp_max: hp,
-        energy: 100,
-        team_slot: 0,
+      const rows = data.collection.map((p) => {
+        const hp = 20 + p.level * 4;
+        return {
+          ...(p.id ? { id: p.id } : {}),
+          user_id: userId,
+          species: p.species,
+          level: p.level,
+          xp: p.xp ?? 0,
+          rarity: p.rarity,
+          hp_current: hp,
+          hp_max: hp,
+          energy: 100,
+          team_slot: p.team_slot ?? null,
+        };
       });
+      // Insere em lotes (Postgrest tem limite prático)
+      const chunk = 200;
+      for (let i = 0; i < rows.length; i += chunk) {
+        await supabase.from("pokemon_collection").insert(rows.slice(i, i + chunk));
+      }
     }
+
+    // Espelha ranked_scores
+    const username = (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador";
+    const { count: pokedexCount } = await supabase.from("pokemon_collection")
+      .select("id", { count: "exact", head: true }).eq("user_id", userId);
+    await supabase.from("ranked_scores").upsert({
+      user_id: userId,
+      username,
+      trainer_level: data.trainer_level,
+      pokedex_count: pokedexCount ?? 0,
+      total_kills: data.kill_count,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
 
     return { ok: true, applied: true };
   });
-
-// ---- Salvar estado (JSON) de forma segura ------------------------------------
-
-const SaveSchema = z.object({
-  data: z.object({
-    idle: z.any(),
-    team: z.array(z.any()),
-    restingBench: z.array(z.any()),
-    savedAt: z.number(),
-  }),
-});
-
-export const securePushSave = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => SaveSchema.parse(data))
-  .handler(async ({ data, context }) => {
-    const supabase = context.supabase as any;
-    const userId = context.userId;
-
-    // 1. Busca os valores autoritativos do banco
-    const { data: authoritative } = await supabase.from("trainer_state")
-      .select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count")
-      .eq("user_id", userId).maybeSingle();
-
-    if (!authoritative) return { ok: false, reason: "no_state" };
-
-    // 2. Valida a Coleção / Bank
-    // Verifica se todos os pokémons no time/banco realmente existem e pertencem ao usuário
-    const allIncomingUids = [...data.data.team, ...data.data.restingBench]
-      .map(p => p.uid).filter(Boolean);
-    
-    const { data: validPokemons } = await supabase.from("pokemon_collection")
-      .select("id, species, level, rarity, hp_max, team_slot")
-      .eq("user_id", userId)
-      .in("id", allIncomingUids);
-
-    const validUidMap = new Map(validPokemons?.map((p: any) => [p.id, p]));
-
-    // Reconstrói o time e banco apenas com pokémons válidos e stats do banco
-    const secureTeam = data.data.team.map((p: any) => {
-      const db = validUidMap.get(p.uid);
-      if (!db) return null;
-      return { ...p, ...db }; // Sobrescreve stats com as do banco
-    }).filter(Boolean);
-
-    const secureBench = data.data.restingBench.map((p: any) => {
-      const db = validUidMap.get(p.uid);
-      if (!db) return null;
-      return { ...p, ...db };
-    }).filter(Boolean);
-
-    // 3. Sobrescreve a economia no JSON com os valores do banco
-    const secureSave = {
-      ...data.data,
-      idle: {
-        ...data.data.idle,
-        bank: {
-          gold: Number(authoritative.gold),
-          crystals: Number(authoritative.crystal),
-          ruby: Number(authoritative.ruby),
-        },
-        trainer: {
-          ...data.data.idle.trainer,
-          level: authoritative.trainer_level,
-          xp: Number(authoritative.trainer_xp),
-        }
-      },
-      team: secureTeam,
-      restingBench: secureBench,
-    };
-
-    // 4. Salva o blob final
-    const { error } = await supabase.from("game_saves").upsert({
-      user_id: userId,
-      data: secureSave,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
-
-    if (error) throw error;
-
-    return { ok: true };
-  });
-
-
 
 // ---- Sync client state (throttled, delta-clamped anti-cheat) ---------------
 // Client empurra o snapshot local; servidor CLAMPA ganhos e persiste.
