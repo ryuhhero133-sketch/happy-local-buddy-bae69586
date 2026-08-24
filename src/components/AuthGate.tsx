@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
+import {
+  fetchCloudSaveStrict,
+  blockCloudSaveWrites,
+  allowCloudSaveWrites,
+  SAVE_KEY,
+} from "@/lib/cloudSave";
+
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
 import { updateActiveSession, getActiveSessionToken } from "@/lib/session.functions";
