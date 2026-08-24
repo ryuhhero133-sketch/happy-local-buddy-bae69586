@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      verificar RLS para que n aaja nenhuma alteeracao de nivel gold, xp , xp de pokemon. etc. nem no ranked nem marketplace OK
+      https://idles3-local-buddy.nissanfinance22.workers.dev/idle VERIFIQUE POR A POS O LOGIN A PAGINA TA DANDO ERRO
     </div>
   ),
 })
