@@ -244,7 +244,7 @@ export async function recordRankedScore() {
   // Busca valores reais no banco (Service Role ou SECURITY DEFINER RPC)
   // Como recordRankedScore roda no client, chamamos a RPC que deve ser segura.
   try {
-    const { data: state } = await supabase.from("trainer_state")
+    const { data: state } = await (supabase as any).from("trainer_state")
       .select("trainer_level, kill_count")
       .eq("user_id", userId)
       .single();
