@@ -1647,10 +1647,14 @@ function IdlePage() {
       };
     },
     onHydrate: (full) => {
+      console.log("[useServerSync] onHydrate triggered", !!full);
       try {
         // Se o blob completo já foi pré-carregado do Supabase, ele é a fonte de verdade.
         // O sync normalizado antigo não pode sobrescrever com trainer_state/pokemon_collection defasados.
-        if (localStorage.getItem(CLOUD_PRELOADED_KEY)) return;
+        if (localStorage.getItem(CLOUD_PRELOADED_KEY)) {
+          console.log("[useServerSync] Hydration skipped: cloud preloaded key exists");
+          return;
+        }
       } catch { /* ignore */ }
       // Aplica estado do servidor como fonte de verdade.
       setIdle((prev) => {
