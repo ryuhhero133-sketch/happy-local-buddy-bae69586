@@ -423,65 +423,63 @@ export const pushInitialState = createServerFn({ method: "POST" })
     if (hasProgress) return { ok: true, applied: false, reason: "server_has_progress" };
 
 
-    // Upsert estado do treinador com o snapshot local.
+    // Upsert estado do treinador com valores iniciais seguros, NÃO o que o cliente enviou.
+    // Se o servidor não tem progresso, damos o "Starter Pack".
+    const starterGold = 1000;
+    const starterCry = 50;
+    const starterLevel = 1;
+
     await supabase.from("trainer_state").upsert({
       user_id: userId,
-      gold: data.gold,
-      crystal: data.crystal,
-      ruby: data.ruby,
-      trainer_level: data.trainer_level,
-      trainer_xp: data.trainer_xp,
-      kill_count: data.kill_count,
+      gold: starterGold,
+      crystal: starterCry,
+      ruby: 0,
+      trainer_level: starterLevel,
+      trainer_xp: 0,
+      kill_count: 0,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
-    // Pokébolas
-    const ballTypes = ["pokeball","greatball","ultraball","masterball"] as const;
-    for (const bt of ballTypes) {
-      const qty = data.pokeballs[bt] ?? 0;
-      if (qty > 0) {
-        await supabase.from("pokeballs").upsert({
-          user_id: userId, ball_type: bt, qty,
-        }, { onConflict: "user_id,ball_type" });
-      }
+    // Pokébolas iniciais
+    const initialBalls = { pokeball: 20, greatball: 0, ultraball: 0, masterball: 0 };
+    for (const [bt, qty] of Object.entries(initialBalls)) {
+      await supabase.from("pokeballs").upsert({
+        user_id: userId, ball_type: bt, qty,
+      }, { onConflict: "user_id,ball_type" });
     }
 
-    // Coleção — só insere se a tabela estiver vazia pro user.
+    // Coleção inicial: Se vazio, damos um inicial aleatório (ou o que o cliente pediu, mas NÍVEL 1)
     const { count: colCount } = await supabase.from("pokemon_collection")
       .select("id", { count: "exact", head: true }).eq("user_id", userId);
+    
     if ((colCount ?? 0) === 0 && data.collection.length > 0) {
-      const rows = data.collection.map((p) => {
-        const hp = 20 + p.level * 4;
-        return {
-          ...(p.id ? { id: p.id } : {}),
-          user_id: userId,
-          species: p.species,
-          level: p.level,
-          xp: p.xp ?? 0,
-          rarity: p.rarity,
-          hp_current: hp,
-          hp_max: hp,
-          energy: 100,
-          team_slot: p.team_slot ?? null,
-        };
+      // Pega o primeiro pokémon da lista do cliente como "inicial", mas força Nível 1.
+      const first = data.collection[0];
+      const hp = 24; // Base HP para nível 1
+      await supabase.from("pokemon_collection").insert({
+        user_id: userId,
+        species: first.species,
+        level: 1,
+        xp: 0,
+        rarity: first.rarity,
+        hp_current: hp,
+        hp_max: hp,
+        energy: 100,
+        team_slot: 0,
       });
-      // Insere em lotes (Postgrest tem limite prático)
-      const chunk = 200;
-      for (let i = 0; i < rows.length; i += chunk) {
-        await supabase.from("pokemon_collection").insert(rows.slice(i, i + chunk));
-      }
     }
 
     // Espelha ranked_scores
+    const { data: finalState } = await supabase.from("trainer_state")
+      .select("trainer_level, kill_count")
+      .eq("user_id", userId).single();
+
     const username = (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador";
-    const { count: pokedexCount } = await supabase.from("pokemon_collection")
-      .select("id", { count: "exact", head: true }).eq("user_id", userId);
     await supabase.from("ranked_scores").upsert({
       user_id: userId,
       username,
-      trainer_level: data.trainer_level,
-      pokedex_count: pokedexCount ?? 0,
-      total_kills: data.kill_count,
+      trainer_level: finalState.trainer_level,
+      total_kills: finalState.kill_count,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
