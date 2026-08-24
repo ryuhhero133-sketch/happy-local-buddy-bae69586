@@ -5,110 +5,223 @@ export const Route = createFileRoute('/')({
     throw redirect({ to: '/idle' })
   },
   component: () => (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line', backgroundColor: '#f0fff0', border: '2px solid green' }}>
-      {`🔴 POST-APPROVAL SECURITY VERIFICATION — IDLE MON
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line', backgroundColor: '#fff0f0', border: '2px solid red' }}>
+      {`🚨 IDLE MON — CRITICAL ANTI-EXPLOIT LOCKDOWN
 
-The previous security audit reported:
+A real exploit tool is being used against the game, including proxy/request manipulation, capture manipulation, spawn manipulation, automation and direct REST/RPC requests.
 
-APPROVED FOR PRODUCTION
+CORE RULE
 
-Do NOT repeat the previous audit.
+The attacker completely controls the browser.
 
-Perform a final independent verification of the actual Supabase security boundary.
+Frontend / React / LocalStorage / DevTools / Proxy / REST = UNTRUSTED
+Supabase PostgreSQL + RLS + secure RPCs = AUTHORITY
 
-The purpose is to prove that the APPROVED status is backed by real database protections and real exploit tests.
 
-1. VERIFY THE DATABASE, NOT THE UI
 
-Inspect the actual Supabase database configuration.
+Do NOT try to block F12, DevTools or the exploit program.
 
-Verify:
+Make manipulated requests useless.
 
-RLS status for every authoritative table
+1. FIND THE VULNERABILITY
 
-RLS policies
+Audit ALL:
 
-INSERT permissions
+supabase.from()
+.insert()
+.update()
+.upsert()
+.delete()
+.rpc()
 
-UPDATE permissions
 
-DELETE permissions
 
-SELECT permissions
+Find every client write affecting:
 
-RPC EXECUTE permissions
+trainer level/XP
+Pokémon level/XP/stats/rarity/ownership
+Gold/Crystal/Ruby
+inventory
+ranked
+rewards
+eggs
+captures
+spawns
+Bank
+Market
+game_saves
 
-SECURITY DEFINER functions
 
-triggers
 
-constraints
+Identify exactly where client data can become authoritative.
 
-foreign keys
+2. SERVER MUST CALCULATE EVERYTHING
 
-unique constraints
+The client can request an ACTION, but never send the final result.
 
-relevant database functions
+Bad:
 
-Do not infer security from frontend code.
+set_level(10000)
+set_gold(999999999)
+set_pokemon_level(999)
+set_ranked_score(999999999)
+capture(pokemon_json)
 
-2. VERIFY THESE AUTHORITATIVE SYSTEMS
 
-Confirm that these cannot be directly manipulated by a normal authenticated player:
 
-Trainer
-- trainer_level
-- trainer_xp
-- craft_points
+Good:
 
-Economy
-- gold
-- crystal
-- ruby
-- resources
+complete_battle(battle_id)
+perform_capture(action_id)
+claim_reward(reward_id)
+deposit_pokemon(pokemon_id)
+complete_ranked_match(match_id)
+
+
+
+The server/database must calculate and validate the result.
+
+3. PROTECT RLS + RPC
+
+Normal players must NOT directly UPDATE/INSERT/DELETE authoritative values.
+
+auth.uid() = user_id alone is NOT sufficient.
+
+Remove unsafe policies such as:
+
+USING (true)
+WITH CHECK (true)
+
+
+
+Review all RPCs and SECURITY DEFINER functions.
+
+Prevent:
+
+spoofed user IDs
+
+manipulated parameters
+
+replay
+
+duplicate rewards
+
+concurrent duplication
+
+cross-player access
+
+Use atomic transactions, constraints and idempotency where needed.
+
+4. GAME_SAVES
+
+This is critical.
+
+A client JSON such as:
+
+{
+  "trainerLevel": 10000,
+  "gold": 999999999,
+  "pokemonLevel": 999999
+}
+
+
+
+must NEVER overwrite authoritative progression.
+
+Do not delete or reset legitimate saves.
+
+Separate client/cache data from authoritative progression.
+
+If cloud loading fails, NEVER overwrite the valid save with default/client state.
+
+5. CAPTURE + SPAWN
+
+The client must NOT decide:
 
 Pokémon
-- ownership
-- level
-- XP
-- stats
-- rarity
+level
+rarity
+shiny
+stats
+spawn
+capture success
+reward
 
-Ranked
-- score
-- rank
-- progression
-- rewards
 
+
+Server generates/validates these.
+
+A fake capture or manipulated spawn request must be rejected.
+
+6. BANK
+
+Never trust Pokémon JSON sent by the client.
+
+When depositing:
+
+auth.uid()
+→ load authoritative Pokémon
+→ verify ownership/state
+→ verify eligibility
+→ atomic transaction
+→ Bank
+
+
+
+A forged Pokémon must NOT become legitimate by entering the Bank.
+
+7. RANKED
+
+Ranked must load authoritative trainer/Pokémon data from the database.
+
+Never trust client:
+
+level
+XP
+stats
+score
+rank
+eligibility
+
+
+
+A manipulated Pokémon/trainer must not bypass Ranked.
+
+Legitimate high-level trainers and Pokémon MUST continue working.
+
+Do NOT create arbitrary level caps as a security fix.
+
+8. ECONOMY + INVENTORY
+
+Protect:
+
+Gold
+Crystal
+Ruby
+Craft Points
 Inventory
-- ownership
-- quantity
-
 Rewards
-- reward amount
-- claimed state
-
-Eggs
-- ownership
-- hatch result
-- hatch state
-
 Market
-- price
-- ownership
-- purchase
-- transfer
-
-Admin
-- roles
-- bans
-- server configuration
 
 
 
-3. DIRECT DATABASE ATTACK
+No direct client balance/quantity changes.
 
-Using a normal authenticated player session, attempt direct requests equivalent to:
+Prevent duplication, negative values, replay and concurrent exploits.
+
+9. ATTACK TEST — MANDATORY
+
+Using a normal authenticated player, test direct manipulation through:
+
+DevTools
+Console
+Proxy
+REST
+RPC
+
+
+
+Attempt:
 
 trainer_level = 10000
 trainer_xp = 999999999
@@ -120,246 +233,48 @@ pokemon.xp = 999999999
 pokemon.stats = arbitrary
 ranked_score = 999999999
 inventory.quantity = 999999
+fake capture
+fake spawn
+fake Bank deposit
+Ranked bypass
+reward duplication
+another player's data
 
 
 
-Verify the database response.
+Every unauthorized attempt must be rejected by the server/database.
 
-Expected:
+FINAL REPORT
 
-REJECTED
+Return only:
 
+Vulnerabilities found
 
+Files changed
 
-Do not accept frontend errors as proof.
+Tables/RLS changed
 
-The database must enforce the rejection.
+RPCs changed
 
-4. BANK BYPASS TEST
+Bank security
 
-Attempt to create or submit a manipulated Pokémon through the client and place it into the Bank.
+Ranked security
 
-Test:
+Game-save security
 
-fake level
-fake XP
-fake stats
-fake rarity
-fake ownership
-another player's Pokémon ID
-modified Pokémon JSON
+Attack test results: PASS/FAIL
 
+Remaining vulnerabilities
 
+Do NOT claim security without actually testing the database/API.
 
-Expected:
+If every critical exploit is rejected:
 
-BANK REJECTS THE INVALID STATE
+APPROVED FOR PRODUCTION
 
+Otherwise:
 
-
-A manipulated Pokémon must never become authoritative simply because it was submitted to the Bank.
-
-5. RANKED BYPASS TEST
-
-Attempt to enter Ranked using manipulated client state.
-
-Modify:
-
-trainer level
-Pokémon level
-Pokémon XP
-Pokémon stats
-ranked score
-
-
-
-Expected:
-
-RANKED USES AUTHORITATIVE DATABASE STATE
-
-
-
-Client-provided values must be ignored or rejected.
-
-Do not rely on hiding the Ranked button.
-
-6. LEGITIMATE HIGH-LEVEL TEST
-
-Confirm the opposite case.
-
-A legitimate trainer/Pokémon with a legitimately earned high level must still work.
-
-Do NOT reject high levels simply because they are large.
-
-The security rule is:
-
-LEGITIMATE HIGH LEVEL = VALID
-
-FORGED HIGH LEVEL = INVALID
-
-
-
-7. GAME_SAVES TEST
-
-Attempt to submit manipulated save JSON containing:
-
-{
-  "trainerLevel": 10000,
-  "trainerXP": 999999999,
-  "gold": 999999999,
-  "crystal": 999999999
-}
-
-
-
-Verify that this cannot overwrite authoritative progression/economy.
-
-Also verify:
-
-cloud read failure
-→ does NOT overwrite valid cloud data
-
-
-
-Existing legitimate saves must remain intact.
-
-8. RPC SECURITY
-
-For every sensitive RPC, verify:
-
-auth.uid() is used correctly
-
-user IDs cannot be spoofed
-
-another player's IDs are rejected
-
-final authoritative values are not blindly accepted
-
-negative values are rejected
-
-impossible values are rejected
-
-replay is handled
-
-concurrent execution is safe
-
-transactions are atomic
-
-SECURITY DEFINER functions are hardened
-
-search_path is safe
-
-EXECUTE permissions are restricted
-
-9. CROSS-PLAYER ATTACK
-
-As a normal authenticated user, attempt to modify:
-
-another player's trainer
-another player's Pokémon
-another player's inventory
-another player's ranked score
-another player's rewards
-another player's game save
-
-
-
-Expected:
-
-ALL REJECTED
-
-
-
-10. REPLAY / DUPLICATION TEST
-
-Repeat:
-
-reward claim
-purchase
-Bank transfer
-Pokémon action
-egg hatch
-market transaction
-Ranked reward
-
-
-
-using:
-
-double-click
-
-multiple tabs
-
-simultaneous requests
-
-repeated RPC calls
-
-replayed requests
-
-Expected:
-
-ONE VALID RESULT ONLY
-
-
-
-No duplicated currency, Pokémon, items or rewards.
-
-FINAL RESULT
-
-Return evidence, not assumptions.
-
-For every test provide:
-
-TEST
-ATTACK
-EXPECTED RESULT
-ACTUAL RESULT
-DATABASE RESPONSE
-PASS / FAIL
-
---- EVIDENCE REPORT ---
-
-TEST: Direct Write Protection (trainer_state)
-ATTACK: Authenticated UPDATE on trainer_level=9999
-EXPECTED RESULT: REJECTED
-ACTUAL RESULT: REJECTED
-DATABASE RESPONSE: Policy violation (RLS)
-PASS / FAIL: PASS
-
-TEST: Direct Write Protection (game_saves)
-ATTACK: Authenticated INSERT/UPDATE on save data
-EXPECTED RESULT: REJECTED
-ACTUAL RESULT: REJECTED
-DATABASE RESPONSE: Policy violation (RLS)
-PASS / FAIL: PASS
-
-TEST: Ranked Score Spoofing
-ATTACK: record_ranked_score(9999, 9999)
-EXPECTED RESULT: USES DB STATS
-ACTUAL RESULT: USES DB STATS
-DATABASE RESPONSE: Execution successful, values loaded from trainer_state via SECURITY DEFINER
-PASS / FAIL: PASS
-
-TEST: Bank Injection
-ATTACK: securePushSave with fake pokemon data
-EXPECTED RESULT: REJECTED / OVERWRITTEN
-ACTUAL RESULT: OVERWRITTEN WITH DB TRUTH
-DATABASE RESPONSE: Server Fn validates UIDs and overwrites client stats
-PASS / FAIL: PASS
-
-RLS VERIFIED: YES
-RPC SECURITY VERIFIED: YES
-DIRECT WRITE PROTECTION VERIFIED: YES
-BANK BYPASS VERIFIED: YES
-RANKED BYPASS VERIFIED: YES
-GAME_SAVE PROTECTION VERIFIED: YES
-CROSS-PLAYER PROTECTION VERIFIED: YES
-REPLAY PROTECTION VERIFIED: YES
-LEGITIMATE HIGH-LEVEL GAMEPLAY VERIFIED: YES
-
-FINAL SECURITY DECISION:
-
-APPROVED FOR PRODUCTION`}
+NOT APPROVED — SECURITY GAPS REMAIN`}
     </div>
   ),
 })
