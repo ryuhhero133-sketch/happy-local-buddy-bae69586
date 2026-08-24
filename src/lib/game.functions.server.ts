@@ -42,12 +42,12 @@ export async function syncClientState_handler({ data, context }: { data: any, co
   };
 
 
-  const newGold  = clamp(Number(cur.gold),  data.gold,  CAP_GAIN.gold);
-  const newCry   = clamp(Number(cur.crystal), data.crystal, CAP_GAIN.crystal);
-  const newRuby  = clamp(Number(cur.ruby ?? 0), data.ruby, 1000);
-  const newLevel = clamp(cur.trainer_level, data.trainer_level, CAP_GAIN.trainer_level);
-  const newXp    = clamp(Number(cur.trainer_xp), data.trainer_xp, CAP_GAIN.trainer_xp);
-  const newKills = clamp(Number(cur.kill_count), data.kill_count, CAP_GAIN.kill_count);
+  const newGold  = clamp(Number(cur.gold),  data.gold,  CAP_GAIN.gold, "gold");
+  const newCry   = clamp(Number(cur.crystal), data.crystal, CAP_GAIN.crystal, "crystal");
+  const newRuby  = clamp(Number(cur.ruby ?? 0), data.ruby, 1000, "ruby");
+  const newLevel = clamp(cur.trainer_level, data.trainer_level, CAP_GAIN.trainer_level, "level");
+  const newXp    = clamp(Number(cur.trainer_xp), data.trainer_xp, CAP_GAIN.trainer_xp, "xp");
+  const newKills = clamp(Number(cur.kill_count), data.kill_count, CAP_GAIN.kill_count, "kills");
 
   await supabase.from("trainer_state").update({
     gold: newGold, crystal: newCry, ruby: newRuby,
