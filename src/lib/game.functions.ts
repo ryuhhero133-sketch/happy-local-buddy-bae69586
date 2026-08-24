@@ -553,22 +553,7 @@ export const securePushSave = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-    // Espelha ranked_scores
-    const { data: finalState } = await supabase.from("trainer_state")
-      .select("trainer_level, kill_count")
-      .eq("user_id", userId).single();
 
-    const username = (context.claims as { user_metadata?: { username?: string } })?.user_metadata?.username ?? "Treinador";
-    await supabase.from("ranked_scores").upsert({
-      user_id: userId,
-      username,
-      trainer_level: finalState.trainer_level,
-      total_kills: finalState.kill_count,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
-
-    return { ok: true, applied: true };
-  });
 
 // ---- Sync client state (throttled, delta-clamped anti-cheat) ---------------
 // Client empurra o snapshot local; servidor CLAMPA ganhos e persiste.
