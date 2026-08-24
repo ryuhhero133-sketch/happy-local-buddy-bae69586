@@ -1,9 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
-  beforeLoad: () => {
-    throw redirect({ to: '/idle' })
-  },
+  // Root route displays the security status report
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line', backgroundColor: '#fff0f0', border: '2px solid red' }}>
       {`No projeto atual, foi identificado um vetor crítico: é possível analisar os JS/reverse code do frontend, modificar valores de stats client-side e depois enviar esses valores para a API. O problema é que a API atualmente valida a informação depois que ela já foi modificada no cliente, permitindo fraude.
