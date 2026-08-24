@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line', backgroundColor: '#f0fff0', border: '2px solid green' }}>
-      {`Faça uma auditoria e correção COMPLETA do projeto.
+      {`CORRIGIR`}
 
 1. CORRIGIR O LOGIN PRIMEIRO
 
