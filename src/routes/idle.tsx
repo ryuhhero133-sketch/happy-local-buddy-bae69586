@@ -3643,7 +3643,7 @@ function IdlePage() {
       const payload = payloadNow();
       void savePresence(payload);
       void loadPresence();
-    }, 8_000);
+    }, 1000); // Multiplayer em tempo real (1s)
     const prune = setInterval(() => {
       const cutoff = Date.now() - 20_000;
       setRemotePlayers((prev) => prev.filter((p) => p.ts >= cutoff));
@@ -5730,6 +5730,9 @@ function IdlePage() {
       }
     } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia" || id === "egg_dragonite") {
       openEgg(id as EggId);
+    } else if (id === "black_mitic_egg") {
+      setBlackEggHudOpen(true);
+      pushChat("✦ Black Mitic Egg: painel de incubação aberto.", "cap");
     } else if (id === "premium_box") {
       setIdle((s) => ({
         ...s,
