@@ -82,32 +82,42 @@ async function ensureProfile(userId: string): Promise<string | null> {
   return null;
 }
 
+/**
+ * Traz o save da nuvem para o localStorage.
+ * Se a leitura FALHAR, bloqueia qualquer escrita na nuvem — nunca
+ * sobrescrevemos um save válido com estado vazio/default.
+ */
 async function preloadCloudSave(userId: string) {
+  log("preloadCloudSave start", userId);
+  let cloud: unknown = null;
   try {
-    log("preloadCloudSave start", userId);
-    const cloud = await fetchCloudSave(userId);
-    if (isCloudBlob(cloud)) {
-      if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
-      const party = Array.isArray(cloud.party)
-        ? cloud.party
-        : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
-      if (party.length > 0) {
-        localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
-        // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
-        // não pode reabrir o modal de starter em outro navegador/F5.
-        try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
-      }
-      localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
-      log("preloadCloudSave: save restaurado do servidor");
-    } else {
-      localStorage.removeItem(CLOUD_PRELOADED_KEY);
-      log("preloadCloudSave: nenhum save remoto");
-    }
+    cloud = await fetchCloudSaveStrict(userId);
   } catch (e) {
-    try { localStorage.removeItem(CLOUD_PRELOADED_KEY); } catch { /* ignore */ }
-    warn("preloadCloudSave falhou", e);
+    warn("preloadCloudSave falhou — escrita na nuvem bloqueada", e);
+    blockCloudSaveWrites("falha ao carregar o save da nuvem");
+    throw e;
   }
+
+  if (isCloudBlob(cloud)) {
+    if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
+    const party = Array.isArray(cloud.party)
+      ? cloud.party
+      : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
+    if (party.length > 0) {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+      // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
+      // não pode reabrir o modal de starter em outro navegador/F5.
+      try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
+    }
+    localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
+    log("preloadCloudSave: save restaurado do servidor");
+  } else {
+    try { localStorage.removeItem(CLOUD_PRELOADED_KEY); } catch { /* ignore */ }
+    log("preloadCloudSave: conta nova, nenhum save remoto");
+  }
+  allowCloudSaveWrites();
 }
+
 
 type Mode = "login" | "signup" | "reset";
 
