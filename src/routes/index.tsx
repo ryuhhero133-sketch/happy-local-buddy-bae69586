@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      DPS QUE FAÇO LOGIN  dando esse erro
+      jogo ainda n esta logando
     </div>
   ),
 })
