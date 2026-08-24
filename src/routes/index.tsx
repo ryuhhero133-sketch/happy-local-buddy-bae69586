@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   },
   component: () => (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', whiteSpace: 'pre-line' }}>
-      https://idles3-local-buddy.nissanfinance22.workers.dev/idle VERIFIQUE POR A POS O LOGIN A PAGINA TA DANDO ERRO
+      DPS QUE FAÇO LOGIN  dando esse erro
     </div>
   ),
 })
