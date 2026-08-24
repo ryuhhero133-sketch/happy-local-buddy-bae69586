@@ -4,6 +4,7 @@ import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
 import { updateActiveSession, getActiveSessionToken } from "@/lib/session.functions";
+import { bootstrapGameState } from "@/lib/game.functions";
 
 
 const loginBgAsset = { url: "/login-bg.png" };
