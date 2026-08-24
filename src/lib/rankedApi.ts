@@ -264,31 +264,8 @@ export async function recordRankedScore() {
 };
 
 // Mantendo compatibilidade de assinatura se necessário, mas ignorando inputs
-async function _legacy_recordRankedScore(level: number, craftPoints: number, guildName?: string | null) {
+async function _legacy_recordRankedScore() {
   return recordRankedScore();
-}
-
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any).rpc("record_ranked_score", {
-      _level: trainerLevel,
-      _craft_points: craft,
-      _guild_name: guildName ?? null,
-    });
-    if (!error) {
-      await upsertDirectBackup();
-      return;
-    }
-    console.warn("[ranked] record:", error.message);
-  } catch (e) {
-    console.warn("[ranked] record exc:", e);
-  }
-
-  try {
-    await upsertDirectBackup();
-  } catch (e) {
-    console.warn("[ranked] legacy record exc:", e);
-  }
 }
 
 /** Busca a temporada corrente (com ends_at para countdown). */
