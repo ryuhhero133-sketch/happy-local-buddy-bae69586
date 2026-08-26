@@ -75,20 +75,49 @@ function rotateBackups(serialized: string) {
 /**
  * Reads the latest valid save. Falls back to backups if the primary
  * slot is missing or corrupted (e.g. crash mid-write, quota error).
+ * Saves com assinatura inválida são descartados (anti-tamper).
  */
 export function loadLatestValid<T = unknown>(): T | null {
   if (typeof window === "undefined") return null;
-  const primary = safeParse<T>(localStorage.getItem(SAVE_KEY));
-  if (primary) return primary;
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (raw) {
+    const sig = localStorage.getItem(SIG_KEY);
+    if (sig && sig !== signPayload(raw)) {
+      markTampered();
+      return null;
+    }
+    const primary = safeParse<T>(raw);
+    if (primary) {
+      // Save legado sem assinatura → assina agora.
+      if (!sig) { try { localStorage.setItem(SIG_KEY, signPayload(raw)); } catch { /* ignore */ } }
+      return primary;
+    }
+  }
   for (const k of BACKUP_KEYS) {
     const env = safeParse<Envelope<T>>(localStorage.getItem(k));
     if (env?.data) {
       console.warn(`[localSave] restored from backup ${k}`);
-      try { localStorage.setItem(SAVE_KEY, JSON.stringify(env.data)); } catch { /* ignore */ }
+      writeSigned(JSON.stringify(env.data));
       return env.data;
     }
   }
   return null;
+}
+
+/** Verdadeiro se o save local foi detectado como adulterado nesta sessão. */
+export function wasSaveTampered(): boolean {
+  if (typeof window === "undefined") return false;
+  try { return sessionStorage.getItem("rubym.save.tampered") === "1"; } catch { return false; }
+}
+
+function writeSigned(serialized: string) {
+  try {
+    localStorage.setItem(SAVE_KEY, serialized);
+    localStorage.setItem(SIG_KEY, signPayload(serialized));
+    rotateBackups(serialized);
+  } catch (e) {
+    console.warn("[localSave] write failed", e);
+  }
 }
 
 function flush() {
@@ -96,8 +125,7 @@ function flush() {
   try {
     const serialized = JSON.stringify(pending);
     if (serialized === lastSerialized) { pending = null; return; }
-    localStorage.setItem(SAVE_KEY, serialized);
-    rotateBackups(serialized);
+    writeSigned(serialized);
     lastSerialized = serialized;
   } catch (e) {
     console.warn("[localSave] flush failed", e);
@@ -114,6 +142,13 @@ function ensureInit() {
   window.addEventListener("pagehide", onFlush);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") onFlush();
+  });
+  // Edição externa do localStorage (outra aba / DevTools) invalida o save.
+  window.addEventListener("storage", (e) => {
+    if (e.key !== SAVE_KEY && e.key !== SIG_KEY) return;
+    const raw = localStorage.getItem(SAVE_KEY);
+    const sig = localStorage.getItem(SIG_KEY);
+    if (raw && sig && sig !== signPayload(raw)) markTampered();
   });
 }
 
@@ -142,13 +177,8 @@ export function exportSave(): string | null {
   return localStorage.getItem(SAVE_KEY);
 }
 
-/** Imports a JSON save string. Returns true if valid JSON was written. */
-export function importSave(json: string): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    const parsed = JSON.parse(json);
-    localStorage.setItem(SAVE_KEY, JSON.stringify(parsed));
-    rotateBackups(JSON.stringify(parsed));
-    return true;
-  } catch { return false; }
+/** Import manual desativado — impedia injeção de saves editados. */
+export function importSave(_json: string): boolean {
+  console.warn("[localSave] importSave disabled (anti-cheat)");
+  return false;
 }
