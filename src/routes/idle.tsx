@@ -3730,12 +3730,7 @@ function IdlePage() {
     const ch = supabase.channel("rubym-captures-global");
     // Capturas globais de outros jogadores agora vão só como toast leve —
     // sem lotar o chat / feed.
-    ch.on("broadcast", { event: "say" }, (payload) => {
-      const p = payload.payload as { id: string; name: string; text: string };
-      if (!p || p.id === identity.id) return;
-      const safe = String(p.text).slice(0, 140);
-      pushChat(`💬 ${p.name}: ${safe}`, "info");
-    });
+    // Chat global desativado: mensagens de jogadores são ignoradas.
     ch.subscribe();
 
     captureChanRef.current = ch;
