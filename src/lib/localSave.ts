@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 export const SAVE_KEY = "rubym.save.v2";
 const BACKUP_KEYS = ["rubym.save.bak.1", "rubym.save.bak.2", "rubym.save.bak.3"] as const;
+const SIG_KEY = "rubym.save.v2.sig";
 const DEBOUNCE_MS = 600;
 
 type Envelope<T> = { savedAt: number; data: T };
@@ -23,10 +24,41 @@ let timer: ReturnType<typeof setTimeout> | null = null;
 let lastSerialized: string | null = null;
 let initialized = false;
 
+/**
+ * Anti-tamper: assinatura local do save. Não é criptografia forte, mas
+ * impede edição manual do localStorage (valores de ouro/cristal/nível),
+ * porque qualquer alteração invalida a assinatura e o save é descartado
+ * — obrigando o cliente a recarregar o estado da nuvem.
+ */
+const SIG_SALT = "rubym::save::integrity::v1";
+function signPayload(serialized: string): string {
+  let h1 = 0x811c9dc5;
+  let h2 = 0x01000193;
+  const s = SIG_SALT + serialized + SIG_SALT;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    h1 = ((h1 ^ c) * 0x01000193) >>> 0;
+    h2 = (((h2 + c) * 0x85ebca6b) ^ (h2 >>> 13)) >>> 0;
+  }
+  return `${h1.toString(36)}.${h2.toString(36)}.${serialized.length.toString(36)}`;
+}
+
+function markTampered() {
+  try {
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(SIG_KEY);
+    for (const k of BACKUP_KEYS) localStorage.removeItem(k);
+    sessionStorage.setItem("rubym.save.tampered", "1");
+  } catch { /* ignore */ }
+  try { toast.error("Save local inválido — recarregando dados da nuvem."); } catch { /* ignore */ }
+  console.warn("[localSave] integrity check failed — local save discarded");
+}
+
 function safeParse<T>(raw: string | null): T | null {
   if (!raw) return null;
   try { return JSON.parse(raw) as T; } catch { return null; }
 }
+
 
 function rotateBackups(serialized: string) {
   try {
