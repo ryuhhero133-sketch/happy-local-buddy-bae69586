@@ -51,6 +51,77 @@ async function parseRestError(response: Response) {
   }
 }
 
+/** Tetos absolutos (espelham os caps do trigger no banco). */
+const CAPS = {
+  trainerLevel: 10000,
+  pokemonLevel: 10000,
+  gold: 50_000_000,
+  crystal: 1_000_000,
+  esmeralda: 1_000_000,
+  safira: 1_000_000,
+  collection: 500,
+  itemQty: 999_999,
+} as const;
+
+function clampNum(v: unknown, max: number, min = 0): number | null {
+  const n = typeof v === "number" ? v : Number(v);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(min, Math.min(max, Math.floor(n)));
+}
+
+/**
+ * Sanitiza o snapshot antes de subir: mesmo que alguém edite o estado no
+ * front (DevTools/localStorage), os valores enviados ao banco ficam dentro
+ * dos tetos. O trigger no Postgres é a última linha de defesa.
+ */
+function sanitizeSnapshot(snapshot: unknown): unknown {
+  if (!snapshot || typeof snapshot !== "object") return snapshot;
+  const root = { ...(snapshot as Record<string, unknown>) };
+  const idle = root["idle"];
+  if (idle && typeof idle === "object") {
+    const s = { ...(idle as Record<string, unknown>) };
+    const caps: Array<[string, number]> = [
+      ["trainerLevel", CAPS.trainerLevel],
+      ["trainer_level", CAPS.trainerLevel],
+      ["gold", CAPS.gold],
+      ["crystal", CAPS.crystal],
+      ["esmeralda", CAPS.esmeralda],
+      ["safira", CAPS.safira],
+    ];
+    for (const [key, max] of caps) {
+      if (s[key] === undefined) continue;
+      const v = clampNum(s[key], max);
+      if (v !== null) s[key] = v; else delete s[key];
+    }
+    const items = s["items"];
+    if (items && typeof items === "object" && !Array.isArray(items)) {
+      const out: Record<string, number> = {};
+      for (const [k, v] of Object.entries(items as Record<string, unknown>)) {
+        const n = clampNum(v, CAPS.itemQty);
+        if (n !== null) out[k] = n;
+      }
+      s["items"] = out;
+    }
+    const col = s["collection"];
+    if (Array.isArray(col) && col.length > CAPS.collection) s["collection"] = col.slice(0, CAPS.collection);
+    root["idle"] = s;
+  }
+  for (const key of ["team", "restingBench"] as const) {
+    const arr = root[key];
+    if (!Array.isArray(arr)) continue;
+    root[key] = arr.slice(0, 200).map((mon) => {
+      if (!mon || typeof mon !== "object") return mon;
+      const m = { ...(mon as Record<string, unknown>) };
+      if (m["level"] !== undefined) {
+        const lv = clampNum(m["level"], CAPS.pokemonLevel, 1);
+        if (lv !== null) m["level"] = lv;
+      }
+      return m;
+    });
+  }
+  return root;
+}
+
 async function upsert(uid: string, snapshot: unknown) {
   const { headers } = await getAuthedRestHeaders();
   const response = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`, {
@@ -59,10 +130,11 @@ async function upsert(uid: string, snapshot: unknown) {
       ...headers,
       Prefer: "resolution=merge-duplicates,return=minimal",
     },
-    body: JSON.stringify({ user_id: uid, data: snapshot, updated_at: new Date().toISOString() }),
+    body: JSON.stringify({ user_id: uid, data: sanitizeSnapshot(snapshot), updated_at: new Date().toISOString() }),
   });
   if (!response.ok) throw new Error(await parseRestError(response));
 }
+
 
 /** Debounced push (1.5s) — usar durante gameplay. */
 export function scheduleCloudSync(data: unknown) {
