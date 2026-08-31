@@ -1340,6 +1340,16 @@ export function BlackMiticEggHud(props: {
     onNotify?.("Incubação iniciada! 1 hora para chocar.");
   };
 
+  const chooseElement = (id: ElementId) => {
+    if (!selected) return;
+    persist((st) => ({
+      ...st,
+      eggs: st.eggs.map(e => e.id === selected.id ? { ...e, chosenElement: id } : e),
+    }));
+    const el = ELEMENTS.find(x => x.id === id)!;
+    onNotify?.(`Elemento escolhido: ${el.emoji} ${el.label}.`);
+  };
+
   const feed = (el: typeof ELEMENTS[number]) => {
     if (!selected) return;
     if (!selected.activated) { onNotify?.("Ative a incubação antes de alimentar."); return; }
@@ -1633,6 +1643,42 @@ export function BlackMiticEggHud(props: {
                         animation: "blackEggPulse 1s ease-in-out infinite",
                       }}>PRONTO!</div>
                     )}
+                  </div>
+
+                  {/* Escolha do ELEMENTO — define o Pokémon que vai nascer */}
+                  <div style={{
+                    width: "100%", padding: "8px", borderRadius: 8,
+                    background: "rgba(20,5,40,0.55)", border: "1px solid rgba(160,80,255,0.35)",
+                  }}>
+                    <div style={{ fontSize: 8, color: "#c8a0e8", letterSpacing: 1, marginBottom: 6, textAlign: "center" }}>
+                      ESCOLHA O ELEMENTO DO POKÉMON
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 5 }}>
+                      {ELEMENTS.map((el) => {
+                        const active = selected.chosenElement === el.id;
+                        return (
+                          <button
+                            key={el.id}
+                            onClick={() => chooseElement(el.id)}
+                            title={`${el.label} → ${el.species.toUpperCase()}`}
+                            style={{
+                              padding: "6px 2px", borderRadius: 6,
+                              background: active ? `linear-gradient(180deg, ${el.color}88, ${el.color}22)` : "rgba(0,0,0,0.35)",
+                              border: `1px solid ${active ? el.color : "rgba(160,80,255,0.25)"}`,
+                              boxShadow: active ? `0 0 10px ${el.color}` : "none",
+                              color: active ? "#fff" : "#a888c8",
+                              fontSize: 8, fontWeight: 700, cursor: "pointer", letterSpacing: 0.5,
+                            }}
+                          >
+                            <div style={{ fontSize: 13 }}>{el.emoji}</div>
+                            {el.label.toUpperCase()}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div style={{ fontSize: 7, color: "#8a6ab0", textAlign: "center", marginTop: 6, lineHeight: 1.5 }}>
+                      Incuba em <b style={{ color: "#ffd88a" }}>1 hora</b> · stones não são necessárias
+                    </div>
                   </div>
 
                   {!selected.activated ? (
