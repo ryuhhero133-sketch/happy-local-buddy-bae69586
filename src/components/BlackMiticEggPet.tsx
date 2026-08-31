@@ -12,13 +12,13 @@ import { getMusicState, setMusicSuspended, subscribeMusic } from "@/lib/musicCon
 // Black Mitic Plus Egg — sistema unificado
 // - Suporta múltiplos ovos em UM único painel (seleção por ovo).
 // - Cooldown de alimentação: 1h entre feeds.
-// - Incubação: 20h (conta apenas depois de "ATIVAR INICIAÇÃO").
+// - Incubação: 1h (conta apenas depois de "ATIVAR INICIAÇÃO").
 export const BLACK_EGG_ITEM_ID = "black_mitic_egg";
 export const BLACK_MITIC_EGG_DESCRIPTION =
-  "Black Mitic Plus Egg — coloque na incubadora e ative para começar a chocar (20h). Alimente com Elemental Stones (50 por vez, 1h de cooldown). O elemento dominante define o tipo do Pokémon que nascerá com 5 traits.";
+  "Black Mitic Plus Egg — coloque na incubadora, escolha o ELEMENTO desejado e ative para chocar em 1 hora. Não precisa de Elemental Stones. O elemento escolhido define o tipo do Pokémon que nascerá com 5 traits.";
 
 const FEED_COOLDOWN_MS = 0;                      // sem cooldown — alimentação ilimitada
-const HATCH_MS = 20 * 60 * 60 * 1000;            // 20h incubação
+const HATCH_MS = 60 * 60 * 1000;                 // 1h incubação
 const FEED_COST = 50;
 // --- Sistema BONUS (rompimento dos elementais) ---
 const BONUS_UNLOCK_PCT = 0.70;                    // libera aos 70% de incubação
@@ -85,6 +85,7 @@ export type EggInstance = {
   ruptured: boolean;                               // true → nasce com 6 traits
   forcePlus?: boolean;                             // true → Black Mitic Plus (Governante) → arquétipo VERSÁTIL forçado + 6 traits
   lastBonusResult?: { ts: number; kind: "accept" | "reject"; element: ElementId; amount: number; line: string } | null;
+  chosenElement?: ElementId | null;                // elemento escolhido pelo jogador (define o Pokémon que nasce)
 };
 
 type CollectionState = {
@@ -124,6 +125,7 @@ function newEgg(): EggInstance {
     lastBonusFeedAt: 0,
     ruptured: false,
     lastBonusResult: null,
+    chosenElement: null,
   };
 }
 
@@ -174,6 +176,7 @@ function loadState(uid: string): CollectionState {
           ruptured: !!e?.ruptured,
           forcePlus: !!e?.forcePlus,
           lastBonusResult: e?.lastBonusResult ?? null,
+          chosenElement: (e?.chosenElement ?? null) as ElementId | null,
         }))
       : [];
     return {
@@ -1334,7 +1337,17 @@ export function BlackMiticEggHud(props: {
       }),
     }));
     onActivateEgg?.();
-    onNotify?.("Incubação iniciada! 10 horas para chocar.");
+    onNotify?.("Incubação iniciada! 1 hora para chocar.");
+  };
+
+  const chooseElement = (id: ElementId) => {
+    if (!selected) return;
+    persist((st) => ({
+      ...st,
+      eggs: st.eggs.map(e => e.id === selected.id ? { ...e, chosenElement: id } : e),
+    }));
+    const el = ELEMENTS.find(x => x.id === id)!;
+    onNotify?.(`Elemento escolhido: ${el.emoji} ${el.label}.`);
   };
 
   const feed = (el: typeof ELEMENTS[number]) => {
@@ -1381,7 +1394,8 @@ export function BlackMiticEggHud(props: {
     if (!selected.activated) return;
     const remain = Math.max(0, (selected.activatedAt + HATCH_MS) - Date.now());
     if (remain > 0) { onNotify?.(`Ainda faltam ${fmt(remain)} para chocar.`); return; }
-    const el = ELEMENTS.find(e => e.id === dominantElement(selected.affinity))!;
+    const chosen = selected.chosenElement ?? null;
+    const el = ELEMENTS.find(e => e.id === (chosen ?? dominantElement(selected.affinity)))!;
     // Fallback robusto: se o flag `forcePlus` não foi gravado no ovo por
     // qualquer motivo, ainda consumimos da fila `plusPending` do parent.
     // Isso garante que TODO ovo entregue pelo Governante nasça como
@@ -1396,7 +1410,9 @@ export function BlackMiticEggHud(props: {
     // Anti-duplicata para pool versátil.
     const recent = new Set(state.hatchedHistory ?? []);
     let species: string;
-    if (arch === "versatile") {
+    if (chosen) {
+      species = el.species;
+    } else if (arch === "versatile") {
       const unused = VERSATILE_POOL.filter(s => !recent.has(s));
       const pool = unused.length > 0 ? unused : VERSATILE_POOL;
       species = pool[Math.floor(Math.random() * pool.length)];
@@ -1629,12 +1645,48 @@ export function BlackMiticEggHud(props: {
                     )}
                   </div>
 
+                  {/* Escolha do ELEMENTO — define o Pokémon que vai nascer */}
+                  <div style={{
+                    width: "100%", padding: "8px", borderRadius: 8,
+                    background: "rgba(20,5,40,0.55)", border: "1px solid rgba(160,80,255,0.35)",
+                  }}>
+                    <div style={{ fontSize: 8, color: "#c8a0e8", letterSpacing: 1, marginBottom: 6, textAlign: "center" }}>
+                      ESCOLHA O ELEMENTO DO POKÉMON
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 5 }}>
+                      {ELEMENTS.map((el) => {
+                        const active = selected.chosenElement === el.id;
+                        return (
+                          <button
+                            key={el.id}
+                            onClick={() => chooseElement(el.id)}
+                            title={`${el.label} → ${el.species.toUpperCase()}`}
+                            style={{
+                              padding: "6px 2px", borderRadius: 6,
+                              background: active ? `linear-gradient(180deg, ${el.color}88, ${el.color}22)` : "rgba(0,0,0,0.35)",
+                              border: `1px solid ${active ? el.color : "rgba(160,80,255,0.25)"}`,
+                              boxShadow: active ? `0 0 10px ${el.color}` : "none",
+                              color: active ? "#fff" : "#a888c8",
+                              fontSize: 8, fontWeight: 700, cursor: "pointer", letterSpacing: 0.5,
+                            }}
+                          >
+                            <div style={{ fontSize: 13 }}>{el.emoji}</div>
+                            {el.label.toUpperCase()}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div style={{ fontSize: 7, color: "#8a6ab0", textAlign: "center", marginTop: 6, lineHeight: 1.5 }}>
+                      Incuba em <b style={{ color: "#ffd88a" }}>1 hora</b> · stones não são necessárias
+                    </div>
+                  </div>
+
                   {!selected.activated ? (
                     <>
                       <button
                         onClick={activate}
                         disabled={!hasIncubatorCard}
-                        title={hasIncubatorCard ? "Ativar a incubação (10h)" : "Requer Carta da Incubadora Lendária"}
+                        title={hasIncubatorCard ? "Ativar a incubação (1h)" : "Requer Carta da Incubadora Lendária"}
                         style={{
                           width: "100%", padding: "10px 8px",
                           background: hasIncubatorCard
