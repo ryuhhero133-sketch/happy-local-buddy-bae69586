@@ -12,13 +12,13 @@ import { getMusicState, setMusicSuspended, subscribeMusic } from "@/lib/musicCon
 // Black Mitic Plus Egg — sistema unificado
 // - Suporta múltiplos ovos em UM único painel (seleção por ovo).
 // - Cooldown de alimentação: 1h entre feeds.
-// - Incubação: 20h (conta apenas depois de "ATIVAR INICIAÇÃO").
+// - Incubação: 1h (conta apenas depois de "ATIVAR INICIAÇÃO").
 export const BLACK_EGG_ITEM_ID = "black_mitic_egg";
 export const BLACK_MITIC_EGG_DESCRIPTION =
-  "Black Mitic Plus Egg — coloque na incubadora e ative para começar a chocar (20h). Alimente com Elemental Stones (50 por vez, 1h de cooldown). O elemento dominante define o tipo do Pokémon que nascerá com 5 traits.";
+  "Black Mitic Plus Egg — coloque na incubadora, escolha o ELEMENTO desejado e ative para chocar em 1 hora. Não precisa de Elemental Stones. O elemento escolhido define o tipo do Pokémon que nascerá com 5 traits.";
 
 const FEED_COOLDOWN_MS = 0;                      // sem cooldown — alimentação ilimitada
-const HATCH_MS = 20 * 60 * 60 * 1000;            // 20h incubação
+const HATCH_MS = 60 * 60 * 1000;                 // 1h incubação
 const FEED_COST = 50;
 // --- Sistema BONUS (rompimento dos elementais) ---
 const BONUS_UNLOCK_PCT = 0.70;                    // libera aos 70% de incubação
