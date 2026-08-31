@@ -85,6 +85,7 @@ export type EggInstance = {
   ruptured: boolean;                               // true → nasce com 6 traits
   forcePlus?: boolean;                             // true → Black Mitic Plus (Governante) → arquétipo VERSÁTIL forçado + 6 traits
   lastBonusResult?: { ts: number; kind: "accept" | "reject"; element: ElementId; amount: number; line: string } | null;
+  chosenElement?: ElementId | null;                // elemento escolhido pelo jogador (define o Pokémon que nasce)
 };
 
 type CollectionState = {
@@ -124,6 +125,7 @@ function newEgg(): EggInstance {
     lastBonusFeedAt: 0,
     ruptured: false,
     lastBonusResult: null,
+    chosenElement: null,
   };
 }
 
@@ -174,6 +176,7 @@ function loadState(uid: string): CollectionState {
           ruptured: !!e?.ruptured,
           forcePlus: !!e?.forcePlus,
           lastBonusResult: e?.lastBonusResult ?? null,
+          chosenElement: (e?.chosenElement ?? null) as ElementId | null,
         }))
       : [];
     return {
@@ -1334,7 +1337,7 @@ export function BlackMiticEggHud(props: {
       }),
     }));
     onActivateEgg?.();
-    onNotify?.("Incubação iniciada! 10 horas para chocar.");
+    onNotify?.("Incubação iniciada! 1 hora para chocar.");
   };
 
   const feed = (el: typeof ELEMENTS[number]) => {
@@ -1381,7 +1384,8 @@ export function BlackMiticEggHud(props: {
     if (!selected.activated) return;
     const remain = Math.max(0, (selected.activatedAt + HATCH_MS) - Date.now());
     if (remain > 0) { onNotify?.(`Ainda faltam ${fmt(remain)} para chocar.`); return; }
-    const el = ELEMENTS.find(e => e.id === dominantElement(selected.affinity))!;
+    const chosen = selected.chosenElement ?? null;
+    const el = ELEMENTS.find(e => e.id === (chosen ?? dominantElement(selected.affinity)))!;
     // Fallback robusto: se o flag `forcePlus` não foi gravado no ovo por
     // qualquer motivo, ainda consumimos da fila `plusPending` do parent.
     // Isso garante que TODO ovo entregue pelo Governante nasça como
@@ -1396,7 +1400,9 @@ export function BlackMiticEggHud(props: {
     // Anti-duplicata para pool versátil.
     const recent = new Set(state.hatchedHistory ?? []);
     let species: string;
-    if (arch === "versatile") {
+    if (chosen) {
+      species = el.species;
+    } else if (arch === "versatile") {
       const unused = VERSATILE_POOL.filter(s => !recent.has(s));
       const pool = unused.length > 0 ? unused : VERSATILE_POOL;
       species = pool[Math.floor(Math.random() * pool.length)];
@@ -1634,7 +1640,7 @@ export function BlackMiticEggHud(props: {
                       <button
                         onClick={activate}
                         disabled={!hasIncubatorCard}
-                        title={hasIncubatorCard ? "Ativar a incubação (10h)" : "Requer Carta da Incubadora Lendária"}
+                        title={hasIncubatorCard ? "Ativar a incubação (1h)" : "Requer Carta da Incubadora Lendária"}
                         style={{
                           width: "100%", padding: "10px 8px",
                           background: hasIncubatorCard
