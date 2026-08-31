@@ -16693,7 +16693,7 @@ function TabOverlay({
                        title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
                      >
                        {traits.length > 0
-                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
+                         ? traits.slice(0, isBMP ? 7 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
                          : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
                      </div>
 
