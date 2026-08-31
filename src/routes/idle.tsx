@@ -57,7 +57,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
-import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg } from "@/components/BlackMiticEggPet";
+import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg, seedReadyPlusEggs } from "@/components/BlackMiticEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
@@ -2734,7 +2734,44 @@ function IdlePage() {
       return;
     }
 
-    // ===== Códigos únicos: 10× Ovo Black Mítico PLUS (6 traits, pokémon aleatório) =====
+    // ===== Códigos únicos: ovos Black Mítico PLUS JÁ PRONTOS na incubadora (7 traits) =====
+    // 5 códigos entregam 6 ovos · 5 códigos entregam 1 ovo. Cada código só pode
+    // ser usado UMA vez por conta (redeemedCodes é validado no save da nuvem).
+    const BLACK_EGG_READY_6 = [
+      "BLACKPLUS6X01", "BLACKPLUS6X02", "BLACKPLUS6X03", "BLACKPLUS6X04", "BLACKPLUS6X05",
+    ];
+    const BLACK_EGG_READY_1 = [
+      "BLACKPLUS1X01", "BLACKPLUS1X02", "BLACKPLUS1X03", "BLACKPLUS1X04", "BLACKPLUS1X05",
+    ];
+    const readyQty = BLACK_EGG_READY_6.includes(raw) ? 6 : BLACK_EGG_READY_1.includes(raw) ? 1 : 0;
+    if (readyQty > 0) {
+      const uid = identity?.id ?? "guest";
+      const base = idleRef.current;
+      const have = base.items?.black_mitic_egg ?? 0;
+      if (have >= 6) {
+        setCodeMsg({ kind: "err", text: "Você já tem 6 Black Mitic Plus Eggs (limite). Choque um antes de resgatar." });
+        return;
+      }
+      const granted = seedReadyPlusEggs(uid, readyQty, 6);
+      if (granted <= 0) {
+        setCodeMsg({ kind: "err", text: "Limite de ovos atingido. Choque um antes de resgatar." });
+        return;
+      }
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, black_mitic_egg: have + granted },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: `✦ ${granted}× Black Mitic PLUS Egg na incubadora — prontos para chocar agora (7 traits)!` });
+      setCodeInput("");
+      pushChat(`🥚 Código ${raw}: ${granted}× Black Mitic PLUS Egg ✦ já prontos na incubadora (7 traits).`, "cap");
+      return;
+    }
+
+    // ===== Códigos únicos: 10× Ovo Black Mítico PLUS (7 traits, pokémon aleatório) =====
     const BLACK_EGG_CODES = [
       "BLACKMITIC01", "BLACKMITIC02", "BLACKMITIC03", "BLACKMITIC04", "BLACKMITIC05",
       "BLACKMITIC06", "BLACKMITIC07", "BLACKMITIC08", "BLACKMITIC09", "BLACKMITIC10",
@@ -2755,9 +2792,9 @@ function IdlePage() {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
-      setCodeMsg({ kind: "ok", text: "✦ 1× Black Mitic PLUS Egg entregue! Ao chocar nasce um pokémon aleatório com 6 traits." });
+      setCodeMsg({ kind: "ok", text: "✦ 1× Black Mitic PLUS Egg entregue! Ao chocar nasce um pokémon aleatório com 7 traits." });
       setCodeInput("");
-      pushChat(`🥚 Código ${raw}: 1× Black Mitic PLUS Egg ✦ (pokémon aleatório com 6 traits).`, "cap");
+      pushChat(`🥚 Código ${raw}: 1× Black Mitic PLUS Egg ✦ (pokémon aleatório com 7 traits).`, "cap");
       return;
     }
 
@@ -14748,7 +14785,7 @@ function IdlePage() {
           saveIdle(nextIdle);
           setIdle(nextIdle);
           void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
-          const tag = plus ? "Black Mitic PLUS ✦ (Versátil, 6 traits)" : `Black Mitic Plus (${element})`;
+          const tag = plus ? "Black Mitic PLUS ✦ (7 traits)" : `Black Mitic Plus (${element})`;
           pushChat(`✦ ${tag} nasceu: ${hatchSpecies.toUpperCase()} com ${traits.length} traits! Já está na Coleção.`, "cap");
         }}
         onNotify={(msg) => pushChat(`✦ Black Mitic Plus Egg: ${msg}`, "cap")}
@@ -16656,7 +16693,7 @@ function TabOverlay({
                        title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
                      >
                        {traits.length > 0
-                         ? traits.slice(0, isBMP ? 6 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
+                         ? traits.slice(0, isBMP ? 7 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
                          : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
                      </div>
 

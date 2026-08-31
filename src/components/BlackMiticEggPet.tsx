@@ -193,6 +193,29 @@ function saveState(uid: string, s: CollectionState) {
   try { localStorage.setItem(storageKey(uid), JSON.stringify(s)); } catch { /* ignore */ }
 }
 
+/**
+ * Entrega ovos Black Mitic PLUS já ATIVADOS e PRONTOS para chocar na incubadora.
+ * Usado pelos códigos de recompensa. Retorna quantos ovos foram realmente criados
+ * (respeita o limite de 6 ovos simultâneos).
+ */
+export function seedReadyPlusEggs(uid: string, count: number, max: number = 6): number {
+  const st = loadState(uid);
+  const eggs = [...st.eggs];
+  let added = 0;
+  while (eggs.length < max && added < count) {
+    const ne = newEgg();
+    ne.forcePlus = true;
+    ne.activated = true;
+    ne.activatedAt = Date.now() - HATCH_MS - 1000; // já pronto para chocar
+    eggs.push(ne);
+    added += 1;
+  }
+  if (added > 0) {
+    saveState(uid, { ...st, eggs, selectedId: st.selectedId ?? eggs[0]?.id ?? null });
+  }
+  return added;
+}
+
 function dominantElement(affinity: Record<ElementId, number>): ElementId {
   let best: ElementId = "grass"; let bv = -1;
   for (const el of ELEMENTS) {
@@ -1405,7 +1428,7 @@ export function BlackMiticEggHud(props: {
     const isPlus = isPlusFromEgg || isPlusFromQueue;
     const arch = isPlus ? "versatile" : computeArchetype(selected.affinity);
     const care = computeCareScore(selected);
-    const slots = isPlus ? 6 : (selected.ruptured ? 6 : 5);
+    const slots = isPlus ? 7 : (selected.ruptured ? 6 : 5);
     const traits = rollBlackMiticTraits(selected, arch, slots);
     // Anti-duplicata para pool versátil.
     const recent = new Set(state.hatchedHistory ?? []);
@@ -1426,7 +1449,7 @@ export function BlackMiticEggHud(props: {
       const hist = [...(s.hatchedHistory ?? []), species].slice(-10);
       return { eggs, selectedId: eggs[0]?.id ?? null, hatchedHistory: hist };
     });
-    const rupTag = isPlus ? " ✦ PLUS VERSÁTIL (6 traits)" : (selected.ruptured ? " ✦ ROMPIDO (6 traits)" : "");
+    const rupTag = isPlus ? " ✦ PLUS (7 traits)" : (selected.ruptured ? " ✦ ROMPIDO (6 traits)" : "");
     onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100${rupTag}!`);
   };
 
