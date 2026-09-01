@@ -1015,6 +1015,8 @@ type IdleState = {
   chestEnergy?: number;
   dailyChestsOpened?: number;
   lastReset?: number;
+  /** UIDs de Black Mitic Plus que já usaram sua troca única (1 troca por Pokémon). */
+  bmpSwapUsedUids?: string[];
 };
 
 
@@ -1030,6 +1032,9 @@ const GOVERNANTE_PLUS_POOL: readonly Species[] = [
 ];
 
 const GOVERNANTE_PLUS_TRAITS = ["prismatico", "alpha", "esquivo", "dourado", "prodigio", "eterno"];
+
+// Traits garantidos ao trocar um Black Mitic Plus (7 traits).
+const BMP_SWAP_TRAITS = ["prismatico", "alpha", "esquivo", "dourado", "prodigio", "eterno", "vampirico"];
 
 // Pool de 50 espécies elegíveis para o Painel de Troca Black Mitic Plus (código RESGTT55).
 const BMP_SWAP_POOL: readonly Species[] = [
@@ -12394,6 +12399,28 @@ function IdlePage() {
                   <FlaskConical size={22} color="#d97706" />
                 </div>
 
+                {/* Troca Black Mitic Plus */}
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setBmpSwapOpen(true);
+                    setBmpSwapMsg(null);
+                    setForgeShowOrbit(false);
+                    playClick();
+                  }}
+                  style={{
+                    position: "absolute", width: 48, height: 48,
+                    background: "linear-gradient(180deg,#2a0d45,#12061f)",
+                    border: "3px solid #a25bff", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    left: -60, top: 6, boxShadow: "0 0 16px rgba(162,91,255,0.65)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.15s ease-out forwards", zIndex: 1,
+                  }}
+                  title="Troca Black Mitic Plus (1 troca por Pokémon · 7 traits)"
+                >
+                  <div style={{ fontSize: 22 }}>🔄</div>
+                </div>
+
                 <div 
                   onClick={(e) => { e.stopPropagation(); setTab("evento"); playClick(); }}
                   style={{
@@ -14015,13 +14042,20 @@ function IdlePage() {
           ...team.filter(isBMP),
           ...restingBench.filter(isBMP),
         ];
+        const usedUids = idle.bmpSwapUsedUids ?? [];
+        const swapPool = BMP_SWAP_POOL.slice(0, 30);
         const source = bmpEntries.find((e) => e.uid === bmpSwapSourceUid) ?? null;
-        const canConfirm = !!source && !!bmpSwapTarget;
+        const sourceUsed = !!bmpSwapSourceUid && usedUids.includes(bmpSwapSourceUid);
+        const canConfirm = !!source && !!bmpSwapTarget && !sourceUsed;
         const confirmSwap = () => {
           const base = idleRef.current;
           const target = bmpSwapTarget;
           if (!bmpSwapSourceUid || !target) {
             setBmpSwapMsg({ kind: "err", text: "Selecione um BMP e uma espécie destino." });
+            return;
+          }
+          if ((base.bmpSwapUsedUids ?? []).includes(bmpSwapSourceUid)) {
+            setBmpSwapMsg({ kind: "err", text: "Este Black Mitic Plus já usou a troca única." });
             return;
           }
           const currentTeam = teamRef.current;
@@ -14043,19 +14077,41 @@ function IdlePage() {
               ? {
                   ...p,
                   species: target as Species,
-                  traits: [...GOVERNANTE_PLUS_TRAITS],
+                  traits: [...BMP_SWAP_TRAITS],
                   rarity: "mythic_shiny" as Rarity,
                   event: `black_mitic_plus:swap:${target}`,
                 }
               : p;
-          const nextCollection = (base.collection ?? []).map(patch);
-          const nextTeam = currentTeam.map(patch);
-          const nextBench = currentBench.map(patch);
+          // Sai do time/banco e vai direto para a Coleção.
+          const nextTeam = currentTeam.filter((p) => p.uid !== bmpSwapSourceUid);
+          const nextBench = currentBench.filter((p) => p.uid !== bmpSwapSourceUid);
+          let nextCollection = (base.collection ?? []).map(patch);
+          if (!nextCollection.some((e) => e.uid === bmpSwapSourceUid)) {
+            nextCollection = [
+              ...nextCollection,
+              {
+                uid: found.uid,
+                species: target as Species,
+                level: (found as { level?: number }).level ?? 1,
+                rarity: "mythic_shiny" as Rarity,
+                capturedAt: Date.now(),
+                xp: (found as { xp?: number }).xp ?? 0,
+                traits: [...BMP_SWAP_TRAITS],
+                event: `black_mitic_plus:swap:${target}`,
+              },
+            ];
+          }
           const seenSpecies = base.seenSpecies.includes(target)
             ? base.seenSpecies : [...base.seenSpecies, target];
           const caughtSpecies = base.caughtSpecies.includes(target)
             ? base.caughtSpecies : [...base.caughtSpecies, target];
-          const next: IdleState = { ...base, collection: nextCollection, seenSpecies, caughtSpecies };
+          const next: IdleState = {
+            ...base,
+            collection: nextCollection,
+            seenSpecies,
+            caughtSpecies,
+            bmpSwapUsedUids: [...(base.bmpSwapUsedUids ?? []), bmpSwapSourceUid],
+          };
           idleRef.current = next;
           saveIdle(next);
           setIdle(next);
@@ -14066,8 +14122,8 @@ function IdlePage() {
           if (!identity?.id?.startsWith("guest-")) {
             void pushCloudSaveNow({ idle: next, team: nextTeam, restingBench: nextBench, savedAt: Date.now() });
           }
-          pushChat(`🔄 Troca BMP concluída: ${found.species.toUpperCase()} → ${target.toUpperCase()} (6 traits VERSÁTIL).`, "cap");
-          setBmpSwapMsg({ kind: "ok", text: `Troca concluída! Seu ${found.species.toUpperCase()} agora é ${target.toString().toUpperCase()}.` });
+          pushChat(`🔄 Troca BMP concluída: ${found.species.toUpperCase()} → ${target.toUpperCase()} (7 traits) — enviado para a Coleção.`, "cap");
+          setBmpSwapMsg({ kind: "ok", text: `Troca concluída! Seu ${found.species.toUpperCase()} agora é ${target.toString().toUpperCase()} com 7 traits e foi para a Coleção.` });
           setBmpSwapSourceUid(null);
           setBmpSwapTarget(null);
         };
@@ -14096,7 +14152,7 @@ function IdlePage() {
                     🔄 TROCA BLACK MITIC PLUS
                   </div>
                   <div style={{ fontSize: 11, color: "#b18cd9", marginTop: 2 }}>
-                    Troque um Pokémon Black Mitic Plus da sua Coleção por outra espécie. Todos vêm com 6 traits VERSÁTIL.
+                    Cada Black Mitic Plus pode ser trocado <b style={{ color: "#ffd166" }}>1 única vez</b> (1 por 1). O novo nasce com <b style={{ color: "#ffd166" }}>7 traits</b> e vai direto para a Coleção.
                   </div>
                 </div>
                 <button
@@ -14108,7 +14164,7 @@ function IdlePage() {
               {/* Passo 1: escolher BMP */}
               <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "rgba(162,91,255,0.06)", border: "1px solid rgba(162,91,255,0.25)" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "#e8d1ff", marginBottom: 6 }}>
-                  1) SEU BLACK MITIC PLUS ({bmpEntries.length})
+                  1) SEU BLACK MITIC PLUS ({bmpEntries.length}) · trocas disponíveis: {bmpEntries.filter((e) => !usedUids.includes(e.uid)).length}
                 </div>
                 {bmpEntries.length === 0 ? (
                   <div style={{ fontSize: 12, color: "#c8a8e8", padding: 8 }}>
@@ -14119,18 +14175,23 @@ function IdlePage() {
                     {bmpEntries.map((e) => {
                       const src = GIF[e.species];
                       const sel = e.uid === bmpSwapSourceUid;
+                      const used = usedUids.includes(e.uid);
                       return (
                         <button
                           key={e.uid}
-                          onClick={() => { setBmpSwapSourceUid(e.uid); setBmpSwapMsg(null); }}
+                          disabled={used}
+                          onClick={() => { if (used) return; setBmpSwapSourceUid(e.uid); setBmpSwapMsg(null); }}
                           style={{
+                            position: "relative",
                             display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                            padding: 8, borderRadius: 8, cursor: "pointer",
+                            padding: 8, borderRadius: 8, cursor: used ? "not-allowed" : "pointer",
                             background: sel ? "linear-gradient(180deg,#3a1660,#1a0630)" : "rgba(20,10,35,0.7)",
-                            border: sel ? "2px solid #ffd166" : "1px solid #6a3ba0",
+                            border: sel ? "2px solid #ffd166" : used ? "1px solid #4a3060" : "1px solid #6a3ba0",
                             boxShadow: sel ? "0 0 12px rgba(255,209,102,0.6)" : "none",
                             color: "#f3e5ff", fontFamily: "monospace",
+                            opacity: used ? 0.4 : 1,
                           }}
+                          title={used ? "Este Pokémon já usou a troca única" : e.species}
                         >
                           {src ? (
                             <img src={src} alt="" style={{ width: 48, height: 48, imageRendering: "pixelated" }} />
@@ -14141,6 +14202,13 @@ function IdlePage() {
                             {e.species.toUpperCase()}
                           </div>
                           <div style={{ fontSize: 9, color: "#c9a2ff" }}>Lv {e.level}</div>
+                          {used && (
+                            <div style={{
+                              position: "absolute", top: 2, right: 2, fontSize: 8, fontWeight: 900,
+                              background: "#3a1030", border: "1px solid #e34a4a", color: "#ffb0b0",
+                              borderRadius: 4, padding: "1px 4px",
+                            }}>USADO</div>
+                          )}
                         </button>
                       );
                     })}
@@ -14151,10 +14219,10 @@ function IdlePage() {
               {/* Passo 2: escolher destino */}
               <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "rgba(162,91,255,0.06)", border: "1px solid rgba(162,91,255,0.25)" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "#e8d1ff", marginBottom: 6 }}>
-                  2) ESCOLHA A ESPÉCIE DESEJADA ({BMP_SWAP_POOL.length})
+                  2) ESCOLHA A ESPÉCIE DESEJADA ({swapPool.length})
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 6 }}>
-                  {BMP_SWAP_POOL.map((sp) => {
+                  {swapPool.map((sp) => {
                     const src = GIF[sp];
                     const sel = sp === bmpSwapTarget;
                     return (
@@ -14188,7 +14256,7 @@ function IdlePage() {
               {/* Confirmação */}
               <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                 <div style={{ fontSize: 11, color: "#c8a8e8" }}>
-                  {source ? <div>Fonte: <b style={{ color: "#ffd166" }}>{source.species.toUpperCase()}</b></div> : "Selecione um BMP acima."}
+                  {source ? <div>Fonte: <b style={{ color: sourceUsed ? "#e34a4a" : "#ffd166" }}>{source.species.toUpperCase()}{sourceUsed ? " (já trocado)" : ""}</b></div> : "Selecione um BMP acima."}
                   {" · "}
                   {bmpSwapTarget ? <div>Destino: <b style={{ color: "#ffd166" }}>{bmpSwapTarget.toString().toUpperCase()}</b></div> : "Escolha a espécie destino."}
                 </div>
