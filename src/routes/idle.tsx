@@ -12399,6 +12399,28 @@ function IdlePage() {
                   <FlaskConical size={22} color="#d97706" />
                 </div>
 
+                {/* Troca Black Mitic Plus */}
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setBmpSwapOpen(true);
+                    setBmpSwapMsg(null);
+                    setForgeShowOrbit(false);
+                    playClick();
+                  }}
+                  style={{
+                    position: "absolute", width: 48, height: 48,
+                    background: "linear-gradient(180deg,#2a0d45,#12061f)",
+                    border: "3px solid #a25bff", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    left: -60, top: 6, boxShadow: "0 0 16px rgba(162,91,255,0.65)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.15s ease-out forwards", zIndex: 1,
+                  }}
+                  title="Troca Black Mitic Plus (1 troca por Pokémon · 7 traits)"
+                >
+                  <div style={{ fontSize: 22 }}>🔄</div>
+                </div>
+
                 <div 
                   onClick={(e) => { e.stopPropagation(); setTab("evento"); playClick(); }}
                   style={{
