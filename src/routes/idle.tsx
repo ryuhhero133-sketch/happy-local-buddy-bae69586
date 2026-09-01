@@ -14130,7 +14130,7 @@ function IdlePage() {
                     🔄 TROCA BLACK MITIC PLUS
                   </div>
                   <div style={{ fontSize: 11, color: "#b18cd9", marginTop: 2 }}>
-                    Troque um Pokémon Black Mitic Plus da sua Coleção por outra espécie. Todos vêm com 6 traits VERSÁTIL.
+                    Cada Black Mitic Plus pode ser trocado <b style={{ color: "#ffd166" }}>1 única vez</b> (1 por 1). O novo nasce com <b style={{ color: "#ffd166" }}>7 traits</b> e vai direto para a Coleção.
                   </div>
                 </div>
                 <button
