@@ -1033,6 +1033,9 @@ const GOVERNANTE_PLUS_POOL: readonly Species[] = [
 
 const GOVERNANTE_PLUS_TRAITS = ["prismatico", "alpha", "esquivo", "dourado", "prodigio", "eterno"];
 
+// Traits garantidos ao trocar um Black Mitic Plus (7 traits).
+const BMP_SWAP_TRAITS = ["prismatico", "alpha", "esquivo", "dourado", "prodigio", "eterno", "vampirico"];
+
 // Pool de 50 espécies elegíveis para o Painel de Troca Black Mitic Plus (código RESGTT55).
 const BMP_SWAP_POOL: readonly Species[] = [
   "charizard_shiny", "blastoise_shiny", "dragonite_shiny", "mewtwo",
