@@ -14142,7 +14142,7 @@ function IdlePage() {
               {/* Passo 1: escolher BMP */}
               <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "rgba(162,91,255,0.06)", border: "1px solid rgba(162,91,255,0.25)" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "#e8d1ff", marginBottom: 6 }}>
-                  1) SEU BLACK MITIC PLUS ({bmpEntries.length})
+                  1) SEU BLACK MITIC PLUS ({bmpEntries.length}) · trocas disponíveis: {bmpEntries.filter((e) => !usedUids.includes(e.uid)).length}
                 </div>
                 {bmpEntries.length === 0 ? (
                   <div style={{ fontSize: 12, color: "#c8a8e8", padding: 8 }}>
