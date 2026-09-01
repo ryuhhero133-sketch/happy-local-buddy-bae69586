@@ -14197,10 +14197,10 @@ function IdlePage() {
               {/* Passo 2: escolher destino */}
               <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "rgba(162,91,255,0.06)", border: "1px solid rgba(162,91,255,0.25)" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "#e8d1ff", marginBottom: 6 }}>
-                  2) ESCOLHA A ESPÉCIE DESEJADA ({BMP_SWAP_POOL.length})
+                  2) ESCOLHA A ESPÉCIE DESEJADA ({swapPool.length})
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 6 }}>
-                  {BMP_SWAP_POOL.map((sp) => {
+                  {swapPool.map((sp) => {
                     const src = GIF[sp];
                     const sel = sp === bmpSwapTarget;
                     return (
