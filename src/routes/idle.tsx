@@ -14020,13 +14020,20 @@ function IdlePage() {
           ...team.filter(isBMP),
           ...restingBench.filter(isBMP),
         ];
+        const usedUids = idle.bmpSwapUsedUids ?? [];
+        const swapPool = BMP_SWAP_POOL.slice(0, 30);
         const source = bmpEntries.find((e) => e.uid === bmpSwapSourceUid) ?? null;
-        const canConfirm = !!source && !!bmpSwapTarget;
+        const sourceUsed = !!bmpSwapSourceUid && usedUids.includes(bmpSwapSourceUid);
+        const canConfirm = !!source && !!bmpSwapTarget && !sourceUsed;
         const confirmSwap = () => {
           const base = idleRef.current;
           const target = bmpSwapTarget;
           if (!bmpSwapSourceUid || !target) {
             setBmpSwapMsg({ kind: "err", text: "Selecione um BMP e uma espécie destino." });
+            return;
+          }
+          if ((base.bmpSwapUsedUids ?? []).includes(bmpSwapSourceUid)) {
+            setBmpSwapMsg({ kind: "err", text: "Este Black Mitic Plus já usou a troca única." });
             return;
           }
           const currentTeam = teamRef.current;
@@ -14048,19 +14055,41 @@ function IdlePage() {
               ? {
                   ...p,
                   species: target as Species,
-                  traits: [...GOVERNANTE_PLUS_TRAITS],
+                  traits: [...BMP_SWAP_TRAITS],
                   rarity: "mythic_shiny" as Rarity,
                   event: `black_mitic_plus:swap:${target}`,
                 }
               : p;
-          const nextCollection = (base.collection ?? []).map(patch);
-          const nextTeam = currentTeam.map(patch);
-          const nextBench = currentBench.map(patch);
+          // Sai do time/banco e vai direto para a Coleção.
+          const nextTeam = currentTeam.filter((p) => p.uid !== bmpSwapSourceUid);
+          const nextBench = currentBench.filter((p) => p.uid !== bmpSwapSourceUid);
+          let nextCollection = (base.collection ?? []).map(patch);
+          if (!nextCollection.some((e) => e.uid === bmpSwapSourceUid)) {
+            nextCollection = [
+              ...nextCollection,
+              {
+                uid: found.uid,
+                species: target as Species,
+                level: (found as { level?: number }).level ?? 1,
+                rarity: "mythic_shiny" as Rarity,
+                capturedAt: Date.now(),
+                xp: (found as { xp?: number }).xp ?? 0,
+                traits: [...BMP_SWAP_TRAITS],
+                event: `black_mitic_plus:swap:${target}`,
+              },
+            ];
+          }
           const seenSpecies = base.seenSpecies.includes(target)
             ? base.seenSpecies : [...base.seenSpecies, target];
           const caughtSpecies = base.caughtSpecies.includes(target)
             ? base.caughtSpecies : [...base.caughtSpecies, target];
-          const next: IdleState = { ...base, collection: nextCollection, seenSpecies, caughtSpecies };
+          const next: IdleState = {
+            ...base,
+            collection: nextCollection,
+            seenSpecies,
+            caughtSpecies,
+            bmpSwapUsedUids: [...(base.bmpSwapUsedUids ?? []), bmpSwapSourceUid],
+          };
           idleRef.current = next;
           saveIdle(next);
           setIdle(next);
