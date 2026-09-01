@@ -14153,18 +14153,23 @@ function IdlePage() {
                     {bmpEntries.map((e) => {
                       const src = GIF[e.species];
                       const sel = e.uid === bmpSwapSourceUid;
+                      const used = usedUids.includes(e.uid);
                       return (
                         <button
                           key={e.uid}
-                          onClick={() => { setBmpSwapSourceUid(e.uid); setBmpSwapMsg(null); }}
+                          disabled={used}
+                          onClick={() => { if (used) return; setBmpSwapSourceUid(e.uid); setBmpSwapMsg(null); }}
                           style={{
+                            position: "relative",
                             display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                            padding: 8, borderRadius: 8, cursor: "pointer",
+                            padding: 8, borderRadius: 8, cursor: used ? "not-allowed" : "pointer",
                             background: sel ? "linear-gradient(180deg,#3a1660,#1a0630)" : "rgba(20,10,35,0.7)",
-                            border: sel ? "2px solid #ffd166" : "1px solid #6a3ba0",
+                            border: sel ? "2px solid #ffd166" : used ? "1px solid #4a3060" : "1px solid #6a3ba0",
                             boxShadow: sel ? "0 0 12px rgba(255,209,102,0.6)" : "none",
                             color: "#f3e5ff", fontFamily: "monospace",
+                            opacity: used ? 0.4 : 1,
                           }}
+                          title={used ? "Este Pokémon já usou a troca única" : e.species}
                         >
                           {src ? (
                             <img src={src} alt="" style={{ width: 48, height: 48, imageRendering: "pixelated" }} />
@@ -14175,6 +14180,13 @@ function IdlePage() {
                             {e.species.toUpperCase()}
                           </div>
                           <div style={{ fontSize: 9, color: "#c9a2ff" }}>Lv {e.level}</div>
+                          {used && (
+                            <div style={{
+                              position: "absolute", top: 2, right: 2, fontSize: 8, fontWeight: 900,
+                              background: "#3a1030", border: "1px solid #e34a4a", color: "#ffb0b0",
+                              borderRadius: 4, padding: "1px 4px",
+                            }}>USADO</div>
+                          )}
                         </button>
                       );
                     })}
