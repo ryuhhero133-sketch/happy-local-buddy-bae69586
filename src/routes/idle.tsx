@@ -1015,6 +1015,8 @@ type IdleState = {
   chestEnergy?: number;
   dailyChestsOpened?: number;
   lastReset?: number;
+  /** UIDs de Black Mitic Plus que já usaram sua troca única (1 troca por Pokémon). */
+  bmpSwapUsedUids?: string[];
 };
 
 
