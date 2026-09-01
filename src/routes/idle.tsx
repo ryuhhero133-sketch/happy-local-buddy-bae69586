@@ -14100,8 +14100,8 @@ function IdlePage() {
           if (!identity?.id?.startsWith("guest-")) {
             void pushCloudSaveNow({ idle: next, team: nextTeam, restingBench: nextBench, savedAt: Date.now() });
           }
-          pushChat(`🔄 Troca BMP concluída: ${found.species.toUpperCase()} → ${target.toUpperCase()} (6 traits VERSÁTIL).`, "cap");
-          setBmpSwapMsg({ kind: "ok", text: `Troca concluída! Seu ${found.species.toUpperCase()} agora é ${target.toString().toUpperCase()}.` });
+          pushChat(`🔄 Troca BMP concluída: ${found.species.toUpperCase()} → ${target.toUpperCase()} (7 traits) — enviado para a Coleção.`, "cap");
+          setBmpSwapMsg({ kind: "ok", text: `Troca concluída! Seu ${found.species.toUpperCase()} agora é ${target.toString().toUpperCase()} com 7 traits e foi para a Coleção.` });
           setBmpSwapSourceUid(null);
           setBmpSwapTarget(null);
         };
