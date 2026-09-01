@@ -14234,7 +14234,7 @@ function IdlePage() {
               {/* Confirmação */}
               <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                 <div style={{ fontSize: 11, color: "#c8a8e8" }}>
-                  {source ? <div>Fonte: <b style={{ color: "#ffd166" }}>{source.species.toUpperCase()}</b></div> : "Selecione um BMP acima."}
+                  {source ? <div>Fonte: <b style={{ color: sourceUsed ? "#e34a4a" : "#ffd166" }}>{source.species.toUpperCase()}{sourceUsed ? " (já trocado)" : ""}</b></div> : "Selecione um BMP acima."}
                   {" · "}
                   {bmpSwapTarget ? <div>Destino: <b style={{ color: "#ffd166" }}>{bmpSwapTarget.toString().toUpperCase()}</b></div> : "Escolha a espécie destino."}
                 </div>
