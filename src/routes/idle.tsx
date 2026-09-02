@@ -6606,6 +6606,13 @@ function IdlePage() {
     setTimeout(() => setFx((prev) => prev.filter((f) => f.id !== id)), ttl);
   }
 
+  // 💎 Balãozinho animado quando cai uma Stone Elemental
+  function pushStonePop(x: number, y: number, stone: string) {
+    const id = fxIdRef.current++;
+    setStonePops((prev) => [...prev, { id, x, y, stone }]);
+    setTimeout(() => setStonePops((prev) => prev.filter((s) => s.id !== id)), 2600);
+  }
+
 
 
   const activeTime = now - idle.startedAt;
