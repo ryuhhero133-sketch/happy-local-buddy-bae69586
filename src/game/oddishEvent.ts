@@ -19,16 +19,16 @@ export const ODDISH_EVENT: {
   windowMinutes: number;
   queueSeconds: number;
 } = {
-  /** Evento ENCERRADO — Odisséia / Grass Oddish desativados. */
-  enabled: false,
-  /** Âncora fixa (referência de rotação de mapas). */
+  /** Evento ATIVO — rotação a cada 2h. */
+  enabled: true,
+  /** Âncora fixa (referência de rotação de mapas/roster). */
   startedAt: 1784686000000,
   /** Nunca encerra automaticamente. */
   durationHours: 24 * 365,
-  /** Ciclo de rotação de mapa = 24h (sempre aberto). */
-  cycleHours: 24,
-  /** Janela aberta = ciclo inteiro. */
-  windowMinutes: 24 * 60,
+  /** Ciclo de rotação = 2h (novo mapa + novos pokémon). */
+  cycleHours: 2,
+  /** Janela aberta = ciclo inteiro (sempre aberto). */
+  windowMinutes: 2 * 60,
   /** Fila de entrada (mantida por compatibilidade). */
   queueSeconds: 5 * 60,
 };
