@@ -222,7 +222,7 @@ import lickitungShinyGifAsset from "@/assets/lickitung-shiny.gif.asset.json";
 import mewtwoEventGifAsset from "@/assets/mewtwo-event.gif.asset.json";
 import iceBallIconAsset from "@/assets/ice-pokeball-icon.png.asset.json";
 import scrollTeleportAsset from "@/assets/scroll-teleport.png.asset.json";
-import { ODDISH_EVENT, oddishEventStatus, oddishMapForCycle, ODDISH_EVENT_POOL, SAFIRA_VERDE_BY_RARITY, MEWTWO_EVENT_CHANCE, MEWTWO_MIN_BALLS, fmtMs as fmtOddishMs } from "@/game/oddishEvent";
+import { ODDISH_EVENT, oddishEventStatus, oddishMapForCycle, ODDISH_EVENT_POOL, SAFIRA_VERDE_BY_RARITY, MEWTWO_EVENT_CHANCE, MEWTWO_MIN_BALLS, fmtMs as fmtOddishMs, ODDISH_EVENT_XP_MULT, oddishRosterForCycle } from "@/game/oddishEvent";
 // Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
 import mapForestAsset from "@/assets/map-forest.png.asset.json";
 import mapFlorestaSecretaAsset from "@/assets/map-floresta-secreta.png.asset.json";
@@ -757,6 +757,39 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
 
 
 } as Record<string, ElementFx>;
+
+const STONE_LABEL: Record<string, string> = {
+  stone_grass: "Stone de Planta 🌿",
+  stone_fire: "Stone de Fogo 🔥",
+  stone_water: "Stone de Água 💧",
+  stone_electric: "Stone Elétrica ⚡",
+  stone_dark: "Stone Sombria 🌑",
+  stone_dragon: "Stone Dracônica 🐉",
+};
+// 💎 STONE ELEMENTAL POR ELEMENTO DO POKÉMON — drop MUITO raro ao derrotar.
+const STONE_BY_ELEMENT: Partial<Record<ElementFx, string>> = {
+  grass: "stone_grass",
+  fire: "stone_fire",
+  water: "stone_water",
+  ice: "stone_water",
+  electric: "stone_electric",
+  poison: "stone_dark",
+  psychic: "stone_dark",
+  rock: "stone_dragon",
+  fighting: "stone_dragon",
+  flying: "stone_dragon",
+};
+// Chance base por raridade do inimigo (bem difícil de cair).
+const STONE_DROP_CHANCE: Record<string, number> = {
+  common: 0.0006,
+  uncommon: 0.0010,
+  rare: 0.0020,
+  epic: 0.0040,
+  legendary: 0.0075,
+  mythic: 0.0130,
+  mythic_shiny: 0.0200,
+};
+
 
 
 function elementOf(sp: Species): ElementFx {
@@ -2006,6 +2039,8 @@ function IdlePage() {
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
+  // 💎 Balãozinho de Stone Elemental dropada
+  const [stonePops, setStonePops] = useState<{ id: number; x: number; y: number; stone: string }[]>([]);
   type Chest = { id: number; x: number; y: number; opened: boolean; openedAt?: number; purple?: boolean };
   const [chests, setChests] = useState<Chest[]>([]);
   
@@ -4680,7 +4715,9 @@ function IdlePage() {
           const elemSyn = computeTeamSynergies(team);
           const mythEventXpMult = idle.currentMap === "evento_myth" ? 6 : 1;
           const grassOddishXpMult = idle.currentMap === "grass_oddish" ? 3 : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult);
+          // 🌿 Odisséia Oddish — no evento o ÚNICO benefício é XP extra.
+          const oddishEventXpMult = (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") ? ODDISH_EVENT_XP_MULT : 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -4714,28 +4751,7 @@ function IdlePage() {
           const drops: string[] = [];
           const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
           if (isOddishMap) {
-            // 🌿 EVENTO ODISSÉIA ODDISH — SÓ dropa Stones Elementais.
-            // Épico / mítico / mítico shiny / lendário são os únicos que dropam.
-            const isValuable = target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
-            if (isValuable) {
-              const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
-              // Drop nerfado: ~25% chance de 1 stone random
-              if (Math.random() < 0.25) {
-                const first = STONES[Math.floor(Math.random() * STONES.length)];
-                drops.push(first);
-                // ~8% de chance de vir uma SEGUNDA stone de elemento DIFERENTE
-                if (Math.random() < 0.08) {
-                  const rest = STONES.filter((s) => s !== first);
-                  drops.push(rest[Math.floor(Math.random() * rest.length)]);
-                }
-              }
-              // Míticos/shiny: 40% de chance de bônus de uma stone extra diferente (antes garantido)
-              if ((target.rarity === "mythic" || target.rarity === "mythic_shiny") && Math.random() < 0.40) {
-                const already = new Set(drops);
-                const rest = STONES.filter((s) => !already.has(s));
-                if (rest.length) drops.push(rest[Math.floor(Math.random() * rest.length)]);
-              }
-            }
+            // 🌿 EVENTO ODISSÉIA ODDISH — sem drops. O único benefício é XP extra.
           } else {
             for (const it of ITEM_POOL) {
               if (it.id === "pokeball") continue;
@@ -4749,6 +4765,18 @@ function IdlePage() {
             const ultraChance = isGeliusMap ? 0.04 : isTerryMap ? 0.02 : 0.006;
             if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
             if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
+            // 💎 STONE ELEMENTAL — de acordo com o ELEMENTO do pokémon derrotado.
+            // Chance BEM baixa (0.06% comum → 2% mítico shiny).
+            {
+              const elemKill = elementOf(target.sp);
+              const stoneId = STONE_BY_ELEMENT[elemKill];
+              const chance = STONE_DROP_CHANCE[target.rarity as string] ?? 0.0006;
+              if (stoneId && Math.random() < chance) {
+                drops.push(stoneId);
+                pushStonePop(target.x, target.y - 40, stoneId);
+                pushChat(`💎 Stone Elemental dropada: ${STONE_LABEL[stoneId] ?? stoneId}!`, "cap");
+              }
+            }
           }
           // ⚡✦ RAICHU MÍTICO — drop garantido de Stone Elétrica ao derrotar
           if (target.sp === "raichu") {
@@ -6251,25 +6279,18 @@ function IdlePage() {
           }
           mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") {
-          // Odisséia Oddish — mapa aberto 24h. Não captura aqui.
-          // Bastante Oddish Shiny, Scizor e mons legais aleatórios.
+          // Odisséia Oddish — evento ROTATIVO: a cada 2h muda o roster de pokémon.
+          // Aqui não se captura e não cai item: o único ganho é XP extra.
           const rollShiny = Math.random();
-          if (rollShiny < 0.18) {
-            // ✦ ODDISH SHINY — spawn muito comum no evento
+          if (rollShiny < 0.12) {
+            // ✦ ODDISH SHINY — brilho fixo do evento
             pool = ["oddish_shiny"] as Species[];
             forcedRarity = "mythic_shiny";
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
-          } else if (rollShiny < 0.32) {
-            // Scizor — épico brilhante
-            pool = (["scizor"] as Species[]).filter(hasGif);
-            if (pool.length === 0) pool = ["oddish"] as Species[];
-            forcedRarity = "epic";
-            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           } else {
-            // Aleatórios legais no mapa: gengar, magmar, gyarados, ursaring, hariyama, umbreon, jolteon, dragonite, oddish, gloom, vileplume, lickitung
-            const wild = (["gengar", "magmar", "gyarados", "ursaring", "hariyama", "umbreon", "jolteon", "dragonite", "oddish", "gloom", "vileplume", "lickitung", "lickitung_shiny", "beedrill", "venomoth", "onix", "onix_shiny"] as Species[]).filter(hasGif);
-            pool = wild.length ? wild : (["oddish"] as Species[]);
-            // Raridade mista: epic 55%, mythic 25%, mythic_shiny 20% — todos dropam stones
+            const roster = (oddishRosterForCycle().species as Species[]).filter(hasGif);
+            pool = roster.length ? roster : (["oddish"] as Species[]);
+            // Raridade mista: epic 55%, mythic 25%, mythic_shiny 20%
             const rr = Math.random();
             forcedRarity = rr < 0.55 ? "epic" : rr < 0.80 ? "mythic" : "mythic_shiny";
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
@@ -6577,6 +6598,13 @@ function IdlePage() {
     setFx((prev) => [...prev, { id, x, y, text, kind }]);
     const ttl = kind === "crit" ? 1900 : kind === "myDmg" || kind === "enemyDmg" ? 1500 : 1200;
     setTimeout(() => setFx((prev) => prev.filter((f) => f.id !== id)), ttl);
+  }
+
+  // 💎 Balãozinho animado quando cai uma Stone Elemental
+  function pushStonePop(x: number, y: number, stone: string) {
+    const id = fxIdRef.current++;
+    setStonePops((prev) => [...prev, { id, x, y, stone }]);
+    setTimeout(() => setStonePops((prev) => prev.filter((s) => s.id !== id)), 2600);
   }
 
 
@@ -9972,6 +10000,33 @@ function IdlePage() {
 
 
 
+            {/* 💎 Balãozinho de Stone Elemental dropada */}
+            {stonePops.map((s) => (
+              <div key={s.id} className="stone-balloon" style={{
+                position: "absolute", left: s.x, top: s.y,
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "5px 10px 5px 6px",
+                borderRadius: 14,
+                background: "linear-gradient(180deg, rgba(20,10,4,0.96), rgba(8,4,2,0.96))",
+                border: "1px solid #f5cf6b",
+                boxShadow: "0 6px 16px rgba(0,0,0,0.6), 0 0 18px rgba(245,207,107,0.45)",
+                pointerEvents: "none", zIndex: 9, whiteSpace: "nowrap",
+              }}>
+                <img src={STONE_CHEST[s.stone]} alt="" width={26} height={26} style={{ imageRendering: "pixelated" }} />
+                <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.05 }}>
+                  <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 10, letterSpacing: 0.5 }}>STONE!</span>
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 11 }}>{STONE_LABEL[s.stone] ?? s.stone}</span>
+                </div>
+                <span style={{
+                  position: "absolute", bottom: -6, left: 18,
+                  width: 10, height: 10,
+                  background: "rgba(12,6,3,0.96)",
+                  borderRight: "1px solid #f5cf6b", borderBottom: "1px solid #f5cf6b",
+                  transform: "rotate(45deg)",
+                }} />
+              </div>
+            ))}
+
             {/* Efeitos flutuantes (coords do mundo) */}
             {fx.map((f) => {
               const color =
@@ -13300,6 +13355,18 @@ function IdlePage() {
           100% { transform: translateY(-36px) scale(0.9); opacity: 0; }
         }
         .fxpop { animation: fxpop 1.2s ease-out forwards; }
+        @keyframes stoneBalloon {
+          0%   { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
+          15%  { transform: translate(-50%, -18px) scale(1.15); opacity: 1; }
+          70%  { transform: translate(-50%, -46px) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -74px) scale(0.95); opacity: 0; }
+        }
+        .stone-balloon { animation: stoneBalloon 2.6s ease-out forwards; }
+        @keyframes stoneShine {
+          0%, 100% { filter: drop-shadow(0 0 4px #fff8) brightness(1); }
+          50% { filter: drop-shadow(0 0 12px #fff) brightness(1.3); }
+        }
+        .stone-balloon img { animation: stoneShine 0.8s ease-in-out infinite; }
         @keyframes lvToastIn {
           0%   { opacity: 0; transform: translate(-50%, -14px) scale(0.94); }
           60%  { opacity: 1; transform: translate(-50%, 2px) scale(1.02); }

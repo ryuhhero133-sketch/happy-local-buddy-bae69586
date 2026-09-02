@@ -19,16 +19,16 @@ export const ODDISH_EVENT: {
   windowMinutes: number;
   queueSeconds: number;
 } = {
-  /** Evento ENCERRADO — Odisséia / Grass Oddish desativados. */
-  enabled: false,
-  /** Âncora fixa (referência de rotação de mapas). */
+  /** Evento ATIVO — rotação a cada 2h. */
+  enabled: true,
+  /** Âncora fixa (referência de rotação de mapas/roster). */
   startedAt: 1784686000000,
   /** Nunca encerra automaticamente. */
   durationHours: 24 * 365,
-  /** Ciclo de rotação de mapa = 24h (sempre aberto). */
-  cycleHours: 24,
-  /** Janela aberta = ciclo inteiro. */
-  windowMinutes: 24 * 60,
+  /** Ciclo de rotação = 2h (novo mapa + novos pokémon). */
+  cycleHours: 2,
+  /** Janela aberta = ciclo inteiro (sempre aberto). */
+  windowMinutes: 2 * 60,
   /** Fila de entrada (mantida por compatibilidade). */
   queueSeconds: 5 * 60,
 };
@@ -82,6 +82,27 @@ export function oddishMapForCycle(now: number = Date.now()): "oddish_o1" | "oddi
   const cycleMs = ODDISH_EVENT.cycleHours * 60 * 60 * 1000;
   const idx = Math.floor((now - ODDISH_EVENT.startedAt) / cycleMs) % 3;
   return idx === 0 ? "oddish_o1" : idx === 1 ? "oddish_o2" : "oddish_o3";
+}
+
+/** XP extra do evento — é o ÚNICO benefício (sem stones, sem captura). */
+export const ODDISH_EVENT_XP_MULT = 5;
+
+/** Rosters rotativos: a cada ciclo de 2h o evento troca os pokémon. */
+export const ODDISH_ROSTERS: { label: string; species: string[] }[] = [
+  { label: "Bosque Folhoso",    species: ["oddish", "gloom", "vileplume", "bellsprout", "weepinbell", "victreebel", "paras", "parasect"] },
+  { label: "Chamas Errantes",   species: ["magmar", "growlithe", "arcanine", "ninetales", "vulpix", "flareon", "charmeleon", "rapidash"] },
+  { label: "Maré Profunda",     species: ["gyarados", "vaporeon", "lapras", "poliwhirl", "golduck", "wartortle", "magikarp", "blastoise"] },
+  { label: "Tempestade Viva",   species: ["raichu", "jolteon", "electabuzz", "magneton", "pikachu", "magnemite", "luxray_f", "zapdos"] },
+  { label: "Véu Sombrio",       species: ["gengar", "umbreon", "haunter", "arbok", "venomoth", "krookodile", "darkrai", "nidoking"] },
+  { label: "Ninhada Dracônica", species: ["dragonair", "dragonite", "charizard", "scizor", "tyranitar", "onix", "skarmory", "rayquaza"] },
+];
+
+/** Roster do ciclo atual (rotaciona a cada `cycleHours`). */
+export function oddishRosterForCycle(now: number = Date.now()) {
+  const cycleMs = ODDISH_EVENT.cycleHours * 60 * 60 * 1000;
+  const n = ODDISH_ROSTERS.length;
+  const idx = Math.floor((now - ODDISH_EVENT.startedAt) / cycleMs) % n;
+  return ODDISH_ROSTERS[((idx % n) + n) % n];
 }
 
 /** Espécies do pool de spawn base — épicos, escala com o nível do treinador.
