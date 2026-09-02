@@ -758,6 +758,14 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
 
 } as Record<string, ElementFx>;
 
+const STONE_LABEL: Record<string, string> = {
+  stone_grass: "Stone de Planta 🌿",
+  stone_fire: "Stone de Fogo 🔥",
+  stone_water: "Stone de Água 💧",
+  stone_electric: "Stone Elétrica ⚡",
+  stone_dark: "Stone Sombria 🌑",
+  stone_dragon: "Stone Dracônica 🐉",
+};
 // 💎 STONE ELEMENTAL POR ELEMENTO DO POKÉMON — drop MUITO raro ao derrotar.
 const STONE_BY_ELEMENT: Partial<Record<ElementFx, string>> = {
   grass: "stone_grass",
