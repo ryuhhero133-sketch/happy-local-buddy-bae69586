@@ -4757,6 +4757,18 @@ function IdlePage() {
             const ultraChance = isGeliusMap ? 0.04 : isTerryMap ? 0.02 : 0.006;
             if ((ultraEligible || isGeliusMap) && Math.random() < ultraChance) drops.push("ultraball");
             if (isTerryMap && Math.random() < 0.45) drops.push("greatball");
+            // 💎 STONE ELEMENTAL — de acordo com o ELEMENTO do pokémon derrotado.
+            // Chance BEM baixa (0.06% comum → 2% mítico shiny).
+            {
+              const elemKill = elementOf(target.sp);
+              const stoneId = STONE_BY_ELEMENT[elemKill];
+              const chance = STONE_DROP_CHANCE[target.rarity as string] ?? 0.0006;
+              if (stoneId && Math.random() < chance) {
+                drops.push(stoneId);
+                pushStonePop(target.x, target.y - 40, stoneId);
+                pushChat(`💎 Stone Elemental dropada: ${STONE_LABEL[stoneId] ?? stoneId}!`, "cap");
+              }
+            }
           }
           // ⚡✦ RAICHU MÍTICO — drop garantido de Stone Elétrica ao derrotar
           if (target.sp === "raichu") {
