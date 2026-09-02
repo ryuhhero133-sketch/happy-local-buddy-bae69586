@@ -10007,6 +10007,33 @@ function IdlePage() {
 
 
 
+            {/* 💎 Balãozinho de Stone Elemental dropada */}
+            {stonePops.map((s) => (
+              <div key={s.id} className="stone-balloon" style={{
+                position: "absolute", left: s.x, top: s.y,
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "5px 10px 5px 6px",
+                borderRadius: 14,
+                background: "linear-gradient(180deg, rgba(20,10,4,0.96), rgba(8,4,2,0.96))",
+                border: "1px solid #f5cf6b",
+                boxShadow: "0 6px 16px rgba(0,0,0,0.6), 0 0 18px rgba(245,207,107,0.45)",
+                pointerEvents: "none", zIndex: 9, whiteSpace: "nowrap",
+              }}>
+                <img src={STONE_CHEST[s.stone]} alt="" width={26} height={26} style={{ imageRendering: "pixelated" }} />
+                <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.05 }}>
+                  <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 10, letterSpacing: 0.5 }}>STONE!</span>
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 11 }}>{STONE_LABEL[s.stone] ?? s.stone}</span>
+                </div>
+                <span style={{
+                  position: "absolute", bottom: -6, left: 18,
+                  width: 10, height: 10,
+                  background: "rgba(12,6,3,0.96)",
+                  borderRight: "1px solid #f5cf6b", borderBottom: "1px solid #f5cf6b",
+                  transform: "rotate(45deg)",
+                }} />
+              </div>
+            ))}
+
             {/* Efeitos flutuantes (coords do mundo) */}
             {fx.map((f) => {
               const color =
