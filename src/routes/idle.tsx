@@ -13335,6 +13335,18 @@ function IdlePage() {
           100% { transform: translateY(-36px) scale(0.9); opacity: 0; }
         }
         .fxpop { animation: fxpop 1.2s ease-out forwards; }
+        @keyframes stoneBalloon {
+          0%   { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
+          15%  { transform: translate(-50%, -18px) scale(1.15); opacity: 1; }
+          70%  { transform: translate(-50%, -46px) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -74px) scale(0.95); opacity: 0; }
+        }
+        .stone-balloon { animation: stoneBalloon 2.6s ease-out forwards; }
+        @keyframes stoneShine {
+          0%, 100% { filter: drop-shadow(0 0 4px #fff8) brightness(1); }
+          50% { filter: drop-shadow(0 0 12px #fff) brightness(1.3); }
+        }
+        .stone-balloon img { animation: stoneShine 0.8s ease-in-out infinite; }
         @keyframes lvToastIn {
           0%   { opacity: 0; transform: translate(-50%, -14px) scale(0.94); }
           60%  { opacity: 1; transform: translate(-50%, 2px) scale(1.02); }
