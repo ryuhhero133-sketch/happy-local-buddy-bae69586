@@ -758,6 +758,31 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
 
 } as Record<string, ElementFx>;
 
+// 💎 STONE ELEMENTAL POR ELEMENTO DO POKÉMON — drop MUITO raro ao derrotar.
+const STONE_BY_ELEMENT: Partial<Record<ElementFx, string>> = {
+  grass: "stone_grass",
+  fire: "stone_fire",
+  water: "stone_water",
+  ice: "stone_water",
+  electric: "stone_electric",
+  poison: "stone_dark",
+  psychic: "stone_dark",
+  rock: "stone_dragon",
+  fighting: "stone_dragon",
+  flying: "stone_dragon",
+};
+// Chance base por raridade do inimigo (bem difícil de cair).
+const STONE_DROP_CHANCE: Record<string, number> = {
+  common: 0.0006,
+  uncommon: 0.0010,
+  rare: 0.0020,
+  epic: 0.0040,
+  legendary: 0.0075,
+  mythic: 0.0130,
+  mythic_shiny: 0.0200,
+};
+
+
 
 function elementOf(sp: Species): ElementFx {
   return SPECIES_ELEMENT[sp] ?? "normal";
