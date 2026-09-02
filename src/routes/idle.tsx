@@ -6279,25 +6279,18 @@ function IdlePage() {
           }
           mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
         } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") {
-          // Odisséia Oddish — mapa aberto 24h. Não captura aqui.
-          // Bastante Oddish Shiny, Scizor e mons legais aleatórios.
+          // Odisséia Oddish — evento ROTATIVO: a cada 2h muda o roster de pokémon.
+          // Aqui não se captura e não cai item: o único ganho é XP extra.
           const rollShiny = Math.random();
-          if (rollShiny < 0.18) {
-            // ✦ ODDISH SHINY — spawn muito comum no evento
+          if (rollShiny < 0.12) {
+            // ✦ ODDISH SHINY — brilho fixo do evento
             pool = ["oddish_shiny"] as Species[];
             forcedRarity = "mythic_shiny";
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
-          } else if (rollShiny < 0.32) {
-            // Scizor — épico brilhante
-            pool = (["scizor"] as Species[]).filter(hasGif);
-            if (pool.length === 0) pool = ["oddish"] as Species[];
-            forcedRarity = "epic";
-            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           } else {
-            // Aleatórios legais no mapa: gengar, magmar, gyarados, ursaring, hariyama, umbreon, jolteon, dragonite, oddish, gloom, vileplume, lickitung
-            const wild = (["gengar", "magmar", "gyarados", "ursaring", "hariyama", "umbreon", "jolteon", "dragonite", "oddish", "gloom", "vileplume", "lickitung", "lickitung_shiny", "beedrill", "venomoth", "onix", "onix_shiny"] as Species[]).filter(hasGif);
-            pool = wild.length ? wild : (["oddish"] as Species[]);
-            // Raridade mista: epic 55%, mythic 25%, mythic_shiny 20% — todos dropam stones
+            const roster = (oddishRosterForCycle().species as Species[]).filter(hasGif);
+            pool = roster.length ? roster : (["oddish"] as Species[]);
+            // Raridade mista: epic 55%, mythic 25%, mythic_shiny 20%
             const rr = Math.random();
             forcedRarity = rr < 0.55 ? "epic" : rr < 0.80 ? "mythic" : "mythic_shiny";
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
