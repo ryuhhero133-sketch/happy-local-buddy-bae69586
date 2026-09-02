@@ -2031,6 +2031,8 @@ function IdlePage() {
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
+  // 💎 Balãozinho de Stone Elemental dropada
+  const [stonePops, setStonePops] = useState<{ id: number; x: number; y: number; stone: string }[]>([]);
   type Chest = { id: number; x: number; y: number; opened: boolean; openedAt?: number; purple?: boolean };
   const [chests, setChests] = useState<Chest[]>([]);
   
