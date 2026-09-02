@@ -4743,28 +4743,7 @@ function IdlePage() {
           const drops: string[] = [];
           const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
           if (isOddishMap) {
-            // 🌿 EVENTO ODISSÉIA ODDISH — SÓ dropa Stones Elementais.
-            // Épico / mítico / mítico shiny / lendário são os únicos que dropam.
-            const isValuable = target.rarity === "epic" || target.rarity === "legendary" || target.rarity === "mythic" || target.rarity === "mythic_shiny";
-            if (isValuable) {
-              const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
-              // Drop nerfado: ~25% chance de 1 stone random
-              if (Math.random() < 0.25) {
-                const first = STONES[Math.floor(Math.random() * STONES.length)];
-                drops.push(first);
-                // ~8% de chance de vir uma SEGUNDA stone de elemento DIFERENTE
-                if (Math.random() < 0.08) {
-                  const rest = STONES.filter((s) => s !== first);
-                  drops.push(rest[Math.floor(Math.random() * rest.length)]);
-                }
-              }
-              // Míticos/shiny: 40% de chance de bônus de uma stone extra diferente (antes garantido)
-              if ((target.rarity === "mythic" || target.rarity === "mythic_shiny") && Math.random() < 0.40) {
-                const already = new Set(drops);
-                const rest = STONES.filter((s) => !already.has(s));
-                if (rest.length) drops.push(rest[Math.floor(Math.random() * rest.length)]);
-              }
-            }
+            // 🌿 EVENTO ODISSÉIA ODDISH — sem drops. O único benefício é XP extra.
           } else {
             for (const it of ITEM_POOL) {
               if (it.id === "pokeball") continue;
