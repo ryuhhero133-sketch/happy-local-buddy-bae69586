@@ -596,6 +596,10 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
   continent3_map1:  { name: "Fosso de Magma",                    diff: "MÍTICO++", bg: assetUrlFromJson(continent3Map1Asset),      rate: 45.0, minLevel: 6000, maxLevel: 8000, element: "Fogo/Lava",    stars: 10 },
   continent3_map2:  { name: "Pântano de Safira",                 diff: "DIVINO",   bg: assetUrlFromJson(continent3Map2Asset),      rate: 55.0, minLevel: 8000, maxLevel: 10000, element: "Veneno/Planta", stars: 10 },
+  // --- BÔNUS DARK: 3 variações sombrias do Vale Verdejante (2h abertas a cada 4h) ---
+  dark_vale1: { name: "Vale Sombrio",     diff: "BÔNUS DARK",  bg: idleArenaUrl, rate: 2.4, minLevel: 1, element: "Sombra/Grama",   stars: 8,  overlay: "linear-gradient(180deg, rgba(4,6,14,0.72), rgba(24,4,38,0.78))", cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
+  dark_vale2: { name: "Vale Amaldiçoado", diff: "BÔNUS DARK+", bg: idleArenaUrl, rate: 3.0, minLevel: 1, element: "Sombra/Veneno",  stars: 9,  overlay: "linear-gradient(180deg, rgba(10,2,16,0.78), rgba(40,0,20,0.82))", cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
+  dark_vale3: { name: "Vale do Vazio",    diff: "BÔNUS VOID",  bg: idleArenaUrl, rate: 3.6, minLevel: 1, element: "Sombra/Dragão",  stars: 10, overlay: "linear-gradient(180deg, rgba(0,0,0,0.86), rgba(12,0,32,0.9))",  cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
