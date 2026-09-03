@@ -223,6 +223,11 @@ import mewtwoEventGifAsset from "@/assets/mewtwo-event.gif.asset.json";
 import iceBallIconAsset from "@/assets/ice-pokeball-icon.png.asset.json";
 import scrollTeleportAsset from "@/assets/scroll-teleport.png.asset.json";
 import { ODDISH_EVENT, oddishEventStatus, oddishMapForCycle, ODDISH_EVENT_POOL, SAFIRA_VERDE_BY_RARITY, MEWTWO_EVENT_CHANCE, MEWTWO_MIN_BALLS, fmtMs as fmtOddishMs, ODDISH_EVENT_XP_MULT, oddishRosterForCycle } from "@/game/oddishEvent";
+import {
+  DARK_BONUS_MAP_IDS, isDarkBonusMap, darkBonusWindow, hasDarkEntryStones,
+  missingDarkEntryStones, payDarkEntryStones, darkBonusLevelRange, DARK_BONUS_POOLS,
+  DARK_ENTRY_STONE_QTY, type DarkBonusMapId,
+} from "@/game/darkBonusMaps";
 // Novos mapas endgame Lv 200→500 (10 mapas, reutilizando bgs no mesmo padrão dos existentes)
 import mapForestAsset from "@/assets/map-forest.png.asset.json";
 import mapFlorestaSecretaAsset from "@/assets/map-floresta-secreta.png.asset.json";
@@ -529,7 +534,9 @@ type IdleMapId =
   // Continente do Governante — acesso via Carta do Governante
   | "absol_start" | "governante_hall"
   // Terceiro Continente — Bônus
-  | "continent3_map1" | "continent3_map2";
+  | "continent3_map1" | "continent3_map2"
+  // Mapas BÔNUS DARK — variações sombrias do Vale Verdejante (abrem 2h a cada 4h)
+  | "dark_vale1" | "dark_vale2" | "dark_vale3";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -589,6 +596,10 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
   continent3_map1:  { name: "Fosso de Magma",                    diff: "MÍTICO++", bg: assetUrlFromJson(continent3Map1Asset),      rate: 45.0, minLevel: 6000, maxLevel: 8000, element: "Fogo/Lava",    stars: 10 },
   continent3_map2:  { name: "Pântano de Safira",                 diff: "DIVINO",   bg: assetUrlFromJson(continent3Map2Asset),      rate: 55.0, minLevel: 8000, maxLevel: 10000, element: "Veneno/Planta", stars: 10 },
+  // --- BÔNUS DARK: 3 variações sombrias do Vale Verdejante (2h abertas a cada 4h) ---
+  dark_vale1: { name: "Vale Sombrio",     diff: "BÔNUS DARK",  bg: idleArenaUrl, rate: 2.4, minLevel: 1, element: "Sombra/Grama",   stars: 8,  overlay: "linear-gradient(180deg, rgba(4,6,14,0.72), rgba(24,4,38,0.78))", cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
+  dark_vale2: { name: "Vale Amaldiçoado", diff: "BÔNUS DARK+", bg: idleArenaUrl, rate: 3.0, minLevel: 1, element: "Sombra/Veneno",  stars: 9,  overlay: "linear-gradient(180deg, rgba(10,2,16,0.78), rgba(40,0,20,0.82))", cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
+  dark_vale3: { name: "Vale do Vazio",    diff: "BÔNUS VOID",  bg: idleArenaUrl, rate: 3.6, minLevel: 1, element: "Sombra/Dragão",  stars: 10, overlay: "linear-gradient(180deg, rgba(0,0,0,0.86), rgba(12,0,32,0.9))",  cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
