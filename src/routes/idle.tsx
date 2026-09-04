@@ -10994,6 +10994,10 @@ function IdlePage() {
                       { id: "fosso_cristal" as IdleMapId, x: 74, y: 12, type: "cave" },
                       { id: "vale_ruby" as IdleMapId, x: 78, y: 22, type: "volcano" },
                       { id: "ilha_safira" as IdleMapId, x: 92, y: 40, type: "beach" },
+                      // 🌑 MAPAS BÔNUS DARK — exigem 5 stones de cada elemento, abrem de 4 em 4h por 2h
+                      { id: "dark_vale1" as IdleMapId, x: 22, y: 62, type: "cave" },
+                      { id: "dark_vale2" as IdleMapId, x: 30, y: 72, type: "cave" },
+                      { id: "dark_vale3" as IdleMapId, x: 38, y: 82, type: "cave" },
                     ];
                     const activeTab = worldTab;
                     const isC1Unlocked = true; // Continente 1 sempre liberado
