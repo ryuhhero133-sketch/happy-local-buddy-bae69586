@@ -508,6 +508,8 @@ const worldMapContinent2Url = assetUrlFromJson(worldMapContinent2Asset);
 const gameDb = supabase as any;
 
 const potionIconUrl = assetUrlFromJson(potionIconAsset);
+// Teto tecnico de nivel (treinador e pokemon) — sem cap de 10k.
+const LEVEL_CAP = 1_000_000;
 const bgmUrl = assetUrlFromJson(bgmAsset);
 const sfxLevelUpUrl = assetUrlFromJson(sfxLevelUpAsset);
 const sfxClickUrl = assetUrlFromJson(sfxClickAsset);
