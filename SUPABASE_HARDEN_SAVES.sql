@@ -53,7 +53,7 @@ as $$
 declare
   _prev_level int := 1;
   _new_level  int;
-  _cap_jump   int := 5;        -- +5 níveis por save, no máximo
+  _cap_jump   int := 5000;     -- salto maximo de niveis por save
   _cap_level  int := 10000;
   _cap_gold   bigint := 50000000;
   _cap_cry    bigint := 1000000;
@@ -197,11 +197,6 @@ create trigger enforce_game_save_caps_trg
 -- ---------------------------------------------------------------------
 -- 3) Correção retroativa de saves já estourados
 -- ---------------------------------------------------------------------
-update public.game_saves
-   set data = jsonb_set(data, '{idle,trainerLevel}', to_jsonb(10000), true)
- where (data #>> '{idle,trainerLevel}') ~ '^[0-9]+$'
-   and (data #>> '{idle,trainerLevel}')::int > 10000;
-
 update public.game_saves
    set data = jsonb_set(data, '{idle,gold}', to_jsonb(50000000::bigint), true)
  where (data #>> '{idle,gold}') ~ '^[0-9]+$'
