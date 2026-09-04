@@ -10672,6 +10672,9 @@ function IdlePage() {
                   { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
                 ],
                 evento_myth: [],
+                dark_vale1: [],
+                dark_vale2: [],
+                dark_vale3: [],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
