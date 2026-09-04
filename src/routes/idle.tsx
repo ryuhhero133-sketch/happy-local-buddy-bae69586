@@ -4730,7 +4730,9 @@ function IdlePage() {
           const grassOddishXpMult = idle.currentMap === "grass_oddish" ? 3 : 1;
           // 🌿 Odisséia Oddish — no evento o ÚNICO benefício é XP extra.
           const oddishEventXpMult = (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") ? ODDISH_EVENT_XP_MULT : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult);
+          // 🌑 Mapas Bônus Dark — XP MUITO maior (é o único ganho relevante lá).
+          const darkBonusXpMult = isDarkBonusMap(idle.currentMap) ? 8 : 1;
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult * darkBonusXpMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "neve"
@@ -5061,7 +5063,7 @@ function IdlePage() {
               queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
             }
             const newCollection = capturedPet && !colFull
-              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits, ...(s.currentMap === "grass_oddish" ? { event: "grass_oddish" } : {}) }]
+              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: isDarkBonusMap(s.currentMap) ? 1 : capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits, ...(s.currentMap === "grass_oddish" ? { event: "grass_oddish" } : {}) }]
               : prevCol;
             // Anuncia traits sorteados no chat
             if (capturedPet && capturedPet.traits && capturedPet.traits.length > 0) {
@@ -5645,7 +5647,7 @@ function IdlePage() {
         }
         const isOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3";
         const isGrassOddish = s.currentMap === "grass_oddish";
-        const finalLevel = isOddishEvent ? 1 : np.level;
+        const finalLevel = (isOddishEvent || isDarkBonusMap(s.currentMap)) ? 1 : np.level;
         if (isGrassOddish) {
           const total = (s.grassOddishCaptured ?? 0) + 1;
           queueMicrotask(() => {
@@ -6365,6 +6367,14 @@ function IdlePage() {
               }
             }
           }
+        }
+        // 🌑 MAPAS BÔNUS DARK — roster sombrio e nível escalado pelo treinador + time.
+        if (isDarkBonusMap(idle.currentMap)) {
+          const dpool = (DARK_BONUS_POOLS[idle.currentMap as DarkBonusMapId] as Species[]).filter(hasGif);
+          if (dpool.length > 0) pool = dpool;
+          mapLvRange = darkBonusLevelRange(idle.trainerLevel ?? 1, Math.max(1, maxTeamLv), idle.currentMap as DarkBonusMapId);
+          const rr = Math.random();
+          forcedRarity = rr < 0.45 ? "epic" : rr < 0.80 ? "legendary" : rr < 0.95 ? "mythic" : "mythic_shiny";
         }
         // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas normais.
         if (!forcedRarity) {
@@ -10672,9 +10682,15 @@ function IdlePage() {
                   { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
                 ],
                 evento_myth: [],
-                dark_vale1: [],
-                dark_vale2: [],
-                dark_vale3: [],
+                dark_vale1: [
+                  { key: "dv1-back", target: "arena", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ef27a" },
+                ],
+                dark_vale2: [
+                  { key: "dv2-back", target: "arena", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ef27a" },
+                ],
+                dark_vale3: [
+                  { key: "dv3-back", target: "arena", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ef27a" },
+                ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
@@ -10684,7 +10700,21 @@ function IdlePage() {
                   pushChat(`🔒 ${targetMap.name} exige Treinador Lv ${targetMap.minLevel} para entrar.`, "info");
                   return;
                 }
-                if (targetMap.cycle) {
+                // 🌑 MAPAS BÔNUS DARK — janela de 4h/2h + 5 stones de cada elemento
+                if (isDarkBonusMap(g.target)) {
+                  const dw = darkBonusWindow();
+                  if (!dw.open) {
+                    pushChat(`🌑 ${targetMap.name} está fechado. Abre em ${fmtMS(dw.msUntilChange)}.`, "info");
+                    return;
+                  }
+                  if (!hasDarkEntryStones(idle.items as any)) {
+                    const miss = missingDarkEntryStones(idle.items as any);
+                    pushChat(`🌑 ${targetMap.name} exige ${DARK_ENTRY_STONE_QTY} stones de CADA elemento. Falta: ${miss.join(" · ")}`, "info");
+                    return;
+                  }
+                  setIdle((s) => ({ ...s, items: payDarkEntryStones(s.items as any) as any }));
+                  pushChat(`🌑 Pagou ${DARK_ENTRY_STONE_QTY} stones de cada elemento para entrar em ${targetMap.name}. Você tem ${fmtMS(dw.msUntilChange)} lá dentro.`, "cap");
+                } else if (targetMap.cycle) {
                   const w = caveWindow();
                   if (!w.open) {
                     pushChat(`⛰ ${targetMap.name} fechada. Abre em ${fmtMS(w.msUntilChange)}.`, "info");
@@ -10994,6 +11024,10 @@ function IdlePage() {
                       { id: "fosso_cristal" as IdleMapId, x: 74, y: 12, type: "cave" },
                       { id: "vale_ruby" as IdleMapId, x: 78, y: 22, type: "volcano" },
                       { id: "ilha_safira" as IdleMapId, x: 92, y: 40, type: "beach" },
+                      // 🌑 MAPAS BÔNUS DARK — exigem 5 stones de cada elemento, abrem de 4 em 4h por 2h
+                      { id: "dark_vale1" as IdleMapId, x: 22, y: 62, type: "cave" },
+                      { id: "dark_vale2" as IdleMapId, x: 30, y: 72, type: "cave" },
+                      { id: "dark_vale3" as IdleMapId, x: 38, y: 82, type: "cave" },
                     ];
                     const activeTab = worldTab;
                     const isC1Unlocked = true; // Continente 1 sempre liberado
