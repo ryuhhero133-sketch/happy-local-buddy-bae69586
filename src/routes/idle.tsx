@@ -508,6 +508,8 @@ const worldMapContinent2Url = assetUrlFromJson(worldMapContinent2Asset);
 const gameDb = supabase as any;
 
 const potionIconUrl = assetUrlFromJson(potionIconAsset);
+// Teto tecnico de nivel (treinador e pokemon) — sem cap de 10k.
+const LEVEL_CAP = 1_000_000;
 const bgmUrl = assetUrlFromJson(bgmAsset);
 const sfxLevelUpUrl = assetUrlFromJson(sfxLevelUpAsset);
 const sfxClickUrl = assetUrlFromJson(sfxClickAsset);
@@ -1285,7 +1287,7 @@ function applyTrainerXp(s: IdleState, gained: number): { state: IdleState; level
   const startLv = s.trainerLevel ?? 1;
   let lv = startLv;
   let xp = (s.trainerXp ?? 0) + Math.max(0, Math.floor(gained));
-  while (lv < 10000 && xp >= trainerXpToNext(lv)) { xp -= trainerXpToNext(lv); lv += 1; }
+  while (lv < LEVEL_CAP && xp >= trainerXpToNext(lv)) { xp -= trainerXpToNext(lv); lv += 1; }
   return {
     state: { ...s, trainerLevel: lv, trainerXp: xp },
     leveledTo: lv > startLv ? lv : null,
@@ -1664,7 +1666,7 @@ function IdlePage() {
         col.push({
           id: pet.uid,
           species: pet.species as string,
-          level: Math.max(1, Math.min(10000, pet.level ?? 1)),
+          level: Math.max(1, Math.min(LEVEL_CAP, pet.level ?? 1)),
           xp: Math.max(0, Math.floor(pet.xp ?? 0)),
           rarity: (pet.rarity ?? "common") as string,
           team_slot: slot,
@@ -1676,7 +1678,7 @@ function IdlePage() {
         col.push({
           id: c.uid,
           species: c.species as string,
-          level: Math.max(1, Math.min(10000, c.level ?? 1)),
+          level: Math.max(1, Math.min(LEVEL_CAP, c.level ?? 1)),
           xp: Math.max(0, Math.floor(c.xp ?? 0)),
           rarity: (c.rarity ?? "common") as string,
           team_slot: null,
@@ -1686,7 +1688,7 @@ function IdlePage() {
         gold: Math.max(0, Math.floor(s.bank?.gold ?? 0)),
         crystal: Math.max(0, Math.floor(s.bank?.crystals ?? 0)),
         ruby: 0,
-        trainer_level: Math.max(1, Math.min(10000, s.trainerLevel ?? 1)),
+        trainer_level: Math.max(1, Math.min(LEVEL_CAP, s.trainerLevel ?? 1)),
         trainer_xp: Math.max(0, Math.floor(s.trainerXp ?? 0)),
         kill_count: Math.max(0, Math.floor(s.totals?.kills ?? 0)),
         active_map: s.currentMap,
@@ -3252,7 +3254,7 @@ function IdlePage() {
     if (raw === "LVUP50" || raw === "TRAINER50" || raw === "LEVEL50") {
       const base = idleRef.current;
       const curLv = base.trainerLevel ?? 1;
-      const newLv = Math.min(10000, curLv + 50);
+      const newLv = Math.min(LEVEL_CAP, curLv + 50);
       const next: IdleState = {
         ...base,
         trainerLevel: newLv,
@@ -3281,7 +3283,7 @@ function IdlePage() {
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
       const add = lvBoostMap[raw];
       const curLv = base.trainerLevel ?? 1;
-      const newLv = Math.min(10000, curLv + add);
+      const newLv = Math.min(LEVEL_CAP, curLv + add);
       const next: IdleState = {
         ...base,
         trainerLevel: newLv,
@@ -4822,8 +4824,8 @@ function IdlePage() {
               const newXp = (p.xp ?? 0) + xp;
               let lv = p.level;
               let remaining = newXp;
-              while (lv < 10000 && remaining >= 100 + lv * 20) { remaining -= 100 + lv * 20; lv += 1; }
-              if (lv >= 10000) remaining = 0;
+              while (lv < LEVEL_CAP && remaining >= 100 + lv * 20) { remaining -= 100 + lv * 20; lv += 1; }
+              if (lv >= LEVEL_CAP) remaining = 0;
               return {
                 ...p, level: lv, xp: remaining,
                 hp: isLeader ? Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })) : Math.min(p.hp, calcIdleMaxHp({ ...p, level: lv })),
@@ -10670,6 +10672,9 @@ function IdlePage() {
                   { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
                 ],
                 evento_myth: [],
+                dark_vale1: [],
+                dark_vale2: [],
+                dark_vale3: [],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
@@ -13272,7 +13277,7 @@ function IdlePage() {
                    {team.map((p, idx) => (
                       <button 
                         key={p.uid}
-                        disabled={(idle.items?.rare_candy ?? 0) <= 0 || p.level >= 10000}
+                        disabled={(idle.items?.rare_candy ?? 0) <= 0 || p.level >= LEVEL_CAP}
                         onClick={() => {
                            if ((idle.items?.rare_candy ?? 0) <= 0) return;
                            setIdle(prev => {
@@ -13282,7 +13287,7 @@ function IdlePage() {
                            });
                            setTeam(prev => prev.map((item, i) => {
                               if (i === idx) {
-                                  const nextLv = Math.min(10000, (item.level ?? 1) + 1);
+                                  const nextLv = Math.min(LEVEL_CAP, (item.level ?? 1) + 1);
                                   pushChat(`🍬 Rare Candy usado em ${item.species.toUpperCase()}! Nível ${nextLv}!`, "cap");
                                   playLevelUp();
                                   return { ...item, level: nextLv, xp: 0 };
