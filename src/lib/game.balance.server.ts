@@ -106,8 +106,8 @@ export const KILL_MILESTONE_REWARD_BALLS = 10;
 
 // Caps máximos para evitar exploits
 export const MAX_STATS = {
-  trainer_level: 10000,
-  pokemon_level: 10000,
+  trainer_level: 1_000_000,
+  pokemon_level: 1_000_000,
   gold: 50_000_000,
   crystal: 1_000_000,
   collection_slots: 500

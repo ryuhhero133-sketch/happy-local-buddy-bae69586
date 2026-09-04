@@ -53,8 +53,8 @@ async function parseRestError(response: Response) {
 
 /** Tetos absolutos (espelham os caps do trigger no banco). */
 const CAPS = {
-  trainerLevel: 10000,
-  pokemonLevel: 10000,
+  trainerLevel: 1_000_000,
+  pokemonLevel: 1_000_000,
   gold: 50_000_000,
   crystal: 1_000_000,
   esmeralda: 1_000_000,
