@@ -54,7 +54,7 @@ declare
   _prev_level int := 1;
   _new_level  int;
   _cap_jump   int := 5000;     -- salto maximo de niveis por save
-  _cap_level  int := 10000;
+  _cap_level  int := 1000000;
   _cap_gold   bigint := 50000000;
   _cap_cry    bigint := 1000000;
   _cap_esm    bigint := 1000000;
