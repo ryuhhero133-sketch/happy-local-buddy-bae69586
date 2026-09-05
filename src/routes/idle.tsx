@@ -2438,6 +2438,25 @@ function IdlePage() {
   };
 
   // ============================================================
+  // 🌑 MAPAS BÔNUS DARK — expulsão automática ao fechar a janela (4h ciclo / 2h aberto)
+  // ============================================================
+  useEffect(() => {
+    const check = () => {
+      const w = darkBonusWindow();
+      if (w.open) return;
+      setIdle((s) => {
+        if (!isDarkBonusMap(s.currentMap)) return s;
+        try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌑 Vale fechado", body: "A fenda sombria se fechou — de volta à Arena.", tone: "info" } })); } catch {}
+        return { ...s, currentMap: "arena" };
+      });
+    };
+    check();
+    const t = setInterval(check, 15000);
+    return () => clearInterval(t);
+  }, []);
+
+
+  // ============================================================
   // AVISO GLOBAL — ODISSÉIA ODDISH
   // O evento abre no mesmo horário pra todo mundo (startedAt fixo).
   // Aqui despachamos toasts/chat sincronizados: T-5min, T-1min, ABERTO, FECHADO.
