@@ -1510,11 +1510,7 @@ export const Route = createFileRoute("/idle")({
       { name: "description", content: "Modo idle: seus Pokémon batalham e evoluem sozinhos." },
     ],
   }),
-  component: () => (
-    <AuthGate>
-      <IdlePage />
-    </AuthGate>
-  ),
+  component: () => <IdlePage />,
 });
 
 // ============ Page ============
