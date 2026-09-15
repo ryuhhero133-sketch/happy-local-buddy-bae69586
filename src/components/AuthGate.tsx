@@ -140,8 +140,14 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     if (typeof window !== "undefined") {
       try {
-        // Force removal of guest mode if it exists
-        localStorage.removeItem(GUEST_KEY);
+        const guestFlag = localStorage.getItem(GUEST_KEY);
+        const guestId = loadIdentity();
+        if (guestFlag === "1" && guestId && guestId.id.startsWith("guest-")) {
+          setIsGuest(true);
+          setIdentity(guestId);
+          setChecking(false);
+          return;
+        }
       } catch { /* ignore */ }
       if (
         window.location.hash.includes("type=recovery") ||
@@ -441,7 +447,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
   }
 
-  if (!session) return <AuthScreen kickedMessage={kicked ? "Sua conta foi conectada em outro dispositivo. Você foi desconectado." : null} />;
+  if (isGuest && identity) return <>{children}</>;
+  if (!session) return <GuestNameScreen />;
 
   if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
 
@@ -1131,6 +1138,38 @@ function CreateCharacterScreen({
         >
           SAIR
         </button>
+      </form>
+    </PanelShell>
+  );
+}
+
+function GuestNameScreen() {
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = name.trim().slice(0, 16).replace(/[^A-Za-z0-9 _-]/g, "");
+    if (trimmed.length < 2) return setError("Nome precisa ter ao menos 2 caracteres.");
+    try {
+      const guest: LocalIdentity = {
+        id: `guest-${crypto.randomUUID?.() ?? Date.now()}`,
+        name: trimmed,
+        secretKey: "",
+        createdAt: Date.now(),
+      };
+      localStorage.setItem(IDENTITY_KEY, JSON.stringify(guest));
+      localStorage.setItem(GUEST_KEY, "1");
+      window.location.reload();
+    } catch {
+      setError("Falha ao criar treinador.");
+    }
+  };
+  return (
+    <PanelShell title="ENTRAR">
+      <form onSubmit={submit} className="space-y-3">
+        <Field label="Nome do Treinador" value={name} onChange={setName} placeholder="Ex: Ash, Lenda" />
+        <ErrorBox message={error} />
+        <PrimaryButton>ENTRAR NO MUNDO</PrimaryButton>
       </form>
     </PanelShell>
   );

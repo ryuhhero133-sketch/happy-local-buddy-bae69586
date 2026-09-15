@@ -158,7 +158,9 @@ export type Species =
   // Black Mitic Brilhant Plus — exclusivo Governante (código CARTARIOLU)
   | "riolu"
   // Rayquaza — evento Grass Oddish (dragão mítico, carrega Stone Dragão)
-  | "rayquaza";
+  | "rayquaza"
+  // Bulbasaurs custom — florido (verde) e laranja (azul), sprites 4x4
+  | "bulbasaur_flower" | "bulbasaur_orange";
 
 
 
@@ -307,6 +309,8 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   venusaur:   { hp: 80, atk: 82, def: 83, spa: 100, spd: 100, spe: 80, rarity: "epic", goldRange: [20, 35], crystalChance: 0.11, catchMod: 1.55, minLv: 30 },
   butterfree: { hp: 60, atk: 45, def: 50, spa: 90, spd: 80, spe: 70, rarity: "rare", goldRange: [8, 14], crystalChance: 0.04, catchMod: 1.15, minLv: 10 },
   bulbasaur_hat: { hp: 50, atk: 55, def: 55, spa: 70, spd: 70, spe: 50, rarity: "rare", goldRange: [10, 16], crystalChance: 0.06, catchMod: 1.2, minLv: 8 },
+  bulbasaur_flower:  { hp: 55, atk: 58, def: 58, spa: 72, spd: 72, spe: 55, rarity: "rare", goldRange: [10, 16], crystalChance: 0.05, catchMod: 1.2, minLv: 6 },
+  bulbasaur_orange:  { hp: 60, atk: 64, def: 60, spa: 78, spd: 78, spe: 60, rarity: "rare", goldRange: [11, 18], crystalChance: 0.055, catchMod: 1.25, minLv: 8 },
   pikachu:    { hp: 35, atk: 55, def: 40, spa: 50, spd: 50, spe: 90, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.025, catchMod: 1.0, minLv: 4 },
   sandslash:  { hp: 75, atk: 100, def: 110, spa: 45, spd: 55, spe: 65, rarity: "rare", goldRange: [11, 18], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
   mewtwo:     { hp: 106, atk: 110, def: 90, spa: 154, spd: 90, spe: 130, rarity: "mythic", goldRange: [40, 70], crystalChance: 0.25, catchMod: 2.0, minLv: 90 },

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, ClientOnly } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
 import { Calendar, Gift, Clock } from "lucide-react";
@@ -110,7 +110,7 @@ import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync"
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
-import { SPECIES_BASE, makePet, calcMaxHp } from "@/game/systems";
+import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem } from "@/game/systems";
 import { TYPE_COLOR } from "@/game/movesets";
 import { computeTeamSynergies, computePower } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
@@ -248,6 +248,15 @@ import orbIncubatorImg from "@/assets/orb-incubator.png";
 import redLakeAsset from "@/assets/red-lake.png.asset.json";
 import volcanoAsset from "@/assets/volcano.png.asset.json";
 import mapBeachUrl from "@/assets/map-beach-idle.png";
+import mapCidadeUrl from "@/assets/cidade-principal.png";
+import mapinha1Url from "@/assets/mapinha1.png";
+import mapinha2Url from "@/assets/mapinha2.png";
+import mapinha3Url from "@/assets/mapinha3.png";
+import mapinha4Url from "@/assets/mapinha4.png";
+import mapinha5Url from "@/assets/mapinha5.png";
+import mapinha6Url from "@/assets/mapinha6.png";
+import bulbasaurFlowerAsset from "@/assets/npcs/bulbasaur-flower.png.asset.json";
+import bulbasaurOrangeAsset from "@/assets/npcs/bulbasaur-orange.png.asset.json";
 import collectIconImg from "@/assets/icons/collect-icon.png";
 import rubyGemAsset from "@/assets/ruby-gem.png.asset.json";
 import crystalRedAsset from "@/assets/items/icon-crystal-red.png.asset.json";
@@ -275,6 +284,9 @@ import charizardGif from "@/assets/charizard.gif";
 import pikachuGif from "@/assets/pikachu.gif";
 import dragoniteGif from "@/assets/dragonite.gif";
 import bulbasaurGif from "@/assets/bulbasaur.gif";
+import bulbasaurFlowerPng from "@/assets/bulbasaur-flower.png";
+import bulbasaurOrangePng from "@/assets/bulbasaur-orange.png";
+import gordinPng from "@/assets/gordin.png";
 import charmanderGif from "@/assets/charmander.gif";
 import squirtleGif from "@/assets/squirtle.gif";
 import rattataFAsset from "@/assets/rattata-f.gif.asset.json";
@@ -415,6 +427,8 @@ const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
 const idleArenaUrl = assetUrlFromJson(idleArenaAsset);
+const bulbasaurFlowerUrl = assetUrlFromJson(bulbasaurFlowerAsset);
+const bulbasaurOrangeUrl = assetUrlFromJson(bulbasaurOrangeAsset);
 
 const mapSnowUrl = assetUrlFromJson(mapSnowAsset);
 const mapDesertUrl = assetUrlFromJson(mapDesertAsset);
@@ -517,7 +531,6 @@ const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
-  | "casa_do_treinador"
   | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "pantano_fogo" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
   | "gelius1" | "gelius2"
   // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
@@ -538,7 +551,9 @@ type IdleMapId =
   // Terceiro Continente — Bônus
   | "continent3_map1" | "continent3_map2"
   // Mapas BÔNUS DARK — variações sombrias do Vale Verdejante (abrem 2h a cada 4h)
-  | "dark_vale1" | "dark_vale2" | "dark_vale3";
+  | "dark_vale1" | "dark_vale2" | "dark_vale3"
+  // Cidade + Mapinhas (teleporte grátis)
+  | "cidade" | "mapinha1" | "mapinha2" | "mapinha3" | "mapinha4" | "mapinha5" | "mapinha6";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -550,7 +565,6 @@ type IdleMapDef = {
   raid?: boolean;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
-  casa_do_treinador: { name: "Casa do Treinador", diff: "Seguro", bg: idleMonHouseUrl, rate: 0, minLevel: 1, maxLevel: 10000, element: "Normal", stars: 1 },
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
   deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
@@ -602,6 +616,13 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   dark_vale1: { name: "Vale Sombrio",     diff: "BÔNUS DARK",  bg: idleArenaUrl, rate: 2.4, minLevel: 1, element: "Sombra/Grama",   stars: 8,  overlay: "linear-gradient(180deg, rgba(4,6,14,0.72), rgba(24,4,38,0.78))", cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
   dark_vale2: { name: "Vale Amaldiçoado", diff: "BÔNUS DARK+", bg: idleArenaUrl, rate: 3.0, minLevel: 1, element: "Sombra/Veneno",  stars: 9,  overlay: "linear-gradient(180deg, rgba(10,2,16,0.78), rgba(40,0,20,0.82))", cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
   dark_vale3: { name: "Vale do Vazio",    diff: "BÔNUS VOID",  bg: idleArenaUrl, rate: 3.6, minLevel: 1, element: "Sombra/Dragão",  stars: 10, overlay: "linear-gradient(180deg, rgba(0,0,0,0.86), rgba(12,0,32,0.9))",  cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
+  cidade:   { name: "Cidade Principal", diff: "Fácil",  bg: mapCidadeUrl, rate: 0.8, minLevel: 1,  maxLevel: 30, element: "Normal", stars: 1 },
+  mapinha1: { name: "Mapinha 1",        diff: "Fácil",  bg: mapinha1Url,  rate: 1.0, minLevel: 1,  maxLevel: 20, element: "Normal", stars: 1 },
+  mapinha2: { name: "Mapinha 2",        diff: "Fácil+", bg: mapinha2Url,  rate: 1.1, minLevel: 5,  maxLevel: 25, element: "Água",   stars: 1 },
+  mapinha3: { name: "Mapinha 3",        diff: "Médio",  bg: mapinha3Url,  rate: 1.4, minLevel: 10, maxLevel: 40, element: "Fogo",   stars: 2 },
+  mapinha4: { name: "Mapinha 4",        diff: "Médio+", bg: mapinha4Url,  rate: 1.6, minLevel: 15, maxLevel: 60, element: "Terra",  stars: 2 },
+  mapinha5: { name: "Mapinha 5",        diff: "Difícil",  bg: mapinha5Url,  rate: 1.8, minLevel: 20, maxLevel: 80, element: "Planta",  stars: 3 },
+  mapinha6: { name: "Mapinha 6",        diff: "Difícil+", bg: mapinha6Url,  rate: 2.0, minLevel: 25, maxLevel: 100, element: "Normal",  stars: 3 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -626,8 +647,7 @@ const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
 
 // Portal da Casa
 const HOUSE_PORTALS: WorldPortalDef[] = [
-  { key: "casa->arena", from: "casa_do_treinador", to: "arena", x: 600, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b", label: "Partir para Aventura" },
-  { key: "arena->casa", from: "arena", to: "casa_do_treinador", x: 500, y: 400, arriveX: 550, arriveY: 350, color: "#8b5a2b", label: "Ir para Casa" },
+
 ];
 
 WORLD_PORTALS.push(...HOUSE_PORTALS);
@@ -692,6 +712,8 @@ const GIF: Partial<Record<Species, string>> = {
   riolu: rioluUrl,
   raichu: raichuUrl,
   rayquaza: rayquazaUrl,
+  bulbasaur_flower: bulbasaurFlowerPng,
+  bulbasaur_orange: bulbasaurOrangePng,
 };
 
 
@@ -700,6 +722,8 @@ const GIF: Partial<Record<Species, string>> = {
 const SPRITE_SHEET: Partial<Record<Species, string>> = {
   lucario: lucarioAuraUrl,
   mew: mewAuraUrl,
+  bulbasaur_flower: bulbasaurFlowerPng,
+  bulbasaur_orange: bulbasaurOrangePng,
 };
 
 
@@ -710,6 +734,7 @@ type ElementFx = "grass" | "fire" | "water" | "electric" | "poison" | "psychic" 
 const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Grama/bicho
   bulbasaur: "grass", ivysaur: "grass", venusaur: "grass",
+  bulbasaur_flower: "grass", bulbasaur_orange: "grass",
   oddish: "grass", gloom: "grass", vileplume: "grass",
   bellsprout: "grass", weepinbell: "grass", victreebel: "grass",
   paras: "grass", parasect: "grass",
@@ -829,9 +854,33 @@ type Obstacle = {
   collideR: number;          // raio de colisão em px (a partir da base)
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
- function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
-   // Casa do Treinador: mapa limpo e sem obstáculos
-   if (mapId === "casa_do_treinador") return [];
+function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
+  // Cidade e mapinhas 3/4/5/6: totalmente limpos
+  if (mapId === "cidade" || mapId === "mapinha3" || mapId === "mapinha4" || mapId === "mapinha5" || mapId === "mapinha6") return [];
+  // Mapinhas 1 e 2: pouquíssimas árvores, sem pedras (bem limpo)
+  if (mapId === "mapinha1" || mapId === "mapinha2") {
+    let seed2 = 777;
+    const rand2 = () => { seed2 = (seed2 * 1103515245 + 12345) & 0x7fffffff; return seed2 / 0x7fffffff; };
+    const kinds = [
+      { src: treeOakUrl, w: 110, h: 124, collideR: 0, blocks: false },
+      { src: treePineUrl, w: 90, h: 132, collideR: 0, blocks: false },
+    ];
+    const list: Obstacle[] = [];
+    let id = 1;
+    let tries = 0;
+    while (list.length < 3 && tries < 500) {
+      tries++;
+      const k = kinds[Math.floor(rand2() * kinds.length)];
+      const x = 120 + rand2() * (worldW - 240);
+      const y = 120 + rand2() * (worldH - 240);
+      if (Math.hypot(x - worldW / 2, y - worldH / 2) < 200) continue;
+      let ok = true;
+      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < 120) { ok = false; break; }
+      if (!ok) continue;
+      list.push({ id: id++, x, y, w: k.w, h: k.h, src: k.src, blocks: k.blocks, collideR: k.collideR });
+    }
+    return list;
+  }
 
    // PRNG determinístico simples
    let seed = mapId === "terra" ? 98765 : mapId === "fantasma" ? 66613 : 12345;
@@ -1232,9 +1281,8 @@ function loadIdle(): IdleState {
       const uskins = Array.isArray(s.unlockedSkins) ? s.unlockedSkins.slice() : [];
       if (!uskins.includes("default")) uskins.unshift("default");
       s.unlockedSkins = uskins;
-      // Sanitiza mapa removido (Pedreira Antiga)
-      // Força spawn na Casa do Treinador ao logar
-      s.currentMap = "casa_do_treinador";
+      // Sanitiza mapas removidos (Pedreira Antiga, Casa do Treinador) — mantém o mapa atual
+      if ((s.currentMap as string) === "casa_do_treinador") s.currentMap = "arena";
       if (!IDLE_MAPS[s.currentMap]) s.currentMap = "arena";
       return s;
     }
@@ -1247,7 +1295,7 @@ function freshIdle(): IdleState {
     startedAt: now, lastTickAt: now,
     pending: { gold: 0, rubies: 0, crystals: 0 },
     totals: { gold: 0, captured: 0, kills: 0 },
-    currentMap: "casa_do_treinador",
+    currentMap: "arena",
     tasks: DEFAULT_TASKS(),
     mapsUnlocked: 3,
     caughtSpecies: [],
@@ -1462,9 +1510,11 @@ export const Route = createFileRoute("/idle")({
     ],
   }),
   component: () => (
-    <AuthGate>
-      <IdlePage />
-    </AuthGate>
+    <ClientOnly fallback={<div style={{ display: "grid", placeItems: "center", minHeight: "50vh", color: "#fff", background: "#0b0510" }}>Carregando mundo...</div>}>
+      <AuthGate>
+        <IdlePage />
+      </AuthGate>
+    </ClientOnly>
   ),
 });
 
@@ -1475,7 +1525,7 @@ function IdlePage() {
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
   const [mapId, setMapId] = useState<IdleMapId>(() => {
     const s = loadIdle();
-    return s.currentMap || "casa_do_treinador";
+    return s.currentMap || "arena";
   });
   const [trainerTheme, setTrainerTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "dark";
@@ -1819,6 +1869,8 @@ function IdlePage() {
   // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
   useEffect(() => {
     const flush = () => {
+      // Salva o idle local na hora (coleção/capturas) — o autosave por efeito pode não dar tempo no F5
+      try { saveIdle(idleRef.current); } catch { /* ignore */ }
       if (!cloudBlobReady) return;
       void pushCloudSaveNow(buildFullBlob());
     };
@@ -2019,7 +2071,7 @@ function IdlePage() {
   const [governanteOpen, setGovernanteOpen] = useState(false);
   useEffect(() => {
     // Zona sagrada — limpa qualquer inimigo que tenha ficado do mapa anterior.
-    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall" || idle.currentMap === "casa_do_treinador") {
+    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
       setEnemies([]);
     }
     if (idle.currentMap !== "governante_hall") return;
@@ -2048,9 +2100,9 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
-  type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit";
+  type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit" | "heal";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
   // 💎 Balãozinho de Stone Elemental dropada
   const [stonePops, setStonePops] = useState<{ id: number; x: number; y: number; stone: string }[]>([]);
@@ -2060,6 +2112,9 @@ function IdlePage() {
   const enemyIdRef = useRef(1);
   const chestIdRef = useRef(1);
   const fxIdRef = useRef(1);
+  const isFirstSpawnRef = useRef(true);
+  const lastSpawnAtRef = useRef(0);
+  const orbIdRef = useRef(1);
   const [tab, setTab] = useState<"inicio" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento">("inicio");
   const [skinId, setSkinId] = useState<string>(() => {
     if (typeof window === "undefined") return "default";
@@ -2368,13 +2423,7 @@ function IdlePage() {
     const cycle = (phase: "snow" | "clear") => {
       if (cancelled) return;
       
-      // Se estiver na casa, sempre força clima limpo e não anuncia nevasca
-      if (idleRef.current.currentMap === "casa_do_treinador") {
-        setWeather("clear");
-        // Tenta iniciar o ciclo novamente em 10 segundos para ver se o jogador saiu
-        timer = setTimeout(() => cycle(phase), 10000);
-        return;
-      }
+
 
       if (phase === "snow") {
         setWeather("snow");
@@ -2430,11 +2479,64 @@ function IdlePage() {
   type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture" };
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const chatIdRef = useRef(1);
+  // ===== Toasts (notificações não-bloqueantes) =====
+  const [toasts, setToasts] = useState<{ id: number; text: string; kind: ChatMsg["kind"] }[]>([]);
+  const toastIdRef = useRef(1);
+  const pushToast = (text: string, kind: ChatMsg["kind"]) => {
+    const id = toastIdRef.current++;
+    setToasts((prev) => [...prev, { id, text, kind }].slice(-3));
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4200);
+  };
   const pushChat = (text: string, kind: ChatMsg["kind"] = "info") => {
+    if (kind === "chest" || kind === "cap" || kind === "lv") {
+      pushToast(text, kind);
+    }
     setChat((prev) => {
       const next = [...prev, { id: chatIdRef.current++, text, kind }];
       return next.slice(-40);
     });
+  };
+  // ===== QUESTS neon — 9 bolas (kill/capture/berry/episódio + dourada VIP) =====
+  const QUEST_WINDOW_MS = 3 * 60 * 60 * 1000;
+  const QUEST_DEFS: { id: string; kind: "kill" | "capture" | "berry" | "episode"; title: string; target: number; reward: number; icon: string; vipOnly?: boolean }[] = [
+    { id: "q_kill", kind: "kill", title: "Derrote Pokémon", target: 12, reward: 680, icon: "⚔️" },
+    { id: "q_cap", kind: "capture", title: "Capture Pokémon", target: 4, reward: 880, icon: "🔴" },
+    { id: "q_berry", kind: "berry", title: "Colete Berries", target: 6, reward: 460, icon: "🫐" },
+    { id: "q_ep1", kind: "episode", title: "Episódio I", target: 1, reward: 750, icon: "📖" },
+    { id: "q_kill2", kind: "kill", title: "Derrote 20", target: 20, reward: 900, icon: "⚔️" },
+    { id: "q_cap2", kind: "capture", title: "Capture 6", target: 6, reward: 1200, icon: "🔵" },
+    { id: "q_berry2", kind: "berry", title: "Berries 10", target: 10, reward: 650, icon: "🍓" },
+    { id: "q_ep2", kind: "episode", title: "Episódio II", target: 1, reward: 1100, icon: "📜" },
+    { id: "q_vip", kind: "berry", title: "Coleta Dourada", target: 3, reward: 1850, icon: "✨", vipOnly: true },
+  ];
+  const getQuestWindow = (ts: number) => Math.floor(ts / QUEST_WINDOW_MS);
+  const [questProgress, setQuestProgress] = useState<Record<string, number>>(() => {
+    try { const raw = localStorage.getItem("rubym.quests.v1"); if (raw) { const j = JSON.parse(raw); if (j.window === getQuestWindow(Date.now())) return j.progress ?? {}; } } catch { /* ignore */ }
+    return {};
+  });
+  const [questClaimed, setQuestClaimed] = useState<Record<string, boolean>>(() => {
+    try { const raw = localStorage.getItem("rubym.quests.v1"); if (raw) { const j = JSON.parse(raw); if (j.window === getQuestWindow(Date.now())) return j.claimed ?? {}; } } catch { /* ignore */ }
+    return {};
+  });
+  const questWindow = getQuestWindow(now);
+  const [questTabOpen, setQuestTabOpen] = useState<string | null>(null);
+  const [hoveredQuest, setHoveredQuest] = useState<string | null>(null);
+  useEffect(() => {
+    try { localStorage.setItem("rubym.quests.v1", JSON.stringify({ window: questWindow, progress: questProgress, claimed: questClaimed })); } catch { /* ignore */ }
+  }, [questWindow, questProgress, questClaimed]);
+  useEffect(() => {
+    const cur = getQuestWindow(Date.now());
+    if (cur !== questWindow) { setQuestProgress({}); setQuestClaimed({}); }
+  }, [now, questWindow]);
+  const claimQuest = (qid: string) => {
+    const q = QUEST_DEFS.find((x) => x.id === qid);
+    if (!q || questClaimed[qid]) return;
+    const prog = questProgress[qid] ?? 0;
+    if (prog < q.target) { pushChat("Quest ainda não completa!", "info"); return; }
+    setQuestClaimed((s) => ({ ...s, [qid]: true }));
+    setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + q.reward } }));
+    pushChat(`Quest "${q.title}" concluída! +${q.reward} ouro`, "chest");
+    pushToast(`+${q.reward} ouro`, "chest");
   };
 
   // ============================================================
@@ -2591,8 +2693,46 @@ function IdlePage() {
   }, []);
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 800 : 1920;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : idle.currentMap === "casa_do_treinador" ? 600 : 1920;
+  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+  // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
+  const customMapUrls: Record<string, string> = {
+    cidade: mapCidadeUrl,
+    mapinha1: mapinha1Url,
+    mapinha2: mapinha2Url,
+    mapinha3: mapinha3Url,
+    mapinha4: mapinha4Url,
+    mapinha5: mapinha5Url,
+    mapinha6: mapinha6Url,
+  };
+  const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
+  useEffect(() => {
+    const url = customMapUrls[idle.currentMap];
+    if (!url) { setCustomDims(null); return; }
+    const img = new Image();
+    img.src = url;
+    img.onload = () => setCustomDims({ w: img.naturalWidth, h: img.naturalHeight });
+  }, [idle.currentMap]);
+  useEffect(() => {
+    if (customDims && customMapUrls[idle.currentMap]) {
+      setTrainerPos({ x: customDims.w / 2, y: customDims.h / 2 });
+    }
+  }, [idle.currentMap, customDims]);
+  useEffect(() => {
+    if (customDims && (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2")) {
+      setEnemies((prev) => {
+        if (prev.filter((e) => e.hp > 0).length > 0) return prev;
+        const fresh = spawnEnemies();
+        return fresh.length > 0 ? fresh : prev;
+      });
+      setChests((prev) => {
+        if (prev.filter((c) => !c.opened).length > 0) return prev;
+        return spawnChests(chestTarget);
+      });
+    }
+  }, [customDims]);
+  const curWorldW = customDims && customMapUrls[idle.currentMap] ? customDims.w : WORLD_W;
+  const curWorldH = customDims && customMapUrls[idle.currentMap] ? customDims.h : WORLD_H;
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
@@ -2608,15 +2748,11 @@ function IdlePage() {
   }, []);
 
   // ---- Obstáculos com colisão (posições determinísticas) ----
-  const obstacles = useMemo(() => buildObstacles(WORLD_W, WORLD_H, idle.currentMap), [idle.currentMap]);
+  const obstacles = useMemo(() => buildObstacles(curWorldW, curWorldH, idle.currentMap), [idle.currentMap, curWorldW, curWorldH]);
 
   // ---- Prédios do mundo (Laboratório + Lar) ----
   type Building = { key: "lab" | "lar" | "azul"; label: string; emoji: string; color: string; x: number; y: number; w: number; h: number; interactR: number };
-  const BUILDINGS = useMemo<Building[]>(() => [
-    { key: "lab",  label: "Laboratório", emoji: "🔬", color: "#c084fc", x: 520,  y: 640, w: 148, h: 168, interactR: 100 },
-    { key: "lar",  label: "Lar",         emoji: "🏠", color: "#5ec26a", x: 1400, y: 640, w: 148, h: 168, interactR: 100 },
-    { key: "azul", label: "Casa Azul",   emoji: "🏡", color: "#4a9eff", x: 1600, y: 640, w: 148, h: 168, interactR: 100 },
-  ], []);
+  const BUILDINGS = useMemo<Building[]>(() => [], []);
 
   const TRAINER_R = 10; // raio do treinador
   const collidesWithAny = (x: number, y: number) => {
@@ -2655,9 +2791,106 @@ function IdlePage() {
   const pokemonFaceRef = useRef<"left" | "right">("right");
   const [moving, setMoving] = useState(true);
   // Alvo de deslocamento automático (clicar em "Ir ao Lar", "Ir ao Lab", "Ir Floresta")
-  const walkTargetRef = useRef<{ x: number; y: number; label: string; onArrive?: () => void; resumeAuto?: boolean } | null>(null);
+  const walkTargetRef = useRef<{ x: number; y: number; label: string; onArrive?: () => void; resumeAuto?: boolean; startedAt?: number; _lastMove?: number } | null>(null);
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
+  const [walkMarker, setWalkMarker] = useState<{ x: number; y: number } | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
+  const [mapTeleportOpen, setMapTeleportOpen] = useState(false);
+  // Orbs de energia removidos — só existem os orbs de mapa que spawnam pokémon
+  // Energia do treinador: drena 100% em 30min andando e trava ao zerar
+  // Orbs de mapa: comuns (2min) e épicos (2h) — aparecem conforme kills
+  type MapOrb = { id: number; x: number; y: number; kind: "common" | "epic"; spawnAt: number; duration: number };
+  const [mapOrbs, setMapOrbs] = useState<MapOrb[]>([]);
+  const mapOrbIdRef = useRef(1);
+  const killCountRef = useRef(0); // kills desde o último orb
+  const [orbFlashes, setOrbFlashes] = useState<{ id: number; x: number; y: number; kind: "common" | "epic" }[]>([]);
+  const orbFlashIdRef = useRef(1);
+  // Partículas suaves de cura (anel + "+" subindo) — substitui o clarão forte
+  type HealFx = { id: number; x: number; y: number; dx: number; d: number; ring: boolean };
+  const [healFx, setHealFx] = useState<HealFx[]>([]);
+  const healFxIdRef = useRef(1);
+  const [trainerEnergy, setTrainerEnergy] = useState(100);
+  type NpcKind = "gordin" | "bulbaOrange" | "bulbaFlower";
+  const [npcs, setNpcs] = useState<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
+  const [npcDialog, setNpcDialog] = useState<{ kind: NpcKind; page: number } | null>(null);
+  // Energia do treinador: drena 100% em 30min andando e trava ao zerar
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (!autoRef.current && !walkTargetRef.current) return;
+      setTrainerEnergy((e) => {
+        const ne = Math.max(0, e - 100 / 1800);
+        if (ne <= 0.01) { setAuto(false); if (moving) setMoving(false); }
+        return ne;
+      });
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [moving]);
+  // Recupera HP do líder quando parado sem pokémon por perto
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const alive = enemies.filter((e) => e.hp > 0).length;
+      if (alive === 0 && !walkTargetRef.current && !moving) {
+        setLeaderHp((hp) => {
+          const t = team[0];
+          const max = t ? calcIdleMaxHp(t) : 100;
+          if (hp >= max) return hp;
+          return Math.min(max, hp + Math.ceil(max * 0.015));
+        });
+      }
+    }, 900);
+    return () => clearInterval(iv);
+  }, [enemies, moving, team]);
+  // Coleta de orbs de energia removida — só existem orbs de mapa que spawnam pokémon
+  // NPCs: garotos + bulbasaurs nos mapinhas 1 e 2
+  useEffect(() => {
+    if (idle.currentMap === "mapinha1") {
+      setNpcs([
+        { id: 2, kind: "bulbaOrange", x: customDims ? customDims.w * 0.35 : 700, y: customDims ? customDims.h * 0.6 : 1100, dir: "down", frame: 0 },
+      ]);
+    } else if (idle.currentMap === "mapinha2") {
+      setNpcs([
+        { id: 3, kind: "gordin", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.45 : 800, dir: "down", frame: 0 },
+        { id: 4, kind: "bulbaFlower", x: customDims ? customDims.w * 0.65 : 1200, y: customDims ? customDims.h * 0.55 : 1000, dir: "down", frame: 0 },
+      ]);
+    } else {
+      setNpcs([]);
+      setNpcDialog(null);
+    }
+  }, [idle.currentMap, customDims]);
+  // Anima e move NPCs (spritesheet 4x4)
+  useEffect(() => {
+    if (npcDialog) return;
+    if (npcs.length === 0) return;
+    const iv = setInterval(() => {
+      setNpcs((prev) => prev.map((n) => {
+        if (n.kind.startsWith("bulba")) {
+          return { ...n, frame: (n.frame + 1) % 4 };
+        }
+        const dirs: Dir[] = ["down", "left", "right", "up"];
+        const shouldTurn = Math.random() < 0.14;
+        const dir = shouldTurn ? dirs[Math.floor(Math.random() * 4)] : n.dir;
+        const speed = 2.8;
+        let nx = n.x, ny = n.y;
+        if (dir === "left") nx -= speed;
+        if (dir === "right") nx += speed;
+        if (dir === "up") ny -= speed;
+        if (dir === "down") ny += speed;
+        const margin = 60;
+        const maxW = customDims ? customDims.w : WORLD_W;
+        const maxH = customDims ? customDims.h : WORLD_H;
+        nx = Math.max(margin, Math.min(maxW - margin, nx));
+        ny = Math.max(margin, Math.min(maxH - margin, ny));
+        if (nx <= margin || nx >= maxW - margin || ny <= margin || ny >= maxH - margin) {
+          const opposite: Record<Dir, Dir> = { down: "up", up: "down", left: "right", right: "left" };
+          return { ...n, dir: opposite[dir], frame: (n.frame + 1) % 4, x: nx, y: ny };
+        }
+        return { ...n, dir, frame: (n.frame + 1) % 4, x: nx, y: ny };
+      }));
+    }, 140);
+    return () => clearInterval(iv);
+  }, [npcs.length, npcDialog, customDims]);
+  const [coletaCollapsed, setColetaCollapsed] = useState(false);
+  const [pacotesCollapsed, setPacotesCollapsed] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
   const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
   const [c4Pin, setC4Pin] = useState<string | null>(null);
@@ -3767,7 +4000,6 @@ function IdlePage() {
 
 
   const fakeMapPlayers = useMemo<RemotePlayer[]>(() => {
-    if (idle.currentMap === "casa_do_treinador") return [];
 
     const names = [
       "Luna", "Ryu", "Mika", "Theo", "Nina", "Kai", "Yuri", "Lia", "Noah", "Iris",
@@ -3815,8 +4047,6 @@ function IdlePage() {
   }, [idle.currentMap, energyTick]);
 
   const visibleMapPlayers = useMemo(() => {
-    // Na casa do treinador, não mostra outros jogadores (privado)
-    if (idle.currentMap === "casa_do_treinador") return [];
     // Remove fakeMapPlayers do jogo conforme pedido
     return remotePlayers;
   }, [remotePlayers, idle.currentMap]);
@@ -4013,8 +4243,8 @@ function IdlePage() {
   }, [oddishRankOpen, idle.grassOddishCaptured, identity?.name]);
   const viewW = viewSize.w / zoom;
   const viewH = viewSize.h / zoom;
-  const camX = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), trainerPos.x - viewW / 2));
-  const camY = Math.max(0, Math.min(Math.max(0, WORLD_H - viewH), trainerPos.y - viewH / 2));
+const camX = Math.max(0, Math.min(Math.max(0, curWorldW - viewW), trainerPos.x - viewW / 2));
+const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y - viewH / 2));
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * zoom) / zoom;
   const renderCamY = Math.round(camY * zoom) / zoom;
@@ -4067,7 +4297,7 @@ function IdlePage() {
           if (snap.atkDebuffUntil > now) atkDebuffUntilRef.current = snap.atkDebuffUntil;
           if (snap.poisonUntil > now) poisonUntilRef.current = snap.poisonUntil;
         } else {
-          setEnemies(idle.currentMap === "casa_do_treinador" ? [] : spawnEnemies());
+          setEnemies(spawnEnemies());
         }
       } catch {
         setEnemies(spawnEnemies());
@@ -4172,8 +4402,8 @@ function IdlePage() {
           pokemonFaceRef.current = nextFace; setPokemonFace(nextFace);
         }
         setTrainerPos((tp) => {
-          const clampX = (v: number) => Math.max(20, Math.min(WORLD_W - 20, v));
-          const clampY = (v: number) => Math.max(20, Math.min(WORLD_H - 20, v));
+          const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
+          const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
           let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
           if (collidesWithAny(nx, ny)) {
             nx = clampX(tp.x + stepX);
@@ -4190,6 +4420,16 @@ function IdlePage() {
       // ---- Deslocamento em direção a um destino escolhido (Lar / Lab / outro mapa) ----
       const wt = walkTargetRef.current;
       if (wt) {
+        const nowWt = Date.now();
+        if (wt._lastMove && nowWt - wt._lastMove < 32) return;
+        wt._lastMove = nowWt;
+        if (wt.startedAt && nowWt - wt.startedAt > 7500) {
+          walkTargetRef.current = null;
+          setWalkingTo(null);
+          setWalkMarker(null);
+          if (wt.resumeAuto && (autoBattleRef.current?.enabled ?? true)) setAuto(true);
+          return;
+        }
         setTrainerPos((tp) => {
           const dx = wt.x - tp.x;
           const dy = wt.y - tp.y;
@@ -4198,8 +4438,9 @@ function IdlePage() {
             const resume = wt.resumeAuto;
             walkTargetRef.current = null;
             setWalkingTo(null);
+            setWalkMarker(null);
             wt.onArrive?.();
-            if (resume) setAuto(true);
+            if (resume && (autoBattleRef.current?.enabled ?? true)) setAuto(true);
             if (moving) setMoving(false);
             return tp;
           }
@@ -4215,8 +4456,8 @@ function IdlePage() {
           if (nextFace !== pokemonFaceRef.current) {
             pokemonFaceRef.current = nextFace; setPokemonFace(nextFace);
           }
-          const clampX = (v: number) => Math.max(20, Math.min(WORLD_W - 20, v));
-          const clampY = (v: number) => Math.max(20, Math.min(WORLD_H - 20, v));
+          const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
+          const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
           return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
         });
         return;
@@ -4232,16 +4473,8 @@ function IdlePage() {
         const noTeam = team.length === 0;
         const allFainted = !noTeam && team.every((p) => (p.uid === team[0].uid ? leaderHp : (p.hp ?? calcIdleMaxHp(p))) <= 0);
         if (allFainted && !restingRef.current && !walkTargetRef.current) {
-          const lar = BUILDINGS.find((b) => b.key === "lar");
-          if (lar) {
-            pushChat(`🏠 Time desmaiado — indo até o Lar recuperar HP (5s).`, "info");
-            walkTargetRef.current = {
-              x: lar.x, y: lar.y + 20, label: "Lar",
-              resumeAuto: true,
-              onArrive: () => { restAtHome("lar"); },
-            };
-            setWalkingTo("Lar");
-          }
+          pushChat(`🏠 Time desmaiado — descansando no local para recuperar HP (5s).`, "info");
+          restAtHome("lar");
           if (moving) setMoving(false);
           return;
         }
@@ -4255,6 +4488,9 @@ function IdlePage() {
           return;
         }
       }
+
+      // Auto-batalha desligada = treinador parado (sem vagar sozinho atrás de alvos)
+      if (!(autoBattleRef.current?.enabled ?? true)) { if (moving) setMoving(false); return; }
 
       // Líder acima do cap: pode atacar normalmente, mas XP/ouro serão nerfados no cálculo abaixo.
 
@@ -4293,11 +4529,15 @@ function IdlePage() {
           const expired = wp ? nowT > wp.until : true;
           if (!wp || reached || expired) {
             // Escolhe destino longe da posição atual (pelo menos 40% do mapa)
-            const minDist = Math.min(WORLD_W, WORLD_H) * 0.4;
+            // Nos mapinhas fica só no centro 30-70% pra nunca ir pro canto verde
+            const isSmallWander = (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") && customDims;
+            const wW = isSmallWander ? customDims!.w : WORLD_W;
+            const wH = isSmallWander ? customDims!.h : WORLD_H;
+            const minDist = Math.min(wW, wH) * 0.4;
             let nx = 0, ny = 0;
             for (let i = 0; i < 8; i++) {
-              nx = 120 + Math.random() * (WORLD_W - 240);
-              ny = 120 + Math.random() * (WORLD_H - 240);
+              nx = isSmallWander ? wW * 0.30 + Math.random() * wW * 0.40 : 120 + Math.random() * (wW - 240);
+              ny = isSmallWander ? wH * 0.30 + Math.random() * wH * 0.40 : 120 + Math.random() * (wH - 240);
               if (Math.hypot(nx - tp.x, ny - tp.y) >= minDist) break;
             }
             wanderRef.current = { x: nx, y: ny, until: nowT + 15000 };
@@ -4321,10 +4561,18 @@ function IdlePage() {
           }
           return { x: tp.x + (wdx / wd) * spd, y: tp.y + (wdy / wd) * spd };
         }
-        candidates.sort((a, b) =>
+        const isSmallMapTgt = (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") && customDims;
+        const useWT = isSmallMapTgt ? customDims!.w : WORLD_W;
+        const useHT = isSmallMapTgt ? customDims!.h : WORLD_H;
+        const centerXT = useWT / 2;
+        const centerYT = useHT / 2;
+        const maxDistFromCenter = Math.min(useWT, useHT) * 0.42;
+        const filteredCandidates = isSmallMapTgt ? candidates.filter(t => Math.hypot(t.x - centerXT, t.y - centerYT) < maxDistFromCenter) : candidates;
+        filteredCandidates.sort((a, b) =>
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
-        const target = candidates[0];
+        const target = filteredCandidates[0];
+        if (!target) return tp;
         const dx = target.x - tp.x;
         const dy = target.y - tp.y;
         const dist = Math.hypot(dx, dy);
@@ -4372,8 +4620,8 @@ function IdlePage() {
           setPokemonFace(nextFace);
         }
         // AUTO: sem colisão — anda em linha reta atravessando obstáculos
-        const clampX = (v: number) => Math.max(20, Math.min(WORLD_W - 20, v));
-        const clampY = (v: number) => Math.max(20, Math.min(WORLD_H - 20, v));
+        const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
+        const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
         return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
       });
 
@@ -4384,6 +4632,55 @@ function IdlePage() {
         let changed = false;
         const tx = trainerPos.x;
         const ty = trainerPos.y;
+        // Pré-scan: bulbasaurs curam aliado machucado colado OU o inimigo que você ataca. Cura 10-13%.
+        const nowB = Date.now();
+        const isBulbaSp = (sp: Species) => sp === "bulbasaur_flower" || sp === "bulbasaur_orange";
+        const tid = attackTargetIdRef.current;
+        const playerTarget = tid != null ? prev.find((o) => o.id === tid && o.hp > 0 && o.hp < o.maxHp) ?? null : null;
+        const healPlan: { healerId: number; targetId: number; amount: number; x: number; y: number }[] = [];
+        const claimed = new Set<number>();
+        for (const h of prev) {
+          if (h.hp <= 0 || !isBulbaSp(h.sp)) continue;
+          if (nowB < (h.healCd ?? 0)) continue;
+          let best: Enemy | null = null;
+          let bd = Infinity;
+          for (const o of prev) {
+            if (o.id === h.id || o.hp <= 0 || !isBulbaSp(o.sp)) continue;
+            if (o.hp >= o.maxHp) continue;
+            const d = Math.hypot(o.x - h.x, o.y - h.y);
+            if (d <= 55 && d < bd) { best = o; bd = d; }
+          }
+          if (best && !claimed.has(best.id)) {
+            claimed.add(best.id);
+            healPlan.push({ healerId: h.id, targetId: best.id, amount: Math.round(best.maxHp * (0.10 + Math.random() * 0.03)), x: best.x, y: best.y });
+            continue;
+          }
+          // Inimigo que você está atacando, machucado e colado no curandeiro
+          if (playerTarget && playerTarget.id !== h.id && !claimed.has(playerTarget.id) && Math.hypot(playerTarget.x - h.x, playerTarget.y - h.y) <= 55) {
+            claimed.add(playerTarget.id);
+            healPlan.push({ healerId: h.id, targetId: playerTarget.id, amount: Math.round(playerTarget.maxHp * (0.10 + Math.random() * 0.03)), x: playerTarget.x, y: playerTarget.y });
+            continue;
+          }
+          // Sozinho e machucado? Cura a si mesmo.
+          if (h.hp < h.maxHp && !claimed.has(h.id)) {
+            claimed.add(h.id);
+            healPlan.push({ healerId: h.id, targetId: h.id, amount: Math.round(h.maxHp * (0.10 + Math.random() * 0.03)), x: h.x, y: h.y });
+          }
+        }
+        if (healPlan.length > 0) {
+          queueMicrotask(() => {
+            for (const hp of healPlan) {
+              pushFxAt(hp.x, hp.y - 44, `+${hp.amount}`, "heal");
+              setHealFx((p) => {
+                const parts: HealFx[] = [{ id: healFxIdRef.current++, x: hp.x, y: hp.y, dx: 0, d: 0, ring: true }];
+                for (let i = 0; i < 6; i++) {
+                  parts.push({ id: healFxIdRef.current++, x: hp.x, y: hp.y, dx: -22 + Math.random() * 44, d: i * 90, ring: false });
+                }
+                return [...p.slice(-30), ...parts];
+              });
+            }
+          });
+        }
         const next = prev.map((e) => {
           if (e.hp <= 0) return e;
           let ne = e;
@@ -4393,7 +4690,97 @@ function IdlePage() {
             ne = { ...ne, hp: Math.min(e.maxHp, e.hp + heal) };
             changed = true;
           }
-          if (!ne.aggressive) return ne;
+          if (!ne.aggressive || isBulbaSp(ne.sp)) {
+            // Bulbasaurs custom: andam SEMPRE (nunca parados) e vão curar aliados
+            if (isBulbaSp(ne.sp)) {
+              // Se for agressivo e o treinador está no alcance, persegue normal
+              if (ne.aggressive) {
+                const cdx = tx - ne.x;
+                const cdy = ty - ne.y;
+                const cdist = Math.hypot(cdx, cdy);
+                const caggroR = ne.aggroR ?? 180;
+                if (cdist >= 50 && cdist <= caggroR) {
+                  const cnx = ne.x + (cdx / cdist) * 3;
+                  const cny = ne.y + (cdy / cdist) * 3;
+                  if (!collidesWithAny(cnx, cny)) {
+                    changed = true;
+                    const cw: Dir = Math.abs(cdx) > Math.abs(cdy) ? (cdx >= 0 ? "right" : "left") : (cdy >= 0 ? "down" : "up");
+                    return { ...ne, x: cnx, y: cny, wdir: cw, face: (Math.abs(cdx) > 8 ? (cdx >= 0 ? "right" : "left") : ne.face) as "left" | "right" };
+                  }
+                  return ne;
+                }
+              }
+              const healDone = healPlan.some((p) => p.healerId === ne.id);
+              const healGot = healPlan.find((p) => p.targetId === ne.id);
+              if (healGot) ne = { ...ne, hp: Math.min(ne.maxHp, ne.hp + healGot.amount) };
+              if (healDone) ne = { ...ne, healCd: nowB + 9000 };
+              changed = true;
+              const isSmallMapB = (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") && customDims;
+              const maxXB = isSmallMapB ? customDims!.w * 0.78 : curWorldW - 20;
+              const maxYB = isSmallMapB ? customDims!.h * 0.78 : curWorldH - 20;
+              const minXB = isSmallMapB ? customDims!.w * 0.22 : 20;
+              const minYB = isSmallMapB ? customDims!.h * 0.22 : 20;
+              // Aliado bulba machucado num raio de 220? Vai até ele.
+              // Senão, vai até o inimigo que você está atacando (se machucado, raio 320).
+              let allyT: Enemy | null = null;
+              let allyD = Infinity;
+              for (const o of prev) {
+                if (o.id === ne.id || o.hp <= 0 || !isBulbaSp(o.sp)) continue;
+                if (o.hp >= o.maxHp) continue;
+                const d = Math.hypot(o.x - ne.x, o.y - ne.y);
+                if (d < 220 && d < allyD) { allyT = o; allyD = d; }
+              }
+              let destT: Enemy | null = null;
+              let destD = Infinity;
+              if (allyT && allyD > 55) { destT = allyT; destD = allyD; }
+              else if (playerTarget && playerTarget.id !== ne.id) {
+                const pd = Math.hypot(playerTarget.x - ne.x, playerTarget.y - ne.y);
+                if (pd < 320 && pd > 55) { destT = playerTarget; destD = pd; }
+              }
+              let btx = ne.wx;
+              let bty = ne.wy;
+              if (destT) { btx = destT.x; bty = destT.y; }
+              if (btx == null || bty == null || Math.hypot(btx - ne.x, bty - ne.y) < 14) {
+                if (destT) { btx = destT.x; bty = destT.y; }
+                else {
+                  const ba = Math.random() * Math.PI * 2;
+                  const br = 60 + Math.random() * 70;
+                  btx = Math.max(minXB, Math.min(maxXB, ne.x + Math.cos(ba) * br));
+                  bty = Math.max(minYB, Math.min(maxYB, ne.y + Math.sin(ba) * br));
+                }
+              }
+              const bdx = btx - ne.x;
+              const bdy = bty - ne.y;
+              const bdist = Math.hypot(bdx, bdy) || 1;
+              const bspd = 1.6;
+              const bnx = Math.max(minXB, Math.min(maxXB, ne.x + (bdx / bdist) * bspd));
+              const bny = Math.max(minYB, Math.min(maxYB, ne.y + (bdy / bdist) * bspd));
+              if (!collidesWithAny(bnx, bny)) {
+                const bw: Dir = Math.abs(bdx) > Math.abs(bdy) ? (bdx >= 0 ? "right" : "left") : (bdy >= 0 ? "down" : "up");
+                return { ...ne, x: bnx, y: bny, wx: btx, wy: bty, wdir: bw, face: (Math.abs(bdx) > 8 ? (bdx >= 0 ? "right" : "left") : ne.face) as "left" | "right" };
+              }
+              return { ...ne, wx: undefined, wy: undefined };
+            }
+            // Pokémon não-agressivos dão uma andada leve (wander) ~8% chance por tick
+            if (Math.random() < 0.08) {
+              const angle = Math.random() * Math.PI * 2;
+              const wSpeed = 1.5;
+              const wnx = ne.x + Math.cos(angle) * wSpeed;
+              const wny = ne.y + Math.sin(angle) * wSpeed;
+              const isSmallMap = (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") && customDims;
+              const maxX = isSmallMap ? customDims!.w * 0.78 : curWorldW - 20;
+              const maxY = isSmallMap ? customDims!.h * 0.78 : curWorldH - 20;
+              const minX = isSmallMap ? customDims!.w * 0.22 : 20;
+              const minY = isSmallMap ? customDims!.h * 0.22 : 20;
+              const cx = Math.max(minX, Math.min(maxX, wnx));
+              const cy = Math.max(minY, Math.min(maxY, wny));
+              if (!collidesWithAny(cx, cy)) {
+                changed = true;
+                return { ...ne, x: cx, y: cy, face: (Math.cos(angle) >= 0 ? "right" : "left") as "left" | "right" };
+              }
+            }
+            return ne;
+          }
           const dx = tx - ne.x;
           const dy = ty - ne.y;
           const dist = Math.hypot(dx, dy);
@@ -4406,7 +4793,7 @@ function IdlePage() {
           changed = true;
           return { ...ne, x: nx, y: ny, face: (dx >= 0 ? "right" : "left") as "left" | "right" };
         });
-        if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+        if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
           return prev.length > 0 ? [] : prev;
         }
         return changed ? next : prev;
@@ -4421,22 +4808,26 @@ function IdlePage() {
       if (!starterChosenRef.current) return;
       if (restingRef.current) return;
       setEnemies((prev) => {
-        if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+        if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
           return prev.length > 0 ? [] : prev;
         }
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length >= ENEMY_TARGET) return prev;
+        // Rajada de reposição: mapa quase vazio (<6 vivos) repõe até 6 de uma vez (recuperação rápida pós-wipe)
+        const burst = alive.length < 6 ? 6 : 2;
         const placed = alive.map((e) => ({ x: e.x, y: e.y }));
-        const ne = spawnOneEnemy(placed);
-        if (!ne) return prev;
-        // spawn extra: enche o mapa mais rápido
-        const extras: Enemy[] = [];
-        if (alive.length + 1 < ENEMY_TARGET) {
+        const fresh: Enemy[] = [];
+        for (let i = 0; i < burst && alive.length + fresh.length < ENEMY_TARGET; i++) {
+          const ne = spawnOneEnemy(placed);
+          if (!ne) break;
           placed.push({ x: ne.x, y: ne.y });
-          const ne2 = spawnOneEnemy(placed);
-          if (ne2) extras.push(ne2);
+          fresh.push(ne);
         }
+        if (fresh.length === 0) return prev;
+        // Remove cadáveres acumulados
+        const pruned = prev.filter((e) => e.hp > 0);
         // Anúncio quando um raro+ ou RIDER aparece via top-up
+        const ne = fresh[0];
         if (ne.rider) {
           pushEvent("✦", "POKÉMON RIDER!", `${ne.sp.replace(/_/g, " ").toUpperCase()} Lv.${ne.level} apareceu — recompensa massiva!`, "#ff5ec7");
           pushChat(`✦ RIDER: ${ne.sp.replace(/_/g, " ").toUpperCase()} Lv.${ne.level} apareceu! XP MASSIVO`, "cap");
@@ -4446,11 +4837,87 @@ function IdlePage() {
           pushEvent("★", `${label} À VISTA!`, `${ne.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
           
         }
-        return [...prev, ne, ...extras];
+        return [...pruned, ...fresh];
       });
-    }, 900 + Math.floor(Math.random() * 700)); // 0.9-1.6s entre spawns (mapa sempre cheio)
+    }, 20000 + Math.floor(Math.random() * 10000)); // 20-30s entre spawns
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
+
+  // ---- Tick de orbs de mapa: verifica se estouraram e spawna pokémon ----
+  const orbHatchRef = useRef<MapOrb[]>([]);
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const now = Date.now();
+      setMapOrbs((prev) => {
+        const hatched: MapOrb[] = [];
+        const remaining: MapOrb[] = [];
+        for (const orb of prev) {
+          if (now - orb.spawnAt >= orb.duration) {
+            hatched.push(orb);
+          } else {
+            remaining.push(orb);
+          }
+        }
+        if (hatched.length > 0) orbHatchRef.current = hatched;
+        return remaining;
+      });
+      // Processa hatches fora do setter
+      const toHatch = orbHatchRef.current;
+      if (toHatch.length === 0) return;
+      orbHatchRef.current = [];
+      const leaderLv = team[0]?.level ?? 10;
+      for (const orb of toHatch) {
+        // Pega pool de species do mapa atual
+        let pool: Species[] = ["pidgey", "rattata_f", "metapod", "bulbasaur_flower", "bulbasaur_orange"] as Species[];
+        if (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") {
+          pool = ["metapod", "pidgey", "rattata_f", "bulbasaur_flower", "bulbasaur_orange"] as Species[];
+        } else if (idle.currentMap === "terra") {
+          pool = ["pidgey", "rattata_f", "oddish", "bellsprout", "zubat", "caterpie"] as Species[];
+        } else if (idle.currentMap === "arena") {
+          pool = ["charmander", "squirtle", "bulbasaur", "pikachu"] as Species[];
+        } else {
+          pool = ["pidgey", "rattata_f", "zubat", "oddish", "bellsprout"] as Species[];
+        }
+        pool = pool.filter(hasGif);
+        if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
+        const sp = pool[Math.floor(Math.random() * pool.length)];
+        const isEpic = orb.kind === "epic";
+        const lv = Math.max(1, leaderLv + (isEpic ? 5 : 0));
+        const rarity: Rarity = isEpic
+          ? (Math.random() < 0.5 ? "epic" : "rare")
+          : (Math.random() < 0.4 ? "rare" : Math.random() < 0.15 ? "uncommon" : "common");
+        const hp = Math.round(35 + lv * 5.5 + (rarity === "epic" ? lv * 3 : rarity === "rare" ? lv * 1.5 : 0));
+        const isAggro = Math.random() < 0.4;
+        const aggroR = isAggro ? 150 + Math.floor(Math.random() * 80) : 0;
+        const ne: Enemy = {
+          sp, hp, maxHp: hp, id: enemyIdRef.current++,
+          x: orb.x, y: orb.y, face: "left",
+          aggressive: isAggro, aggroR,
+          elite: isEpic, level: lv, rarity,
+        };
+        setEnemies((ePrev) => [...ePrev, ne]);
+        // Flash de luz
+        setOrbFlashes((fPrev) => [...fPrev, { id: orbFlashIdRef.current++, x: orb.x, y: orb.y, kind: orb.kind }]);
+        pushEvent("🔮", "ORB ESTOUROU!",
+          `${sp.replace(/_/g, " ").toUpperCase()} Lv.${lv} nasceu do orb ${isEpic ? "épico" : "comum"}!`,
+          isEpic ? "#c084fc" : "#4ade80");
+      }
+    }, 3000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Limpa flashes de orb após 1.5s
+  useEffect(() => {
+    if (orbFlashes.length === 0) return;
+    const t = setTimeout(() => setOrbFlashes([]), 1500);
+    return () => clearTimeout(t);
+  }, [orbFlashes]);
+  // Limpa partículas de cura após 1.7s
+  useEffect(() => {
+    if (healFx.length === 0) return;
+    const t = setTimeout(() => setHealFx([]), 1700);
+    return () => clearTimeout(t);
+  }, [healFx]);
 
 
 
@@ -4706,6 +5173,45 @@ function IdlePage() {
         });
         const killedNow = next.find((e) => e.id === target.id && e.hp <= 0);
         if (killedNow) {
+          queueMicrotask(() => {
+            setQuestProgress((prev) => {
+              const nextQ: Record<string, number> = { ...prev };
+              let ch = false;
+              for (const q of QUEST_DEFS) {
+                if ((q.kind === "kill" || q.kind === "episode") && !questClaimed[q.id]) {
+                  const cur = prev[q.id] ?? 0;
+                  if (cur < q.target) { nextQ[q.id] = Math.min(q.target, cur + 1); ch = true; }
+                }
+              }
+              if (drops.includes("berry")) {
+                for (const q of QUEST_DEFS) {
+                  if (q.kind === "berry" && !questClaimed[q.id]) {
+                    const cur = prev[q.id] ?? 0;
+                    if (cur < q.target) { nextQ[q.id] = Math.min(q.target, cur + 1); ch = true; }
+                  }
+                }
+              }
+              return ch ? nextQ : prev;
+            });
+            // Drop de orb de energia removido — só existem orbs de mapa que spawnam pokémon
+            // Orbs de mapa: a cada ~15 kills nasce 1 orb comum; a cada 60 kills nasce 1 épico
+            killCountRef.current += 1;
+            const orbChance = killCountRef.current % 60 === 0 ? 1.0 : killCountRef.current % 15 === 0 ? 0.7 : 0;
+            if (orbChance > 0 && Math.random() < orbChance) {
+              const isEpic = killCountRef.current % 60 === 0;
+              setMapOrbs((prev) => {
+                if (prev.length >= 6) return prev; // máx 6 orbs no mapa
+                return [...prev, {
+                  id: mapOrbIdRef.current++,
+                  x: killedNow.x + (Math.random() - 0.5) * 40,
+                  y: killedNow.y + (Math.random() - 0.5) * 40,
+                  kind: isEpic ? "epic" : "common",
+                  spawnAt: Date.now(),
+                  duration: isEpic ? 2 * 60 * 60 * 1000 : 2 * 60 * 1000,
+                }];
+              });
+            }
+          });
           // Se o inimigo que paralisou morreu, libera o efeito.
           if (paralyzedByEnemyIdRef.current === killedNow.id) {
             paralyzedUntilRef.current = 0;
@@ -5067,6 +5573,21 @@ function IdlePage() {
             }
 
             const capturedInc = captured ? 1 : 0;
+            if (captured) {
+              queueMicrotask(() => {
+                setQuestProgress((prev) => {
+                  const nextQ: Record<string, number> = { ...prev };
+                  let ch = false;
+                  for (const q of QUEST_DEFS) {
+                    if ((q.kind === "capture" || q.kind === "episode") && !questClaimed[q.id]) {
+                      const cur = prev[q.id] ?? 0;
+                      if (cur < q.target) { nextQ[q.id] = Math.min(q.target, cur + 1); ch = true; }
+                    }
+                  }
+                  return ch ? nextQ : prev;
+                });
+              });
+            }
             const nt2 = nt.map((t) => (t.id === "t3" && !t.done && capturedInc)
               ? { ...t, progress: Math.min(t.target, t.progress + 1), done: t.progress + 1 >= t.target }
               : t);
@@ -5651,6 +6172,17 @@ function IdlePage() {
       const rLabel = rarityLabelMap[np.rarity] ?? String(np.rarity);
       pushFxAt(target.x, target.y - 70, `★ CAPTUROU! ★`, "capture");
       pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
+      setQuestProgress((prev) => {
+        const nextQ: Record<string, number> = { ...prev };
+        let ch = false;
+        for (const q of QUEST_DEFS) {
+          if ((q.kind === "capture" || q.kind === "episode") && !questClaimed[q.id]) {
+            const cur = prev[q.id] ?? 0;
+            if (cur < q.target) { nextQ[q.id] = Math.min(q.target, cur + 1); ch = true; }
+          }
+        }
+        return ch ? nextQ : prev;
+      });
       pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
       if (rolled.length > 0) {
         const tLabels = rolled.map((id) => { const t = TRAITS[id]; return t ? `${t.icon} ${t.name}` : id; }).join(" · ");
@@ -6160,16 +6692,24 @@ function IdlePage() {
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
     // Zonas sagradas ou seguras, sem spawns.
-    if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+    if (idle.currentMap === "cidade" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
     const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
     const MIN_DIST = 220;
+    if ((idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") && !customDims) return null;
+    const isSmallMapSpawn = idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2";
+    const useW = isSmallMapSpawn && customDims ? customDims.w : WORLD_W;
+    const useH = isSmallMapSpawn && customDims ? customDims.h : WORLD_H;
+    const insetX = isSmallMapSpawn ? useW * 0.30 : 120;
+    const insetY = isSmallMapSpawn ? useH * 0.30 : 120;
+    const spanW = isSmallMapSpawn ? useW * 0.40 : useW - 240;
+    const spanH = isSmallMapSpawn ? useH * 0.40 : useH - 240;
     for (let attempts = 0; attempts < 40; attempts++) {
-      const x = 120 + Math.random() * (WORLD_W - 240);
-      const y = 120 + Math.random() * (WORLD_H - 240);
-      const dt = Math.hypot(x - WORLD_W / 2, y - WORLD_H / 2);
+      const x = insetX + Math.random() * spanW;
+      const y = insetY + Math.random() * spanH;
+      const dt = Math.hypot(x - useW / 2, y - useH / 2);
       if (dt < 300) continue;
       let ok = true;
       for (const p of placed) {
@@ -6183,7 +6723,8 @@ function IdlePage() {
       if (nearPortal) continue;
       placed.push({ x, y });
 
-      const elite = Math.random() < 0.40;
+      const eliteRate = (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") ? 0.15 : 0.40;
+      const elite = Math.random() < eliteRate;
       let pool = speciesUnlockedFor(leaderLv);
       let mapLvRange: [number, number] | null = null;
       let sp: Species;
@@ -6198,6 +6739,11 @@ function IdlePage() {
         if (idle.currentMap === "terra" && maxTeamLv >= 30) {
           // blaziken removido do pool comum (aparece raramente via evento/spawn épico)
           pool = ["beedrill", "butterfree", "pinsir", "golem", "jolteon", "lapras"] as Species[];
+        }
+        if (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") {
+          // Mapinhas iniciais: só Metapod, Pidgey e Rattata, Lv 1-20
+          pool = ["metapod", "pidgey", "rattata_f", "bulbasaur_flower", "bulbasaur_orange"] as Species[];
+          mapLvRange = [1, 20];
         }
         if (idle.currentMap === "venofogo") {
           // blaziken/venonat com presença reduzida (só entram via chance pequena abaixo)
@@ -6614,7 +7160,12 @@ function IdlePage() {
   const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 48 : 30;
 
   function spawnEnemies(): Enemy[] {
-    if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
+    if (idle.currentMap === "cidade" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
+    const nowTs = Date.now();
+    if (nowTs - lastSpawnAtRef.current < 1500) return [];
+    lastSpawnAtRef.current = nowTs;
+    const isFirst = isFirstSpawnRef.current;
+    if (isFirst) setTimeout(() => { isFirstSpawnRef.current = false; }, 1800);
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "grass_oddish";
     const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : 16 + Math.floor(Math.random() * 5); // Grass Oddish: 28-33, outros: 16-20
@@ -6625,12 +7176,17 @@ function IdlePage() {
       if (!e) break;
       arr.push(e);
     }
-    const rareOnes = arr.filter((e) => e.rarity === "legendary" || e.rarity === "mythic" || e.rarity === "mythic_shiny");
-    for (const r of rareOnes) {
-      const label = r.rarity === "mythic_shiny" ? "MÍTICO SHINY" : r.rarity.toUpperCase();
-      const color = r.rarity === "mythic_shiny" ? "#ffd94d" : r.rarity === "mythic" ? "#ff5252" : "#ff8b3d";
-      pushEvent("★", `${label} À VISTA!`, `${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
-      
+    if (!isFirst) {
+      const rareRank: Record<string, number> = { mythic_shiny: 3, mythic: 2, legendary: 1 };
+      const rareOnes = arr.filter((e) => e.rarity === "legendary" || e.rarity === "mythic" || e.rarity === "mythic_shiny")
+        .sort((a, b) => (rareRank[b.rarity] ?? 0) - (rareRank[a.rarity] ?? 0))
+        .slice(0, 1);
+      for (const r of rareOnes) {
+        const label = r.rarity === "mythic_shiny" ? "MÍTICO SHINY" : r.rarity.toUpperCase();
+        const color = r.rarity === "mythic_shiny" ? "#ffd94d" : r.rarity === "mythic" ? "#ff5252" : "#ff8b3d";
+        pushEvent("★", `${label} À VISTA!`, `${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
+
+      }
     }
     return arr;
   }
@@ -7196,13 +7752,21 @@ function IdlePage() {
 
   // ===== Baús espalhados no mapa =====
   function spawnChests(count = 4): Chest[] {
+    const useW = customDims && customMapUrls[idle.currentMap] ? customDims.w : WORLD_W;
+    const useH = customDims && customMapUrls[idle.currentMap] ? customDims.h : WORLD_H;
+    const isSmallMapChest = idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2";
+    const insetX = isSmallMapChest ? useW * 0.30 : 140;
+    const insetY = isSmallMapChest ? useH * 0.30 : 140;
+    const spanW = isSmallMapChest ? useW * 0.40 : useW - 280;
+    const spanH = isSmallMapChest ? useH * 0.40 : useH - 280;
+    if (isSmallMapChest && !customDims) return [];
     const arr: Chest[] = [];
     let tries = 0;
     while (arr.length < count && tries < 200) {
       tries++;
-      const x = 140 + Math.random() * (WORLD_W - 280);
-      const y = 140 + Math.random() * (WORLD_H - 280);
-      if (Math.hypot(x - WORLD_W / 2, y - WORLD_H / 2) < 260) continue;
+      const x = insetX + Math.random() * spanW;
+      const y = insetY + Math.random() * spanH;
+      if (Math.hypot(x - useW / 2, y - useH / 2) < 260) continue;
       if (collidesWithAny(x, y)) continue;
       let ok = true;
       for (const c of arr) if (Math.hypot(x - c.x, y - c.y) < 260) { ok = false; break; }
@@ -7217,13 +7781,13 @@ function IdlePage() {
 
   // spawna baús no início; respawna a cada 10 min mantendo até `chestTarget` no mapa
   useEffect(() => {
-    const initial = (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") ? [] : spawnChests(Math.min(chestTarget, 2));
+    const initial = (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") ? [] : spawnChests(Math.min(chestTarget, 2));
     setChests(initial);
     const iv = setInterval(() => {
       setChests((prev) => {
         const remaining = prev.filter((c) => !c.opened || (Date.now() - (c.openedAt ?? 0) < 4000));
         const active = remaining.filter((c) => !c.opened);
-        if (idle.currentMap === "casa_do_treinador" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return remaining.length > 0 ? [] : remaining;
+        if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return remaining.length > 0 ? [] : remaining;
         if (active.length >= chestTarget) return remaining;
         const news = spawnChests(1);
         if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
@@ -8131,179 +8695,353 @@ function IdlePage() {
       <div className="idle-grid" style={{
         display: "grid",
         gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
-        gridTemplateRows: "1fr auto",
+        gridTemplateRows: "auto 1fr auto",
         gap: 8, padding: 8,
         height: "100vh",
         overflow: "hidden",
       }}>
 
+        {/* ============ TOPBAR (treinador + moedas + atalhos + relógio) ============ */}
+        <div style={{
+          gridColumn: "1 / -1",
+          display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+          background: "linear-gradient(180deg, rgba(10,17,32,0.97) 0%, rgba(6,10,20,0.97) 100%)",
+          border: "1px solid rgba(100,160,255,0.35)",
+          borderRadius: 14, padding: "6px 14px",
+          boxShadow: "0 6px 22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(150,200,255,0.22)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <div style={{
+              width: 54, height: 54, borderRadius: 10, overflow: "hidden", flexShrink: 0,
+              border: "2px solid rgba(245,207,107,0.7)", background: "#0a1322",
+              boxShadow: "0 0 0 3px rgba(245,207,107,0.18), 0 4px 12px rgba(0,0,0,0.5)",
+            }}>
+              <img src={assetUrlFromJson(trainerAvatarAsset)} alt="" width={54} height={54} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#8fb8ef", fontWeight: 800 }}>TREINADOR</div>
+              <div style={{ color: "#fff", fontWeight: 900, fontSize: 16, textShadow: "1px 1px 0 #000", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>
+                {identity?.name ?? "Treinador"}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                <span style={{ color: "#fff", fontWeight: 800, fontSize: 11, whiteSpace: "nowrap" }}>Lv. {idle.trainerLevel ?? 1}</span>
+                <div style={{ width: 100, height: 7, borderRadius: 999, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(110,175,255,0.35)", overflow: "hidden" }}>
+                  <div style={{
+                    width: `${Math.max(0, Math.min(100, ((idle.trainerXp ?? 0) / Math.max(1, trainerXpToNext(idle.trainerLevel ?? 1))) * 100))}%`, height: "100%",
+                    background: "linear-gradient(90deg, #3b82f6, #67c7f5)", boxShadow: "0 0 8px rgba(90,160,255,0.8)",
+                  }} />
+                </div>
+                <span style={{ fontSize: 10, color: "#9db4d8", fontWeight: 700 }}>
+                  {Math.round(Math.max(0, Math.min(100, ((idle.trainerXp ?? 0) / Math.max(1, trainerXpToNext(idle.trainerLevel ?? 1))) * 100)))}%
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                <span style={{ fontSize: 11 }}>🎖️</span>
+                <span style={{ fontSize: 10, color: "#8fa3c8", fontWeight: 600 }}>Poder Total</span>
+                <span style={{ fontSize: 11, color: "#f5cf6b", fontWeight: 900 }}>
+                  {team.reduce((s, p) => s + (p.level ?? 1), 0).toLocaleString("pt-BR")}
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+                <span style={{ fontSize: 9, color: trainerEnergy > 15 ? "#4ade80" : "#f87171", fontWeight: 900, letterSpacing: 0.5 }}>⚡ Energia</span>
+                <div style={{ width: 100, height: 6, borderRadius: 999, background: "rgba(0,0,0,0.55)", border: `1px solid ${trainerEnergy > 15 ? "rgba(74,222,128,0.45)" : "rgba(248,113,113,0.6)"}`, overflow: "hidden" }}>
+                  <div style={{ width: `${Math.round(trainerEnergy)}%`, height: "100%", background: trainerEnergy > 30 ? "linear-gradient(90deg, #4ade80, #22c55e)" : "linear-gradient(90deg, #f87171, #ef4444)", transition: "width 400ms" }} />
+                </div>
+                <span style={{ fontSize: 9, color: trainerEnergy > 15 ? "#4ade80" : "#f87171", fontWeight: 800 }}>{Math.round(trainerEnergy)}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            width: 30, height: 44, flexShrink: 0, display: "grid", placeItems: "center",
+          }}>
+            <div style={{
+              width: 22, height: 30,
+              background: "linear-gradient(180deg, #1c3a6e 0%, #0d1c3d 60%, #132c5e 100%)",
+              border: "2px solid #6ea8ff", borderRadius: 4,
+              clipPath: "polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%)",
+              boxShadow: "0 0 12px rgba(110,175,255,0.6)",
+            }} />
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            {([
+              { el: <GoldCoin size={18} />, val: Math.floor(idle.bank.gold).toLocaleString("pt-BR") },
+              { el: <CrystalGem size={18} />, val: Math.floor(idle.bank.crystals).toLocaleString("pt-BR") },
+              { el: <img src={crystalRedImg} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />, val: Math.floor(idle.pending.rubies).toLocaleString("pt-BR") },
+            ]).map((c, i) => (
+              <span key={i} style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "rgba(4,8,17,0.85)", border: "1px solid rgba(100,160,255,0.3)",
+                padding: "5px 10px", borderRadius: 999,
+                color: "#fff", fontWeight: 800, fontSize: 12, textShadow: "1px 1px 0 #000",
+              }}>
+                {c.el}{c.val}
+              </span>
+            ))}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 2, paddingLeft: 10, borderLeft: "1px solid rgba(100,160,255,0.22)" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 800, color: "#fff" }}><img src={ballPokeImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />×{idle.items.pokeball ?? 0}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 800, color: "#fff" }}><img src={ballGreatImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />×{idle.items.greatball ?? 0}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 800, color: "#fff" }}><img src={ballUltraImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />×{idle.items.ultraball ?? 0}</span>
+            </div>
+            <button
+              onClick={() => { playClick(); setTab("loja"); }}
+              title="Loja"
+              style={{
+                width: 24, height: 24, borderRadius: "50%", cursor: "pointer",
+                background: "linear-gradient(180deg,#3b82f6,#1d4ed8)", color: "#fff",
+                border: "1px solid rgba(150,200,255,0.6)", fontWeight: 900, fontSize: 15, lineHeight: 1,
+                boxShadow: "0 0 10px rgba(70,130,255,0.5)",
+              }}
+            >+</button>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 2, marginLeft: "auto" }}>
+            {([
+              { label: "Eventos", icon: "🎁", badge: 0, onClick: () => {
+                const recent = [...chat].reverse().filter((m) => m.kind === "chest" || m.kind === "cap" || m.kind === "lv").slice(0, 3);
+                if (recent.length === 0) pushToast("Nenhum evento recente.", "info");
+                else recent.forEach((m) => pushToast(m.text, m.kind));
+              } },
+              { label: "Correio", icon: "✉️", badge: idle.tasks.filter((t) => t.done).length, onClick: () => {
+                const done = idle.tasks.filter((t) => t.done);
+                if (done.length === 0) pushToast("Nenhuma recompensa para resgatar.", "info");
+                else { done.forEach((t) => claimTask(t.id)); pushChat(`Resgatou ${done.length} recompensa(s)!`, "chest"); }
+              } },
+              { label: "Missões", icon: "📋", badge: 0, onClick: () => setTab("tarefas") },
+              { label: "Mapa", icon: "🗺️", badge: 0, onClick: () => setMapTeleportOpen(true) },
+              { label: "Amigos", icon: "👥", badge: 0, onClick: () => setBigMapOpen(true) },
+              { label: "Config.", icon: "⚙️", badge: 0, onClick: () => setShowAutoSettings(true) },
+            ] as const).map((b) => (
+              <button
+                key={b.label}
+                onClick={() => { playClick(); b.onClick(); }}
+                title={b.label === "Amigos" ? "Ver treinadores no mapa" : b.label === "Correio" ? "Resgatar recompensas" : b.label === "Eventos" ? "Rever eventos recentes" : b.label}
+                className="bottomnav-btn"
+                style={{
+                  position: "relative", background: "transparent", border: "none", cursor: "pointer",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                  padding: "4px 9px", borderRadius: 10, color: "#dbe6fa", fontSize: 10, fontWeight: 600,
+                }}
+              >
+                <span style={{ fontSize: 20, filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}>{b.icon}</span>
+                {b.label}
+                {b.badge > 0 && (
+                  <span style={{
+                    position: "absolute", top: 0, right: 4, minWidth: 16, height: 16, borderRadius: 999,
+                    background: "#e11d48", color: "#fff", fontSize: 10, fontWeight: 900,
+                    display: "grid", placeItems: "center", padding: "0 4px",
+                    border: "1px solid #fff", boxShadow: "0 0 8px rgba(225,29,72,0.8)",
+                  }}>{b.badge}</span>
+                )}
+              </button>
+            ))}
+            <div style={{ textAlign: "right", marginLeft: 8, paddingLeft: 12, borderLeft: "1px solid rgba(100,160,255,0.25)" }}>
+              <div style={{ color: "#fff", fontWeight: 900, fontSize: 17, textShadow: "1px 1px 0 #000", whiteSpace: "nowrap" }}>
+                ☀️ {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+              </div>
+              <div style={{ fontSize: 10, color: "#8fa3c8", textTransform: "capitalize", whiteSpace: "nowrap" }}>
+                {new Date().toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" })}
+              </div>
+            </div>
+          </div>
+        </div>
 
 
         {/* ============ COLUNA ESQUERDA ============ */}
         <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
-          {(() => {
-            const trainerLv = idle.trainerLevel ?? 1;
-            const nextAt = trainerXpToNext(trainerLv);
-            const curXp = idle.trainerXp ?? 0;
-            const xpPct = Math.max(0, Math.min(100, (curXp / nextAt) * 100));
-            const name = (identity?.name || "Treinador").slice(0, 14);
-            const vip = isVip();
-            const accent = vip ? "#ffd66b" : "#c9b8ff";
-            return (
-              <div style={{
-                position: "relative",
-                padding: "7px 9px 7px 7px",
-                background:
-                  "linear-gradient(180deg, rgba(36,20,44,0.96) 0%, rgba(14,8,22,0.98) 100%)",
-                border: `1px solid ${accent}55`,
-                borderRadius: 10,
-                boxShadow:
-                  `0 3px 12px rgba(0,0,0,0.55), inset 0 1px 0 ${accent}33, 0 0 14px ${accent}18`,
-                display: "flex", alignItems: "center", gap: 9,
-                overflow: "hidden",
-              }}>
-                {/* linha superior dourada muito fina */}
-                <span style={{
-                  position: "absolute", top: 0, left: 8, right: 8, height: 1,
-                  background: `linear-gradient(90deg, transparent, ${accent}bb, transparent)`,
-                }} />
-
-                {/* Medalhão circular do avatar */}
-                <div style={{
-                  width: 52, height: 52, flexShrink: 0,
-                  borderRadius: "50%",
-                  background: `conic-gradient(from 45deg, #ffe89a, #b8862a, #6b3d0a, #ffd66b, #ffe89a)`,
-                  padding: 2,
-                  boxShadow: `0 3px 8px rgba(0,0,0,0.65), 0 0 14px ${accent}55, inset 0 0 3px rgba(0,0,0,0.4)`,
-                  position: "relative",
-                }}>
-                  <div style={{
-                    width: "100%", height: "100%", borderRadius: "50%",
-                    background: "radial-gradient(circle at 50% 35%, #3a2450 0%, #120820 78%)",
-                    display: "grid", placeItems: "center", overflow: "hidden",
-                    border: "1.5px solid #0b0510",
-                    boxShadow: "inset 0 0 6px rgba(0,0,0,0.8)",
-                  }}>
-                    <img
-                      src={assetUrlFromJson(trainerAvatarAsset)}
-                      alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  </div>
-                  {/* Selo de nível — pendurado no medalhão */}
-                  <div style={{
-                    position: "absolute", bottom: -4, right: -4,
-                    minWidth: 22, height: 20, padding: "0 5px",
-                    background: "linear-gradient(180deg, #ffe89a, #c48e2a 55%, #6b3d0a)",
-                    color: "#231407", fontWeight: 900, fontSize: 10.5,
-                    borderRadius: "50%", border: "2px solid #0b0510",
-                    display: "grid", placeItems: "center",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.35)",
-                    fontFamily: "'Cinzel', Georgia, serif", lineHeight: 1,
-                    letterSpacing: 0.2,
-                  }}>{trainerLv}</div>
-                </div>
-
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Nome + VIP */}
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 5,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>
-                    {vip && (
-                      <span style={{
-                        fontSize: 8, fontWeight: 900, letterSpacing: 1,
-                        padding: "1px 5px", borderRadius: 3,
-                        background: "linear-gradient(180deg, #ffd66b, #b8862a)",
-                        color: "#231407", border: "1px solid rgba(0,0,0,0.4)",
-                        boxShadow: "0 1px 2px rgba(0,0,0,0.5)", flexShrink: 0,
-                      }}>VIP</span>
-                    )}
-                    <span style={{
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                      fontFamily: "'Cinzel', Georgia, serif",
-                      fontSize: 12.5, fontWeight: 900, letterSpacing: 0.5,
-                      color: "#f7ecf7",
-                      textShadow: "0 1px 0 #000",
-                    }}>{name}</span>
-                  </div>
-
-                  {/* Barra de XP fina */}
-                  <div style={{
-                    marginTop: 4, position: "relative",
-                    height: 5, background: "#0b0510", borderRadius: 3,
-                    border: "1px solid rgba(245,207,107,0.25)",
-                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)",
-                    overflow: "hidden",
-                  }}>
-                    <div style={{
-                      width: `${xpPct}%`, height: "100%",
-                      background: "linear-gradient(180deg, #ffe89a 0%, #ffd66b 50%, #b8862a 100%)",
-                      boxShadow: "0 0 5px rgba(245,207,107,0.6)",
-                      transition: "width 400ms",
-                    }} />
-                  </div>
-                  <div style={{
-                    marginTop: 2, fontSize: 8.5, letterSpacing: 0.4,
-                    color: "#a8a0b8", fontFamily: "monospace",
-                    display: "flex", justifyContent: "space-between",
-                  }}>
-                    <span>XP</span>
-                    <span style={{ color: "#e8d089" }}>{curXp} / {nextAt}</span>
-                  </div>
-
-                  {/* Pills de status */}
-                  <div style={{ display: "flex", gap: 3, marginTop: 4, flexWrap: "nowrap" }}>
-                    <span style={pillStyle("#ffd66b")}>🪙 {fmtK(idle.totals.gold)}</span>
-                    <span style={pillStyle("#ff97e1")}>★ {idle.totals.captured}</span>
-                    <span style={pillStyle("#8fd0ff")}>⚔ {team.length}/6</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
 
 
 
-          <Panel title="SUA EQUIPE" accent="#c92a2a">
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+
+          {/* EQUIPE — GBA azul estilosa */}
+          <div style={{
+            background: "#d8c99a",
+            border: "3px solid #2c2c2c",
+            borderRadius: 6, overflow: "hidden",
+            boxShadow: "inset 0 0 0 2px #f0e6c8, 0 2px 0 #2c2c2c, 0 6px 12px rgba(0,0,0,0.25)",
+            flexShrink: 0, position: "relative",
+            imageRendering: "pixelated",
+          }}>
+            <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(180deg, transparent 0 3px, rgba(0,0,0,0.05) 3px 4px)", pointerEvents: "none" }} />
+            <div style={{ position: "relative" }}>
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6,
+              padding: "6px 8px", background: "#2c4a8a", borderBottom: "2px solid #2c2c2c",
+            }}>
+              <span style={{ color: "#ffcc33", fontWeight: 900, fontSize: 9, letterSpacing: 1.2, fontFamily: "'Courier New', monospace", textTransform: "uppercase", textShadow: "1px 1px 0 #1a2e6b" }}>EQUIPE</span>
+              <span style={{ display: "flex", gap: 3, alignItems: "center" }} title={`${team.length}/6`}>
+                {Array.from({ length: 6 }, (_, i) => {
+                  const filled = i < team.length;
+                  return (
+                    <span key={i} style={{
+                      width: 12, height: 12, borderRadius: "50%", flexShrink: 0, position: "relative", overflow: "hidden",
+                      background: filled ? "linear-gradient(180deg, #ff3b3b 0 45%, #1a1a1a 45% 55%, #ffffff 55% 100%)" : "linear-gradient(180deg, #6b7280 0 45%, #1a1a1a 45% 55%, #d1d5db 55% 100%)",
+                      border: "1px solid #1a2e6b", boxShadow: filled ? "0 0 4px rgba(255,204,51,0.5)" : "none",
+                      opacity: filled ? 1 : 0.42, filter: filled ? "none" : "grayscale(1)",
+                    }}>
+                      <span style={{ position: "absolute", left: "50%", top: "50%", width: 4, height: 4, background: filled ? "#fff" : "#9ca3af", border: "1px solid #1a1a1a", borderRadius: "50%", transform: "translate(-50%,-50%)" }} />
+                      {filled && <span style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.85) 0 2px, transparent 2.5px)", pointerEvents: "none" }} />}
+                    </span>
+                  );
+                })}
+              </span>
               <button
                 onClick={() => setTeamCollapsed((v) => !v)}
                 title={teamCollapsed ? "Expandir equipe" : "Minimizar (mostrar só líder)"}
                 style={{
-                  background: "#1a0f26", color: "#f5cf6b",
-                  border: "1px solid #c92a2a55", borderRadius: 4,
-                  padding: "2px 8px", fontSize: 10, fontWeight: 800, cursor: "pointer",
-                  letterSpacing: 1,
+                  background: "transparent", color: "#ffcc33",
+                  border: "1px solid #ffcc3355", borderRadius: 4,
+                  padding: "2px 6px", fontSize: 9, fontWeight: 800, cursor: "pointer",
                 }}
               >
-                {teamCollapsed ? "▼ EXPANDIR" : "▲ MINIMIZAR"}
+                {teamCollapsed ? "▼" : "▲"}
               </button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => (
-                <TeamRow key={p.uid} pet={p} onClick={() => setPetDetailUid(p.uid)} energyTick={energyTick} />
-              ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: 6, background: "#d8c99a" }}>
+              {(teamCollapsed ? team.slice(0, 1) : team).map((p) => {
+                const src = GIF[p.species];
+                const maxHp = calcIdleMaxHp(p);
+                const hp = p.hp ?? maxHp;
+                const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+                const fainted = !!p.faintedAt;
+                const selected = petDetailUid === p.uid;
+                const gender = p.uid.charCodeAt(0) % 2 === 0 ? "♀" : "♂";
+                const genderColor = gender === "♀" ? "#ff4a6b" : "#3a6bff";
+                const rarityBg =
+                  p.rarity === "mythic_shiny" ? "linear-gradient(180deg, #ffe0f7 0%, #ffb0e8 50%, #d060b0 100%)" :
+                  p.rarity === "mythic" ? "linear-gradient(180deg, #ffd0e8 0%, #ff8ac0 50%, #c03070 100%)" :
+                  p.rarity === "legendary" ? "linear-gradient(180deg, #fff6c0 0%, #ffd76e 50%, #c8a030 100%)" :
+                  p.rarity === "epic" ? "linear-gradient(180deg, #e8d0ff 0%, #c8a0ff 50%, #7a4ad0 100%)" :
+                  p.rarity === "rare" ? "linear-gradient(180deg, #d0e4ff 0%, #7ab0ff 50%, #3a5ed0 100%)" :
+                  "linear-gradient(180deg, #7ab0f0 0%, #4a78e0 50%, #2f5cb8 100%)";
+                return (
+                  <div
+                    key={p.uid}
+                    onClick={() => setPetDetailUid(p.uid)}
+                    title="Clique para detalhes"
+                    style={{
+                      display: "flex", alignItems: "center", gap: 0,
+                      background: rarityBg,
+                      border: selected ? "2px solid #ffcc33" : "2px solid #1e2e5a",
+                      borderRadius: 20, padding: "3px 8px 3px 5px", cursor: "pointer",
+                      boxShadow: selected ? "0 0 8px rgba(255,204,51,0.55), inset 0 1px 0 rgba(255,255,255,0.3)" : "inset 0 1px 0 rgba(255,255,255,0.22), 0 1px 2px rgba(0,0,0,0.2)",
+                      opacity: fainted ? 0.58 : 1, position: "relative", overflow: "hidden",
+                    }}
+                  >
+                    <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(90deg, transparent 0 40px, rgba(255,255,255,0.06) 40px 41px)", pointerEvents: "none", borderRadius: 20 }} />
+                    <div style={{
+                      width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
+                      background: "#fff", border: "2px solid #1e2e5a",
+                      display: "grid", placeItems: "center", overflow: "hidden", position: "relative", zIndex: 1,
+                      boxShadow: "inset 0 2px 4px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.2)",
+                      imageRendering: "pixelated",
+                    }}>
+                      <div style={{ position: "absolute", inset: 2, borderRadius: "50%", overflow: "hidden", background: "#fff" }}>
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "48%", background: "linear-gradient(180deg, #ff3b3b, #d02020)", borderBottom: "1.5px solid #1a1a1a" }} />
+                        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "48%", background: "#f5f5f5" }} />
+                        <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 2, background: "#1a1a1a", transform: "translateY(-50%)" }} />
+                        <div style={{ position: "absolute", left: "50%", top: "50%", width: 10, height: 10, background: "#fff", border: "1.5px solid #1a1a1a", borderRadius: "50%", transform: "translate(-50%,-50%)", boxShadow: "0 0 5px rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.3)" }} />
+                        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 28% 22%, rgba(255,255,255,0.9) 0 6%, transparent 7%)", pointerEvents: "none" }} />
+                        <div style={{ position: "absolute", inset: -2, background: "linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.85) 48%, transparent 55%)", animation: "pokeShine 2.6s ease-in-out infinite", pointerEvents: "none" }} />
+                      </div>
+                      {src
+                        ? <img src={src} alt="" width={34} height={34} style={{ position: "relative", zIndex: 2, imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))", transform: "translateY(1px)" }} />
+                        : <span style={{ fontSize: 16, position: "relative", zIndex: 2 }}>❓</span>}
+                      {fainted && <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "rgba(30,46,90,0.55)", fontSize: 14, color: "#fff", zIndex: 3, borderRadius: "50%" }}>×</div>}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0, marginLeft: 7, position: "relative", zIndex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ color: "#fff", fontWeight: 900, fontSize: 12, fontFamily: "'Courier New', monospace", textShadow: "1px 1px 0 #1e2e5a, 2px 2px 0 rgba(0,0,0,0.25)", letterSpacing: 0.8, textTransform: "uppercase", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {p.species.replace(/_/g, " ").toUpperCase()}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: -1 }}>
+                        <span style={{ color: "#e0f0ff", fontWeight: 900, fontSize: 10, fontFamily: "'Courier New', monospace", textShadow: "1px 1px 0 #1e2e5a" }}>Lv{p.level}</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, color: genderColor, textShadow: "1px 1px 0 #1e2e5a", lineHeight: 1 }}>{gender}</span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, position: "relative", zIndex: 1, minWidth: 92 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ background: "#2c2c2c", color: "#ffcc33", fontWeight: 900, fontSize: 7, padding: "1px 4px", borderRadius: 2, border: "1px solid #1a1a1a", fontFamily: "'Courier New', monospace", letterSpacing: 0.6, textShadow: "none" }}>HP</span>
+                        <div style={{ width: 66, height: 8, background: "#ffffff", border: "1.5px solid #1e2e5a", borderRadius: 4, overflow: "hidden", padding: 1, boxShadow: "inset 0 1px 1px rgba(0,0,0,0.2)" }}>
+                          <div style={{
+                            width: `${hpPct}%`, height: "100%", borderRadius: 2,
+                            background: hpPct > 50 ? "linear-gradient(180deg, #7af0a8, #30c060)" : hpPct > 20 ? "linear-gradient(180deg, #ffe68a, #f0c020)" : "linear-gradient(180deg, #ff8a8a, #d02020)",
+                          }} />
+                        </div>
+                      </div>
+                      <span style={{ color: "#fff", fontWeight: 900, fontSize: 10, fontFamily: "'Courier New', monospace", textShadow: "1px 1px 0 #1e2e5a", letterSpacing: 0.5 }}>{String(Math.round(hp)).padStart(2,"0")}/{String(maxHp).padStart(2,"0")}</span>
+                    </div>
+                  </div>
+                );
+              })}
               {teamCollapsed && team.length > 1 && (
-                <div style={{ fontSize: 10, color: "#8a7a9c", textAlign: "center", fontStyle: "italic" }}>
+                <div style={{ fontSize: 10, color: "#1e2e5a", textAlign: "center", fontStyle: "italic", fontWeight: 700 }}>
                   +{team.length - 1} no banco (minimizado)
                 </div>
               )}
-              <button style={{ ...smallBtn, marginTop: 2 }} onClick={() => setTab("pokemon")}>Ver todos</button>
+              {team.length === 0 && (
+                <div style={{ fontSize: 10, color: "#1e2e5a", textAlign: "center", padding: "10px 0", fontFamily: "'Courier New', monospace", fontWeight: 700 }}>
+                  Nenhum Pokémon na equipe.
+                </div>
+              )}
+              <button
+                onClick={() => { playClick(); setTab("pokemon"); }}
+                style={{
+                  width: "100%", background: "#2c4a8a", color: "#ffcc33",
+                  border: "2px solid #1a2e6b", padding: "6px 10px",
+                  borderRadius: 4, cursor: "pointer", fontSize: 9, fontWeight: 900, letterSpacing: 0.8,
+                  fontFamily: "'Courier New', monospace", textTransform: "uppercase",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2), 0 2px 0 #1a2e6b",
+                }}
+              >GERENCIAR EQUIPE ▶</button>
             </div>
-          </Panel>
+            </div>
+          </div>
 
 
 
           {/* Chat ocupa todo o espaço restante — sem rolagem externa */}
           <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-            <Panel title="REGISTRO DE BATALHA" accent="#1e3a5f">
+            <div style={{
+              background: "linear-gradient(180deg, rgba(12,20,36,0.96), rgba(8,13,26,0.96))",
+              border: "1px solid rgba(100,160,255,0.35)",
+              borderRadius: 12, overflow: "hidden", flex: 1, minHeight: 0,
+              display: "flex", flexDirection: "column",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(150,200,255,0.18)",
+            }}>
+              <div style={{ display: "flex", gap: 2, padding: "6px 8px 0" }}>
+                {([
+                  { k: "all", l: "Global" },
+                  { k: "system", l: "Sistema" },
+                  { k: "world", l: "Mundo" },
+                  { k: "captures", l: "Capturas" },
+                ] as const).map((t) => {
+                  const active = chatFilter === t.k;
+                  return (
+                    <button
+                      key={t.k}
+                      onClick={() => setChatFilter(t.k)}
+                      style={{
+                        flex: 1,
+                        background: active ? "rgba(70,120,220,0.3)" : "transparent",
+                        color: active ? "#fff" : "#8fa3c8",
+                        border: "none",
+                        borderBottom: active ? "2px solid #8fc0ff" : "2px solid transparent",
+                        padding: "5px 2px", fontSize: 10.5, fontWeight: active ? 800 : 500,
+                        cursor: "pointer", borderRadius: "6px 6px 0 0",
+                      }}
+                    >{t.l}</button>
+                  );
+                })}
+              </div>
               <div style={{
-                height: 200, minHeight: 160, maxHeight: 240,
+                flex: 1, minHeight: 120,
                 overflowY: "auto", display: "flex", flexDirection: "column-reverse",
                 gap: 4, fontSize: 11, lineHeight: 1.35,
-                background: "#0e0818", borderRadius: 6, padding: 6,
-                border: "1px solid rgba(107,212,255,0.15)",
+                background: "rgba(4,7,15,0.85)", borderRadius: 8, padding: 6, margin: "6px 8px 0",
+                border: "1px solid rgba(100,160,255,0.18)",
               }}>
                 {(() => {
                   const classify = (m: typeof chat[number]): "system" | "world" | "captures" => {
@@ -8329,6 +9067,16 @@ function IdlePage() {
                           m.kind === "lv" ? "⬆" :
                           m.kind === "hit" ? "✖" :
                           m.kind === "dmg" ? "⚔" : "•";
+                        const playerMatch = m.text.startsWith("💬") ? m.text.replace(/^💬\s*/, "").match(/^([^:]+):\s*(.*)$/) : null;
+                        if (playerMatch) {
+                          return (
+                            <div key={m.id} style={{ textShadow: "1px 1px 0 #000" }}>
+                              <span style={{ color: "#7fa8e0" }}>[Global] </span>
+                              <span style={{ color: "#ffd94d", fontWeight: 700 }}>{playerMatch[1]}: </span>
+                              <span style={{ color: "#dbe6fa" }}>{playerMatch[2]}</span>
+                            </div>
+                          );
+                        }
                         return (
                           <div key={m.id} style={{ color, textShadow: "1px 1px 0 #000", fontWeight: m.kind === "chest" ? 800 : 400 }}>
                             <span style={{ opacity: 0.7, marginRight: 4 }}>{prefix}</span>{m.text}
@@ -8336,36 +9084,11 @@ function IdlePage() {
                         );
                       })}
                       {filtered.length === 0 && (
-                        <div style={{ color: "#6a5a7c", fontStyle: "italic" }}>Nenhum evento neste filtro...</div>
+                        <div style={{ color: "#5f7396", fontStyle: "italic" }}>Nenhum evento neste filtro...</div>
                       )}
                     </div>
                   );
                 })()}
-              </div>
-              {/* Filtros do chat */}
-              <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
-                {([
-                  { k: "all", l: "Tudo" },
-                  { k: "system", l: "Sistema" },
-                  { k: "world", l: "Mundo" },
-                  { k: "captures", l: "Capturas" },
-                ] as const).map((t) => {
-                  const active = chatFilter === t.k;
-                  return (
-                    <button
-                      key={t.k}
-                      onClick={() => setChatFilter(t.k)}
-                      style={{
-                        flex: 1,
-                        background: active ? "#1e3a5f" : "#0e0818",
-                        color: active ? "#fff" : "#8fa5c0",
-                        border: `1px solid ${active ? "#6bd4ff" : "rgba(107,212,255,0.2)"}`,
-                        borderRadius: 4, padding: "3px 4px", fontSize: 10, fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >{t.l}</button>
-                  );
-                })}
               </div>
               {/* Chat global DESATIVADO — feed apenas de eventos do sistema */}
               {(() => {
@@ -8374,14 +9097,14 @@ function IdlePage() {
                 return (
                   <div
                     style={{
-                      marginTop: 6,
-                      background: "#0e0818",
-                      border: "1px dashed rgba(107,212,255,0.25)",
-                      borderRadius: 6,
+                      margin: "6px 8px 8px",
+                      background: "rgba(4,7,15,0.85)",
+                      border: "1px dashed rgba(100,160,255,0.3)",
+                      borderRadius: 8,
                       padding: "6px 8px",
                       fontSize: 10,
                       fontWeight: 700,
-                      color: "#8fa5c0",
+                      color: "#8fa3c8",
                       textAlign: "center",
                     }}
                   >
@@ -8389,7 +9112,7 @@ function IdlePage() {
                   </div>
                 );
               })()}
-            </Panel>
+            </div>
           </div>
         </div>
 
@@ -8409,8 +9132,14 @@ function IdlePage() {
             const sy = e.clientY - rect.top;
             const wx = renderCamX + sx / zoom;
             const wy = renderCamY + sy / zoom;
-            walkTargetRef.current = { x: wx, y: wy, label: "destino", resumeAuto: autoRef.current };
+            const isSmallWalk = ["mapinha1", "mapinha2"].includes(idle.currentMap) && customDims;
+            const cWw = isSmallWalk ? customDims!.w : WORLD_W;
+            const cHw = isSmallWalk ? customDims!.h : WORLD_H;
+            const clampedWx = isSmallWalk ? Math.max(cWw * 0.22, Math.min(cWw * 0.78, wx)) : wx;
+            const clampedWy = isSmallWalk ? Math.max(cHw * 0.22, Math.min(cHw * 0.78, wy)) : wy;
+            walkTargetRef.current = { x: clampedWx, y: clampedWy, label: "destino", resumeAuto: autoRef.current, startedAt: Date.now() };
             setWalkingTo("destino");
+            setWalkMarker({ x: clampedWx, y: clampedWy });
             setAuto(false);
           }}
           style={{
@@ -8418,13 +9147,109 @@ function IdlePage() {
             borderRadius: 12,
             overflow: "hidden",
             background: viewportBg,
-            minHeight: 520,
-            height: "calc(100vh - 110px)",
+            minHeight: 440,
+            height: "calc(100vh - 200px)",
             boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)",
             cursor: "crosshair",
           }}
         >
 
+
+          {/* ===== Toasts de eventos (não-bloqueantes) ===== */}
+          <div style={{
+            position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
+            zIndex: 70, display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+            pointerEvents: "none", width: "88%", maxWidth: 420,
+          }}>
+            {toasts.map((t) => {
+              const palette =
+                t.kind === "chest" ? { border: "#ffa64a", bg: "rgba(90,40,10,0.92)", icon: "🎁" } :
+                t.kind === "cap" ? { border: "#f5cf6b", bg: "rgba(60,45,10,0.92)", icon: "★" } :
+                t.kind === "lv" ? { border: "#6bd4ff", bg: "rgba(10,40,60,0.92)", icon: "⬆" } :
+                { border: "#8b5cf6", bg: "rgba(30,15,50,0.92)", icon: "•" };
+              return (
+                <div key={t.id} style={{
+                  width: "100%", animation: "evt-slide 300ms ease-out",
+                  background: palette.bg,
+                  border: `2px solid ${palette.border}`,
+                  borderRadius: 10, padding: "7px 12px",
+                  boxShadow: `0 4px 16px rgba(0,0,0,0.5), 0 0 12px ${palette.border}44`,
+                  display: "flex", alignItems: "center", gap: 8,
+                  color: "#fff", fontSize: 12, fontWeight: 700, textAlign: "center",
+                  textShadow: "1px 1px 0 #000",
+                }}>
+                  <span style={{ fontSize: 16, flexShrink: 0 }}>{palette.icon}</span>
+                  <span>{t.text}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Diálogo clássico NPC — Mapinha 1/2 */}
+          {npcDialog && (
+            <div
+              onClick={() => {
+                const dialogs = {
+                  gordin: [
+                    "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um de cor diferente, azulado, que ninguém nunca viu!",
+                    ([...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_orange"))
+                      ? "ESSE É ELE!! O Bulbasaur azulado! Quando quiser vender, me procura... pago uma fortuna em esmeraldas! 💎💎"
+                      : "Dizem que ele nasce dos orbs roxos... Se você capturar um e me mostrar, pago MUITO bem em esmeraldas! 💎"
+                  ],
+                  bulbaOrange: ["Bulbasaur laranja te observa com curiosidade...", "Ele parece feliz!"],
+                  bulbaFlower: ["Bulbasaur florido balança suas pétalas...", "Que fofo!"],
+                };
+                const pages = dialogs[npcDialog.kind] ?? ["..."];
+                if (npcDialog.page < pages.length - 1) {
+                  setNpcDialog({ ...npcDialog, page: npcDialog.page + 1 });
+                } else {
+                  setNpcDialog(null);
+                }
+              }}
+              style={{
+                position: "fixed", bottom: 120, left: "50%", transform: "translateX(-50%)",
+                width: "min(560px, 92vw)",
+                background: "#1a3a6b", border: "3px solid #fff", borderRadius: 8,
+                boxShadow: "0 0 0 2px #1a1a1a, 0 8px 24px rgba(0,0,0,0.5)",
+                padding: 10, display: "flex", gap: 10, alignItems: "flex-start",
+                zIndex: 9990, cursor: "pointer",
+                imageRendering: "pixelated",
+              }}
+            >
+              <div style={{
+                width: 56, height: 56, border: "2px solid #fff", borderRadius: 6, overflow: "hidden",
+                background: "#0f2a5a", flexShrink: 0,
+                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
+              }}>
+                <div style={{
+                  width: "100%", height: "100%",
+                  backgroundImage: `url(${npcDialog.kind === "gordin" ? gordinPng : npcDialog.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl})`,
+                  backgroundSize: "400% 400%",
+                  backgroundPosition: "0% 0%",
+                  imageRendering: "pixelated",
+                }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", textShadow: "1px 1px 0 #1a2e6b", whiteSpace: "pre-wrap" }}>
+                  {(() => {
+                    const dialogs = {
+                      gordin: [
+                        "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um de cor diferente, azulado, que ninguém nunca viu!",
+                        ([...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_orange"))
+                          ? "ESSE É ELE!! O Bulbasaur azulado! Quando quiser vender, me procura... pago uma fortuna em esmeraldas! 💎💎"
+                          : "Dizem que ele nasce dos orbs roxos... Se você capturar um e me mostrar, pago MUITO bem em esmeraldas! 💎"
+                      ],
+                      bulbaOrange: ["Bulbasaur laranja te observa com curiosidade...", "Ele parece feliz!"],
+                      bulbaFlower: ["Bulbasaur florido balança suas pétalas...", "Que fofo!"],
+                    };
+                    const pages = dialogs[npcDialog.kind] ?? ["..."];
+                    return pages[npcDialog.page] ?? pages[0];
+                  })()}
+                </div>
+                <div style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900 }}>▼ {npcDialog.page + 1}/2</div>
+              </div>
+            </div>
+          )}
 
           {/* ===== Controles (zoom + config + ranking) ===== */}
           <div style={{
@@ -8781,7 +9606,7 @@ function IdlePage() {
           <div style={{
             position: "absolute",
             left: 0, top: 0,
-            width: WORLD_W, height: WORLD_H,
+            width: curWorldW, height: curWorldH,
             transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
             transformOrigin: "0 0",
             transition: "none",
@@ -8812,6 +9637,143 @@ function IdlePage() {
                 zIndex: 0,
               }}
             />
+
+            {/* Render de orbs de energia removido — só mapOrbs abaixo */}
+            {mapOrbs.map((o) => {
+              const elapsed = Date.now() - o.spawnAt;
+              const pct = Math.min(100, (elapsed / o.duration) * 100);
+              const remaining = o.duration - elapsed;
+              const mins = Math.floor(remaining / 60000);
+              const hrs = Math.floor(mins / 60);
+              const timeLabel = hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m ${Math.floor((remaining % 60000) / 1000)}s`;
+              const isEpic = o.kind === "epic";
+              const orbColor = isEpic ? "#c084fc" : "#4ade80";
+              const orbGlow = isEpic ? "rgba(192,132,252,0.6)" : "rgba(74,222,128,0.5)";
+              return (
+                <div key={`maporb-${o.id}`} style={{
+                  position: "absolute",
+                  left: o.x, top: o.y, transform: "translate(-50%, -50%)",
+                  width: isEpic ? 28 : 22, height: isEpic ? 28 : 22, borderRadius: "50%",
+                  background: `radial-gradient(circle at 30% 30%, ${isEpic ? "#e9d5ff" : "#bbf7d0"}, ${orbColor})`,
+                  border: `2px solid ${isEpic ? "#a855f7" : "#22c55e"}`,
+                  boxShadow: `0 0 ${isEpic ? 16 : 10}px ${orbGlow}, 0 0 ${isEpic ? 30 : 18}px ${orbGlow}`,
+                  animation: `orbPulse ${isEpic ? 2.0 : 1.3}s ease-in-out infinite`,
+                  zIndex: Math.round(o.y) + 1, cursor: "pointer",
+                }} title={`${isEpic ? "Orb Épico" : "Orb Comum"} — estoura em ${timeLabel}`}>
+                  <span style={{ position: "absolute", inset: isEpic ? 5 : 3, borderRadius: "50%", background: "radial-gradient(circle at 30% 20%, #fff, transparent 60%)", opacity: 0.8 }} />
+                  {/* Barra de progresso */}
+                  <svg style={{ position: "absolute", inset: -4, width: isEpic ? 36 : 30, height: isEpic ? 36 : 30 }} viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" />
+                    <circle cx="18" cy="18" r="16" fill="none" stroke={orbColor} strokeWidth="2.5"
+                      strokeDasharray={`${pct} ${100 - pct}`} strokeLinecap="round"
+                      transform="rotate(-90 18 18)" style={{ transition: "stroke-dasharray 1s linear" }} />
+                  </svg>
+                  <span style={{
+                    position: "absolute", bottom: -14, left: "50%", transform: "translateX(-50%)",
+                    fontSize: 8, color: orbColor, fontWeight: 700, whiteSpace: "nowrap",
+                    textShadow: "1px 1px 2px #000",
+                  }}>{timeLabel}</span>
+                </div>
+              );
+            })}
+            {/* Flash de luz quando orb estoura */}
+            {orbFlashes.map((f) => {
+              const isEpic = f.kind === "epic";
+              const color1 = isEpic ? "#e9d5ff" : "#bbf7d0";
+              const color2 = isEpic ? "#a855f7" : "#22c55e";
+              return (
+                <div key={`flash-${f.id}`} style={{
+                  position: "absolute", left: f.x, top: f.y, transform: "translate(-50%, -50%)",
+                  width: 120, height: 120, borderRadius: "50%", zIndex: 9999, pointerEvents: "none",
+                  background: `radial-gradient(circle, ${color1} 0%, ${color2} 40%, transparent 70%)`,
+                  opacity: 0.9,
+                  animation: "orbFlashBurst 1.2s ease-out forwards",
+                }}>
+                  <div style={{
+                    position: "absolute", inset: 10, borderRadius: "50%",
+                    background: `radial-gradient(circle, #fff 0%, transparent 60%)`,
+                    opacity: 0.8,
+                  }} />
+                </div>
+              );
+            })}
+            {/* Partículas suaves de cura — anel + "+" verdes subindo */}
+            {healFx.map((hfx) => hfx.ring ? (
+              <div key={`healring-${hfx.id}`} style={{
+                position: "absolute", left: hfx.x, top: hfx.y, transform: "translate(-50%, -50%)",
+                width: 56, height: 56, borderRadius: "50%", zIndex: 9998, pointerEvents: "none",
+                border: "2px solid rgba(74,222,128,0.9)",
+                boxShadow: "0 0 12px rgba(74,222,128,0.55), inset 0 0 10px rgba(74,222,128,0.35)",
+                animation: "healRing 1.2s ease-out forwards",
+              }} />
+            ) : (
+              <span key={`healspark-${hfx.id}`} style={{
+                position: "absolute", left: hfx.x, top: hfx.y,
+                color: "#86efac", fontSize: 15, fontWeight: 900, lineHeight: 1,
+                textShadow: "0 0 6px #22c55e, 1px 1px 0 #000",
+                zIndex: 9998, pointerEvents: "none",
+                animation: "healFloat 1.3s ease-out forwards",
+                animationDelay: `${hfx.d}ms`,
+                ["--hdx" as any]: `${hfx.dx}px`,
+              }}>+</span>
+            ))}
+            {npcs.map((n) => {
+              const isBoy = n.kind === "gordin";
+              const url = n.kind === "gordin" ? gordinPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+              const dirRow = { down: 0, left: 1, right: 2, up: 3 }[n.dir] ?? 0;
+              return (
+                <div
+                  key={`npc-${n.id}`}
+                  onClick={(e) => { e.stopPropagation(); if (isBoy) setNpcDialog({ kind: n.kind, page: 0 }); }}
+                  style={{
+                    position: "absolute", left: n.x, top: n.y, width: 48, height: 48,
+                    transform: "translate(-50%, -50%)",
+                    zIndex: Math.round(n.y), cursor: isBoy ? "pointer" : "default",
+                  }}
+                >
+                  <div style={{
+                    width: "100%", height: "100%",
+                    backgroundImage: `url(${url})`,
+                    backgroundSize: "400% 400%",
+                    backgroundPosition: `${n.frame * 33.333}% ${dirRow * 33.333}%`,
+                    imageRendering: "pixelated",
+                    filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.3))",
+                  }} />
+                  {isBoy && (
+                    <div style={{
+                      position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)",
+                      background: "#fff", border: "1px solid #1a1a1a", borderRadius: 4, padding: "1px 4px",
+                      fontSize: 9, fontWeight: 900, whiteSpace: "nowrap", boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                    }}>💬</div>
+                  )}
+                </div>
+              );
+            })}
+            {/* Marca GPS — pirâmide roxinha girando tipo pião */}
+            {walkMarker && (
+              <div style={{
+                position: "absolute",
+                left: walkMarker.x,
+                top: walkMarker.y,
+                transform: "translate(-50%, -60%)",
+                zIndex: 9999,
+                pointerEvents: "none",
+                perspective: "70px",
+              }}>
+                <div style={{
+                  width: 18, height: 18, position: "relative",
+                  transformStyle: "preserve-3d",
+                  animation: "pyramidSpin 0.85s linear infinite",
+                  filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.35))",
+                }}>
+                  <div style={{ position: "absolute", left: "50%", top: 0, width: 0, height: 0, borderLeft: "9px solid transparent", borderRight: "9px solid transparent", borderBottom: "14px solid #8b5cf6", transform: "translateX(-50%) translateZ(5px) rotateX(18deg)", transformOrigin: "50% 100%" }} />
+                  <div style={{ position: "absolute", left: "50%", top: 0, width: 0, height: 0, borderLeft: "9px solid transparent", borderRight: "9px solid transparent", borderBottom: "14px solid #a78bfa", transform: "translateX(-50%) rotateY(90deg) translateZ(5px) rotateX(18deg)", transformOrigin: "50% 100%" }} />
+                  <div style={{ position: "absolute", left: "50%", top: 0, width: 0, height: 0, borderLeft: "9px solid transparent", borderRight: "9px solid transparent", borderBottom: "14px solid #7c3aed", transform: "translateX(-50%) rotateY(180deg) translateZ(5px) rotateX(18deg)", transformOrigin: "50% 100%" }} />
+                  <div style={{ position: "absolute", left: "50%", top: 0, width: 0, height: 0, borderLeft: "9px solid transparent", borderRight: "9px solid transparent", borderBottom: "14px solid #c4b5fd", transform: "translateX(-50%) rotateY(270deg) translateZ(5px) rotateX(18deg)", transformOrigin: "50% 100%" }} />
+                </div>
+                <div style={{ position: "absolute", left: "50%", top: 15, transform: "translateX(-50%)", width: 16, height: 5, background: "rgba(0,0,0,0.2)", borderRadius: "50%", filter: "blur(2px)" }} />
+              </div>
+            )}
 
             {/* Obstáculos (árvores, pedras) — z-index pela BASE (y) para o treinador passar por trás */}
             {obstacles.map((o) => (
@@ -9217,7 +10179,7 @@ function IdlePage() {
 
 
             {/* Prédios do mundo — Casa do Treinador e Lar (SVG estilizado) */}
-            {visibleBuildings.filter(b => b.key !== 'lab' || idle.currentMap !== 'casa_do_treinador').map((b) => {
+            {visibleBuildings.map((b) => {
               const active = nearBuilding === b.key;
               const bLabel = b.key === "lab" ? "Casa do Treinador" : b.label;
               return (
@@ -9448,7 +10410,7 @@ function IdlePage() {
               const camouflaged = !!(e.disguise && !e.revealed);
               const dead = e.hp <= 0;
               const face = e.face ?? "left";
-              const sx = face === "left" ? 1 : -1;
+              const sx = SPRITE_SHEET[showSp] ? 1 : (face === "left" ? 1 : -1);
               const scale = (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
               const size = Math.round(46 * scale);
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
@@ -9494,11 +10456,41 @@ function IdlePage() {
                   filter: e.menace
                     ? "drop-shadow(0 0 22px rgba(120,0,180,0.95)) drop-shadow(0 0 44px rgba(0,0,0,0.9)) drop-shadow(0 3px 2px rgba(0,0,0,0.7))"
                     : (showAura
-                      ? `drop-shadow(0 0 ${auraStrength}px ${auraColor}) drop-shadow(0 0 ${auraStrength / 2}px ${auraColor}) drop-shadow(0 3px 2px rgba(0,0,0,0.55))`
+                      ? `drop-shadow(0 0 ${Math.round(auraStrength * 0.55)}px ${auraColor}aa) drop-shadow(0 2px 3px rgba(0,0,0,0.45))`
                       : (e.aggressive ? "drop-shadow(0 0 6px rgba(255,60,60,0.9)) drop-shadow(0 3px 2px rgba(0,0,0,0.55))" : "drop-shadow(0 3px 2px rgba(0,0,0,0.55))")),
                   zIndex: Math.round(e.y),
                   cursor: dead ? "default" : "pointer",
                 }}>
+                  {(showAura && !e.menace) && (
+                    <div style={{ position: "absolute", inset: -14, zIndex: -1, pointerEvents: "none", overflow: "visible" }}>
+                      <div style={{
+                        position: "absolute", inset: 0,
+                        background: `radial-gradient(ellipse at 50% 58%, ${auraColor} 0%, ${auraColor}aa 24%, ${auraColor}66 40%, transparent 72%)`,
+                        filter: "blur(10px)",
+                        opacity: 0.88,
+                        transform: `scale(${1.15 + auraStrength / 70})`,
+                        animation: "auraPulse 1.5s ease-in-out infinite",
+                      }} />
+                      <div style={{
+                        position: "absolute", left: "50%", top: "50%", width: auraStrength + 22, height: auraStrength + 22,
+                        transform: "translate(-50%, -50%)",
+                        animation: "auraRotate 2.8s linear infinite",
+                      }}>
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <span key={i} style={{
+                            position: "absolute", left: "50%", top: "50%",
+                            width: 2, height: Math.max(10, auraStrength * 0.85),
+                            background: `linear-gradient(180deg, ${auraColor}, transparent)`,
+                            transform: `translate(-50%, -100%) rotate(${i * 45}deg)`,
+                            transformOrigin: "50% 100%",
+                            opacity: 0.78,
+                            borderRadius: 1,
+                            boxShadow: `0 0 5px ${auraColor}`,
+                          }} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {e.sp === "lugia" && (
                     <div>
                       <div style={{
@@ -9548,7 +10540,17 @@ function IdlePage() {
                       ))}
                     </div>
                   )}
-                  <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
+                  {SPRITE_SHEET[showSp] ? (
+                    <div style={{
+                      width: "100%", height: "100%",
+                      backgroundImage: `url(${SPRITE_SHEET[showSp]})`,
+                      backgroundSize: "400% 400%",
+                      backgroundPosition: `${(Math.abs(Math.floor((e.x + e.y) / 24)) % 4) * 33.333}% ${({ up: 3, down: 0, left: 1, right: 2 }[(e.wdir ?? face)] as number) * 33.333}%`,
+                      imageRendering: "pixelated",
+                    }} />
+                  ) : (
+                    <img src={src} alt="" style={{ width: "100%", imageRendering: "pixelated" }} />
+                  )}
                   {e.sp === "raichu" && !camouflaged && (
                     <div style={{
                       position: "absolute", top: -46, left: "50%",
@@ -10024,6 +11026,20 @@ function IdlePage() {
               const scale = 0.55 + dt * 0.75;
               const glow = ELEMENT_FX_GLOW[enemyAttackAnim.element];
               return (
+                <>
+                <div key={`atk-from-${enemyAttackAnim.id}`} style={{
+                  position: "absolute",
+                  left: enemyAttackAnim.fromX, top: enemyAttackAnim.fromY,
+                  width: 46, height: 46,
+                  transform: "translate(-50%, -50%)",
+                  opacity: Math.max(0, 1 - dt * 2.4),
+                  pointerEvents: "none",
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, #ffffff 0%, ${glow} 45%, ${glow}00 72%)`,
+                  filter: `drop-shadow(0 0 8px ${glow})`,
+                  mixBlendMode: "screen",
+                  zIndex: 7,
+                }} />
                 <div key={enemyAttackAnim.id} style={{
                   position: "absolute",
                   left: enemyAttackAnim.toX, top: enemyAttackAnim.toY,
@@ -10037,6 +11053,7 @@ function IdlePage() {
                   mixBlendMode: "screen",
                   zIndex: 7,
                 }} />
+                </>
               );
             })()}
 
@@ -10077,6 +11094,7 @@ function IdlePage() {
                 f.kind === "enemyDmg" ? "#ff3b3b" :
                 f.kind === "xp" ? "#6bd4ff" :
                 f.kind === "capture" ? "#ffd94d" :
+                f.kind === "heal" ? "#4ade80" :
                 "#e0f5a0";
               const isDmg = f.kind === "myDmg" || f.kind === "enemyDmg";
               const isCrit = f.kind === "crit";
@@ -10102,77 +11120,6 @@ function IdlePage() {
           </div>
 
           {/* ============ UI FIXA (não rola com o mapa) ============ */}
-          {/* Header do mapa — barra clássica dourada com nichos de recurso */}
-          <div style={{
-            position: "absolute", top: 8, left: 8,
-            display: "inline-flex", alignItems: "stretch", gap: 0,
-            background: "linear-gradient(180deg, #2a1a0f 0%, #140a05 100%)",
-            padding: "3px",
-            borderRadius: 14,
-            border: "1px solid #f5cf6b",
-            boxShadow: "0 6px 18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(245,207,107,0.4), 0 0 22px rgba(245,207,107,0.15)",
-            zIndex: 10,
-            fontSize: 12,
-            maxWidth: "calc(100% - 16px)",
-          }}>
-            {/* Nome do mapa */}
-            <div style={{
-              display: "flex", flexDirection: "column", justifyContent: "center",
-              padding: "5px 12px",
-              background: "linear-gradient(180deg, rgba(245,207,107,0.10), rgba(0,0,0,0.35))",
-              borderRadius: "11px 4px 4px 11px",
-              borderRight: "1px solid rgba(245,207,107,0.25)",
-              minWidth: 0,
-            }}>
-              <div style={{
-                fontWeight: 900, fontSize: 13, color: "#ffe89a", lineHeight: 1.05,
-                whiteSpace: "nowrap", letterSpacing: 0.4,
-                textShadow: "0 1px 0 #000, 0 0 8px rgba(245,207,107,0.35)",
-                fontFamily: "'Cinzel', 'Georgia', serif",
-              }}>
-                ✦ {map.name}
-              </div>
-              <div style={{ fontSize: 9.5, color: "#c8b8d0", lineHeight: 1.1, whiteSpace: "nowrap", marginTop: 2 }}>
-                {map.diff} · Lv {team[0]?.level ?? 1} · <span style={{ color: "#f5cf6b", fontWeight: 700 }}>{fmtHMS(activeTime)}</span>
-              </div>
-            </div>
-
-            <ResourceNiche
-              tint="#ffd66b"
-              icon={<span style={{ fontSize: 15, filter: "drop-shadow(0 0 4px #ffd66baa)" }}>🪙</span>}
-              value={fmtK(idle.bank.gold)}
-              title="Ouro"
-            />
-            <ResourceNiche
-              tint="#8fd0ff"
-              icon={<img src={crystalGreenImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 4px #8fd0ffaa)" }} />}
-              value={String(Math.floor(idle.bank.crystals))}
-              title="Cristais"
-            />
-            {(idle.items?.safira_verde ?? 0) > 0 && (
-              <ResourceNiche
-                tint="#6ee7a8"
-                icon={<img src={assetUrlFromJson(safiraVerdeAsset)} alt="" width={16} height={16} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 5px #6ee7a8cc)" }} />}
-                value={String(idle.items!.safira_verde ?? 0)}
-                title="Safira Verde"
-              />
-            )}
-
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 4,
-              padding: "8px 14px 10px",
-              background: "linear-gradient(180deg, rgba(255,110,110,0.10), rgba(0,0,0,0.35))",
-              borderRadius: "4px 11px 11px 4px",
-              borderLeft: "1px solid rgba(245,207,107,0.25)",
-            }}>
-              <BallSlot img={ballPokeImg}  count={idle.items.pokeball ?? 0}  tint="#ff8080" />
-              <BallSlot img={ballGreatImg} count={idle.items.greatball ?? 0} tint="#7ec4ff" />
-              <BallSlot img={ballUltraImg} count={idle.items.ultraball ?? 0} tint="#ffd66b" />
-            </div>
-          </div>
-
-
-
           {/* Overlay de DESCANSO — congela o jogo, cura no final */}
           {restingUntil !== null && restingStart !== null && (() => {
             const totalDur = Math.max(1, restingUntil - restingStart);
@@ -10238,8 +11185,7 @@ function IdlePage() {
                 </div>
                 <button
                   onClick={() => {
-                    if (nearBuilding === "lab") { setIdle(s => ({ ...s, currentMap: "casa_do_treinador" })); setTrainerPos({ x: 950, y: 700 }); pushChat("Você entrou na Casa do Treinador.", "info"); }
-                    else if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
+                    if (nearBuilding === "azul") { setAzulPickerOpen(true); setNearBuilding(null); }
                     else restAtHome("lar");
                   }}
                   style={{
@@ -10575,8 +11521,14 @@ function IdlePage() {
             {(() => {
               const leaderLv = team[0]?.level ?? 1;
               const goTo = (label: string, x: number, y: number, onArrive?: () => void) => {
-                walkTargetRef.current = { x, y, label, onArrive, resumeAuto: autoRef.current };
+                const isSmallGoto = ["mapinha1", "mapinha2"].includes(idle.currentMap) && customDims;
+                const gW = isSmallGoto ? customDims!.w : WORLD_W;
+                const gH = isSmallGoto ? customDims!.h : WORLD_H;
+                const cx = isSmallGoto ? Math.max(gW * 0.22, Math.min(gW * 0.78, x)) : x;
+                const cy = isSmallGoto ? Math.max(gH * 0.22, Math.min(gH * 0.78, y)) : y;
+                walkTargetRef.current = { x: cx, y: cy, label, onArrive, resumeAuto: autoRef.current, startedAt: Date.now() };
                 setWalkingTo(label);
+                setWalkMarker({ x: cx, y: cy });
                 setAuto(false);
                 pushChat(`Indo para ${label}…`, "info");
               };
@@ -10589,11 +11541,7 @@ function IdlePage() {
               };
               // Fluxo: arena → praia → neve → deserto → caverna
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
-                casa_do_treinador: [
-                  { key: "casa-to-adventure", target: "arena", x: 600, y: 350, arriveX: 500, arriveY: 500, color: "#f5cf6b" },
-                ],
                 arena: [
-                  { key: "arena-to-casa", target: "casa_do_treinador", x: 500, y: 400, arriveX: 550, arriveY: 350, color: "#8b5a2b" },
                   { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
                   { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
                   { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
@@ -10710,6 +11658,33 @@ function IdlePage() {
                 dark_vale3: [
                   { key: "dv3-back", target: "arena", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ef27a" },
                 ],
+                cidade: [
+                  { key: "to-arena", target: "arena", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-mapinha1", target: "mapinha1", x: 60, y: 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#ff6b6b" },
+                  { key: "to-mapinha2", target: "mapinha2", x: WORLD_W - 60, y: 60, arriveX: 100, arriveY: WORLD_H - 100, color: "#6bd4ff" },
+                  { key: "to-mapinha3", target: "mapinha3", x: 60, y: WORLD_H - 60, arriveX: WORLD_W - 100, arriveY: 100, color: "#f5cf6b" },
+                  { key: "to-mapinha4", target: "mapinha4", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: 100, arriveY: 100, color: "#c084fc" },
+                  { key: "to-mapinha5", target: "mapinha5", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a3e635" },
+                  { key: "to-mapinha6", target: "mapinha6", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#fb923c" },
+                ],
+                mapinha1: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha2: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha3: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha4: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha5: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha6: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
@@ -10762,12 +11737,25 @@ function IdlePage() {
 
               const renderMap = (interactive: boolean, big: boolean) => (
                 <div style={{
-                  width: big ? "100%" : "min(100%, calc(180px * " + (WORLD_W / WORLD_H) + "))",
-                  aspectRatio: `${WORLD_W} / ${WORLD_H}`, borderRadius: 6, overflow: "hidden",
-                  background: `url(${map.bg}) center/cover`, position: "relative",
+                  width: "100%",
+                  borderRadius: 6, overflow: "hidden",
+                  position: "relative", lineHeight: 0,
+                  background: "#0b0510",
+                  minHeight: big ? undefined : 120,
                   border: "1px solid rgba(245,207,107,0.4)",
-                  margin: "0 auto",
                 }}>
+                  <img
+                    src={map.bg}
+                    alt={map.name}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      height: "auto",
+                      maxWidth: "100%",
+                      imageRendering: "auto",
+                    }}
+                  />
                   {/* Overlay de recolorização (mapas endgame recolorizados) */}
                   {map.overlay && (
                     <div style={{
@@ -10785,8 +11773,8 @@ function IdlePage() {
                       className={interactive ? "map-pulse-dot" : undefined}
                       style={{
                         position: "absolute",
-                        left: `${(b.x / WORLD_W) * 100}%`,
-                        top: `${(b.y / WORLD_H) * 100}%`,
+                        left: `${(b.x / curWorldW) * 100}%`,
+                        top: `${(b.y / curWorldH) * 100}%`,
                         transform: "translate(-50%,-50%)",
                         fontSize: big ? 22 : 12, lineHeight: 1,
                         background: "transparent", border: "none", padding: 0,
@@ -10808,8 +11796,8 @@ function IdlePage() {
                         className={interactive ? "map-pulse-dot" : undefined}
                         style={{
                           position: "absolute",
-                          left: `${(g.x / WORLD_W) * 100}%`,
-                          top: `${(g.y / WORLD_H) * 100}%`,
+                          left: `${(g.x / curWorldW) * 100}%`,
+                          top: `${(g.y / curWorldH) * 100}%`,
                           transform: "translate(-50%,-50%)",
                           width: big ? 26 : 12, height: big ? 26 : 12, borderRadius: "50%",
                           background: g.color,
@@ -10825,8 +11813,8 @@ function IdlePage() {
                   {enemies.filter((e) => e.hp > 0).map((e) => (
                     <div key={e.id} style={{
                       position: "absolute",
-                      left: `${(e.x / WORLD_W) * 100}%`,
-                      top: `${(e.y / WORLD_H) * 100}%`,
+                      left: `${(e.x / curWorldW) * 100}%`,
+                      top: `${(e.y / curWorldH) * 100}%`,
                       width: big ? 9 : 5, height: big ? 9 : 5, borderRadius: "50%",
                       background: e.elite ? "#f5cf6b" : "#e34a4a",
                       transform: "translate(-50%,-50%)",
@@ -10837,8 +11825,8 @@ function IdlePage() {
                   {chests.filter((c) => !c.opened).map((c) => (
                     <div key={c.id} style={{
                       position: "absolute",
-                      left: `${(c.x / WORLD_W) * 100}%`,
-                      top: `${(c.y / WORLD_H) * 100}%`,
+                      left: `${(c.x / curWorldW) * 100}%`,
+                      top: `${(c.y / curWorldH) * 100}%`,
                       width: big ? 9 : 5, height: big ? 9 : 5, borderRadius: 1,
                       background: "#f4c430",
                       transform: "translate(-50%,-50%)",
@@ -10848,8 +11836,8 @@ function IdlePage() {
                   {visibleMapPlayers.map((rp) => (
                     <div key={`mm-${rp.id}`} title={rp.name} style={{
                       position: "absolute",
-                      left: `${(rp.x / WORLD_W) * 100}%`,
-                      top: `${(rp.y / WORLD_H) * 100}%`,
+                      left: `${(rp.x / curWorldW) * 100}%`,
+                      top: `${(rp.y / curWorldH) * 100}%`,
                       width: big ? 12 : 7, height: big ? 12 : 7, borderRadius: "50%",
                       background: "#c084fc",
                       border: "2px solid #fff",
@@ -10860,8 +11848,8 @@ function IdlePage() {
                   {/* Treinador */}
                   <div style={{
                     position: "absolute",
-                    left: `${(trainerPos.x / WORLD_W) * 100}%`,
-                    top: `${(trainerPos.y / WORLD_H) * 100}%`,
+                    left: `${(trainerPos.x / curWorldW) * 100}%`,
+                    top: `${(trainerPos.y / curWorldH) * 100}%`,
                     width: big ? 16 : 9, height: big ? 16 : 9, borderRadius: "50%",
                     background: "#6bd4ff",
                     border: "2px solid #fff",
@@ -10869,49 +11857,6 @@ function IdlePage() {
                     boxShadow: "0 0 8px #6bd4ff",
                   }} />
 
-                  {/* Cientista na Casa do Treinador */}
-                  {idle.currentMap === "casa_do_treinador" && (() => {
-                    const t = Math.floor(Date.now() / 150);
-                    const walkCycle = [0, 1, 2, 3];
-                    const frame = walkCycle[t % 4];
-                    // Posição fixa ou leve movimento
-                    const nx = 400 + Math.sin(t * 0.05) * 20;
-                    const ny = 350;
-                    
-                    return (
-                      <div
-                        onClick={() => {
-                          pushChat("🔬 Cientista: 'Bem-vindo de volta! Estou analisando os dados das suas capturas. Continue assim!'", "info");
-                          playClick();
-                        }}
-                        style={{
-                          position: "absolute",
-                          left: `${(nx / (idle.currentMap === 'casa_do_treinador' ? 800 : WORLD_W)) * 100}%`,
-                          top: `${(ny / (idle.currentMap === 'casa_do_treinador' ? 600 : WORLD_H)) * 100}%`,
-                          width: big ? 48 : 24,
-                          height: big ? 48 : 24,
-                          transform: "translate(-50%, -50%)",
-                          cursor: interactive ? "pointer" : "default",
-                          zIndex: 100,
-                        }}
-                      >
-                        <div style={{
-                          width: "100%", height: "100%",
-                          backgroundImage: `url(${assetUrlFromJson(npcScientistFAsset)})`,
-                          backgroundSize: "400% 400%",
-                          backgroundPosition: `${frame * 33.33}% 0%`, // Linha 0 = down (olhando pra frente)
-                          imageRendering: "pixelated",
-                        }} />
-                        {interactive && (
-                          <div style={{
-                            position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)",
-                            background: "rgba(0,0,0,0.7)", color: "#fff", padding: "2px 6px",
-                            borderRadius: 4, fontSize: 8, whiteSpace: "nowrap", pointerEvents: "none"
-                          }}>CIENTISTA</div>
-                        )}
-                      </div>
-                    );
-                  })()}
 
                 </div>
               );
@@ -10934,6 +11879,19 @@ function IdlePage() {
                   <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
                     {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
                     {walkingTo && <div style={{ color: "#7ef27a", marginTop: 2 }}>→ {walkingTo}…</div>}
+                    <div style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+                      marginTop: 6, padding: "5px 8px", borderRadius: 7, textAlign: "left",
+                      background: "rgba(4,8,17,0.8)", border: "1px solid rgba(100,160,255,0.25)",
+                      fontSize: 10, color: "#9db4d8",
+                    }}>
+                      <span style={{ minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={map.name}>
+                        ◇ {map.name}
+                      </span>
+                      <span style={{ fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>
+                        X: {Math.round(trainerPos.x)} Y: {Math.round(trainerPos.y)}
+                      </span>
+                    </div>
                     <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
                       <button
                         onClick={() => { playClick(); setWorldMapOpen(true); }}
@@ -11677,318 +12635,310 @@ function IdlePage() {
           </Panel>
 
 
-          {/* COLETA — logo abaixo do mapa, destaque */}
-          <div style={{
-            background: "linear-gradient(135deg, #2a1a3e, #3d2b52)",
-            border: "2px solid #f5cf6b",
-            borderRadius: 10, padding: 10,
-            boxShadow: "0 4px 14px rgba(245,207,107,0.25)",
-            flexShrink: 0,
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>COLETA</span>
-              <span style={{ color: "#f5cf6b", fontWeight: 700, fontSize: 11 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-around", alignItems: "center", marginBottom: 8, fontSize: 13, fontWeight: 700 }}>
-              <span title="Ouro" style={{ color: "#f4c430" }}>● {fmtK(idle.pending.gold)}</span>
-              <span title="Cristais">💎 {Math.floor(idle.pending.crystals)}</span>
-            </div>
-            <button
-              onClick={collect}
+          {mapTeleportOpen && (
+            <div
+              onClick={() => setMapTeleportOpen(false)}
               style={{
-                width: "100%",
-                background: "linear-gradient(135deg, #7ef27a, #5ec26a)",
-                color: "#0b0510",
-                border: "2px solid #f5cf6b",
-                borderRadius: 8,
-                padding: "8px 12px",
-                fontWeight: 900,
-                fontSize: 14,
-                letterSpacing: 1.2,
-                cursor: "pointer",
-                boxShadow: "0 3px 10px rgba(126,242,122,0.5)",
-                textShadow: "0 1px 0 rgba(255,255,255,0.3)",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                position: "fixed", inset: 0, zIndex: 9999,
+                background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
+                padding: 16, cursor: "pointer",
               }}
             >
-              <img src={collectIconImg} alt="" width={26} height={26} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }} />
-              COLETAR
-            </button>
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: "linear-gradient(180deg, #0f2a5a, #0d2450)", border: "2px solid #4a7ad0",
+                  borderRadius: 12, padding: 16, maxWidth: 640, width: "100%",
+                  cursor: "default", boxShadow: "0 0 40px rgba(74,122,208,0.4)",
+                  maxHeight: "85vh", overflowY: "auto",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div style={{ color: "#ffcc33", fontWeight: 900, fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}>🗺 MAPA — Teleporte Grátis</div>
+                  <button onClick={() => setMapTeleportOpen(false)} style={{ background: "#1a2e6b", border: "1px solid #4a7ad0", color: "#fff", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}>✕</button>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
+                  {Object.entries(IDLE_MAPS).map(([id, m]) => {
+                    const isCurrent = idle.currentMap === id;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => {
+                          playClick();
+                          setIdle((s) => ({ ...s, currentMap: id as IdleMapId }));
+                          setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
+                          pushChat(`Teleportado para ${m.name}!`, "info");
+                          setMapTeleportOpen(false);
+                        }}
+                        style={{
+                          background: isCurrent ? "linear-gradient(180deg, #ffcc33, #c8a050)" : "linear-gradient(180deg, #fff, #e8f0ff)",
+                          border: isCurrent ? "2px solid #ffcc33" : "1.5px solid #1a2e6b",
+                          borderRadius: 8, padding: 10, cursor: "pointer",
+                          textAlign: "left", boxShadow: isCurrent ? "0 0 12px rgba(255,204,51,0.5)" : "0 2px 6px rgba(0,0,0,0.15)",
+                          opacity: isCurrent ? 1 : 0.95,
+                        }}
+                      >
+                        <div style={{ fontWeight: 900, fontSize: 12, color: "#1a2e6b", lineHeight: 1 }}>{m.name}</div>
+                        <div style={{ fontSize: 10, color: isCurrent ? "#5a4a10" : "#5a6a8a", marginTop: 2 }}>{m.diff} • Lv.{m.minLevel}{m.element ? ` • ${m.element}` : ""}</div>
+                        <div style={{ marginTop: 6, fontSize: 9, fontWeight: 800, color: isCurrent ? "#1a2e6b" : "#2c4a8a", background: isCurrent ? "#fff" : "#f0f0ff", border: "1px solid #1a1a1a", borderRadius: 999, padding: "2px 6px", display: "inline-block" }}>{isCurrent ? "Atual" : "Teleportar →"}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ marginTop: 12, fontSize: 10, color: "#8ab4ff", textAlign: "center", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(74,122,208,0.2)", borderRadius: 6, padding: "6px 8px" }}>
+                  💡 Clique em qualquer mapa para teleportar grátis, sem custo e sem nível.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* QUESTS — luzes neon, 9 bolas */}
+          <div style={{
+            background: "linear-gradient(180deg, #0f2a5a, #14366e)",
+            border: "1.5px solid #4a7ad0",
+            borderRadius: 10, overflow: "visible",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
+            flexShrink: 0, position: "relative",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", background: "linear-gradient(180deg, #1e4a8a, #0f2a5a)", borderBottom: "1px solid rgba(255,204,51,0.22)" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#ffcc33", fontWeight: 900, fontSize: 10, letterSpacing: 1.2 }}>◆ QUESTS</span>
+              <span style={{ fontSize: 9, color: "#8ab4ff", fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.25)", padding: "2px 6px", borderRadius: 999, border: "1px solid rgba(255,204,51,0.2)" }}>{fmtMS(QUEST_WINDOW_MS - (now % QUEST_WINDOW_MS))}</span>
+            </div>
+            <div style={{ padding: 7, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 7, position: "relative" }}>
+              {QUEST_DEFS.map((q) => {
+                const prog = questProgress[q.id] ?? 0;
+                const done = prog >= q.target;
+                const claimed = !!questClaimed[q.id];
+                const pct = Math.min(100, (prog / q.target) * 100);
+                const canClaim = done && !claimed;
+                const isGolden = !!q.vipOnly;
+                const vipOk = !isGolden || isVip();
+                const colorMap: Record<string, string> = { q_kill: "#ff3b30", q_cap: "#0a84ff", q_berry: "#30d158", q_ep1: "#af52de", q_kill2: "#ff9500", q_cap2: "#ff2d55", q_berry2: "#5ac8fa", q_ep2: "#ffcc00", q_vip: "#ffd60a" };
+                const color = colorMap[q.id] ?? "#ff3b30";
+                const isShining = canClaim || isGolden;
+                const labelMap: Record<string, string> = { q_kill: "KILL", q_cap: "CAP", q_berry: "BERRY", q_ep1: "EP1", q_kill2: "KILL2", q_cap2: "CAP2", q_berry2: "BERRY2", q_ep2: "EP2", q_vip: "VIP" };
+                return (
+                  <div key={q.id} style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                    <div style={{ position: "relative" }} onMouseEnter={() => setHoveredQuest(q.id)} onMouseLeave={() => setHoveredQuest(null)}>
+                      <button onClick={() => { if (isGolden && !vipOk) { pushChat("Pokébola dourada exige VIP!", "info"); return; } if (canClaim) claimQuest(q.id); else setQuestTabOpen(questTabOpen === q.id ? null : q.id); }} title={q.title} style={{
+                        width: 30, height: 30, borderRadius: "50%", display: "grid", placeItems: "center", position: "relative", overflow: "hidden",
+                        background: isGolden ? "radial-gradient(circle at 30% 22%, #fff, #ffd60a 55%, #c8a008 70%)" : `radial-gradient(circle at 30% 28%, #fff 0 28%, ${color} 28% 48%, #1a1a1a 48% 54%, #fff 54% 100%)`,
+                        border: "1.5px solid #1a1a1a", cursor: claimed ? "default" : "pointer",
+                        boxShadow: isShining ? `0 0 10px ${color}, 0 0 18px ${color}88` : `0 1px 3px rgba(0,0,0,0.2)`,
+                        opacity: claimed ? 0.32 : 1, filter: isShining ? "brightness(1.15)" : claimed ? "grayscale(0.6)" : "brightness(0.97)",
+                        transform: isShining ? "scale(1.06)" : "none", transition: "transform 150ms, filter 150ms, boxShadow 150ms",
+                      }}>
+                        <span style={{ width: 6, height: 6, background: "#fff", border: "1px solid #1a1a1a", borderRadius: "50%", display: "block", boxShadow: "0 0 4px rgba(255,255,255,0.9)", position: "relative", zIndex: 1 }} />
+                        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: `${pct}%`, background: `linear-gradient(180deg, transparent, ${color}66)`, opacity: 0.9, pointerEvents: "none", transition: "height 300ms" }} />
+                        {isShining && <span style={{ position: "absolute", inset: -2, background: "linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.9) 45%, transparent 60%)", animation: "pokeShine 1.35s ease-in-out infinite", borderRadius: "50%" }} />}
+                      </button>
+                      <div style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%)", background: canClaim ? color : isGolden ? "#ffd60a" : "#1a1a1a", color: canClaim ? "#fff" : isGolden ? "#1a1a1a" : "#9ab4ff", fontSize: 5, fontWeight: 900, padding: "1px 2px", borderRadius: 999, border: "1px solid #fff", whiteSpace: "nowrap", minWidth: 20, textAlign: "center", lineHeight: 1, boxShadow: isShining ? `0 0 6px ${color}` : "none" }}>{prog}/{q.target}</div>
+                      {hoveredQuest === q.id && questTabOpen !== q.id && (
+                        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#1a1a1a", color: "#fff", padding: "5px 7px", borderRadius: 6, fontSize: 8, whiteSpace: "nowrap", border: "1px solid #ffcc33", zIndex: 20, textAlign: "center", pointerEvents: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.35)" }}>
+                          <div style={{ fontWeight: 900, color, fontSize: 9 }}>{q.title}</div>
+                          <div style={{ color: "#d0d0d0", marginTop: 1 }}>{prog}/{q.target} • <span style={{ color: "#ffd60a", fontWeight: 900 }}>{q.reward} ouro</span></div>
+                          {isGolden && <div style={{ color: "#ffd60a", fontSize: 7, fontWeight: 800 }}>★ VIP • Brilha sempre</div>}
+                          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid #ffcc33" }} />
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 6, fontWeight: 800, color: isShining ? color : claimed ? "#6b7280" : "#8ab4ff", fontFamily: "'Courier New', monospace", letterSpacing: 0.2 }}>{labelMap[q.id] ?? q.id.slice(0, 4).toUpperCase()}</span>
+                  </div>
+                );
+              })}
+              {questTabOpen && (() => {
+                const q = QUEST_DEFS.find((x) => x.id === questTabOpen);
+                if (!q) return null;
+                const prog = questProgress[q.id] ?? 0;
+                const done = prog >= q.target;
+                const claimed = !!questClaimed[q.id];
+                const pct = Math.min(100, (prog / q.target) * 100);
+                const isGolden = !!q.vipOnly;
+                const vipOk = !isGolden || isVip();
+                const colorMap2: Record<string, string> = { q_kill: "#ff3b30", q_cap: "#0a84ff", q_berry: "#30d158", q_ep1: "#af52de", q_kill2: "#ff9500", q_cap2: "#ff2d55", q_berry2: "#5ac8fa", q_ep2: "#ffcc00", q_vip: "#ffd60a" };
+                const color2 = colorMap2[q.id] ?? "#ff3b30";
+                return (
+                  <div onMouseEnter={() => setQuestTabOpen(q.id)} onMouseLeave={() => setQuestTabOpen(null)} style={{ position: "absolute", top: 0, right: "calc(100% + 10px)", width: 196, background: "#fff", border: "2px solid #1a2e6b", borderRadius: 10, padding: 9, boxShadow: "0 8px 20px rgba(0,0,0,0.28), 0 0 0 2px rgba(255,255,255,0.6)", zIndex: 30 }}>
+                    <div style={{ position: "absolute", top: 18, right: -8, width: 0, height: 0, borderTop: "8px solid transparent", borderBottom: "8px solid transparent", borderLeft: "8px solid #1a2e6b" }} />
+                    <div style={{ position: "absolute", top: 18, right: -6, width: 0, height: 0, borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderLeft: "6px solid #fff" }} />
+                    <div style={{ fontSize: 11, fontWeight: 900, color: isGolden ? "#8a5a00" : "#1a2e6b", display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: color2, border: "1px solid #1a1a1a", display: "inline-block" }} /> {q.title} {isGolden && "★"}</div>
+                    <div style={{ fontSize: 9, color: "#5a6a8a", marginTop: 2, fontFamily: "'Courier New', monospace" }}>{prog}/{q.target} • {done ? (claimed ? "✔ Resgatada" : "Pronta!") : "Em progresso"}</div>
+                    <div style={{ height: 6, background: "#1a1a1a", borderRadius: 999, overflow: "hidden", marginTop: 6, padding: 1 }}><div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: isGolden ? "linear-gradient(90deg, #ffd60a, #c8a050)" : `linear-gradient(90deg, ${color2}, ${color2}aa)` }} /></div>
+                    <div style={{ marginTop: 7, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 10, fontWeight: 900, color: "#1a2e6b", background: "#ffcc33", border: "1px solid #c8a050", padding: "2px 6px", borderRadius: 999 }}>+{q.reward} ouro</span>
+                      <button onClick={() => claimQuest(q.id)} disabled={claimed || !done || !vipOk} style={{ background: done && !claimed && vipOk ? "#ffcc33" : "#e0e0e0", color: "#1a1a1a", border: "1.5px solid #1a1a1a", borderRadius: 6, padding: "4px 9px", fontWeight: 900, fontSize: 10, cursor: done && !claimed && vipOk ? "pointer" : "not-allowed", opacity: done && !claimed && vipOk ? 1 : 0.55 }}>{claimed ? "Resgatada" : isGolden && !vipOk ? "VIP" : done ? "Resgatar" : "Falta"}</button>
+                    </div>
+                    {isGolden && !vipOk && <div style={{ marginTop: 6, fontSize: 9, color: "#8a5a00", fontWeight: 800, textAlign: "center", background: "#fff8e0", border: "1px solid #e8c88a", borderRadius: 4, padding: "3px" }}>★ Dourada exige VIP • Brilha sempre</div>}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* COLETA — fino, limpo e minimizável */}
+          <div style={{
+            background: "rgba(15,28,64,0.92)",
+            border: "1px solid rgba(230,200,110,0.30)",
+            borderRadius: 8, overflow: "hidden", flexShrink: 0,
+            boxShadow: "0 4px 14px rgba(0,0,0,0.40)",
+          }}>
+            <div
+              onClick={() => { playClick(); setColetaCollapsed((v) => !v); }}
+              style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "7px 8px", cursor: "pointer", userSelect: "none",
+                borderBottom: coletaCollapsed ? "none" : "1px solid rgba(230,200,110,0.18)",
+                background: "rgba(255,255,255,0.03)",
+              }}
+              title={coletaCollapsed ? "Expandir" : "Minimizar"}
+            >
+              <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#f5d76e", fontWeight: 900, fontSize: 10, letterSpacing: 1.3 }}>◆ COLETA</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ color: "#c8d6f0", fontWeight: 700, fontSize: 9, background: "rgba(0,0,0,0.28)", border: "1px solid rgba(230,200,110,0.18)", padding: "2px 6px", borderRadius: 999 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
+                <span style={{ color: "#f5d76e", fontSize: 10, width: 18, height: 18, display: "grid", placeItems: "center", background: "rgba(245,215,110,0.12)", border: "1px solid rgba(245,215,110,0.25)", borderRadius: 4 }}>{coletaCollapsed ? "▸" : "▾"}</span>
+              </span>
+            </div>
+            {!coletaCollapsed && (
+              <div style={{ padding: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 7 }}>
+                  <div style={{ background: "rgba(0,0,0,0.20)", border: "1px solid rgba(230,200,110,0.18)", borderRadius: 6, padding: "6px 7px", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ width: 18, height: 18, borderRadius: "50%", background: "radial-gradient(circle at 35% 30%, #ffeaa0 0%, #f4c430 55%, #b8930a 100%)", border: "1px solid #7a5a00", display: "grid", placeItems: "center", fontSize: 10, flexShrink: 0 }}>●</span>
+                    <div style={{ lineHeight: 1 }}>
+                      <div style={{ fontSize: 7.5, color: "#b8a898", letterSpacing: 0.6, fontWeight: 800 }}>OURO</div>
+                      <div style={{ fontSize: 11, color: "#ffeaa0", fontWeight: 900 }}>{fmtK(idle.pending.gold)}</div>
+                    </div>
+                  </div>
+                  <div style={{ background: "rgba(0,0,0,0.20)", border: "1px solid rgba(230,200,110,0.18)", borderRadius: 6, padding: "6px 7px", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ width: 18, height: 18, borderRadius: 3, background: "linear-gradient(180deg, #7dd8ff, #2aa8ff)", border: "1px solid #0a3a5a", display: "grid", placeItems: "center", fontSize: 9, transform: "rotate(45deg)", flexShrink: 0 }}><span style={{ transform: "rotate(-45deg)", fontSize: 8 }}>◆</span></span>
+                    <div style={{ lineHeight: 1 }}>
+                      <div style={{ fontSize: 7.5, color: "#8ab8d0", letterSpacing: 0.6, fontWeight: 800 }}>CRISTAIS</div>
+                      <div style={{ fontSize: 11, color: "#c8ecff", fontWeight: 900 }}>{Math.floor(idle.pending.crystals)}</div>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={collect}
+                  style={{
+                    width: "100%",
+                    background: "linear-gradient(180deg, #2e5fa0 0%, #1e3f75 100%)",
+                    color: "#ffeaa0",
+                    border: "1px solid rgba(230,200,110,0.55)",
+                    borderRadius: 6,
+                    padding: "7px 10px",
+                    fontWeight: 900,
+                    fontSize: 11,
+                    letterSpacing: 1.1,
+                    cursor: "pointer",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                  }}
+                >
+                  <img src={collectIconImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
+                  COLETAR
+                  <span style={{ marginLeft: "auto", fontSize: 9, opacity: 0.7 }}>◈</span>
+                </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setIdle((s) => {
+                      if (s.currentMap === "cidade") {
+                        pushChat("Você já está na Cidade!", "info");
+                        return s;
+                      }
+                      pushChat("Teleportando para a Cidade Principal...", "info");
+                      return { ...s, currentMap: "cidade" as IdleMapId };
+                    });
+                    setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
+                  }}
+                  style={{
+                    width: "100%",
+                    background: "rgba(255,255,255,0.04)",
+                    color: "#c8d6f0",
+                    border: "1px solid rgba(230,200,110,0.22)",
+                    borderRadius: 6,
+                    padding: "6px 10px",
+                    marginTop: 6,
+                    fontWeight: 700,
+                    fontSize: 10,
+                    letterSpacing: 0.6,
+                    cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  }}
+                >
+                  <span style={{ fontSize: 11 }}>⌂</span> VOLTAR PARA CIDADE
+                </button>
+              </div>
+            )}
           </div>
 
 
 
 
-          {/* PACOTES ESPECIAIS — Cash Shop (bloqueado / em breve) */}
+          {/* PACOTES ESPECIAIS — fino, limpo e minimizável */}
           <div
             style={{
-              position: "relative",
-              background: "linear-gradient(160deg, #1a1030 0%, #2a1650 55%, #3d1e6a 100%)",
-              border: "2px solid #f5cf6b",
-              borderRadius: 12,
-              padding: 12,
-              boxShadow: "0 4px 18px rgba(245,207,107,0.25), inset 0 0 30px rgba(167,139,250,0.15)",
-              overflow: "hidden",
+              background: "rgba(22,16,48,0.92)",
+              border: "1px solid rgba(245,207,107,0.30)",
+              borderRadius: 8, overflow: "hidden",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.40)",
             }}
           >
-            <div style={{
-              position: "absolute", inset: 0, pointerEvents: "none",
-              background: "radial-gradient(circle at 70% 20%, rgba(255,215,120,0.25), transparent 55%), radial-gradient(circle at 20% 80%, rgba(167,139,250,0.22), transparent 60%)",
-            }} />
-            <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              marginBottom: 8, position: "relative",
-            }}>
-              <span style={{
-                color: "#ffe08a", fontWeight: 900, fontSize: 12, letterSpacing: 1.2,
-                textShadow: "0 1px 0 rgba(0,0,0,0.6)",
-              }}>✦ PACOTES ESPECIAIS</span>
-              <span style={{
-                fontSize: 9, fontWeight: 900, letterSpacing: 1,
-                background: "linear-gradient(135deg, #f5cf6b, #d9a441)",
-                color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
-                boxShadow: "0 0 8px rgba(245,207,107,0.5)",
-              }}>EM BREVE</span>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
-              <div style={{
-                width: 62, height: 62, flexShrink: 0,
-                background: "radial-gradient(circle, rgba(245,207,107,0.35) 0%, transparent 65%)",
-                display: "grid", placeItems: "center",
-                filter: "drop-shadow(0 0 10px rgba(245,207,107,0.6))",
-              }}>
-                <img
-                  src={assetUrlFromJson(iconCashPackage)}
-                  alt=""
-                  width={58}
-                  height={58}
-                  className="cash-pack-float"
-                  style={{ objectFit: "contain" }}
-                />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", letterSpacing: 0.5, lineHeight: 1.2 }}>
-                  Lojinha Cash
-                </div>
-                <div style={{ fontSize: 10, color: "#d0b8f0", marginTop: 3, lineHeight: 1.35 }}>
-                  Pacotes premium com cristais, ovos míticos, VIP e cosméticos.
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setCashShopOpen(true)}
-              className="lojinha-btn-glow"
+            <div
+              onClick={() => { playClick(); setPacotesCollapsed((v) => !v); }}
               style={{
-                marginTop: 10, width: "100%",
-                background: "linear-gradient(135deg, #14ff7a 0%, #6cff9d 50%, #0ea85a 100%)",
-                border: "1.5px solid #b8ffcf",
-                color: "#062a13", fontWeight: 900, fontSize: 11, letterSpacing: 1.5,
-                borderRadius: 8, padding: "9px", cursor: "pointer",
-                textShadow: "0 1px 0 rgba(255,255,255,0.45)",
-                boxShadow: "0 0 14px rgba(46,255,140,0.75), 0 0 28px rgba(46,255,140,0.45), inset 0 1px 0 rgba(255,255,255,0.4)",
-                position: "relative",
-                overflow: "hidden",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "7px 8px", cursor: "pointer", userSelect: "none",
+                borderBottom: pacotesCollapsed ? "none" : "1px solid rgba(245,207,107,0.18)",
+                background: "rgba(255,255,255,0.03)",
               }}
-              title="Abrir Lojinha Cash"
+              title={pacotesCollapsed ? "Expandir" : "Minimizar"}
             >
-              <span style={{ position: "relative", zIndex: 2 }}>✦ ABRIR LOJINHA ✦</span>
-              <span className="lojinha-star lojinha-star-1" aria-hidden>✦</span>
+              <span style={{ color: "#ffe08a", fontWeight: 900, fontSize: 10, letterSpacing: 1.1 }}>✦ PACOTES ESPECIAIS</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 0.8, background: "rgba(245,207,107,0.18)", color: "#ffe08a", border: "1px solid rgba(245,207,107,0.30)", padding: "2px 6px", borderRadius: 999 }}>EM BREVE</span>
+                <span style={{ color: "#ffe08a", fontSize: 10, width: 18, height: 18, display: "grid", placeItems: "center", background: "rgba(245,207,107,0.12)", border: "1px solid rgba(245,207,107,0.25)", borderRadius: 4 }}>{pacotesCollapsed ? "▸" : "▾"}</span>
+              </span>
+            </div>
+            {!pacotesCollapsed && (
+              <div style={{ padding: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 42, height: 42, flexShrink: 0, display: "grid", placeItems: "center" }}>
+                    <img src={assetUrlFromJson(iconCashPackage)} alt="" width={38} height={38} style={{ objectFit: "contain" }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0, lineHeight: 1.25 }}>
+                    <div style={{ fontSize: 10, fontWeight: 900, color: "#fff", letterSpacing: 0.4 }}>Lojinha Cash</div>
+                    <div style={{ fontSize: 9, color: "#b8a8d0", marginTop: 2 }}>Pacotes premium com cristais, ovos míticos e VIP.</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCashShopOpen(true)}
+                  className="lojinha-btn-glow"
+                  style={{
+                    marginTop: 8, width: "100%",
+                    background: "linear-gradient(135deg, #1ad66a 0%, #0ea85a 100%)",
+                    border: "1px solid rgba(184,255,207,0.9)",
+                    color: "#062a13", fontWeight: 900, fontSize: 10, letterSpacing: 1.2,
+                    borderRadius: 6, padding: "7px", cursor: "pointer",
+                    boxShadow: "0 2px 10px rgba(46,255,140,0.35)",
+                    position: "relative", overflow: "hidden",
+                  }}
+                  title="Abrir Lojinha Cash"
+                >
+                  <span style={{ position: "relative", zIndex: 2 }}>✦ ABRIR LOJINHA ✦</span>
+                  <span className="lojinha-star lojinha-star-1" aria-hidden>✦</span>
               <span className="lojinha-star lojinha-star-2" aria-hidden>✧</span>
               <span className="lojinha-star lojinha-star-3" aria-hidden>✦</span>
               <span className="lojinha-star lojinha-star-4" aria-hidden>✧</span>
               <span className="lojinha-star lojinha-star-5" aria-hidden>★</span>
             </button>
+              </div>
+            )}
           </div>
 
-          {/* BANNER — Evento Odisséia Oddish (clique para entrar quando aberto) */}
-          <div
-            onClick={() => {
-              const st = oddishEventStatus();
-              if (st.phase !== "open") {
-                const msg = st.phase === "closed" ? `Portal fechado. Abre em ${fmtOddishMs(st.msUntilChange)}.`
-                  : st.phase === "finished" ? "Evento encerrado."
-                  : "Evento em breve.";
-                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: msg, tone: "warn" } })); } catch {}
-                return;
-              }
-              const target = oddishMapForCycle();
-              setIdle((s) => {
-                if (s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3") return s;
-                oddishReturnMapRef.current = s.currentMap;
-                return { ...s, currentMap: target };
-              });
-              try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 ODISSÉIA ODDISH", body: "Você entrou no portal!", tone: "success" } })); } catch {}
-            }}
-            style={{
-              position: "relative",
-              marginTop: 2,
-              background: "linear-gradient(135deg, #1b0f2e 0%, #2a1548 55%, #4a1c6e 100%)",
-              border: "2px solid #ff8ac6",
-              borderRadius: 12,
-              padding: "10px 12px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              overflow: "hidden",
-              cursor: "pointer",
-              boxShadow: "0 4px 18px rgba(255,138,198,0.28), inset 0 0 24px rgba(255,138,198,0.12)",
-            }}
-            title="Clique para entrar no evento (quando aberto)"
-          >
-            <div style={{
-              position: "absolute", inset: 0, pointerEvents: "none",
-              background: "radial-gradient(circle at 85% 30%, rgba(255,180,220,0.28), transparent 55%), radial-gradient(circle at 10% 80%, rgba(140,90,220,0.25), transparent 60%)",
-            }} />
-            <div style={{
-              width: 58, height: 58, flexShrink: 0, borderRadius: "50%",
-              overflow: "hidden",
-              border: "2px solid #ffd6ec",
-              boxShadow: "0 0 12px rgba(255,138,198,0.6), inset 0 0 8px rgba(0,0,0,0.4)",
-              background: "#1a0a26",
-              position: "relative",
-            }}>
-              <img
-                src={assetUrlFromJson(eventBannerImg)}
-                alt="Evento"
-                width={58}
-                height={58}
-                className="cash-pack-float"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-            </div>
-            <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-            {(() => {
-              const st = oddishEventStatus();
-              const active = st.phase === "open" || st.phase === "closed";
-              const isOpen = st.phase === "open";
-              const label = st.phase === "finished" ? "ENCERRADO"
-                : st.phase === "disabled" ? "EM BREVE"
-                : isOpen ? "ABERTO" : "FECHADO";
-              const chipBg = isOpen
-                ? "linear-gradient(135deg,#8affb0,#3ec96f)"
-                : st.phase === "closed"
-                  ? "linear-gradient(135deg,#ff8ac6,#b464e6)"
-                  : "linear-gradient(135deg,#ff8ac6,#b464e6)";
-              const timerTxt = active
-                ? (isOpen ? `Fecha em ${fmtOddishMs(st.msUntilChange)}` : `Abre em ${fmtOddishMs(st.msUntilChange)}`)
-                : "Um novo evento está sendo preparado.";
-              return (
-                <div>
-                  <div style={{
-                    fontSize: 11, fontWeight: 900, color: "#ffd6ec",
-                    letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)",
-                  }}>✦ ODISSÉIA ODDISH</div>
-                  <div
-                    className={isOpen ? "cash-pack-float" : undefined}
-                    style={{ fontSize: 12, fontWeight: 900, color: isOpen ? "#8affb0" : "#fff", marginTop: 2, lineHeight: 1.2 }}
-                  >
-                    {isOpen ? "PORTAL ABERTO" : active ? "Aguardando janela" : "Em breve"}
-                  </div>
-                  <div style={{ fontSize: 9.5, color: "#e6c8f0", marginTop: 3, lineHeight: 1.3, fontFamily: "monospace" }}>
-                    {timerTxt}
-                  </div>
-                  <span style={{
-                    position: "absolute", top: 6, right: 8,
-                    fontSize: 9, fontWeight: 900, letterSpacing: 1,
-                    background: chipBg,
-                    color: "#1a0f26", padding: "2px 7px", borderRadius: 10,
-                    boxShadow: isOpen ? "0 0 12px rgba(138,255,176,0.85)" : "0 0 8px rgba(255,138,198,0.6)",
-                    animation: isOpen ? "pulse 1s infinite" : undefined,
-                  }}>{label}</span>
-                </div>
-              );
-            })()}
-            </div>
-          </div>
+          {/* BANNER Odisséia Oddish removido a pedido do usuário */}
 
-          {/* BANNER — Evento Grass Oddish (custa 20 Stone Verdejante) */}
-          <div
-            onClick={(ev) => {
-              ev.stopPropagation();
-              if (!ODDISH_EVENT.enabled) {
-                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado.", tone: "warn" } })); } catch {}
-                return;
-              }
-              const cur = idle;
-              const inEvent = cur.currentMap === "grass_oddish";
-              if (inEvent) {
-                setIdle((s) => {
-                  const back = s.grassOddishReturnMap ?? "arena";
-                  try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Você saiu do evento.", tone: "info" } })); } catch {}
-                  pushChat("🌿 Você saiu do evento Grass Oddish.", "info");
-                  return { ...s, currentMap: back, grassOddishReturnMap: undefined };
-                });
-                return;
-              }
-              const need = 20;
-              const have = cur.items?.stone_grass ?? 0;
-              if (have < need) {
-                setOddishNoStone({ have, need });
-                pushChat(`🌿 Grass Oddish: precisa de ${need} Stone Verdejante (você tem ${have}).`, "info");
-                return;
-              }
-              setOddishConfirm({ have, need });
-            }}
-            style={{
-              position: "relative",
-              marginTop: 6,
-              background: "linear-gradient(135deg,#0f2010 0%,#1a3d1c 55%,#2b5f2e 100%)",
-              border: "2px solid #8dfa8d",
-              borderRadius: 12,
-              padding: "10px 12px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              overflow: "hidden",
-              cursor: "pointer",
-              boxShadow: "0 4px 18px rgba(141,250,141,0.25), inset 0 0 24px rgba(141,250,141,0.10)",
-            }}
-            title="Evento Grass Oddish"
-          >
-            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 85% 30%, rgba(180,255,180,0.22), transparent 55%), radial-gradient(circle at 10% 80%, rgba(80,200,120,0.22), transparent 60%)" }} />
-            <div style={{ width: 58, height: 58, flexShrink: 0, borderRadius: "50%", overflow: "hidden", border: "2px solid #d6ffd6", boxShadow: "0 0 14px rgba(141,250,141,0.75), inset 0 0 8px rgba(0,0,0,0.4)", background: "radial-gradient(circle at 50% 40%, #1a3d1c 0%, #0a1a0a 80%)", display: "grid", placeItems: "center", position: "relative" }}>
-              <img src={oddishUrl} alt="Oddish" width={54} height={54} className="cash-pack-float" style={{ width: "94%", height: "94%", objectFit: "contain", imageRendering: "pixelated" as any, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} />
-              <span style={{ position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none", boxShadow: "inset 0 0 12px rgba(141,250,141,0.55)", animation: "pulse 1.6s ease-in-out infinite" }} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "#d6ffd6", letterSpacing: 1, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}>✦ GRASS ODDISH</div>
-              <div className="cash-pack-float" style={{ fontSize: 12, fontWeight: 900, color: "#8affb0", marginTop: 2, lineHeight: 1.2 }}>
-                {!ODDISH_EVENT.enabled ? "EVENTO ENCERRADO" : (idle.currentMap === "grass_oddish" ? "SAIR DO EVENTO" : "ENTRAR (20 🌿)")}
-              </div>
-              <div style={{ fontSize: 9.5, color: "#c8e8c8", marginTop: 3, lineHeight: 1.3, fontFamily: "monospace" }}>
-                Oddish capturados: <b style={{ color: "#fff" }}>{idle.grassOddishCaptured ?? 0}</b>
-              </div>
-              <div style={{ fontSize: 8.5, color: "#a8d0a8", marginTop: 2, lineHeight: 1.25 }}>
-                {!ODDISH_EVENT.enabled ? "Mapa bloqueado. Ranking preservado." : "Só Oddish (Raro/Épico/Mítico). Taxa de captura padrão."}
-              </div>
-              <span style={{ position: "absolute", top: 6, right: 8, fontSize: 9, fontWeight: 900, letterSpacing: 1, background: !ODDISH_EVENT.enabled ? "linear-gradient(135deg,#888,#444)" : (idle.currentMap === "grass_oddish" ? "linear-gradient(135deg,#8affb0,#3ec96f)" : "linear-gradient(135deg,#d6ffd6,#8dfa8d)"), color: "#0a2010", padding: "2px 7px", borderRadius: 10, boxShadow: "0 0 10px rgba(141,250,141,0.7)" }}>
-                {!ODDISH_EVENT.enabled ? "ENCERRADO" : (idle.currentMap === "grass_oddish" ? "DENTRO" : "ABERTO")}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); playClick(); setOddishRankOpen(true); }}
-            style={{
-              marginTop: 6,
-              width: "100%",
-              background: "linear-gradient(135deg,#1a3d1c 0%,#2b5f2e 60%,#3ec96f 100%)",
-              border: "1px solid #8dfa8d",
-              borderRadius: 10,
-              padding: "7px 10px",
-              color: "#eaffea",
-              fontWeight: 900,
-              fontSize: 11,
-              letterSpacing: 1,
-              cursor: "pointer",
-              textShadow: "0 1px 0 rgba(0,0,0,0.5)",
-              boxShadow: "0 2px 10px rgba(141,250,141,0.25)",
-            }}
-            title="Ranking global do evento Grass Oddish"
-          >
-            🏆 RANKING DO EVENTO
-          </button>
+          {/* BANNER Grass Oddish removido a pedido do usuário */}
+          {/* Botão RANKING DO EVENTO removido a pedido do usuário */}
 
           {/* Guia do Prof. Carvalho removido a pedido do usuário */}
 
@@ -11999,82 +12949,89 @@ function IdlePage() {
 
 
         {/* ============ NAV INFERIOR ============ */}
-        <div className="bottom-nav-bar" style={{ gridColumn: "1 / -1" }}>
+        <div className="bottom-nav-bar" style={{ gridColumn: "1 / -1", alignItems: "center" }}>
 
-          {([
-            { id: "inicio",   label: "Início",   img: navInicio,    color: "#f5cf6b" },
-            { id: "pokemon",  label: "Pokémon",  img: navPokemon,   color: "#ff5252" },
-            { id: "mochila",  label: "Mochila",  img: bagIconImg,   color: "#ffd66b" },
-            { id: "melhorias",label: "Melhorias",img: navMelhorias, color: "#7ef27a" },
-            { id: "colecao",  label: "Coleção",  img: navColecao,   color: "#ff5c8a" },
-
-            { id: "pokedex",  label: "Pokédex",  img: navColecao,   color: "#e11d48" },
-            { id: "loja",     label: "Loja",     img: navLoja,      color: "#6bd4ff" },
-            { id: "market",   label: "Marketplace", img: navMarket, color: "#ff9d3d", disabled: true },
-            { id: "wallet",   label: "Banco Medieval", img: navWallet, color: "#ffd66b" },
-          ] as const).map((t) => {
-
-            const active = tab === t.id;
-            const showActive = active;
-            const color = t.color;
-            const isDisabled = (t as { disabled?: boolean }).disabled === true;
-            return (
-              <button
+          <div style={{
+            display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 2,
+            flex: 1, minWidth: 0,
+            background: "linear-gradient(180deg, #0d1729 0%, #070c17 100%)",
+            border: "1px solid rgba(100,160,255,0.38)",
+            borderRadius: 16, padding: "8px 12px 9px", margin: "0 8px",
+            boxShadow: "0 8px 28px rgba(0,0,0,0.6), 0 0 22px rgba(70,130,255,0.16), inset 0 1px 0 rgba(150,200,255,0.28)",
+          }}>
+            {([
+              { id: "pokemon",  label: "Pokémon",  img: navPokemon },
+              { id: "mochila",  label: "Mochila",  img: bagIconImg },
+              { id: "colecao",  label: "Coleção",  img: navColecao },
+              { id: "pokedex",  label: "Pokédex",  img: navColecao },
+            ] as const).map((t) => (
+              <BottomNavBtn
                 key={t.id}
-                onClick={() => {
-                  if (isDisabled) {
-                    playClick();
-                     pushChat("🛒 Mercado temporariamente bloqueado.", "info");
-                    return;
-                  }
-                  playClick();
-                  setTab(t.id as typeof tab);
-                }}
-                title={isDisabled ? `${t.label} (em breve)` : t.label}
-                style={{
-                  flex: 1, maxWidth: 130,
-                  background: active ? `linear-gradient(180deg, ${color}33 0%, ${color}11 100%)` : "transparent",
-                  color: isDisabled ? "#6a5a70" : (active ? color : "#c8b8d0"),
-                  border: active ? `1px solid ${color}88` : "1px solid transparent",
-                  padding: "8px 6px", cursor: isDisabled ? "not-allowed" : "pointer",
-                  borderRadius: 10, display: "flex", flexDirection: "column",
-                  alignItems: "center", gap: 4, fontSize: 11, position: "relative",
-                  transition: "background 150ms, color 150ms, border-color 150ms",
-                  boxShadow: active ? `0 0 14px ${color}66, inset 0 1px 0 ${color}44` : "none",
-                  opacity: isDisabled ? 0.55 : 1,
-                }}
-              >
-                <img
-                  src={t.img}
-                  alt=""
-                  width={34}
-                  height={34}
+                label={t.label}
+                img={t.img}
+                active={tab === t.id}
+                onClick={() => { playClick(); setTab(t.id as typeof tab); }}
+              />
+            ))}
+            <CompassBtn
+              active={tab === "inicio"}
+              onClick={() => { playClick(); setTab("inicio"); }}
+            />
+            {([
+              { id: "melhorias",label: "Melhorias",img: navMelhorias },
+              { id: "loja",     label: "Loja",     img: navLoja },
+              { id: "market",   label: "Marketplace", img: navMarket, disabled: true },
+              { id: "wallet",   label: "Banco Medieval", img: navWallet },
+            ] as const).map((t) => {
+              const isDisabled = (t as { disabled?: boolean }).disabled === true;
+              const active = tab === t.id;
+              if (!isDisabled) {
+                return (
+                  <BottomNavBtn
+                    key={t.id}
+                    label={t.label}
+                    img={t.img}
+                    active={active}
+                    onClick={() => { playClick(); setTab(t.id as typeof tab); }}
+                  />
+                );
+              }
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => { playClick(); pushChat("🛒 Mercado temporariamente bloqueado.", "info"); }}
+                  title={`${t.label} (em breve)`}
+                  className="bottomnav-btn"
                   style={{
-                    width: 34, height: 34, imageRendering: "pixelated",
-                    filter: isDisabled
-                      ? "grayscale(1) brightness(0.7) drop-shadow(0 2px 2px rgba(0,0,0,0.6))"
-                      : (active
-                        ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 2px 2px rgba(0,0,0,0.5))`
-                        : "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) saturate(0.85) brightness(0.9)"),
-                    transform: active ? "translateY(-2px) scale(1.08)" : "none",
-                    transition: "transform 150ms, filter 150ms",
+                    flex: 1, maxWidth: 120, minWidth: 0,
+                    background: "transparent", border: "none", padding: "6px 4px 5px", cursor: "not-allowed",
+                    borderRadius: 12, display: "flex", flexDirection: "column",
+                    alignItems: "center", gap: 5, position: "relative", opacity: 0.55,
                   }}
-                />
-
-                <span style={{ fontWeight: showActive ? 700 : 500, letterSpacing: 0.3 }}>
-                  {t.label}
-                </span>
-                {isDisabled && (
+                >
+                  <img
+                    src={t.img}
+                    alt=""
+                    width={32}
+                    height={32}
+                    style={{
+                      width: 32, height: 32, imageRendering: "pixelated",
+                      filter: "grayscale(1) brightness(0.7) drop-shadow(0 2px 2px rgba(0,0,0,0.6))",
+                    }}
+                  />
+                  <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: 0.3, color: "#6a5a70" }}>
+                    {t.label}
+                  </span>
                   <span style={{
                     position: "absolute", top: 2, right: 4,
                     fontSize: 8, fontWeight: 700, letterSpacing: 0.5,
                     color: "#ffd66b", background: "rgba(0,0,0,0.55)",
                     padding: "1px 4px", borderRadius: 4, border: "1px solid #ffd66b55",
                   }}>EM BREVE</span>
-                )}
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
           {/* ===== BOTÃO SALVAR NA NUVEM ===== */}
           <button
             onClick={async () => {
@@ -12092,20 +13049,22 @@ function IdlePage() {
               }
             }}
             title="Salvar progresso na nuvem"
+            className="bottomnav-btn"
             style={{
-              flex: 1, maxWidth: 130,
-              background: "linear-gradient(180deg, #22d3ee33 0%, #22d3ee11 100%)",
+              flexShrink: 0,
+              width: 64, height: 64, borderRadius: "50%",
+              background: "radial-gradient(circle at 50% 35%, #164e63 0%, #0a1626 75%)",
               color: "#22d3ee",
-              border: "1px solid #22d3ee88",
-              padding: "8px 6px", cursor: "pointer",
-              borderRadius: 10, display: "flex", flexDirection: "column",
-              alignItems: "center", gap: 4, fontSize: 11, position: "relative",
+              border: "2px solid #22d3ee88",
+              cursor: "pointer",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 0,
               boxShadow: "0 0 14px #22d3ee55, inset 0 1px 0 #22d3ee44",
-              fontWeight: 700, letterSpacing: 0.3,
+              fontWeight: 700,
             }}
           >
-            <span style={{ fontSize: 28, lineHeight: 1, filter: "drop-shadow(0 0 8px #22d3ee)" }}>☁️</span>
-            <span>Salvar</span>
+            <span style={{ fontSize: 22, lineHeight: 1, filter: "drop-shadow(0 0 8px #22d3ee)" }}>☁️</span>
+            <span style={{ fontSize: 9 }}>Salvar</span>
           </button>
         </div>
       </div>
@@ -13606,6 +14565,20 @@ function IdlePage() {
           100% { opacity: 1; transform: translate(-50%, 0); }
         }
 
+        /* ===== HUD portátil (bottomnav / quests / aura / gps / orbs) ===== */
+        .bottomnav-btn { transition: transform 120ms ease, filter 150ms ease; }
+        .bottomnav-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+        .bottomnav-btn:active { transform: translateY(0) scale(0.92); }
+        @keyframes pokeShine { 0% { transform: translateX(-120%) skewX(-12deg); opacity: 0; } 20% { opacity: 1; } 55% { transform: translateX(120%) skewX(-12deg); opacity: 0; } 100% { transform: translateX(120%) skewX(-12deg); opacity: 0; } }
+        @keyframes questGlow { 0%,100% { box-shadow: 0 0 8px rgba(255,204,51,0.35) } 50% { box-shadow: 0 0 16px rgba(255,204,51,0.9), 0 0 22px rgba(255,204,51,0.5) } }
+        @keyframes auraPulse { 0% { transform: scale(1.22); opacity: 0.52 } 50% { transform: scale(1.42); opacity: 0.82 } 100% { transform: scale(1.22); opacity: 0.52 } }
+        @keyframes auraRotate { 0% { transform: translate(-50%, -50%) rotate(0deg) } 100% { transform: translate(-50%, -50%) rotate(360deg) } }
+        @keyframes pyramidSpin { 0% { transform: rotateY(0deg) } 100% { transform: rotateY(360deg) } }
+        @keyframes orbPulse { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.13); } 100% { transform: translate(-50%, -50%) scale(1); } }
+        @keyframes orbFlashBurst { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; } 50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; } }
+        @keyframes healRing { 0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0.85; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
+        @keyframes healFloat { 0% { transform: translate(calc(-50% + var(--hdx, 0px)), -50%); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--hdx, 0px)), calc(-50% - 54px)); opacity: 0; } }
+
         /* ===== Sidebar goodies ===== */
         @keyframes world-globe-spin {
           0%   { transform: rotate(0deg); }
@@ -14597,18 +15570,9 @@ function IdlePage() {
                 <button
                   onClick={() => {
                     const uid = pet.uid;
-                    const azul = BUILDINGS.find((b) => b.key === "azul");
-                    if (!azul) return;
                     setPetDetailUid(null);
-                    setAzulPreselectUid(uid);
-                    walkTargetRef.current = {
-                      x: azul.x, y: azul.y - 40, label: "Casa Azul",
-                      onArrive: () => { setAzulPickerOpen(true); },
-                      resumeAuto: autoRef.current,
-                    };
-                    setWalkingTo("Casa Azul");
-                    setAuto(false);
-                    pushChat(`🏡 Indo à Casa Azul para deixar ${pet.species.toUpperCase()} descansar...`, "info");
+                    restPetInAzul(uid);
+                    pushChat(`🏡 ${pet.species.toUpperCase()} foi descansar na Casa Azul...`, "info");
                   }}
                   style={{ marginTop: 14, width: "100%", background: "#4a9eff", color: "#0b0510", border: "none", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer" }}
                 >🏡 Levar à Casa Azul (5💎 · 5 min)</button>
@@ -14837,11 +15801,21 @@ function IdlePage() {
               boxShadow: `inset 0 0 6px rgba(0,0,0,0.6), 0 0 10px ${rColor}88`,
             }}>
               {gif ? (
-                <img src={gif} alt={tgt.sp} style={{
-                  width: "120%", height: "120%", objectFit: "contain",
-                  imageRendering: "pixelated",
-                  transform: tgt.face === "right" ? "scaleX(-1)" : "none",
-                }} />
+                SPRITE_SHEET[tgt.sp] ? (
+                  <div style={{
+                    width: "120%", height: "120%",
+                    backgroundImage: `url(${SPRITE_SHEET[tgt.sp]})`,
+                    backgroundSize: "400% 400%",
+                    backgroundPosition: `${(Math.abs(Math.floor((tgt.x + tgt.y) / 24)) % 4) * 33.333}% ${({ up: 3, down: 0, left: 1, right: 2 }[(tgt.wdir ?? tgt.face)] as number) * 33.333}%`,
+                    imageRendering: "pixelated",
+                  }} />
+                ) : (
+                  <img src={gif} alt={tgt.sp} style={{
+                    width: "120%", height: "120%", objectFit: "contain",
+                    imageRendering: "pixelated",
+                    transform: tgt.face === "right" ? "scaleX(-1)" : "none",
+                  }} />
+                )
               ) : <span style={{ fontSize: 26 }}>❓</span>}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -15469,6 +16443,99 @@ function BallSlot({ img, count, tint }: { img: string; count: number; tint: stri
 
 
 // ============ estilos ============
+// Botão da barra inferior estilo RPG (ícone pixel + label)
+function BottomNavBtn({ label, img, active, onClick }: {
+  label: string; img: string; active: boolean; onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      className="bottomnav-btn"
+      style={{
+        flex: 1, maxWidth: 120, minWidth: 0,
+        background: active
+          ? "radial-gradient(ellipse at 50% 0%, rgba(90,150,255,0.25), rgba(90,150,255,0.05) 70%, transparent 100%)"
+          : "transparent",
+        border: "none", padding: "6px 4px 5px", cursor: "pointer",
+        borderRadius: 12, display: "flex", flexDirection: "column",
+        alignItems: "center", gap: 5, position: "relative",
+      }}
+    >
+      <img
+        src={img}
+        alt=""
+        width={32}
+        height={32}
+        draggable={false}
+        style={{
+          width: 32, height: 32, imageRendering: "pixelated",
+          filter: active
+            ? "drop-shadow(0 0 9px rgba(110,175,255,0.95)) drop-shadow(0 2px 2px rgba(0,0,0,0.5))"
+            : "drop-shadow(0 2px 3px rgba(0,0,0,0.7)) saturate(0.75) brightness(0.85)",
+          transform: active ? "translateY(-2px) scale(1.06)" : "none",
+          transition: "transform 150ms, filter 150ms",
+        }}
+      />
+      <span style={{
+        fontSize: 11, letterSpacing: 0.3, whiteSpace: "nowrap",
+        fontWeight: active ? 700 : 500,
+        color: active ? "#ffffff" : "#8fa3c8",
+        textShadow: "0 1px 2px #000",
+      }}>
+        {label}
+      </span>
+      {active && (
+        <span style={{
+          width: 5, height: 5, borderRadius: "50%",
+          background: "#8fc0ff", boxShadow: "0 0 8px 2px rgba(110,175,255,0.9)",
+        }} />
+      )}
+    </button>
+  );
+}
+
+// Bússola central da barra inferior (atalho Início)
+function CompassBtn({ active, onClick }: { active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      title="Início"
+      className="bottomnav-btn"
+      style={{
+        width: 84, flexShrink: 0, background: "transparent", border: "none",
+        padding: 0, cursor: "pointer", display: "flex", flexDirection: "column",
+        alignItems: "center", gap: 3,
+      }}
+    >
+      <span style={{
+        display: "grid", placeItems: "center",
+        width: 62, height: 62, borderRadius: "50%", marginTop: -28,
+        background: "radial-gradient(circle at 50% 35%, #1b2f4d 0%, #0a1322 75%)",
+        border: `3px solid ${active ? "#cfe6ff" : "#8fb8ef"}`,
+        boxShadow: active
+          ? "0 0 22px 4px rgba(120,185,255,0.75), 0 4px 14px rgba(0,0,0,0.6), inset 0 0 12px rgba(120,185,255,0.35)"
+          : "0 0 14px 2px rgba(120,185,255,0.45), 0 4px 14px rgba(0,0,0,0.6), inset 0 0 10px rgba(120,185,255,0.2)",
+      }}>
+        <svg width={36} height={36} viewBox="0 0 64 64" style={{ filter: "drop-shadow(0 0 5px rgba(160,210,255,0.9))" }}>
+          <circle cx={32} cy={32} r={26} fill="none" stroke="rgba(160,205,255,0.5)" strokeWidth={2} />
+          <polygon points="32,8 37,30 32,27 27,30" fill="#eaf4ff" />
+          <polygon points="32,56 37,34 32,37 27,34" fill="#4a8fe0" />
+          <polygon points="56,32 34,37 37,32 34,27" fill="#7fb2ec" />
+          <polygon points="8,32 30,37 27,32 30,27" fill="#7fb2ec" />
+          <circle cx={32} cy={32} r={3.5} fill="#eaf4ff" />
+        </svg>
+      </span>
+      <span style={{
+        fontSize: 10, letterSpacing: 0.3, fontWeight: active ? 700 : 500,
+        color: active ? "#ffffff" : "#8fa3c8", textShadow: "0 1px 2px #000",
+      }}>
+        Início
+      </span>
+    </button>
+  );
+}
+
 const smallBtn: React.CSSProperties = {
   background: "#2a1a3a", color: "#f3e5c5",
   border: "1px solid rgba(245,207,107,0.2)",
