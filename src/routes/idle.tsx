@@ -248,7 +248,7 @@ import orbIncubatorImg from "@/assets/orb-incubator.png";
 import redLakeAsset from "@/assets/red-lake.png.asset.json";
 import volcanoAsset from "@/assets/volcano.png.asset.json";
 import mapBeachUrl from "@/assets/map-beach-idle.png";
-import mapCidadeUrl from "@/assets/cidade-principal.png";
+import mapCidadeAsset from "@/assets/map-village.webp.asset.json";
 import mapinha1Url from "@/assets/mapinha1.png";
 import mapinha2Url from "@/assets/mapinha2.png";
 import mapinha3Url from "@/assets/mapinha3.png";
@@ -272,6 +272,7 @@ import stalagmiteAsset from "@/assets/stalagmite.png.asset.json";
 import caveCrystalAsset from "@/assets/cave-crystal.png.asset.json";
 
 import crystalClusterAsset from "@/assets/crystal-cluster.png.asset.json";
+const mapCidadeUrl = assetUrlFromJson(mapCidadeAsset);
 const caveFloorUrl = assetUrlFromJson(caveFloorAsset);
 const stalagmiteUrl = assetUrlFromJson(stalagmiteAsset);
 const caveCrystalUrl = assetUrlFromJson(caveCrystalAsset);
