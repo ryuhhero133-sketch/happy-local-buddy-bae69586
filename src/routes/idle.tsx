@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, ClientOnly } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
 import { Calendar, Gift, Clock } from "lucide-react";
@@ -1503,6 +1503,7 @@ function getMultiplayerSessionId(baseId: string) {
 
 // ============ Route ============
 export const Route = createFileRoute("/idle")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Modo Idle — Ruby M" },
@@ -1510,11 +1511,9 @@ export const Route = createFileRoute("/idle")({
     ],
   }),
   component: () => (
-    <ClientOnly fallback={<div style={{ display: "grid", placeItems: "center", minHeight: "50vh", color: "#fff", background: "#0b0510" }}>Carregando mundo...</div>}>
-      <AuthGate>
-        <IdlePage />
-      </AuthGate>
-    </ClientOnly>
+    <AuthGate>
+      <IdlePage />
+    </AuthGate>
   ),
 });
 
