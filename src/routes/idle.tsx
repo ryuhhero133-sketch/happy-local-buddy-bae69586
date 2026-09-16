@@ -251,6 +251,8 @@ import mapBeachUrl from "@/assets/map-beach-idle.png";
 import mapCidadeAsset from "@/assets/map-village.webp.asset.json";
 import mapinha5Url from "@/assets/mapinha5.png";
 import mapinha6Url from "@/assets/mapinha6.png";
+import mapinha7Url from "@/assets/mapinha7.png";
+import mapinha8Url from "@/assets/mapinha8.png";
 import bulbasaurFlowerAsset from "@/assets/npcs/bulbasaur-flower.png.asset.json";
 import bulbasaurOrangeAsset from "@/assets/npcs/bulbasaur-orange.png.asset.json";
 import collectIconImg from "@/assets/icons/collect-icon.png";
@@ -288,6 +290,7 @@ import bulbasaurGif from "@/assets/bulbasaur.gif";
 import bulbasaurFlowerPng from "@/assets/bulbasaur-flower.png";
 import bulbasaurOrangePng from "@/assets/bulbasaur-orange.png";
 import gordinPng from "@/assets/gordin.png";
+import luluzinhaPng from "@/assets/luluzinha.png";
 import charmanderGif from "@/assets/charmander.gif";
 import squirtleGif from "@/assets/squirtle.gif";
 import rattataFAsset from "@/assets/rattata-f.gif.asset.json";
@@ -554,7 +557,7 @@ type IdleMapId =
   // Mapas BÔNUS DARK — variações sombrias do Vale Verdejante (abrem 2h a cada 4h)
   | "dark_vale1" | "dark_vale2" | "dark_vale3"
   // Cidade + Mapinhas (teleporte grátis)
-  | "cidade" | "mapinha1" | "mapinha2" | "mapinha3" | "mapinha4" | "mapinha5" | "mapinha6";
+  | "cidade" | "mapinha1" | "mapinha2" | "mapinha3" | "mapinha4" | "mapinha5" | "mapinha6" | "mapinha7" | "mapinha8";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -624,6 +627,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapinha4: { name: "Mapinha 4",        diff: "Médio+", bg: mapinha4Url,  rate: 1.6, minLevel: 15, maxLevel: 60, element: "Terra",  stars: 2 },
   mapinha5: { name: "Mapinha 5",        diff: "Difícil",  bg: mapinha5Url,  rate: 1.8, minLevel: 20, maxLevel: 80, element: "Planta",  stars: 3 },
   mapinha6: { name: "Mapinha 6",        diff: "Difícil+", bg: mapinha6Url,  rate: 2.0, minLevel: 25, maxLevel: 100, element: "Normal",  stars: 3 },
+  mapinha7: { name: "Mapinha 7",        diff: "Fácil",  bg: mapinha7Url,  rate: 1.0, minLevel: 1,  maxLevel: 20, element: "Normal", stars: 1 },
+  mapinha8: { name: "Mapinha 8",        diff: "Fácil+", bg: mapinha8Url,  rate: 1.1, minLevel: 5,  maxLevel: 25, element: "Água",   stars: 1 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -856,8 +861,38 @@ type Obstacle = {
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
-  // Cidade e mapinhas 3/4/5/6: totalmente limpos
-  if (mapId === "cidade" || mapId === "mapinha3" || mapId === "mapinha4" || mapId === "mapinha5" || mapId === "mapinha6") return [];
+  // Cidade e mapinhas 3/4/5/7/8: totalmente limpos
+  if (mapId === "cidade" || mapId === "mapinha3" || mapId === "mapinha4" || mapId === "mapinha5" || mapId === "mapinha7" || mapId === "mapinha8") return [];
+  // Mapinha6: colisão invisível (4 casas, lago, placa + borda da floresta)
+  if (mapId === "mapinha6") {
+    const inv = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    const list: Obstacle[] = [
+      // Casa topo-esquerda (telhado marrom)
+      { id: 1, x: 345, y: 347, w: 220, h: 205, src: inv, blocks: true, collideR: 150 },
+      // SHOP topo-direita (azul)
+      { id: 2, x: 1057, y: 347, w: 245, h: 205, src: inv, blocks: true, collideR: 160 },
+      // P.C base-esquerda (vermelho)
+      { id: 3, x: 345, y: 792, w: 220, h: 195, src: inv, blocks: true, collideR: 150 },
+      // Casa base-direita (marrom)
+      { id: 4, x: 1057, y: 792, w: 245, h: 195, src: inv, blocks: true, collideR: 155 },
+      // Lago lado esquerdo
+      { id: 5, x: 147, y: 420, w: 175, h: 180, src: inv, blocks: true, collideR: 125 },
+      // Placa centro
+      { id: 6, x: 705, y: 550, w: 50, h: 60, src: inv, blocks: true, collideR: 40 },
+    ];
+    // Borda da floresta — círculos invisíveis ao longo do perímetro
+    let nid = 7;
+    const step = 90;
+    for (let x = 70; x <= worldW - 70; x += step) {
+      list.push({ id: nid++, x, y: 70, w: 40, h: 40, src: inv, blocks: true, collideR: 55 });
+      list.push({ id: nid++, x, y: worldH - 70, w: 40, h: 40, src: inv, blocks: true, collideR: 55 });
+    }
+    for (let y = 160; y <= worldH - 160; y += step) {
+      list.push({ id: nid++, x: 70, y, w: 40, h: 40, src: inv, blocks: true, collideR: 55 });
+      list.push({ id: nid++, x: worldW - 70, y, w: 40, h: 40, src: inv, blocks: true, collideR: 55 });
+    }
+    return list;
+  }
   // Mapinhas 1 e 2: pouquíssimas árvores, sem pedras (bem limpo)
   if (mapId === "mapinha1" || mapId === "mapinha2") {
     let seed2 = 777;
@@ -2700,6 +2735,8 @@ function IdlePage() {
     mapinha4: mapinha4Url,
     mapinha5: mapinha5Url,
     mapinha6: mapinha6Url,
+    mapinha7: mapinha7Url,
+    mapinha8: mapinha8Url,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
   useEffect(() => {
@@ -2806,7 +2843,7 @@ function IdlePage() {
   const [healFx, setHealFx] = useState<HealFx[]>([]);
   const healFxIdRef = useRef(1);
   const [trainerEnergy, setTrainerEnergy] = useState(100);
-  type NpcKind = "gordin" | "bulbaOrange" | "bulbaFlower";
+  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower";
   const [npcs, setNpcs] = useState<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
   const [npcDialog, setNpcDialog] = useState<{ kind: NpcKind; page: number } | null>(null);
   // Energia do treinador: drena 100% em 30min andando e trava ao zerar
@@ -2841,6 +2878,7 @@ function IdlePage() {
   useEffect(() => {
     if (idle.currentMap === "mapinha1") {
       setNpcs([
+        { id: 1, kind: "luluzinha", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.45 : 800, dir: "down", frame: 0 },
         { id: 2, kind: "bulbaOrange", x: customDims ? customDims.w * 0.35 : 700, y: customDims ? customDims.h * 0.6 : 1100, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "mapinha2") {
@@ -7153,7 +7191,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 48 : 30;
+  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 48 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : 30);
 
   function spawnEnemies(): Enemy[] {
     if (idle.currentMap === "cidade" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
@@ -9185,7 +9223,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           {npcDialog && (
             <div
               onClick={() => {
-                const dialogs = {
+                if (npcDialog.kind === "luluzinha") {
+                  if (npcDialog.page === 0) return;
+                  setNpcDialog({ kind: "luluzinha", page: 0 });
+                  return;
+                }
+                const dialogs: Record<string, string[]> = {
                   gordin: [
                     "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um de cor diferente, azulado, que ninguém nunca viu!",
                     ([...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_orange"))
@@ -9212,6 +9255,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 imageRendering: "pixelated",
               }}
             >
+              <button
+                onClick={(e) => { e.stopPropagation(); setNpcDialog(null); }}
+                style={{
+                  position: "absolute", top: -8, right: -8, width: 22, height: 22, borderRadius: "50%",
+                  background: "#b91c1c", border: "2px solid #fff", color: "#fff", fontWeight: 900, fontSize: 12,
+                  display: "grid", placeItems: "center", cursor: "pointer", zIndex: 1,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+                }}
+                title="Fechar"
+              >✕</button>
               <div style={{
                 width: 56, height: 56, border: "2px solid #fff", borderRadius: 6, overflow: "hidden",
                 background: "#0f2a5a", flexShrink: 0,
@@ -9219,7 +9272,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               }}>
                 <div style={{
                   width: "100%", height: "100%",
-                  backgroundImage: `url(${npcDialog.kind === "gordin" ? gordinPng : npcDialog.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl})`,
+                  backgroundImage: `url(${npcDialog.kind === "gordin" ? gordinPng : npcDialog.kind === "luluzinha" ? luluzinhaPng : npcDialog.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl})`,
                   backgroundSize: "400% 400%",
                   backgroundPosition: "0% 0%",
                   imageRendering: "pixelated",
@@ -9228,7 +9281,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", textShadow: "1px 1px 0 #1a2e6b", whiteSpace: "pre-wrap" }}>
                   {(() => {
-                    const dialogs = {
+                    if (npcDialog.kind === "luluzinha") {
+                      if (npcDialog.page === 0) return "Olá! Sou a Luluzinha, exploradora! 🌿 Estou numa expedição à procura da Flor de Cristal Violeta... uma flor que muda de cor ao luar! Dizem que só nasce onde um Bulbasaur especial floresceu. Quer me ajudar?";
+                      if (npcDialog.page === 1) return "A Flor de Cristal Violeta tem pétalas que brilham como ametista ao luar! Dizem que ela nasce onde o Bulbasaur Florido cantou... Se você vir um brilho violeta no chão do Mapinha 1, me avise! ✨";
+                      if (npcDialog.page === 2) return "Ela é especial porque guarda pólen dourado que faz qualquer Pokémon florescer! Um colecionador em Johto paga 50 esmeraldas por uma pétala... mas eu quero plantar de volta na floresta! 🌱💎";
+                      if (npcDialog.page === 3) return "Procure perto dos arbustos floridos do Mapinha 1 ao amanhecer... e se capturar um Bulbasaur Florido, traga até mim! Posso te dar uma pista ou uma recompensa surpresa... 🔍";
+                      return "...";
+                    }
+                    const dialogs: Record<string, string[]> = {
                       gordin: [
                         "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um de cor diferente, azulado, que ninguém nunca viu!",
                         ([...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_orange"))
@@ -9242,7 +9302,29 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     return pages[npcDialog.page] ?? pages[0];
                   })()}
                 </div>
-                <div style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900 }}>▼ {npcDialog.page + 1}/2</div>
+                {npcDialog.kind === "luluzinha" && npcDialog.page === 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                    {[
+                      "🌸 Que flor você procura?",
+                      "💎 Por que ela é especial?",
+                      "🔍 Onde posso procurar?",
+                    ].map((label, idx) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => { e.stopPropagation(); setNpcDialog({ kind: "luluzinha", page: idx + 1 }); }}
+                        style={{
+                          textAlign: "left", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.25)",
+                          color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700,
+                        }}
+                      >{label}</button>
+                    ))}
+                    <div style={{ textAlign: "right", marginTop: 4, color: "#ffcc33", fontSize: 10, fontWeight: 900 }}>Escolha uma pergunta ◆</div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900 }}>
+                    ▼ {npcDialog.kind === "luluzinha" ? `${npcDialog.page}/3 — clique para voltar` : `${npcDialog.page + 1}/2`}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -9714,8 +9796,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               }}>+</span>
             ))}
             {npcs.map((n) => {
-              const isBoy = n.kind === "gordin";
-              const url = n.kind === "gordin" ? gordinPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+              const isBoy = n.kind === "gordin" || n.kind === "luluzinha";
+              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
               const dirRow = { down: 0, left: 1, right: 2, up: 3 }[n.dir] ?? 0;
               return (
                 <div
@@ -11662,6 +11744,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   { key: "to-mapinha4", target: "mapinha4", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: 100, arriveY: 100, color: "#c084fc" },
                   { key: "to-mapinha5", target: "mapinha5", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a3e635" },
                   { key: "to-mapinha6", target: "mapinha6", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#fb923c" },
+                  { key: "to-mapinha7", target: "mapinha7", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#f472b6" },
+                  { key: "to-mapinha8", target: "mapinha8", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#60a5fa" },
                 ],
                 mapinha1: [
                   { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
@@ -11679,6 +11763,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
                 mapinha6: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha7: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha8: [
                   { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
               };
@@ -20468,6 +20558,8 @@ function MapIconRenderer({ type, name, ok }: { type: string; name: string; ok: b
     </div>
   );
 }
+
+
 
 
 
