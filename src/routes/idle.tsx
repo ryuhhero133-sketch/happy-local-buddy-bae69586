@@ -539,7 +539,7 @@ const sfxClickUrl = assetUrlFromJson(sfxClickAsset);
 const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
-type IdleMapId = "arena" | "terra" | "mapinha5" | "mapinha6" | "mapinha7" | "mapinha8" | "mapinha9" | "mapinha10" | "mapinha11" | "mapinha12" | "mapinha13";
+type IdleMapId = string;
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -585,7 +585,7 @@ WORLD_PORTALS.push(...HOUSE_PORTALS);
 
 // Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
 function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
-  const c = IDLE_MAPS.caverna.cycle!;
+  const c = { cycleMs: 1, openMs: 1 };
   const t = now % c.cycleMs;
   if (t < c.openMs) return { open: true, msUntilChange: c.openMs - t };
   return { open: false, msUntilChange: c.cycleMs - t };
