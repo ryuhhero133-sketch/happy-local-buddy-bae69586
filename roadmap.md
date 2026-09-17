@@ -1,4 +1,4 @@
 # Roadmap
-- [ ] Remover os 45 mapas solicitados e todas as referências executáveis
-- [ ] Preservar saves com fallback para arena
-- [ ] Validar tipos, execução e mapa principal
+- [x] Remover os 45 mapas solicitados e todas as referências executáveis
+- [x] Preservar saves com fallback para arena
+- [x] Validar tipos, execução e mapa principal

@@ -2039,6 +2039,8 @@ function IdlePage() {
   }, []);
 
 
+  const [governanteOpen, setGovernanteOpen] = useState(false);
+
   // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
   // para a Casa Azul (5💎 = 5min; sem cristais = 1h grátis). Assim ele sai
   // do time e o próximo assume — o treinador não fica preso.
