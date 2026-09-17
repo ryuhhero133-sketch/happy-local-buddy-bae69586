@@ -2037,28 +2037,7 @@ function IdlePage() {
     }, 1000);
     return () => clearInterval(iv);
   }, []);
-  // Fecha a caverna: expulsa o treinador quando o ciclo terminar
-  useEffect(() => {
-    if (idle.currentMap !== "arena") return;
-    const w = caveWindow();
-    if (!w.open) {
-      setIdle((s) => ({ ...s, currentMap: "arena" }));
-      pushChat(`⛰ Caverna Rochosa fechou. Você foi levado ao Vale Verdejante.`, "info");
-      pushEvent("⛰", "CAVERNA FECHADA", "Volte quando reabrir", "#a08770");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [energyTick, idle.currentMap]);
 
-  // Governante NPC — abre a cutscene de diálogo ao entrar no Salão do Governante.
-  const [governanteOpen, setGovernanteOpen] = useState(false);
-  useEffect(() => {
-    // Zona sagrada — limpa qualquer inimigo que tenha ficado do mapa anterior.
-    if (idle.currentMap === "arena" || idle.currentMap === "arena") {
-      setEnemies([]);
-    }
-    if (idle.currentMap !== "arena") return;
-    setGovernanteOpen(true);
-  }, [idle.currentMap]);
 
   // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
   // para a Casa Azul (5💎 = 5min; sem cristais = 1h grátis). Assim ele sai
@@ -2684,11 +2663,6 @@ function IdlePage() {
   const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
   const customMapUrls: Record<string, string> = {
-    cidade: mapCidadeUrl,
-    mapinha1: mapinha1Url,
-    mapinha2: mapinha2Url,
-    mapinha3: mapinha3Url,
-    mapinha4: mapinha4Url,
     mapinha5: mapinha5Url,
     mapinha6: mapinha6Url,
     mapinha7: mapinha7Url,
